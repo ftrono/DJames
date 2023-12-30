@@ -1,0 +1,171 @@
+package com.ftrono.djeenoforspotify.service
+
+import com.ftrono.djeenoforspotify.R
+import android.app.Service
+import android.annotation.SuppressLint
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.content.Context.WINDOW_SERVICE
+import android.content.Intent
+import android.graphics.Color
+import android.graphics.PixelFormat
+import android.os.Build
+import android.os.IBinder
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.View
+import android.view.View.OnTouchListener
+import android.view.WindowManager
+import android.view.WindowManager.LayoutParams
+import android.widget.ImageView
+import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat.startForeground
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.content.ContextCompat.startActivity
+import com.ftrono.djeenoforspotify.application.MainActivity
+
+
+class FloatingViewService : Service() {
+    private var mWindowManager: WindowManager? = null
+    private var mFloatingView: View? = null
+    private var params: LayoutParams? = null
+
+    override fun onBind(intent: Intent?): IBinder? {
+        return null
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onCreate() {
+        super.onCreate()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startMyOwnForeground()
+        } else {
+            startForeground(1, Notification())
+        }
+
+        //Inflate the floating view layout we created
+        mFloatingView = LayoutInflater.from(this).inflate(R.layout.overlay_layout, null)
+        val LAYOUT_FLAG: Int
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            LAYOUT_FLAG = LayoutParams.TYPE_APPLICATION_OVERLAY
+            params = LayoutParams(
+                LayoutParams.WRAP_CONTENT,
+                LayoutParams.WRAP_CONTENT,
+                LAYOUT_FLAG,
+                LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT
+            )
+        } else {
+            LAYOUT_FLAG = LayoutParams.TYPE_PHONE
+            params = LayoutParams(
+                LayoutParams.WRAP_CONTENT,
+                LayoutParams.WRAP_CONTENT,
+                LAYOUT_FLAG,
+                LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT
+            )
+        }
+
+        //Specify the view position
+        params!!.gravity =
+            Gravity.TOP or Gravity.LEFT //Initially view will be added to top-left corner
+        params!!.x = 0
+        params!!.y = 100
+
+        //Add the view to the window
+        mWindowManager = getSystemService(WINDOW_SERVICE) as WindowManager?
+        mWindowManager!!.addView(mFloatingView, params)
+
+
+        //Set the close button
+        val closeButtonCollapsed = mFloatingView!!.findViewById<View>(R.id.close_btn) as ImageView
+        closeButtonCollapsed.setOnClickListener { //close the service and remove the from from the window
+            stopSelf()
+        }
+        mFloatingView!!.findViewById<View>(R.id.root_container)
+            .setOnTouchListener(object : OnTouchListener {
+                private var initialX = 0
+                private var initialY = 0
+                private var initialTouchX = 0f
+                private var initialTouchY = 0f
+                override fun onTouch(v: View, event: MotionEvent): Boolean {
+                    when (event.action) {
+                        MotionEvent.ACTION_DOWN -> {
+
+                            //remember the initial position.
+                            initialX = params!!.x
+                            initialY = params!!.y
+
+                            //get the touch location
+                            initialTouchX = event.rawX
+                            initialTouchY = event.rawY
+                            return true
+                        }
+
+                        MotionEvent.ACTION_UP -> {
+                            val Xdiff = (event.rawX - initialTouchX).toInt()
+                            val Ydiff = (event.rawY - initialTouchY).toInt()
+
+
+                            //The check for Xdiff <10 && YDiff< 10 because sometime elements moves a little while clicking.
+                            //So that is click event.
+                            if (Xdiff < 10 && Ydiff < 10) {
+                                val intent = Intent(
+                                    getApplicationContext(),
+                                    MainActivity::class.java
+                                )
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                intent.putExtra("fromwhere", "ser")
+                                startActivity(intent)
+                            }
+                            return true
+                        }
+
+                        MotionEvent.ACTION_MOVE -> {
+                            //Calculate the X and Y coordinates of the view.
+                            params!!.x = initialX + (event.rawX - initialTouchX).toInt()
+                            params!!.y = initialY + (event.rawY - initialTouchY).toInt()
+
+
+                            //Update the layout with new X & Y coordinate
+                            mWindowManager!!.updateViewLayout(mFloatingView, params)
+                            return true
+                        }
+                    }
+                    return false
+                }
+            })
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (mFloatingView != null) mWindowManager!!.removeView(mFloatingView)
+    }
+
+    private fun startMyOwnForeground() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val NOTIFICATION_CHANNEL_ID = "com.example.simpleapp"
+            val channelName = "My Background Service"
+            val chan = NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                channelName,
+                NotificationManager.IMPORTANCE_NONE
+            )
+            chan.lightColor = Color.BLUE
+            chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+            val manager = (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager?)!!
+            manager.createNotificationChannel(chan)
+            val notificationBuilder: NotificationCompat.Builder =
+                NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+            val notification = notificationBuilder.setOngoing(true)
+                .setContentTitle("App is running in background")
+                .setPriority(NotificationManager.IMPORTANCE_MIN)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .build()
+            startForeground(2, notification)
+        }
+    }
+}

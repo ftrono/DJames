@@ -5,6 +5,7 @@
   <color name="windowBackground">#151515</color>
   <color name="colorAccent">#00B050</color>
   <color name="colorRecording">#FFC000</color>
+  <color name="colorStop">#C00000</color>
   <color name="white">#ffffff</color>
   <color name="light_grey">#dddddd</color>
   <color name="mid_grey">#ff9c9c9c</color>

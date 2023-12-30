@@ -2,20 +2,22 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content" >
+    android:layout_height="wrap_content"
+    android:layout_gravity="bottom|end">
 
     <!--Root container-->
     <RelativeLayout
         android:id="@+id/root_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:ignore="UselessParent" >
+        android:layout_gravity="bottom|end" >
 
         <!--View while view is collapsed-->
         <RelativeLayout
             android:id="@+id/collapse_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
             android:orientation="vertical"
             android:visibility="visible" >
 
@@ -23,21 +25,22 @@
                 android:id="@+id/rounded_button"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:layout_marginTop="10dp"
+                android:layout_gravity="bottom|end"
                 android:background="@drawable/rounded_button" >
 
                 <ImageView
                     android:id="@+id/record_icon"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
-                    android:layout_marginLeft="25dp"
                     android:layout_marginTop="25dp"
+                    android:layout_marginLeft="25dp"
+                    android:layout_gravity="bottom|end"
                     android:src="@drawable/record_icon"
                     tools:ignore="ContentDescription" />
 
             </RelativeLayout>
 
-            <!--Close button-->
+            <!--Close button
             <ImageView
                 android:id="@+id/close_btn"
                 android:layout_width="40dp"
@@ -45,6 +48,7 @@
                 android:layout_marginLeft="54dp"
                 android:src="@drawable/close_btn"
                 tools:ignore="ContentDescription" />
+            -->
 
         </RelativeLayout>
 

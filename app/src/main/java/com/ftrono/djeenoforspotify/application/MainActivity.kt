@@ -1,16 +1,19 @@
 package com.ftrono.djeenoforspotify.application
 
+import android.app.ActivityManager
 import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.provider.Settings
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import com.ftrono.djeenoforspotify.R
 import com.ftrono.djeenoforspotify.service.FloatingViewService
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import androidx.appcompat.content.res.AppCompatResources
 
 
 class MainActivity : AppCompatActivity() {
@@ -21,20 +24,36 @@ class MainActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        startService(Intent(this, FloatingViewService::class.java))
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 
         val fab = findViewById<FloatingActionButton>(R.id.fab)
+        var fab_status = 0
+
+        if (isMyServiceRunning(FloatingViewService::class.java)) {
+            fab_status = 1
+            fab.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorStop)
+            fab.setImageResource(R.drawable.stop_icon)
+        }
+
         fab.setOnClickListener {
             /*
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
             .setAction("Action", null).show();
             */
             Log.e(TAG, "Notification ID: $notificationID")
-            val intent1 = Intent(this@MainActivity, Pem::class.java)
-            startActivity(intent1)
+            if (fab_status == 0) {
+                fab_status = 1
+                fab.setImageResource(R.drawable.stop_icon)
+                fab.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorStop)
+                startService(Intent(this, FloatingViewService::class.java))
+            } else {
+                fab_status = 0
+                fab.setImageResource(R.drawable.add_icon)
+                fab.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorAccent)
+                stopService(Intent(this, FloatingViewService::class.java))
+            }
         }
     }
 
@@ -65,5 +84,15 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private val TAG: String = Pem::class.java.getSimpleName()
+    }
+
+    private fun isMyServiceRunning(serviceClass: Class<*>): Boolean {
+        val manager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+        for (service in manager.getRunningServices(Int.MAX_VALUE)) {
+            if (serviceClass.name == service.service.className) {
+                return true
+            }
+        }
+        return false
     }
 }

@@ -23,7 +23,7 @@
 
     <include
         layout="@layout/content_main"
-        android:background="#000000" />
+        android:background="#FF000000" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
@@ -31,6 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@drawable/record_icon" />
+        app:backgroundTint="@color/colorAccent"
+        app:srcCompat="@drawable/add_icon" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

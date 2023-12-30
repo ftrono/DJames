@@ -102,11 +102,14 @@ class FloatingViewService : Service() {
         // Set the overlay button
         val overlayButton = mFloatingView!!.findViewById<View>(R.id.rounded_button) as RelativeLayout
 
+        /*
         //Set the close button
         val closeButtonCollapsed = mFloatingView!!.findViewById<View>(R.id.close_btn) as ImageView
         closeButtonCollapsed.setOnClickListener { //close the service and remove the from from the window
             stopSelf()
         }
+        */
+
         mFloatingView!!.findViewById<View>(R.id.root_container)
             .setOnTouchListener(object : OnTouchListener {
                 private var initialX = 0

@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:textAlignment="center"
-        android:text="Clicca sul bottone in basso per &#xA;aprire o chiudere il bottone overlay."
+        android:text="Clicca sul bottone in basso per &#xA;aprire o chiudere il bottone overlay &#xA;😎"
         android:textColor="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"

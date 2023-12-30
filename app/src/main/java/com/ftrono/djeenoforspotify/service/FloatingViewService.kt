@@ -13,6 +13,7 @@ import android.graphics.Color
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -21,11 +22,13 @@ import android.view.View.OnTouchListener
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams
 import android.widget.ImageView
+import android.widget.RelativeLayout
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat.startForeground
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.content.ContextCompat.startActivity
 import com.ftrono.djeenoforspotify.application.MainActivity
+import com.ftrono.djeenoforspotify.application.Pem
 
 
 class FloatingViewService : Service() {
@@ -35,6 +38,23 @@ class FloatingViewService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
+    }
+
+    val TAG = MainActivity::class.java.simpleName
+
+    fun countdownStart(resource: RelativeLayout) {
+        val mThread = Thread {
+            try {
+                synchronized(this) {
+                    Thread.sleep(1500)
+                    resource.setBackgroundResource(R.drawable.rounded_button)
+                }
+            } catch (e: InterruptedException) {
+                Log.d(TAG, "Interrupted: exception.", e)
+            }
+        }
+
+        mThread.start()
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -79,6 +99,8 @@ class FloatingViewService : Service() {
         mWindowManager = getSystemService(WINDOW_SERVICE) as WindowManager?
         mWindowManager!!.addView(mFloatingView, params)
 
+        // Set the overlay button
+        val overlayButton = mFloatingView!!.findViewById<View>(R.id.rounded_button) as RelativeLayout
 
         //Set the close button
         val closeButtonCollapsed = mFloatingView!!.findViewById<View>(R.id.close_btn) as ImageView
@@ -113,13 +135,12 @@ class FloatingViewService : Service() {
                             //The check for Xdiff <10 && YDiff< 10 because sometime elements moves a little while clicking.
                             //So that is click event.
                             if (Xdiff < 10 && Ydiff < 10) {
-                                val intent = Intent(
-                                    getApplicationContext(),
-                                    MainActivity::class.java
-                                )
-                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                intent.putExtra("fromwhere", "ser")
-                                startActivity(intent)
+                                overlayButton.setBackgroundResource(R.drawable.rounded_button_2)
+                                countdownStart(overlayButton)
+                                val intent1 = Intent(getApplicationContext(), Pem::class.java)
+                                intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                intent1.putExtra("fromwhere", "ser")
+                                startActivity(intent1)
                             }
                             return true
                         }

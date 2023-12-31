@@ -1,16 +1,17 @@
 package com.ftrono.djeenoforspotify.service
 
-import com.ftrono.djeenoforspotify.R
-import android.app.Service
 import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.Service
+import android.content.ComponentName
 import android.content.Context
-import android.content.Context.WINDOW_SERVICE
 import android.content.Intent
+import android.content.pm.ResolveInfo
 import android.graphics.Color
 import android.graphics.PixelFormat
+import android.net.Uri
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -21,14 +22,11 @@ import android.view.View
 import android.view.View.OnTouchListener
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams
-import android.widget.ImageView
 import android.widget.RelativeLayout
 import androidx.core.app.NotificationCompat
-import androidx.core.app.ServiceCompat.startForeground
-import androidx.core.content.ContextCompat.getSystemService
-import androidx.core.content.ContextCompat.startActivity
+import com.ftrono.djeenoforspotify.R
 import com.ftrono.djeenoforspotify.application.MainActivity
-import com.ftrono.djeenoforspotify.application.Pem
+import java.util.Collections
 
 
 class FloatingViewService : Service() {
@@ -46,8 +44,9 @@ class FloatingViewService : Service() {
         val mThread = Thread {
             try {
                 synchronized(this) {
-                    Thread.sleep(1500)
+                    Thread.sleep(5000)
                     resource.setBackgroundResource(R.drawable.rounded_button)
+                    switchTo("com.google.android.apps.maps")
                 }
             } catch (e: InterruptedException) {
                 Log.d(TAG, "Interrupted: exception.", e)
@@ -55,6 +54,42 @@ class FloatingViewService : Service() {
         }
 
         mThread.start()
+    }
+
+    /*
+    fun switchToMaps() {
+        try {
+            val launchIntent = packageManager.getLaunchIntentForPackage("com.google.android.apps.maps")
+            launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            launchIntent.putExtra("fromwhere", "ser")
+            startActivity(launchIntent)
+        } catch (E: Exception) {
+            println(E)
+        }
+    }
+     */
+
+    fun switchTo(packageName: String?) {
+        val intent = Intent()
+        intent.setPackage(packageName)
+        val pm = packageManager
+        val resolveInfos = pm.queryIntentActivities(intent, 0)
+        Collections.sort(resolveInfos, ResolveInfo.DisplayNameComparator(pm))
+        if (resolveInfos.size > 0) {
+            val launchable = resolveInfos[0]
+            val activity = launchable.activityInfo
+            val name = ComponentName(
+                activity.applicationInfo.packageName,
+                activity.name
+            )
+            val i = Intent(Intent.ACTION_MAIN)
+            i.setFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+            )
+            i.setComponent(name)
+            startActivity(i)
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -137,13 +172,26 @@ class FloatingViewService : Service() {
 
                             //The check for Xdiff <10 && YDiff< 10 because sometime elements moves a little while clicking.
                             //So that is click event.
+                            // ON CLICK:
+
                             if (Xdiff < 10 && Ydiff < 10) {
                                 overlayButton.setBackgroundResource(R.drawable.rounded_button_2)
                                 countdownStart(overlayButton)
+                                //val url = editText.text.toString()
+                                val url = "https://open.spotify.com/track/3jFP1e8IUpD9QbltEI1Hcg?si=pt790-QFRyWr2JhyoMb_yA"
+                                val intent1 = Intent(
+                                    Intent.ACTION_VIEW,
+                                    Uri.parse(url)
+                                )
+                                intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                intent1.putExtra("fromwhere", "ser")
+                                startActivity(intent1)
+                                /*
                                 val intent1 = Intent(getApplicationContext(), Pem::class.java)
                                 intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 intent1.putExtra("fromwhere", "ser")
                                 startActivity(intent1)
+                                */
                             }
                             return true
                         }
@@ -171,7 +219,7 @@ class FloatingViewService : Service() {
 
     private fun startMyOwnForeground() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val NOTIFICATION_CHANNEL_ID = "com.example.simpleapp"
+            val NOTIFICATION_CHANNEL_ID = "com.ftrono.djeenoForSpotify"
             val channelName = "My Background Service"
             val chan = NotificationChannel(
                 NOTIFICATION_CHANNEL_ID,

@@ -2,18 +2,18 @@ package com.ftrono.djeenoforspotify.application
 
 import android.app.ActivityManager
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
 import com.ftrono.djeenoforspotify.R
 import com.ftrono.djeenoforspotify.service.FloatingViewService
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import androidx.appcompat.content.res.AppCompatResources
 
 
 class MainActivity : AppCompatActivity() {
@@ -28,14 +28,11 @@ class MainActivity : AppCompatActivity() {
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        val fab = findViewById<FloatingActionButton>(R.id.fab)
-        var fab_status = 0
+        val fab = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
 
-        if (isMyServiceRunning(FloatingViewService::class.java)) {
-            fab_status = 1
-            fab.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorStop)
-            fab.setImageResource(R.drawable.stop_icon)
-        }
+        //if (isMyServiceRunning(FloatingViewService::class.java)) {}
+        // Start overlay service automatically
+        var fab_status = startOverlayService(fab) as Boolean
 
         fab.setOnClickListener {
             /*
@@ -43,16 +40,10 @@ class MainActivity : AppCompatActivity() {
             .setAction("Action", null).show();
             */
             Log.e(TAG, "Notification ID: $notificationID")
-            if (fab_status == 0) {
-                fab_status = 1
-                fab.setImageResource(R.drawable.stop_icon)
-                fab.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorStop)
-                startService(Intent(this, FloatingViewService::class.java))
+            if (!fab_status) {
+                fab_status = startOverlayService(fab)
             } else {
-                fab_status = 0
-                fab.setImageResource(R.drawable.add_icon)
-                fab.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorAccent)
-                stopService(Intent(this, FloatingViewService::class.java))
+                fab_status = stopOverlayService(fab)
             }
         }
     }
@@ -74,8 +65,11 @@ class MainActivity : AppCompatActivity() {
             val intent1 = Intent(this@MainActivity, Pem::class.java)
             startActivity(intent1)
             return true
-        } else if (id == R.id.action_accessibility) {
-            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+        } else if (id == R.id.action_permissions) {
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            val uri = Uri.fromParts("package", packageName, null)
+            intent.setData(uri)
+            startActivity(intent)
             return true
         } else {
             return super.onOptionsItemSelected(item)
@@ -93,6 +87,20 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
         }
+        return false
+    }
+
+    private fun startOverlayService(fab: FloatingActionButton): Boolean {
+        fab.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorStop)
+        fab.setImageResource(R.drawable.stop_icon)
+        startService(Intent(this, FloatingViewService::class.java))
+        return true
+    }
+
+    private fun stopOverlayService(fab: FloatingActionButton): Boolean {
+        fab.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorAccent)
+        fab.setImageResource(R.drawable.add_icon)
+        stopService(Intent(this, FloatingViewService::class.java))
         return false
     }
 }

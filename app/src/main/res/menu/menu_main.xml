@@ -8,8 +8,8 @@
         android:title="@string/action_settings"
         app:showAsAction="never" />
     <item
-        android:id="@+id/action_accessibility"
+        android:id="@+id/action_permissions"
         android:orderInCategory="200"
-        android:title="Go to Accessibility"
+        android:title="Set app permissions"
         app:showAsAction="never" />
 </menu>

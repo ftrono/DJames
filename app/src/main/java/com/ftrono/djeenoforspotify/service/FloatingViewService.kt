@@ -22,11 +22,14 @@ import android.view.View
 import android.view.View.OnTouchListener
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams
+import android.widget.ImageView
 import android.widget.RelativeLayout
 import androidx.core.app.NotificationCompat
 import com.ftrono.djeenoforspotify.R
 import com.ftrono.djeenoforspotify.application.MainActivity
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.Collections
+import kotlin.math.abs
 
 
 class FloatingViewService : Service() {
@@ -136,6 +139,11 @@ class FloatingViewService : Service() {
 
         // Set the overlay button
         val overlayButton = mFloatingView!!.findViewById<View>(R.id.rounded_button) as RelativeLayout
+        val overlayIcon = mFloatingView!!.findViewById<View>(R.id.record_icon) as ImageView
+
+        // Store display height & width
+        var height = resources.displayMetrics.heightPixels
+        var halfwidth = resources.displayMetrics.widthPixels
 
         /*
         //Set the close button
@@ -162,19 +170,20 @@ class FloatingViewService : Service() {
                             //get the touch location
                             initialTouchX = event.rawX
                             initialTouchY = event.rawY
+
                             return true
                         }
 
                         MotionEvent.ACTION_UP -> {
                             val Xdiff = (event.rawX - initialTouchX).toInt()
                             val Ydiff = (event.rawY - initialTouchY).toInt()
+                            height = resources.displayMetrics.heightPixels
+                            halfwidth = resources.displayMetrics.widthPixels / 2
 
-
-                            //The check for Xdiff <10 && YDiff< 10 because sometime elements moves a little while clicking.
+                            //The check for abs(Xdiff) < 10 && abs(YDiff) < 10 is because sometime elements moves a little while clicking.
                             //So that is click event.
                             // ON CLICK:
-
-                            if (Xdiff < 10 && Ydiff < 10) {
+                            if (abs(Xdiff) < 10 && abs(Ydiff) < 10) {
                                 overlayButton.setBackgroundResource(R.drawable.rounded_button_2)
                                 countdownStart(overlayButton)
                                 //val url = editText.text.toString()
@@ -186,12 +195,10 @@ class FloatingViewService : Service() {
                                 intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 intent1.putExtra("fromwhere", "ser")
                                 startActivity(intent1)
-                                /*
-                                val intent1 = Intent(getApplicationContext(), Pem::class.java)
-                                intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                intent1.putExtra("fromwhere", "ser")
-                                startActivity(intent1)
-                                */
+
+                            } else if ((abs(event.rawY) >= (height-200)) && (abs(event.rawX) >= (halfwidth-200)) && (abs(event.rawX) <= (halfwidth+200))) {
+                                Log.d(FloatingViewService.TAG, "Current location: "+event.rawX+" / "+halfwidth+", "+event.rawY+" / "+height)
+                                stopSelf()
                             }
                             return true
                         }
@@ -201,6 +208,14 @@ class FloatingViewService : Service() {
                             params!!.x = initialX + (event.rawX - initialTouchX).toInt()
                             params!!.y = initialY + (event.rawY - initialTouchY).toInt()
 
+                            //Change colour if needed
+                            if ((abs(event.rawY) >= (height-200)) && (abs(event.rawX) >= (halfwidth-200)) && (abs(event.rawX) <= (halfwidth+200))) {
+                                overlayButton.setBackgroundResource(R.drawable.rounded_button_3)
+                                overlayIcon.setImageResource(R.drawable.stop_icon)
+                            } else {
+                                overlayButton.setBackgroundResource(R.drawable.rounded_button)
+                                overlayIcon.setImageResource(R.drawable.record_icon)
+                            }
 
                             //Update the layout with new X & Y coordinate
                             mWindowManager!!.updateViewLayout(mFloatingView, params)
@@ -239,5 +254,9 @@ class FloatingViewService : Service() {
                 .build()
             startForeground(2, notification)
         }
+    }
+
+    companion object {
+        private val TAG: String = FloatingViewService::class.java.getSimpleName()
     }
 }

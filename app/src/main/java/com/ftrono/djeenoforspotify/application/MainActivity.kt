@@ -32,18 +32,17 @@ class MainActivity : AppCompatActivity() {
 
         //if (isMyServiceRunning(FloatingViewService::class.java)) {}
         // Start overlay service automatically
-        var fab_status = startOverlayService(fab) as Boolean
+        var fab_status = setOverlayActive(fab, true) as Boolean
 
         fab.setOnClickListener {
             /*
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
             .setAction("Action", null).show();
             */
-            Log.e(TAG, "Notification ID: $notificationID")
             if (!fab_status) {
-                fab_status = startOverlayService(fab)
+                fab_status = setOverlayActive(fab, true)
             } else {
-                fab_status = stopOverlayService(fab)
+                fab_status = setOverlayInactive(fab, true)
             }
         }
     }
@@ -76,11 +75,42 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    companion object {
-        private val TAG: String = Pem::class.java.getSimpleName()
+    override fun onResume() {
+
+        super.onResume()
+        setContentView(R.layout.activity_main)
+
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+
+        val fab = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
+        var fab_status = false as Boolean
+
+        if (isMyServiceRunning(FloatingViewService::class.java)) {
+            fab_status = setOverlayActive(fab, false)
+        } else {
+            fab_status = setOverlayInactive(fab, false)
+        }
+
+        fab.setOnClickListener {
+            /*
+            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+            .setAction("Action", null).show();
+            */
+            //Log.e(TAG, "Notification ID: $notificationID")
+            if (!fab_status) {
+                fab_status = setOverlayActive(fab, true)
+            } else {
+                fab_status = setOverlayInactive(fab, true)
+            }
+        }
     }
 
-    private fun isMyServiceRunning(serviceClass: Class<*>): Boolean {
+    companion object {
+        private val TAG: String = MainActivity::class.java.getSimpleName()
+    }
+
+    fun isMyServiceRunning(serviceClass: Class<*>): Boolean {
         val manager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
         for (service in manager.getRunningServices(Int.MAX_VALUE)) {
             if (serviceClass.name == service.service.className) {
@@ -90,17 +120,21 @@ class MainActivity : AppCompatActivity() {
         return false
     }
 
-    private fun startOverlayService(fab: FloatingActionButton): Boolean {
+    fun setOverlayActive(fab: FloatingActionButton, exec: Boolean): Boolean {
         fab.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorStop)
         fab.setImageResource(R.drawable.stop_icon)
-        startService(Intent(this, FloatingViewService::class.java))
+        if (exec) {
+            startService(Intent(this, FloatingViewService::class.java))
+        }
         return true
     }
 
-    private fun stopOverlayService(fab: FloatingActionButton): Boolean {
+    fun setOverlayInactive(fab: FloatingActionButton, exec: Boolean): Boolean {
         fab.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorAccent)
         fab.setImageResource(R.drawable.add_icon)
-        stopService(Intent(this, FloatingViewService::class.java))
+        if (exec) {
+            stopService(Intent(this, FloatingViewService::class.java))
+        }
         return false
     }
 }

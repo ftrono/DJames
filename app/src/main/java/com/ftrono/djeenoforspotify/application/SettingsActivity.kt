@@ -1,24 +1,24 @@
 package com.ftrono.djeenoforspotify.application
 
+import android.content.DialogInterface
 import android.os.Bundle
-import android.text.InputType
 import android.view.View
-import android.widget.AdapterView
-import android.widget.CheckBox
-import android.widget.CompoundButton
-import android.widget.EditText
-import android.widget.RadioButton
-import android.widget.RadioGroup
-import android.widget.Switch
+import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import com.ftrono.djeenoforspotify.R
 import com.ftrono.djeenoforspotify.BuildConfig
+import com.ftrono.djeenoforspotify.R
+import android.content.DialogInterface.OnClickListener
+import android.content.SharedPreferences
+
 
 class SettingsActivity : AppCompatActivity() {
     private var val_timeout: TextView? = null
+    private var val_spotify_token: TextView? = null
+    private var val_maps_address: TextView? = null
+    //var sharedPrefs = PreferenceManager
+        //.getDefaultSharedPreferences(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -28,8 +28,12 @@ class SettingsActivity : AppCompatActivity() {
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.title = "Settings"
 
-        val val_timeout = findViewById<TextView>(R.id.val_timeout)
-        val_timeout.setOnClickListener(View.OnClickListener { showSettings() })
+        val sharedPrefs = applicationContext.getSharedPreferences(SETTINGS_STORAGE, MODE_PRIVATE)
+        val saveButton = findViewById<Button>(R.id.save_button)
+        saveButton.setOnClickListener(View.OnClickListener {
+            saveAll(sharedPrefs)
+            finish()
+        })
 
         var info = ""
         /*
@@ -50,6 +54,44 @@ class SettingsActivity : AppCompatActivity() {
             sharedPrefs.edit().putBoolean(NA_YN_KEY, false).apply()
         })
         */
+    }
+
+    override fun onBackPressed() {
+        val sharedPrefs = applicationContext.getSharedPreferences(SETTINGS_STORAGE, MODE_PRIVATE)
+        val alertDialog = AlertDialog.Builder(
+            this
+        )
+        alertDialog.setPositiveButton("Yes", object : OnClickListener {
+            override fun onClick(dialog: DialogInterface?, which: Int) {
+                saveAll(sharedPrefs)
+                finish()
+            }
+        })
+        alertDialog.setNegativeButton("No", object: OnClickListener {
+            override fun onClick(dialog: DialogInterface?, which: Int) {
+                finish()
+            }
+        })
+        alertDialog.setMessage("Save before exit?")
+        alertDialog.setTitle("Warning")
+        alertDialog.show()
+    }
+
+    private fun saveAll(sharedPrefs: SharedPreferences) {
+        // Load preferences:
+        val strValTimeout = sharedPrefs.getString(KEY_TIMEOUT, "5")
+        //Load text views:
+        val val_timeout = findViewById<TextView>(R.id.val_timeout)
+        val strTimeoutNew = val_timeout.text.toString()
+
+        if (strTimeoutNew.isNotEmpty()) {
+            val intTimeout = strTimeoutNew.toInt()
+            if (intTimeout > 0 && intTimeout <= 15) {
+                sharedPrefs.edit().putString(KEY_TIMEOUT, strTimeoutNew).commit()   //apply()?
+            } else {
+                val_timeout!!.text = strValTimeout
+            }
+        }
     }
 
     private fun showSettings() {
@@ -85,21 +127,15 @@ class SettingsActivity : AppCompatActivity() {
          */
     }
 
-    private fun showUsernameDialog() {
+    private fun showSaveDialog() {
         //USERNAME POPUP (TO REPLACE!)
         val builder = AlertDialog.Builder(this)
-        builder.setTitle("User name")
+        builder.setTitle("Warning: you did not save!")
 
-        // Set up the input
-        val input = EditText(this)
-
-        // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
-        input.inputType = InputType.TYPE_CLASS_TEXT
-        builder.setView(input)
-
+        /*
         // Set up the ok buttons
         builder.setPositiveButton(
-            "Ok"
+            "Save"
         ) { dialog, which ->
             val strUserName = input.text.toString()
             val sharedPrefs = getSharedPreferences(
@@ -107,10 +143,11 @@ class SettingsActivity : AppCompatActivity() {
                 MODE_PRIVATE
             )
             sharedPrefs.edit().putString(
-                VAL_TIMEOUT,
+                KEY_TIMEOUT,
                 strUserName
             ).commit()
             val_timeout!!.text = strUserName
+            finish()
         }
 
         // Set up the cancel buttons
@@ -118,10 +155,14 @@ class SettingsActivity : AppCompatActivity() {
             "Cancel"
         ) { dialog, which -> dialog.cancel() }
         builder.show()
+
+         */
     }
 
     companion object {
         val SETTINGS_STORAGE: String = BuildConfig.APPLICATION_ID
-        const val VAL_TIMEOUT = ".key.val_timeout"
+        const val KEY_TIMEOUT = ".key.timeout"
+        const val KEY_SPOTIFY_TOKEN = ".key.spotify_token"
+        const val KEY_MAPS_ADDRESS = ".key.maps_address"
     }
 }

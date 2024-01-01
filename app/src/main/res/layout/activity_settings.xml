@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -17,7 +19,9 @@
         android:paddingTop="100dp"
         android:text= "&#xA;Auto-timeout for voice recording (in seconds):"
         android:textSize="15dp"
-        android:textStyle="bold"/>
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <EditText
         android:id="@+id/val_timeout"
@@ -31,7 +35,9 @@
         android:backgroundTint="@color/faded_grey"
         android:text="5"
         android:paddingLeft="15dp"
-        android:paddingRight="15dp"/>
+        android:paddingRight="15dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/descr_timeout"/>
 
     <TextView
         android:id="@+id/descr_spotify_token"
@@ -44,7 +50,9 @@
         android:paddingTop="100dp"
         android:text= "&#xA;Spotify Developer token:"
         android:textSize="15dp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/val_timeout"/>
 
     <EditText
         android:id="@+id/val_spotify_token"
@@ -58,7 +66,9 @@
         android:hint="Paste Spotify Developer token here"
         android:textColorHint="@color/faded_grey"
         android:paddingLeft="15dp"
-        android:paddingRight="15dp"/>
+        android:paddingRight="15dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/descr_spotify_token"/>
 
     <TextView
         android:id="@+id/descr_maps_address"
@@ -71,7 +81,9 @@
         android:paddingTop="100dp"
         android:text= "&#xA;Google Maps redirect address:"
         android:textSize="15dp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/val_spotify_token"/>
 
     <TextView
         android:id="@+id/descr_maps_detail"
@@ -83,7 +95,9 @@
         android:paddingRight="15dp"
         android:paddingTop="10dp"
         android:text= "Paste a URL to a place in Google Maps for default redirect:"
-        android:textSize="12dp" />
+        android:textSize="12dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/descr_maps_address"/>
 
     <EditText
         android:id="@+id/val_maps_address"
@@ -97,6 +111,20 @@
         android:hint="Paste URL here"
         android:textColorHint="@color/faded_grey"
         android:paddingLeft="15dp"
-        android:paddingRight="15dp"/>
+        android:paddingRight="15dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/descr_maps_detail"/>
 
-</LinearLayout>
+    <Button
+        android:id="@+id/save_button"
+        android:layout_width="210dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="32dp"
+        android:backgroundTint="@color/colorAccent"
+        android:text="Save"
+        android:textColor="@color/white"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/val_maps_address"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

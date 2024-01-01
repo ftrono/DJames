@@ -17,6 +17,7 @@ import androidx.appcompat.widget.Toolbar
 import com.ftrono.djeenoforspotify.R
 import com.ftrono.djeenoforspotify.service.FloatingViewService
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.ftrono.djeenoforspotify.BuildConfig
 
 
 class MainActivity : AppCompatActivity() {

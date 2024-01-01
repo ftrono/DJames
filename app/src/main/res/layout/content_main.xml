@@ -10,15 +10,136 @@
     tools:showIn="@layout/activity_main">
 
     <TextView
+        android:id="@+id/descr_maps"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:textAlignment="center"
-        android:text="Use the overlay button to record a voice command.&#xA;Use the button below to show / hide the overlay button.&#xA;😎"
-        android:textColor="#FFFFFF"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="🚗   N A V I G A T I O N   A P P S"
+        android:textColor="@color/light_grey"
+        android:paddingTop="100dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:textStyle="bold"
+        android:textSize="16dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:id="@+id/separator_maps"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="8dp"
+        android:paddingLeft="30dp"
+        android:paddingRight="30dp"
+        android:background="@color/faded_grey"
+        app:layout_constraintTop_toBottomOf="@+id/descr_maps"
+        />
+
+    <CheckBox
+        android:id="@+id/check_maps"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:paddingTop="20dp"
+        android:checked="false"
+        android:text="Redirect to Google Maps"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:textSize="15dp"
+        android:textColor="@color/light_grey"
+        android:buttonTint="@color/colorAccent"
+        tools:ignore="UseSwitchCompatOrMaterialXml"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/separator_maps"/>
+
+    <TextView
+        android:id="@+id/descr_use"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textAlignment="center"
+        android:text="🗣️   L A U N C H   A   C O M M A N D"
+        android:textColor="@color/light_grey"
+        android:paddingTop="100dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:textStyle="bold"
+        android:textSize="16dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/check_maps" />
+
+    <View
+        android:id="@+id/separator_use"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="8dp"
+        android:paddingLeft="30dp"
+        android:paddingRight="30dp"
+        android:background="@color/faded_grey"
+        app:layout_constraintTop_toBottomOf="@+id/descr_use"
+        />
+
+    <TextView
+        android:id="@+id/text_use"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textAlignment="center"
+        android:text="Use the overlay button&#xA;to record a voice command.&#xA;😎"
+        android:textSize="15dp"
+        android:textColor="@color/light_grey"
+        android:paddingTop="15dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/descr_use" />
+
+    <TextView
+        android:id="@+id/descr_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textAlignment="center"
+        android:text="✔️️   R U N   /   S T O P"
+        android:textColor="@color/light_grey"
+        android:paddingTop="100dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:textStyle="bold"
+        android:textSize="16dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_use" />
+
+    <View
+        android:id="@+id/separator_start"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="8dp"
+        android:paddingLeft="30dp"
+        android:paddingRight="30dp"
+        android:background="@color/faded_grey"
+        app:layout_constraintTop_toBottomOf="@+id/descr_start"
+        />
+
+    <TextView
+        android:id="@+id/text_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textAlignment="center"
+        android:text="Use the button below&#xA;to show / hide the overlay button.&#xA;↘️"
+        android:textSize="15dp"
+        android:textColor="@color/light_grey"
+        android:paddingTop="15dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/descr_start" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

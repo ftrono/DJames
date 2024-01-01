@@ -8,7 +8,9 @@ import android.provider.Settings
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.RelativeLayout
+import android.view.View
+import android.widget.CheckBox
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
@@ -20,6 +22,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 class MainActivity : AppCompatActivity() {
 
     var notificationID = 1
+    private val checkMaps: CheckBox? = null
 
     //fun checkRunning(fab: FloatingActionButton) {}
     val checkThread = Thread {
@@ -47,6 +50,26 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         val fab = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
+
+        val checkMaps = findViewById<CheckBox>(R.id.check_maps)
+        checkMaps.setOnClickListener(View.OnClickListener {
+            val yes1: Boolean
+            /*
+            if (checkMaps.isChecked()) {
+                info = getString(R.string.you_added) + ingr1
+                Toast.makeText(applicationContext, info, Toast.LENGTH_SHORT).show()
+                yes1 = true
+            } else {
+                info = getString(R.string.you_removed) + ingr1
+                Toast.makeText(applicationContext, info, Toast.LENGTH_SHORT).show()
+                yes1 = false
+            }
+            val sharedPrefs = getSharedPreferences(SETTINGS_STORAGE, MODE_PRIVATE)
+            sharedPrefs.edit().putString(INGR1V_KEY, ingr1).apply()
+            sharedPrefs.edit().putBoolean(INGR1YN_KEY, yes1).apply()
+
+             */
+        })
 
         //if (isMyServiceRunning(FloatingViewService::class.java)) {}
         // Start overlay service automatically
@@ -82,7 +105,7 @@ class MainActivity : AppCompatActivity() {
         val id = item.itemId
 
         if (id == R.id.action_settings) {
-            val intent1 = Intent(this@MainActivity, Pem::class.java)
+            val intent1 = Intent(this@MainActivity, SettingsActivity::class.java)
             startActivity(intent1)
             return true
         } else if (id == R.id.action_permissions) {

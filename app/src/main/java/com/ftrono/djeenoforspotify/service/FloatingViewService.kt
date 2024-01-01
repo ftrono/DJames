@@ -172,11 +172,6 @@ class FloatingViewService : Service() {
         //Specify the overlay view position
         params2!!.x = 0
         params2!!.y = height
-        //Add the close view to the window
-        mWindowManager!!.addView(mCloseView, params2)
-        //Set close text as initially invisible
-        val closeText = mCloseView!!.findViewById<View>(R.id.close_text) as TextView
-        closeText.visibility = View.INVISIBLE
 
         // Set the overlay button & icon
         val overlayButton = mFloatingView!!.findViewById<View>(R.id.rounded_button) as RelativeLayout
@@ -198,7 +193,11 @@ class FloatingViewService : Service() {
                 private var initialTouchY = 0f
                 override fun onTouch(v: View, event: MotionEvent): Boolean {
                     when (event.action) {
+                        //Finger on screen:
                         MotionEvent.ACTION_DOWN -> {
+
+                            //Add the close view to the window
+                            mWindowManager!!.addView(mCloseView, params2)
 
                             //remember the initial position.
                             initialX = params!!.x
@@ -210,7 +209,7 @@ class FloatingViewService : Service() {
 
                             return true
                         }
-
+                        //Finger lifted:
                         MotionEvent.ACTION_UP -> {
                             val Xdiff = (event.rawX - initialTouchX).toInt()
                             val Ydiff = (event.rawY - initialTouchY).toInt()
@@ -238,13 +237,11 @@ class FloatingViewService : Service() {
                                 // Log.d(FloatingViewService.TAG, "Current location: " + event.rawX + " / " + halfwidth + ", " + event.rawY + " / " + height)
                                 stopSelf()
                             }
-                            closeText.visibility = View.INVISIBLE
+                            if (mCloseView != null) mWindowManager!!.removeView(mCloseView)
                             return true
                         }
-
+                        //Finger moved (item dragged):
                         MotionEvent.ACTION_MOVE -> {
-
-                            closeText.visibility = View.VISIBLE
 
                             //Calculate the X and Y coordinates of the view.
                             params!!.x = initialX + (event.rawX - initialTouchX).toInt()

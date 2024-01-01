@@ -38,6 +38,12 @@
             android:parentActivityName=".application.MainActivity"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
+        <activity
+            android:name=".application.SettingsActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="Settings"
+            android:parentActivityName=".application.MainActivity">
+        </activity>
 
         <service
             android:name=".service.FloatingViewService"

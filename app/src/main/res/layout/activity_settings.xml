@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/black"
+    android:forceDarkAllowed="true">
+
+    <TextView
+        android:id="@+id/descr_timeout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/light_grey"
+        android:padding="8dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="100dp"
+        android:text= "&#xA;Auto-timeout for voice recording (in seconds):"
+        android:textSize="15dp"
+        android:textStyle="bold"/>
+
+    <EditText
+        android:id="@+id/val_timeout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20dp"
+        android:importantForAutofill="no"
+        android:inputType="number"
+        android:maxLines="1"
+        android:textColor="@color/white"
+        android:backgroundTint="@color/faded_grey"
+        android:text="5"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"/>
+
+    <TextView
+        android:id="@+id/descr_spotify_token"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/light_grey"
+        android:padding="8dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="100dp"
+        android:text= "&#xA;Spotify Developer token:"
+        android:textSize="15dp"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/val_spotify_token"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:importantForAutofill="no"
+        android:maxLines="1"
+        android:textColor="@color/white"
+        android:backgroundTint="@color/faded_grey"
+        android:hint="Paste Spotify Developer token here"
+        android:textColorHint="@color/faded_grey"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"/>
+
+    <TextView
+        android:id="@+id/descr_maps_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/light_grey"
+        android:padding="8dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="100dp"
+        android:text= "&#xA;Google Maps redirect address:"
+        android:textSize="15dp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/descr_maps_detail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/light_grey"
+        android:padding="8dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="10dp"
+        android:text= "Paste a URL to a place in Google Maps for default redirect:"
+        android:textSize="12dp" />
+
+    <EditText
+        android:id="@+id/val_maps_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:importantForAutofill="no"
+        android:maxLines="1"
+        android:textColor="@color/white"
+        android:backgroundTint="@color/faded_grey"
+        android:hint="Paste URL here"
+        android:textColorHint="@color/faded_grey"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"/>
+
+</LinearLayout>

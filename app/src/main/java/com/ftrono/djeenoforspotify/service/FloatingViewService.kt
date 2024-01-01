@@ -137,7 +137,7 @@ class FloatingViewService : Service() {
         mWindowManager = getSystemService(WINDOW_SERVICE) as WindowManager?
         mWindowManager!!.addView(mFloatingView, params)
 
-        // Set the overlay button
+        // Set the overlay button & icon
         val overlayButton = mFloatingView!!.findViewById<View>(R.id.rounded_button) as RelativeLayout
         val overlayIcon = mFloatingView!!.findViewById<View>(R.id.record_icon) as ImageView
 
@@ -197,7 +197,8 @@ class FloatingViewService : Service() {
                                 startActivity(intent1)
 
                             } else if ((abs(event.rawY) >= (height-200)) && (abs(event.rawX) >= (halfwidth-200)) && (abs(event.rawX) <= (halfwidth+200))) {
-                                Log.d(FloatingViewService.TAG, "Current location: "+event.rawX+" / "+halfwidth+", "+event.rawY+" / "+height)
+                                // If SWIPE DOWN -> CLOSE:
+                                // Log.d(FloatingViewService.TAG, "Current location: " + event.rawX + " / " + halfwidth + ", " + event.rawY + " / " + height)
                                 stopSelf()
                             }
                             return true
@@ -208,11 +209,12 @@ class FloatingViewService : Service() {
                             params!!.x = initialX + (event.rawX - initialTouchX).toInt()
                             params!!.y = initialY + (event.rawY - initialTouchY).toInt()
 
-                            //Change colour if needed
+                            //Grey out when swiped down:
                             if ((abs(event.rawY) >= (height-200)) && (abs(event.rawX) >= (halfwidth-200)) && (abs(event.rawX) <= (halfwidth+200))) {
                                 overlayButton.setBackgroundResource(R.drawable.rounded_button_3)
                                 overlayIcon.setImageResource(R.drawable.stop_icon)
                             } else {
+                                //Back to green:
                                 overlayButton.setBackgroundResource(R.drawable.rounded_button)
                                 overlayIcon.setImageResource(R.drawable.record_icon)
                             }

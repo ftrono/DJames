@@ -8,6 +8,7 @@ import android.provider.Settings
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.RelativeLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
@@ -19,6 +20,23 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 class MainActivity : AppCompatActivity() {
 
     var notificationID = 1
+
+    //fun checkRunning(fab: FloatingActionButton) {}
+    val checkThread = Thread {
+        try {
+            while (true) {
+                synchronized(this) {
+                    Thread.sleep(2000)
+                    if (!isMyServiceRunning(FloatingViewService::class.java)) {
+                        val fab1 = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
+                        setOverlayInactive(fab1, false)
+                    }
+                }
+            }
+        } catch (e: InterruptedException) {
+            Log.d(TAG, "Interrupted: exception.", e)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -44,6 +62,9 @@ class MainActivity : AppCompatActivity() {
             } else {
                 fab_status = setOverlayInactive(fab, true)
             }
+        }
+        if (!checkThread.isAlive()){
+            checkThread.start();
         }
     }
 
@@ -103,6 +124,9 @@ class MainActivity : AppCompatActivity() {
             } else {
                 fab_status = setOverlayInactive(fab, true)
             }
+        }
+        if (!checkThread.isAlive()){
+            checkThread.start();
         }
     }
 

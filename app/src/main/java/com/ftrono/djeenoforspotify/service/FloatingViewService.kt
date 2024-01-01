@@ -24,10 +24,10 @@ import android.view.WindowManager
 import android.view.WindowManager.LayoutParams
 import android.widget.ImageView
 import android.widget.RelativeLayout
+import android.widget.TextView
 import androidx.core.app.NotificationCompat
 import com.ftrono.djeenoforspotify.R
 import com.ftrono.djeenoforspotify.application.MainActivity
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.Collections
 import kotlin.math.abs
 
@@ -35,7 +35,9 @@ import kotlin.math.abs
 class FloatingViewService : Service() {
     private var mWindowManager: WindowManager? = null
     private var mFloatingView: View? = null
+    private var mCloseView: View? = null
     private var params: LayoutParams? = null
+    private var params2: LayoutParams? = null
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -104,7 +106,14 @@ class FloatingViewService : Service() {
             startForeground(1, Notification())
         }
 
-        //Inflate the floating view layout we created
+        // Init window manager
+        mWindowManager = getSystemService(WINDOW_SERVICE) as WindowManager?
+        // Store display height & width
+        var height = resources.displayMetrics.heightPixels
+        var halfwidth = resources.displayMetrics.widthPixels
+
+        // OVERLAY BUTTON:
+        //Inflate the overlay view layout we created
         mFloatingView = LayoutInflater.from(this).inflate(R.layout.overlay_layout, null)
         val LAYOUT_FLAG: Int
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -127,23 +136,51 @@ class FloatingViewService : Service() {
             )
         }
 
-        //Specify the view position
+        //Specify the overlay view position
         params!!.gravity =
             Gravity.TOP or Gravity.LEFT //Initially view will be added to top-left corner
         params!!.x = 0
         params!!.y = 100
 
-        //Add the view to the window
-        mWindowManager = getSystemService(WINDOW_SERVICE) as WindowManager?
+        //Add the overlay view to the window
         mWindowManager!!.addView(mFloatingView, params)
+
+        // CLOSE TEXT:
+        //Inflate close layout
+        mCloseView = LayoutInflater.from(this).inflate(R.layout.close_layout, null)
+        val LAYOUT_FLAG2: Int
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            LAYOUT_FLAG2 = LayoutParams.TYPE_APPLICATION_OVERLAY
+            params2 = LayoutParams(
+                LayoutParams.WRAP_CONTENT,
+                LayoutParams.WRAP_CONTENT,
+                LAYOUT_FLAG2,
+                LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT
+            )
+        } else {
+            LAYOUT_FLAG2 = LayoutParams.TYPE_PHONE
+            params2 = LayoutParams(
+                LayoutParams.WRAP_CONTENT,
+                LayoutParams.WRAP_CONTENT,
+                LAYOUT_FLAG2,
+                LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT
+            )
+        }
+
+        //Specify the overlay view position
+        params2!!.x = 0
+        params2!!.y = height
+        //Add the close view to the window
+        mWindowManager!!.addView(mCloseView, params2)
+        //Set close text as initially invisible
+        val closeText = mCloseView!!.findViewById<View>(R.id.close_text) as TextView
+        closeText.visibility = View.INVISIBLE
 
         // Set the overlay button & icon
         val overlayButton = mFloatingView!!.findViewById<View>(R.id.rounded_button) as RelativeLayout
         val overlayIcon = mFloatingView!!.findViewById<View>(R.id.record_icon) as ImageView
-
-        // Store display height & width
-        var height = resources.displayMetrics.heightPixels
-        var halfwidth = resources.displayMetrics.widthPixels
 
         /*
         //Set the close button
@@ -201,10 +238,14 @@ class FloatingViewService : Service() {
                                 // Log.d(FloatingViewService.TAG, "Current location: " + event.rawX + " / " + halfwidth + ", " + event.rawY + " / " + height)
                                 stopSelf()
                             }
+                            closeText.visibility = View.INVISIBLE
                             return true
                         }
 
                         MotionEvent.ACTION_MOVE -> {
+
+                            closeText.visibility = View.VISIBLE
+
                             //Calculate the X and Y coordinates of the view.
                             params!!.x = initialX + (event.rawX - initialTouchX).toInt()
                             params!!.y = initialY + (event.rawY - initialTouchY).toInt()

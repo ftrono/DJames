@@ -5,15 +5,12 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.pm.ResolveInfo
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.net.Uri
-import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import android.view.Gravity
@@ -25,12 +22,10 @@ import android.view.WindowManager
 import android.view.WindowManager.LayoutParams
 import android.widget.ImageView
 import android.widget.RelativeLayout
-import android.widget.TextView
 import androidx.core.app.NotificationCompat
 import com.ftrono.djeenoforspotify.R
 import com.ftrono.djeenoforspotify.application.MainActivity
 import com.ftrono.djeenoforspotify.application.SettingsActivity
-import java.util.Collections
 import kotlin.math.abs
 
 
@@ -44,7 +39,8 @@ class FloatingViewService : Service() {
     private var params2: LayoutParams? = null
     //Shared preferences:
     private var navEnabled : Boolean = false
-    private var valTimeout : String? = null
+    private var valRecTimeout : String? = null
+    private var valMapsTimeout : String? = null
     private var spotifyToken : String? = null
     private var mapsAddress : String? = null
 
@@ -219,21 +215,19 @@ class FloatingViewService : Service() {
 
     fun countdownStart(resource: RelativeLayout, sharedPrefs: SharedPreferences) {
         //get updated preferences:
-        valTimeout = sharedPrefs.getString(SettingsActivity.KEY_TIMEOUT, "5") as String
+        valRecTimeout = sharedPrefs.getString(SettingsActivity.KEY_REC_TIMEOUT, "5") as String
         spotifyToken = sharedPrefs.getString(SettingsActivity.KEY_SPOTIFY_TOKEN, "") as String
-        mapsAddress = sharedPrefs.getString(SettingsActivity.KEY_MAPS_ADDRESS, "") as String
-        navEnabled = sharedPrefs.getBoolean(MainActivity.KEY_NAV_ENABLED, false)
 
         //prepare thread:
         val mThread = Thread {
             try {
                 synchronized(this) {
-                    Thread.sleep(valTimeout!!.toLong() * 1000)   //default: 5000
+                    Thread.sleep(valRecTimeout!!.toLong() * 1000)   //default: 5000
                     //AFTER RECORDING:
                     //Reset overlay accent color:
                     resource.setBackgroundResource(R.drawable.rounded_button)
                     //Open links and redirects:
-                    openResults(navEnabled, mapsAddress!!)
+                    openResults(sharedPrefs)
                 }
             } catch (e: InterruptedException) {
                 Log.d(TAG, "Interrupted: exception.", e)
@@ -243,12 +237,16 @@ class FloatingViewService : Service() {
         mThread.start()
     }
 
-    private fun openResults(navEnabled: Boolean, mapsAddress: String){
+    private fun openResults(sharedPrefs: SharedPreferences){
+        //get updated preferences:
+        navEnabled = sharedPrefs.getBoolean(MainActivity.KEY_NAV_ENABLED, false)
+
         //Spotify result:
         val spotifyToOpen = "https://open.spotify.com/track/3jFP1e8IUpD9QbltEI1Hcg?si=pt790-QFRyWr2JhyoMb_yA"
+
         //Maps redirect:
         if (navEnabled) {
-            switchToMaps(mapsAddress)
+            switchToMaps(sharedPrefs)
         }
         //Open query result in Spotify:
         val intentSpotify = Intent(
@@ -260,12 +258,16 @@ class FloatingViewService : Service() {
         startActivity(intentSpotify)
     }
 
-    private fun switchToMaps(mapsAddress: String){
+    private fun switchToMaps(sharedPrefs: SharedPreferences){
+        //get updated preferences:
+        valMapsTimeout = sharedPrefs.getString(SettingsActivity.KEY_MAPS_TIMEOUT, "3") as String
+        mapsAddress = sharedPrefs.getString(SettingsActivity.KEY_MAPS_ADDRESS, "https://www.google.com/maps/") as String
+
         //prepare thread:
         val mThread = Thread {
             try {
                 synchronized(this) {
-                    Thread.sleep(3000)
+                    Thread.sleep(valMapsTimeout!!.toLong() * 1000)   //default: 3000
                     //Launch Maps:
                     val mapIntent = Intent(
                         Intent.ACTION_VIEW,
@@ -282,40 +284,4 @@ class FloatingViewService : Service() {
         //start thread:
         mThread.start()
     }
-
-    /*
-    fun switchToMaps() {
-        try {
-            val launchIntent = packageManager.getLaunchIntentForPackage("com.google.android.apps.maps")
-            launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            launchIntent.putExtra("fromwhere", "ser")
-            startActivity(launchIntent)
-        } catch (E: Exception) {
-            println(E)
-        }
-    }
-
-    fun switchTo(packageName: String?) {
-        val intent = Intent()
-        intent.setPackage(packageName)
-        val pm = packageManager
-        val resolveInfos = pm.queryIntentActivities(intent, 0)
-        Collections.sort(resolveInfos, ResolveInfo.DisplayNameComparator(pm))
-        if (resolveInfos.size > 0) {
-            val launchable = resolveInfos[0]
-            val activity = launchable.activityInfo
-            val name = ComponentName(
-                activity.applicationInfo.packageName,
-                activity.name
-            )
-            val i = Intent(Intent.ACTION_MAIN)
-            i.setFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
-            )
-            i.setComponent(name)
-            startActivity(i)
-        }
-    }
-     */
 }

@@ -9,7 +9,7 @@
     android:forceDarkAllowed="true">
 
     <TextView
-        android:id="@+id/descr_timeout"
+        android:id="@+id/descr_rec_timeout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="@color/light_grey"
@@ -17,14 +17,26 @@
         android:paddingLeft="15dp"
         android:paddingRight="15dp"
         android:paddingTop="100dp"
-        android:text= "&#xA;Auto-timeout for voice recording (in seconds):"
+        android:text= "&#xA;Auto-timeout for voice recording:"
         android:textSize="15dp"
         android:textStyle="bold"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
+    <TextView
+        android:id="@+id/descr_rec_max"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/light_grey"
+        android:paddingLeft="8dp"
+        android:paddingRight="15dp"
+        android:text= "In seconds (keep between 3 and 10)"
+        android:textSize="12dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/descr_rec_timeout"/>
+
     <EditText
-        android:id="@+id/val_timeout"
+        android:id="@+id/val_rec_timeout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="20dp"
@@ -37,7 +49,50 @@
         android:paddingLeft="15dp"
         android:paddingRight="15dp"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/descr_timeout"/>
+        app:layout_constraintTop_toBottomOf="@+id/descr_rec_max"/>
+
+    <TextView
+        android:id="@+id/descr_maps_timeout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/light_grey"
+        android:padding="8dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="100dp"
+        android:text= "&#xA;Auto-timeout for redirecting to Google Maps:"
+        android:textSize="15dp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/val_rec_timeout"/>
+
+    <TextView
+        android:id="@+id/descr_maps_max"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/light_grey"
+        android:paddingLeft="8dp"
+        android:paddingRight="15dp"
+        android:text= "In seconds (keep between 3 and 10)"
+        android:textSize="12dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/descr_maps_timeout"/>
+
+    <EditText
+        android:id="@+id/val_maps_timeout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20dp"
+        android:importantForAutofill="no"
+        android:inputType="number"
+        android:maxLines="1"
+        android:textColor="@color/white"
+        android:backgroundTint="@color/faded_grey"
+        android:text="3"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/descr_maps_max"/>
 
     <TextView
         android:id="@+id/descr_spotify_token"
@@ -52,7 +107,7 @@
         android:textSize="15dp"
         android:textStyle="bold"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/val_timeout"/>
+        app:layout_constraintTop_toBottomOf="@+id/val_maps_timeout"/>
 
     <EditText
         android:id="@+id/val_spotify_token"
@@ -91,14 +146,25 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="@color/light_grey"
-        android:padding="8dp"
-        android:paddingLeft="15dp"
+        android:paddingLeft="8dp"
         android:paddingRight="15dp"
-        android:paddingTop="10dp"
         android:text= "Paste a URL to a place in Google Maps for default redirect:"
         android:textSize="12dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/descr_maps_address"/>
+
+    <TextView
+        android:id="@+id/default_maps_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/mid_grey"
+        android:paddingLeft="8dp"
+        android:paddingRight="15dp"
+        android:text= "(default: https://www.google.com/maps/)"
+        android:textSize="12dp"
+        android:textStyle="italic"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/descr_maps_detail"/>
 
     <EditText
         android:id="@+id/val_maps_address"
@@ -111,10 +177,12 @@
         android:backgroundTint="@color/faded_grey"
         android:hint="Paste URL here"
         android:textColorHint="@color/faded_grey"
+        android:text="https://www.google.com/maps/"
+        android:paddingTop="10dp"
         android:paddingLeft="15dp"
         android:paddingRight="15dp"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/descr_maps_detail"/>
+        app:layout_constraintTop_toBottomOf="@+id/default_maps_address"/>
 
     <Button
         android:id="@+id/save_button"

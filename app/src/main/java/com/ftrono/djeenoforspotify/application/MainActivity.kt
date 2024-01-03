@@ -10,7 +10,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.CheckBox
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
@@ -18,14 +17,12 @@ import androidx.appcompat.widget.Toolbar
 import com.ftrono.djeenoforspotify.R
 import com.ftrono.djeenoforspotify.service.FloatingViewService
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.ftrono.djeenoforspotify.BuildConfig
 
 
 class MainActivity : AppCompatActivity() {
     private var checkbox_nav: CheckBox? = null
     private var overlay_active : Boolean = false
 
-    //fun checkRunning(fab: FloatingActionButton) {}
     val checkThread = Thread {
         try {
             while (true) {
@@ -96,10 +93,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-
+        // Handle action bar item clicks here
         val id = item.itemId
 
         if (id == R.id.action_settings) {

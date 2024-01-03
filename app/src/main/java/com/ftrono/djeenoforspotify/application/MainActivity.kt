@@ -61,10 +61,10 @@ class MainActivity : AppCompatActivity() {
         checkbox_nav!!.setOnClickListener(View.OnClickListener {
             if (checkbox_nav!!.isChecked()) {
                 navEnabled = true
-                Toast.makeText(applicationContext, "Navigation to Google Maps enabled!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "Redirect to Google Maps enabled!", Toast.LENGTH_SHORT).show()
             } else {
                 navEnabled = false
-                Toast.makeText(applicationContext, "Navigation to Google Maps disabled.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "Redirect to Google Maps disabled.", Toast.LENGTH_SHORT).show()
             }
             sharedPrefs.edit().putBoolean(KEY_NAV_ENABLED, navEnabled).apply()
         })
@@ -133,10 +133,10 @@ class MainActivity : AppCompatActivity() {
         checkbox_nav!!.setOnClickListener(View.OnClickListener {
             if (checkbox_nav!!.isChecked()) {
                 navEnabled = true
-                Toast.makeText(applicationContext, "Navigation to Google Maps enabled!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "Redirect to Google Maps enabled!", Toast.LENGTH_SHORT).show()
             } else {
                 navEnabled = false
-                Toast.makeText(applicationContext, "Navigation to Google Maps disabled.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "Redirect to Google Maps disabled.", Toast.LENGTH_SHORT).show()
             }
             sharedPrefs.edit().putBoolean(KEY_NAV_ENABLED, navEnabled).apply()
         })

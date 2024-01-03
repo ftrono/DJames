@@ -142,7 +142,7 @@
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
             android:paddingTop="100dp"
-            android:text= "&#xA;Google Maps redirect address:"
+            android:text= "&#xA;Google Maps redirect URL:"
             android:textSize="15dp"
             android:textStyle="bold"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -155,7 +155,7 @@
             android:textColor="@color/light_grey"
             android:paddingLeft="8dp"
             android:paddingRight="15dp"
-            android:text= "Paste a URL to a place in Google Maps for default redirect:"
+            android:text= "Paste a custom URL for default redirect to Google Maps:"
             android:textSize="12dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/descr_maps_address"/>

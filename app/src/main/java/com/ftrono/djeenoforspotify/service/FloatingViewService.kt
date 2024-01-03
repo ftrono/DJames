@@ -8,6 +8,7 @@ import android.app.Service
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.ResolveInfo
 import android.graphics.Color
 import android.graphics.PixelFormat
@@ -28,83 +29,36 @@ import android.widget.TextView
 import androidx.core.app.NotificationCompat
 import com.ftrono.djeenoforspotify.R
 import com.ftrono.djeenoforspotify.application.MainActivity
+import com.ftrono.djeenoforspotify.application.SettingsActivity
 import java.util.Collections
 import kotlin.math.abs
 
 
 class FloatingViewService : Service() {
+    private val TAG = MainActivity::class.java.simpleName
+    //View managers:
     private var mWindowManager: WindowManager? = null
     private var mFloatingView: View? = null
     private var mCloseView: View? = null
     private var params: LayoutParams? = null
     private var params2: LayoutParams? = null
+    //Shared preferences:
+    private var navEnabled : Boolean = false
+    private var valTimeout : String? = null
+    private var spotifyToken : String? = null
+    private var mapsAddress : String? = null
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
 
-    val TAG = MainActivity::class.java.simpleName
-
-    fun countdownStart(resource: RelativeLayout) {
-        val mThread = Thread {
-            try {
-                synchronized(this) {
-                    Thread.sleep(5000)
-                    resource.setBackgroundResource(R.drawable.rounded_button)
-                    switchTo("com.google.android.apps.maps")
-                }
-            } catch (e: InterruptedException) {
-                Log.d(TAG, "Interrupted: exception.", e)
-            }
-        }
-
-        mThread.start()
-    }
-
-    /*
-    fun switchToMaps() {
-        try {
-            val launchIntent = packageManager.getLaunchIntentForPackage("com.google.android.apps.maps")
-            launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            launchIntent.putExtra("fromwhere", "ser")
-            startActivity(launchIntent)
-        } catch (E: Exception) {
-            println(E)
-        }
-    }
-     */
-
-    fun switchTo(packageName: String?) {
-        val intent = Intent()
-        intent.setPackage(packageName)
-        val pm = packageManager
-        val resolveInfos = pm.queryIntentActivities(intent, 0)
-        Collections.sort(resolveInfos, ResolveInfo.DisplayNameComparator(pm))
-        if (resolveInfos.size > 0) {
-            val launchable = resolveInfos[0]
-            val activity = launchable.activityInfo
-            val name = ComponentName(
-                activity.applicationInfo.packageName,
-                activity.name
-            )
-            val i = Intent(Intent.ACTION_MAIN)
-            i.setFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
-            )
-            i.setComponent(name)
-            startActivity(i)
-        }
-    }
-
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate() {
         super.onCreate()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startMyOwnForeground()
-        } else {
-            startForeground(1, Notification())
-        }
+        startMyOwnForeground()
+
+        // Load preferences:
+        val sharedPrefs = applicationContext.getSharedPreferences(SettingsActivity.SETTINGS_STORAGE, MODE_PRIVATE)
 
         // Init window manager
         mWindowManager = getSystemService(WINDOW_SERVICE) as WindowManager?
@@ -115,26 +69,14 @@ class FloatingViewService : Service() {
         // OVERLAY BUTTON:
         //Inflate the overlay view layout we created
         mFloatingView = LayoutInflater.from(this).inflate(R.layout.overlay_layout, null)
-        val LAYOUT_FLAG: Int
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            LAYOUT_FLAG = LayoutParams.TYPE_APPLICATION_OVERLAY
-            params = LayoutParams(
-                LayoutParams.WRAP_CONTENT,
-                LayoutParams.WRAP_CONTENT,
-                LAYOUT_FLAG,
-                LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT
-            )
-        } else {
-            LAYOUT_FLAG = LayoutParams.TYPE_PHONE
-            params = LayoutParams(
-                LayoutParams.WRAP_CONTENT,
-                LayoutParams.WRAP_CONTENT,
-                LAYOUT_FLAG,
-                LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT
-            )
-        }
+        val LAYOUT_FLAG = LayoutParams.TYPE_APPLICATION_OVERLAY
+        params = LayoutParams(
+            LayoutParams.WRAP_CONTENT,
+            LayoutParams.WRAP_CONTENT,
+            LAYOUT_FLAG,
+            LayoutParams.FLAG_NOT_FOCUSABLE,
+            PixelFormat.TRANSLUCENT
+        )
 
         //Specify the overlay view position
         params!!.gravity =
@@ -148,26 +90,14 @@ class FloatingViewService : Service() {
         // CLOSE TEXT:
         //Inflate close layout
         mCloseView = LayoutInflater.from(this).inflate(R.layout.close_layout, null)
-        val LAYOUT_FLAG2: Int
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            LAYOUT_FLAG2 = LayoutParams.TYPE_APPLICATION_OVERLAY
-            params2 = LayoutParams(
-                LayoutParams.WRAP_CONTENT,
-                LayoutParams.WRAP_CONTENT,
-                LAYOUT_FLAG2,
-                LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT
-            )
-        } else {
-            LAYOUT_FLAG2 = LayoutParams.TYPE_PHONE
-            params2 = LayoutParams(
-                LayoutParams.WRAP_CONTENT,
-                LayoutParams.WRAP_CONTENT,
-                LAYOUT_FLAG2,
-                LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT
-            )
-        }
+        val LAYOUT_FLAG2 = LayoutParams.TYPE_APPLICATION_OVERLAY
+        params2 = LayoutParams(
+            LayoutParams.WRAP_CONTENT,
+            LayoutParams.WRAP_CONTENT,
+            LAYOUT_FLAG2,
+            LayoutParams.FLAG_NOT_FOCUSABLE,
+            PixelFormat.TRANSLUCENT
+        )
 
         //Specify the overlay view position
         params2!!.x = 0
@@ -220,17 +150,9 @@ class FloatingViewService : Service() {
                             //So that is click event.
                             // ON CLICK:
                             if (abs(Xdiff) < 10 && abs(Ydiff) < 10) {
+                                //Set Recording mode:
                                 overlayButton.setBackgroundResource(R.drawable.rounded_button_2)
-                                countdownStart(overlayButton)
-                                //val url = editText.text.toString()
-                                val url = "https://open.spotify.com/track/3jFP1e8IUpD9QbltEI1Hcg?si=pt790-QFRyWr2JhyoMb_yA"
-                                val intent1 = Intent(
-                                    Intent.ACTION_VIEW,
-                                    Uri.parse(url)
-                                )
-                                intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                intent1.putExtra("fromwhere", "ser")
-                                startActivity(intent1)
+                                countdownStart(overlayButton, sharedPrefs)
 
                             } else if ((abs(event.rawY) >= (height-200)) && (abs(event.rawX) >= (halfwidth-200)) && (abs(event.rawX) <= (halfwidth+200))) {
                                 // If SWIPE DOWN -> CLOSE:
@@ -273,30 +195,127 @@ class FloatingViewService : Service() {
     }
 
     private fun startMyOwnForeground() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val NOTIFICATION_CHANNEL_ID = "com.ftrono.djeenoForSpotify"
-            val channelName = "My Background Service"
-            val chan = NotificationChannel(
-                NOTIFICATION_CHANNEL_ID,
-                channelName,
-                NotificationManager.IMPORTANCE_NONE
-            )
-            chan.lightColor = Color.BLUE
-            chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
-            val manager = (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager?)!!
-            manager.createNotificationChannel(chan)
-            val notificationBuilder: NotificationCompat.Builder =
-                NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-            val notification = notificationBuilder.setOngoing(true)
-                .setContentTitle("App is running in background")
-                .setPriority(NotificationManager.IMPORTANCE_MIN)
-                .setCategory(Notification.CATEGORY_SERVICE)
-                .build()
-            startForeground(2, notification)
+        //Foreground service:
+        val NOTIFICATION_CHANNEL_ID = "com.ftrono.djeenoForSpotify"
+        val channelName = "My Background Service"
+        val chan = NotificationChannel(
+            NOTIFICATION_CHANNEL_ID,
+            channelName,
+            NotificationManager.IMPORTANCE_NONE
+        )
+        chan.lightColor = Color.BLUE
+        chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+        val manager = (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager?)!!
+        manager.createNotificationChannel(chan)
+        val notificationBuilder: NotificationCompat.Builder =
+            NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+        val notification = notificationBuilder.setOngoing(true)
+            .setContentTitle("App is running in background")
+            .setPriority(NotificationManager.IMPORTANCE_MIN)
+            .setCategory(Notification.CATEGORY_SERVICE)
+            .build()
+        startForeground(2, notification)
+    }
+
+    fun countdownStart(resource: RelativeLayout, sharedPrefs: SharedPreferences) {
+        //get updated preferences:
+        valTimeout = sharedPrefs.getString(SettingsActivity.KEY_TIMEOUT, "5") as String
+        spotifyToken = sharedPrefs.getString(SettingsActivity.KEY_SPOTIFY_TOKEN, "") as String
+        mapsAddress = sharedPrefs.getString(SettingsActivity.KEY_MAPS_ADDRESS, "") as String
+        navEnabled = sharedPrefs.getBoolean(MainActivity.KEY_NAV_ENABLED, false)
+
+        //prepare thread:
+        val mThread = Thread {
+            try {
+                synchronized(this) {
+                    Thread.sleep(valTimeout!!.toLong() * 1000)   //default: 5000
+                    //AFTER RECORDING:
+                    //Reset overlay accent color:
+                    resource.setBackgroundResource(R.drawable.rounded_button)
+                    //Open links and redirects:
+                    openResults(navEnabled, mapsAddress!!)
+                }
+            } catch (e: InterruptedException) {
+                Log.d(TAG, "Interrupted: exception.", e)
+            }
+        }
+        //start thread:
+        mThread.start()
+    }
+
+    private fun openResults(navEnabled: Boolean, mapsAddress: String){
+        //Spotify result:
+        val spotifyToOpen = "https://open.spotify.com/track/3jFP1e8IUpD9QbltEI1Hcg?si=pt790-QFRyWr2JhyoMb_yA"
+        //Maps redirect:
+        if (navEnabled) {
+            switchToMaps(mapsAddress)
+        }
+        //Open query result in Spotify:
+        val intentSpotify = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse(spotifyToOpen)
+        )
+        intentSpotify.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intentSpotify.putExtra("fromwhere", "ser")
+        startActivity(intentSpotify)
+    }
+
+    private fun switchToMaps(mapsAddress: String){
+        //prepare thread:
+        val mThread = Thread {
+            try {
+                synchronized(this) {
+                    Thread.sleep(3000)
+                    //Launch Maps:
+                    val mapIntent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(mapsAddress)
+                    )
+                    mapIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    mapIntent.putExtra("fromwhere", "ser")
+                    startActivity(mapIntent)
+                }
+            } catch (e: InterruptedException) {
+                Log.d(TAG, "Interrupted: exception.", e)
+            }
+        }
+        //start thread:
+        mThread.start()
+    }
+
+    /*
+    fun switchToMaps() {
+        try {
+            val launchIntent = packageManager.getLaunchIntentForPackage("com.google.android.apps.maps")
+            launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            launchIntent.putExtra("fromwhere", "ser")
+            startActivity(launchIntent)
+        } catch (E: Exception) {
+            println(E)
         }
     }
 
-    companion object {
-        private val TAG: String = FloatingViewService::class.java.getSimpleName()
+    fun switchTo(packageName: String?) {
+        val intent = Intent()
+        intent.setPackage(packageName)
+        val pm = packageManager
+        val resolveInfos = pm.queryIntentActivities(intent, 0)
+        Collections.sort(resolveInfos, ResolveInfo.DisplayNameComparator(pm))
+        if (resolveInfos.size > 0) {
+            val launchable = resolveInfos[0]
+            val activity = launchable.activityInfo
+            val name = ComponentName(
+                activity.applicationInfo.packageName,
+                activity.name
+            )
+            val i = Intent(Intent.ACTION_MAIN)
+            i.setFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+            )
+            i.setComponent(name)
+            startActivity(i)
+        }
     }
+     */
 }

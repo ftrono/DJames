@@ -33,12 +33,6 @@
         </activity>
 
         <activity
-            android:name=".application.Pem"
-            android:configChanges="orientation|screenSize"
-            android:parentActivityName=".application.MainActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-        <activity
             android:name=".application.SettingsActivity"
             android:configChanges="orientation|screenSize"
             android:label="Settings"

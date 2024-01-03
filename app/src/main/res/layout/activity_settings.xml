@@ -58,6 +58,7 @@
         android:id="@+id/val_spotify_token"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:inputType="textPassword"
         android:textSize="15dp"
         android:importantForAutofill="no"
         android:maxLines="1"

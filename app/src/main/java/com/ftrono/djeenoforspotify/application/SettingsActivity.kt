@@ -10,15 +10,14 @@ import androidx.appcompat.app.AppCompatActivity
 import com.ftrono.djeenoforspotify.BuildConfig
 import com.ftrono.djeenoforspotify.R
 import android.content.DialogInterface.OnClickListener
+import android.widget.Toast
 import android.content.SharedPreferences
 
 
 class SettingsActivity : AppCompatActivity() {
-    private var val_timeout: TextView? = null
-    private var val_spotify_token: TextView? = null
-    private var val_maps_address: TextView? = null
-    //var sharedPrefs = PreferenceManager
-        //.getDefaultSharedPreferences(this)
+    private var text_timeout: TextView? = null
+    private var text_spotify_token: TextView? = null
+    private var text_maps_address: TextView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -28,10 +27,44 @@ class SettingsActivity : AppCompatActivity() {
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.title = "Settings"
 
+        // Load preferences:
         val sharedPrefs = applicationContext.getSharedPreferences(SETTINGS_STORAGE, MODE_PRIVATE)
+
+        //Timeout:
+        text_timeout = findViewById<TextView>(R.id.val_timeout)
+        val origTimeout = sharedPrefs.getString(KEY_TIMEOUT, "5") as String
+        text_timeout!!.text = origTimeout
+
+        //Spotify token:
+        text_spotify_token = findViewById<TextView>(R.id.val_spotify_token)
+        val origSpotifyToken = sharedPrefs.getString(KEY_SPOTIFY_TOKEN, "") as String
+        text_spotify_token!!.text = origSpotifyToken
+
+        //GMaps address:
+        text_maps_address = findViewById<TextView>(R.id.val_maps_address)
+        val origMapsAddress = sharedPrefs.getString(KEY_MAPS_ADDRESS, "") as String
+        text_maps_address!!.text = origMapsAddress
+
+        //Save:
         val saveButton = findViewById<Button>(R.id.save_button)
+
         saveButton.setOnClickListener(View.OnClickListener {
-            saveAll(sharedPrefs)
+            //Timeout:
+            val newTimeout = text_timeout!!.text.toString()
+            if (newTimeout.isNotEmpty()) {
+                sharedPrefs.edit().putString(KEY_TIMEOUT, validateTimeout(newVal=newTimeout, origVal=origTimeout)).apply()
+            }
+            //Spotify token:
+            val newSpotifyToken = text_spotify_token!!.text.toString()
+            if (newSpotifyToken.isNotEmpty()) {
+                sharedPrefs.edit().putString(KEY_SPOTIFY_TOKEN, newSpotifyToken).apply()
+            }
+            //GMaps address:
+            val newMapsAddress = text_maps_address!!.text.toString()
+            if (newMapsAddress.isNotEmpty()) {
+                sharedPrefs.edit().putString(KEY_MAPS_ADDRESS, newMapsAddress).apply()
+            }
+            Toast.makeText(applicationContext, "Settings saved!", Toast.LENGTH_SHORT).show()
             finish()
         })
 
@@ -57,18 +90,47 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
+        //Load preferences:
         val sharedPrefs = applicationContext.getSharedPreferences(SETTINGS_STORAGE, MODE_PRIVATE)
+        val origTimeout = sharedPrefs.getString(KEY_TIMEOUT, "5") as String
+
+        /*
+        //Load views:
+        val text_timeout = findViewById<TextView>(R.id.val_timeout)
+        val text_spotify_token = findViewById<TextView>(R.id.val_spotify_token)
+        val text_maps_address = findViewById<TextView>(R.id.val_maps_address)
+         */
+
+        //Alert dialog:
         val alertDialog = AlertDialog.Builder(
             this
         )
+        //Save:
         alertDialog.setPositiveButton("Yes", object : OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
-                saveAll(sharedPrefs)
+                //Timeout:
+                val newTimeout = text_timeout!!.text.toString()
+                if (newTimeout.isNotEmpty()) {
+                    sharedPrefs.edit().putString(KEY_TIMEOUT, validateTimeout(newVal=newTimeout, origVal=origTimeout)).apply()
+                }
+                //Spotify token:
+                val newSpotifyToken = text_spotify_token!!.text.toString()
+                if (newSpotifyToken.isNotEmpty()) {
+                    sharedPrefs.edit().putString(KEY_SPOTIFY_TOKEN, newSpotifyToken).apply()
+                }
+                //GMaps address:
+                val newMapsAddress = text_maps_address!!.text.toString()
+                if (newMapsAddress.isNotEmpty()) {
+                    sharedPrefs.edit().putString(KEY_MAPS_ADDRESS, newMapsAddress).apply()
+                }
+                Toast.makeText(applicationContext, "Settings saved!", Toast.LENGTH_SHORT).show()
                 finish()
             }
         })
+        //Exit without saving:
         alertDialog.setNegativeButton("No", object: OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
+                Toast.makeText(applicationContext, "Settings NOT saved.", Toast.LENGTH_SHORT).show()
                 finish()
             }
         })
@@ -77,20 +139,12 @@ class SettingsActivity : AppCompatActivity() {
         alertDialog.show()
     }
 
-    private fun saveAll(sharedPrefs: SharedPreferences) {
-        // Load preferences:
-        val strValTimeout = sharedPrefs.getString(KEY_TIMEOUT, "5")
-        //Load text views:
-        val val_timeout = findViewById<TextView>(R.id.val_timeout)
-        val strTimeoutNew = val_timeout.text.toString()
-
-        if (strTimeoutNew.isNotEmpty()) {
-            val intTimeout = strTimeoutNew.toInt()
-            if (intTimeout > 0 && intTimeout <= 15) {
-                sharedPrefs.edit().putString(KEY_TIMEOUT, strTimeoutNew).commit()   //apply()?
-            } else {
-                val_timeout!!.text = strValTimeout
-            }
+    private fun validateTimeout(newVal: String, origVal: String) : String {
+        val newInt = newVal.toInt()
+        return if (newInt in 3..15) {
+            newVal
+        } else {
+            origVal
         }
     }
 

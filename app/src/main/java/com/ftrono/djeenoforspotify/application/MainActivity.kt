@@ -10,6 +10,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.CheckBox
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
@@ -21,9 +22,8 @@ import com.ftrono.djeenoforspotify.BuildConfig
 
 
 class MainActivity : AppCompatActivity() {
-
-    var notificationID = 1
-    private val checkMaps: CheckBox? = null
+    private var checkbox_nav: CheckBox? = null
+    private var overlay_active : Boolean = false
 
     //fun checkRunning(fab: FloatingActionButton) {}
     val checkThread = Thread {
@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
             while (true) {
                 synchronized(this) {
                     Thread.sleep(2000)
-                    if (!isMyServiceRunning(FloatingViewService::class.java)) {
+                    if (!isMyServiceRunning(FloatingViewService::class.java) && overlay_active) {
                         val fab1 = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
                         setOverlayInactive(fab1, false)
                     }
@@ -47,46 +47,43 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // SHARED WITH ON RESUME():
+        //Load views:
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
-
         val fab = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
 
-        val checkMaps = findViewById<CheckBox>(R.id.check_maps)
-        checkMaps.setOnClickListener(View.OnClickListener {
-            val yes1: Boolean
-            /*
-            if (checkMaps.isChecked()) {
-                info = getString(R.string.you_added) + ingr1
-                Toast.makeText(applicationContext, info, Toast.LENGTH_SHORT).show()
-                yes1 = true
-            } else {
-                info = getString(R.string.you_removed) + ingr1
-                Toast.makeText(applicationContext, info, Toast.LENGTH_SHORT).show()
-                yes1 = false
-            }
-            val sharedPrefs = getSharedPreferences(SETTINGS_STORAGE, MODE_PRIVATE)
-            sharedPrefs.edit().putString(INGR1V_KEY, ingr1).apply()
-            sharedPrefs.edit().putBoolean(INGR1YN_KEY, yes1).apply()
+        // Load preferences:
+        val sharedPrefs = applicationContext.getSharedPreferences(SettingsActivity.SETTINGS_STORAGE, MODE_PRIVATE)
 
-             */
+        //Check NavEnabled:
+        checkbox_nav = findViewById<CheckBox>(R.id.check_nav)
+        var navEnabled = sharedPrefs.getBoolean(KEY_NAV_ENABLED, false)
+        checkbox_nav!!.setChecked(navEnabled)
+
+        checkbox_nav!!.setOnClickListener(View.OnClickListener {
+            if (checkbox_nav!!.isChecked()) {
+                navEnabled = true
+                Toast.makeText(applicationContext, "Navigation to Google Maps enabled!", Toast.LENGTH_SHORT).show()
+            } else {
+                navEnabled = false
+                Toast.makeText(applicationContext, "Navigation to Google Maps disabled.", Toast.LENGTH_SHORT).show()
+            }
+            sharedPrefs.edit().putBoolean(KEY_NAV_ENABLED, navEnabled).apply()
         })
 
-        //if (isMyServiceRunning(FloatingViewService::class.java)) {}
-        // Start overlay service automatically
+        //ON CREATE() ONLY:
+        // Start overlay service automatically:
         var fab_status = setOverlayActive(fab, true) as Boolean
 
         fab.setOnClickListener {
-            /*
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-            .setAction("Action", null).show();
-            */
             if (!fab_status) {
                 fab_status = setOverlayActive(fab, true)
             } else {
                 fab_status = setOverlayInactive(fab, true)
             }
         }
+        //Thread check:
         if (!checkThread.isAlive()){
             checkThread.start();
         }
@@ -125,12 +122,34 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         setContentView(R.layout.activity_main)
 
+        // SHARED WITH ON CREATE():
+        //Load views:
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
-
         val fab = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
-        var fab_status = false as Boolean
 
+        // Load preferences:
+        val sharedPrefs = applicationContext.getSharedPreferences(SettingsActivity.SETTINGS_STORAGE, MODE_PRIVATE)
+
+        //Check NavEnabled:
+        checkbox_nav = findViewById<CheckBox>(R.id.check_nav)
+        var navEnabled = sharedPrefs.getBoolean(KEY_NAV_ENABLED, false)
+        checkbox_nav!!.setChecked(navEnabled)
+
+        checkbox_nav!!.setOnClickListener(View.OnClickListener {
+            if (checkbox_nav!!.isChecked()) {
+                navEnabled = true
+                Toast.makeText(applicationContext, "Navigation to Google Maps enabled!", Toast.LENGTH_SHORT).show()
+            } else {
+                navEnabled = false
+                Toast.makeText(applicationContext, "Navigation to Google Maps disabled.", Toast.LENGTH_SHORT).show()
+            }
+            sharedPrefs.edit().putBoolean(KEY_NAV_ENABLED, navEnabled).apply()
+        })
+
+        //ON RESUME() ONLY:
+        //Check if service is active:
+        var fab_status = false as Boolean
         if (isMyServiceRunning(FloatingViewService::class.java)) {
             fab_status = setOverlayActive(fab, false)
         } else {
@@ -138,24 +157,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         fab.setOnClickListener {
-            /*
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-            .setAction("Action", null).show();
-            */
-            //Log.e(TAG, "Notification ID: $notificationID")
             if (!fab_status) {
                 fab_status = setOverlayActive(fab, true)
             } else {
                 fab_status = setOverlayInactive(fab, true)
             }
         }
+        //Thread check:
         if (!checkThread.isAlive()){
             checkThread.start();
         }
-    }
-
-    companion object {
-        private val TAG: String = MainActivity::class.java.getSimpleName()
     }
 
     fun isMyServiceRunning(serviceClass: Class<*>): Boolean {
@@ -173,6 +184,7 @@ class MainActivity : AppCompatActivity() {
         fab.setImageResource(R.drawable.stop_icon)
         if (exec) {
             startService(Intent(this, FloatingViewService::class.java))
+            overlay_active = true
         }
         return true
     }
@@ -182,7 +194,13 @@ class MainActivity : AppCompatActivity() {
         fab.setImageResource(R.drawable.add_icon)
         if (exec) {
             stopService(Intent(this, FloatingViewService::class.java))
+            overlay_active = false
         }
         return false
+    }
+
+    companion object {
+        private val TAG: String = MainActivity::class.java.getSimpleName()
+        const val KEY_NAV_ENABLED = ".key.nav_enabled"
     }
 }

@@ -24,7 +24,7 @@
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
             android:paddingTop="100dp"
-            android:text= "&#xA;Auto-timeout for voice recording:"
+            android:text= "&#xA;🗣️ Auto-timeout for voice recording:"
             android:textSize="15dp"
             android:textStyle="bold"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -67,7 +67,7 @@
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
             android:paddingTop="100dp"
-            android:text= "&#xA;Auto-timeout for redirecting to Google Maps:"
+            android:text= "&#xA;⏱️ Auto-timeout for redirecting to Google Maps:"
             android:textSize="15dp"
             android:textStyle="bold"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -110,7 +110,7 @@
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
             android:paddingTop="100dp"
-            android:text= "&#xA;Spotify Developer token:"
+            android:text= "&#xA;🔐 Spotify Developer token:"
             android:textSize="15dp"
             android:textStyle="bold"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -142,7 +142,7 @@
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
             android:paddingTop="100dp"
-            android:text= "&#xA;Google Maps redirect URL:"
+            android:text= "&#xA;➡️ Google Maps redirect URL:"
             android:textSize="15dp"
             android:textStyle="bold"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -202,6 +202,21 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/val_maps_address"/>
+
+        <TextView
+            android:id="@+id/copyright"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/mid_grey"
+            android:textStyle="italic"
+            android:layout_marginTop="30dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="15dp"
+            android:text= "Copyright © Francesco Trono (2024)"
+            android:textSize="12dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/save_button"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

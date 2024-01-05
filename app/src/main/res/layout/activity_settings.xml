@@ -100,7 +100,7 @@
             app:layout_constraintTop_toBottomOf="@+id/descr_maps_max"/>
 
         <TextView
-            android:id="@+id/descr_spotify_token"
+            android:id="@+id/descr_spotify_login"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/light_grey"
@@ -108,113 +108,108 @@
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
             android:paddingTop="100dp"
-            android:text= "&#xA;🔐 Spotify Developer token:"
+            android:text= "&#xA;🔐 Authorize Djeeno in Spotify:"
             android:textSize="15dp"
             android:textStyle="bold"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/val_maps_timeout"/>
 
-        <EditText
-            android:id="@+id/val_spotify_token"
+        <Button
+            android:id="@+id/login_button"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:backgroundTint="@color/colorAccent"
+            android:text="Login"
+            android:textColor="@color/white"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/descr_spotify_login"/>
+
+        <TextView
+            android:id="@+id/descr_maps_address"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textPassword"
+            android:textColor="@color/light_grey"
+            android:padding="8dp"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:paddingTop="100dp"
+            android:text= "&#xA;➡️ Google Maps redirect URL:"
+            android:textSize="15dp"
+            android:textStyle="bold"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/login_button"/>
+
+        <TextView
+            android:id="@+id/descr_maps_detail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/light_grey"
+            android:paddingLeft="8dp"
+            android:paddingRight="15dp"
+            android:text= "Paste a custom URL for default redirect to Google Maps:"
+            android:textSize="12dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/descr_maps_address"/>
+
+        <TextView
+            android:id="@+id/default_maps_address"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/mid_grey"
+            android:paddingLeft="8dp"
+            android:paddingRight="15dp"
+            android:text= "(default: https://www.google.com/maps/)"
+            android:textSize="12dp"
+            android:textStyle="italic"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/descr_maps_detail"/>
+
+        <EditText
+            android:id="@+id/val_maps_address"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:textSize="15dp"
             android:importantForAutofill="no"
+            android:inputType="text"
             android:textColor="@color/white"
             android:backgroundTint="@color/faded_grey"
-            android:hint="Paste Spotify Developer token here"
+            android:hint="Paste URL here"
             android:textColorHint="@color/faded_grey"
+            android:text="https://www.google.com/maps/"
+            android:paddingTop="10dp"
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/descr_spotify_token"/>
-            <!--android:inputType="textPassword"-->
+            app:layout_constraintTop_toBottomOf="@+id/default_maps_address"/>
 
-    <TextView
-        android:id="@+id/descr_maps_address"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="@color/light_grey"
-        android:padding="8dp"
-        android:paddingLeft="15dp"
-        android:paddingRight="15dp"
-        android:paddingTop="100dp"
-        android:text= "&#xA;➡️ Google Maps redirect URL:"
-        android:textSize="15dp"
-        android:textStyle="bold"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/val_spotify_token"/>
+        <Button
+            android:id="@+id/save_button"
+            android:layout_width="210dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="32dp"
+            android:backgroundTint="@color/colorAccent"
+            android:text="Save"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/val_maps_address"/>
 
-    <TextView
-        android:id="@+id/descr_maps_detail"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="@color/light_grey"
-        android:paddingLeft="8dp"
-        android:paddingRight="15dp"
-        android:text= "Paste a custom URL for default redirect to Google Maps:"
-        android:textSize="12dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/descr_maps_address"/>
-
-    <TextView
-        android:id="@+id/default_maps_address"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="@color/mid_grey"
-        android:paddingLeft="8dp"
-        android:paddingRight="15dp"
-        android:text= "(default: https://www.google.com/maps/)"
-        android:textSize="12dp"
-        android:textStyle="italic"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/descr_maps_detail"/>
-
-    <EditText
-        android:id="@+id/val_maps_address"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="15dp"
-        android:importantForAutofill="no"
-        android:inputType="text"
-        android:textColor="@color/white"
-        android:backgroundTint="@color/faded_grey"
-        android:hint="Paste URL here"
-        android:textColorHint="@color/faded_grey"
-        android:text="https://www.google.com/maps/"
-        android:paddingTop="10dp"
-        android:paddingLeft="15dp"
-        android:paddingRight="15dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/default_maps_address"/>
-
-    <Button
-        android:id="@+id/save_button"
-        android:layout_width="210dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="32dp"
-        android:backgroundTint="@color/colorAccent"
-        android:text="Save"
-        android:textColor="@color/white"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/val_maps_address"/>
-
-    <TextView
-        android:id="@+id/copyright"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@color/mid_grey"
-        android:textStyle="italic"
-        android:layout_marginTop="30dp"
-        android:paddingLeft="8dp"
-        android:paddingRight="15dp"
-        android:text= "Copyright © Francesco Trono (2024)"
-        android:textSize="12dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/save_button"/>
+        <TextView
+            android:id="@+id/copyright"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/mid_grey"
+            android:textStyle="italic"
+            android:layout_marginTop="30dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="15dp"
+            android:text= "Copyright © Francesco Trono (2024)"
+            android:textSize="12dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/save_button"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

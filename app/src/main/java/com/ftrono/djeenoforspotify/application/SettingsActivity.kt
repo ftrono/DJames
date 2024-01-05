@@ -12,6 +12,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.ftrono.djeenoforspotify.BuildConfig
@@ -22,15 +23,13 @@ class SettingsActivity : AppCompatActivity() {
     //Text views:
     private var text_rec_timeout: TextView? = null
     private var text_maps_timeout: TextView? = null
-    private var text_spotify_token: TextView? = null
     private var text_maps_address: TextView? = null
 
     //Shared preferences:
     private var origRecTimeout: String? = null
     private var origMapsTimeout: String? = null
-    private var origSpotifyToken: String? = null
     private var origMapsAddress: String? = null
-
+    private var spotifyToken: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -76,9 +75,37 @@ class SettingsActivity : AppCompatActivity() {
         text_maps_timeout!!.text = origMapsTimeout
 
         //(Encrypted) Spotify token:
-        text_spotify_token = findViewById<TextView>(R.id.val_spotify_token)
-        origSpotifyToken = encryptedPrefs.getString(KEY_SPOTIFY_TOKEN, "") as String
-        text_spotify_token!!.text = origSpotifyToken
+        spotifyToken = encryptedPrefs.getString(KEY_SPOTIFY_TOKEN, "") as String
+
+        //Spotify login:
+        val loginButton = findViewById<Button>(R.id.login_button)
+        var loggedIn = false
+        if (spotifyToken != "") {
+            loginButton!!.text = "Logout"
+            loginButton.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorStop)
+            loggedIn = true
+        }
+
+        loginButton.setOnClickListener(View.OnClickListener {
+            if (!loggedIn) {
+                //CALL SPOTIFY AUTHENTICATION HERE
+                spotifyToken = "ciaoneciaone"
+                //User is logged in: store token and set button to "LOGOUT":
+                encryptedPrefs.edit().putString(KEY_SPOTIFY_TOKEN, spotifyToken).apply()
+                loginButton!!.text = "Logout"
+                loginButton.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorStop)
+                loggedIn = true
+                Toast.makeText(applicationContext, "App authorized! Token: "+spotifyToken, Toast.LENGTH_SHORT).show()
+            } else {
+                //User is logged out: erase token and set button to "LOGIN":
+                spotifyToken = ""
+                encryptedPrefs.edit().putString(KEY_SPOTIFY_TOKEN, spotifyToken).apply()
+                loginButton!!.text = "Login"
+                loginButton.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorAccent)
+                loggedIn = false
+                Toast.makeText(applicationContext, "App authorization removed.", Toast.LENGTH_SHORT).show()
+            }
+        })
 
         //GMaps address:
         text_maps_address = findViewById<TextView>(R.id.val_maps_address)
@@ -106,11 +133,7 @@ class SettingsActivity : AppCompatActivity() {
                     validateTimeout(newVal = newMapsTimeout, origVal = origMapsTimeout!!)
                 ).apply()
             }
-            //(Encrypted) Spotify token:
-            val newSpotifyToken = text_spotify_token!!.text.toString()
-            if (newSpotifyToken.isNotEmpty()) {
-                encryptedPrefs.edit().putString(KEY_SPOTIFY_TOKEN, newSpotifyToken).apply()
-            }
+
             //GMaps address:
             val newMapsAddress = text_maps_address!!.text.toString()
             if (newMapsAddress.isNotEmpty()) {
@@ -150,11 +173,10 @@ class SettingsActivity : AppCompatActivity() {
         //New vals:
         val newRecTimeout = text_rec_timeout!!.text.toString()
         val newMapsTimeout = text_maps_timeout!!.text.toString()
-        val newSpotifyToken = text_spotify_token!!.text.toString()
         val newMapsAddress = text_maps_address!!.text.toString()
 
         //If changes made: show alert dialog:
-        if (origRecTimeout != newRecTimeout || origMapsTimeout != newMapsTimeout || origSpotifyToken != newSpotifyToken || origMapsAddress != newMapsAddress) {
+        if (origRecTimeout != newRecTimeout || origMapsTimeout != newMapsTimeout || origMapsAddress != newMapsAddress) {
             val alertDialog = AlertDialog.Builder(
                 this
             )
@@ -174,10 +196,6 @@ class SettingsActivity : AppCompatActivity() {
                             KEY_MAPS_TIMEOUT,
                             validateTimeout(newVal = newMapsTimeout, origVal = origMapsTimeout!!)
                         ).apply()
-                    }
-                    //(Encrypted) Spotify token:
-                    if (newSpotifyToken.isNotEmpty()) {
-                        encryptedPrefs.edit().putString(KEY_SPOTIFY_TOKEN, newSpotifyToken).apply()
                     }
                     //GMaps address:
                     if (newMapsAddress.isNotEmpty()) {

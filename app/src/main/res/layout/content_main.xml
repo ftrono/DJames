@@ -55,7 +55,7 @@
             android:id="@+id/val_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Not logged in"
+            android:text="Not logged in. Go to Settings."
             android:textAlignment="center"
             android:textColor="@color/colorStop"
             android:textSize="15dp"

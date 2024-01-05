@@ -1,116 +1,187 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:fillViewport="true"
     android:background="@color/black"
+    android:forceDarkAllowed="true"
+    android:nestedScrollingEnabled="true"
     tools:context=".application.MainActivity">
-    <!--tools:showIn="@layout/activity_main"-->
 
-    <TextView
-        android:id="@+id/descr_nav"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="🚗   N A V I G A T I O N   A P P S"
-        android:textColor="@color/light_grey"
-        android:textStyle="bold"
-        android:textSize="18dp"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/separator_nav"/>
-
-    <View
-        android:id="@+id/separator_nav"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:paddingLeft="30dp"
-        android:paddingRight="30dp"
-        android:layout_marginTop="2dp"
-        android:background="@color/faded_grey"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/descr_nav"
-        app:layout_constraintBottom_toTopOf="@+id/check_nav"/>
-
-    <CheckBox
-        android:id="@+id/check_nav"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:checked="false"
-        android:text="Redirect to Google Maps"
-        android:textSize="15dp"
-        android:textColor="@color/light_grey"
-        android:buttonTint="@color/colorAccent"
-        android:textStyle="bold"
-        android:layout_marginTop="4dp"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/separator_nav"
-        app:layout_constraintBottom_toTopOf="@+id/descr_use"/>
+        android:background="@color/black"
+        tools:context=".application.MainActivity">
+        <!--tools:showIn="@layout/activity_main"-->
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBarLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/placeholder_toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <TextView
+            android:id="@+id/descr_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Login status:"
+            android:textAlignment="center"
+            android:textColor="@color/light_grey"
+            android:textSize="15dp"
+            android:textStyle="bold|italic"
+            app:layout_constraintBottom_toTopOf="@+id/val_status"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/appBarLayout"
+            app:layout_constraintVertical_chainStyle="packed" />
+
+        <TextView
+            android:id="@+id/val_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Not logged in"
+            android:textAlignment="center"
+            android:textColor="@color/colorStop"
+            android:textSize="15dp"
+            android:textStyle="italic"
+            android:layout_marginBottom="30dp"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/descr_status"
+            app:layout_constraintBottom_toTopOf="@+id/descr_nav"/>
+
+        <TextView
+            android:id="@+id/descr_nav"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🚗   N A V I G A T I O N   A P P S"
+            android:textColor="@color/light_grey"
+            android:textStyle="bold"
+            android:textSize="18dp"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/val_status"
+            app:layout_constraintBottom_toTopOf="@+id/separator_nav"/>
+
+        <View
+            android:id="@+id/separator_nav"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:paddingLeft="30dp"
+            android:paddingRight="30dp"
+            android:layout_marginTop="2dp"
+            android:background="@color/faded_grey"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/descr_nav"
+            app:layout_constraintBottom_toTopOf="@+id/check_nav"/>
+
+        <CheckBox
+            android:id="@+id/check_nav"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="false"
+            android:text="Redirect to Google Maps"
+            android:textSize="15dp"
+            android:textColor="@color/light_grey"
+            android:buttonTint="@color/colorAccent"
+            android:textStyle="bold"
+            android:layout_marginTop="4dp"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/separator_nav"
+            app:layout_constraintBottom_toTopOf="@+id/descr_use"/>
 
 
-    <TextView
-        android:id="@+id/descr_use"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="🗣️   H O W   T O   U S E"
-        android:textColor="@color/light_grey"
-        android:layout_marginTop="30dp"
-        android:textStyle="bold"
-        android:textSize="18dp"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/check_nav"
-        app:layout_constraintBottom_toTopOf="@+id/separator_use"/>
+        <TextView
+            android:id="@+id/descr_use"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🗣️   H O W   T O   U S E"
+            android:textColor="@color/light_grey"
+            android:layout_marginTop="30dp"
+            android:textStyle="bold"
+            android:textSize="18dp"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/check_nav"
+            app:layout_constraintBottom_toTopOf="@+id/separator_use"/>
 
-    <View
-        android:id="@+id/separator_use"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="2dp"
-        android:paddingLeft="30dp"
-        android:paddingRight="30dp"
-        android:background="@color/faded_grey"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/descr_use"
-        app:layout_constraintBottom_toTopOf="@+id/text_use"/>
+        <View
+            android:id="@+id/separator_use"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="2dp"
+            android:paddingLeft="30dp"
+            android:paddingRight="30dp"
+            android:background="@color/faded_grey"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/descr_use"
+            app:layout_constraintBottom_toTopOf="@+id/text_use"/>
 
-    <TextView
-        android:id="@+id/text_use"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Use the overlay button to record&#xA;a voice command.&#xA;😎"
-        android:textSize="15dp"
-        android:textColor="@color/mid_grey"
-        android:textAlignment="center"
-        android:layout_marginTop="10dp"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/separator_use"
-        app:layout_constraintBottom_toTopOf="@+id/text_run"/>
+        <TextView
+            android:id="@+id/text_use"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Use the overlay button to record&#xA;a voice command.&#xA;😎"
+            android:textSize="15dp"
+            android:textColor="@color/mid_grey"
+            android:textAlignment="center"
+            android:layout_marginTop="10dp"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/separator_use"
+            app:layout_constraintBottom_toTopOf="@+id/text_run"/>
 
-    <TextView
-        android:id="@+id/text_run"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Use the button below to&#xA;show / hide the overlay button.&#xA;↘️"
-        android:textSize="15dp"
-        android:textColor="@color/mid_grey"
-        android:textAlignment="center"
-        android:paddingTop="15dp"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_use"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        <TextView
+            android:id="@+id/text_run"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Use the button below to&#xA;show / hide the overlay button.&#xA;↘️"
+            android:textSize="15dp"
+            android:textColor="@color/mid_grey"
+            android:textAlignment="center"
+            android:paddingTop="15dp"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/text_use"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="@dimen/fab_margin"
+            app:backgroundTint="@color/colorAccent"
+            app:srcCompat="@drawable/add_icon"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

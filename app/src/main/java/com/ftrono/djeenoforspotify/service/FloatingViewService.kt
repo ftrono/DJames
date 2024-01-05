@@ -12,6 +12,8 @@ import android.graphics.Color
 import android.graphics.PixelFormat
 import android.net.Uri
 import android.os.IBinder
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -23,6 +25,8 @@ import android.view.WindowManager.LayoutParams
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import androidx.core.app.NotificationCompat
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import com.ftrono.djeenoforspotify.R
 import com.ftrono.djeenoforspotify.application.MainActivity
 import com.ftrono.djeenoforspotify.application.SettingsActivity
@@ -55,6 +59,28 @@ class FloatingViewService : Service() {
 
         // Load preferences:
         val sharedPrefs = applicationContext.getSharedPreferences(SettingsActivity.SETTINGS_STORAGE, MODE_PRIVATE)
+
+        //Encrypted preferences:
+        // This is equivalent to using deprecated MasterKeys.AES256_GCM_SPEC
+        val key_spec = KeyGenParameterSpec.Builder(
+            MasterKey.DEFAULT_MASTER_KEY_ALIAS,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+        )
+            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+            .setKeySize(256)
+            .build()
+
+        val masterKey = MasterKey.Builder(applicationContext)
+            .setKeyGenParameterSpec(key_spec)
+            .build()
+
+        val encryptedPrefs = EncryptedSharedPreferences.create(
+            applicationContext,
+            "encrypted_preferences",
+            masterKey, // masterKey created above
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM)
 
         // Init window manager
         mWindowManager = getSystemService(WINDOW_SERVICE) as WindowManager?
@@ -148,7 +174,7 @@ class FloatingViewService : Service() {
                             if (abs(Xdiff) < 10 && abs(Ydiff) < 10) {
                                 //Set Recording mode:
                                 overlayButton.setBackgroundResource(R.drawable.rounded_button_2)
-                                countdownStart(overlayButton, sharedPrefs)
+                                countdownStart(overlayButton, sharedPrefs, encryptedPrefs)
 
                             } else if ((abs(event.rawY) >= (height-200)) && (abs(event.rawX) >= (halfwidth-200)) && (abs(event.rawX) <= (halfwidth+200))) {
                                 // If SWIPE DOWN -> CLOSE:
@@ -213,10 +239,10 @@ class FloatingViewService : Service() {
         startForeground(2, notification)
     }
 
-    fun countdownStart(resource: RelativeLayout, sharedPrefs: SharedPreferences) {
+    fun countdownStart(resource: RelativeLayout, sharedPrefs: SharedPreferences, encryptedPrefs: SharedPreferences) {
         //get updated preferences:
         valRecTimeout = sharedPrefs.getString(SettingsActivity.KEY_REC_TIMEOUT, "5") as String
-        spotifyToken = sharedPrefs.getString(SettingsActivity.KEY_SPOTIFY_TOKEN, "") as String
+        spotifyToken = encryptedPrefs.getString(SettingsActivity.KEY_SPOTIFY_TOKEN, "") as String
 
         //prepare thread:
         val mThread = Thread {
@@ -227,7 +253,7 @@ class FloatingViewService : Service() {
                     //Reset overlay accent color:
                     resource.setBackgroundResource(R.drawable.rounded_button)
                     //Open links and redirects:
-                    openResults(sharedPrefs)
+                    openResults(sharedPrefs, encryptedPrefs)
                 }
             } catch (e: InterruptedException) {
                 Log.d(TAG, "Interrupted: exception.", e)
@@ -237,7 +263,7 @@ class FloatingViewService : Service() {
         mThread.start()
     }
 
-    private fun openResults(sharedPrefs: SharedPreferences){
+    private fun openResults(sharedPrefs: SharedPreferences, encryptedPrefs: SharedPreferences){
         //get updated preferences:
         navEnabled = sharedPrefs.getBoolean(MainActivity.KEY_NAV_ENABLED, false)
 

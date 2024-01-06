@@ -18,7 +18,7 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="@string/app_name"
+            app:title="@string/app_title"
             android:id="@+id/toolbar"
             app:popupTheme="@style/AppTheme.PopupOverlay"
             app:layout_scrollFlags="noScroll"/>

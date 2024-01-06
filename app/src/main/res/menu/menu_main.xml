@@ -3,13 +3,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.ftrono.djeenoforspotify.application.MainActivity">
     <item
+        android:id="@+id/action_login"
+        android:orderInCategory="1"
+        android:title="@string/str_login"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title="@string/action_settings"
+        android:orderInCategory="2"
+        android:title="@string/str_settings"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_permissions"
-        android:orderInCategory="200"
-        android:title="Set app permissions"
+        android:orderInCategory="3"
+        android:title="@string/str_permissions"
         app:showAsAction="never" />
 </menu>

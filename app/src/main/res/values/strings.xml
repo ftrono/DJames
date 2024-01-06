@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">DjeenoForSpotify</string>
-    <string name="action_settings">Settings</string>
+    <string name="str_login">Login</string>
+    <string name="str_logout">Logout</string>
+    <string name="str_settings">Settings</string>
+    <string name="str_permissions">Set app permissions</string>
 </resources>

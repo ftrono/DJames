@@ -5,8 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyProperties
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -17,18 +15,20 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
 import com.ftrono.djeenoforspotify.R
 import com.ftrono.djeenoforspotify.service.FloatingViewService
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 
 class MainActivity : AppCompatActivity() {
+    //Views:
     private var text_status: TextView? = null
     private var checkbox_nav: CheckBox? = null
+    //Statuses:
     private var overlay_active : Boolean = false
+    private var loggedIn = false
 
+    //Service status checker:
     val checkThread = Thread {
         try {
             while (true) {
@@ -56,53 +56,24 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         val fab = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
 
-        //Encrypted preferences:
-        // This is equivalent to using deprecated MasterKeys.AES256_GCM_SPEC
-        val key_spec = KeyGenParameterSpec.Builder(
-            MasterKey.DEFAULT_MASTER_KEY_ALIAS,
-            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-        )
-            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-            .setKeySize(256)
-            .build()
-
-        val masterKey = MasterKey.Builder(applicationContext)
-            .setKeyGenParameterSpec(key_spec)
-            .build()
-
-        val encryptedPrefs = EncryptedSharedPreferences.create(
-            applicationContext,
-            "encrypted_preferences",
-            masterKey, // masterKey created above
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM)
-
-        //(Encrypted) Spotify token:
+        //Check Login status:
         text_status = findViewById<TextView>(R.id.val_status)
-        var spotifyToken = encryptedPrefs.getString(SettingsActivity.KEY_SPOTIFY_TOKEN, "") as String
-        if (spotifyToken != "") {
+        if (prefs.spotifyToken != "") {
             text_status!!.text = "Logged in"
             text_status!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorAccent))
         }
 
-        // Load preferences:
-        val sharedPrefs = applicationContext.getSharedPreferences(SettingsActivity.SETTINGS_STORAGE, MODE_PRIVATE)
-
         //Check NavEnabled:
         checkbox_nav = findViewById<CheckBox>(R.id.check_nav)
-        var navEnabled = sharedPrefs.getBoolean(KEY_NAV_ENABLED, false)
-        checkbox_nav!!.setChecked(navEnabled)
-
+        checkbox_nav!!.setChecked(prefs.navEnabled)
         checkbox_nav!!.setOnClickListener(View.OnClickListener {
             if (checkbox_nav!!.isChecked()) {
-                navEnabled = true
+                prefs.navEnabled = true
                 Toast.makeText(applicationContext, "Redirect to Google Maps enabled!", Toast.LENGTH_SHORT).show()
             } else {
-                navEnabled = false
+                prefs.navEnabled = false
                 Toast.makeText(applicationContext, "Redirect to Google Maps disabled.", Toast.LENGTH_SHORT).show()
             }
-            sharedPrefs.edit().putBoolean(KEY_NAV_ENABLED, navEnabled).apply()
         })
 
         //ON CREATE() ONLY:
@@ -158,53 +129,24 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         val fab = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
 
-        //Encrypted preferences:
-        // This is equivalent to using deprecated MasterKeys.AES256_GCM_SPEC
-        val key_spec = KeyGenParameterSpec.Builder(
-            MasterKey.DEFAULT_MASTER_KEY_ALIAS,
-            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-        )
-            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-            .setKeySize(256)
-            .build()
-
-        val masterKey = MasterKey.Builder(applicationContext)
-            .setKeyGenParameterSpec(key_spec)
-            .build()
-
-        val encryptedPrefs = EncryptedSharedPreferences.create(
-            applicationContext,
-            "encrypted_preferences",
-            masterKey, // masterKey created above
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM)
-
-        //(Encrypted) Spotify token:
+        //Check Login status:
         text_status = findViewById<TextView>(R.id.val_status)
-        var spotifyToken = encryptedPrefs.getString(SettingsActivity.KEY_SPOTIFY_TOKEN, "") as String
-        if (spotifyToken != "") {
+        if (prefs.spotifyToken != "") {
             text_status!!.text = "Logged in"
             text_status!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorAccent))
         }
 
-        // Load preferences:
-        val sharedPrefs = applicationContext.getSharedPreferences(SettingsActivity.SETTINGS_STORAGE, MODE_PRIVATE)
-
         //Check NavEnabled:
         checkbox_nav = findViewById<CheckBox>(R.id.check_nav)
-        var navEnabled = sharedPrefs.getBoolean(KEY_NAV_ENABLED, false)
-        checkbox_nav!!.setChecked(navEnabled)
-
+        checkbox_nav!!.setChecked(prefs.navEnabled)
         checkbox_nav!!.setOnClickListener(View.OnClickListener {
             if (checkbox_nav!!.isChecked()) {
-                navEnabled = true
+                prefs.navEnabled = true
                 Toast.makeText(applicationContext, "Redirect to Google Maps enabled!", Toast.LENGTH_SHORT).show()
             } else {
-                navEnabled = false
+                prefs.navEnabled = false
                 Toast.makeText(applicationContext, "Redirect to Google Maps disabled.", Toast.LENGTH_SHORT).show()
             }
-            sharedPrefs.edit().putBoolean(KEY_NAV_ENABLED, navEnabled).apply()
         })
 
         //ON RESUME() ONLY:
@@ -261,6 +203,5 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private val TAG: String = MainActivity::class.java.getSimpleName()
-        const val KEY_NAV_ENABLED = ".key.nav_enabled"
     }
 }

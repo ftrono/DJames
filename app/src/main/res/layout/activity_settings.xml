@@ -100,32 +100,6 @@
             app:layout_constraintTop_toBottomOf="@+id/descr_maps_max"/>
 
         <TextView
-            android:id="@+id/descr_spotify_login"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/light_grey"
-            android:padding="8dp"
-            android:paddingLeft="15dp"
-            android:paddingRight="15dp"
-            android:paddingTop="100dp"
-            android:text= "&#xA;🔐 Authorize Djeeno in Spotify:"
-            android:textSize="15dp"
-            android:textStyle="bold"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/val_maps_timeout"/>
-
-        <Button
-            android:id="@+id/login_button"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:backgroundTint="@color/colorAccent"
-            android:text="Login"
-            android:textColor="@color/white"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/descr_spotify_login"/>
-
-        <TextView
             android:id="@+id/descr_maps_address"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -138,7 +112,7 @@
             android:textSize="15dp"
             android:textStyle="bold"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/login_button"/>
+            app:layout_constraintTop_toBottomOf="@+id/val_maps_timeout"/>
 
         <TextView
             android:id="@+id/descr_maps_detail"

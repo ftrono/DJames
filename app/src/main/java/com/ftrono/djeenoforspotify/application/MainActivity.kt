@@ -22,11 +22,16 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : AppCompatActivity() {
     //Views:
-    private var text_status: TextView? = null
     private var checkbox_nav: CheckBox? = null
+    private var descr_use: TextView? = null
+    private var descr_login_status: TextView? = null
+    private var toolbar: Toolbar? = null
+    private var loginButton: MenuItem? = null
+    private var fab: FloatingActionButton? = null
     //Statuses:
     private var overlay_active : Boolean = false
-    private var loggedIn = false
+    private var loggedIn: Boolean = false
+    var fab_status: Boolean = false
 
     //Service status checker:
     val checkThread = Thread {
@@ -36,7 +41,7 @@ class MainActivity : AppCompatActivity() {
                     Thread.sleep(2000)
                     if (!isMyServiceRunning(FloatingViewService::class.java) && overlay_active) {
                         val fab1 = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
-                        setOverlayInactive(fab1, false)
+                        setOverlayInactive(exec=false)
                     }
                 }
             }
@@ -52,15 +57,21 @@ class MainActivity : AppCompatActivity() {
 
         // SHARED WITH ON RESUME():
         //Load views:
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
-        val fab = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
+        fab = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
+        descr_login_status = findViewById<TextView>(R.id.descr_login_status)
+        descr_use = findViewById<TextView>(R.id.descr_use)
 
         //Check Login status:
-        text_status = findViewById<TextView>(R.id.val_status)
-        if (prefs.spotifyToken != "") {
-            text_status!!.text = "Logged in"
-            text_status!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorAccent))
+        if (prefs.spotifyToken == "") {
+            loggedIn = false
+            descr_login_status!!.text = getString(R.string.str_status_not_logged)
+            descr_use!!.text = getString(R.string.str_use_not_logged)
+        } else {
+            loggedIn = true
+            descr_login_status!!.text = getString(R.string.str_status_logged)
+            descr_use!!.text = getString(R.string.str_use_logged)
         }
 
         //Check NavEnabled:
@@ -76,47 +87,32 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        //ON CREATE() ONLY:
-        // Start overlay service automatically:
-        var fab_status = setOverlayActive(fab, true) as Boolean
-
-        fab.setOnClickListener {
-            if (!fab_status) {
-                fab_status = setOverlayActive(fab, true)
+        //Set FAB listener:
+        fab!!.setOnClickListener {
+            if (!loggedIn) {
+                loggedIn = login()
+            } else if (!fab_status) {
+                fab_status = setOverlayActive(exec=true)
             } else {
-                fab_status = setOverlayInactive(fab, true)
+                fab_status = setOverlayInactive(exec=true)
             }
         }
+
         //Thread check:
         if (!checkThread.isAlive()){
-            checkThread.start();
+            checkThread.start()
         }
-    }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here
-        val id = item.itemId
-
-        if (id == R.id.action_settings) {
-            val intent1 = Intent(this@MainActivity, SettingsActivity::class.java)
-            startActivity(intent1)
-            return true
-        } else if (id == R.id.action_permissions) {
-            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-            val uri = Uri.fromParts("package", packageName, null)
-            intent.setData(uri)
-            startActivity(intent)
-            return true
+        //ON CREATE() ONLY:
+        //Check login status:
+        if (!loggedIn) {
+            setOverlayLoggedOut()
         } else {
-            return super.onOptionsItemSelected(item)
+            // Start overlay service automatically:
+            fab_status = setOverlayActive(exec=true) as Boolean
         }
     }
+
 
     override fun onResume() {
 
@@ -125,15 +121,21 @@ class MainActivity : AppCompatActivity() {
 
         // SHARED WITH ON CREATE():
         //Load views:
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
-        val fab = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
+        fab = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
+        descr_login_status = findViewById<TextView>(R.id.descr_login_status)
+        descr_use = findViewById<TextView>(R.id.descr_use)
 
         //Check Login status:
-        text_status = findViewById<TextView>(R.id.val_status)
-        if (prefs.spotifyToken != "") {
-            text_status!!.text = "Logged in"
-            text_status!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorAccent))
+        if (prefs.spotifyToken == "") {
+            loggedIn = false
+            descr_login_status!!.text = getString(R.string.str_status_not_logged)
+            descr_use!!.text = getString(R.string.str_use_not_logged)
+        } else {
+            loggedIn = true
+            descr_login_status!!.text = getString(R.string.str_status_logged)
+            descr_use!!.text = getString(R.string.str_use_logged)
         }
 
         //Check NavEnabled:
@@ -149,25 +151,74 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        //ON RESUME() ONLY:
-        //Check if service is active:
-        var fab_status = false as Boolean
-        if (isMyServiceRunning(FloatingViewService::class.java)) {
-            fab_status = setOverlayActive(fab, false)
-        } else {
-            fab_status = setOverlayInactive(fab, false)
-        }
-
-        fab.setOnClickListener {
-            if (!fab_status) {
-                fab_status = setOverlayActive(fab, true)
+        //Set FAB listener:
+        fab!!.setOnClickListener {
+            if (!loggedIn) {
+                loggedIn = login()
+            } else if (!fab_status) {
+                fab_status = setOverlayActive(exec=true)
             } else {
-                fab_status = setOverlayInactive(fab, true)
+                fab_status = setOverlayInactive(exec=true)
             }
         }
+
         //Thread check:
         if (!checkThread.isAlive()){
-            checkThread.start();
+            checkThread.start()
+        }
+
+        //ON RESUME() ONLY:
+        //Check login & service status:
+        if (!loggedIn) {
+            setOverlayLoggedOut()
+        } else if (isMyServiceRunning(FloatingViewService::class.java)) {
+            fab_status = setOverlayActive(exec=false)
+        } else {
+            fab_status = setOverlayInactive(exec=false)
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.menu_main, menu)
+        loginButton = menu.findItem(R.id.action_login)
+        //Spotify login:
+        if (prefs.spotifyToken != "") {
+            loginButton!!.setTitle("Logout")
+        } else {
+            loginButton!!.setTitle("Login")
+        }
+        return true
+    }
+
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // Handle action bar item clicks here
+        val id = item.itemId
+        descr_use = findViewById<TextView>(R.id.descr_use)
+        fab = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
+        //Login / logout:
+        if (id == R.id.action_login) {
+            if (!loggedIn) {
+                loggedIn = login()
+            } else {
+                loggedIn = logout()
+            }
+            return true
+            //Settings:
+        } else if (id == R.id.action_settings) {
+            val intent1 = Intent(this@MainActivity, SettingsActivity::class.java)
+            startActivity(intent1)
+            return true
+            //Set app preferences:
+        } else if (id == R.id.action_permissions) {
+            val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            val uri = Uri.fromParts("package", packageName, null)
+            intent1.setData(uri)
+            startActivity(intent1)
+            return true
+        } else {
+            return super.onOptionsItemSelected(item)
         }
     }
 
@@ -181,9 +232,9 @@ class MainActivity : AppCompatActivity() {
         return false
     }
 
-    fun setOverlayActive(fab: FloatingActionButton, exec: Boolean): Boolean {
-        fab.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorStop)
-        fab.setImageResource(R.drawable.stop_icon)
+    fun setOverlayActive(exec: Boolean): Boolean {
+        fab!!.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorStop)
+        fab!!.setImageResource(R.drawable.stop_icon)
         if (exec) {
             startService(Intent(this, FloatingViewService::class.java))
             overlay_active = true
@@ -191,13 +242,52 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    fun setOverlayInactive(fab: FloatingActionButton, exec: Boolean): Boolean {
-        fab.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorAccent)
-        fab.setImageResource(R.drawable.add_icon)
+    fun setOverlayInactive(exec: Boolean): Boolean {
+        fab!!.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorAccent)
+        fab!!.setImageResource(R.drawable.add_icon)
         if (exec) {
             stopService(Intent(this, FloatingViewService::class.java))
             overlay_active = false
         }
+        return false
+    }
+
+    fun setOverlayLoggedOut(): Boolean {
+        fab!!.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorLogin)
+        fab!!.setImageResource(R.drawable.login_icon)
+        return true
+    }
+
+    //Login user:
+    fun login(): Boolean {
+        //CALL SPOTIFY AUTHENTICATION HERE
+        //store token:
+        prefs.spotifyToken = "ciaoneciaone"
+        //Set Logged-In UI:
+        loginButton!!.setTitle("Logout")
+        descr_login_status!!.text = getString(R.string.str_status_logged)
+        descr_use!!.text = getString(R.string.str_use_logged)
+        //Start overlay service:
+        if (!isMyServiceRunning(FloatingViewService::class.java)) {
+            fab_status = setOverlayActive(exec=true)
+        }
+        Toast.makeText(applicationContext, "App authorized! Token: "+prefs.spotifyToken, Toast.LENGTH_SHORT).show()
+        return true
+    }
+
+    //Logout user:
+    fun logout(): Boolean {
+        //delete token:
+        prefs.spotifyToken = ""
+        //Set NOT Logged-In UI:
+        loginButton!!.setTitle("Login")
+        descr_login_status!!.text = getString(R.string.str_status_not_logged)
+        descr_use!!.text = getString(R.string.str_use_not_logged)
+        //Stop overlay service:
+        stopService(Intent(this, FloatingViewService::class.java))
+        overlay_active = false
+        setOverlayLoggedOut()
+        Toast.makeText(applicationContext, "App authorization removed.", Toast.LENGTH_SHORT).show()
         return false
     }
 

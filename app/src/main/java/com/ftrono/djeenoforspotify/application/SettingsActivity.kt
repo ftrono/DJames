@@ -18,7 +18,6 @@ class SettingsActivity : AppCompatActivity() {
     private var text_rec_timeout: TextView? = null
     private var text_maps_timeout: TextView? = null
     private var text_maps_address: TextView? = null
-    private var loggedIn = false
     //New values:
     private var newRecTimeout: String = ""
     private var newMapsTimeout: String = ""
@@ -39,33 +38,6 @@ class SettingsActivity : AppCompatActivity() {
         //MapsTimeout:
         text_maps_timeout = findViewById<TextView>(R.id.val_maps_timeout)
         text_maps_timeout!!.text = prefs.mapsTimeout
-
-        //Spotify login:
-        val loginButton = findViewById<Button>(R.id.login_button)
-        if (prefs.spotifyToken != "") {
-            loginButton!!.text = "Logout"
-            loginButton.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorStop)
-            loggedIn = true
-        }
-
-        loginButton.setOnClickListener(View.OnClickListener {
-            if (!loggedIn) {
-                //CALL SPOTIFY AUTHENTICATION HERE
-                //User is logged in: store token and set button to "LOGOUT":
-                prefs.spotifyToken = "ciaoneciaone"
-                loginButton!!.text = "Logout"
-                loginButton.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorStop)
-                loggedIn = true
-                Toast.makeText(applicationContext, "App authorized! Token: "+prefs.spotifyToken, Toast.LENGTH_SHORT).show()
-            } else {
-                //User is logged out: erase token and set button to "LOGIN":
-                prefs.spotifyToken = ""
-                loginButton!!.text = "Login"
-                loginButton.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorAccent)
-                loggedIn = false
-                Toast.makeText(applicationContext, "App authorization removed.", Toast.LENGTH_SHORT).show()
-            }
-        })
 
         //GMaps address:
         text_maps_address = findViewById<TextView>(R.id.val_maps_address)

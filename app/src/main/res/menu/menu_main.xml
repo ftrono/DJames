@@ -5,7 +5,7 @@
     <item
         android:id="@+id/action_login"
         android:orderInCategory="1"
-        android:title="@string/str_login"
+        android:title="Login"
         app:showAsAction="always" />
     <item
         android:id="@+id/action_settings"

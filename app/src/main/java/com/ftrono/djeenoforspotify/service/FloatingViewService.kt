@@ -47,7 +47,7 @@ class FloatingViewService : Service() {
     override fun onCreate() {
         super.onCreate()
         try {
-            startMyOwnForeground()
+            startForeground()
 
             // Init window manager
             mWindowManager = getSystemService(WINDOW_SERVICE) as WindowManager?
@@ -197,7 +197,7 @@ class FloatingViewService : Service() {
         }
     }
 
-    private fun startMyOwnForeground() {
+    private fun startForeground() {
         //Foreground service:
         val NOTIFICATION_CHANNEL_ID = "com.ftrono.djeenoForSpotify"
         val channelName = "My Background Service"

@@ -39,9 +39,8 @@ class MainActivity : AppCompatActivity() {
             while (true) {
                 synchronized(this) {
                     Thread.sleep(2000)
-                    if (!isMyServiceRunning(FloatingViewService::class.java) && overlay_active) {
-                        val fab1 = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
-                        setOverlayInactive(exec=false)
+                    if (!isMyServiceRunning(FloatingViewService::class.java)) {
+                        fab_status = setOverlayInactive(exec=false)
                     }
                 }
             }
@@ -55,7 +54,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // SHARED WITH ON RESUME():
         //Load views:
         toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
@@ -92,6 +90,7 @@ class MainActivity : AppCompatActivity() {
             if (!loggedIn) {
                 loggedIn = login()
             } else if (!fab_status) {
+                //Start overlay service:
                 fab_status = setOverlayActive(exec=true)
             } else {
                 fab_status = setOverlayInactive(exec=true)
@@ -109,7 +108,7 @@ class MainActivity : AppCompatActivity() {
             setOverlayLoggedOut()
         } else {
             // Start overlay service automatically:
-            fab_status = setOverlayActive(exec=true) as Boolean
+            fab_status = setOverlayActive(exec=true)
         }
     }
 
@@ -117,60 +116,13 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
 
         super.onResume()
-        setContentView(R.layout.activity_main)
-
-        // SHARED WITH ON CREATE():
-        //Load views:
-        toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        fab = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
-        descr_login_status = findViewById<TextView>(R.id.descr_login_status)
-        descr_use = findViewById<TextView>(R.id.descr_use)
-
-        //Check Login status:
-        if (prefs.spotifyToken == "") {
-            loggedIn = false
-            descr_login_status!!.text = getString(R.string.str_status_not_logged)
-            descr_use!!.text = getString(R.string.str_use_not_logged)
-        } else {
-            loggedIn = true
-            descr_login_status!!.text = getString(R.string.str_status_logged)
-            descr_use!!.text = getString(R.string.str_use_logged)
-        }
-
-        //Check NavEnabled:
-        checkbox_nav = findViewById<CheckBox>(R.id.check_nav)
-        checkbox_nav!!.setChecked(prefs.navEnabled)
-        checkbox_nav!!.setOnClickListener(View.OnClickListener {
-            if (checkbox_nav!!.isChecked()) {
-                prefs.navEnabled = true
-                Toast.makeText(applicationContext, "Redirect to Google Maps enabled!", Toast.LENGTH_SHORT).show()
-            } else {
-                prefs.navEnabled = false
-                Toast.makeText(applicationContext, "Redirect to Google Maps disabled.", Toast.LENGTH_SHORT).show()
-            }
-        })
-
-        //Set FAB listener:
-        fab!!.setOnClickListener {
-            if (!loggedIn) {
-                loggedIn = login()
-            } else if (!fab_status) {
-                fab_status = setOverlayActive(exec=true)
-            } else {
-                fab_status = setOverlayInactive(exec=true)
-            }
-        }
-
-        //Thread check:
-        if (!checkThread.isAlive()){
-            checkThread.start()
-        }
 
         //ON RESUME() ONLY:
         //Check login & service status:
         if (!loggedIn) {
             setOverlayLoggedOut()
+        } else if (!Settings.canDrawOverlays(this)) {
+            fab_status = setOverlayInactive(exec=false)
         } else if (isMyServiceRunning(FloatingViewService::class.java)) {
             fab_status = setOverlayActive(exec=false)
         } else {
@@ -233,11 +185,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun setOverlayActive(exec: Boolean): Boolean {
-        fab!!.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorStop)
-        fab!!.setImageResource(R.drawable.stop_icon)
         if (exec) {
             startService(Intent(this, FloatingViewService::class.java))
-            overlay_active = true
+        }
+        if (Settings.canDrawOverlays(this)) {
+            fab!!.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorStop)
+            fab!!.setImageResource(R.drawable.stop_icon)
         }
         return true
     }
@@ -247,7 +200,6 @@ class MainActivity : AppCompatActivity() {
         fab!!.setImageResource(R.drawable.add_icon)
         if (exec) {
             stopService(Intent(this, FloatingViewService::class.java))
-            overlay_active = false
         }
         return false
     }
@@ -285,7 +237,6 @@ class MainActivity : AppCompatActivity() {
         descr_use!!.text = getString(R.string.str_use_not_logged)
         //Stop overlay service:
         stopService(Intent(this, FloatingViewService::class.java))
-        overlay_active = false
         setOverlayLoggedOut()
         Toast.makeText(applicationContext, "App authorization removed.", Toast.LENGTH_SHORT).show()
         return false

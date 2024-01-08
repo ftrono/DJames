@@ -50,7 +50,7 @@
             android:name=".service.FloatingViewService"
             android:enabled="true"
             android:exported="true"
-            android:foregroundServiceType="mediaPlayback">
+            android:foregroundServiceType="microphone">
         </service>
 
     </application>

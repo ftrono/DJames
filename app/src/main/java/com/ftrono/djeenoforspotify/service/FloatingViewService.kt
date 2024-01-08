@@ -27,7 +27,10 @@ import androidx.core.app.NotificationCompat
 import com.ftrono.djeenoforspotify.R
 import com.ftrono.djeenoforspotify.application.MainActivity
 import kotlin.math.abs
+import java.io.File
+import android.os.Environment
 import com.ftrono.djeenoforspotify.application.prefs
+import com.ftrono.djeenoforspotify.recorder.AndroidAudioRecorder
 
 
 class FloatingViewService : Service() {
@@ -38,6 +41,12 @@ class FloatingViewService : Service() {
     private var mCloseView: View? = null
     private var params: LayoutParams? = null
     private var params2: LayoutParams? = null
+    //Recorder:
+    private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    private var audioFile: File? = null
+    private val recorder by lazy {
+        AndroidAudioRecorder(applicationContext)
+    }
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -141,7 +150,7 @@ class FloatingViewService : Service() {
                                 if (abs(Xdiff) < 10 && abs(Ydiff) < 10) {
                                     //Set Recording mode:
                                     overlayButton.setBackgroundResource(R.drawable.rounded_button_2)
-                                    countdownStart(overlayButton)
+                                    countdownStart(overlayButton, overlayIcon)
 
                                 } else if ((abs(event.rawY) >= (height-200)) && (abs(event.rawX) >= (halfwidth-200)) && (abs(event.rawX) <= (halfwidth+200))) {
                                     // If SWIPE DOWN -> CLOSE:
@@ -220,20 +229,37 @@ class FloatingViewService : Service() {
         startForeground(2, notification)
     }
 
-    fun countdownStart(resource: RelativeLayout) {
+    fun countdownStart(button: RelativeLayout, icon: ImageView) {
 
         //prepare thread:
         val mThread = Thread {
             try {
                 synchronized(this) {
+                    //RECORDING:
+                    //Start recording (default: cacheDir):
+                    File(saveDir, "audio.mp3").also {
+                        recorder.start(it)
+                        audioFile = it
+                    }
+                    //Countdown:
                     Thread.sleep(prefs.recTimeout.toLong() * 1000)   //default: 5000
+                    //Stop recording:
+                    recorder.stop()
+
                     //AFTER RECORDING:
+                    //Reset overlay processing color:
+                    button.setBackgroundResource(R.drawable.rounded_button_3)
+                    icon.setImageResource(R.drawable.looking_icon)
                     //Spotify result:
                     var spotifyToOpen = "https://open.spotify.com/track/3jFP1e8IUpD9QbltEI1Hcg?si=pt790-QFRyWr2JhyoMb_yA"
-                    //Reset overlay accent color:
-                    resource.setBackgroundResource(R.drawable.rounded_button)
                     //Open links and redirects:
                     openResults(spotifyToOpen)
+
+                    //PENDING RESET ICON:
+                    Thread.sleep(2000)
+                    //Reset overlay accent color:
+                    button.setBackgroundResource(R.drawable.rounded_button)
+                    icon.setImageResource(R.drawable.record_icon)
                 }
             } catch (e: InterruptedException) {
                 Log.d(TAG, "Interrupted: exception.", e)

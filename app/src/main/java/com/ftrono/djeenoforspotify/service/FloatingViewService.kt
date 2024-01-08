@@ -9,7 +9,9 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PixelFormat
+import android.media.AudioManager
 import android.net.Uri
+import android.os.Environment
 import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
@@ -26,11 +28,12 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.ftrono.djeenoforspotify.R
 import com.ftrono.djeenoforspotify.application.MainActivity
-import kotlin.math.abs
-import java.io.File
-import android.os.Environment
 import com.ftrono.djeenoforspotify.application.prefs
 import com.ftrono.djeenoforspotify.recorder.AndroidAudioRecorder
+import java.io.File
+import kotlin.math.abs
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
 
 
 class FloatingViewService : Service() {
@@ -41,12 +44,53 @@ class FloatingViewService : Service() {
     private var mCloseView: View? = null
     private var params: LayoutParams? = null
     private var params2: LayoutParams? = null
+    private var listening: Boolean = false
     //Recorder:
-    private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-    private var audioFile: File? = null
     private val recorder by lazy {
         AndroidAudioRecorder(applicationContext)
     }
+    private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    //Audio manager:
+    private var audioManager : AudioManager? = null
+    private var audioAttributes: AudioAttributes? = null
+    private var audioFocusRequest: AudioFocusRequest? = null
+    private var focusState: Boolean = false
+    private var mAudioFocusPlaybackDelayed: Boolean = false
+    private var mAudioFocusResumeOnFocusGained: Boolean = false
+
+    private val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
+        when (focusChange) {
+            AudioManager.AUDIOFOCUS_GAIN -> {
+                focusState = true
+                Log.d(TAG, "Audio focus gained!")
+                if (mAudioFocusPlaybackDelayed || mAudioFocusResumeOnFocusGained) {
+                    mAudioFocusPlaybackDelayed = false
+                    mAudioFocusResumeOnFocusGained = false
+                }
+            }
+            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE -> {
+                focusState = true
+                Log.d(TAG, "Audio focus transient exclusive gained!")
+                if (mAudioFocusPlaybackDelayed || mAudioFocusResumeOnFocusGained) {
+                    mAudioFocusPlaybackDelayed = false
+                    mAudioFocusResumeOnFocusGained = false
+                }
+            }
+            AudioManager.AUDIOFOCUS_LOSS -> {
+                focusState = false
+                Log.d(TAG, "Audio focus lost.")
+                mAudioFocusResumeOnFocusGained = false
+                mAudioFocusPlaybackDelayed = false
+            }
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                focusState = false
+                Log.d(TAG, "Audio focus transient lost.")
+                mAudioFocusResumeOnFocusGained = true
+                mAudioFocusPlaybackDelayed = false
+            }
+        }
+    }
+
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -57,6 +101,14 @@ class FloatingViewService : Service() {
         super.onCreate()
         try {
             startForeground()
+
+            audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+
+            audioAttributes = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build()
+
 
             // Init window manager
             mWindowManager = getSystemService(WINDOW_SERVICE) as WindowManager?
@@ -148,9 +200,27 @@ class FloatingViewService : Service() {
                                 //So that is click event.
                                 // ON CLICK:
                                 if (abs(Xdiff) < 10 && abs(Ydiff) < 10) {
-                                    //Set Recording mode:
-                                    overlayButton.setBackgroundResource(R.drawable.rounded_button_2)
-                                    countdownStart(overlayButton, overlayIcon)
+                                    listening = true
+                                    //Focus request:
+                                    audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
+                                        .setAudioAttributes(audioAttributes!!)
+                                        .setAcceptsDelayedFocusGain(true)
+                                        .setOnAudioFocusChangeListener(audioFocusChangeListener)
+                                        .build()
+                                    val focusRequest = audioManager!!.requestAudioFocus(audioFocusRequest!!)
+                                    when (focusRequest) {
+                                        AudioManager.AUDIOFOCUS_REQUEST_FAILED -> {
+                                            Toast.makeText(applicationContext, "Cannot gain audio focus! Try again.", Toast.LENGTH_SHORT).show()
+                                        }
+                                        AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {
+                                            //Set Recording mode:
+                                            overlayButton.setBackgroundResource(R.drawable.rounded_button_2)
+                                            countdownStart(overlayButton, overlayIcon)
+                                        }
+                                        AudioManager.AUDIOFOCUS_REQUEST_DELAYED -> {
+                                            mAudioFocusPlaybackDelayed = true;
+                                        }
+                                    }
 
                                 } else if ((abs(event.rawY) >= (height-200)) && (abs(event.rawX) >= (halfwidth-200)) && (abs(event.rawX) <= (halfwidth+200))) {
                                     // If SWIPE DOWN -> CLOSE:
@@ -237,14 +307,15 @@ class FloatingViewService : Service() {
                 synchronized(this) {
                     //RECORDING:
                     //Start recording (default: cacheDir):
-                    File(saveDir, "audio.mp3").also {
-                        recorder.start(it)
-                        audioFile = it
-                    }
+                    var it = File(saveDir, "audio.mp3")
+                    recorder.start(it)
                     //Countdown:
                     Thread.sleep(prefs.recTimeout.toLong() * 1000)   //default: 5000
                     //Stop recording:
                     recorder.stop()
+                    //Abandon audio focus:
+                    //if (!focusState) {}
+                    audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
 
                     //AFTER RECORDING:
                     //Reset overlay processing color:
@@ -260,6 +331,7 @@ class FloatingViewService : Service() {
                     //Reset overlay accent color:
                     button.setBackgroundResource(R.drawable.rounded_button)
                     icon.setImageResource(R.drawable.record_icon)
+                    listening = false
                 }
             } catch (e: InterruptedException) {
                 Log.d(TAG, "Interrupted: exception.", e)

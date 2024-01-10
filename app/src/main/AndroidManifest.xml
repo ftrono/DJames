@@ -52,6 +52,12 @@
             android:exported="true"
             android:foregroundServiceType="microphone">
         </service>
+        <service
+            android:name=".service.VoiceSearchService"
+            android:enabled="true"
+            android:exported="true"
+            android:foregroundServiceType="microphone">
+        </service>
 
     </application>
 

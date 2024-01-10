@@ -1,6 +1,7 @@
 package com.ftrono.djeenoforspotify.service
 
 import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,9 +10,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PixelFormat
-import android.media.AudioManager
 import android.net.Uri
-import android.os.Environment
 import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
@@ -27,70 +26,21 @@ import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.ftrono.djeenoforspotify.R
-import com.ftrono.djeenoforspotify.application.MainActivity
 import com.ftrono.djeenoforspotify.application.prefs
-import com.ftrono.djeenoforspotify.recorder.AndroidAudioRecorder
+import com.ftrono.djeenoforspotify.service.VoiceSearchService
 import java.io.File
 import kotlin.math.abs
-import android.media.AudioAttributes
-import android.media.AudioFocusRequest
 
 
 class FloatingViewService : Service() {
-    private val TAG = MainActivity::class.java.simpleName
+    private val TAG = FloatingViewService::class.java.simpleName
+
     //View managers:
     private var mWindowManager: WindowManager? = null
     private var mFloatingView: View? = null
     private var mCloseView: View? = null
     private var params: LayoutParams? = null
     private var params2: LayoutParams? = null
-    private var listening: Boolean = false
-    //Recorder:
-    private val recorder by lazy {
-        AndroidAudioRecorder(applicationContext)
-    }
-    private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-    //Audio manager:
-    private var audioManager : AudioManager? = null
-    private var audioAttributes: AudioAttributes? = null
-    private var audioFocusRequest: AudioFocusRequest? = null
-    private var focusState: Boolean = false
-    private var mAudioFocusPlaybackDelayed: Boolean = false
-    private var mAudioFocusResumeOnFocusGained: Boolean = false
-
-    private val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
-        when (focusChange) {
-            AudioManager.AUDIOFOCUS_GAIN -> {
-                focusState = true
-                Log.d(TAG, "Audio focus gained!")
-                if (mAudioFocusPlaybackDelayed || mAudioFocusResumeOnFocusGained) {
-                    mAudioFocusPlaybackDelayed = false
-                    mAudioFocusResumeOnFocusGained = false
-                }
-            }
-            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE -> {
-                focusState = true
-                Log.d(TAG, "Audio focus transient exclusive gained!")
-                if (mAudioFocusPlaybackDelayed || mAudioFocusResumeOnFocusGained) {
-                    mAudioFocusPlaybackDelayed = false
-                    mAudioFocusResumeOnFocusGained = false
-                }
-            }
-            AudioManager.AUDIOFOCUS_LOSS -> {
-                focusState = false
-                Log.d(TAG, "Audio focus lost.")
-                mAudioFocusResumeOnFocusGained = false
-                mAudioFocusPlaybackDelayed = false
-            }
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                focusState = false
-                Log.d(TAG, "Audio focus transient lost.")
-                mAudioFocusResumeOnFocusGained = true
-                mAudioFocusPlaybackDelayed = false
-            }
-        }
-    }
-
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -101,14 +51,6 @@ class FloatingViewService : Service() {
         super.onCreate()
         try {
             startForeground()
-
-            audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-
-            audioAttributes = AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                .build()
-
 
             // Init window manager
             mWindowManager = getSystemService(WINDOW_SERVICE) as WindowManager?
@@ -154,7 +96,8 @@ class FloatingViewService : Service() {
             params2!!.y = height
 
             // Set the overlay button & icon
-            val overlayButton = mFloatingView!!.findViewById<View>(R.id.rounded_button) as RelativeLayout
+            val overlayButton =
+                mFloatingView!!.findViewById<View>(R.id.rounded_button) as RelativeLayout
             val overlayIcon = mFloatingView!!.findViewById<View>(R.id.record_icon) as ImageView
 
             /*
@@ -200,29 +143,24 @@ class FloatingViewService : Service() {
                                 //So that is click event.
                                 // ON CLICK:
                                 if (abs(Xdiff) < 10 && abs(Ydiff) < 10) {
-                                    listening = true
-                                    //Focus request:
-                                    audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
-                                        .setAudioAttributes(audioAttributes!!)
-                                        .setAcceptsDelayedFocusGain(true)
-                                        .setOnAudioFocusChangeListener(audioFocusChangeListener)
-                                        .build()
-                                    val focusRequest = audioManager!!.requestAudioFocus(audioFocusRequest!!)
-                                    when (focusRequest) {
-                                        AudioManager.AUDIOFOCUS_REQUEST_FAILED -> {
-                                            Toast.makeText(applicationContext, "Cannot gain audio focus! Try again.", Toast.LENGTH_SHORT).show()
-                                        }
-                                        AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {
-                                            //Set Recording mode:
-                                            overlayButton.setBackgroundResource(R.drawable.rounded_button_2)
-                                            countdownStart(overlayButton, overlayIcon)
-                                        }
-                                        AudioManager.AUDIOFOCUS_REQUEST_DELAYED -> {
-                                            mAudioFocusPlaybackDelayed = true;
-                                        }
+                                    if (!isMyServiceRunning(VoiceSearchService::class.java)) {
+                                        //Set Recording mode:
+                                        overlayButton.setBackgroundResource(R.drawable.rounded_button_2)
+                                        waitForRecordDone(overlayButton, overlayIcon)
+                                        //Start Voice Search service:
+                                        startService(Intent(applicationContext, VoiceSearchService::class.java))
+                                    } else {
+                                        //Stop Voice Search service:
+                                        stopService(Intent(applicationContext, VoiceSearchService::class.java))
+                                        //Reset overlay accent color:
+                                        overlayButton.setBackgroundResource(R.drawable.rounded_button)
+                                        overlayIcon.setImageResource(R.drawable.record_icon)
                                     }
 
-                                } else if ((abs(event.rawY) >= (height-200)) && (abs(event.rawX) >= (halfwidth-200)) && (abs(event.rawX) <= (halfwidth+200))) {
+                                } else if ((abs(event.rawY) >= (height - 200)) && (abs(event.rawX) >= (halfwidth - 200)) && (abs(
+                                        event.rawX
+                                    ) <= (halfwidth + 200))
+                                ) {
                                     // If SWIPE DOWN -> CLOSE:
                                     // Log.d(FloatingViewService.TAG, "Current location: " + event.rawX + " / " + halfwidth + ", " + event.rawY + " / " + height)
                                     stopSelf()
@@ -238,7 +176,10 @@ class FloatingViewService : Service() {
                                 params!!.y = initialY + (event.rawY - initialTouchY).toInt()
 
                                 //Grey out when swiped down:
-                                if ((abs(event.rawY) >= (height-200)) && (abs(event.rawX) >= (halfwidth-200)) && (abs(event.rawX) <= (halfwidth+200))) {
+                                if ((abs(event.rawY) >= (height - 200)) && (abs(event.rawX) >= (halfwidth - 200)) && (abs(
+                                        event.rawX
+                                    ) <= (halfwidth + 200))
+                                ) {
                                     overlayButton.setBackgroundResource(R.drawable.rounded_button_3)
                                     overlayIcon.setImageResource(R.drawable.stop_icon)
                                 } else {
@@ -256,7 +197,12 @@ class FloatingViewService : Service() {
                     }
                 })
         } catch (e: Exception) {
-            Toast.makeText(applicationContext, getString(R.string.str_enable_overlay), Toast.LENGTH_LONG).show()
+            Log.d(TAG, "Exception: ", e)
+            Toast.makeText(
+                applicationContext,
+                getString(R.string.str_enable_overlay),
+                Toast.LENGTH_LONG
+            ).show()
             val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
             val uri = Uri.fromParts("package", packageName, null)
             intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -279,7 +225,7 @@ class FloatingViewService : Service() {
     private fun startForeground() {
         //Foreground service:
         val NOTIFICATION_CHANNEL_ID = "com.ftrono.djeenoForSpotify"
-        val channelName = "My Background Service"
+        val channelName = "Floating View Service"
         val chan = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,
             channelName,
@@ -292,46 +238,39 @@ class FloatingViewService : Service() {
         val notificationBuilder: NotificationCompat.Builder =
             NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
         val notification = notificationBuilder.setOngoing(true)
-            .setContentTitle("App is running in background")
+            .setContentTitle("Djeeno: Floating View Service is running in background")
             .setPriority(NotificationManager.IMPORTANCE_MIN)
             .setCategory(Notification.CATEGORY_SERVICE)
             .build()
         startForeground(2, notification)
     }
 
-    fun countdownStart(button: RelativeLayout, icon: ImageView) {
+    fun isMyServiceRunning(serviceClass: Class<*>): Boolean {
+        val manager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+        for (service in manager.getRunningServices(Int.MAX_VALUE)) {
+            if (serviceClass.name == service.service.className) {
+                return true
+            }
+        }
+        return false
+    }
 
+    fun waitForRecordDone(button: RelativeLayout, icon: ImageView) {
         //prepare thread:
         val mThread = Thread {
             try {
                 synchronized(this) {
-                    //RECORDING:
-                    //Start recording (default: cacheDir):
-                    var it = File(saveDir, "audio.mp3")
-                    recorder.start(it)
-                    //Countdown:
+                    //RECORDING COUNTDOWN:
                     Thread.sleep(prefs.recTimeout.toLong() * 1000)   //default: 5000
-                    //Stop recording:
-                    recorder.stop()
-                    //Abandon audio focus:
-                    //if (!focusState) {}
-                    audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
-
-                    //AFTER RECORDING:
                     //Reset overlay processing color:
                     button.setBackgroundResource(R.drawable.rounded_button_3)
                     icon.setImageResource(R.drawable.looking_icon)
-                    //Spotify result:
-                    var spotifyToOpen = "https://open.spotify.com/track/3jFP1e8IUpD9QbltEI1Hcg?si=pt790-QFRyWr2JhyoMb_yA"
-                    //Open links and redirects:
-                    openResults(spotifyToOpen)
 
-                    //PENDING RESET ICON:
+                    //PROCESSING COUNTDOWN:
                     Thread.sleep(2000)
                     //Reset overlay accent color:
                     button.setBackgroundResource(R.drawable.rounded_button)
                     icon.setImageResource(R.drawable.record_icon)
-                    listening = false
                 }
             } catch (e: InterruptedException) {
                 Log.d(TAG, "Interrupted: exception.", e)
@@ -341,43 +280,4 @@ class FloatingViewService : Service() {
         mThread.start()
     }
 
-    private fun openResults(spotifyToOpen: String){
-
-        //Maps redirect:
-        if (prefs.navEnabled) {
-            switchToMaps()
-        }
-        //Open query result in Spotify:
-        val intentSpotify = Intent(
-            Intent.ACTION_VIEW,
-            Uri.parse(spotifyToOpen)
-        )
-        intentSpotify.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        intentSpotify.putExtra("fromwhere", "ser")
-        startActivity(intentSpotify)
-    }
-
-    private fun switchToMaps(){
-
-        //prepare thread:
-        val mThread = Thread {
-            try {
-                synchronized(this) {
-                    Thread.sleep(prefs.mapsTimeout.toLong() * 1000)   //default: 3000
-                    //Launch Maps:
-                    val mapIntent = Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse(prefs.mapsAddress)
-                    )
-                    mapIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    mapIntent.putExtra("fromwhere", "ser")
-                    startActivity(mapIntent)
-                }
-            } catch (e: InterruptedException) {
-                Log.d(TAG, "Interrupted: exception.", e)
-            }
-        }
-        //start thread:
-        mThread.start()
-    }
 }

@@ -19,6 +19,7 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.ftrono.djeenoforspotify.R
 import com.ftrono.djeenoforspotify.application.prefs
+import com.ftrono.djeenoforspotify.application.audioManager
 import com.ftrono.djeenoforspotify.recorder.AndroidAudioRecorder
 import java.io.File
 
@@ -36,7 +37,6 @@ class VoiceSearchService : Service() {
     }
 
     //Audio manager:
-    private var audioManager: AudioManager? = null
     private var audioAttributes: AudioAttributes? = null
     private var audioFocusRequest: AudioFocusRequest? = null
     private var focusState: Boolean = false
@@ -90,7 +90,6 @@ class VoiceSearchService : Service() {
             startForeground()
 
             //Audio manager:
-            audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
             audioAttributes = AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_MEDIA)
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)

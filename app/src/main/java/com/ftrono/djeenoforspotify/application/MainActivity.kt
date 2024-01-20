@@ -28,17 +28,23 @@ class MainActivity : AppCompatActivity() {
     private var toolbar: Toolbar? = null
     private var loginButton: MenuItem? = null
     private var fab: FloatingActionButton? = null
+
     //Statuses:
-    private var overlay_active : Boolean = false
+    private var activity_active : Boolean = false
     private var loggedIn: Boolean = false
     var fab_status: Boolean = false
 
     //Service status checker:
     val checkThread = Thread {
         try {
-            while (true) {
+            while (activity_active) {
                 synchronized(this) {
-                    Thread.sleep(2000)
+                    //Log.d(TAG, "Main: checkThread alive.")
+                    try {
+                        Thread.sleep(2000)
+                    } catch (e: InterruptedException) {
+                        Log.d(TAG, "Main: checkThread already stopped.")
+                    }
                     if (!isMyServiceRunning(FloatingViewService::class.java)) {
                         fab_status = setOverlayInactive(exec=false)
                     }
@@ -53,6 +59,7 @@ class MainActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        activity_active = true
 
         //Load views:
         toolbar = findViewById<Toolbar>(R.id.toolbar)
@@ -129,6 +136,17 @@ class MainActivity : AppCompatActivity() {
             fab_status = setOverlayInactive(exec=false)
         }
     }
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        activity_active = false
+        //Thread check:
+        if (checkThread.isAlive()){
+            checkThread.interrupt()
+        }
+    }
+
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -241,6 +259,25 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(applicationContext, "App authorization removed.", Toast.LENGTH_SHORT).show()
         return false
     }
+
+//    //Manage volume up keyEvent in Main Activity:
+//    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+//        val keyCode = event.keyCode
+//        val action = event.action
+//        val source = event.source
+//        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP && action == 0) {
+//            Log.d(
+//                TAG,
+//                "KEY BUTTON PRESSED, KEYCODE: ${keyCode}, ACTION: ${action}, SOURCE: ${source}"
+//            )
+//            Toast.makeText(
+//                applicationContext,
+//                "KEY BUTTON PRESSED, KEYCODE: ${keyCode}, ACTION: ${action}, SOURCE: ${source}",
+//                Toast.LENGTH_LONG
+//            ).show()
+//        }
+//        return super.dispatchKeyEvent(event)
+//    }
 
     companion object {
         private val TAG: String = MainActivity::class.java.getSimpleName()

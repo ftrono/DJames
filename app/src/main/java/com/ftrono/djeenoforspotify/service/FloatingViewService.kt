@@ -1,15 +1,16 @@
 package com.ftrono.djeenoforspotify.service
 
 import android.annotation.SuppressLint
-import android.app.ActivityManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Color
 import android.graphics.PixelFormat
+import android.media.AudioManager
 import android.net.Uri
 import android.os.IBinder
 import android.provider.Settings
@@ -26,14 +27,14 @@ import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.ftrono.djeenoforspotify.R
-import com.ftrono.djeenoforspotify.application.prefs
-import com.ftrono.djeenoforspotify.service.VoiceSearchService
-import java.io.File
+import com.ftrono.djeenoforspotify.application.*
+import com.ftrono.djeenoforspotify.receivers.EventReceiver
 import kotlin.math.abs
 
 
 class FloatingViewService : Service() {
     private val TAG = FloatingViewService::class.java.simpleName
+    private var fs_active : Boolean = false
 
     //View managers:
     private var mWindowManager: WindowManager? = null
@@ -41,6 +42,33 @@ class FloatingViewService : Service() {
     private var mCloseView: View? = null
     private var params: LayoutParams? = null
     private var params2: LayoutParams? = null
+
+    //Receiver:
+    var eventReceiver = EventReceiver()
+
+    //Service status checker:
+    val volumeThread = Thread {
+        try {
+            while (fs_active) {
+                synchronized(this) {
+                    //Log.d(TAG, "Overlay Service: volumeThread alive.")
+                    try {
+                        Thread.sleep(2000)
+                    } catch (e: InterruptedException) {
+                        Log.d(TAG, "Overlay Service: volumeThread already stopped.")
+                    }
+                    //Lower volume if maximum (to enable Receiver):
+                    if (audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {
+                        audioManager!!.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND)
+                        Log.d(TAG, "Overlay Volume Check: Volume lowered.")
+                    }
+                }
+            }
+        } catch (e: InterruptedException) {
+            Log.d(TAG, "Interrupted: exception.", e)
+        }
+    }
+
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -51,7 +79,29 @@ class FloatingViewService : Service() {
         super.onCreate()
         try {
             startForeground()
+            fs_active = true
 
+            //RECEIVER:
+            //Prepare volume for Receiver:
+            audioManager!!.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND)
+            Log.d(TAG, "Volume lowered.")
+
+            //Thread check:
+            if (!volumeThread.isAlive()){
+                volumeThread.start()
+            }
+
+            //Start Receiver:
+            val filter = IntentFilter()
+            filter.addAction(Intent.ACTION_SCREEN_ON)
+            filter.addAction(Intent.ACTION_SCREEN_OFF)
+            filter.addAction("android.media.VOLUME_CHANGED_ACTION")
+
+            //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
+            registerReceiver(eventReceiver, filter, RECEIVER_EXPORTED)
+            Log.d(TAG, "Receiver started.")
+
+            //VIEW:
             // Init window manager
             mWindowManager = getSystemService(WINDOW_SERVICE) as WindowManager?
             // Store display height & width
@@ -96,9 +146,9 @@ class FloatingViewService : Service() {
             params2!!.y = height
 
             // Set the overlay button & icon
-            val overlayButton =
+            overlayButton =
                 mFloatingView!!.findViewById<View>(R.id.rounded_button) as RelativeLayout
-            val overlayIcon = mFloatingView!!.findViewById<View>(R.id.record_icon) as ImageView
+            overlayIcon = mFloatingView!!.findViewById<View>(R.id.record_icon) as ImageView
 
             /*
             //Set the close button
@@ -108,6 +158,7 @@ class FloatingViewService : Service() {
             }
             */
 
+            //VIEW EVENTS HANDLER:
             mFloatingView!!.findViewById<View>(R.id.root_container)
                 .setOnTouchListener(object : OnTouchListener {
                     private var initialX = 0
@@ -143,10 +194,10 @@ class FloatingViewService : Service() {
                                 //So that is click event.
                                 // ON CLICK:
                                 if (abs(Xdiff) < 10 && abs(Ydiff) < 10) {
-                                    if (!isMyServiceRunning(VoiceSearchService::class.java)) {
-                                        //Start Voice Search service:
+                                    if (!recordingMode) {
+                                        //START VOICE SEARCH SERVICE:
+                                        recordingMode = true
                                         startService(Intent(applicationContext, VoiceSearchService::class.java))
-                                        waitForRecordDone(overlayButton, overlayIcon)
                                     }
                                 } else if ((abs(event.rawY) >= (height - 200)) && (abs(event.rawX) >= (halfwidth - 200)) && (abs(
                                         event.rawX
@@ -189,6 +240,10 @@ class FloatingViewService : Service() {
                 })
         } catch (e: Exception) {
             Log.d(TAG, "Exception: ", e)
+            recordingMode = false
+            fs_active = false
+            overlayButton = null
+            overlayIcon = null
             Toast.makeText(
                 applicationContext,
                 getString(R.string.str_enable_overlay),
@@ -208,6 +263,18 @@ class FloatingViewService : Service() {
         super.onDestroy()
         try {
             if (mFloatingView != null) mWindowManager!!.removeView(mFloatingView)
+            //unregister receivers:
+            unregisterReceiver(eventReceiver)
+            Log.d(TAG, "Receiver stopped.")
+            //reset views & stop threads:
+            overlayButton = null
+            overlayIcon = null
+            fs_active = false
+            recordingMode = false
+            //Thread check:
+            if (volumeThread.isAlive()){
+                volumeThread.interrupt()
+            }
         } catch (e: Exception) {
             Log.d(TAG, "Interrupted: exception.", e)
         }
@@ -235,42 +302,4 @@ class FloatingViewService : Service() {
             .build()
         startForeground(2, notification)
     }
-
-    fun isMyServiceRunning(serviceClass: Class<*>): Boolean {
-        val manager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
-        for (service in manager.getRunningServices(Int.MAX_VALUE)) {
-            if (serviceClass.name == service.service.className) {
-                return true
-            }
-        }
-        return false
-    }
-
-    fun waitForRecordDone(button: RelativeLayout, icon: ImageView) {
-        //prepare thread:
-        val mThread = Thread {
-            try {
-                synchronized(this) {
-                    //Set Recording mode:
-                    button.setBackgroundResource(R.drawable.rounded_button_2)
-                    //RECORDING COUNTDOWN:
-                    Thread.sleep(prefs.recTimeout.toLong() * 1000)   //default: 5000
-                    //Reset overlay processing color:
-                    button.setBackgroundResource(R.drawable.rounded_button_3)
-                    icon.setImageResource(R.drawable.looking_icon)
-
-                    //PROCESSING COUNTDOWN:
-                    Thread.sleep(2000)
-                    //Reset overlay accent color:
-                    button.setBackgroundResource(R.drawable.rounded_button)
-                    icon.setImageResource(R.drawable.record_icon)
-                }
-            } catch (e: InterruptedException) {
-                Log.d(TAG, "Interrupted: exception.", e)
-            }
-        }
-        //start thread:
-        mThread.start()
-    }
-
 }

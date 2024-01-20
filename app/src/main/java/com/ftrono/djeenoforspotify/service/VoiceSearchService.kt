@@ -18,8 +18,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.ftrono.djeenoforspotify.R
-import com.ftrono.djeenoforspotify.application.prefs
-import com.ftrono.djeenoforspotify.application.audioManager
+import com.ftrono.djeenoforspotify.application.*
 import com.ftrono.djeenoforspotify.recorder.AndroidAudioRecorder
 import java.io.File
 
@@ -27,7 +26,6 @@ import java.io.File
 class VoiceSearchService : Service() {
     //Main:
     private val TAG = VoiceSearchService::class.java.simpleName
-    private var listening: Boolean = false
     private val saveDir =
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
@@ -88,6 +86,7 @@ class VoiceSearchService : Service() {
         super.onCreate()
         try {
             startForeground()
+            recordingMode = true
 
             //Audio manager:
             audioAttributes = AudioAttributes.Builder()
@@ -126,6 +125,7 @@ class VoiceSearchService : Service() {
 
         } catch (e: Exception) {
             Log.d(TAG, "Exception: ", e)
+            recordingMode = false
             val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
             val uri = Uri.fromParts("package", packageName, null)
             intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -152,7 +152,7 @@ class VoiceSearchService : Service() {
         val notificationBuilder: NotificationCompat.Builder =
             NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
         val notification = notificationBuilder.setOngoing(true)
-            .setContentTitle("Djeeno: Floating View Service is running in background")
+            .setContentTitle("Djeeno: Voice Search Service is running in background")
             .setPriority(NotificationManager.IMPORTANCE_MIN)
             .setCategory(Notification.CATEGORY_SERVICE)
             .build()
@@ -166,6 +166,11 @@ class VoiceSearchService : Service() {
             try {
                 synchronized(this) {
                     //RECORDING:
+                    Log.d(TAG, "RECORDING STARTED.")
+                    //Set overlay BUSY color:
+                    if (screenOn && overlayButton != null) {
+                        overlayButton!!.setBackgroundResource(R.drawable.rounded_button_2)
+                    }
                     //Start recording (default: cacheDir):
                     var it = File(saveDir, "audio.mp3")
                     recorder.start(it)
@@ -173,9 +178,23 @@ class VoiceSearchService : Service() {
                     Thread.sleep(prefs.recTimeout.toLong() * 1000)   //default: 5000
                     //Stop recording:
                     recorder.stop()
+                    Log.d(TAG, "RECORDING STOPPED.")
+
+                    //Lower volume if maximum (to enable Receiver):
+                    if (audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {
+                        audioManager!!.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND)
+                        Log.d(TAG, "Countdown stopped. Volume lowered.")
+                    }
+
                     //Abandon audio focus:
                     //if (!focusState) {}
                     audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
+
+                    //Set overlay PROCESSING color & icon:
+                    if (screenOn && overlayButton != null && overlayIcon != null) {
+                        overlayButton!!.setBackgroundResource(R.drawable.rounded_button_3)
+                        overlayIcon!!.setImageResource(R.drawable.looking_icon)
+                    }
 
                     //AFTER RECORDING:
                     //Spotify result:
@@ -183,10 +202,10 @@ class VoiceSearchService : Service() {
                         "https://open.spotify.com/track/3jFP1e8IUpD9QbltEI1Hcg?si=pt790-QFRyWr2JhyoMb_yA"
                     //Open links and redirects:
                     openResults(spotifyToOpen)
-                    listening = false
                 }
             } catch (e: InterruptedException) {
                 Log.d(TAG, "Interrupted: exception.", e)
+                recordingMode = false
             }
         }
         //start thread:
@@ -217,7 +236,15 @@ class VoiceSearchService : Service() {
             startActivity(mapIntent)
         }
 
+        //Reset normal overlay ACCENT color & icon:
+        if (screenOn && overlayButton != null && overlayIcon != null) {
+            Thread.sleep(1000)   //default: 2000
+            overlayButton!!.setBackgroundResource(R.drawable.rounded_button)
+            overlayIcon!!.setImageResource(R.drawable.record_icon)
+        }
+
         //Stop Voice Search service:
+        recordingMode = false
         stopSelf()
     }
 

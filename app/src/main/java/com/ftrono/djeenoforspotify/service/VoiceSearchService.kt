@@ -10,6 +10,7 @@ import android.graphics.Color
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
+import android.media.ToneGenerator
 import android.net.Uri
 import android.os.Environment
 import android.os.IBinder
@@ -18,7 +19,13 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.ftrono.djeenoforspotify.R
-import com.ftrono.djeenoforspotify.application.*
+import com.ftrono.djeenoforspotify.application.audioManager
+import com.ftrono.djeenoforspotify.application.overlayButton
+import com.ftrono.djeenoforspotify.application.overlayIcon
+import com.ftrono.djeenoforspotify.application.prefs
+import com.ftrono.djeenoforspotify.application.recordingMode
+import com.ftrono.djeenoforspotify.application.screenOn
+import com.ftrono.djeenoforspotify.application.streamMaxVolume
 import com.ftrono.djeenoforspotify.recorder.AndroidAudioRecorder
 import java.io.File
 
@@ -40,6 +47,7 @@ class VoiceSearchService : Service() {
     private var focusState: Boolean = false
     private var mAudioFocusPlaybackDelayed: Boolean = false
     private var mAudioFocusResumeOnFocusGained: Boolean = false
+    private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
 
     private val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
         when (focusChange) {
@@ -171,14 +179,23 @@ class VoiceSearchService : Service() {
                     if (screenOn && overlayButton != null) {
                         overlayButton!!.setBackgroundResource(R.drawable.rounded_button_2)
                     }
+
+                    //Play START tone:
+                    toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)
+
                     //Start recording (default: cacheDir):
                     var it = File(saveDir, "audio.mp3")
                     recorder.start(it)
+
                     //Countdown:
                     Thread.sleep(prefs.recTimeout.toLong() * 1000)   //default: 5000
+
                     //Stop recording:
                     recorder.stop()
                     Log.d(TAG, "RECORDING STOPPED.")
+
+                    //Play STOP tone:
+                    toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)
 
                     //Lower volume if maximum (to enable Receiver):
                     if (audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {

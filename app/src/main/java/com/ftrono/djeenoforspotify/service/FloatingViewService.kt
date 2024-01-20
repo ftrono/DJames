@@ -13,6 +13,8 @@ import android.graphics.PixelFormat
 import android.media.AudioManager
 import android.net.Uri
 import android.os.IBinder
+import android.os.PowerManager
+import android.os.PowerManager.WakeLock
 import android.provider.Settings
 import android.util.Log
 import android.view.Gravity
@@ -42,6 +44,7 @@ class FloatingViewService : Service() {
     private var mCloseView: View? = null
     private var params: LayoutParams? = null
     private var params2: LayoutParams? = null
+    private var wakeLock: WakeLock? = null
 
     //Receiver:
     var eventReceiver = EventReceiver()
@@ -80,6 +83,11 @@ class FloatingViewService : Service() {
         try {
             startForeground()
             fs_active = true
+
+            //WAKE LOCK:
+            powerManager = getSystemService(POWER_SERVICE) as PowerManager
+            wakeLock = powerManager!!.newWakeLock(PowerManager.FULL_WAKE_LOCK, TAG)
+            wakeLock!!.acquire()
 
             //RECEIVER:
             //Prepare volume for Receiver:
@@ -244,6 +252,9 @@ class FloatingViewService : Service() {
             fs_active = false
             overlayButton = null
             overlayIcon = null
+            //unregister receivers:
+            unregisterReceiver(eventReceiver)
+            Log.d(TAG, "Receiver stopped.")
             Toast.makeText(
                 applicationContext,
                 getString(R.string.str_enable_overlay),
@@ -255,6 +266,11 @@ class FloatingViewService : Service() {
             intent1.putExtra("fromwhere", "ser")
             intent1.setData(uri)
             startActivity(intent1)
+            try {
+                wakeLock!!.release()
+            } catch (e: Exception) {
+                Log.d(TAG, "Wake lock already released.")
+            }
             stopSelf()
         }
     }
@@ -271,6 +287,11 @@ class FloatingViewService : Service() {
             overlayIcon = null
             fs_active = false
             recordingMode = false
+            try {
+                wakeLock!!.release()
+            } catch (e: Exception) {
+                Log.d(TAG, "Wake lock already released.")
+            }
             //Thread check:
             if (volumeThread.isAlive()){
                 volumeThread.interrupt()

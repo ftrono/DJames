@@ -119,7 +119,7 @@ class VoiceSearchService : Service() {
                 }
 
                 AudioManager.AUDIOFOCUS_REQUEST_DELAYED -> {
-                    mAudioFocusPlaybackDelayed = true;
+                    mAudioFocusPlaybackDelayed = true
                 }
             }
 

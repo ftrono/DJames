@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Button
 import android.widget.CheckBox
 import android.widget.TextView
 import android.widget.Toast
@@ -117,6 +118,13 @@ class MainActivity : AppCompatActivity() {
             // Start overlay service automatically:
             fab_status = setOverlayActive(exec=true)
         }
+
+        //(TEST) Fake Lock Screen:
+        val testButton = findViewById<Button>(R.id.fake_lock_button)
+        testButton.setOnClickListener(View.OnClickListener {
+            val intent1 = Intent(this@MainActivity, FakeLockScreen::class.java)
+            startActivity(intent1)
+        })
     }
 
 

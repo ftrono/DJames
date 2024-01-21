@@ -48,6 +48,14 @@
             android:parentActivityName=".application.MainActivity">
         </activity>
 
+        <activity
+            android:name=".application.FakeLockScreen"
+            android:configChanges="orientation|screenSize"
+            android:label="FakeLockScreen"
+            android:theme="@style/AppTheme.FakeLockScreen"
+            android:parentActivityName=".application.MainActivity">
+        </activity>
+
         <service
             android:name=".service.FloatingViewService"
             android:enabled="true"

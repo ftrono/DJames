@@ -4,8 +4,8 @@
   <color name="colorPrimaryDark">#00100C</color>
   <color name="windowBackground">#00100C</color>
   <color name="colorAccent">#00684D</color>
-  <color name="colorRecording">#FFC000</color>
-  <color name="colorLogin">#ED7D31</color>
+  <color name="colorHeader">#FFC000</color>
+  <color name="colorBusy">#ED7D31</color>
   <color name="colorStop">#C00000</color>
   <color name="white">#ffffff</color>
   <color name="light_grey">#dddddd</color>

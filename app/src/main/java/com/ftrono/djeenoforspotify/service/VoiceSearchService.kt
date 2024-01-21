@@ -177,7 +177,7 @@ class VoiceSearchService : Service() {
                     Log.d(TAG, "RECORDING STARTED.")
                     //Set overlay BUSY color:
                     if (screenOn && overlayButton != null) {
-                        overlayButton!!.setBackgroundResource(R.drawable.rounded_button_2)
+                        overlayButton!!.setBackgroundResource(R.drawable.rounded_button_busy)
                     }
 
                     //Play START tone:
@@ -209,7 +209,7 @@ class VoiceSearchService : Service() {
 
                     //Set overlay PROCESSING color & icon:
                     if (screenOn && overlayButton != null && overlayIcon != null) {
-                        overlayButton!!.setBackgroundResource(R.drawable.rounded_button_3)
+                        overlayButton!!.setBackgroundResource(R.drawable.rounded_button_processing)
                         overlayIcon!!.setImageResource(R.drawable.looking_icon)
                     }
 
@@ -256,8 +256,8 @@ class VoiceSearchService : Service() {
         //Reset normal overlay ACCENT color & icon:
         if (screenOn && overlayButton != null && overlayIcon != null) {
             Thread.sleep(1000)   //default: 2000
-            overlayButton!!.setBackgroundResource(R.drawable.rounded_button)
-            overlayIcon!!.setImageResource(R.drawable.record_icon)
+            overlayButton!!.setBackgroundResource(R.drawable.rounded_button_ready)
+            overlayIcon!!.setImageResource(R.drawable.speak_icon)
         }
 
         //Stop Voice Search service:

@@ -3,26 +3,12 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/fake_lock_container"
+    android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:fillViewport="true"
     android:background="@color/black"
     android:forceDarkAllowed="true">
-
-    <TextView
-        android:id="@+id/text_hour"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAlignment="center"
-        android:textColor="@color/faded_grey"
-        android:textStyle="bold"
-        android:text= "00"
-        android:textSize="150dp"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/text_date"/>
 
     <TextView
         android:id="@+id/text_date"
@@ -35,17 +21,17 @@
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_hour"
-        app:layout_constraintBottom_toTopOf="@+id/text_mins"/>
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/text_clock"/>
 
     <TextView
-        android:id="@+id/text_mins"
+        android:id="@+id/text_clock"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAlignment="center"
         android:textColor="@color/faded_grey"
         android:textStyle="bold"
-        android:text= "00"
+        android:text= "00\n00"
         android:textSize="150dp"
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -65,7 +51,7 @@
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_mins"
+        app:layout_constraintTop_toBottomOf="@+id/text_clock"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

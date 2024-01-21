@@ -235,7 +235,7 @@ class FloatingViewService : Service() {
 //                                } else {
 //                                    //Back to green:
 //                                    overlayButton.setBackgroundResource(R.drawable.rounded_button)
-//                                    overlayIcon.setImageResource(R.drawable.record_icon)
+//                                    overlayIcon.setImageResource(R.drawable.speak_icon)
 //                                }
 
                                 //Update the layout with new X & Y coordinate

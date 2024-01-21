@@ -1,27 +1,47 @@
 package com.ftrono.djeenoforspotify.application
 
 import android.os.Bundle
+import android.os.Handler
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.ftrono.djeenoforspotify.R
-import java.time.format.DateTimeFormatter
-import android.os.Handler
 import androidx.constraintlayout.widget.ConstraintLayout
-import java.time.LocalDateTime
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import android.content.res.Configuration
+import com.ftrono.djeenoforspotify.R
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 
 class FakeLockScreen: AppCompatActivity() {
+
+    private var isHorizontal: Boolean = false
+    private var clockView: TextView? = null
+    private var now: LocalDateTime? = null
+    private val dateFormat = DateTimeFormatter.ofPattern("E, dd MMM")
+    private val hourFormat = DateTimeFormatter.ofPattern("HH")
+    private val minsFormat = DateTimeFormatter.ofPattern("mm")
+    private var clockSeparator: String = "\n"
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.fake_lock_screen)
+
+        //Check initial orientation:
+        var config = getResources().getConfiguration()
+        if (config.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            //Vertical:
+            clockSeparator = "\n"
+        }
+        if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            //Horizontal:
+            clockSeparator = ":"
+        }
 
         //Immersive full screen:
         val mainContainer = findViewById<ConstraintLayout>(R.id.fake_lock_container)
@@ -40,20 +60,9 @@ class FakeLockScreen: AppCompatActivity() {
             finish()
         })
 
-        //Clock:
-        var now: LocalDateTime? = null
-
         //Date:
-        val dateFormat = DateTimeFormatter.ofPattern("E, dd MMM")
         val dateView = findViewById<TextView>(R.id.text_date)
-
-        //Hour:
-        val hourFormat = DateTimeFormatter.ofPattern("HH")
-        val hourView = findViewById<TextView>(R.id.text_hour)
-
-        //Min:
-        val minsFormat = DateTimeFormatter.ofPattern("mm")
-        val minsView = findViewById<TextView>(R.id.text_mins)
+        clockView = findViewById<TextView>(R.id.text_clock)
 
         //Update date & clock:
         val handler = Handler()
@@ -61,12 +70,25 @@ class FakeLockScreen: AppCompatActivity() {
             override fun run() {
                 now = LocalDateTime.now()
                 dateView.text = now!!.format(dateFormat)
-                hourView.text = now!!.format(hourFormat)
-                minsView.text = now!!.format(minsFormat)
+                clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
                 handler.postDelayed(this, 5000)
             }
         }
         handler.post(runnable)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            //Vertical:
+            clockSeparator = "\n"
+            clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
+        }
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            //Horizontal:
+            clockSeparator = ":"
+            clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
+        }
     }
 
 }

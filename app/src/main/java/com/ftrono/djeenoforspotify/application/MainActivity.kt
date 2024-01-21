@@ -231,7 +231,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun setOverlayLoggedOut(): Boolean {
-        fab!!.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorLogin)
+        fab!!.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorBusy)
         fab!!.setImageResource(R.drawable.login_icon)
         return true
     }

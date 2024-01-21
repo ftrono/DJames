@@ -5,7 +5,7 @@ import android.content.Context
 import android.media.AudioManager
 import android.os.PowerManager
 import android.widget.ImageView
-import android.widget.RelativeLayout
+import android.view.View
 import com.ftrono.djeenoforspotify.utilities.Prefs
 
 //GLOBALS:
@@ -19,7 +19,7 @@ var screenOn : Boolean = true
 var recordingMode: Boolean = false
 
 //Overlay resources:
-var overlayButton: RelativeLayout? = null
+var overlayButton: View? = null
 var overlayIcon: ImageView? = null
 
 

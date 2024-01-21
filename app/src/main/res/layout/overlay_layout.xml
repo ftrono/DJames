@@ -1,53 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root_container"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content" >
+    android:layout_height="wrap_content">
 
-    <!--Root container-->
-    <RelativeLayout
-        android:id="@+id/root_container"
+    <View
+        android:id="@+id/maps_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/rounded_button_processing"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/rounded_button"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <TextView
+        android:id="@+id/maps_text"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:text= "MAPS"
+        android:textSize="8dp"
+        android:textStyle="bold"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintLeft_toLeftOf="@+id/maps_button"
+        app:layout_constraintRight_toRightOf="@+id/maps_button"
+        app:layout_constraintTop_toTopOf="@+id/maps_button"
+        app:layout_constraintBottom_toTopOf="@+id/maps_value"/>
 
-        <!--View while view is collapsed-->
-        <RelativeLayout
-            android:id="@+id/collapse_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="visible" >
+    <TextView
+        android:id="@+id/maps_value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:textColor="@color/colorHeader"
+        android:text= "ON"
+        android:textSize="14dp"
+        android:textStyle="bold"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintLeft_toLeftOf="@+id/maps_text"
+        app:layout_constraintRight_toRightOf="@+id/maps_text"
+        app:layout_constraintTop_toBottomOf="@+id/maps_text"
+        app:layout_constraintBottom_toTopOf="@+id/rounded_button"/>
 
-            <RelativeLayout
-                android:id="@+id/rounded_button"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:background="@drawable/rounded_button_ready" >
+    <View
+        android:id="@+id/rounded_button"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:background="@drawable/rounded_button_ready"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/maps_button"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
-                <ImageView
-                    android:id="@+id/record_icon"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="25dp"
-                    android:layout_marginLeft="25dp"
-                    android:src="@drawable/speak_icon"
-                    tools:ignore="ContentDescription" />
+    <ImageView
+        android:id="@+id/record_icon"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/speak_icon"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintLeft_toLeftOf="@+id/rounded_button"
+        app:layout_constraintRight_toRightOf="@+id/rounded_button"
+        app:layout_constraintTop_toTopOf="@+id/rounded_button"
+        app:layout_constraintBottom_toBottomOf="@+id/rounded_button"/>
 
-            </RelativeLayout>
-
-            <!--Close button
-            <ImageView
-                android:id="@+id/close_btn"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginLeft="54dp"
-                android:src="@drawable/close_btn"
-                tools:ignore="ContentDescription" />
-            -->
-
-        </RelativeLayout>
-
-
-
-    </RelativeLayout>
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

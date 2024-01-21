@@ -25,7 +25,6 @@ import android.view.View.OnTouchListener
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams
 import android.widget.ImageView
-import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.ftrono.djeenoforspotify.R
@@ -155,8 +154,8 @@ class FloatingViewService : Service() {
 
             // Set the overlay button & icon
             overlayButton =
-                mFloatingView!!.findViewById<View>(R.id.rounded_button) as RelativeLayout
-            overlayIcon = mFloatingView!!.findViewById<View>(R.id.record_icon) as ImageView
+                mFloatingView!!.findViewById<View>(R.id.rounded_button)
+            overlayIcon = mFloatingView!!.findViewById<ImageView>(R.id.record_icon)
 
             /*
             //Set the close button

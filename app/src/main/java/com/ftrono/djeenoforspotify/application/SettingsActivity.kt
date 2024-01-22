@@ -9,7 +9,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.content.res.AppCompatResources
 import com.ftrono.djeenoforspotify.R
 
 
@@ -17,10 +16,12 @@ class SettingsActivity : AppCompatActivity() {
     //Text views:
     private var text_rec_timeout: TextView? = null
     private var text_maps_timeout: TextView? = null
+    private var text_clock_timeout: TextView? = null
     private var text_maps_address: TextView? = null
     //New values:
     private var newRecTimeout: String = ""
     private var newMapsTimeout: String = ""
+    private var newClockTimeout: String = ""
     private var newMapsAddress: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,6 +40,10 @@ class SettingsActivity : AppCompatActivity() {
         text_maps_timeout = findViewById<TextView>(R.id.val_maps_timeout)
         text_maps_timeout!!.text = prefs.mapsTimeout
 
+        //ClockTimeout:
+        text_clock_timeout = findViewById<TextView>(R.id.val_clock_timeout)
+        text_clock_timeout!!.text = prefs.clockTimeout
+
         //GMaps address:
         text_maps_address = findViewById<TextView>(R.id.val_maps_address)
         text_maps_address!!.text = prefs.mapsAddress
@@ -50,9 +55,10 @@ class SettingsActivity : AppCompatActivity() {
             //Get new values:
             newRecTimeout = text_rec_timeout!!.text.toString()
             newMapsTimeout = text_maps_timeout!!.text.toString()
+            newClockTimeout = text_clock_timeout!!.text.toString()
             newMapsAddress = text_maps_address!!.text.toString()
             //Save all:
-            saveAll(newRecTimeout, newMapsTimeout, newMapsAddress)
+            saveAll(newRecTimeout, newMapsTimeout, newClockTimeout, newMapsAddress)
             Toast.makeText(applicationContext, "Settings saved!", Toast.LENGTH_SHORT).show()
             finish()
         })
@@ -62,15 +68,16 @@ class SettingsActivity : AppCompatActivity() {
         //Get new values:
         newRecTimeout = text_rec_timeout!!.text.toString()
         newMapsTimeout = text_maps_timeout!!.text.toString()
+        newClockTimeout = text_clock_timeout!!.text.toString()
         newMapsAddress = text_maps_address!!.text.toString()
 
         //If changes made: show alert dialog:
-        if (prefs.recTimeout != newRecTimeout || prefs.mapsTimeout != newMapsTimeout || prefs.mapsAddress != newMapsAddress) {
+        if (prefs.recTimeout != newRecTimeout || prefs.mapsTimeout != newMapsTimeout || prefs.clockTimeout != newClockTimeout || prefs.mapsAddress != newMapsAddress) {
             val alertDialog = AlertDialog.Builder(this)
             //Save all:
             alertDialog.setPositiveButton("Yes", object : OnClickListener {
                 override fun onClick(dialog: DialogInterface?, which: Int) {
-                    saveAll(newRecTimeout, newMapsTimeout, newMapsAddress)
+                    saveAll(newRecTimeout, newMapsTimeout, newClockTimeout, newMapsAddress)
                     Toast.makeText(applicationContext, "Settings saved!", Toast.LENGTH_SHORT).show()
                     finish()
                 }
@@ -92,25 +99,30 @@ class SettingsActivity : AppCompatActivity() {
     }
 
 
-    private fun validateTimeout(newVal: String, origVal: String) : String {
+    private fun validateTimeout(newVal: String, origVal: String, min_val: Int, max_val: Int) : String {
         val newInt = newVal.toInt()
-        return if (newInt in 3..10) {
+        return if (newInt in min_val..max_val) {
             newVal
         } else {
             origVal
         }
     }
 
-    private fun saveAll(newRecTimeout: String, newMapsTimeout: String, newMapsAddress: String) {
+    private fun saveAll(newRecTimeout: String, newMapsTimeout: String, newClockTimeout: String, newMapsAddress: String) {
         //RecTimeout:
         if (newRecTimeout.isNotEmpty()) {
             //validate & overwrite:
-            prefs.recTimeout = validateTimeout(newVal = newRecTimeout, origVal = prefs.recTimeout)
+            prefs.recTimeout = validateTimeout(newVal = newRecTimeout, origVal = prefs.recTimeout, min_val = 3, max_val = 10)
         }
         //MapsTimeout:
         if (newMapsTimeout.isNotEmpty()) {
             //validate & overwrite:
-            prefs.mapsTimeout = validateTimeout(newVal = newMapsTimeout, origVal = prefs.mapsTimeout)
+            prefs.mapsTimeout = validateTimeout(newVal = newMapsTimeout, origVal = prefs.mapsTimeout, min_val = 3, max_val = 10)
+        }
+        //ClockTimeout:
+        if (newClockTimeout.isNotEmpty()) {
+            //validate & overwrite:
+            prefs.clockTimeout = validateTimeout(newVal = newClockTimeout, origVal = prefs.clockTimeout, min_val = 0, max_val = 60)
         }
         //GMaps address:
         if (newMapsAddress.isNotEmpty()) {

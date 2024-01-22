@@ -65,7 +65,7 @@
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
             android:paddingTop="100dp"
-            android:text= "&#xA;⏱️ TIMEOUT FOR REDIRECTING TO MAPS"
+            android:text= "&#xA;🗺️ TIMEOUT FOR REDIRECTING TO MAPS"
             android:textSize="15dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/val_rec_timeout"/>
@@ -98,6 +98,47 @@
             app:layout_constraintTop_toBottomOf="@+id/descr_maps_max"/>
 
         <TextView
+            android:id="@+id/descr_clock_timeout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorHeader"
+            android:padding="8dp"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:paddingTop="100dp"
+            android:text= "&#xA;⏱️ TIMEOUT FOR REDIRECTING TO CLOCK"
+            android:textSize="15dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/val_maps_timeout"/>
+
+        <TextView
+            android:id="@+id/descr_clock_max"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/mid_grey"
+            android:paddingLeft="8dp"
+            android:paddingRight="15dp"
+            android:text= "In seconds (keep between 5 and 60)"
+            android:textSize="12dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/descr_clock_timeout"/>
+
+        <EditText
+            android:id="@+id/val_clock_timeout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20dp"
+            android:importantForAutofill="no"
+            android:inputType="number"
+            android:textColor="@color/light_grey"
+            android:backgroundTint="@color/faded_grey"
+            android:text="3"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/descr_clock_max"/>
+
+        <TextView
             android:id="@+id/descr_maps_address"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -109,7 +150,7 @@
             android:text= "&#xA;📌 MAPS APP TO OPEN (URL)"
             android:textSize="15dp"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/val_maps_timeout"/>
+            app:layout_constraintTop_toBottomOf="@+id/val_clock_timeout"/>
 
         <TextView
             android:id="@+id/descr_maps_detail"

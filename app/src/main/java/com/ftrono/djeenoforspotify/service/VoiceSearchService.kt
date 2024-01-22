@@ -19,13 +19,8 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.ftrono.djeenoforspotify.R
-import com.ftrono.djeenoforspotify.application.audioManager
-import com.ftrono.djeenoforspotify.application.overlayButton
-import com.ftrono.djeenoforspotify.application.overlayIcon
-import com.ftrono.djeenoforspotify.application.prefs
-import com.ftrono.djeenoforspotify.application.recordingMode
-import com.ftrono.djeenoforspotify.application.screenOn
-import com.ftrono.djeenoforspotify.application.streamMaxVolume
+import com.ftrono.djeenoforspotify.application.FakeLockScreen
+import com.ftrono.djeenoforspotify.application.*
 import com.ftrono.djeenoforspotify.recorder.AndroidAudioRecorder
 import java.io.File
 
@@ -240,9 +235,16 @@ class VoiceSearchService : Service() {
         intentSpotify.putExtra("fromwhere", "ser")
         startActivity(intentSpotify)
 
-        //Maps redirect:
+        //Reset normal overlay ACCENT color & icon:
+        if (screenOn && overlayButton != null && overlayIcon != null) {
+            Thread.sleep(1000)   //default: 2000
+            overlayButton!!.setBackgroundResource(R.drawable.rounded_button_ready)
+            overlayIcon!!.setImageResource(R.drawable.speak_icon)
+        }
+
         if (prefs.navEnabled) {
-            Thread.sleep(prefs.mapsTimeout.toLong() * 1000)   //default: 3000
+            //Maps redirect:
+            Thread.sleep((prefs.mapsTimeout.toLong()-1) * 1000)   //default: 3000
             //Launch Maps:
             val mapIntent = Intent(
                 Intent.ACTION_VIEW,
@@ -251,13 +253,14 @@ class VoiceSearchService : Service() {
             mapIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             mapIntent.putExtra("fromwhere", "ser")
             startActivity(mapIntent)
-        }
-
-        //Reset normal overlay ACCENT color & icon:
-        if (screenOn && overlayButton != null && overlayIcon != null) {
-            Thread.sleep(1000)   //default: 2000
-            overlayButton!!.setBackgroundResource(R.drawable.rounded_button_ready)
-            overlayIcon!!.setImageResource(R.drawable.speak_icon)
+        } else if (prefs.clockTimeout.toLong() > 0) {
+            //Clock redirect:
+            Thread.sleep((prefs.clockTimeout.toLong()-1) * 1000)   //default: 10000
+            //Launch Clock:
+            val clockIntent = Intent(this, FakeLockScreen::class.java)
+            clockIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            clockIntent.putExtra("fromwhere", "ser")
+            startActivity(clockIntent)
         }
 
         //Stop Voice Search service:

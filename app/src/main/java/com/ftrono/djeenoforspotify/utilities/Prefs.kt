@@ -7,7 +7,6 @@ import android.security.keystore.KeyProperties
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.ftrono.djeenoforspotify.BuildConfig
-import com.ftrono.djeenoforspotify.application.SettingsActivity
 
 class Prefs (context: Context) {
 
@@ -49,6 +48,11 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getString(KEY_MAPS_TIMEOUT, "3") as String
         set(value) = sharedPrefs.edit().putString(KEY_MAPS_TIMEOUT, value).apply()
 
+    //Clock timeout:
+    var clockTimeout: String
+        get() = sharedPrefs.getString(KEY_CLOCK_TIMEOUT, "10") as String
+        set(value) = sharedPrefs.edit().putString(KEY_CLOCK_TIMEOUT, value).apply()
+
     //GMaps address:
     var mapsAddress: String
         get() = sharedPrefs.getString(KEY_MAPS_ADDRESS, "https://www.google.com/maps/") as String
@@ -69,6 +73,7 @@ class Prefs (context: Context) {
         //KEYS:
         const val KEY_REC_TIMEOUT = ".key.rec_timeout"
         const val KEY_MAPS_TIMEOUT = ".key.maps_timeout"
+        const val KEY_CLOCK_TIMEOUT = ".key.clock_timeout"
         const val KEY_SPOTIFY_TOKEN = ".key.spotify_token"
         const val KEY_MAPS_ADDRESS = ".key.maps_address"
         const val KEY_NAV_ENABLED = ".key.nav_enabled"

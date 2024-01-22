@@ -5,12 +5,7 @@ import android.os.Handler
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import android.content.res.Configuration
 import com.ftrono.djeenoforspotify.R
 import java.time.LocalDateTime
@@ -43,6 +38,7 @@ class FakeLockScreen: AppCompatActivity() {
             clockSeparator = ":"
         }
 
+        /*
         //Immersive full screen:
         val mainContainer = findViewById<ConstraintLayout>(R.id.fake_lock_container)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -51,8 +47,7 @@ class FakeLockScreen: AppCompatActivity() {
             controller.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
-
-        Toast.makeText(applicationContext, "Use the overlay button to record voice requests.", Toast.LENGTH_SHORT).show()
+        */
 
         //Exit button:
         val exitButton = findViewById<Button>(R.id.exit_button)

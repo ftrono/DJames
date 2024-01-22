@@ -228,11 +228,11 @@ class MainActivity : AppCompatActivity() {
                 mapsView!!.setBackgroundResource(R.drawable.rounded_option_sel)
                 mapsTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorHeader))
                 clockView!!.setBackgroundResource(R.drawable.rounded_option)
-                clockTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.light_grey))
+                clockTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
             } else {
                 //CLOCK ON:
                 mapsView!!.setBackgroundResource(R.drawable.rounded_option)
-                mapsTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.light_grey))
+                mapsTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
                 clockView!!.setBackgroundResource(R.drawable.rounded_option_sel)
                 clockTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorHeader))
             }
@@ -243,9 +243,9 @@ class MainActivity : AppCompatActivity() {
     fun setOverlayInactive(exec: Boolean): Boolean {
         //ALL MODES OFF:
         mapsView!!.setBackgroundResource(R.drawable.rounded_option)
-        mapsTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.light_grey))
+        mapsTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
         clockView!!.setBackgroundResource(R.drawable.rounded_option)
-        clockTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.light_grey))
+        clockTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
         if (exec) {
             stopService(Intent(this, FloatingViewService::class.java))
         }

@@ -227,8 +227,7 @@ class FloatingViewService : Service() {
                                         recordingMode = true
                                         startService(Intent(applicationContext, VoiceSearchService::class.java))
                                     }
-                                } else if ((abs(event.rawY) >= (height - 200)) && (abs(event.rawX) >= (width - 200)) && (abs(event.rawX) <= (width + 200))
-                                ) {
+                                } else if (abs(event.rawY) >= (height - 200)) {
                                     // If SWIPE DOWN -> CLOSE:
                                     // Log.d(FloatingViewService.TAG, "Current location: " + event.rawX + " / " + halfwidth + ", " + event.rawY + " / " + height)
                                     stopSelf()

@@ -35,94 +35,6 @@
 
         </com.google.android.material.appbar.AppBarLayout>
 
-        <TextView
-            android:id="@+id/header_nav"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🚗   NAVIGATION APPS"
-            android:textColor="@color/colorHeader"
-            android:textSize="18dp"
-            app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/appBarLayout"
-            app:layout_constraintBottom_toTopOf="@+id/separator_nav"/>
-
-        <View
-            android:id="@+id/separator_nav"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:paddingLeft="30dp"
-            android:paddingRight="30dp"
-            android:layout_marginTop="2dp"
-            android:background="@color/faded_grey"
-            app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/header_nav"
-            app:layout_constraintBottom_toTopOf="@+id/check_nav"/>
-
-        <CheckBox
-            android:id="@+id/check_nav"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:checked="false"
-            android:text="Redirect to Google Maps"
-            android:textSize="15dp"
-            android:textColor="@color/light_grey"
-            android:buttonTint="@color/colorAccent"
-            android:textStyle="bold"
-            android:layout_marginTop="4dp"
-            app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/separator_nav"
-            app:layout_constraintBottom_toTopOf="@+id/header_use"/>
-
-
-        <TextView
-            android:id="@+id/header_use"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🗣️   HOW TO USE"
-            android:textColor="@color/colorHeader"
-            android:layout_marginTop="30dp"
-            android:textSize="18dp"
-            app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/check_nav"
-            app:layout_constraintBottom_toTopOf="@+id/separator_use"/>
-
-        <View
-            android:id="@+id/separator_use"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="2dp"
-            android:paddingLeft="30dp"
-            android:paddingRight="30dp"
-            android:background="@color/faded_grey"
-            app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/header_use"
-            app:layout_constraintBottom_toTopOf="@+id/descr_login_status"/>
-
-        <TextView
-            android:id="@+id/descr_login_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/str_status_logged"
-            android:textSize="12dp"
-            android:textStyle="bold"
-            android:textColor="@color/light_grey"
-            android:textAlignment="center"
-            android:layout_marginTop="10dp"
-            app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/separator_use"
-            app:layout_constraintBottom_toTopOf="@+id/descr_use"/>
 
         <TextView
             android:id="@+id/descr_use"
@@ -133,24 +45,115 @@
             android:textColor="@color/mid_grey"
             android:textAlignment="center"
             android:layout_marginTop="10dp"
+            android:textStyle="italic"
             app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/descr_login_status"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/maps_mode_view"/>
+
+        <View
+            android:id="@+id/maps_mode_view"
+            android:layout_width="300dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/rounded_option"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/descr_use"
+            app:layout_constraintBottom_toTopOf="@+id/clock_mode_view"/>
+
+        <TextView
+            android:id="@+id/maps_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🗺️   MAPS MODE"
+            android:textSize="18dp"
+            android:textColor="@color/light_grey"
+            android:textStyle="bold"
+            android:textAlignment="center"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintRight_toRightOf="@+id/maps_mode_view"
+            app:layout_constraintLeft_toLeftOf="@+id/maps_mode_view"
+            app:layout_constraintTop_toTopOf="@+id/maps_mode_view"
+            app:layout_constraintBottom_toTopOf="@+id/maps_descr"/>
+
+        <TextView
+            android:id="@+id/maps_descr"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/str_maps_descr"
+            android:textSize="12dp"
+            android:textColor="@color/mid_grey"
+            android:textAlignment="center"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintRight_toRightOf="@+id/maps_mode_view"
+            app:layout_constraintLeft_toLeftOf="@+id/maps_mode_view"
+            app:layout_constraintTop_toBottomOf="@+id/maps_title"
+            app:layout_constraintBottom_toBottomOf="@+id/maps_mode_view"/>
+
+        <View
+            android:id="@+id/clock_mode_view"
+            android:layout_width="300dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/rounded_option"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/maps_mode_view"
             app:layout_constraintBottom_toTopOf="@+id/fake_lock_button"/>
+
+        <TextView
+            android:id="@+id/clock_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🕑   CLOCK MODE"
+            android:textSize="18dp"
+            android:textColor="@color/light_grey"
+            android:textStyle="bold"
+            android:textAlignment="center"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintRight_toRightOf="@+id/clock_mode_view"
+            app:layout_constraintLeft_toLeftOf="@+id/clock_mode_view"
+            app:layout_constraintTop_toTopOf="@+id/clock_mode_view"
+            app:layout_constraintBottom_toTopOf="@+id/clock_descr"/>
+
+        <TextView
+            android:id="@+id/clock_descr"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/str_clock_descr"
+            android:textSize="12dp"
+            android:textColor="@color/mid_grey"
+            android:textAlignment="center"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintRight_toRightOf="@+id/clock_mode_view"
+            app:layout_constraintLeft_toLeftOf="@+id/clock_mode_view"
+            app:layout_constraintTop_toBottomOf="@+id/clock_title"
+            app:layout_constraintBottom_toBottomOf="@+id/clock_mode_view"/>
 
         <Button
             android:id="@+id/fake_lock_button"
             android:layout_width="120dp"
             android:layout_height="50dp"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="20dp"
             android:backgroundTint="@color/colorAccent"
             android:text="Test"
             android:textColor="@color/black"
             android:textStyle="bold"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/descr_use"
+            app:layout_constraintTop_toBottomOf="@+id/clock_mode_view"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

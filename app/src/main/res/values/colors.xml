@@ -6,11 +6,13 @@
   <color name="colorAccent">#00684D</color>
   <color name="colorHeader">#FFC000</color>
   <color name="colorBusy">#ED7D31</color>
+  <color name="colorBusyDark">#8A3F0C</color>
   <color name="colorStop">#C00000</color>
   <color name="white">#ffffff</color>
   <color name="light_grey">#dddddd</color>
-  <color name="mid_grey">#ff9c9c9c</color>
+  <color name="mid_grey">#9c9c9c</color>
   <color name="midfaded_grey">#747474</color>
-  <color name="faded_grey">#ff525252</color>
-  <color name="black">#FF000000</color>
+  <color name="faded_grey">#525252</color>
+  <color name="dark_grey">#323232</color>
+  <color name="black">#000000</color>
 </resources>

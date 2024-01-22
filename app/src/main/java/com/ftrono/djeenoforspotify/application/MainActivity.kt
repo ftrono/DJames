@@ -10,7 +10,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
-import android.widget.CheckBox
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -18,36 +17,45 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
 import com.ftrono.djeenoforspotify.R
 import com.ftrono.djeenoforspotify.service.FloatingViewService
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 
 class MainActivity : AppCompatActivity() {
+
+    private val TAG: String = MainActivity::class.java.getSimpleName()
     //Views:
-    private var checkbox_nav: CheckBox? = null
     private var descr_use: TextView? = null
-    private var descr_login_status: TextView? = null
     private var toolbar: Toolbar? = null
     private var loginButton: MenuItem? = null
-    private var fab: FloatingActionButton? = null
+
+    //Options views:
+    var mapsView: View? = null
+    var mapsTitle: TextView? = null
+    var mapsDescr: TextView? = null
+    var clockView: View? = null
+    var clockTitle: TextView? = null
+    var clockDescr: TextView? = null
 
     //Statuses:
     private var activity_active : Boolean = false
     private var loggedIn: Boolean = false
-    var fab_status: Boolean = false
+    var overlay_active: Boolean = false
 
     //Service status checker:
     val checkThread = Thread {
         try {
             while (activity_active) {
+                Thread.sleep(5000)
                 synchronized(this) {
                     //Log.d(TAG, "Main: checkThread alive.")
                     try {
-                        Thread.sleep(2000)
+                        Thread.sleep(1000)
                     } catch (e: InterruptedException) {
                         Log.d(TAG, "Main: checkThread already stopped.")
                     }
                     if (!isMyServiceRunning(FloatingViewService::class.java)) {
-                        fab_status = setOverlayInactive(exec=false)
+                        overlay_active = setOverlayInactive(exec=false)
+                    } else {
+                        overlay_active = setOverlayActive(exec = false)
                     }
                 }
             }
@@ -62,61 +70,65 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         activity_active = true
 
-        //Load views:
+        //Load Main views:
         toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
-        fab = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
-        descr_login_status = findViewById<TextView>(R.id.descr_login_status)
+
         descr_use = findViewById<TextView>(R.id.descr_use)
+
+        //Load Options views:
+        mapsView = findViewById<View>(R.id.maps_mode_view)
+        mapsTitle = findViewById<TextView>(R.id.maps_title)
+        mapsDescr = findViewById<TextView>(R.id.maps_descr)
+        clockView = findViewById<View>(R.id.clock_mode_view)
+        clockTitle = findViewById<TextView>(R.id.clock_title)
+        clockDescr = findViewById<TextView>(R.id.clock_descr)
 
         //Check Login status:
         if (prefs.spotifyToken == "") {
             loggedIn = false
-            descr_login_status!!.text = getString(R.string.str_status_not_logged)
             descr_use!!.text = getString(R.string.str_use_not_logged)
+            setViewLoggedOut()
         } else {
             loggedIn = true
-            descr_login_status!!.text = getString(R.string.str_status_logged)
             descr_use!!.text = getString(R.string.str_use_logged)
+            setOverlayInactive(exec = false)
         }
 
         //Check NavEnabled:
-        checkbox_nav = findViewById<CheckBox>(R.id.check_nav)
-        checkbox_nav!!.setChecked(prefs.navEnabled)
-        checkbox_nav!!.setOnClickListener(View.OnClickListener {
-            if (checkbox_nav!!.isChecked()) {
+        mapsView!!.setOnClickListener(View.OnClickListener {
+            if (overlay_active && prefs.navEnabled) {
+                overlay_active = setOverlayInactive(exec = true)
+            }
+            else {
+                //MAPS ON:
                 prefs.navEnabled = true
-                Toast.makeText(applicationContext, "Redirect to Google Maps enabled!", Toast.LENGTH_SHORT).show()
-            } else {
-                prefs.navEnabled = false
-                Toast.makeText(applicationContext, "Redirect to Google Maps disabled.", Toast.LENGTH_SHORT).show()
+                if (isMyServiceRunning(FloatingViewService::class.java)) {
+                    overlay_active = setOverlayInactive(exec=true)
+                }
+                overlay_active = setOverlayActive(exec = true)
+                Toast.makeText(applicationContext, "Maps mode enabled! Use the overlay button to record a voice request.", Toast.LENGTH_SHORT).show()
             }
         })
 
-        //Set FAB listener:
-        fab!!.setOnClickListener {
-            if (!loggedIn) {
-                loggedIn = login()
-            } else if (!fab_status) {
-                //Start overlay service:
-                fab_status = setOverlayActive(exec=true)
-            } else {
-                fab_status = setOverlayInactive(exec=true)
+        clockView!!.setOnClickListener(View.OnClickListener {
+            if (overlay_active && !prefs.navEnabled) {
+                overlay_active = setOverlayInactive(exec = true)
             }
-        }
+            else {
+                //CLOCK ON:
+                prefs.navEnabled = false
+                if (isMyServiceRunning(FloatingViewService::class.java)) {
+                    overlay_active = setOverlayInactive(exec=true)
+                }
+                overlay_active = setOverlayActive(exec=true)
+                Toast.makeText(applicationContext, "Clock mode enabled! Use the overlay button to record a voice request.", Toast.LENGTH_SHORT).show()
+            }
+        })
 
         //Thread check:
         if (!checkThread.isAlive()){
             checkThread.start()
-        }
-
-        //ON CREATE() ONLY:
-        //Check login status:
-        if (!loggedIn) {
-            setOverlayLoggedOut()
-        } else {
-            // Start overlay service automatically:
-            fab_status = setOverlayActive(exec=true)
         }
 
         //(TEST) Fake Lock Screen:
@@ -125,6 +137,7 @@ class MainActivity : AppCompatActivity() {
             val intent1 = Intent(this@MainActivity, FakeLockScreen::class.java)
             startActivity(intent1)
         })
+
     }
 
 
@@ -133,15 +146,12 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         //ON RESUME() ONLY:
-        //Check login & service status:
+        //Check Login status:
         if (!loggedIn) {
-            setOverlayLoggedOut()
+            overlay_active = false
+            setViewLoggedOut()
         } else if (!Settings.canDrawOverlays(this)) {
-            fab_status = setOverlayInactive(exec=false)
-        } else if (isMyServiceRunning(FloatingViewService::class.java)) {
-            fab_status = setOverlayActive(exec=false)
-        } else {
-            fab_status = setOverlayInactive(exec=false)
+            overlay_active = setOverlayInactive(exec=false)
         }
     }
 
@@ -173,8 +183,6 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Handle action bar item clicks here
         val id = item.itemId
-        descr_use = findViewById<TextView>(R.id.descr_use)
-        fab = findViewById<FloatingActionButton>(R.id.fab) as FloatingActionButton
         //Login / logout:
         if (id == R.id.action_login) {
             if (!loggedIn) {
@@ -215,25 +223,33 @@ class MainActivity : AppCompatActivity() {
             startService(Intent(this, FloatingViewService::class.java))
         }
         if (Settings.canDrawOverlays(this)) {
-            fab!!.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorStop)
-            fab!!.setImageResource(R.drawable.stop_icon)
+            if (prefs.navEnabled) {
+                //MAPS ON:
+                mapsView!!.setBackgroundResource(R.drawable.rounded_option_sel)
+                mapsTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorHeader))
+                clockView!!.setBackgroundResource(R.drawable.rounded_option)
+                clockTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.light_grey))
+            } else {
+                //CLOCK ON:
+                mapsView!!.setBackgroundResource(R.drawable.rounded_option)
+                mapsTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.light_grey))
+                clockView!!.setBackgroundResource(R.drawable.rounded_option_sel)
+                clockTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorHeader))
+            }
         }
         return true
     }
 
     fun setOverlayInactive(exec: Boolean): Boolean {
-        fab!!.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorAccent)
-        fab!!.setImageResource(R.drawable.add_icon)
+        //ALL MODES OFF:
+        mapsView!!.setBackgroundResource(R.drawable.rounded_option)
+        mapsTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.light_grey))
+        clockView!!.setBackgroundResource(R.drawable.rounded_option)
+        clockTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.light_grey))
         if (exec) {
             stopService(Intent(this, FloatingViewService::class.java))
         }
         return false
-    }
-
-    fun setOverlayLoggedOut(): Boolean {
-        fab!!.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorBusy)
-        fab!!.setImageResource(R.drawable.login_icon)
-        return true
     }
 
     //Login user:
@@ -241,14 +257,7 @@ class MainActivity : AppCompatActivity() {
         //CALL SPOTIFY AUTHENTICATION HERE
         //store token:
         prefs.spotifyToken = "ciaoneciaone"
-        //Set Logged-In UI:
-        loginButton!!.setTitle("Logout")
-        descr_login_status!!.text = getString(R.string.str_status_logged)
-        descr_use!!.text = getString(R.string.str_use_logged)
-        //Start overlay service:
-        if (!isMyServiceRunning(FloatingViewService::class.java)) {
-            fab_status = setOverlayActive(exec=true)
-        }
+        setViewLoggedIn()
         Toast.makeText(applicationContext, "App authorized! Token: "+prefs.spotifyToken, Toast.LENGTH_SHORT).show()
         return true
     }
@@ -257,14 +266,44 @@ class MainActivity : AppCompatActivity() {
     fun logout(): Boolean {
         //delete token:
         prefs.spotifyToken = ""
-        //Set NOT Logged-In UI:
-        loginButton!!.setTitle("Login")
-        descr_login_status!!.text = getString(R.string.str_status_not_logged)
-        descr_use!!.text = getString(R.string.str_use_not_logged)
         //Stop overlay service:
-        stopService(Intent(this, FloatingViewService::class.java))
-        setOverlayLoggedOut()
+        if (isMyServiceRunning(FloatingViewService::class.java)) {
+            stopService(Intent(this, FloatingViewService::class.java))
+        }
+        setViewLoggedOut()
         Toast.makeText(applicationContext, "App authorization removed.", Toast.LENGTH_SHORT).show()
+        return false
+    }
+
+    fun setViewLoggedIn(): Boolean {
+        //Set Logged-In UI:
+        if (loginButton != null) {
+            loginButton!!.setTitle("Logout")
+        }
+        descr_use!!.text = getString(R.string.str_use_logged)
+        //Show views:
+        mapsView!!.visibility = View.VISIBLE
+        mapsDescr!!.visibility = TextView.VISIBLE
+        mapsTitle!!.visibility = TextView.VISIBLE
+        clockView!!.visibility = View.VISIBLE
+        clockDescr!!.visibility = TextView.VISIBLE
+        clockTitle!!.visibility = TextView.VISIBLE
+        return true
+    }
+
+    fun setViewLoggedOut(): Boolean {
+        //Set NOT Logged-In UI:
+        if (loginButton != null) {
+            loginButton!!.setTitle("Login")
+        }
+        descr_use!!.text = getString(R.string.str_use_not_logged)
+        //Hide views:
+        mapsView!!.visibility = View.GONE
+        mapsDescr!!.visibility = TextView.GONE
+        mapsTitle!!.visibility = TextView.GONE
+        clockView!!.visibility = View.GONE
+        clockDescr!!.visibility = TextView.GONE
+        clockTitle!!.visibility = TextView.GONE
         return false
     }
 
@@ -287,7 +326,4 @@ class MainActivity : AppCompatActivity() {
 //        return super.dispatchKeyEvent(event)
 //    }
 
-    companion object {
-        private val TAG: String = MainActivity::class.java.getSimpleName()
-    }
 }

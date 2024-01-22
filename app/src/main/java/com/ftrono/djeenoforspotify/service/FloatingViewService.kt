@@ -25,7 +25,9 @@ import android.view.View.OnTouchListener
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.NotificationCompat
 import com.ftrono.djeenoforspotify.R
 import com.ftrono.djeenoforspotify.application.*
@@ -41,6 +43,8 @@ class FloatingViewService : Service() {
     private var mWindowManager: WindowManager? = null
     private var mFloatingView: View? = null
     private var mCloseView: View? = null
+    private var mapsModeView: View? = null
+    private var mapsModeValue: TextView? = null
     private var params: LayoutParams? = null
     private var params2: LayoutParams? = null
     private var wakeLock: WakeLock? = null
@@ -157,13 +161,28 @@ class FloatingViewService : Service() {
                 mFloatingView!!.findViewById<View>(R.id.rounded_button)
             overlayIcon = mFloatingView!!.findViewById<ImageView>(R.id.record_icon)
 
-            /*
-            //Set the close button
-            val closeButtonCollapsed = mFloatingView!!.findViewById<View>(R.id.close_btn) as ImageView
-            closeButtonCollapsed.setOnClickListener { //close the service and remove the from from the window
-                stopSelf()
+            //Set the Maps Mode button
+            mapsModeView = mFloatingView!!.findViewById<View>(R.id.maps_button)
+            mapsModeValue = mFloatingView!!.findViewById<TextView>(R.id.maps_value)
+            if (prefs.navEnabled) {
+                mapsModeValue!!.text = "ON"
+                mapsModeValue!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorBusy))
+                mapsModeView!!.setBackgroundResource(R.drawable.rounded_option_sel)
             }
-            */
+
+            mapsModeView!!.setOnClickListener {
+                if (!prefs.navEnabled) {
+                    prefs.navEnabled = true
+                    mapsModeValue!!.text = "ON"
+                    mapsModeValue!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorBusy))
+                    mapsModeView!!.setBackgroundResource(R.drawable.rounded_option_sel)
+                } else {
+                    prefs.navEnabled = false
+                    mapsModeValue!!.text = "OFF"
+                    mapsModeValue!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
+                    mapsModeView!!.setBackgroundResource(R.drawable.rounded_option)
+                }
+            }
 
             //VIEW EVENTS HANDLER:
             mFloatingView!!.findViewById<View>(R.id.root_container)

@@ -106,7 +106,7 @@
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
             android:paddingTop="100dp"
-            android:text= "&#xA;📌 OPEN GOOGLE MAPS TO (URL)"
+            android:text= "&#xA;📌 MAPS APP TO OPEN (URL)"
             android:textSize="15dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/val_maps_timeout"/>
@@ -118,7 +118,7 @@
             android:textColor="@color/mid_grey"
             android:paddingLeft="8dp"
             android:paddingRight="15dp"
-            android:text= "Paste a custom URL for default redirect to Google Maps:"
+            android:text= "Paste the URL of the Maps app you use"
             android:textSize="12dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/descr_maps_address"/>

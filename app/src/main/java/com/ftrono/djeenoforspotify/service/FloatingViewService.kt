@@ -8,6 +8,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.media.AudioManager
@@ -33,6 +34,7 @@ import com.ftrono.djeenoforspotify.R
 import com.ftrono.djeenoforspotify.application.*
 import com.ftrono.djeenoforspotify.receivers.EventReceiver
 import kotlin.math.abs
+import kotlin.math.round
 
 
 class FloatingViewService : Service() {
@@ -117,7 +119,7 @@ class FloatingViewService : Service() {
             mWindowManager = getSystemService(WINDOW_SERVICE) as WindowManager?
             // Store display height & width
             var height = resources.displayMetrics.heightPixels
-            var halfwidth = resources.displayMetrics.widthPixels
+            var width = resources.displayMetrics.widthPixels
 
             // OVERLAY BUTTON:
             //Inflate the overlay view layout we created
@@ -134,8 +136,8 @@ class FloatingViewService : Service() {
             //Specify the overlay view position
             params!!.gravity =
                 Gravity.TOP or Gravity.LEFT //Initially view will be added to top-left corner
-            params!!.x = 0
-            params!!.y = 100
+            params!!.x = width
+            params!!.y = round(height.toDouble()/3).toInt()
 
             //Add the overlay view to the window
             mWindowManager!!.addView(mFloatingView, params)
@@ -153,7 +155,7 @@ class FloatingViewService : Service() {
             )
 
             //Specify the overlay view position
-            params2!!.x = 0
+            params2!!.x = width
             params2!!.y = height
 
             // Set the overlay button & icon
@@ -214,7 +216,7 @@ class FloatingViewService : Service() {
                                 val Xdiff = (event.rawX - initialTouchX).toInt()
                                 val Ydiff = (event.rawY - initialTouchY).toInt()
                                 height = resources.displayMetrics.heightPixels
-                                halfwidth = resources.displayMetrics.widthPixels / 2
+                                width = resources.displayMetrics.widthPixels
 
                                 //The check for abs(Xdiff) < 10 && abs(YDiff) < 10 is because sometime elements moves a little while clicking.
                                 //So that is click event.
@@ -225,9 +227,7 @@ class FloatingViewService : Service() {
                                         recordingMode = true
                                         startService(Intent(applicationContext, VoiceSearchService::class.java))
                                     }
-                                } else if ((abs(event.rawY) >= (height - 200)) && (abs(event.rawX) >= (halfwidth - 200)) && (abs(
-                                        event.rawX
-                                    ) <= (halfwidth + 200))
+                                } else if ((abs(event.rawY) >= (height - 200)) && (abs(event.rawX) >= (width - 200)) && (abs(event.rawX) <= (width + 200))
                                 ) {
                                     // If SWIPE DOWN -> CLOSE:
                                     // Log.d(FloatingViewService.TAG, "Current location: " + event.rawX + " / " + halfwidth + ", " + event.rawY + " / " + height)
@@ -240,7 +240,7 @@ class FloatingViewService : Service() {
                             MotionEvent.ACTION_MOVE -> {
 
                                 //Calculate the X and Y coordinates of the view.
-                                params!!.x = initialX + (event.rawX - initialTouchX).toInt()
+                                //params!!.x = initialX + (event.rawX - initialTouchX).toInt()
                                 params!!.y = initialY + (event.rawY - initialTouchY).toInt()
 
                                 //Update the layout with new X & Y coordinate
@@ -278,6 +278,16 @@ class FloatingViewService : Service() {
             }
             stopSelf()
         }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // Store display height & width
+        var newWidth = resources.displayMetrics.widthPixels
+        var newHeight = resources.displayMetrics.heightPixels
+        params!!.x = newWidth
+        params!!.y = round(newHeight.toDouble()/3).toInt()
+        mWindowManager!!.updateViewLayout(mFloatingView, params)
     }
 
     override fun onDestroy() {

@@ -211,7 +211,7 @@ class VoiceSearchService : Service() {
                     //AFTER RECORDING:
                     //Spotify result:
                     var spotifyToOpen =
-                        "https://open.spotify.com/track/3jFP1e8IUpD9QbltEI1Hcg?si=pt790-QFRyWr2JhyoMb_yA"
+                        "https://open.spotify.com/track/6atVS7UZBxoyJkkteM62u5?si=rLCB_v7EQrSTfTXe2QLqQg"
                     //Open links and redirects:
                     openResults(spotifyToOpen)
                 }

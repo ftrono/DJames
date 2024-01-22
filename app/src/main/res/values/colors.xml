@@ -13,6 +13,7 @@
   <color name="mid_grey">#9c9c9c</color>
   <color name="midfaded_grey">#747474</color>
   <color name="faded_grey">#525252</color>
+  <color name="transparent_grey">#7F9c9c9c</color>
   <color name="dark_grey">#323232</color>
   <color name="black">#000000</color>
 </resources>

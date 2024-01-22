@@ -243,19 +243,6 @@ class FloatingViewService : Service() {
                                 params!!.x = initialX + (event.rawX - initialTouchX).toInt()
                                 params!!.y = initialY + (event.rawY - initialTouchY).toInt()
 
-//                                //Grey out when swiped down:
-//                                if ((abs(event.rawY) >= (height - 200)) && (abs(event.rawX) >= (halfwidth - 200)) && (abs(
-//                                        event.rawX
-//                                    ) <= (halfwidth + 200))
-//                                ) {
-//                                    overlayButton.setBackgroundResource(R.drawable.rounded_button_3)
-//                                    overlayIcon.setImageResource(R.drawable.stop_icon)
-//                                } else {
-//                                    //Back to green:
-//                                    overlayButton.setBackgroundResource(R.drawable.rounded_button)
-//                                    overlayIcon.setImageResource(R.drawable.speak_icon)
-//                                }
-
                                 //Update the layout with new X & Y coordinate
                                 mWindowManager!!.updateViewLayout(mFloatingView, params)
                                 return true

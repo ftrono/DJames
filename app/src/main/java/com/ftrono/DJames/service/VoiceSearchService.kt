@@ -235,13 +235,6 @@ class VoiceSearchService : Service() {
         intentSpotify.putExtra("fromwhere", "ser")
         startActivity(intentSpotify)
 
-        //Reset normal overlay ACCENT color & icon:
-        if (screenOn && overlayButton != null && overlayIcon != null) {
-            Thread.sleep(1000)   //default: 2000
-            overlayButton!!.setBackgroundResource(R.drawable.rounded_button_ready)
-            overlayIcon!!.setImageResource(R.drawable.speak_icon)
-        }
-
         if (prefs.navEnabled) {
             //Maps redirect:
             Thread.sleep((prefs.mapsTimeout.toLong()-1) * 1000)   //default: 3000
@@ -265,6 +258,12 @@ class VoiceSearchService : Service() {
 
         //Stop Voice Search service:
         recordingMode = false
+        //Reset normal overlay ACCENT color & icon:
+        if (screenOn && overlayButton != null && overlayIcon != null) {
+            Thread.sleep(1000)   //default: 2000
+            overlayButton!!.setBackgroundResource(R.drawable.rounded_button_ready)
+            overlayIcon!!.setImageResource(R.drawable.speak_icon)
+        }
         stopSelf()
     }
 

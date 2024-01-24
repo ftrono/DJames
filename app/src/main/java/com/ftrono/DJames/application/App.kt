@@ -1,4 +1,4 @@
-package com.ftrono.djeenoforspotify.application
+package com.ftrono.DJames.application
 
 import android.app.Application
 import android.content.Context
@@ -6,7 +6,7 @@ import android.media.AudioManager
 import android.os.PowerManager
 import android.widget.ImageView
 import android.view.View
-import com.ftrono.djeenoforspotify.utilities.Prefs
+import com.ftrono.DJames.utilities.Prefs
 
 //GLOBALS:
 val prefs: Prefs by lazy {

@@ -1,4 +1,4 @@
-package com.ftrono.djeenoforspotify.application
+package com.ftrono.DJames.application
 
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
@@ -9,7 +9,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import com.ftrono.djeenoforspotify.R
+import com.ftrono.DJames.R
 
 
 class SettingsActivity : AppCompatActivity() {

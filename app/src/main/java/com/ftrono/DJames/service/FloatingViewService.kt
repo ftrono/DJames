@@ -1,4 +1,4 @@
-package com.ftrono.djeenoforspotify.service
+package com.ftrono.DJames.service
 
 import android.annotation.SuppressLint
 import android.app.Notification
@@ -30,9 +30,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.NotificationCompat
-import com.ftrono.djeenoforspotify.R
-import com.ftrono.djeenoforspotify.application.*
-import com.ftrono.djeenoforspotify.receivers.EventReceiver
+import com.ftrono.DJames.R
+import com.ftrono.DJames.application.*
+import com.ftrono.DJames.receivers.EventReceiver
 import kotlin.math.abs
 import kotlin.math.round
 

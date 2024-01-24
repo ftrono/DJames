@@ -1,4 +1,4 @@
-package com.ftrono.djeenoforspotify.recorder
+package com.ftrono.DJames.recorder
 
 import android.content.Context
 import android.media.MediaRecorder
@@ -6,9 +6,7 @@ import android.os.Build
 import java.io.File
 import java.io.FileOutputStream
 import android.util.Log
-import android.widget.Toast
-import com.ftrono.djeenoforspotify.application.MainActivity
-import com.ftrono.djeenoforspotify.application.prefs
+import com.ftrono.DJames.application.*
 
 //import android.media.AudioFormat
 //import android.provider.MediaStore.Audio.Media

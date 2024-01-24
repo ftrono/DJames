@@ -1,4 +1,4 @@
-package com.ftrono.djeenoforspotify.application
+package com.ftrono.DJames.application
 
 import android.app.ActivityManager
 import android.content.Intent
@@ -15,8 +15,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
-import com.ftrono.djeenoforspotify.R
-import com.ftrono.djeenoforspotify.service.FloatingViewService
+import com.ftrono.DJames.R
+import com.ftrono.DJames.service.FloatingViewService
 
 
 class MainActivity : AppCompatActivity() {
@@ -258,7 +258,7 @@ class MainActivity : AppCompatActivity() {
         //store token:
         prefs.spotifyToken = "ciaoneciaone"
         setViewLoggedIn()
-        Toast.makeText(applicationContext, "App authorized! Token: "+prefs.spotifyToken, Toast.LENGTH_SHORT).show()
+        Toast.makeText(applicationContext, "App authorized! Token: "+ prefs.spotifyToken, Toast.LENGTH_SHORT).show()
         return true
     }
 

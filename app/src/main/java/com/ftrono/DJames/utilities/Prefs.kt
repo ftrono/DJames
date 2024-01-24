@@ -1,4 +1,4 @@
-package com.ftrono.djeenoforspotify.utilities
+package com.ftrono.DJames.utilities
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -6,7 +6,7 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.ftrono.djeenoforspotify.BuildConfig
+import com.ftrono.DJames.BuildConfig
 
 class Prefs (context: Context) {
 

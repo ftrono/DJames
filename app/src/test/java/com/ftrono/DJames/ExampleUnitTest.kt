@@ -1,4 +1,4 @@
-package com.ftrono.djeenoforspotify
+package com.ftrono.DJames
 
 import org.junit.Test
 

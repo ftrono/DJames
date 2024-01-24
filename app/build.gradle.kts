@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.ftrono.djeenoforspotify"
+    namespace = "com.ftrono.DJames"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.ftrono.djeenoforspotify"
+        applicationId = "com.ftrono.DJames"
         minSdk = 29
         targetSdk = 34
         versionCode = 1

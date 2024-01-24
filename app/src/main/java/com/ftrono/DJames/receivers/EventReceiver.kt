@@ -1,11 +1,11 @@
-package com.ftrono.djeenoforspotify.receivers
+package com.ftrono.DJames.receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.ftrono.djeenoforspotify.application.*
-import com.ftrono.djeenoforspotify.service.VoiceSearchService
+import com.ftrono.DJames.application.*
+import com.ftrono.DJames.service.VoiceSearchService
 
 
 class EventReceiver: BroadcastReceiver() {

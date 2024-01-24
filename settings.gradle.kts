@@ -13,6 +13,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "DjeenoForSpotify"
+rootProject.name = "DJames"
 include(":app")
  

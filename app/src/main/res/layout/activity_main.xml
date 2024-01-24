@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context=".application.MainActivity"
+    tools:context="com.ftrono.DJames.application.MainActivity"
     android:forceDarkAllowed="true">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -18,7 +18,7 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="@string/app_title"
+            app:title="@string/app_name"
             android:id="@+id/toolbar"
             app:popupTheme="@style/AppTheme.PopupOverlay"
             app:layout_scrollFlags="noScroll"/>

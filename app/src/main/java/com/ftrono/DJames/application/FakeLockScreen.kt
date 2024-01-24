@@ -1,4 +1,4 @@
-package com.ftrono.djeenoforspotify.application
+package com.ftrono.DJames.application
 
 import android.os.Bundle
 import android.os.Handler
@@ -7,14 +7,17 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import android.content.res.Configuration
-import com.ftrono.djeenoforspotify.R
+import com.ftrono.DJames.R
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import androidx.core.view.WindowCompat
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.WindowInsetsCompat
 
 
 class FakeLockScreen: AppCompatActivity() {
 
-    private var isHorizontal: Boolean = false
     private var clockView: TextView? = null
     private var now: LocalDateTime? = null
     private val dateFormat = DateTimeFormatter.ofPattern("E, dd MMM")
@@ -38,16 +41,14 @@ class FakeLockScreen: AppCompatActivity() {
             clockSeparator = ":"
         }
 
-        /*
-        //Immersive full screen:
+        //Hide status bar:
         val mainContainer = findViewById<ConstraintLayout>(R.id.fake_lock_container)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowInsetsControllerCompat(window, mainContainer).let { controller ->
-            controller.hide(WindowInsetsCompat.Type.systemBars())
+            controller.hide(WindowInsetsCompat.Type.statusBars())
             controller.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
-        */
 
         //Exit button:
         val exitButton = findViewById<Button>(R.id.exit_button)

@@ -1,4 +1,4 @@
-package com.ftrono.djeenoforspotify.service
+package com.ftrono.DJames.service
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -18,10 +18,10 @@ import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import com.ftrono.djeenoforspotify.R
-import com.ftrono.djeenoforspotify.application.FakeLockScreen
-import com.ftrono.djeenoforspotify.application.*
-import com.ftrono.djeenoforspotify.recorder.AndroidAudioRecorder
+import com.ftrono.DJames.application.*
+import com.ftrono.DJames.R
+import com.ftrono.DJames.application.FakeLockScreen
+import com.ftrono.DJames.recorder.AndroidAudioRecorder
 import java.io.File
 
 

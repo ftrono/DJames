@@ -10,14 +10,14 @@
     android:background="@color/black"
     android:forceDarkAllowed="true"
     android:nestedScrollingEnabled="true"
-    tools:context=".application.MainActivity">
+    tools:context="com.ftrono.DJames.application.MainActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/colorPrimaryDark"
-        tools:context=".application.MainActivity">
+        tools:context="com.ftrono.DJames.application.MainActivity">
         <!--tools:showIn="@layout/activity_main"-->
 
         <com.google.android.material.appbar.AppBarLayout

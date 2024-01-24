@@ -1,4 +1,4 @@
-package com.ftrono.djeenoforspotify
+package com.ftrono.DJames
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

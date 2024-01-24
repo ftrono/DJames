@@ -1,4 +1,4 @@
 # DjeenoForSpotify
-Repo for my *Djeeno for Spotify* vocal assistant for Android.
+Repo for my *DJames* vocal assistant for Android.
 
 Min requirements: Android >= 10

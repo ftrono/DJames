@@ -178,11 +178,23 @@ class FloatingViewService : Service() {
                     mapsModeValue!!.text = "ON"
                     mapsModeValue!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorBusy))
                     mapsModeView!!.setBackgroundResource(R.drawable.rounded_option_sel)
+                    //Send broadcast:
+                    Intent().also { intent ->
+                        intent.setAction(ACTION_MODE_CHANGED)
+                        //intent.putExtra("navEnabled", true)
+                        sendBroadcast(intent)
+                    }
                 } else {
                     prefs.navEnabled = false
                     mapsModeValue!!.text = "OFF"
                     mapsModeValue!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
                     mapsModeView!!.setBackgroundResource(R.drawable.rounded_option)
+                    //Send broadcast:
+                    Intent().also { intent ->
+                        intent.setAction(ACTION_MODE_CHANGED)
+                        //intent.putExtra("navEnabled", false)
+                        sendBroadcast(intent)
+                    }
                 }
             }
 
@@ -230,6 +242,11 @@ class FloatingViewService : Service() {
                                 } else if (abs(event.rawY) >= (height - 200)) {
                                     // If SWIPE DOWN -> CLOSE:
                                     // Log.d(FloatingViewService.TAG, "Current location: " + event.rawX + " / " + halfwidth + ", " + event.rawY + " / " + height)
+                                    //Send broadcast:
+                                    Intent().also { intent ->
+                                        intent.setAction(ACTION_OVERLAY_DEACTIVATED)
+                                        sendBroadcast(intent)
+                                    }
                                     stopSelf()
                                 }
                                 if (mCloseView != null) mWindowManager!!.removeView(mCloseView)

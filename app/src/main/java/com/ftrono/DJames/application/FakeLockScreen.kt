@@ -2,11 +2,13 @@ package com.ftrono.DJames.application
 
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import android.content.res.Configuration
+import android.provider.Settings
 import com.ftrono.DJames.R
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -14,16 +16,19 @@ import androidx.core.view.WindowCompat
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.WindowInsetsCompat
+import kotlin.math.round
 
 
 class FakeLockScreen: AppCompatActivity() {
 
+    private val TAG: String = FakeLockScreen::class.java.getSimpleName()
     private var clockView: TextView? = null
     private var now: LocalDateTime? = null
     private val dateFormat = DateTimeFormatter.ofPattern("E, dd MMM")
     private val hourFormat = DateTimeFormatter.ofPattern("HH")
     private val minsFormat = DateTimeFormatter.ofPattern("mm")
     private var clockSeparator: String = "\n"
+    private var prevBrightness: Int = 255
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -40,6 +45,25 @@ class FakeLockScreen: AppCompatActivity() {
             //Horizontal:
             clockSeparator = ":"
         }
+
+        //Store prev brightness level:
+        prevBrightness = Settings.System.getInt(
+            applicationContext.contentResolver,
+            Settings.System.SCREEN_BRIGHTNESS
+        )
+        Log.d(TAG, "Brightness: $prevBrightness")
+
+        Settings.System.putInt(
+            applicationContext.contentResolver,
+            Settings.System.SCREEN_BRIGHTNESS,
+            round(((prevBrightness/3)*2).toDouble()).toInt()
+        )
+
+        val test = Settings.System.getInt(
+            applicationContext.contentResolver,
+            Settings.System.SCREEN_BRIGHTNESS
+        )
+        Log.d(TAG, "Brightness: $test")
 
         //Hide status bar:
         val mainContainer = findViewById<ConstraintLayout>(R.id.fake_lock_container)
@@ -85,6 +109,15 @@ class FakeLockScreen: AppCompatActivity() {
             clockSeparator = ":"
             clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Settings.System.putInt(
+            applicationContext.contentResolver,
+            Settings.System.SCREEN_BRIGHTNESS,
+            prevBrightness
+        )
     }
 
 }

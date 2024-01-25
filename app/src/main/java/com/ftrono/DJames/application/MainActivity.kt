@@ -2,6 +2,7 @@ package com.ftrono.DJames.application
 
 import android.app.ActivityManager
 import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -16,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
 import com.ftrono.DJames.R
+import com.ftrono.DJames.receivers.EventReceiver
 import com.ftrono.DJames.service.FloatingViewService
 
 
@@ -27,42 +29,13 @@ class MainActivity : AppCompatActivity() {
     private var toolbar: Toolbar? = null
     private var loginButton: MenuItem? = null
 
-    //Options views:
-    var mapsView: View? = null
-    var mapsTitle: TextView? = null
-    var mapsDescr: TextView? = null
-    var clockView: View? = null
-    var clockTitle: TextView? = null
-    var clockDescr: TextView? = null
+    //Receiver:
+    var eventReceiver = EventReceiver()
 
     //Statuses:
     private var activity_active : Boolean = false
     private var loggedIn: Boolean = false
-    var overlay_active: Boolean = false
 
-    //Service status checker:
-    val checkThread = Thread {
-        try {
-            while (activity_active) {
-                Thread.sleep(5000)
-                synchronized(this) {
-                    //Log.d(TAG, "Main: checkThread alive.")
-                    try {
-                        Thread.sleep(1000)
-                    } catch (e: InterruptedException) {
-                        Log.d(TAG, "Main: checkThread already stopped.")
-                    }
-                    if (!isMyServiceRunning(FloatingViewService::class.java)) {
-                        overlay_active = setOverlayInactive(exec=false)
-                    } else {
-                        overlay_active = setOverlayActive(exec = false)
-                    }
-                }
-            }
-        } catch (e: InterruptedException) {
-            Log.d(TAG, "Interrupted: exception.", e)
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -92,8 +65,21 @@ class MainActivity : AppCompatActivity() {
         } else {
             loggedIn = true
             descr_use!!.text = getString(R.string.str_use_logged)
-            setOverlayInactive(exec = false)
+            if (overlay_active) {
+                setOverlayActive(exec = false)
+            } else {
+                setOverlayInactive(exec=false)
+            }
         }
+
+        //Start Receiver:
+        val filter = IntentFilter()
+        filter.addAction(ACTION_OVERLAY_DEACTIVATED)
+        filter.addAction(ACTION_MODE_CHANGED)
+
+        //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
+        registerReceiver(eventReceiver, filter, RECEIVER_EXPORTED)
+        Log.d(TAG, "Receiver started.")
 
         //Check NavEnabled:
         mapsView!!.setOnClickListener(View.OnClickListener {
@@ -126,14 +112,10 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        //Thread check:
-        if (!checkThread.isAlive()){
-            checkThread.start()
-        }
-
         //(TEST) Fake Lock Screen:
         val testButton = findViewById<Button>(R.id.fake_lock_button)
         testButton.setOnClickListener(View.OnClickListener {
+            //Open fake lock screen:
             val intent1 = Intent(this@MainActivity, FakeLockScreen::class.java)
             startActivity(intent1)
         })
@@ -142,9 +124,7 @@ class MainActivity : AppCompatActivity() {
 
 
     override fun onResume() {
-
         super.onResume()
-
         //ON RESUME() ONLY:
         //Check Login status:
         if (!loggedIn) {
@@ -159,10 +139,15 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         activity_active = false
-        //Thread check:
-        if (checkThread.isAlive()){
-            checkThread.interrupt()
-        }
+        //unregister receivers:
+        unregisterReceiver(eventReceiver)
+        //empty views:
+        mapsView = null
+        mapsTitle = null
+        mapsDescr = null
+        clockView = null
+        clockTitle = null
+        clockDescr = null
     }
 
 

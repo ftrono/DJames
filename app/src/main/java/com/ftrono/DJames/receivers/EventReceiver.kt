@@ -4,6 +4,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources
+import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
 import com.ftrono.DJames.service.VoiceSearchService
 
@@ -37,15 +40,80 @@ class EventReceiver: BroadcastReceiver() {
         if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
             screenOn = false
             Log.d(TAG, "Screen Off.")
-            //Toast.makeText(context, "Screen Off.", Toast.LENGTH_SHORT).show()
         }
 
         //when screen is on
         if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
             screenOn = true
             Log.d(TAG, "Screen On.")
-            //Toast.makeText(context, "Screen On.", Toast.LENGTH_SHORT).show()
         }
+
+        //when mode is changed:
+        if (intent.action == ACTION_MODE_CHANGED) {
+            Log.d(TAG, "ACTION_MODE_CHANGED.")
+            try {
+                if (prefs.navEnabled) {
+                    //MAPS ON:
+                    mapsView!!.setBackgroundResource(R.drawable.rounded_option_sel)
+                    mapsTitle!!.setTextColor(
+                        AppCompatResources.getColorStateList(
+                            context!!,
+                            R.color.colorHeader
+                        )
+                    )
+                    clockView!!.setBackgroundResource(R.drawable.rounded_option)
+                    clockTitle!!.setTextColor(
+                        AppCompatResources.getColorStateList(
+                            context,
+                            R.color.mid_grey
+                        )
+                    )
+                } else {
+                    //CLOCK ON:
+                    mapsView!!.setBackgroundResource(R.drawable.rounded_option)
+                    mapsTitle!!.setTextColor(
+                        AppCompatResources.getColorStateList(
+                            context!!,
+                            R.color.mid_grey
+                        )
+                    )
+                    clockView!!.setBackgroundResource(R.drawable.rounded_option_sel)
+                    clockTitle!!.setTextColor(
+                        AppCompatResources.getColorStateList(
+                            context,
+                            R.color.colorHeader
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                Log.d(TAG, "ACTION_MODE_CHANGED: resources not available.")
+            }
+        }
+
+        //when overlay status changed:
+        if (intent.action == ACTION_OVERLAY_DEACTIVATED) {
+            Log.d(TAG, "ACTION_OVERLAY_DEACTIVATED.")
+            try {
+                //ALL MODES OFF:
+                mapsView!!.setBackgroundResource(R.drawable.rounded_option)
+                mapsTitle!!.setTextColor(
+                    AppCompatResources.getColorStateList(
+                        context!!,
+                        R.color.mid_grey
+                    )
+                )
+                clockView!!.setBackgroundResource(R.drawable.rounded_option)
+                clockTitle!!.setTextColor(
+                    AppCompatResources.getColorStateList(
+                        context,
+                        R.color.mid_grey
+                    )
+                )
+            } catch (e: Exception) {
+                Log.d(TAG, "ACTION_OVERLAY_DEACTIVATED: resources not available.")
+            }
+        }
+
     }
 
 }

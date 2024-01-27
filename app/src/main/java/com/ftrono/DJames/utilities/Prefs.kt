@@ -68,6 +68,10 @@ class Prefs (context: Context) {
         get() = encryptedPrefs.getString(KEY_SPOTIFY_TOKEN, "") as String
         set(value) = encryptedPrefs.edit().putString(KEY_SPOTIFY_TOKEN, value).apply()
 
+    var refreshToken: String
+        get() = encryptedPrefs.getString(KEY_REFRESH_TOKEN, "") as String
+        set(value) = encryptedPrefs.edit().putString(KEY_REFRESH_TOKEN, value).apply()
+
 
     companion object {
         //KEYS:
@@ -75,6 +79,7 @@ class Prefs (context: Context) {
         const val KEY_MAPS_TIMEOUT = ".key.maps_timeout"
         const val KEY_CLOCK_TIMEOUT = ".key.clock_timeout"
         const val KEY_SPOTIFY_TOKEN = ".key.spotify_token"
+        const val KEY_REFRESH_TOKEN = ".key.refresh_token"
         const val KEY_MAPS_ADDRESS = ".key.maps_address"
         const val KEY_NAV_ENABLED = ".key.nav_enabled"
     }

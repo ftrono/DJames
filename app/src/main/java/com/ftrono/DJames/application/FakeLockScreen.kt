@@ -22,6 +22,10 @@ import kotlin.math.round
 class FakeLockScreen: AppCompatActivity() {
 
     private val TAG: String = FakeLockScreen::class.java.getSimpleName()
+
+    private var handler: Handler? = null
+    private var runnable: Runnable? = null
+
     private var clockView: TextView? = null
     private var now: LocalDateTime? = null
     private val dateFormat = DateTimeFormatter.ofPattern("E, dd MMM")
@@ -85,16 +89,16 @@ class FakeLockScreen: AppCompatActivity() {
         clockView = findViewById<TextView>(R.id.text_clock)
 
         //Update date & clock:
-        val handler = Handler()
-        val runnable: Runnable = object : Runnable {
+        handler = Handler()
+        runnable = object : Runnable {
             override fun run() {
                 now = LocalDateTime.now()
                 dateView.text = now!!.format(dateFormat)
                 clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
-                handler.postDelayed(this, 5000)
+                handler!!.postDelayed(this, 5000)
             }
         }
-        handler.post(runnable)
+        handler!!.post(runnable!!)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -113,6 +117,7 @@ class FakeLockScreen: AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        handler!!.removeCallbacks(runnable!!)
         Settings.System.putInt(
             applicationContext.contentResolver,
             Settings.System.SCREEN_BRIGHTNESS,

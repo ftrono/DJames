@@ -8,33 +8,35 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
 import com.ftrono.DJames.R
-import java.io.File
 import java.net.URLEncoder
 import java.util.Random
 import kotlin.streams.asSequence
+import android.webkit.WebSettings
+import android.webkit.CookieManager
 
 
 class WebAuth : AppCompatActivity() {
 
     private val TAG: String = WebAuth::class.java.getSimpleName()
+    private var webView: WebView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.web_view)
         supportActionBar!!.title = "Spotify Login"
+
+        //Load WebView:
         webView = findViewById<View>(R.id.webview) as WebView
         webView!!.settings.javaScriptEnabled = true
+        webView!!.settings.setCacheMode(WebSettings.LOAD_NO_CACHE)
 
-        try {
-            val dataDir: String = applicationContext.getPackageManager()
-                .getPackageInfo(applicationContext.getPackageName(), 0).applicationInfo.dataDir
-            File("$dataDir/app_webview").deleteRecursively()
-        } catch (e: Exception) {
-            Log.d(TAG, "Exception: ", e)
-        }
+        //Clean ALL previously stored cookies & cache:
+        webView!!.clearCache(true)
+        CookieManager.getInstance().removeAllCookies(null)
+        CookieManager.getInstance().flush()
 
+        //Prepare auth request:
         val clientId = "f525169dff664aa192ab51d2bbeb9767"
         val redirectUriOrig ="http://localhost:8888/callback"
         val redirectUri = URLEncoder.encode(redirectUriOrig, "UTF-8")
@@ -44,6 +46,7 @@ class WebAuth : AppCompatActivity() {
         //concatenate queryParams:
         val queryParams = "response_type=code&client_id=$clientId&scope=$scope&redirect_uri=$redirectUri&state=$state"
 
+        //URL params extraction:
         webView!!.webViewClient = object: WebViewClient() {
 
             override fun doUpdateVisitedHistory(view: WebView?, url: String?, isReload: Boolean) {
@@ -62,17 +65,16 @@ class WebAuth : AppCompatActivity() {
                         if (state2 == state) {
                             //Get token:
                             var token = params[1].split("&")[0]
-                            if (token != "") {
-                                //LOGGED IN:
-                                Log.d(TAG, "Token received!")
-                                prefs.spotifyToken = token
-                                //Send broadcast:
-                                Intent().also { intent ->
-                                    intent.setAction(ACTION_LOGGED_IN)
-                                    sendBroadcast(intent)
-                                }
-                                finish()
+                            //FIRST TOKEN RECEIVED:
+                            Log.d(TAG, "First token received!")
+                            prefs.spotifyToken = token
+                            //Send broadcast:
+                            Intent().also { intent ->
+                                intent.setAction(ACTION_LOGGED_IN)
+                                sendBroadcast(intent)
                             }
+                            webView!!.loadUrl("")
+                            finish()
                         }
                     }
                 }
@@ -80,6 +82,15 @@ class WebAuth : AppCompatActivity() {
             }
         }
         webView!!.loadUrl("https://accounts.spotify.com/authorize?$queryParams")
+    }
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        webView!!.clearCache(true)
+        CookieManager.getInstance().removeAllCookies(null)
+        CookieManager.getInstance().flush()
+        webView = null
     }
 
 
@@ -91,7 +102,4 @@ class WebAuth : AppCompatActivity() {
             .joinToString("")
     }
 
-    companion object {
-        private var webView: WebView? = null
-    }
 }

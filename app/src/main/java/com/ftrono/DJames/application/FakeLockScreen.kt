@@ -118,6 +118,7 @@ class FakeLockScreen: AppCompatActivity() {
             Settings.System.SCREEN_BRIGHTNESS,
             prevBrightness
         )
+        Log.d(TAG, "Brightness reset to: $prevBrightness")
     }
 
 }

@@ -144,13 +144,14 @@
 
         <Button
             android:id="@+id/fake_lock_button"
-            android:layout_width="120dp"
+            android:layout_width="150dp"
             android:layout_height="50dp"
             android:layout_marginTop="20dp"
             android:backgroundTint="@color/colorAccent"
-            android:text="Test"
+            android:text="Test Clock"
             android:textColor="@color/black"
             android:textStyle="bold"
+            app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/clock_mode_view"

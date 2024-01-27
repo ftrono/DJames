@@ -4,7 +4,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import android.widget.Toast
+import android.view.View
+import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
@@ -46,6 +47,28 @@ class EventReceiver: BroadcastReceiver() {
         if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
             screenOn = true
             Log.d(TAG, "Screen On.")
+        }
+
+        //when logged in:
+        if (intent.action == ACTION_LOGGED_IN) {
+            Log.d(TAG, "ACTION_LOGGED_IN.")
+            try {
+                loggedIn = true
+                //Set Logged-In UI:
+                if (loginButton != null) {
+                    loginButton!!.setTitle("Logout")
+                }
+                descr_use!!.text = context!!.getString(R.string.str_use_logged)
+                //Show views:
+                mapsView!!.visibility = View.VISIBLE
+                mapsDescr!!.visibility = TextView.VISIBLE
+                mapsTitle!!.visibility = TextView.VISIBLE
+                clockView!!.visibility = View.VISIBLE
+                clockDescr!!.visibility = TextView.VISIBLE
+                clockTitle!!.visibility = TextView.VISIBLE
+            } catch (e: Exception) {
+                Log.d(TAG, "ACTION_LOGGED_IN: resources not available.")
+            }
         }
 
         //when mode is changed:

@@ -1,6 +1,7 @@
 package com.ftrono.DJames.application
 
 import android.app.ActivityManager
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
@@ -13,6 +14,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
@@ -25,16 +27,13 @@ class MainActivity : AppCompatActivity() {
 
     private val TAG: String = MainActivity::class.java.getSimpleName()
     //Views:
-    private var descr_use: TextView? = null
     private var toolbar: Toolbar? = null
-    private var loginButton: MenuItem? = null
 
     //Receiver:
     var eventReceiver = EventReceiver()
 
     //Statuses:
     private var activity_active : Boolean = false
-    private var loggedIn: Boolean = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,6 +73,7 @@ class MainActivity : AppCompatActivity() {
 
         //Start Receiver:
         val filter = IntentFilter()
+        filter.addAction(ACTION_LOGGED_IN)
         filter.addAction(ACTION_OVERLAY_DEACTIVATED)
         filter.addAction(ACTION_MODE_CHANGED)
 
@@ -142,6 +142,8 @@ class MainActivity : AppCompatActivity() {
         //unregister receivers:
         unregisterReceiver(eventReceiver)
         //empty views:
+        loginButton = null
+        descr_use = null
         mapsView = null
         mapsTitle = null
         mapsDescr = null
@@ -171,9 +173,11 @@ class MainActivity : AppCompatActivity() {
         //Login / logout:
         if (id == R.id.action_login) {
             if (!loggedIn) {
-                loggedIn = login()
+                //Login user -> Open WebView:
+                val intent1 = Intent(this@MainActivity, WebAuth::class.java)
+                startActivity(intent1)
             } else {
-                loggedIn = logout()
+                logout()
             }
             return true
             //Settings:
@@ -237,43 +241,33 @@ class MainActivity : AppCompatActivity() {
         return false
     }
 
-    //Login user:
-    fun login(): Boolean {
-        //CALL SPOTIFY AUTHENTICATION HERE
-        //store token:
-        prefs.spotifyToken = "ciaoneciaone"
-        setViewLoggedIn()
-        Toast.makeText(applicationContext, "App authorized! Token: "+ prefs.spotifyToken, Toast.LENGTH_SHORT).show()
-        return true
-    }
-
     //Logout user:
-    fun logout(): Boolean {
-        //delete token:
-        prefs.spotifyToken = ""
-        //Stop overlay service:
-        if (isMyServiceRunning(FloatingViewService::class.java)) {
-            stopService(Intent(this, FloatingViewService::class.java))
-        }
-        setViewLoggedOut()
-        Toast.makeText(applicationContext, "App authorization removed.", Toast.LENGTH_SHORT).show()
-        return false
-    }
-
-    fun setViewLoggedIn(): Boolean {
-        //Set Logged-In UI:
-        if (loginButton != null) {
-            loginButton!!.setTitle("Logout")
-        }
-        descr_use!!.text = getString(R.string.str_use_logged)
-        //Show views:
-        mapsView!!.visibility = View.VISIBLE
-        mapsDescr!!.visibility = TextView.VISIBLE
-        mapsTitle!!.visibility = TextView.VISIBLE
-        clockView!!.visibility = View.VISIBLE
-        clockDescr!!.visibility = TextView.VISIBLE
-        clockTitle!!.visibility = TextView.VISIBLE
-        return true
+    fun logout() {
+        val alertDialog = AlertDialog.Builder(this)
+        //Save all:
+        alertDialog.setPositiveButton("Yes", object : DialogInterface.OnClickListener {
+            override fun onClick(dialog: DialogInterface?, which: Int) {
+                //LOG OUT:
+                //Delete token:
+                prefs.spotifyToken = ""
+                //Stop overlay service:
+                if (isMyServiceRunning(FloatingViewService::class.java)) {
+                    overlay_active = setOverlayInactive(exec=true)
+                }
+                setViewLoggedOut()
+                loggedIn = false
+                Toast.makeText(applicationContext, "Djames is now LOGGED OUT from Spotify.", Toast.LENGTH_LONG).show()
+            }
+        })
+        //Exit without saving:
+        alertDialog.setNegativeButton("No", object : DialogInterface.OnClickListener {
+            override fun onClick(dialog: DialogInterface?, which: Int) {
+                loggedIn = true
+            }
+        })
+        alertDialog.setMessage("You will need to login again to Spotify to use DJames again.\n\nDo you want to continue?")
+        alertDialog.setTitle("Log out")
+        alertDialog.show()
     }
 
     fun setViewLoggedOut(): Boolean {

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.util.Log
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
@@ -58,7 +59,8 @@ class EventReceiver: BroadcastReceiver() {
                 if (loginButton != null) {
                     loginButton!!.setTitle("Logout")
                 }
-                descr_use!!.text = context!!.getString(R.string.str_use_logged)
+                descr_login_status!!.text = context!!.getString(R.string.str_status_logged)
+                descr_use!!.text = context.getString(R.string.str_use_logged)
                 //Show views:
                 mapsView!!.visibility = View.VISIBLE
                 mapsDescr!!.visibility = TextView.VISIBLE
@@ -66,6 +68,7 @@ class EventReceiver: BroadcastReceiver() {
                 clockView!!.visibility = View.VISIBLE
                 clockDescr!!.visibility = TextView.VISIBLE
                 clockTitle!!.visibility = TextView.VISIBLE
+                Toast.makeText(context, "SUCCESS: Djames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
                 Log.d(TAG, "ACTION_LOGGED_IN: resources not available.")
             }

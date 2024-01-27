@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">DJames</string>
-    <string name="app_title">🤵‍♂️ DJames</string>
-    <string name="str_use_logged">🚗 How will you drive?</string>
+    <string name="app_title">🎧 DJames</string>
+    <string name="str_use_logged">How will you drive? 🚗</string>
     <string name="str_use_not_logged">Please LOGIN first:\nDJames needs access to your Spotify music!\n💿</string>
     <string name="str_status_logged">LOGIN STATUS 🟢</string>
     <string name="str_status_not_logged">LOGIN STATUS 🔴</string>

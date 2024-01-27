@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.View
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.ftrono.DJames.R
 import java.io.File
@@ -53,7 +52,6 @@ class WebAuth : AppCompatActivity() {
                 supportActionBar!!.subtitle = webUrl
 
                 var urlComps = webUrl!!.split("?")
-                Log.d(TAG, "$urlComps")
                 //IF CALLBACK -> get Token from callback URL:
                 if (urlComps[0] == redirectUriOrig) {
                     //URL form: code=<token>&state=<state>
@@ -73,11 +71,6 @@ class WebAuth : AppCompatActivity() {
                                     intent.setAction(ACTION_LOGGED_IN)
                                     sendBroadcast(intent)
                                 }
-                                Toast.makeText(
-                                    applicationContext,
-                                    "LOGIN SUCCESS: Welcome to DJames!",
-                                    Toast.LENGTH_LONG
-                                ).show()
                                 finish()
                             }
                         }

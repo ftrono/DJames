@@ -27,6 +27,7 @@ var overlayButton: View? = null
 var overlayIcon: ImageView? = null
 
 //View resources:
+var descr_login_status: TextView? = null
 var descr_use: TextView? = null
 var loginButton: MenuItem? = null
 var mapsView: View? = null

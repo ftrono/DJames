@@ -46,6 +46,7 @@ class MainActivity : AppCompatActivity() {
         toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 
+        descr_login_status = findViewById<TextView>(R.id.descr_login_status)
         descr_use = findViewById<TextView>(R.id.descr_use)
 
         //Load Options views:
@@ -59,10 +60,12 @@ class MainActivity : AppCompatActivity() {
         //Check Login status:
         if (prefs.spotifyToken == "") {
             loggedIn = false
+            descr_login_status!!.text = getString(R.string.str_status_not_logged)
             descr_use!!.text = getString(R.string.str_use_not_logged)
             setViewLoggedOut()
         } else {
             loggedIn = true
+            descr_login_status!!.text = getString(R.string.str_status_logged)
             descr_use!!.text = getString(R.string.str_use_logged)
             if (overlay_active) {
                 setOverlayActive(exec = false)
@@ -143,6 +146,7 @@ class MainActivity : AppCompatActivity() {
         unregisterReceiver(eventReceiver)
         //empty views:
         loginButton = null
+        descr_login_status = null
         descr_use = null
         mapsView = null
         mapsTitle = null
@@ -256,7 +260,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 setViewLoggedOut()
                 loggedIn = false
-                Toast.makeText(applicationContext, "Djames is now LOGGED OUT from Spotify.", Toast.LENGTH_LONG).show()
+                Toast.makeText(applicationContext, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()
             }
         })
         //Exit without saving:
@@ -265,7 +269,7 @@ class MainActivity : AppCompatActivity() {
                 loggedIn = true
             }
         })
-        alertDialog.setMessage("You will need to login again to Spotify to use DJames again.\n\nDo you want to continue?")
+        alertDialog.setMessage("You will need to login again to Spotify to use DJames.\n\nDo you want to log out?")
         alertDialog.setTitle("Log out")
         alertDialog.show()
     }
@@ -275,6 +279,7 @@ class MainActivity : AppCompatActivity() {
         if (loginButton != null) {
             loginButton!!.setTitle("Login")
         }
+        descr_login_status!!.text = getString(R.string.str_status_not_logged)
         descr_use!!.text = getString(R.string.str_use_not_logged)
         //Hide views:
         mapsView!!.visibility = View.GONE

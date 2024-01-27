@@ -35,6 +35,21 @@
 
         </com.google.android.material.appbar.AppBarLayout>
 
+        <TextView
+            android:id="@+id/descr_login_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/str_status_logged"
+            android:textSize="12dp"
+            android:textColor="@color/light_grey"
+            android:textAlignment="center"
+            android:layout_marginTop="10dp"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/descr_use"/>
+
 
         <TextView
             android:id="@+id/descr_use"
@@ -49,7 +64,7 @@
             app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/descr_login_status"
             app:layout_constraintBottom_toTopOf="@+id/maps_mode_view"/>
 
         <View

@@ -90,8 +90,8 @@ class SettingsActivity : AppCompatActivity() {
                     finish()
                 }
             })
-            alertDialog.setMessage("Save before exit?")
             alertDialog.setTitle("Warning")
+            alertDialog.setMessage("Save before exit?")
             alertDialog.show()
         } else {
             finish()

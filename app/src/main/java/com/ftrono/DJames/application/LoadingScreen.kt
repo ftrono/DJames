@@ -32,12 +32,7 @@ class LoadingScreen: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.loading_screen)
 
-        val auth_token = ""
-        val refresh_token = ""
-
         //GET TOKENS
-//        val JSON = "application/json".toMediaType()
-//        val bodyStr = "{'code': '${prefs.grantToken}', 'redirect_uri': '$redirectUri', 'grant_type': 'authorization_code'}"
         val url = "https://accounts.spotify.com/api/token"
         val authStr = "${clientId}:${clientSct}"
         val encodedStr: String = Base64.getEncoder().encodeToString(authStr.toByteArray())

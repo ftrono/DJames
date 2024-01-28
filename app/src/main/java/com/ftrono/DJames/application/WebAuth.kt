@@ -38,7 +38,6 @@ class WebAuth : AppCompatActivity() {
 
         //Prepare auth request:
         val state = generateRandomString(16)
-        Log.d(TAG, scope)
 
         //concatenate queryParams:
         val queryParams = "response_type=code&client_id=$clientId&scope=$scope&redirect_uri=$redirectUri&state=$state"

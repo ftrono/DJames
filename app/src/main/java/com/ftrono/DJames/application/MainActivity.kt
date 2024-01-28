@@ -270,8 +270,8 @@ class MainActivity : AppCompatActivity() {
                 loggedIn = true
             }
         })
-        alertDialog.setMessage("You will need to login again to Spotify to use DJames.\n\nDo you want to log out?")
         alertDialog.setTitle("Log out")
+        alertDialog.setMessage("You will need to login again to Spotify to use DJames.\n\nDo you want to log out?")
         alertDialog.show()
     }
 

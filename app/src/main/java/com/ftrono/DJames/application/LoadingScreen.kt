@@ -33,27 +33,21 @@ class LoadingScreen: AppCompatActivity() {
         setContentView(R.layout.loading_screen)
 
         //GET TOKENS
-        val url = "https://accounts.spotify.com/api/token"
+        var url = "https://accounts.spotify.com/api/token"
         val authStr = "${clientId}:${clientSct}"
         val encodedStr: String = Base64.getEncoder().encodeToString(authStr.toByteArray())
 
-        //BUILD POST REQUEST:
-        val client = OkHttpClient.Builder()
-            .connectTimeout(5, TimeUnit.SECONDS)
-            .writeTimeout(5, TimeUnit.SECONDS)
-            .readTimeout(5, TimeUnit.SECONDS)
-            .callTimeout(5, TimeUnit.SECONDS)
-            .build()
-        val formBody = FormBody.Builder()
+        //BUILD CLIENT:
+        var formBody = FormBody.Builder()
             .add("code", prefs.grantToken)
             .add("redirect_uri", redirectUriOrig)
             .add("grant_type", "authorization_code")
             .build()
-        val headers = Headers.Builder()
+        var headers = Headers.Builder()
             .add("content-type", "application/x-www-form-urlencoded")
             .add("Authorization", "Basic $encodedStr")
             .build()
-        val request = Request.Builder()
+        var request = Request.Builder()
             .url(url)
             .post(formBody)
             .headers(headers)
@@ -61,16 +55,38 @@ class LoadingScreen: AppCompatActivity() {
 
         //CALL POST REQUEST:
         lifecycle.coroutineScope.launch {
-            val response = makeRequest(client, request)
-            Log.d(TAG, "RESPONSE BODY: $response")
+            var response = makeRequest(client, request)
             if (response != "") {
-                //RESPONSE RECEIVED:
                 try {
-                    //TOKENS RECEIVED:
-                    val respJSON = JsonParser.parseString(response).asJsonObject
-                    prefs.spotifyToken = respJSON.get("access_token").toString()
-                    prefs.refreshToken = respJSON.get("refresh_token").toString()
+                    //RESPONSE RECEIVED -> TOKENS:
+                    var respJSON = JsonParser.parseString(response).asJsonObject
+                    prefs.spotifyToken = respJSON.get("access_token").toString().replace("\"", "")
+                    prefs.refreshToken = respJSON.get("refresh_token").toString().replace("\"", "")
                     Log.d(TAG, "SUCCESS: Access & Refresh tokens received!")
+                    Log.d(TAG, "TOKEN: ${prefs.spotifyToken}")
+
+                    //Get user profile data:
+                    //BUILD POST REQUEST:
+                    url = "https://api.spotify.com/v1/me"
+                    request = Request.Builder()
+                        .url(url)
+                        .header("Authorization", "Bearer ${prefs.spotifyToken}")
+                        .build()
+
+                    //GET:
+                    response = makeRequest(client, request)
+                    if (response != "") {
+                        try {
+                            //RESPONSE RECEIVED -> USER'S PROFILE DATA:
+                            respJSON = JsonParser.parseString(response).asJsonObject
+                            prefs.userName =
+                                respJSON.get("display_name").toString().replace("\"", "")
+                        } catch (e: Exception) {
+                            Log.d(TAG, "Username parsing error: ", e)
+                            prefs.userName = ""
+                        }
+                    }
+
 
                     //Send broadcast:
                     Intent().also { intent ->

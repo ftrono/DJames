@@ -45,6 +45,7 @@ class MainActivity : AppCompatActivity() {
         //Load Main views:
         toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
+        mainActionBar = supportActionBar
 
         descr_login_status = findViewById<TextView>(R.id.descr_login_status)
         descr_use = findViewById<TextView>(R.id.descr_use)
@@ -60,11 +61,13 @@ class MainActivity : AppCompatActivity() {
         //Check Login status:
         if (prefs.spotifyToken == "") {
             loggedIn = false
+            supportActionBar!!.subtitle = ""
             descr_login_status!!.text = getString(R.string.str_status_not_logged)
             descr_use!!.text = getString(R.string.str_use_not_logged)
             setViewLoggedOut()
         } else {
             loggedIn = true
+            supportActionBar!!.subtitle = "for ${prefs.userName}"
             descr_login_status!!.text = getString(R.string.str_status_logged)
             descr_use!!.text = getString(R.string.str_use_logged)
             if (overlay_active) {
@@ -253,8 +256,10 @@ class MainActivity : AppCompatActivity() {
             override fun onClick(dialog: DialogInterface?, which: Int) {
                 //LOG OUT:
                 //Delete tokens:
+                prefs.grantToken = ""
                 prefs.spotifyToken = ""
                 prefs.refreshToken = ""
+                prefs.userName = ""
                 //Stop overlay service:
                 if (isMyServiceRunning(FloatingViewService::class.java)) {
                     overlay_active = setOverlayInactive(exec=true)
@@ -280,6 +285,7 @@ class MainActivity : AppCompatActivity() {
         if (loginButton != null) {
             loginButton!!.setTitle("Login")
         }
+        supportActionBar!!.subtitle = ""
         descr_login_status!!.text = getString(R.string.str_status_not_logged)
         descr_use!!.text = getString(R.string.str_use_not_logged)
         //Hide views:

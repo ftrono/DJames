@@ -38,6 +38,7 @@ class Prefs (context: Context) {
 
 
     //GETTERS & SETTERS:
+    //SHARED PREFS:
     //Rec timeout:
     var recTimeout: String
         get() = sharedPrefs.getString(KEY_REC_TIMEOUT, "5") as String
@@ -63,6 +64,13 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getBoolean(KEY_NAV_ENABLED, false) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_NAV_ENABLED, value).apply()
 
+    //User profile:
+    var userName: String
+        get() = sharedPrefs.getString(KEY_USER_NAME, "") as String
+        set(value) = sharedPrefs.edit().putString(KEY_USER_NAME, value).apply()
+
+
+    //ENCRYPTED PREFS:
     //(Encrypted) Spotify grant token:
     var grantToken: String
         get() = encryptedPrefs.getString(KEY_GRANT_TOKEN, "") as String
@@ -81,13 +89,17 @@ class Prefs (context: Context) {
 
     companion object {
         //KEYS:
+        //Shared prefs:
         const val KEY_REC_TIMEOUT = ".key.rec_timeout"
         const val KEY_MAPS_TIMEOUT = ".key.maps_timeout"
         const val KEY_CLOCK_TIMEOUT = ".key.clock_timeout"
+        const val KEY_MAPS_ADDRESS = ".key.maps_address"
+        const val KEY_NAV_ENABLED = ".key.nav_enabled"
+        const val KEY_USER_NAME = ".key.user_name"
+
+        //Encrypted prefs:
         const val KEY_GRANT_TOKEN = ".key.grant_token"
         const val KEY_SPOTIFY_TOKEN = ".key.spotify_token"
         const val KEY_REFRESH_TOKEN = ".key.refresh_token"
-        const val KEY_MAPS_ADDRESS = ".key.maps_address"
-        const val KEY_NAV_ENABLED = ".key.nav_enabled"
     }
 }

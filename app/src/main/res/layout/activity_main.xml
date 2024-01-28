@@ -19,9 +19,12 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:title="@string/app_title"
+            app:subtitle=""
             android:id="@+id/toolbar"
             app:popupTheme="@style/AppTheme.PopupOverlay"
-            app:layout_scrollFlags="noScroll"/>
+            app:layout_scrollFlags="noScroll"
+            app:titleTextAppearance="@style/ToolbarTitleTheme"
+            app:subtitleTextAppearance="@style/ToolbarSubtitleTheme"/>
 
     </com.google.android.material.appbar.AppBarLayout>
 

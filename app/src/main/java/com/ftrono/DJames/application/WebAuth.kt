@@ -64,7 +64,7 @@ class WebAuth : AppCompatActivity() {
                             if (token != "") {
                                 //GRANT TOKEN RECEIVED:
                                 Log.d(TAG, "Grant token received!")
-                                prefs.grantToken = token
+                                prefs.grantToken = token.replace("\"", "")
                                 webView!!.loadUrl("")
                                 finish()
                                 //Start loading screen:

@@ -1,5 +1,6 @@
 package com.ftrono.DJames.application
 
+import androidx.appcompat.app.ActionBar
 import android.app.Application
 import android.content.Context
 import android.media.AudioManager
@@ -9,7 +10,9 @@ import android.widget.ImageView
 import android.view.View
 import android.widget.TextView
 import com.ftrono.DJames.utilities.Prefs
+import okhttp3.OkHttpClient
 import java.net.URLEncoder
+import java.util.concurrent.TimeUnit
 
 //GLOBALS:
 val prefs: Prefs by lazy {
@@ -51,12 +54,19 @@ val clientId = "f525169dff664aa192ab51d2bbeb9767"
 val clientSct = "c7296c5536b8409297760a7eafa0448a"
 val redirectUriOrig ="http://localhost:8888/callback"
 val redirectUri = URLEncoder.encode(redirectUriOrig, "UTF-8")
+val client = OkHttpClient.Builder()
+    .connectTimeout(5, TimeUnit.SECONDS)
+    .writeTimeout(5, TimeUnit.SECONDS)
+    .readTimeout(5, TimeUnit.SECONDS)
+    .callTimeout(5, TimeUnit.SECONDS)
+    .build()
 
 //Overlay resources:
 var overlayButton: View? = null
 var overlayIcon: ImageView? = null
 
 //View resources:
+var mainActionBar: ActionBar? = null
 var descr_login_status: TextView? = null
 var descr_use: TextView? = null
 var loginButton: MenuItem? = null

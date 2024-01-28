@@ -59,6 +59,7 @@ class EventReceiver: BroadcastReceiver() {
                 if (loginButton != null) {
                     loginButton!!.setTitle("Logout")
                 }
+                mainActionBar!!.subtitle = "for ${prefs.userName}"
                 descr_login_status!!.text = context!!.getString(R.string.str_status_logged)
                 descr_use!!.text = context.getString(R.string.str_use_logged)
                 //Show views:

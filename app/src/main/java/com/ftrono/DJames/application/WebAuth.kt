@@ -8,11 +8,11 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
 import com.ftrono.DJames.R
-import java.net.URLEncoder
 import java.util.Random
 import kotlin.streams.asSequence
 import android.webkit.WebSettings
 import android.webkit.CookieManager
+import android.widget.Toast
 
 
 class WebAuth : AppCompatActivity() {
@@ -37,11 +37,8 @@ class WebAuth : AppCompatActivity() {
         CookieManager.getInstance().flush()
 
         //Prepare auth request:
-        val clientId = "f525169dff664aa192ab51d2bbeb9767"
-        val redirectUriOrig ="http://localhost:8888/callback"
-        val redirectUri = URLEncoder.encode(redirectUriOrig, "UTF-8")
         val state = generateRandomString(16)
-        val scope = "user-read-private%20user-read-email"
+        Log.d(TAG, scope)
 
         //concatenate queryParams:
         val queryParams = "response_type=code&client_id=$clientId&scope=$scope&redirect_uri=$redirectUri&state=$state"
@@ -65,17 +62,31 @@ class WebAuth : AppCompatActivity() {
                         if (state2 == state) {
                             //Get token:
                             var token = params[1].split("&")[0]
-                            //FIRST TOKEN RECEIVED:
-                            Log.d(TAG, "First token received!")
-                            prefs.spotifyToken = token
-                            //Send broadcast:
-                            Intent().also { intent ->
-                                intent.setAction(ACTION_LOGGED_IN)
-                                sendBroadcast(intent)
+                            if (token != "") {
+                                //GRANT TOKEN RECEIVED:
+                                Log.d(TAG, "Grant token received!")
+                                prefs.grantToken = token
+                                webView!!.loadUrl("")
+                                finish()
+                                //Start loading screen:
+                                val intent1 = Intent(applicationContext, LoadingScreen::class.java)
+                                startActivity(intent1)
+                            } else {
+                                Log.d(TAG, "Authentication ERROR: no token received.")
+                                Toast.makeText(applicationContext, "Authentication ERROR. Please try again!", Toast.LENGTH_LONG).show()
+                                finish()
                             }
-                            webView!!.loadUrl("")
+                        } else {
+                            Log.d(TAG, "Authentication ERROR: state mismatch.")
+                            Toast.makeText(applicationContext, "Authentication ERROR. Please try again!", Toast.LENGTH_LONG).show()
                             finish()
                         }
+                    } else if (params[0] == "error") {
+                        //Get error message:
+                        var errorMessage = params[1].split("&")[0]
+                        Log.d(TAG, "Authentication ERROR: $errorMessage")
+                        Toast.makeText(applicationContext, "Authentication ERROR. Please try again!", Toast.LENGTH_LONG).show()
+                        finish()
                     }
                 }
                 super.doUpdateVisitedHistory(view, url, isReload)

@@ -63,11 +63,17 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getBoolean(KEY_NAV_ENABLED, false) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_NAV_ENABLED, value).apply()
 
-    //(Encrypted) Spotify token:
+    //(Encrypted) Spotify grant token:
+    var grantToken: String
+        get() = encryptedPrefs.getString(KEY_GRANT_TOKEN, "") as String
+        set(value) = encryptedPrefs.edit().putString(KEY_GRANT_TOKEN, value).apply()
+
+    //(Encrypted) Spotify auth token:
     var spotifyToken: String
         get() = encryptedPrefs.getString(KEY_SPOTIFY_TOKEN, "") as String
         set(value) = encryptedPrefs.edit().putString(KEY_SPOTIFY_TOKEN, value).apply()
 
+    //(Encrypted) Spotify refresh token:
     var refreshToken: String
         get() = encryptedPrefs.getString(KEY_REFRESH_TOKEN, "") as String
         set(value) = encryptedPrefs.edit().putString(KEY_REFRESH_TOKEN, value).apply()
@@ -78,6 +84,7 @@ class Prefs (context: Context) {
         const val KEY_REC_TIMEOUT = ".key.rec_timeout"
         const val KEY_MAPS_TIMEOUT = ".key.maps_timeout"
         const val KEY_CLOCK_TIMEOUT = ".key.clock_timeout"
+        const val KEY_GRANT_TOKEN = ".key.grant_token"
         const val KEY_SPOTIFY_TOKEN = ".key.spotify_token"
         const val KEY_REFRESH_TOKEN = ".key.refresh_token"
         const val KEY_MAPS_ADDRESS = ".key.maps_address"

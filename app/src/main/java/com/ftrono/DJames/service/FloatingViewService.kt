@@ -45,8 +45,8 @@ class FloatingViewService : Service() {
     private var mWindowManager: WindowManager? = null
     private var mFloatingView: View? = null
     private var mCloseView: View? = null
-    private var mapsModeView: View? = null
-    private var mapsModeValue: TextView? = null
+    private var clockModeView: View? = null
+    private var clockModeValue: TextView? = null
     private var params: LayoutParams? = null
     private var params2: LayoutParams? = null
     private var wakeLock: WakeLock? = null
@@ -163,36 +163,36 @@ class FloatingViewService : Service() {
                 mFloatingView!!.findViewById<View>(R.id.rounded_button)
             overlayIcon = mFloatingView!!.findViewById<ImageView>(R.id.record_icon)
 
-            //Set the Maps Mode button
-            mapsModeView = mFloatingView!!.findViewById<View>(R.id.maps_button)
-            mapsModeValue = mFloatingView!!.findViewById<TextView>(R.id.maps_value)
-            if (prefs.navEnabled) {
-                mapsModeValue!!.text = "ON"
-                mapsModeValue!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorBusy))
-                mapsModeView!!.setBackgroundResource(R.drawable.rounded_option_sel)
+            //Set the Clock Mode button
+            clockModeView = mFloatingView!!.findViewById<View>(R.id.clock_button)
+            clockModeValue = mFloatingView!!.findViewById<TextView>(R.id.clock_value)
+            if (prefs.clockEnabled) {
+                clockModeValue!!.text = "ON"
+                clockModeValue!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorBusy))
+                clockModeView!!.setBackgroundResource(R.drawable.rounded_option_sel)
             }
 
-            mapsModeView!!.setOnClickListener {
-                if (!prefs.navEnabled) {
-                    prefs.navEnabled = true
-                    mapsModeValue!!.text = "ON"
-                    mapsModeValue!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorBusy))
-                    mapsModeView!!.setBackgroundResource(R.drawable.rounded_option_sel)
+            clockModeView!!.setOnClickListener {
+                if (!prefs.clockEnabled) {
+                    prefs.clockEnabled = true
+                    clockModeValue!!.text = "ON"
+                    clockModeValue!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorBusy))
+                    clockModeView!!.setBackgroundResource(R.drawable.rounded_option_sel)
                     //Send broadcast:
                     Intent().also { intent ->
                         intent.setAction(ACTION_MODE_CHANGED)
-                        //intent.putExtra("navEnabled", true)
+                        //intent.putExtra("clockEnabled", true)
                         sendBroadcast(intent)
                     }
                 } else {
-                    prefs.navEnabled = false
-                    mapsModeValue!!.text = "OFF"
-                    mapsModeValue!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
-                    mapsModeView!!.setBackgroundResource(R.drawable.rounded_option)
+                    prefs.clockEnabled = false
+                    clockModeValue!!.text = "OFF"
+                    clockModeValue!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
+                    clockModeView!!.setBackgroundResource(R.drawable.rounded_option)
                     //Send broadcast:
                     Intent().also { intent ->
                         intent.setAction(ACTION_MODE_CHANGED)
-                        //intent.putExtra("navEnabled", false)
+                        //intent.putExtra("clockEnabled", false)
                         sendBroadcast(intent)
                     }
                 }

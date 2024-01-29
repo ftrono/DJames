@@ -79,23 +79,7 @@ class EventReceiver: BroadcastReceiver() {
         if (intent.action == ACTION_MODE_CHANGED) {
             Log.d(TAG, "ACTION_MODE_CHANGED.")
             try {
-                if (prefs.navEnabled) {
-                    //MAPS ON:
-                    mapsView!!.setBackgroundResource(R.drawable.rounded_option_sel)
-                    mapsTitle!!.setTextColor(
-                        AppCompatResources.getColorStateList(
-                            context!!,
-                            R.color.colorHeader
-                        )
-                    )
-                    clockView!!.setBackgroundResource(R.drawable.rounded_option)
-                    clockTitle!!.setTextColor(
-                        AppCompatResources.getColorStateList(
-                            context,
-                            R.color.mid_grey
-                        )
-                    )
-                } else {
+                if (prefs.clockEnabled) {
                     //CLOCK ON:
                     mapsView!!.setBackgroundResource(R.drawable.rounded_option)
                     mapsTitle!!.setTextColor(
@@ -109,6 +93,22 @@ class EventReceiver: BroadcastReceiver() {
                         AppCompatResources.getColorStateList(
                             context,
                             R.color.colorHeader
+                        )
+                    )
+                } else {
+                    //MAPS ON:
+                    mapsView!!.setBackgroundResource(R.drawable.rounded_option_sel)
+                    mapsTitle!!.setTextColor(
+                        AppCompatResources.getColorStateList(
+                            context!!,
+                            R.color.colorHeader
+                        )
+                    )
+                    clockView!!.setBackgroundResource(R.drawable.rounded_option)
+                    clockTitle!!.setTextColor(
+                        AppCompatResources.getColorStateList(
+                            context,
+                            R.color.mid_grey
                         )
                     )
                 }

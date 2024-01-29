@@ -36,10 +36,12 @@ class LoadingScreen: AppCompatActivity() {
         var url = "https://accounts.spotify.com/api/token"
         val authStr = "${clientId}:${clientSct}"
         val encodedStr: String = Base64.getEncoder().encodeToString(authStr.toByteArray())
+        var spotToken = ""
+        var refrToken = ""
 
         //BUILD CLIENT:
         var formBody = FormBody.Builder()
-            .add("code", prefs.grantToken)
+            .add("code", grantToken)
             .add("redirect_uri", redirectUriOrig)
             .add("grant_type", "authorization_code")
             .build()
@@ -60,17 +62,16 @@ class LoadingScreen: AppCompatActivity() {
                 try {
                     //RESPONSE RECEIVED -> TOKENS:
                     var respJSON = JsonParser.parseString(response).asJsonObject
-                    prefs.spotifyToken = respJSON.get("access_token").toString().replace("\"", "")
-                    prefs.refreshToken = respJSON.get("refresh_token").toString().replace("\"", "")
-                    Log.d(TAG, "SUCCESS: Access & Refresh tokens received!")
-                    Log.d(TAG, "TOKEN: ${prefs.spotifyToken}")
+                    spotToken = respJSON.get("access_token").toString().replace("\"", "")
+                    refrToken = respJSON.get("refresh_token").toString().replace("\"", "")
+                    Log.d(TAG, "AUTH SUCCESS: Access & Refresh tokens received!")
 
                     //Get user profile data:
                     //BUILD POST REQUEST:
                     url = "https://api.spotify.com/v1/me"
                     request = Request.Builder()
                         .url(url)
-                        .header("Authorization", "Bearer ${prefs.spotifyToken}")
+                        .header("Authorization", "Bearer $spotToken")
                         .build()
 
                     //GET:
@@ -79,20 +80,28 @@ class LoadingScreen: AppCompatActivity() {
                         try {
                             //RESPONSE RECEIVED -> USER'S PROFILE DATA:
                             respJSON = JsonParser.parseString(response).asJsonObject
-                            prefs.userName =
-                                respJSON.get("display_name").toString().replace("\"", "")
+                            var product = respJSON.get("product").toString().replace("\"", "")
+                            //User must be PREMIUM:
+                            if (product == "premium" || product == "duo" || product == "family") {
+                                //SUCCESS!
+                                prefs.spotifyToken = spotToken
+                                prefs.refreshToken = refrToken
+                                prefs.userName = respJSON.get("display_name").toString().replace("\"", "")
+                                //Send broadcast:
+                                Intent().also { intent ->
+                                    intent.setAction(ACTION_LOGGED_IN)
+                                    sendBroadcast(intent)
+                                }
+                            } else {
+                                Log.d(TAG, "USER TYPE: $product")
+                                Toast.makeText(applicationContext, "ERROR: to use DJames, you need to be a Spotify Premium user! :(", Toast.LENGTH_LONG).show()
+                            }
                         } catch (e: Exception) {
-                            Log.d(TAG, "Username parsing error: ", e)
-                            prefs.userName = ""
+                            Log.d(TAG, "Profile parsing error: ", e)
+                            Toast.makeText(applicationContext, "Authentication ERROR: not logged in.", Toast.LENGTH_LONG).show()
                         }
                     }
 
-
-                    //Send broadcast:
-                    Intent().also { intent ->
-                        intent.setAction(ACTION_LOGGED_IN)
-                        sendBroadcast(intent)
-                    }
                 } catch (e: Exception) {
                     Log.d(TAG, "ERROR IN RESPONSE PARSING: ", e)
                     Toast.makeText(applicationContext, "Authentication ERROR: not logged in.", Toast.LENGTH_LONG).show()
@@ -100,6 +109,7 @@ class LoadingScreen: AppCompatActivity() {
             } else {
                 Toast.makeText(applicationContext, "Authentication ERROR: not logged in.", Toast.LENGTH_LONG).show()
             }
+            grantToken = ""
             finish()
         }
 

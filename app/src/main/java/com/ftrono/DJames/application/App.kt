@@ -50,6 +50,7 @@ val scopes = arrayOf(
 val scope = scopes.joinToString("%20", "", "")
 
 //HTTP:
+var grantToken = ""
 val clientId = "f525169dff664aa192ab51d2bbeb9767"
 val clientSct = "c7296c5536b8409297760a7eafa0448a"
 val redirectUriOrig ="http://localhost:8888/callback"

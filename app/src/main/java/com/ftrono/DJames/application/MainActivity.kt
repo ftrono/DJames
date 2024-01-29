@@ -87,34 +87,36 @@ class MainActivity : AppCompatActivity() {
         registerReceiver(eventReceiver, filter, RECEIVER_EXPORTED)
         Log.d(TAG, "Receiver started.")
 
-        //Check NavEnabled:
-        mapsView!!.setOnClickListener(View.OnClickListener {
-            if (overlay_active && prefs.navEnabled) {
-                overlay_active = setOverlayInactive(exec = true)
-            }
-            else {
-                //MAPS ON:
-                prefs.navEnabled = true
-                if (isMyServiceRunning(FloatingViewService::class.java)) {
-                    overlay_active = setOverlayInactive(exec=true)
-                }
-                overlay_active = setOverlayActive(exec = true)
-                Toast.makeText(applicationContext, "Maps mode enabled! Use the overlay button to record a voice request.", Toast.LENGTH_SHORT).show()
-            }
-        })
-
+        //Check ClockEnabled:
         clockView!!.setOnClickListener(View.OnClickListener {
-            if (overlay_active && !prefs.navEnabled) {
+            if (overlay_active && prefs.clockEnabled) {
                 overlay_active = setOverlayInactive(exec = true)
             }
             else {
                 //CLOCK ON:
+                prefs.clockEnabled = true
                 prefs.navEnabled = false
                 if (isMyServiceRunning(FloatingViewService::class.java)) {
                     overlay_active = setOverlayInactive(exec=true)
                 }
                 overlay_active = setOverlayActive(exec=true)
                 Toast.makeText(applicationContext, "Clock mode enabled! Use the overlay button to record a voice request.", Toast.LENGTH_SHORT).show()
+            }
+        })
+
+        mapsView!!.setOnClickListener(View.OnClickListener {
+            if (overlay_active && !prefs.clockEnabled) {
+                overlay_active = setOverlayInactive(exec = true)
+            }
+            else {
+                //MAPS ON:
+                prefs.clockEnabled = false
+                prefs.navEnabled = true
+                if (isMyServiceRunning(FloatingViewService::class.java)) {
+                    overlay_active = setOverlayInactive(exec=true)
+                }
+                overlay_active = setOverlayActive(exec = true)
+                Toast.makeText(applicationContext, "Maps mode enabled! Use the overlay button to record a voice request.", Toast.LENGTH_SHORT).show()
             }
         })
 
@@ -219,18 +221,18 @@ class MainActivity : AppCompatActivity() {
             startService(Intent(this, FloatingViewService::class.java))
         }
         if (Settings.canDrawOverlays(this)) {
-            if (prefs.navEnabled) {
-                //MAPS ON:
-                mapsView!!.setBackgroundResource(R.drawable.rounded_option_sel)
-                mapsTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorHeader))
-                clockView!!.setBackgroundResource(R.drawable.rounded_option)
-                clockTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
-            } else {
+            if (prefs.clockEnabled) {
                 //CLOCK ON:
                 mapsView!!.setBackgroundResource(R.drawable.rounded_option)
                 mapsTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
                 clockView!!.setBackgroundResource(R.drawable.rounded_option_sel)
                 clockTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorHeader))
+            } else {
+                //MAPS ON:
+                mapsView!!.setBackgroundResource(R.drawable.rounded_option_sel)
+                mapsTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorHeader))
+                clockView!!.setBackgroundResource(R.drawable.rounded_option)
+                clockTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
             }
         }
         return true
@@ -256,7 +258,6 @@ class MainActivity : AppCompatActivity() {
             override fun onClick(dialog: DialogInterface?, which: Int) {
                 //LOG OUT:
                 //Delete tokens:
-                prefs.grantToken = ""
                 prefs.spotifyToken = ""
                 prefs.refreshToken = ""
                 prefs.userName = ""

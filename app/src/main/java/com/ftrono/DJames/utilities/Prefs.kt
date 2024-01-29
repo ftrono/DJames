@@ -64,6 +64,11 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getBoolean(KEY_NAV_ENABLED, false) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_NAV_ENABLED, value).apply()
 
+    //Clock Screen enabled:
+    var clockEnabled: Boolean
+        get() = sharedPrefs.getBoolean(KEY_CLOCK_ENABLED, false) as Boolean
+        set(value) = sharedPrefs.edit().putBoolean(KEY_CLOCK_ENABLED, value).apply()
+
     //User profile:
     var userName: String
         get() = sharedPrefs.getString(KEY_USER_NAME, "") as String
@@ -71,11 +76,6 @@ class Prefs (context: Context) {
 
 
     //ENCRYPTED PREFS:
-    //(Encrypted) Spotify grant token:
-    var grantToken: String
-        get() = encryptedPrefs.getString(KEY_GRANT_TOKEN, "") as String
-        set(value) = encryptedPrefs.edit().putString(KEY_GRANT_TOKEN, value).apply()
-
     //(Encrypted) Spotify auth token:
     var spotifyToken: String
         get() = encryptedPrefs.getString(KEY_SPOTIFY_TOKEN, "") as String
@@ -95,10 +95,10 @@ class Prefs (context: Context) {
         const val KEY_CLOCK_TIMEOUT = ".key.clock_timeout"
         const val KEY_MAPS_ADDRESS = ".key.maps_address"
         const val KEY_NAV_ENABLED = ".key.nav_enabled"
+        const val KEY_CLOCK_ENABLED = ".key.clock_enabled"
         const val KEY_USER_NAME = ".key.user_name"
 
         //Encrypted prefs:
-        const val KEY_GRANT_TOKEN = ".key.grant_token"
         const val KEY_SPOTIFY_TOKEN = ".key.spotify_token"
         const val KEY_REFRESH_TOKEN = ".key.refresh_token"
     }

@@ -3,9 +3,9 @@ package com.ftrono.DJames.receivers
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.graphics.Typeface
 import android.util.Log
 import android.view.View
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import com.ftrono.DJames.R
@@ -61,59 +61,18 @@ class EventReceiver: BroadcastReceiver() {
                 }
                 mainActionBar!!.subtitle = "for ${prefs.userName}"
                 descr_login_status!!.text = context!!.getString(R.string.str_status_logged)
-                descr_use!!.text = context.getString(R.string.str_use_logged)
-                //Show views:
-                mapsView!!.visibility = View.VISIBLE
-                mapsDescr!!.visibility = TextView.VISIBLE
-                mapsTitle!!.visibility = TextView.VISIBLE
-                clockView!!.visibility = View.VISIBLE
-                clockDescr!!.visibility = TextView.VISIBLE
-                clockTitle!!.visibility = TextView.VISIBLE
-                Toast.makeText(context, "SUCCESS: Djames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
+                face_cover!!.visibility = View.INVISIBLE
+                startButton!!.text = "S T A R T"
+                startButton!!.backgroundTintList = AppCompatResources.getColorStateList(context, R.color.colorAccent)
+                descr_main!!.setTextColor(AppCompatResources.getColorStateList(context, R.color.light_grey))
+                descr_main!!.setTypeface(null, Typeface.ITALIC)
+                descr_main!!.text = context.resources.getString(R.string.str_main_start)
+                descr_use!!.text = context.resources.getString(R.string.str_use_logged)
+                descr_use!!.setTextColor(AppCompatResources.getColorStateList(context, R.color.mid_grey))
+
+                Toast.makeText(context, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
                 Log.d(TAG, "ACTION_LOGGED_IN: resources not available.")
-            }
-        }
-
-        //when mode is changed:
-        if (intent.action == ACTION_MODE_CHANGED) {
-            Log.d(TAG, "ACTION_MODE_CHANGED.")
-            try {
-                if (prefs.clockEnabled) {
-                    //CLOCK ON:
-                    mapsView!!.setBackgroundResource(R.drawable.rounded_option)
-                    mapsTitle!!.setTextColor(
-                        AppCompatResources.getColorStateList(
-                            context!!,
-                            R.color.mid_grey
-                        )
-                    )
-                    clockView!!.setBackgroundResource(R.drawable.rounded_option_sel)
-                    clockTitle!!.setTextColor(
-                        AppCompatResources.getColorStateList(
-                            context,
-                            R.color.colorHeader
-                        )
-                    )
-                } else {
-                    //MAPS ON:
-                    mapsView!!.setBackgroundResource(R.drawable.rounded_option_sel)
-                    mapsTitle!!.setTextColor(
-                        AppCompatResources.getColorStateList(
-                            context!!,
-                            R.color.colorHeader
-                        )
-                    )
-                    clockView!!.setBackgroundResource(R.drawable.rounded_option)
-                    clockTitle!!.setTextColor(
-                        AppCompatResources.getColorStateList(
-                            context,
-                            R.color.mid_grey
-                        )
-                    )
-                }
-            } catch (e: Exception) {
-                Log.d(TAG, "ACTION_MODE_CHANGED: resources not available.")
             }
         }
 
@@ -121,21 +80,14 @@ class EventReceiver: BroadcastReceiver() {
         if (intent.action == ACTION_OVERLAY_DEACTIVATED) {
             Log.d(TAG, "ACTION_OVERLAY_DEACTIVATED.")
             try {
-                //ALL MODES OFF:
-                mapsView!!.setBackgroundResource(R.drawable.rounded_option)
-                mapsTitle!!.setTextColor(
-                    AppCompatResources.getColorStateList(
-                        context!!,
-                        R.color.mid_grey
-                    )
-                )
-                clockView!!.setBackgroundResource(R.drawable.rounded_option)
-                clockTitle!!.setTextColor(
-                    AppCompatResources.getColorStateList(
-                        context,
-                        R.color.mid_grey
-                    )
-                )
+                overlay_active = false
+                startButton!!.text = "S T A R T"
+                startButton!!.backgroundTintList = AppCompatResources.getColorStateList(context!!, R.color.colorAccent)
+                descr_main!!.setTextColor(AppCompatResources.getColorStateList(context, R.color.light_grey))
+                descr_main!!.setTypeface(null, Typeface.ITALIC)
+                descr_main!!.text = context.resources.getString(R.string.str_main_start)
+                descr_use!!.text = context.resources.getString(R.string.str_use_logged)
+                descr_use!!.setTextColor(AppCompatResources.getColorStateList(context, R.color.mid_grey))
             } catch (e: Exception) {
                 Log.d(TAG, "ACTION_OVERLAY_DEACTIVATED: resources not available.")
             }

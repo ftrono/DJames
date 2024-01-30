@@ -53,6 +53,7 @@ dependencies {
     implementation("androidx.security:security-crypto:1.1.0-alpha03")
     implementation("androidx.core:core:1.8.0")
     implementation("androidx.media:media:1.6.0")
+    implementation("androidx.core:core:1.0.1")
     // OkHTTP: define a BOM and its version
     implementation(platform("com.squareup.okhttp3:okhttp-bom:4.12.0"))
     // OkHTTP: define any required OkHttp artifacts without version

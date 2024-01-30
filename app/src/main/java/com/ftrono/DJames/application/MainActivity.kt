@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -21,6 +22,10 @@ import androidx.appcompat.widget.Toolbar
 import com.ftrono.DJames.R
 import com.ftrono.DJames.receivers.EventReceiver
 import com.ftrono.DJames.service.FloatingViewService
+import com.google.android.material.snackbar.Snackbar
+
+
+
 
 
 class MainActivity : AppCompatActivity() {
@@ -48,28 +53,20 @@ class MainActivity : AppCompatActivity() {
         mainActionBar = supportActionBar
 
         descr_login_status = findViewById<TextView>(R.id.descr_login_status)
+        descr_main = findViewById<TextView>(R.id.descr_main)
         descr_use = findViewById<TextView>(R.id.descr_use)
-
-        //Load Options views:
-        mapsView = findViewById<View>(R.id.maps_mode_view)
-        mapsTitle = findViewById<TextView>(R.id.maps_title)
-        mapsDescr = findViewById<TextView>(R.id.maps_descr)
-        clockView = findViewById<View>(R.id.clock_mode_view)
-        clockTitle = findViewById<TextView>(R.id.clock_title)
-        clockDescr = findViewById<TextView>(R.id.clock_descr)
+        face_cover = findViewById<View>(R.id.face_cover)
+        startButton = findViewById<Button>(R.id.start_button)
 
         //Check Login status:
         if (prefs.spotifyToken == "") {
             loggedIn = false
-            supportActionBar!!.subtitle = ""
-            descr_login_status!!.text = getString(R.string.str_status_not_logged)
-            descr_use!!.text = getString(R.string.str_use_not_logged)
             setViewLoggedOut()
         } else {
             loggedIn = true
             supportActionBar!!.subtitle = "for ${prefs.userName}"
             descr_login_status!!.text = getString(R.string.str_status_logged)
-            descr_use!!.text = getString(R.string.str_use_logged)
+            face_cover!!.visibility = View.INVISIBLE
             if (overlay_active) {
                 setOverlayActive(exec = false)
             } else {
@@ -81,51 +78,33 @@ class MainActivity : AppCompatActivity() {
         val filter = IntentFilter()
         filter.addAction(ACTION_LOGGED_IN)
         filter.addAction(ACTION_OVERLAY_DEACTIVATED)
-        filter.addAction(ACTION_MODE_CHANGED)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
         registerReceiver(eventReceiver, filter, RECEIVER_EXPORTED)
         Log.d(TAG, "Receiver started.")
 
-        //Check ClockEnabled:
-        clockView!!.setOnClickListener(View.OnClickListener {
-            if (overlay_active && prefs.clockEnabled) {
-                overlay_active = setOverlayInactive(exec = true)
-            }
-            else {
-                //CLOCK ON:
-                prefs.clockEnabled = true
-                prefs.navEnabled = false
-                if (isMyServiceRunning(FloatingViewService::class.java)) {
-                    overlay_active = setOverlayInactive(exec=true)
-                }
-                overlay_active = setOverlayActive(exec=true)
-                Toast.makeText(applicationContext, "Clock mode enabled! Use the overlay button to record a voice request.", Toast.LENGTH_SHORT).show()
-            }
-        })
-
-        mapsView!!.setOnClickListener(View.OnClickListener {
-            if (overlay_active && !prefs.clockEnabled) {
-                overlay_active = setOverlayInactive(exec = true)
-            }
-            else {
-                //MAPS ON:
-                prefs.clockEnabled = false
-                prefs.navEnabled = true
-                if (isMyServiceRunning(FloatingViewService::class.java)) {
-                    overlay_active = setOverlayInactive(exec=true)
-                }
+        //Start:
+        startButton!!.setOnClickListener(View.OnClickListener {
+            if (!loggedIn) {
+                //Login user -> Open WebView:
+                val intent1 = Intent(this@MainActivity, WebAuth::class.java)
+                startActivity(intent1)
+            } else if (!overlay_active) {
+                //START:
                 overlay_active = setOverlayActive(exec = true)
-                Toast.makeText(applicationContext, "Maps mode enabled! Use the overlay button to record a voice request.", Toast.LENGTH_SHORT).show()
+                //Start fake lock screen:
+                val intent1 = Intent(this@MainActivity, FakeLockScreen::class.java)
+                startActivity(intent1)
+                Toast.makeText(applicationContext, "Ready to get your voice requests!", Toast.LENGTH_LONG).show()
+//                Snackbar.make(findViewById(R.id.content_main), getString(R.string.str_use_logged), Snackbar.LENGTH_LONG)
+//                    .setAction("CLOSE") { }
+//                    .setActionTextColor(resources.getColor(android.R.color.holo_red_light))
+//                    .show()
+            } else {
+                //STOP:
+                overlay_active = setOverlayInactive(exec = true)
             }
-        })
 
-        //(TEST) Fake Lock Screen:
-        val testButton = findViewById<Button>(R.id.fake_lock_button)
-        testButton.setOnClickListener(View.OnClickListener {
-            //Open fake lock screen:
-            val intent1 = Intent(this@MainActivity, FakeLockScreen::class.java)
-            startActivity(intent1)
         })
 
     }
@@ -152,13 +131,8 @@ class MainActivity : AppCompatActivity() {
         //empty views:
         loginButton = null
         descr_login_status = null
+        descr_main = null
         descr_use = null
-        mapsView = null
-        mapsTitle = null
-        mapsDescr = null
-        clockView = null
-        clockTitle = null
-        clockDescr = null
     }
 
 
@@ -221,29 +195,25 @@ class MainActivity : AppCompatActivity() {
             startService(Intent(this, FloatingViewService::class.java))
         }
         if (Settings.canDrawOverlays(this)) {
-            if (prefs.clockEnabled) {
-                //CLOCK ON:
-                mapsView!!.setBackgroundResource(R.drawable.rounded_option)
-                mapsTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
-                clockView!!.setBackgroundResource(R.drawable.rounded_option_sel)
-                clockTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorHeader))
-            } else {
-                //MAPS ON:
-                mapsView!!.setBackgroundResource(R.drawable.rounded_option_sel)
-                mapsTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorHeader))
-                clockView!!.setBackgroundResource(R.drawable.rounded_option)
-                clockTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
-            }
+            startButton!!.text = "S T O P"
+            startButton!!.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorStop)
+            descr_main!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorHeader))
+            descr_main!!.setTypeface(null, Typeface.BOLD_ITALIC)
+            descr_main!!.text = getString(R.string.str_main_stop)
+            descr_use!!.text = getString(R.string.str_use_logged)
+            descr_use!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.light_grey))
         }
         return true
     }
 
     fun setOverlayInactive(exec: Boolean): Boolean {
-        //ALL MODES OFF:
-        mapsView!!.setBackgroundResource(R.drawable.rounded_option)
-        mapsTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
-        clockView!!.setBackgroundResource(R.drawable.rounded_option)
-        clockTitle!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
+        startButton!!.text = "S T A R T"
+        startButton!!.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorAccent)
+        descr_main!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.light_grey))
+        descr_main!!.setTypeface(null, Typeface.ITALIC)
+        descr_main!!.text = getString(R.string.str_main_start)
+        descr_use!!.text = getString(R.string.str_use_logged)
+        descr_use!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
         if (exec) {
             stopService(Intent(this, FloatingViewService::class.java))
         }
@@ -288,14 +258,14 @@ class MainActivity : AppCompatActivity() {
         }
         supportActionBar!!.subtitle = ""
         descr_login_status!!.text = getString(R.string.str_status_not_logged)
+        face_cover!!.visibility = View.VISIBLE
+        descr_main!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.light_grey))
+        descr_main!!.setTypeface(null, Typeface.ITALIC)
+        descr_main!!.text = getString(R.string.str_main_not_logged)
         descr_use!!.text = getString(R.string.str_use_not_logged)
-        //Hide views:
-        mapsView!!.visibility = View.GONE
-        mapsDescr!!.visibility = TextView.GONE
-        mapsTitle!!.visibility = TextView.GONE
-        clockView!!.visibility = View.GONE
-        clockDescr!!.visibility = TextView.GONE
-        clockTitle!!.visibility = TextView.GONE
+        descr_use!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
+        startButton!!.text = "L O G I N"
+        startButton!!.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.faded_grey)
         return false
     }
 

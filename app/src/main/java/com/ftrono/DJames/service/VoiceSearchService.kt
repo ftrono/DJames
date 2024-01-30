@@ -235,7 +235,7 @@ class VoiceSearchService : Service() {
         intentSpotify.putExtra("fromwhere", "ser")
         startActivity(intentSpotify)
 
-        if (prefs.navEnabled) {
+        if (prefs.mapsTimeout.toLong() > 0) {
             //Maps redirect:
             Thread.sleep((prefs.mapsTimeout.toLong()-1) * 1000)   //default: 3000
             //Launch Maps:

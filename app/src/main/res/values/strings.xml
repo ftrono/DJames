@@ -1,12 +1,16 @@
 <resources>
     <string name="app_name">DJames</string>
     <string name="app_title">DJames 🎧</string>
-    <string name="str_use_logged">How will you drive? 🚗</string>
-    <string name="str_use_not_logged">Please LOGIN first:\nDJames needs access to your Spotify music!\n💿</string>
+    <!-- Main: DJames view -->
+    <string name="str_main_not_logged">Hi, Sir!\nPlease, LOGIN first!</string>
+    <string name="str_main_start">Hi, Sir!\nTap on START to begin! 🚗</string>
+    <string name="str_main_stop">Hi Sir!\nAsk me anything! 🚗</string>
+    <string name="str_use_not_logged">To work, I need access to your\nSpotify music!💿</string>
+    <string name="str_use_logged">Use the FLOATING button, the VOLUME UP button,\nor a remote SHUTTER button to\nrecord a voice request!</string>
+    <!-- Main: Login Status -->
     <string name="str_status_logged">LOGIN STATUS 🟢</string>
     <string name="str_status_not_logged">LOGIN STATUS 🔴</string>
-    <string name="str_maps_descr">Automatically go back to Maps App\nafter every request.</string>
-    <string name="str_clock_descr">Automatically switch to a Clock screen\nafter every request.</string>
+    <!-- Settings & various -->
     <string name="str_settings">Settings</string>
     <string name="str_permissions">Set app permissions</string>
     <string name="str_enable_overlay">Please enable the \'Display over other apps\' permission first!</string>

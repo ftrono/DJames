@@ -117,7 +117,7 @@ class SettingsActivity : AppCompatActivity() {
         //MapsTimeout:
         if (newMapsTimeout.isNotEmpty()) {
             //validate & overwrite:
-            prefs.mapsTimeout = validateTimeout(newVal = newMapsTimeout, origVal = prefs.mapsTimeout, min_val = 3, max_val = 10)
+            prefs.mapsTimeout = validateTimeout(newVal = newMapsTimeout, origVal = prefs.mapsTimeout, min_val = 0, max_val = 10)
         }
         //ClockTimeout:
         if (newClockTimeout.isNotEmpty()) {

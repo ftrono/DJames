@@ -9,6 +9,7 @@ import android.view.MenuItem
 import android.widget.ImageView
 import android.view.View
 import android.widget.TextView
+import android.widget.Button
 import com.ftrono.DJames.utilities.Prefs
 import okhttp3.OkHttpClient
 import java.net.URLEncoder
@@ -69,19 +70,15 @@ var overlayIcon: ImageView? = null
 //View resources:
 var mainActionBar: ActionBar? = null
 var descr_login_status: TextView? = null
+var descr_main: TextView? = null
 var descr_use: TextView? = null
+var face_cover: View? = null
+var startButton: Button? = null
 var loginButton: MenuItem? = null
-var mapsView: View? = null
-var mapsTitle: TextView? = null
-var mapsDescr: TextView? = null
-var clockView: View? = null
-var clockTitle: TextView? = null
-var clockDescr: TextView? = null
 
 //Broadcasts:
 const val ACTION_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_LOGGED_IN"
 const val ACTION_OVERLAY_DEACTIVATED = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_DEACTIVATED"
-const val ACTION_MODE_CHANGED = "com.ftrono.DJames.eventReceiver.ACTION_MODE_CHANGED"
 
 
 class App: Application()

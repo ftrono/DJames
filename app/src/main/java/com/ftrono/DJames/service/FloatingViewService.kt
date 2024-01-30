@@ -178,23 +178,11 @@ class FloatingViewService : Service() {
                     clockModeValue!!.text = "ON"
                     clockModeValue!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorBusy))
                     clockModeView!!.setBackgroundResource(R.drawable.rounded_option_sel)
-                    //Send broadcast:
-                    Intent().also { intent ->
-                        intent.setAction(ACTION_MODE_CHANGED)
-                        //intent.putExtra("clockEnabled", true)
-                        sendBroadcast(intent)
-                    }
                 } else {
                     prefs.clockEnabled = false
                     clockModeValue!!.text = "OFF"
                     clockModeValue!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
                     clockModeView!!.setBackgroundResource(R.drawable.rounded_option)
-                    //Send broadcast:
-                    Intent().also { intent ->
-                        intent.setAction(ACTION_MODE_CHANGED)
-                        //intent.putExtra("clockEnabled", false)
-                        sendBroadcast(intent)
-                    }
                 }
             }
 

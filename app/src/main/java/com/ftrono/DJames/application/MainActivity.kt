@@ -25,9 +25,6 @@ import com.ftrono.DJames.service.FloatingViewService
 import com.google.android.material.snackbar.Snackbar
 
 
-
-
-
 class MainActivity : AppCompatActivity() {
 
     private val TAG: String = MainActivity::class.java.getSimpleName()

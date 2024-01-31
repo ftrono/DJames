@@ -141,7 +141,7 @@ class VoiceSearchService : Service() {
 
     private fun startForeground() {
         //Foreground service:
-        val NOTIFICATION_CHANNEL_ID = "com.ftrono.djeenoForSpotify"
+        val NOTIFICATION_CHANNEL_ID = "com.ftrono.DJames"
         val channelName = "Voice Search Service"
         val chan = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,
@@ -155,7 +155,7 @@ class VoiceSearchService : Service() {
         val notificationBuilder: NotificationCompat.Builder =
             NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
         val notification = notificationBuilder.setOngoing(true)
-            .setContentTitle("Djeeno: Voice Search Service is running in background")
+            .setContentTitle("DJames: Voice Search Service is running in background")
             .setPriority(NotificationManager.IMPORTANCE_MIN)
             .setCategory(Notification.CATEGORY_SERVICE)
             .build()

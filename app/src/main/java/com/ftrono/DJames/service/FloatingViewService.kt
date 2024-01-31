@@ -322,7 +322,7 @@ class FloatingViewService : Service() {
 
     private fun startForeground() {
         //Foreground service:
-        val NOTIFICATION_CHANNEL_ID = "com.ftrono.djeenoForSpotify"
+        val NOTIFICATION_CHANNEL_ID = "com.ftrono.DJames"
         val channelName = "Floating View Service"
         val chan = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,
@@ -336,7 +336,7 @@ class FloatingViewService : Service() {
         val notificationBuilder: NotificationCompat.Builder =
             NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
         val notification = notificationBuilder.setOngoing(true)
-            .setContentTitle("Djeeno: Floating View Service is running in background")
+            .setContentTitle("DJames: Floating View Service is running in background")
             .setPriority(NotificationManager.IMPORTANCE_MIN)
             .setCategory(Notification.CATEGORY_SERVICE)
             .build()

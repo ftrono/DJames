@@ -24,7 +24,6 @@
         android:layout_height="wrap_content"
         android:text="Logging in to Spotify..."
         android:textSize="14sp"
-        android:textStyle="bold"
         android:textColor="@color/mid_grey"
         android:textAlignment="center"
         app:layout_constraintVertical_chainStyle="packed"

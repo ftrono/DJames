@@ -19,6 +19,7 @@
         android:text= "Mon, 1 Jan"
         android:textSize="22dp"
         app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -34,14 +35,16 @@
         android:text= "00\n00"
         android:textSize="150dp"
         app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/text_date"
         app:layout_constraintBottom_toTopOf="@+id/song_name"/>
 
+    <!-- Player info -->
     <TextView
         android:id="@+id/song_name"
-        android:layout_width="wrap_content"
+        android:layout_width="320dp"
         android:layout_height="wrap_content"
         android:textAlignment="center"
         android:textColor="@color/mid_grey"
@@ -50,6 +53,7 @@
         android:textStyle="italic"
         android:layout_marginTop="12dp"
         app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/text_clock"
@@ -57,7 +61,7 @@
 
     <TextView
         android:id="@+id/artist_name"
-        android:layout_width="wrap_content"
+        android:layout_width="320dp"
         android:layout_height="wrap_content"
         android:textAlignment="center"
         android:textColor="@color/mid_grey"
@@ -65,6 +69,7 @@
         android:textSize="14dp"
         android:layout_marginTop="8dp"
         app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/song_name"
@@ -72,7 +77,7 @@
 
     <TextView
         android:id="@+id/context_name"
-        android:layout_width="wrap_content"
+        android:layout_width="320dp"
         android:layout_height="wrap_content"
         android:textAlignment="center"
         android:textColor="@color/mid_grey"
@@ -81,24 +86,65 @@
         android:textStyle="italic"
         android:layout_marginTop="10dp"
         app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/artist_name"
-        app:layout_constraintBottom_toTopOf="@+id/exit_button"/>
+        app:layout_constraintBottom_toTopOf="@+id/exit_button_vert"/>
 
-    <Button
-        android:id="@+id/exit_button"
-        android:layout_width="120dp"
+    <!-- VERTICAL exit button -->
+    <View
+        android:id="@+id/exit_button_vert"
+        android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_marginTop="40dp"
-        android:backgroundTint="@color/faded_grey"
-        android:text="CLOSE"
-        android:textColor="@color/black"
-        android:textStyle="bold"
+        android:background="@drawable/exit_circle"
+        android:visibility="visible"
         app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/context_name"
         app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <View
+        android:id="@+id/exit_icon_vert"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/exit_icon"
+        android:visibility="visible"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintLeft_toLeftOf="@+id/exit_button_vert"
+        app:layout_constraintRight_toRightOf="@+id/exit_button_vert"
+        app:layout_constraintTop_toTopOf="@+id/exit_button_vert"
+        app:layout_constraintBottom_toBottomOf="@+id/exit_button_vert"/>
+
+    <!-- HORIZONTAL exit button -->
+    <View
+        android:id="@+id/exit_button_horiz"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginLeft="50dp"
+        android:background="@drawable/exit_circle"
+        android:visibility="gone"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <View
+        android:id="@+id/exit_icon_horiz"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/exit_icon"
+        android:visibility="gone"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintLeft_toLeftOf="@+id/exit_button_horiz"
+        app:layout_constraintRight_toRightOf="@+id/exit_button_horiz"
+        app:layout_constraintTop_toTopOf="@+id/exit_button_horiz"
+        app:layout_constraintBottom_toBottomOf="@+id/exit_button_horiz"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

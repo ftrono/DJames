@@ -14,8 +14,6 @@ import android.graphics.PixelFormat
 import android.media.AudioManager
 import android.net.Uri
 import android.os.IBinder
-import android.os.PowerManager
-import android.os.PowerManager.WakeLock
 import android.provider.Settings
 import android.util.Log
 import android.view.Gravity
@@ -49,7 +47,6 @@ class FloatingViewService : Service() {
     private var clockModeValue: TextView? = null
     private var params: LayoutParams? = null
     private var params2: LayoutParams? = null
-    private var wakeLock: WakeLock? = null
 
     //Receiver:
     var eventReceiver = EventReceiver()
@@ -89,11 +86,6 @@ class FloatingViewService : Service() {
             startForeground()
             fs_active = true
 
-            //WAKE LOCK:
-            powerManager = getSystemService(POWER_SERVICE) as PowerManager
-            wakeLock = powerManager!!.newWakeLock(PowerManager.FULL_WAKE_LOCK, TAG)
-            wakeLock!!.acquire()
-
             //RECEIVER:
             //Prepare volume for Receiver:
             audioManager!!.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND)
@@ -120,16 +112,17 @@ class FloatingViewService : Service() {
             // Store display height & width
             var height = resources.displayMetrics.heightPixels
             var width = resources.displayMetrics.widthPixels
+            //Layout flags:
+            val LAYOUT_FLAGS = LayoutParams.FLAG_NOT_FOCUSABLE or LayoutParams.FLAG_KEEP_SCREEN_ON
 
             // OVERLAY BUTTON:
             //Inflate the overlay view layout we created
             mFloatingView = LayoutInflater.from(this).inflate(R.layout.overlay_layout, null)
-            val LAYOUT_FLAG = LayoutParams.TYPE_APPLICATION_OVERLAY
             params = LayoutParams(
                 LayoutParams.WRAP_CONTENT,
                 LayoutParams.WRAP_CONTENT,
-                LAYOUT_FLAG,
-                LayoutParams.FLAG_NOT_FOCUSABLE,
+                LayoutParams.TYPE_APPLICATION_OVERLAY,
+                LAYOUT_FLAGS,
                 PixelFormat.TRANSLUCENT
             )
 
@@ -145,12 +138,11 @@ class FloatingViewService : Service() {
             // CLOSE TEXT:
             //Inflate close layout
             mCloseView = LayoutInflater.from(this).inflate(R.layout.close_layout, null)
-            val LAYOUT_FLAG2 = LayoutParams.TYPE_APPLICATION_OVERLAY
             params2 = LayoutParams(
                 LayoutParams.WRAP_CONTENT,
                 LayoutParams.WRAP_CONTENT,
-                LAYOUT_FLAG2,
-                LayoutParams.FLAG_NOT_FOCUSABLE,
+                LayoutParams.TYPE_APPLICATION_OVERLAY,
+                LAYOUT_FLAGS,
                 PixelFormat.TRANSLUCENT
             )
 
@@ -275,11 +267,6 @@ class FloatingViewService : Service() {
             intent1.putExtra("fromwhere", "ser")
             intent1.setData(uri)
             startActivity(intent1)
-            try {
-                wakeLock!!.release()
-            } catch (e: Exception) {
-                Log.d(TAG, "Wake lock already released.")
-            }
             stopSelf()
         }
     }
@@ -306,11 +293,6 @@ class FloatingViewService : Service() {
             overlayIcon = null
             fs_active = false
             recordingMode = false
-            try {
-                wakeLock!!.release()
-            } catch (e: Exception) {
-                Log.d(TAG, "Wake lock already released.")
-            }
             //Thread check:
             if (volumeThread.isAlive()){
                 volumeThread.interrupt()
@@ -340,6 +322,6 @@ class FloatingViewService : Service() {
             .setPriority(NotificationManager.IMPORTANCE_MIN)
             .setCategory(Notification.CATEGORY_SERVICE)
             .build()
-        startForeground(2, notification)
+        startForeground(1, notification)
     }
 }

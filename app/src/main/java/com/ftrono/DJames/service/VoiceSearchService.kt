@@ -28,8 +28,7 @@ import java.io.File
 class VoiceSearchService : Service() {
     //Main:
     private val TAG = VoiceSearchService::class.java.simpleName
-    private val saveDir =
-        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    //private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
     //Recorder:
     private val recorder by lazy {
@@ -159,7 +158,7 @@ class VoiceSearchService : Service() {
             .setPriority(NotificationManager.IMPORTANCE_MIN)
             .setCategory(Notification.CATEGORY_SERVICE)
             .build()
-        startForeground(3, notification)
+        startForeground(2, notification)
     }
 
     fun countdownStart() {
@@ -178,8 +177,8 @@ class VoiceSearchService : Service() {
                     //Play START tone:
                     toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)
 
-                    //Start recording (default: cacheDir):
-                    var it = File(saveDir, "audio.mp3")
+                    //Start recording (default: cacheDir, alternative: saveDir):
+                    var it = File(cacheDir, "audio.mp3")
                     recorder.start(it)
 
                     //Countdown:

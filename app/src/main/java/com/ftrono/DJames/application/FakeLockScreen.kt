@@ -34,20 +34,39 @@ class FakeLockScreen: AppCompatActivity() {
     private var clockSeparator: String = "\n"
     private var prevBrightness: Int = 255
 
+    private var exitButtonVert: View? = null
+    private var exitIconVert: View? = null
+    private var exitButtonHoriz: View? = null
+    private var exitIconHoriz: View? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.fake_lock_screen)
+
+        //Exit buttons:
+        exitIconVert = findViewById<View>(R.id.exit_icon_vert)
+        exitButtonVert = findViewById<View>(R.id.exit_button_vert)
+        exitIconHoriz = findViewById<View>(R.id.exit_icon_horiz)
+        exitButtonHoriz = findViewById<View>(R.id.exit_button_horiz)
 
         //Check initial orientation:
         var config = getResources().getConfiguration()
         if (config.orientation == Configuration.ORIENTATION_PORTRAIT) {
             //Vertical:
             clockSeparator = "\n"
+            exitButtonVert!!.visibility = View.VISIBLE
+            exitIconVert!!.visibility = View.VISIBLE
+            exitButtonHoriz!!.visibility = View.GONE
+            exitIconHoriz!!.visibility = View.GONE
         }
         if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             //Horizontal:
             clockSeparator = ":"
+            exitButtonVert!!.visibility = View.GONE
+            exitIconVert!!.visibility = View.GONE
+            exitButtonHoriz!!.visibility = View.VISIBLE
+            exitIconHoriz!!.visibility = View.VISIBLE
         }
 
         //Store prev brightness level:
@@ -78,9 +97,11 @@ class FakeLockScreen: AppCompatActivity() {
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
 
-        //Exit button:
-        val exitButton = findViewById<Button>(R.id.exit_button)
-        exitButton.setOnClickListener(View.OnClickListener {
+        //Exit buttons listeners:
+        exitButtonVert!!.setOnClickListener(View.OnClickListener {
+            finish()
+        })
+        exitButtonHoriz!!.setOnClickListener(View.OnClickListener {
             finish()
         })
 
@@ -104,14 +125,10 @@ class FakeLockScreen: AppCompatActivity() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            //Vertical:
-            clockSeparator = "\n"
-            clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
+            setVerticalView()
         }
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            //Horizontal:
-            clockSeparator = ":"
-            clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
+            setHorizontalView()
         }
     }
 
@@ -124,6 +141,28 @@ class FakeLockScreen: AppCompatActivity() {
             prevBrightness
         )
         Log.d(TAG, "Brightness reset to: $prevBrightness")
+    }
+
+    fun setVerticalView() {
+        //Vertical:
+        clockSeparator = "\n"
+        clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
+        //Move exit button:
+        exitButtonVert!!.visibility = View.VISIBLE
+        exitIconVert!!.visibility = View.VISIBLE
+        exitButtonHoriz!!.visibility = View.GONE
+        exitIconHoriz!!.visibility = View.GONE
+    }
+
+    fun setHorizontalView() {
+        //Horizontal:
+        clockSeparator = ":"
+        clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
+        //Move exit button:
+        exitButtonVert!!.visibility = View.GONE
+        exitIconVert!!.visibility = View.GONE
+        exitButtonHoriz!!.visibility = View.VISIBLE
+        exitIconHoriz!!.visibility = View.VISIBLE
     }
 
 }

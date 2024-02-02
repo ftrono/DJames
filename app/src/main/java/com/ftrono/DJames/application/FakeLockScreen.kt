@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.view.View
-import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import android.content.res.Configuration
@@ -16,7 +15,9 @@ import androidx.core.view.WindowCompat
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import kotlin.math.round
+import kotlin.math.roundToInt
 
 
 class FakeLockScreen: AppCompatActivity() {
@@ -27,6 +28,12 @@ class FakeLockScreen: AppCompatActivity() {
     private var runnable: Runnable? = null
 
     private var clockView: TextView? = null
+    private var exitButtonVert: View? = null
+    private var songName: TextView? = null
+    private var artistName: TextView? = null
+    private var contextName: TextView? = null
+
+    private var density: Float = 0F
     private var now: LocalDateTime? = null
     private val dateFormat = DateTimeFormatter.ofPattern("E, dd MMM")
     private val hourFormat = DateTimeFormatter.ofPattern("HH")
@@ -34,39 +41,45 @@ class FakeLockScreen: AppCompatActivity() {
     private var clockSeparator: String = "\n"
     private var prevBrightness: Int = 255
 
-    private var exitButtonVert: View? = null
-    private var exitIconVert: View? = null
-    private var exitButtonHoriz: View? = null
-    private var exitIconHoriz: View? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.fake_lock_screen)
 
-        //Exit buttons:
-        exitIconVert = findViewById<View>(R.id.exit_icon_vert)
-        exitButtonVert = findViewById<View>(R.id.exit_button_vert)
-        exitIconHoriz = findViewById<View>(R.id.exit_icon_horiz)
-        exitButtonHoriz = findViewById<View>(R.id.exit_button_horiz)
+        //Load views:
+        clockView = findViewById<TextView>(R.id.text_clock)
+        exitButtonVert = findViewById<View>(R.id.exit_button)
+        songName = findViewById<TextView>(R.id.song_name)
+        artistName = findViewById<TextView>(R.id.artist_name)
+        contextName = findViewById<TextView>(R.id.context_name)
+
+        //Screen density:
+        density = applicationContext.resources.displayMetrics.density
 
         //Check initial orientation:
         var config = getResources().getConfiguration()
         if (config.orientation == Configuration.ORIENTATION_PORTRAIT) {
             //Vertical:
             clockSeparator = "\n"
-            exitButtonVert!!.visibility = View.VISIBLE
-            exitIconVert!!.visibility = View.VISIBLE
-            exitButtonHoriz!!.visibility = View.GONE
-            exitIconHoriz!!.visibility = View.GONE
         }
         if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             //Horizontal:
             clockSeparator = ":"
-            exitButtonVert!!.visibility = View.GONE
-            exitIconVert!!.visibility = View.GONE
-            exitButtonHoriz!!.visibility = View.VISIBLE
-            exitIconHoriz!!.visibility = View.VISIBLE
+            //Move exit button to the LEFT:
+            exitButtonVert!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
+                topToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
+                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                setMargins((50*density).roundToInt(),0,0,0)
+            }
+            //Fix constraint for last textView:
+            contextName!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                bottomToTop = ConstraintLayout.LayoutParams.UNSET   //clear
+                bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+            }
+            //Fix Clock text size:
+            clockView!!.textSize = 140F
         }
 
         //Store prev brightness level:
@@ -101,13 +114,9 @@ class FakeLockScreen: AppCompatActivity() {
         exitButtonVert!!.setOnClickListener(View.OnClickListener {
             finish()
         })
-        exitButtonHoriz!!.setOnClickListener(View.OnClickListener {
-            finish()
-        })
 
         //Date:
         val dateView = findViewById<TextView>(R.id.text_date)
-        clockView = findViewById<TextView>(R.id.text_clock)
 
         //Update date & clock:
         handler = Handler()
@@ -147,22 +156,40 @@ class FakeLockScreen: AppCompatActivity() {
         //Vertical:
         clockSeparator = "\n"
         clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
-        //Move exit button:
-        exitButtonVert!!.visibility = View.VISIBLE
-        exitIconVert!!.visibility = View.VISIBLE
-        exitButtonHoriz!!.visibility = View.GONE
-        exitIconHoriz!!.visibility = View.GONE
+        //Move exit button to the BOTTOM:
+        exitButtonVert!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+            topToTop = ConstraintLayout.LayoutParams.UNSET   //clear
+            rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
+            topToBottom = R.id.context_name
+            setMargins(0,(40*density).roundToInt(),0,0)
+        }
+        //Fix constraint for last textView:
+        contextName!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+            bottomToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
+            bottomToTop = R.id.exit_button
+        }
+        //Fix Clock text size:
+        clockView!!.textSize = 150F
     }
 
     fun setHorizontalView() {
         //Horizontal:
         clockSeparator = ":"
         clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
-        //Move exit button:
-        exitButtonVert!!.visibility = View.GONE
-        exitIconVert!!.visibility = View.GONE
-        exitButtonHoriz!!.visibility = View.VISIBLE
-        exitIconHoriz!!.visibility = View.VISIBLE
+        //Move exit button to the LEFT:
+        exitButtonVert!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+            rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
+            topToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
+            topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+            setMargins((50*density).roundToInt(),0,0,0)
+        }
+        //Fix constraint for last textView:
+        contextName!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+            bottomToTop = ConstraintLayout.LayoutParams.UNSET   //clear
+            bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+        }
+        //Fix Clock text size:
+        clockView!!.textSize = 140F
     }
 
 }

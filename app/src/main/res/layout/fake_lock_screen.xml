@@ -90,16 +90,15 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/artist_name"
-        app:layout_constraintBottom_toTopOf="@+id/exit_button_vert"/>
+        app:layout_constraintBottom_toTopOf="@+id/exit_button"/>
 
-    <!-- VERTICAL exit button -->
+    <!-- Exit button -->
     <View
-        android:id="@+id/exit_button_vert"
+        android:id="@+id/exit_button"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_marginTop="40dp"
         android:background="@drawable/exit_circle"
-        android:visibility="visible"
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -108,43 +107,15 @@
         app:layout_constraintBottom_toBottomOf="parent"/>
 
     <View
-        android:id="@+id/exit_icon_vert"
+        android:id="@+id/exit_icon"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:background="@drawable/exit_icon"
-        android:visibility="visible"
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintLeft_toLeftOf="@+id/exit_button_vert"
-        app:layout_constraintRight_toRightOf="@+id/exit_button_vert"
-        app:layout_constraintTop_toTopOf="@+id/exit_button_vert"
-        app:layout_constraintBottom_toBottomOf="@+id/exit_button_vert"/>
-
-    <!-- HORIZONTAL exit button -->
-    <View
-        android:id="@+id/exit_button_horiz"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginLeft="50dp"
-        android:background="@drawable/exit_circle"
-        android:visibility="gone"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
-
-    <View
-        android:id="@+id/exit_icon_horiz"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:background="@drawable/exit_icon"
-        android:visibility="gone"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintLeft_toLeftOf="@+id/exit_button_horiz"
-        app:layout_constraintRight_toRightOf="@+id/exit_button_horiz"
-        app:layout_constraintTop_toTopOf="@+id/exit_button_horiz"
-        app:layout_constraintBottom_toBottomOf="@+id/exit_button_horiz"/>
+        app:layout_constraintLeft_toLeftOf="@+id/exit_button"
+        app:layout_constraintRight_toRightOf="@+id/exit_button"
+        app:layout_constraintTop_toTopOf="@+id/exit_button"
+        app:layout_constraintBottom_toBottomOf="@+id/exit_button"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

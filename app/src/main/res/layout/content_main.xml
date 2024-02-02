@@ -14,6 +14,7 @@
     tools:context="com.ftrono.DJames.application.MainActivity"
     tools:ignore="ContentDescription">
 
+    <!-- App toolbar (placeholder) -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
@@ -37,28 +38,32 @@
 
         </com.google.android.material.appbar.AppBarLayout>
 
+        <!-- Main -->
         <TextView
             android:id="@+id/descr_login_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
+            android:layout_marginBottom="20dp"
             android:text="@string/str_status_logged"
             android:textAlignment="center"
             android:textColor="@color/light_grey"
             android:textSize="12dp"
-            app:layout_constraintBottom_toTopOf="@+id/baloon"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintTop_toBottomOf="@+id/appBarLayout"
+            app:layout_constraintBottom_toTopOf="@+id/baloon"
             tools:ignore="TextSizeCheck" />
 
+        <!-- Baloon -->
         <View
             android:id="@+id/baloon"
             android:layout_width="320dp"
             android:layout_height="150dp"
             android:background="@drawable/baloon"
-            android:layout_marginTop="20dp"
+            app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -75,11 +80,12 @@
             android:textSize="16dp"
             android:textStyle="italic"
             android:layout_marginBottom="10dp"
-            app:layout_constraintBottom_toTopOf="@+id/descr_use"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintLeft_toLeftOf="@+id/baloon"
             app:layout_constraintRight_toRightOf="@+id/baloon"
             app:layout_constraintTop_toTopOf="@+id/baloon"
-            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintBottom_toTopOf="@+id/descr_use"
             tools:ignore="TextSizeCheck" />
 
         <TextView
@@ -92,19 +98,22 @@
             android:textSize="12dp"
             android:textStyle="italic"
             android:layout_marginBottom="15dp"
-            app:layout_constraintBottom_toBottomOf="@+id/baloon"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintLeft_toLeftOf="@+id/baloon"
             app:layout_constraintRight_toRightOf="@+id/baloon"
             app:layout_constraintTop_toBottomOf="@+id/descr_main"
-            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintBottom_toBottomOf="@+id/baloon"
             tools:ignore="TextSizeCheck" />
 
+        <!-- Mega-face -->
         <ImageView
             android:id="@+id/DJames_face"
             android:layout_width="150dp"
             android:layout_height="150dp"
             android:src="@drawable/djames_logo"
             android:layout_marginTop="20dp"
+            app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -117,12 +126,14 @@
             android:layout_height="150dp"
             android:background="@color/transparent_bg"
             android:visibility="invisible"
+            app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/baloon"
-            app:layout_constraintBottom_toTopOf="@+id/start_button"/>
+            app:layout_constraintLeft_toLeftOf="@+id/DJames_face"
+            app:layout_constraintRight_toRightOf="@+id/DJames_face"
+            app:layout_constraintTop_toTopOf="@+id/DJames_face"
+            app:layout_constraintBottom_toBottomOf="@+id/DJames_face"/>
 
+        <!-- Button -->
         <Button
             android:id="@+id/start_button"
             android:layout_width="150dp"
@@ -132,6 +143,7 @@
             android:text="S T A R T"
             android:textColor="@color/light_grey"
             android:textStyle="bold"
+            app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"

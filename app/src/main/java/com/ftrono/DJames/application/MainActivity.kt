@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Configuration
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
@@ -12,6 +13,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.ImageView
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -19,9 +21,12 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.updateLayoutParams
 import com.ftrono.DJames.R
 import com.ftrono.DJames.receivers.EventReceiver
 import com.ftrono.DJames.service.FloatingViewService
+import kotlin.math.roundToInt
 import com.google.android.material.snackbar.Snackbar
 
 
@@ -30,6 +35,9 @@ class MainActivity : AppCompatActivity() {
     private val TAG: String = MainActivity::class.java.getSimpleName()
     //Views:
     private var toolbar: Toolbar? = null
+    private var baloon: View? = null
+    private var mega_face: ImageView? = null
+    private var density: Float = 0F
 
     //Receiver:
     var eventReceiver = EventReceiver()
@@ -44,16 +52,38 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         activity_active = true
 
+        //Screen density:
+        density = applicationContext.resources.displayMetrics.density
+
         //Load Main views:
         toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         mainActionBar = supportActionBar
 
         descr_login_status = findViewById<TextView>(R.id.descr_login_status)
+        baloon = findViewById<View>(R.id.baloon)
         descr_main = findViewById<TextView>(R.id.descr_main)
         descr_use = findViewById<TextView>(R.id.descr_use)
+        mega_face = findViewById<ImageView>(R.id.DJames_face)
         face_cover = findViewById<View>(R.id.face_cover)
         startButton = findViewById<Button>(R.id.start_button)
+
+        //Check initial orientation:
+        var config = getResources().getConfiguration()
+        if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            //HORIZONTAL:
+            baloon!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
+                leftToRight = R.id.DJames_face
+                bottomToTop = R.id.start_button
+            }
+            mega_face!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
+                topToBottom = R.id.descr_login_status
+                rightToLeft = R.id.baloon
+                setMargins(0, 0,(50*density).roundToInt(),0)
+            }
+        }
 
         //Check Login status:
         if (prefs.spotifyToken == "") {
@@ -174,6 +204,38 @@ class MainActivity : AppCompatActivity() {
             return true
         } else {
             return super.onOptionsItemSelected(item)
+        }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            //VERTICAL:
+            baloon!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                leftToRight = ConstraintLayout.LayoutParams.UNSET   //clear
+                leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
+                bottomToTop = R.id.DJames_face
+            }
+            mega_face!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                rightToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
+                topToBottom = R.id.baloon
+                rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
+                setMargins(0,(20*density).roundToInt(),0,0)
+            }
+        }
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            //HORIZONTAL:
+            baloon!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
+                leftToRight = R.id.DJames_face
+                bottomToTop = R.id.start_button
+            }
+            mega_face!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
+                topToBottom = R.id.descr_login_status
+                rightToLeft = R.id.baloon
+                setMargins(0,0, (50*density).roundToInt(),0)
+            }
         }
     }
 

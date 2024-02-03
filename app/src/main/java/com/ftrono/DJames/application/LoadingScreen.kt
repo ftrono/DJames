@@ -15,7 +15,6 @@ import okhttp3.Callback
 import okhttp3.Call
 import java.io.IOException
 import java.util.Base64
-import java.util.concurrent.TimeUnit
 import kotlin.coroutines.suspendCoroutine
 import kotlin.coroutines.resume
 import androidx.lifecycle.coroutineScope
@@ -132,7 +131,5 @@ class LoadingScreen: AppCompatActivity() {
     override fun onBackPressed() {
         return
     }
-
-
 
 }

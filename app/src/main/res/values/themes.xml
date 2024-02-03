@@ -32,18 +32,6 @@
         <item name="android:background">@color/colorPrimary</item>
     </style>
 
-    <style name="ToolbarTitleTheme" parent="@style/TextAppearance.Widget.AppCompat.Toolbar.Title">
-<!--        <item name="android:textSize">20dp</item>-->
-        <item name="android:textColor">#FFFFFF</item>
-        <!-- include other attributes you want to change: textColor, textStyle, etc -->
-    </style>
-
-    <style name="ToolbarSubtitleTheme" parent="@style/TextAppearance.Widget.AppCompat.Toolbar.Subtitle">
-        <item name="android:textColor">@color/mid_grey</item>
-        <item name="android:textStyle">italic</item>
-<!--        <item name="android:textSize">14dp</item>-->
-    </style>
-
     <style name="DialogTheme" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <item name="colorPrimary">@color/colorAccent</item>
     </style>

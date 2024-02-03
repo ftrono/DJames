@@ -37,8 +37,10 @@
                 android:layout_height="?attr/actionBarSize"
                 app:title="@string/app_title"
                 app:subtitle=""
-                app:subtitleTextAppearance="@style/ToolbarSubtitleTheme"
                 android:background="@color/colorPrimary"
+                app:titleCentered="true"
+                app:subtitleCentered="true"
+                app:subtitleTextColor="@color/mid_grey"
                 app:popupTheme="@style/AppTheme.PopupOverlay"
                 app:layout_scrollFlags="noScroll" />
 

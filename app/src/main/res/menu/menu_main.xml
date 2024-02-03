@@ -6,7 +6,7 @@
         android:id="@+id/action_login"
         android:orderInCategory="1"
         android:title="Login"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
     <item
         android:id="@+id/action_settings"
         android:orderInCategory="2"

@@ -4,7 +4,7 @@
     <!-- Main: DJames view -->
     <string name="str_main_not_logged">Hi, Sir!\nPlease, LOGIN first!</string>
     <string name="str_main_start">Hi, Sir!\nTap on START to begin! 🚗</string>
-    <string name="str_main_stop">Hi Sir!\nAsk me anything! 🚗</string>
+    <string name="str_main_stop">Hi Sir!\nAsk me to play a Spotify Song! 🚗</string>
     <string name="str_use_not_logged">To work, I need access to your\nSpotify music!💿</string>
     <string name="str_use_logged">Use the FLOATING button, the VOLUME UP button,\nor a remote SHUTTER button to\nrecord a voice request!</string>
     <!-- Main: Login Status -->

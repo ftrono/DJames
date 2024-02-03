@@ -133,7 +133,7 @@ class MainActivity : AppCompatActivity() {
                 //Start fake lock screen:
                 val intent1 = Intent(this@MainActivity, FakeLockScreen::class.java)
                 startActivity(intent1)
-                Toast.makeText(applicationContext, "Ready to get your voice requests!", Toast.LENGTH_LONG).show()
+                Toast.makeText(applicationContext, "Ask me to play a Spotify Song!", Toast.LENGTH_LONG).show()
 //                Snackbar.make(findViewById(R.id.content_main), getString(R.string.str_use_logged), Snackbar.LENGTH_LONG)
 //                    .setAction("CLOSE") { }
 //                    .setActionTextColor(resources.getColor(android.R.color.holo_red_light))

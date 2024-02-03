@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     //Views:
     private var toolbar: Toolbar? = null
     private var baloon: View? = null
+    private var baloon_arrow: View? = null
     private var mega_face: ImageView? = null
     private var density: Float = 0F
 
@@ -62,6 +63,7 @@ class MainActivity : AppCompatActivity() {
 
         descr_login_status = findViewById<TextView>(R.id.descr_login_status)
         baloon = findViewById<View>(R.id.baloon)
+        baloon_arrow = findViewById<View>(R.id.baloon_arrow)
         descr_main = findViewById<TextView>(R.id.descr_main)
         descr_use = findViewById<TextView>(R.id.descr_use)
         mega_face = findViewById<ImageView>(R.id.DJames_face)
@@ -81,7 +83,16 @@ class MainActivity : AppCompatActivity() {
                 rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
                 topToBottom = R.id.descr_login_status
                 rightToLeft = R.id.baloon
-                setMargins(0, 0,(50*density).roundToInt(),0)
+                setMargins(0, 0, (50*density).roundToInt(),0)   //marginRight
+            }
+            baloon_arrow!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
+                rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
+                topToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
+                topToTop = R.id.baloon
+                bottomToBottom = R.id.baloon
+                rightToLeft = R.id.baloon
+                setMargins(0, 0,(-25*density).roundToInt(),0)   //marginRight
             }
         }
 
@@ -220,7 +231,16 @@ class MainActivity : AppCompatActivity() {
                 rightToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
                 topToBottom = R.id.baloon
                 rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
-                setMargins(0,(20*density).roundToInt(),0,0)
+                setMargins(0, (20*density).roundToInt(),0,0)   //marginTop
+            }
+            baloon_arrow!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                topToTop = ConstraintLayout.LayoutParams.UNSET   //clear
+                bottomToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
+                rightToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
+                leftToLeft = R.id.baloon
+                rightToRight = R.id.baloon
+                topToBottom = R.id.baloon
+                setMargins(0, (-40*density).roundToInt(),0,0)   //marginTop
             }
         }
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -234,7 +254,16 @@ class MainActivity : AppCompatActivity() {
                 rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
                 topToBottom = R.id.descr_login_status
                 rightToLeft = R.id.baloon
-                setMargins(0,0, (50*density).roundToInt(),0)
+                setMargins(0,0, (50*density).roundToInt(),0)   //marginRight
+            }
+            baloon_arrow!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
+                rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
+                topToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
+                topToTop = R.id.baloon
+                bottomToBottom = R.id.baloon
+                rightToLeft = R.id.baloon
+                setMargins(0, 0,(-25*density).roundToInt(),0)   //marginRight
             }
         }
     }

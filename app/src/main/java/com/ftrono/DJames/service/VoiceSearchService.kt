@@ -27,7 +27,7 @@ import java.io.File
 class VoiceSearchService : Service() {
     //Main:
     private val TAG = VoiceSearchService::class.java.simpleName
-    //private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+//    private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
     //Recorder:
     private val recorder by lazy {
@@ -175,7 +175,7 @@ class VoiceSearchService : Service() {
                     }
 
                     //Play START tone:
-                    toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)
+                    toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
 
                     //Start recording (default: cacheDir, alternative: saveDir):
                     var it = File(cacheDir, "audio.mp3")
@@ -188,8 +188,14 @@ class VoiceSearchService : Service() {
                     recorder.stop()
                     Log.d(TAG, "RECORDING STOPPED.")
 
-                    //Play STOP tone:
-                    toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)
+                    if (recorderFail) {
+                        //Play FAIL tone:
+                        toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                        recorderFail = false
+                    } else {
+                        //Play STOP tone:
+                        toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
+                    }
 
                     //Lower volume if maximum (to enable Receiver):
                     if (audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {

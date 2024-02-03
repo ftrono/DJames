@@ -37,7 +37,8 @@ class AndroidAudioRecorder(private val context: Context): AudioRecorder {
                 recorder = this
             }
         } catch (e: Exception) {
-            Log.d(TAG, "ERROR: Recorder not started.", e)
+            recorderFail = true
+            Log.d(TAG, "ERROR: Recorder start FAIL.", e)
             //Toast.makeText(context, "ERROR: Recorder not started.", Toast.LENGTH_SHORT).show()
         }
     }
@@ -49,7 +50,8 @@ class AndroidAudioRecorder(private val context: Context): AudioRecorder {
             recorder!!.release()
             recorder = null
         } catch (e: Exception) {
-            Log.d(TAG, "ERROR: Recorder not stopped.", e)
+            recorderFail = true
+            Log.d(TAG, "ERROR: Recorder stop FAIL.", e)
             //Toast.makeText(context, "ERROR: Recorder not stopped.", Toast.LENGTH_SHORT).show()
         }
     }

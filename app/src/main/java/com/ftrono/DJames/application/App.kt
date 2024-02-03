@@ -25,6 +25,7 @@ var recordingMode: Boolean = false
 var overlay_active: Boolean = false
 var loggedIn: Boolean = false
 var clock_active: Boolean = false
+var recorderFail: Boolean = false
 
 //Spotify Scopes:
 val scopes = arrayOf(

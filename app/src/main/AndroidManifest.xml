@@ -23,7 +23,8 @@
             android:name=".application.MainActivity"
             android:configChanges="orientation|screenSize"
             android:theme="@style/AppTheme.NoActionBar"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.provider.MediaStore.RECORD_SOUND" />
@@ -35,6 +36,7 @@
             android:name=".application.SettingsActivity"
             android:configChanges="orientation|screenSize"
             android:label="Settings"
+            android:launchMode="singleInstance"
             android:parentActivityName=".application.MainActivity">
         </activity>
 
@@ -43,6 +45,7 @@
             android:configChanges="orientation|screenSize"
             android:label="FakeLockScreen"
             android:theme="@style/AppTheme.FakeLockScreen"
+            android:launchMode="singleInstance"
             android:parentActivityName=".application.MainActivity">
         </activity>
         <activity

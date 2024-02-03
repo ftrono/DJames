@@ -44,7 +44,6 @@ class FloatingViewService : Service() {
     private var mFloatingView: View? = null
     private var mCloseView: View? = null
     private var clockModeView: View? = null
-    private var clockModeValue: TextView? = null
     private var params: LayoutParams? = null
     private var params2: LayoutParams? = null
 
@@ -157,24 +156,13 @@ class FloatingViewService : Service() {
 
             //Set the Clock Mode button
             clockModeView = mFloatingView!!.findViewById<View>(R.id.clock_button)
-            clockModeValue = mFloatingView!!.findViewById<TextView>(R.id.clock_value)
-            if (prefs.clockEnabled) {
-                clockModeValue!!.text = "ON"
-                clockModeValue!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorBusy))
-                clockModeView!!.setBackgroundResource(R.drawable.rounded_option_sel)
-            }
-
             clockModeView!!.setOnClickListener {
-                if (!prefs.clockEnabled) {
-                    prefs.clockEnabled = true
-                    clockModeValue!!.text = "ON"
-                    clockModeValue!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorBusy))
-                    clockModeView!!.setBackgroundResource(R.drawable.rounded_option_sel)
-                } else {
-                    prefs.clockEnabled = false
-                    clockModeValue!!.text = "OFF"
-                    clockModeValue!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
-                    clockModeView!!.setBackgroundResource(R.drawable.rounded_option)
+                if (!clock_active) {
+                    //Start fake lock screen:
+                    val intent1 = Intent(this, FakeLockScreen::class.java)
+                    intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_PREVIOUS_IS_TOP)
+                    intent1.putExtra("fromwhere", "ser")
+                    startActivity(intent1)
                 }
             }
 

@@ -1,5 +1,6 @@
 package com.ftrono.DJames.application
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -7,7 +8,6 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import android.content.res.Configuration
-import android.provider.Settings
 import com.ftrono.DJames.R
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -16,7 +16,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
-import kotlin.math.round
 import kotlin.math.roundToInt
 
 
@@ -45,6 +44,8 @@ class FakeLockScreen: AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.fake_lock_screen)
+
+        clock_active = true
 
         //Load views:
         clockView = findViewById<TextView>(R.id.text_clock)
@@ -93,6 +94,9 @@ class FakeLockScreen: AppCompatActivity() {
         //Exit buttons listeners:
         exitButtonVert!!.setOnClickListener(View.OnClickListener {
             finish()
+            //Start Main:
+            val intent1 = Intent(this, MainActivity::class.java)
+            startActivity(intent1)
         })
 
         //Date:
@@ -122,8 +126,29 @@ class FakeLockScreen: AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
+        clock_active = false
         handler!!.removeCallbacks(runnable!!)
+        super.onDestroy()
+    }
+
+    override fun onPause() {
+        clock_active = false
+        super.onPause()
+    }
+
+    override fun onStop() {
+        clock_active = false
+        super.onStop()
+    }
+
+    override fun onStart() {
+        clock_active = true
+        super.onStart()
+    }
+
+    override fun onResume() {
+        clock_active = true
+        super.onResume()
     }
 
     fun setVerticalView() {
@@ -144,6 +169,13 @@ class FakeLockScreen: AppCompatActivity() {
         }
         //Fix Clock text size:
         clockView!!.textSize = 150F
+    }
+
+    override fun onBackPressed() {
+        finish()
+        //Start Main:
+        val intent1 = Intent(this, MainActivity::class.java)
+        startActivity(intent1)
     }
 
     fun setHorizontalView() {

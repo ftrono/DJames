@@ -2,6 +2,7 @@ package com.ftrono.DJames.application
 
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -61,6 +62,9 @@ class SettingsActivity : AppCompatActivity() {
             saveAll(newRecTimeout, newMapsTimeout, newClockTimeout, newMapsAddress)
             Toast.makeText(applicationContext, "Settings saved!", Toast.LENGTH_SHORT).show()
             finish()
+            //Start Main:
+            val intent1 = Intent(this, MainActivity::class.java)
+            startActivity(intent1)
         })
     }
 
@@ -80,6 +84,9 @@ class SettingsActivity : AppCompatActivity() {
                     saveAll(newRecTimeout, newMapsTimeout, newClockTimeout, newMapsAddress)
                     Toast.makeText(applicationContext, "Settings saved!", Toast.LENGTH_SHORT).show()
                     finish()
+                    //Start Main:
+                    val intent1 = Intent(applicationContext, MainActivity::class.java)
+                    startActivity(intent1)
                 }
             })
             //Exit without saving:
@@ -88,6 +95,9 @@ class SettingsActivity : AppCompatActivity() {
                     Toast.makeText(applicationContext, "Settings NOT saved.", Toast.LENGTH_SHORT)
                         .show()
                     finish()
+                    //Start Main:
+                    val intent1 = Intent(applicationContext, MainActivity::class.java)
+                    startActivity(intent1)
                 }
             })
             alertDialog.setTitle("Warning")
@@ -95,6 +105,9 @@ class SettingsActivity : AppCompatActivity() {
             alertDialog.show()
         } else {
             finish()
+            //Start Main:
+            val intent1 = Intent(this, MainActivity::class.java)
+            startActivity(intent1)
         }
     }
 

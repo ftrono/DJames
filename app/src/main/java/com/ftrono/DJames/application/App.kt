@@ -4,7 +4,6 @@ import androidx.appcompat.app.ActionBar
 import android.app.Application
 import android.content.Context
 import android.media.AudioManager
-import android.os.PowerManager
 import android.view.MenuItem
 import android.widget.ImageView
 import android.view.View
@@ -19,13 +18,13 @@ import java.util.concurrent.TimeUnit
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-var powerManager: PowerManager?= null
 var audioManager: AudioManager? = null
 var streamMaxVolume : Int = 0
 var screenOn : Boolean = true
 var recordingMode: Boolean = false
 var overlay_active: Boolean = false
 var loggedIn: Boolean = false
+var clock_active: Boolean = false
 
 //Spotify Scopes:
 val scopes = arrayOf(

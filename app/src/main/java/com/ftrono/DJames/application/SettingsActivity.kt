@@ -7,7 +7,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.appcompat.app.AppCompatActivity
 import com.ftrono.DJames.R
 
@@ -73,7 +73,7 @@ class SettingsActivity : AppCompatActivity() {
 
         //If changes made: show alert dialog:
         if (prefs.recTimeout != newRecTimeout || prefs.mapsTimeout != newMapsTimeout || prefs.clockTimeout != newClockTimeout || prefs.mapsAddress != newMapsAddress) {
-            val alertDialog = AlertDialog.Builder(this)
+            val alertDialog = MaterialAlertDialogBuilder(this)
             //Save all:
             alertDialog.setPositiveButton("Yes", object : OnClickListener {
                 override fun onClick(dialog: DialogInterface?, which: Int) {

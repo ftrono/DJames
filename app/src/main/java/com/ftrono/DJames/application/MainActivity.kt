@@ -17,7 +17,7 @@ import android.widget.ImageView
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
@@ -281,7 +281,7 @@ class MainActivity : AppCompatActivity() {
 
     //Logout user:
     fun logout() {
-        val alertDialog = AlertDialog.Builder(this)
+        val alertDialog = MaterialAlertDialogBuilder(this)
         //Save all:
         alertDialog.setPositiveButton("Yes", object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {

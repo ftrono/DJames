@@ -1,35 +1,160 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
+    android:id="@+id/content_main"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:fillViewport="true"
+    android:background="@color/black"
+    android:forceDarkAllowed="true"
+    android:nestedScrollingEnabled="true"
     tools:context="com.ftrono.DJames.application.MainActivity"
-    android:forceDarkAllowed="true">
+    tools:ignore="ContentDescription">
 
-    <com.google.android.material.appbar.AppBarLayout
+    <!-- App toolbar (placeholder) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay"
-        app:layout_scrollFlags="noScroll">
+        android:background="@color/colorPrimaryDark"
+        tools:context="com.ftrono.DJames.application.MainActivity">
 
-        <com.google.android.material.appbar.MaterialToolbar
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBarLayout"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:title="@string/app_title"
-            app:subtitle=""
-            android:id="@+id/toolbar"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
+            android:layout_height="wrap_content"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_scrollFlags="noScroll"
-            app:titleTextAppearance="@style/ToolbarTitleTheme"
-            app:subtitleTextAppearance="@style/ToolbarSubtitleTheme"/>
+            android:fitsSystemWindows="true">
 
-    </com.google.android.material.appbar.AppBarLayout>
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:title="@string/app_title"
+                app:subtitle=""
+                app:subtitleTextAppearance="@style/ToolbarSubtitleTheme"
+                android:background="@color/colorPrimary"
+                app:popupTheme="@style/AppTheme.PopupOverlay"
+                app:layout_scrollFlags="noScroll" />
 
-    <include
-        layout="@layout/content_main"
-        android:background="@color/colorPrimaryDark" />
+        </com.google.android.material.appbar.AppBarLayout>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <!-- Main -->
+        <TextView
+            android:id="@+id/descr_login_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="20dp"
+            android:text="@string/str_status_logged"
+            android:textAlignment="center"
+            android:textColor="@color/light_grey"
+            android:textSize="12dp"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/appBarLayout"
+            app:layout_constraintBottom_toTopOf="@+id/baloon"
+            tools:ignore="TextSizeCheck" />
+
+        <!-- Baloon -->
+        <View
+            android:id="@+id/baloon"
+            android:layout_width="320dp"
+            android:layout_height="150dp"
+            android:background="@drawable/baloon"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/descr_login_status"
+            app:layout_constraintBottom_toTopOf="@+id/DJames_face" />
+
+        <TextView
+            android:id="@+id/descr_main"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/str_main_start"
+            android:textAlignment="center"
+            android:textColor="@color/light_grey"
+            android:textSize="16dp"
+            android:textStyle="italic"
+            android:layout_marginBottom="10dp"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintLeft_toLeftOf="@+id/baloon"
+            app:layout_constraintRight_toRightOf="@+id/baloon"
+            app:layout_constraintTop_toTopOf="@+id/baloon"
+            app:layout_constraintBottom_toTopOf="@+id/descr_use"
+            tools:ignore="TextSizeCheck" />
+
+        <TextView
+            android:id="@+id/descr_use"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:text="@string/str_use_logged"
+            android:textAlignment="center"
+            android:textColor="@color/mid_grey"
+            android:textSize="12dp"
+            android:textStyle="italic"
+            android:layout_marginBottom="15dp"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintLeft_toLeftOf="@+id/baloon"
+            app:layout_constraintRight_toRightOf="@+id/baloon"
+            app:layout_constraintTop_toBottomOf="@+id/descr_main"
+            app:layout_constraintBottom_toBottomOf="@+id/baloon"
+            tools:ignore="TextSizeCheck" />
+
+        <!-- Mega-face -->
+        <ImageView
+            android:id="@+id/DJames_face"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:src="@drawable/djames_logo"
+            android:layout_marginTop="20dp"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/baloon"
+            app:layout_constraintBottom_toTopOf="@+id/start_button"/>
+
+        <ImageView
+            android:id="@+id/face_cover"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:background="@color/transparent_bg"
+            android:visibility="invisible"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintLeft_toLeftOf="@+id/DJames_face"
+            app:layout_constraintRight_toRightOf="@+id/DJames_face"
+            app:layout_constraintTop_toTopOf="@+id/DJames_face"
+            app:layout_constraintBottom_toBottomOf="@+id/DJames_face"/>
+
+        <!-- Button -->
+        <Button
+            android:id="@+id/start_button"
+            android:layout_width="150dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="20dp"
+            android:backgroundTint="@color/colorAccent"
+            android:text="S T A R T"
+            android:textColor="@color/light_grey"
+            android:textStyle="bold"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/DJames_face"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

@@ -278,14 +278,16 @@ class FloatingViewService : Service() {
         super.onDestroy()
         try {
             if (mFloatingView != null) mWindowManager!!.removeView(mFloatingView)
+            fs_active = false
+            recordingMode = false
             //unregister receivers:
             unregisterReceiver(eventReceiver)
             Log.d(TAG, "Receiver stopped.")
-            //reset views & stop threads:
+            //reset views:
             overlayButton = null
             overlayIcon = null
-            fs_active = false
-            recordingMode = false
+            overlayClockButton = null
+            overlayClockText = null
             //Thread check:
             if (volumeThread.isAlive()){
                 volumeThread.interrupt()

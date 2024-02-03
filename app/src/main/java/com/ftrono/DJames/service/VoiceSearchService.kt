@@ -188,10 +188,10 @@ class VoiceSearchService : Service() {
                     recorder.stop()
                     Log.d(TAG, "RECORDING STOPPED.")
 
-                    if (recorderFail) {
+                    if (searchFail) {
                         //Play FAIL tone:
                         toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-                        recorderFail = false
+                        searchFail = false
                     } else {
                         //Play STOP tone:
                         toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
@@ -214,9 +214,19 @@ class VoiceSearchService : Service() {
                     }
 
                     //AFTER RECORDING:
-                    //Spotify result:
+                    //Spotify result (TEMP):
                     var spotifyToOpen =
                         "https://open.spotify.com/track/6atVS7UZBxoyJkkteM62u5?si=rLCB_v7EQrSTfTXe2QLqQg"
+                    songName = "Clarity"
+                    artistName = "John Mayer"
+                    contextName = "The Blue Room"
+
+                    //Send broadcast:
+                    Intent().also { intent ->
+                        intent.setAction(ACTION_NEW_SONG)
+                        sendBroadcast(intent)
+                    }
+
                     //Open links and redirects:
                     openResults(spotifyToOpen)
                 }

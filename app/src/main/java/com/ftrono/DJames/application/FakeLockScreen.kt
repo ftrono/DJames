@@ -1,6 +1,7 @@
 package com.ftrono.DJames.application
 
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -16,6 +17,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
+import com.ftrono.DJames.receivers.EventReceiver
 import kotlin.math.roundToInt
 
 
@@ -28,16 +30,17 @@ class FakeLockScreen: AppCompatActivity() {
 
     private var clockView: TextView? = null
     private var exitButtonVert: View? = null
-    private var songName: TextView? = null
-    private var artistName: TextView? = null
-    private var contextName: TextView? = null
 
+    //Parameters:
     private var density: Float = 0F
     private var now: LocalDateTime? = null
     private val dateFormat = DateTimeFormatter.ofPattern("E, dd MMM")
     private val hourFormat = DateTimeFormatter.ofPattern("HH")
     private val minsFormat = DateTimeFormatter.ofPattern("mm")
     private var clockSeparator: String = "\n"
+
+    //Receiver:
+    var eventReceiver = EventReceiver()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,9 +58,22 @@ class FakeLockScreen: AppCompatActivity() {
         //Load views:
         clockView = findViewById<TextView>(R.id.text_clock)
         exitButtonVert = findViewById<View>(R.id.exit_button)
-        songName = findViewById<TextView>(R.id.song_name)
-        artistName = findViewById<TextView>(R.id.artist_name)
-        contextName = findViewById<TextView>(R.id.context_name)
+        songView = findViewById<TextView>(R.id.song_name)
+        artistView = findViewById<TextView>(R.id.artist_name)
+        contextView = findViewById<TextView>(R.id.context_name)
+
+        //PLAYER INFO AREA:
+        if (songName == "") {
+            //Show hints:
+            songView!!.text = "Don't turn off the screen!"
+            artistView!!.text = "Keep this Clock Screen on to save battery"
+            contextView!!.text = "(unless you're using Maps)"
+        } else {
+            //Currently playing:
+            songView!!.text = songName
+            artistView!!.text = artistName
+            contextView!!.text = contextName
+        }
 
         //Screen density:
         density = applicationContext.resources.displayMetrics.density
@@ -79,7 +95,7 @@ class FakeLockScreen: AppCompatActivity() {
                 setMargins((50*density).roundToInt(),0,0,0)
             }
             //Fix constraint for last textView:
-            contextName!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+            contextView!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
                 bottomToTop = ConstraintLayout.LayoutParams.UNSET   //clear
                 bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
             }
@@ -103,6 +119,14 @@ class FakeLockScreen: AppCompatActivity() {
             val intent1 = Intent(this, MainActivity::class.java)
             startActivity(intent1)
         })
+
+        //Start Receiver:
+        val filter = IntentFilter()
+        filter.addAction(ACTION_NEW_SONG)
+
+        //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
+        registerReceiver(eventReceiver, filter, RECEIVER_EXPORTED)
+        Log.d(TAG, "Receiver started.")
 
         //Date:
         val dateView = findViewById<TextView>(R.id.text_date)
@@ -138,6 +162,12 @@ class FakeLockScreen: AppCompatActivity() {
             sendBroadcast(intent)
         }
         handler!!.removeCallbacks(runnable!!)
+        //unregister receivers:
+        unregisterReceiver(eventReceiver)
+        //empty views:
+        songView = null
+        artistView = null
+        contextView = null
         super.onDestroy()
     }
 
@@ -193,7 +223,7 @@ class FakeLockScreen: AppCompatActivity() {
             setMargins(0,(40*density).roundToInt(),0,0)
         }
         //Fix constraint for last textView:
-        contextName!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+        contextView!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
             bottomToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
             bottomToTop = R.id.exit_button
         }
@@ -220,7 +250,7 @@ class FakeLockScreen: AppCompatActivity() {
             setMargins((50*density).roundToInt(),0,0,0)
         }
         //Fix constraint for last textView:
-        contextName!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+        contextView!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
             bottomToTop = ConstraintLayout.LayoutParams.UNSET   //clear
             bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
         }

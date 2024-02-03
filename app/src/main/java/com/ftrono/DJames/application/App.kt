@@ -25,7 +25,12 @@ var recordingMode: Boolean = false
 var overlay_active: Boolean = false
 var loggedIn: Boolean = false
 var clock_active: Boolean = false
-var recorderFail: Boolean = false
+var searchFail: Boolean = false
+
+//Player info:
+var songName: String = ""
+var artistName: String = ""
+var contextName: String = ""
 
 //Spotify Scopes:
 val scopes = arrayOf(
@@ -78,11 +83,17 @@ var face_cover: View? = null
 var startButton: Button? = null
 var loginButton: MenuItem? = null
 
+//Player views:
+var songView: TextView? = null
+var artistView: TextView? = null
+var contextView: TextView? = null
+
 //Broadcasts:
 const val ACTION_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_LOGGED_IN"
 const val ACTION_OVERLAY_DEACTIVATED = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_DEACTIVATED"
 const val ACTION_CLOCK_OPENED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_OPENED"
 const val ACTION_CLOCK_CLOSED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_CLOSED"
+const val ACTION_NEW_SONG = "com.ftrono.DJames.eventReceiver.ACTION_NEW_SONG"
 
 
 class App: Application()

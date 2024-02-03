@@ -93,7 +93,7 @@ class EventReceiver: BroadcastReceiver() {
             }
         }
 
-        //when overlay status changed:
+        //when Fake Lock Screen is opened:
         if (intent.action == ACTION_CLOCK_OPENED) {
             Log.d(TAG, "ACTION_CLOCK_OPENED.")
             if (!recordingMode) {
@@ -108,7 +108,7 @@ class EventReceiver: BroadcastReceiver() {
             }
         }
 
-        //when overlay status changed:
+        //when Fake Lock Screen is closed:
         if (intent.action == ACTION_CLOCK_CLOSED) {
             Log.d(TAG, "ACTION_CLOCK_CLOSED.")
             if (!recordingMode) {
@@ -119,6 +119,21 @@ class EventReceiver: BroadcastReceiver() {
                     overlayClockText!!.visibility = View.VISIBLE
                 } catch (e: Exception) {
                     Log.d(TAG, "ACTION_CLOCK_CLOSED: resources not available.")
+                }
+            }
+        }
+
+        //when a new song is played:
+        if (intent.action == ACTION_NEW_SONG) {
+            Log.d(TAG, "ACTION_NEW_SONG.")
+            if (clock_active) {
+                try {
+                    //Populate player info:
+                    songView!!.text = songName
+                    artistView!!.text = artistName
+                    contextView!!.text = contextName
+                } catch (e: Exception) {
+                    Log.d(TAG, "ACTION_NEW_SONG: resources not available.")
                 }
             }
         }

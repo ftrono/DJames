@@ -167,10 +167,13 @@ class MainActivity : AppCompatActivity() {
         //unregister receivers:
         unregisterReceiver(eventReceiver)
         //empty views:
-        loginButton = null
+        mainActionBar = null
         descr_login_status = null
         descr_main = null
         descr_use = null
+        face_cover = null
+        loginButton = null
+        startButton = null
     }
 
 

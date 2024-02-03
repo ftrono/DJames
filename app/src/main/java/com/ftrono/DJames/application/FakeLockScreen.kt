@@ -46,6 +46,11 @@ class FakeLockScreen: AppCompatActivity() {
         setContentView(R.layout.fake_lock_screen)
 
         clock_active = true
+        //Send broadcast:
+        Intent().also { intent ->
+            intent.setAction(ACTION_CLOCK_OPENED)
+            sendBroadcast(intent)
+        }
 
         //Load views:
         clockView = findViewById<TextView>(R.id.text_clock)
@@ -127,27 +132,52 @@ class FakeLockScreen: AppCompatActivity() {
 
     override fun onDestroy() {
         clock_active = false
+        //Send broadcast:
+        Intent().also { intent ->
+            intent.setAction(ACTION_CLOCK_CLOSED)
+            sendBroadcast(intent)
+        }
         handler!!.removeCallbacks(runnable!!)
         super.onDestroy()
     }
 
     override fun onPause() {
         clock_active = false
+        //Send broadcast:
+        Intent().also { intent ->
+            intent.setAction(ACTION_CLOCK_CLOSED)
+            sendBroadcast(intent)
+        }
         super.onPause()
     }
 
     override fun onStop() {
         clock_active = false
+        //Send broadcast:
+        Intent().also { intent ->
+            intent.setAction(ACTION_CLOCK_CLOSED)
+            sendBroadcast(intent)
+        }
         super.onStop()
     }
 
     override fun onStart() {
         clock_active = true
+        //Send broadcast:
+        Intent().also { intent ->
+            intent.setAction(ACTION_CLOCK_OPENED)
+            sendBroadcast(intent)
+        }
         super.onStart()
     }
 
     override fun onResume() {
         clock_active = true
+        //Send broadcast:
+        Intent().also { intent ->
+            intent.setAction(ACTION_CLOCK_OPENED)
+            sendBroadcast(intent)
+        }
         super.onResume()
     }
 

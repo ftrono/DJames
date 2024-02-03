@@ -65,6 +65,8 @@ val client = OkHttpClient.Builder()
 //Overlay resources:
 var overlayButton: View? = null
 var overlayIcon: ImageView? = null
+var overlayClockButton: View? = null
+var overlayClockText: TextView? = null
 
 //View resources:
 var mainActionBar: ActionBar? = null
@@ -78,6 +80,8 @@ var loginButton: MenuItem? = null
 //Broadcasts:
 const val ACTION_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_LOGGED_IN"
 const val ACTION_OVERLAY_DEACTIVATED = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_DEACTIVATED"
+const val ACTION_CLOCK_OPENED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_OPENED"
+const val ACTION_CLOCK_CLOSED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_CLOSED"
 
 
 class App: Application()

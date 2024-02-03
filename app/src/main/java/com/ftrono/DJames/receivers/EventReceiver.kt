@@ -93,6 +93,36 @@ class EventReceiver: BroadcastReceiver() {
             }
         }
 
+        //when overlay status changed:
+        if (intent.action == ACTION_CLOCK_OPENED) {
+            Log.d(TAG, "ACTION_CLOCK_OPENED.")
+            if (!recordingMode) {
+                try {
+                    overlayButton!!.setBackgroundResource(R.drawable.rounded_button_dark)
+                    overlayIcon!!.setImageResource(R.drawable.speak_icon_gray)
+                    overlayClockButton!!.visibility = View.INVISIBLE
+                    overlayClockText!!.visibility = View.INVISIBLE
+                } catch (e: Exception) {
+                    Log.d(TAG, "ACTION_CLOCK_OPENED: resources not available.")
+                }
+            }
+        }
+
+        //when overlay status changed:
+        if (intent.action == ACTION_CLOCK_CLOSED) {
+            Log.d(TAG, "ACTION_CLOCK_CLOSED.")
+            if (!recordingMode) {
+                try {
+                    overlayButton!!.setBackgroundResource(R.drawable.rounded_button_ready)
+                    overlayIcon!!.setImageResource(R.drawable.speak_icon)
+                    overlayClockButton!!.visibility = View.VISIBLE
+                    overlayClockText!!.visibility = View.VISIBLE
+                } catch (e: Exception) {
+                    Log.d(TAG, "ACTION_CLOCK_CLOSED: resources not available.")
+                }
+            }
+        }
+
     }
 
 }

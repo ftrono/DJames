@@ -26,7 +26,6 @@ import android.view.WindowManager.LayoutParams
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
@@ -43,7 +42,6 @@ class FloatingViewService : Service() {
     private var mWindowManager: WindowManager? = null
     private var mFloatingView: View? = null
     private var mCloseView: View? = null
-    private var clockModeView: View? = null
     private var params: LayoutParams? = null
     private var params2: LayoutParams? = null
 
@@ -100,6 +98,8 @@ class FloatingViewService : Service() {
             filter.addAction(Intent.ACTION_SCREEN_ON)
             filter.addAction(Intent.ACTION_SCREEN_OFF)
             filter.addAction("android.media.VOLUME_CHANGED_ACTION")
+            filter.addAction(ACTION_CLOCK_OPENED)
+            filter.addAction(ACTION_CLOCK_CLOSED)
 
             //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
             registerReceiver(eventReceiver, filter, RECEIVER_EXPORTED)
@@ -154,9 +154,10 @@ class FloatingViewService : Service() {
                 mFloatingView!!.findViewById<View>(R.id.rounded_button)
             overlayIcon = mFloatingView!!.findViewById<ImageView>(R.id.record_icon)
 
-            //Set the Clock Mode button
-            clockModeView = mFloatingView!!.findViewById<View>(R.id.clock_button)
-            clockModeView!!.setOnClickListener {
+            //Set the overlay Clock button
+            overlayClockButton = mFloatingView!!.findViewById<View>(R.id.clock_button)
+            overlayClockText = mFloatingView!!.findViewById<TextView>(R.id.clock_text)
+            overlayClockButton!!.setOnClickListener {
                 if (!clock_active) {
                     //Start fake lock screen:
                     val intent1 = Intent(this, FakeLockScreen::class.java)
@@ -164,6 +165,10 @@ class FloatingViewService : Service() {
                     intent1.putExtra("fromwhere", "ser")
                     startActivity(intent1)
                 }
+            }
+            if (clock_active) {
+                overlayClockButton!!.visibility = View.INVISIBLE
+                overlayClockText!!.visibility = View.INVISIBLE
             }
 
             //VIEW EVENTS HANDLER:

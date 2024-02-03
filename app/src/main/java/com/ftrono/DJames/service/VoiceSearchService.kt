@@ -12,7 +12,6 @@ import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.ToneGenerator
 import android.net.Uri
-import android.os.Environment
 import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
@@ -172,6 +171,7 @@ class VoiceSearchService : Service() {
                     //Set overlay BUSY color:
                     if (screenOn && overlayButton != null) {
                         overlayButton!!.setBackgroundResource(R.drawable.rounded_button_busy)
+                        overlayIcon!!.setImageResource(R.drawable.speak_icon)
                     }
 
                     //Play START tone:
@@ -260,8 +260,13 @@ class VoiceSearchService : Service() {
         //Reset normal overlay ACCENT color & icon:
         if (screenOn && overlayButton != null && overlayIcon != null) {
             Thread.sleep(1000)   //default: 2000
-            overlayButton!!.setBackgroundResource(R.drawable.rounded_button_ready)
-            overlayIcon!!.setImageResource(R.drawable.speak_icon)
+            if (clock_active) {
+                overlayButton!!.setBackgroundResource(R.drawable.rounded_button_dark)
+                overlayIcon!!.setImageResource(R.drawable.speak_icon_gray)
+            } else {
+                overlayButton!!.setBackgroundResource(R.drawable.rounded_button_ready)
+                overlayIcon!!.setImageResource(R.drawable.speak_icon)
+            }
         }
         stopSelf()
     }

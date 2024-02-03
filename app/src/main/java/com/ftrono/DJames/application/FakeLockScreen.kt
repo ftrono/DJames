@@ -39,7 +39,6 @@ class FakeLockScreen: AppCompatActivity() {
     private val hourFormat = DateTimeFormatter.ofPattern("HH")
     private val minsFormat = DateTimeFormatter.ofPattern("mm")
     private var clockSeparator: String = "\n"
-    private var prevBrightness: Int = 255
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,25 +80,6 @@ class FakeLockScreen: AppCompatActivity() {
             //Fix Clock text size:
             clockView!!.textSize = 140F
         }
-
-        //Store prev brightness level:
-        prevBrightness = Settings.System.getInt(
-            applicationContext.contentResolver,
-            Settings.System.SCREEN_BRIGHTNESS
-        )
-        Log.d(TAG, "Brightness: $prevBrightness")
-
-        Settings.System.putInt(
-            applicationContext.contentResolver,
-            Settings.System.SCREEN_BRIGHTNESS,
-            round(((prevBrightness/3)*2).toDouble()).toInt()
-        )
-
-        val test = Settings.System.getInt(
-            applicationContext.contentResolver,
-            Settings.System.SCREEN_BRIGHTNESS
-        )
-        Log.d(TAG, "Brightness: $test")
 
         //Hide status bar:
         val mainContainer = findViewById<ConstraintLayout>(R.id.fake_lock_container)
@@ -144,12 +124,6 @@ class FakeLockScreen: AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         handler!!.removeCallbacks(runnable!!)
-        Settings.System.putInt(
-            applicationContext.contentResolver,
-            Settings.System.SCREEN_BRIGHTNESS,
-            prevBrightness
-        )
-        Log.d(TAG, "Brightness reset to: $prevBrightness")
     }
 
     fun setVerticalView() {

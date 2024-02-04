@@ -156,7 +156,8 @@ class FloatingViewService : Service() {
 
             //Set the overlay Clock button
             overlayClockButton = mFloatingView!!.findViewById<View>(R.id.clock_button)
-            overlayClockText = mFloatingView!!.findViewById<TextView>(R.id.clock_text)
+            overlayClockIcon = mFloatingView!!.findViewById<ImageView>(R.id.clock_icon)
+            overlayClockText = mFloatingView!!.findViewById<TextView>(R.id.clock_desc)
             overlayClockButton!!.setOnClickListener {
                 if (!clock_active) {
                     //Start fake lock screen:
@@ -168,6 +169,7 @@ class FloatingViewService : Service() {
             }
             if (clock_active) {
                 overlayClockButton!!.visibility = View.INVISIBLE
+                overlayClockIcon!!.visibility = View.INVISIBLE
                 overlayClockText!!.visibility = View.INVISIBLE
             }
 
@@ -287,6 +289,7 @@ class FloatingViewService : Service() {
             overlayButton = null
             overlayIcon = null
             overlayClockButton = null
+            overlayClockIcon = null
             overlayClockText = null
             //Thread check:
             if (volumeThread.isAlive()){

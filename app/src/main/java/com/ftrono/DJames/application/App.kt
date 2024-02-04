@@ -72,6 +72,7 @@ val client = OkHttpClient.Builder()
 var overlayButton: View? = null
 var overlayIcon: ImageView? = null
 var overlayClockButton: View? = null
+var overlayClockIcon: ImageView? = null
 var overlayClockText: TextView? = null
 
 //View resources:

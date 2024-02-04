@@ -138,7 +138,7 @@ class FakeLockScreen: AppCompatActivity() {
                 now = LocalDateTime.now()
                 dateView.text = now!!.format(dateFormat)
                 clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
-                handler!!.postDelayed(this, 5000)
+                handler!!.postDelayed(this, 10000)
             }
         }
         handler!!.post(runnable!!)

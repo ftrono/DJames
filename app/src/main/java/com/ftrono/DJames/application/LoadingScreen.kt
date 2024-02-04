@@ -66,7 +66,7 @@ class LoadingScreen: AppCompatActivity() {
                     Log.d(TAG, "AUTH SUCCESS: Access & Refresh tokens received!")
 
                     //Get user profile data:
-                    //BUILD POST REQUEST:
+                    //BUILD GET REQUEST:
                     url = "https://api.spotify.com/v1/me"
                     request = Request.Builder()
                         .url(url)
@@ -106,6 +106,7 @@ class LoadingScreen: AppCompatActivity() {
                     Toast.makeText(applicationContext, "Authentication ERROR: not logged in.", Toast.LENGTH_LONG).show()
                 }
             } else {
+                Log.d(TAG, "EMPTY RESPONSE!")
                 Toast.makeText(applicationContext, "Authentication ERROR: not logged in.", Toast.LENGTH_LONG).show()
             }
             grantToken = ""

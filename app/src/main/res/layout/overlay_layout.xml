@@ -10,26 +10,37 @@
         android:id="@+id/clock_button"
         android:layout_width="65dp"
         android:layout_height="45dp"
-        android:background="@drawable/rounded_option"
+        android:background="@drawable/rounded_clock_button"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/rounded_button"
         app:layout_constraintVertical_chainStyle="packed" />
 
-    <TextView
-        android:id="@+id/clock_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAlignment="center"
-        android:textColor="@color/light_grey"
-        android:text= "🕑\nCLOCK"
-        android:textSize="12dp"
-        android:textStyle="bold"
+    <ImageView
+        android:id="@+id/clock_icon"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:src="@drawable/clock_icon"
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintLeft_toLeftOf="@+id/clock_button"
         app:layout_constraintRight_toRightOf="@+id/clock_button"
         app:layout_constraintTop_toTopOf="@+id/clock_button"
+        app:layout_constraintBottom_toTopOf="@+id/clock_desc"/>
+
+    <TextView
+        android:id="@+id/clock_desc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:textColor="@color/mid_grey"
+        android:text= "CLOCK"
+        android:textSize="8dp"
+        android:textStyle="bold"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintLeft_toLeftOf="@+id/clock_button"
+        app:layout_constraintRight_toRightOf="@+id/clock_button"
+        app:layout_constraintTop_toBottomOf="@+id/clock_icon"
         app:layout_constraintBottom_toBottomOf="@+id/clock_button"/>
 
     <View

@@ -6,17 +6,10 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.ftrono.DJames.R
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.FormBody
 import okhttp3.Headers
-import okhttp3.Response
-import okhttp3.Callback
-import okhttp3.Call
-import java.io.IOException
 import java.util.Base64
-import kotlin.coroutines.suspendCoroutine
-import kotlin.coroutines.resume
 import androidx.lifecycle.coroutineScope
 import kotlinx.coroutines.launch
 import com.google.gson.JsonParser
@@ -56,13 +49,13 @@ class LoadingScreen: AppCompatActivity() {
 
         //CALL POST REQUEST:
         lifecycle.coroutineScope.launch {
-            var response = makeRequest(client, request)
+            var response = utils.makeRequest(client, request)
             if (response != "") {
                 try {
                     //RESPONSE RECEIVED -> TOKENS:
                     var respJSON = JsonParser.parseString(response).asJsonObject
-                    spotToken = respJSON.get("access_token").toString().replace("\"", "")
-                    refrToken = respJSON.get("refresh_token").toString().replace("\"", "")
+                    spotToken = respJSON.get("access_token").asString
+                    refrToken = respJSON.get("refresh_token").asString
                     Log.d(TAG, "AUTH SUCCESS: Access & Refresh tokens received!")
 
                     //Get user profile data:
@@ -74,18 +67,18 @@ class LoadingScreen: AppCompatActivity() {
                         .build()
 
                     //GET:
-                    response = makeRequest(client, request)
+                    response = utils.makeRequest(client, request)
                     if (response != "") {
                         try {
                             //RESPONSE RECEIVED -> USER'S PROFILE DATA:
                             respJSON = JsonParser.parseString(response).asJsonObject
-                            var product = respJSON.get("product").toString().replace("\"", "")
+                            var product = respJSON.get("product").asString
                             //User must be PREMIUM:
                             if (product == "premium" || product == "duo" || product == "family") {
                                 //SUCCESS!
                                 prefs.spotifyToken = spotToken
                                 prefs.refreshToken = refrToken
-                                prefs.userName = respJSON.get("display_name").toString().replace("\"", "")
+                                prefs.userName = respJSON.get("display_name").asString
                                 //Send broadcast:
                                 Intent().also { intent ->
                                     intent.setAction(ACTION_LOGGED_IN)
@@ -113,20 +106,6 @@ class LoadingScreen: AppCompatActivity() {
             finish()
         }
 
-    }
-
-
-    suspend fun makeRequest(client: OkHttpClient, request: Request): String = suspendCoroutine { continuation ->
-        client.newCall(request).enqueue(object: Callback {
-            override fun onResponse(call: Call, response: Response) {
-                continuation.resume(response.body!!.string())
-            }
-
-            override fun onFailure(call: Call, e: IOException) {
-                continuation.resume("")
-                Log.d(TAG, "RESPONSE ERROR: ", e)
-            }
-        })
     }
 
     override fun onBackPressed() {

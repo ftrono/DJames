@@ -19,14 +19,18 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.application.*
 import com.ftrono.DJames.R
+import com.ftrono.DJames.api.NLPInterpreter
 import com.ftrono.DJames.application.FakeLockScreen
 import com.ftrono.DJames.recorder.AndroidAudioRecorder
+import com.ftrono.DJames.api.SpotifyInterpreter
+import com.google.gson.JsonObject
 import java.io.File
 
 
 class VoiceSearchService : Service() {
     //Main:
     private val TAG = VoiceSearchService::class.java.simpleName
+    private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
 //    private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
     //Recorder:
@@ -34,14 +38,18 @@ class VoiceSearchService : Service() {
         AndroidAudioRecorder(applicationContext)
     }
 
+    //API callers:
+    private var nlpInterpreter = NLPInterpreter()
+    private var spotifyInterpreter = SpotifyInterpreter()
+
     //Audio manager:
     private var audioAttributes: AudioAttributes? = null
     private var audioFocusRequest: AudioFocusRequest? = null
     private var focusState: Boolean = false
     private var mAudioFocusPlaybackDelayed: Boolean = false
     private var mAudioFocusResumeOnFocusGained: Boolean = false
-    private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
 
+    //AudioFocus:
     private val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
         when (focusChange) {
             AudioManager.AUDIOFOCUS_GAIN -> {
@@ -116,7 +124,7 @@ class VoiceSearchService : Service() {
 
                 AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {
                     //START VOICE SEARCH:
-                    countdownStart()
+                    voiceQuery()
                 }
 
                 AudioManager.AUDIOFOCUS_REQUEST_DELAYED -> {
@@ -136,6 +144,7 @@ class VoiceSearchService : Service() {
             stopSelf()
         }
     }
+
 
     private fun startForeground() {
         //Foreground service:
@@ -160,26 +169,25 @@ class VoiceSearchService : Service() {
         startForeground(2, notification)
     }
 
-    fun countdownStart() {
 
+    //MAIN VOICE QUERY CALLER:
+    fun voiceQuery() {
         //prepare thread:
         val mThread = Thread {
             try {
                 synchronized(this) {
-                    //RECORDING:
+
+                    //1) RECORDING:
                     Log.d(TAG, "RECORDING STARTED.")
                     //Set overlay BUSY color:
-                    if (screenOn && overlayButton != null) {
-                        overlayButton!!.setBackgroundResource(R.drawable.rounded_button_busy)
-                        overlayIcon!!.setImageResource(R.drawable.speak_icon)
-                    }
+                    setOverlayBusy()
 
                     //Play START tone:
                     toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
 
                     //Start recording (default: cacheDir, alternative: saveDir):
-                    var it = File(cacheDir, "audio.mp3")
-                    recorder.start(it)
+                    var recFile = File(cacheDir, "audio.mp3")
+                    recorder.start(recFile)
 
                     //Countdown:
                     Thread.sleep(prefs.recTimeout.toLong() * 1000)   //default: 5000
@@ -188,59 +196,102 @@ class VoiceSearchService : Service() {
                     recorder.stop()
                     Log.d(TAG, "RECORDING STOPPED.")
 
-                    if (searchFail) {
-                        //Play FAIL tone:
-                        toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-                        searchFail = false
-                    } else {
-                        //Play STOP tone:
-                        toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
-                    }
-
                     //Lower volume if maximum (to enable Receiver):
                     if (audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {
                         audioManager!!.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND)
                         Log.d(TAG, "Countdown stopped. Volume lowered.")
                     }
 
-                    //Abandon audio focus:
-                    //if (!focusState) {}
-                    audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
+                    //2) RECORDING RESULT:
+                    if (searchFail) {
+                        //A) RECORDING FAIL -> END:
+                        //Play FAIL tone:
+                        toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                        //Abandon audio focus:
+                        audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
+                        //Reset:
+                        searchFail = false
+                        recordingMode = false
+                        setOverlayReady()
+                        stopSelf()
+                    } else {
+                        //B) RECORDING SUCCESS:
+                        //Play STOP tone:
+                        toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
 
-                    //Set overlay PROCESSING color & icon:
-                    if (screenOn && overlayButton != null && overlayIcon != null) {
-                        overlayButton!!.setBackgroundResource(R.drawable.rounded_button_processing)
-                        overlayIcon!!.setImageResource(R.drawable.looking_icon)
+                        //Set overlay PROCESSING color & icon:
+                        setOverlayProcessing()
+
+                        //B.1) NLP QUERY:
+                        var resultsNLP = nlpInterpreter.queryNLP(recFile)
+
+                        //B.2) SPOTIFY QUERY:
+                        var queryResult: JsonObject = spotifyInterpreter.dispatchCall(resultsNLP)
+
+                        //A) EMPTY QUERY RESULT:
+                        if (!queryResult.has("uri")) {
+                            //Play FAIL tone:
+                            toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                            //Abandon audio focus:
+                            audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
+                            //Reset:
+                            recordingMode = false
+                            setOverlayReady()
+                            stopSelf()
+                        } else {
+                            //B) SPOTIFY RESULT RECEIVED!
+
+                            //Overwrite player info:
+                            songName = queryResult.get("song_name").asString
+                            artistName = queryResult.get("artist_name").asString
+                            contextName = queryResult.get("context_name").asString
+
+                            //Send broadcast:
+                            Intent().also { intent ->
+                                intent.setAction(ACTION_NEW_SONG)
+                                sendBroadcast(intent)
+                            }
+
+                            //Abandon audio focus:
+                            audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
+
+                            //C) PLAY:
+                            var sessionState = spotifyInterpreter.playInternally(queryResult)
+                            Log.d(TAG, "SESSION STATE: ${sessionState}")
+                            if (sessionState == -1) {
+                                //Open externally:
+                                var spotifyUrl = queryResult.get("spotify_URL").asString
+                                openExternally(spotifyUrl)
+                            }
+
+                            //Reset:
+                            recordingMode = false
+                            setOverlayReady()
+                            stopSelf()
+                        }
                     }
-
-                    //AFTER RECORDING:
-                    //Spotify result (TEMP):
-                    var spotifyToOpen =
-                        "https://open.spotify.com/track/6atVS7UZBxoyJkkteM62u5?si=rLCB_v7EQrSTfTXe2QLqQg"
-                    songName = "Clarity"
-                    artistName = "John Mayer"
-                    contextName = "The Blue Room"
-
-                    //Send broadcast:
-                    Intent().also { intent ->
-                        intent.setAction(ACTION_NEW_SONG)
-                        sendBroadcast(intent)
-                    }
-
-                    //Open links and redirects:
-                    openResults(spotifyToOpen)
                 }
             } catch (e: InterruptedException) {
                 Log.d(TAG, "Interrupted: exception.", e)
+                try {
+                    //Abandon audio focus:
+                    audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
+                } catch (e: Exception) {
+                    Log.d(TAG, "Audio focus already released.")
+                }
+                //Reset:
+                searchFail = false
                 recordingMode = false
+                setOverlayReady()
+                stopSelf()
             }
         }
         //start thread:
         mThread.start()
     }
 
-    private fun openResults(spotifyToOpen: String) {
 
+    private fun openExternally(spotifyToOpen: String) {
         //Open query result in Spotify:
         val intentSpotify = Intent(
             Intent.ACTION_VIEW,
@@ -250,18 +301,7 @@ class VoiceSearchService : Service() {
         intentSpotify.putExtra("fromwhere", "ser")
         startActivity(intentSpotify)
 
-        if (prefs.mapsTimeout.toLong() > 0) {
-            //Maps redirect:
-            Thread.sleep((prefs.mapsTimeout.toLong()-1) * 1000)   //default: 3000
-            //Launch Maps:
-            val mapIntent = Intent(
-                Intent.ACTION_VIEW,
-                Uri.parse(prefs.mapsAddress)
-            )
-            mapIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            mapIntent.putExtra("fromwhere", "ser")
-            startActivity(mapIntent)
-        } else if (prefs.clockTimeout.toLong() > 0) {
+        if (prefs.clockTimeout.toLong() > 0) {
             //Clock redirect:
             Thread.sleep((prefs.clockTimeout.toLong()-1) * 1000)   //default: 10000
             //Launch Clock:
@@ -270,9 +310,9 @@ class VoiceSearchService : Service() {
             clockIntent.putExtra("fromwhere", "ser")
             startActivity(clockIntent)
         }
+    }
 
-        //Stop Voice Search service:
-        recordingMode = false
+    fun setOverlayReady() {
         //Reset normal overlay ACCENT color & icon:
         if (screenOn && overlayButton != null && overlayIcon != null) {
             Thread.sleep(1000)   //default: 2000
@@ -284,7 +324,22 @@ class VoiceSearchService : Service() {
                 overlayIcon!!.setImageResource(R.drawable.speak_icon)
             }
         }
-        stopSelf()
+    }
+
+    fun setOverlayBusy() {
+        //Set overlay BUSY color:
+        if (screenOn && overlayButton != null) {
+            overlayButton!!.setBackgroundResource(R.drawable.rounded_button_busy)
+            overlayIcon!!.setImageResource(R.drawable.speak_icon)
+        }
+    }
+
+    fun setOverlayProcessing() {
+        //Set overlay PROCESSING color & icon:
+        if (screenOn && overlayButton != null && overlayIcon != null) {
+            overlayButton!!.setBackgroundResource(R.drawable.rounded_button_processing)
+            overlayIcon!!.setImageResource(R.drawable.looking_icon)
+        }
     }
 
 }

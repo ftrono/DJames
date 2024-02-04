@@ -211,6 +211,13 @@ class FakeLockScreen: AppCompatActivity() {
         super.onResume()
     }
 
+    override fun onBackPressed() {
+        finish()
+        //Start Main:
+        val intent1 = Intent(this, MainActivity::class.java)
+        startActivity(intent1)
+    }
+
     fun setVerticalView() {
         //Vertical:
         clockSeparator = "\n"
@@ -229,13 +236,6 @@ class FakeLockScreen: AppCompatActivity() {
         }
         //Fix Clock text size:
         clockView!!.textSize = 150F
-    }
-
-    override fun onBackPressed() {
-        finish()
-        //Start Main:
-        val intent1 = Intent(this, MainActivity::class.java)
-        startActivity(intent1)
     }
 
     fun setHorizontalView() {

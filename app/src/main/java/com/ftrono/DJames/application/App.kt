@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.TextView
 import android.widget.Button
 import com.ftrono.DJames.utilities.Prefs
+import com.ftrono.DJames.utilities.Utilities
 import okhttp3.OkHttpClient
 import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
@@ -18,6 +19,7 @@ import java.util.concurrent.TimeUnit
 val prefs: Prefs by lazy {
     App.prefs!!
 }
+var utils = Utilities()
 var audioManager: AudioManager? = null
 var streamMaxVolume : Int = 0
 var screenOn : Boolean = true

@@ -123,6 +123,16 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
+        //Mic type:
+        var spinner_mic_type = findViewById<Spinner>(R.id.spinner_mic)
+        spinner_mic_type!!.setSelection(prefs.micType.toInt())
+        spinner_mic_type.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(adapter: AdapterView<*>?, view: View, pos: Int, id: Long) {
+                prefs.micType = pos.toString()
+            }
+            override fun onNothingSelected(arg0: AdapterView<*>?) {}
+        })
+
         //Save:
         val saveButton = findViewById<Button>(R.id.save_button)
 

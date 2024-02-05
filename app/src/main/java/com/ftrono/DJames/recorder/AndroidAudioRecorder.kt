@@ -24,7 +24,13 @@ class AndroidAudioRecorder(private val context: Context): AudioRecorder {
     override fun start(outputFile: File) {
         try {
             createRecorder().apply {
-                setAudioSource(MediaRecorder.AudioSource.DEFAULT)   //.MIC
+                if (prefs.micType.toInt() == 0) {
+                    //Current default mic:
+                    setAudioSource(MediaRecorder.AudioSource.DEFAULT)
+                } else {
+                    //Primary mic:
+                    setAudioSource(MediaRecorder.AudioSource.MIC)
+                }
                 setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                 setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
                 setAudioEncodingBitRate(96000)

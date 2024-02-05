@@ -64,6 +64,12 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getBoolean(KEY_VOLUME_UP_ENABLED, true) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_VOLUME_UP_ENABLED, value).apply()
 
+    //Preferred mic:
+    var micType: String
+        //0 -> Current default; 1 -> Primary device
+        get() = sharedPrefs.getString(KEY_MIC_TYPE, "0") as String
+        set(value) = sharedPrefs.edit().putString(KEY_MIC_TYPE, value).apply()
+
     //User profile:
     //Spotify user name:
     var userName: String
@@ -101,6 +107,7 @@ class Prefs (context: Context) {
         const val KEY_CLOCK_REDIRECT_ENABLED = ".key.clock_redirect_enabled"
         const val KEY_CLOCK_TIMEOUT = ".key.clock_timeout"
         const val KEY_VOLUME_UP_ENABLED = ".key.volume_up_enabled"
+        const val KEY_MIC_TYPE = ".key.mic_type"
         const val KEY_USER_NAME = ".key.user_name"
         const val KEY_USER_EMAIL = ".key.user_email"
         const val KEY_USER_IMAGE = ".key.user_image"

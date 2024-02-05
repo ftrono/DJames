@@ -14,9 +14,13 @@
     <string name="str_settings">Settings</string>
     <string name="str_permissions">Set app permissions</string>
     <string name="str_enable_overlay">Please enable the \'Display over other apps\' permission first!</string>
-    <!-- Settings spinner -->
+    <!-- Settings spinners -->
     <string-array name="overlayPos">
         <item>Left</item>
         <item>Right</item>
+    </string-array>
+    <string-array name="micType">
+        <item>Current default</item>
+        <item>Primary device</item>
     </string-array>
 </resources>

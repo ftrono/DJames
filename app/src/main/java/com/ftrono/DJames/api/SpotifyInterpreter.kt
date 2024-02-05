@@ -51,15 +51,20 @@ class SpotifyInterpreter() {
                     //RESPONSE RECEIVED -> TOKENS:
                     Log.d(TAG, "Spotify refresh response received!")
                     var respJSON = JsonParser.parseString(response).asJsonObject
-                    var keySet = respJSON.keySet()
-                    Log.d(TAG, keySet.toString())
-                    prefs.spotifyToken = respJSON.get("access_token").asString
-                    if (respJSON.has("refresh_token")) {
-                        prefs.refreshToken =
-                            respJSON.get("refresh_token").asString
+                    if (!respJSON.has("error")) {
+                        //SUCCESS:
+                        var keySet = respJSON.keySet()
+                        Log.d(TAG, keySet.toString())
+                        prefs.spotifyToken = respJSON.get("access_token").asString
+                        if (respJSON.has("refresh_token")) {
+                            prefs.refreshToken =
+                                respJSON.get("refresh_token").asString
+                        }
+                        Log.d(TAG, "TOKEN REFRESH SUCCESS: new Refresh tokens received!")
+                    } else {
+                        //ERROR RESPONSE:
+                        Log.d(TAG, "REFRESH: RESPONSE ERROR: ${response}")
                     }
-                    Log.d(TAG, "TOKEN REFRESH SUCCESS: new Refresh tokens received!")
-
                 } catch (e: Exception) {
                     Log.d(TAG, "REFRESH: ERROR IN RESPONSE PARSING: ", e)
                 }
@@ -92,7 +97,7 @@ class SpotifyInterpreter() {
                 //RESPONSE RECEIVED:
                 Log.d(TAG, "First Search answer received. Analysing...")
                 var respJSON = JsonParser.parseString(response).asJsonObject
-                Log.d(TAG, respJSON.toString())
+                //Log.d(TAG, response)
 
                 //IF ERROR:
                 if (respJSON.has("error")) {
@@ -133,7 +138,7 @@ class SpotifyInterpreter() {
                 Log.d(TAG, "Spotify Search results received!")
                 var tracks = respJSON.getAsJsonObject("tracks")
                 var items = tracks.getAsJsonArray("items")
-                Log.d(TAG, "Items: ${items}")
+                //Log.d(TAG, "Items: ${items}")
 
                 //FROM FIRST RESULT:
                 var firstResult = items.get(0).asJsonObject
@@ -203,13 +208,20 @@ class SpotifyInterpreter() {
 
         try {
             runBlocking {
-                Log.d(TAG, request.toString())
                 var response = utils.makeRequest(client, request)
                 if (response == "") {
                     Log.d(TAG, "PLAY INTERNALLY SUCCESS!")
                     ret = 0
                 } else {
-                    Log.d(TAG, "PLAY INTERNALLY ERROR. Response: ${response}")
+                    Log.d(TAG, "COULD NOT PLAY INTERNALLY.")
+                    try {
+                        var respJSON = JsonParser.parseString(response).asJsonObject
+                        if (respJSON.has("error")) {
+                            Log.d(TAG, "PLAY INTERNALLY: Error response: ${response}")
+                        }
+                    } catch (e:Exception) {
+                        Log.d(TAG, "PLAY INTERNALLY: Could not parse response. Error: ", e)
+                    }
                     ret = -1
                 }
             }

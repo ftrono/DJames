@@ -212,6 +212,7 @@ class FloatingViewService : Service() {
                                     if (!recordingMode) {
                                         //START VOICE SEARCH SERVICE:
                                         recordingMode = true
+                                        sourceIsVolume = false
                                         startService(Intent(applicationContext, VoiceSearchService::class.java))
                                     }
                                 } else if (abs(event.rawY) >= (height - 200)) {

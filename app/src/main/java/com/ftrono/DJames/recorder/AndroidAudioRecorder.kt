@@ -7,9 +7,9 @@ import java.io.File
 import java.io.FileOutputStream
 import android.util.Log
 import com.ftrono.DJames.application.*
-
 //import android.media.AudioFormat
 //import android.provider.MediaStore.Audio.Media
+
 
 class AndroidAudioRecorder(private val context: Context): AudioRecorder {
     private val TAG = AndroidAudioRecorder::class.java.simpleName
@@ -29,6 +29,7 @@ class AndroidAudioRecorder(private val context: Context): AudioRecorder {
                 setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
                 setAudioEncodingBitRate(96000)
                 setAudioSamplingRate(44100)
+                setAudioChannels(1)   //mono
                 setOutputFile(FileOutputStream(outputFile).fd)
 
                 prepare()
@@ -39,7 +40,6 @@ class AndroidAudioRecorder(private val context: Context): AudioRecorder {
         } catch (e: Exception) {
             searchFail = true
             Log.d(TAG, "ERROR: Recorder start FAIL.", e)
-            //Toast.makeText(context, "ERROR: Recorder not started.", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -52,7 +52,6 @@ class AndroidAudioRecorder(private val context: Context): AudioRecorder {
         } catch (e: Exception) {
             searchFail = true
             Log.d(TAG, "ERROR: Recorder stop FAIL.", e)
-            //Toast.makeText(context, "ERROR: Recorder not stopped.", Toast.LENGTH_SHORT).show()
         }
     }
 }

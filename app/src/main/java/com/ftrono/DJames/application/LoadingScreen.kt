@@ -7,12 +7,12 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.ftrono.DJames.R
 import okhttp3.Request
-import okhttp3.FormBody
 import okhttp3.Headers
 import java.util.Base64
 import androidx.lifecycle.coroutineScope
 import kotlinx.coroutines.launch
 import com.google.gson.JsonParser
+import okhttp3.FormBody
 
 
 class LoadingScreen: AppCompatActivity() {
@@ -54,46 +54,68 @@ class LoadingScreen: AppCompatActivity() {
                 try {
                     //RESPONSE RECEIVED -> TOKENS:
                     var respJSON = JsonParser.parseString(response).asJsonObject
-                    spotToken = respJSON.get("access_token").asString
-                    refrToken = respJSON.get("refresh_token").asString
-                    Log.d(TAG, "AUTH SUCCESS: Access & Refresh tokens received!")
+                    if (!respJSON.has("error")) {
+                        spotToken = respJSON.get("access_token").asString
+                        refrToken = respJSON.get("refresh_token").asString
+                        Log.d(TAG, "AUTH SUCCESS: Access & Refresh tokens received!")
 
-                    //Get user profile data:
-                    //BUILD GET REQUEST:
-                    url = "https://api.spotify.com/v1/me"
-                    request = Request.Builder()
-                        .url(url)
-                        .header("Authorization", "Bearer $spotToken")
-                        .build()
+                        //Get user profile data:
+                        //BUILD GET REQUEST:
+                        url = "https://api.spotify.com/v1/me"
+                        request = Request.Builder()
+                            .url(url)
+                            .header("Authorization", "Bearer $spotToken")
+                            .build()
 
-                    //GET:
-                    response = utils.makeRequest(client, request)
-                    if (response != "") {
-                        try {
-                            //RESPONSE RECEIVED -> USER'S PROFILE DATA:
-                            respJSON = JsonParser.parseString(response).asJsonObject
-                            var product = respJSON.get("product").asString
-                            //User must be PREMIUM:
-                            if (product == "premium" || product == "duo" || product == "family") {
-                                //SUCCESS!
-                                prefs.spotifyToken = spotToken
-                                prefs.refreshToken = refrToken
-                                prefs.userName = respJSON.get("display_name").asString
-                                //Send broadcast:
-                                Intent().also { intent ->
-                                    intent.setAction(ACTION_LOGGED_IN)
-                                    sendBroadcast(intent)
+                        //GET:
+                        response = utils.makeRequest(client, request)
+                        if (response != "") {
+                            try {
+                                //RESPONSE RECEIVED -> USER'S PROFILE DATA:
+                                respJSON = JsonParser.parseString(response).asJsonObject
+                                var product = respJSON.get("product").asString
+                                //User must be PREMIUM:
+                                if (product == "premium" || product == "duo" || product == "family") {
+                                    //Log.d(TAG, response)
+                                    //SUCCESS!
+                                    prefs.spotifyToken = spotToken
+                                    prefs.refreshToken = refrToken
+                                    prefs.userName = respJSON.get("display_name").asString
+                                    prefs.userEMail = respJSON.get("email").asString
+                                    try {
+                                        var images = respJSON.getAsJsonArray("images")
+                                        var firstImage = images.get(0).asJsonObject
+                                        prefs.userImage = firstImage.get("url").asString
+                                    } catch (e: Exception) {
+                                        Log.d(TAG, "Unable to retrieve user image: ", e)
+                                        prefs.userImage = ""
+                                    }
+                                    //Send broadcast:
+                                    Intent().also { intent ->
+                                        intent.setAction(ACTION_LOGGED_IN)
+                                        sendBroadcast(intent)
+                                    }
+                                } else {
+                                    Log.d(TAG, "USER TYPE: $product")
+                                    Toast.makeText(
+                                        applicationContext,
+                                        "ERROR: to use DJames, you need to be a Spotify Premium user! :(",
+                                        Toast.LENGTH_LONG
+                                    ).show()
                                 }
-                            } else {
-                                Log.d(TAG, "USER TYPE: $product")
-                                Toast.makeText(applicationContext, "ERROR: to use DJames, you need to be a Spotify Premium user! :(", Toast.LENGTH_LONG).show()
+                            } catch (e: Exception) {
+                                Log.d(TAG, "Profile parsing error: ", e)
+                                Toast.makeText(
+                                    applicationContext,
+                                    "Authentication ERROR: not logged in.",
+                                    Toast.LENGTH_LONG
+                                ).show()
                             }
-                        } catch (e: Exception) {
-                            Log.d(TAG, "Profile parsing error: ", e)
-                            Toast.makeText(applicationContext, "Authentication ERROR: not logged in.", Toast.LENGTH_LONG).show()
                         }
+                    } else {
+                        Log.d(TAG, "ERROR IN RESPONSE PARSING: ${response}")
+                        Toast.makeText(applicationContext, "Authentication ERROR: not logged in.", Toast.LENGTH_LONG).show()
                     }
-
                 } catch (e: Exception) {
                     Log.d(TAG, "ERROR IN RESPONSE PARSING: ", e)
                     Toast.makeText(applicationContext, "Authentication ERROR: not logged in.", Toast.LENGTH_LONG).show()

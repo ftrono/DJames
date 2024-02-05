@@ -15,7 +15,6 @@ import android.net.Uri
 import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.application.*
 import com.ftrono.DJames.R
@@ -115,11 +114,7 @@ class VoiceSearchService : Service() {
             val focusRequest = audioManager!!.requestAudioFocus(audioFocusRequest!!)
             when (focusRequest) {
                 AudioManager.AUDIOFOCUS_REQUEST_FAILED -> {
-                    Toast.makeText(
-                        applicationContext,
-                        "Cannot gain audio focus! Try again.",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Log.d(TAG, "Cannot gain audio focus! Try again.")
                 }
 
                 AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {
@@ -134,7 +129,16 @@ class VoiceSearchService : Service() {
 
         } catch (e: Exception) {
             Log.d(TAG, "Exception: ", e)
+            //Abandon audio focus:
+            try {
+                audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
+            } catch (e: Exception) {
+                Log.d(TAG, "AudioFocus already released!")
+            }
+            //Reset:
             recordingMode = false
+            searchFail = false
+            sourceIsVolume = false
             val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
             val uri = Uri.fromParts("package", packageName, null)
             intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -197,7 +201,7 @@ class VoiceSearchService : Service() {
                     Log.d(TAG, "RECORDING STOPPED.")
 
                     //Lower volume if maximum (to enable Receiver):
-                    if (audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {
+                    if (sourceIsVolume && audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {
                         audioManager!!.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND)
                         Log.d(TAG, "Countdown stopped. Volume lowered.")
                     }
@@ -212,6 +216,7 @@ class VoiceSearchService : Service() {
                         //Reset:
                         searchFail = false
                         recordingMode = false
+                        sourceIsVolume = false
                         setOverlayReady()
                         stopSelf()
                     } else {
@@ -236,6 +241,7 @@ class VoiceSearchService : Service() {
                             audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
                             //Reset:
                             recordingMode = false
+                            sourceIsVolume = false
                             setOverlayReady()
                             stopSelf()
                         } else {
@@ -266,6 +272,7 @@ class VoiceSearchService : Service() {
 
                             //Reset:
                             recordingMode = false
+                            sourceIsVolume = false
                             setOverlayReady()
                             stopSelf()
                         }
@@ -282,6 +289,7 @@ class VoiceSearchService : Service() {
                 //Reset:
                 searchFail = false
                 recordingMode = false
+                sourceIsVolume = false
                 setOverlayReady()
                 stopSelf()
             }

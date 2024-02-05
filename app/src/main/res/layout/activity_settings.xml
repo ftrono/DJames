@@ -15,217 +15,192 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/descr_rec_timeout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/light_grey"
-            android:padding="8dp"
-            android:paddingLeft="15dp"
-            android:paddingRight="15dp"
-            android:paddingTop="100dp"
-            android:text= "&#xA;Voice recording timeout"
-            android:textSize="16dp"
-            android:textStyle="italic"
+        <!-- LOGIN / LOGOUT-->
+        <!-- user details-->
+        <ImageView
+            android:id="@+id/user_icon"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="20dp"
+            android:src="@drawable/user_icon"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintRight_toRightOf="parent"/>
 
         <TextView
-            android:id="@+id/descr_rec_max"
+            android:id="@+id/user_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text= "Not logged in"
+            android:textSize="12dp"
+            android:textStyle="bold|italic"
+            android:textColor="@color/mid_grey"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/user_icon"/>
+
+        <TextView
+            android:id="@+id/user_email"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text= "Not logged in"
+            android:textSize="12dp"
+            android:textStyle="italic"
+            android:textColor="@color/faded_grey"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/user_name"/>
+
+        <Button
+            android:id="@+id/login_mini_button"
+            android:layout_width="90dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="4dp"
+            android:backgroundTint="@color/faded_grey"
+            android:text="LOGIN"
+            android:textStyle="bold"
+            android:textSize="10dp"
+            android:textColor="@color/light_grey"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/user_email"/>
+
+        <!-- SETTINGS-->
+        <!-- Rec timeout-->
+        <TextView
+            android:id="@+id/header_rec_timeout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/mid_grey"
-            android:paddingLeft="8dp"
-            android:paddingRight="15dp"
-            android:text= "In seconds (keep between 3 and 10)"
-            android:textSize="12dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:text= "Voice recording timeout"
+            android:textSize="16dp"
+            android:textStyle="italic"
+            android:textColor="@color/light_grey"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/descr_rec_timeout"/>
+            app:layout_constraintTop_toBottomOf="@+id/login_mini_button"/>
 
         <EditText
             android:id="@+id/val_rec_timeout"
-            android:layout_width="match_parent"
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
-            android:textSize="20dp"
-            android:importantForAutofill="no"
+            android:layout_marginTop="8dp"
+            android:layout_marginLeft="15dp"
             android:inputType="number"
+            android:text="5"
+            android:textSize="18dp"
+            android:textAlignment="center"
             android:textColor="@color/light_grey"
             android:backgroundTint="@color/dark_grey"
-            android:text="5"
-            android:paddingLeft="15dp"
-            android:paddingRight="15dp"
+            app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/descr_rec_max"/>
+            app:layout_constraintRight_toLeftOf="@+id/descr_rec_timeout"
+            app:layout_constraintTop_toBottomOf="@+id/header_rec_timeout"/>
 
         <TextView
-            android:id="@+id/descr_clock_timeout"
+            android:id="@+id/descr_rec_timeout"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="15dp"
+            android:text="seconds (keep between 3 and 10)"
+            android:textSize="14dp"
+            android:textColor="@color/mid_grey"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintLeft_toRightOf="@+id/val_rec_timeout"
+            app:layout_constraintTop_toTopOf="@+id/val_rec_timeout"
+            app:layout_constraintBottom_toBottomOf="@+id/val_rec_timeout"/>
+
+        <!-- Clock auto timeout-->
+        <TextView
+            android:id="@+id/header_clock_timeout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/light_grey"
-            android:padding="8dp"
-            android:paddingLeft="15dp"
-            android:paddingRight="15dp"
-            android:paddingTop="100dp"
-            android:text= "&#xA;Automatic clock redirecting timeout"
+            android:layout_marginTop="32dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:text= "Automatic clock redirecting timeout"
             android:textSize="16dp"
             android:textStyle="italic"
+            android:textColor="@color/light_grey"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/val_rec_timeout"/>
 
-        <TextView
-            android:id="@+id/descr_clock_max"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/mid_grey"
-            android:paddingLeft="8dp"
-            android:paddingRight="15dp"
-            android:text= "In seconds (keep between 5 and 60)"
-            android:textSize="12dp"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/descr_clock_timeout"/>
-
         <EditText
             android:id="@+id/val_clock_timeout"
-            android:layout_width="match_parent"
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
-            android:textSize="20dp"
-            android:importantForAutofill="no"
+            android:layout_marginTop="8dp"
+            android:layout_marginLeft="15dp"
             android:inputType="number"
+            android:text="5"
+            android:textSize="18dp"
+            android:textAlignment="center"
             android:textColor="@color/light_grey"
             android:backgroundTint="@color/dark_grey"
-            android:text="3"
-            android:paddingLeft="15dp"
-            android:paddingRight="15dp"
+            app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/descr_clock_max"/>
+            app:layout_constraintRight_toLeftOf="@+id/descr_clock_timeout"
+            app:layout_constraintTop_toBottomOf="@+id/header_clock_timeout"/>
 
         <TextView
-            android:id="@+id/descr_maps_timeout"
-            android:layout_width="match_parent"
+            android:id="@+id/descr_clock_timeout"
+            android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:textColor="@color/light_grey"
-            android:padding="8dp"
-            android:paddingLeft="15dp"
-            android:paddingRight="15dp"
-            android:paddingTop="100dp"
-            android:text= "&#xA;Automatic Maps redirecting timeout"
-            android:textSize="16dp"
-            android:textStyle="italic"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/val_clock_timeout"/>
-
-        <TextView
-            android:id="@+id/descr_maps_max"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="15dp"
+            android:text="seconds (keep between 5 and 15)"
+            android:textSize="14dp"
             android:textColor="@color/mid_grey"
-            android:paddingLeft="8dp"
-            android:paddingRight="15dp"
-            android:text= "In seconds (keep between 3 and 10)"
-            android:textSize="12dp"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/descr_maps_timeout"/>
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintLeft_toRightOf="@+id/val_clock_timeout"
+            app:layout_constraintTop_toTopOf="@+id/val_clock_timeout"
+            app:layout_constraintBottom_toBottomOf="@+id/val_clock_timeout"/>
 
-        <EditText
-            android:id="@+id/val_maps_timeout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="20dp"
-            android:importantForAutofill="no"
-            android:inputType="number"
-            android:textColor="@color/light_grey"
-            android:backgroundTint="@color/dark_grey"
-            android:text="3"
-            android:paddingLeft="15dp"
-            android:paddingRight="15dp"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/descr_maps_max"/>
 
-        <TextView
-            android:id="@+id/descr_maps_address"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/light_grey"
-            android:padding="8dp"
-            android:paddingLeft="15dp"
-            android:paddingRight="15dp"
-            android:paddingTop="100dp"
-            android:text= "&#xA;Open Maps app to (URL)"
-            android:textSize="16dp"
-            android:textStyle="italic"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/val_maps_timeout"/>
-
-        <TextView
-            android:id="@+id/descr_maps_detail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/mid_grey"
-            android:paddingLeft="8dp"
-            android:paddingRight="15dp"
-            android:text= "Paste the URL of the Maps app you use"
-            android:textSize="12dp"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/descr_maps_address"/>
-
-        <TextView
-            android:id="@+id/default_maps_address"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/faded_grey"
-            android:paddingLeft="8dp"
-            android:paddingRight="15dp"
-            android:text= "(default: https://www.google.com/maps/)"
-            android:textSize="12dp"
-            android:textStyle="italic"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/descr_maps_detail"/>
-
-        <EditText
-            android:id="@+id/val_maps_address"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="15dp"
-            android:importantForAutofill="no"
-            android:inputType="text"
-            android:textColor="@color/light_grey"
-            android:backgroundTint="@color/dark_grey"
-            android:hint="Paste URL here"
-            android:textColorHint="@color/faded_grey"
-            android:text="https://www.google.com/maps/"
-            android:paddingTop="10dp"
-            android:paddingLeft="15dp"
-            android:paddingRight="15dp"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/default_maps_address"/>
-
+        <!-- SAVE BUTTON -->
         <Button
             android:id="@+id/save_button"
             android:layout_width="150dp"
             android:layout_height="60dp"
             android:layout_marginTop="32dp"
-            android:backgroundTint="@color/colorAccent"
             android:text="S A V E"
             android:textColor="@color/light_grey"
             android:textStyle="bold"
+            android:backgroundTint="@color/colorAccent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/val_maps_address"/>
+            app:layout_constraintTop_toBottomOf="@+id/val_clock_timeout"/>
+
+        <!-- APP INFO-->
+        <TextView
+            android:id="@+id/version"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:text= "Version 0.1"
+            android:textSize="12dp"
+            android:textStyle="bold|italic"
+            android:textColor="@color/midfaded_grey"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/save_button"/>
 
         <TextView
             android:id="@+id/copyright"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/midfaded_grey"
-            android:textStyle="italic"
-            android:layout_marginTop="30dp"
-            android:paddingLeft="8dp"
-            android:paddingRight="15dp"
+            android:layout_marginTop="6dp"
             android:text= "Copyright © Francesco Trono (2024)"
             android:textSize="12dp"
+            android:textStyle="italic"
+            android:textColor="@color/midfaded_grey"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/save_button"/>
+            app:layout_constraintTop_toBottomOf="@+id/version"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

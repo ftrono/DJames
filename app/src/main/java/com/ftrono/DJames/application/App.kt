@@ -21,8 +21,9 @@ val prefs: Prefs by lazy {
 }
 var utils = Utilities()
 var audioManager: AudioManager? = null
-var streamMaxVolume : Int = 0
-var screenOn : Boolean = true
+var streamMaxVolume: Int = 0
+var screenOn: Boolean = true
+var sourceIsVolume: Boolean = false
 var recordingMode: Boolean = false
 var overlay_active: Boolean = false
 var loggedIn: Boolean = false
@@ -90,6 +91,12 @@ var loginButton: MenuItem? = null
 var songView: TextView? = null
 var artistView: TextView? = null
 var contextView: TextView? = null
+
+//Settings views:
+var userNameView: TextView? = null
+var userEMailView: TextView? = null
+var userIcon: ImageView? = null
+var login_mini_button: Button? = null
 
 //Broadcasts:
 const val ACTION_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_LOGGED_IN"

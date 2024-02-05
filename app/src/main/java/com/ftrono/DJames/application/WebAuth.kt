@@ -31,11 +31,6 @@ class WebAuth : AppCompatActivity() {
         webView!!.settings.javaScriptEnabled = true
         webView!!.settings.setCacheMode(WebSettings.LOAD_NO_CACHE)
 
-        //Clean ALL previously stored cookies & cache:
-        webView!!.clearCache(true)
-        CookieManager.getInstance().removeAllCookies(null)
-        CookieManager.getInstance().flush()
-
         //Prepare auth request:
         val state = generateRandomString(16)
 

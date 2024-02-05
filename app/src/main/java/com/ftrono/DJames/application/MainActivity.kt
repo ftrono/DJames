@@ -318,10 +318,12 @@ class MainActivity : AppCompatActivity() {
         alertDialog.setPositiveButton("Yes", object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
                 //LOG OUT:
-                //Delete tokens:
+                //Delete tokens & user details:
                 prefs.spotifyToken = ""
                 prefs.refreshToken = ""
                 prefs.userName = ""
+                prefs.userEMail = ""
+                prefs.userImage = ""
                 //Stop overlay service:
                 if (isMyServiceRunning(FloatingViewService::class.java)) {
                     overlay_active = setOverlayInactive(exec=true)

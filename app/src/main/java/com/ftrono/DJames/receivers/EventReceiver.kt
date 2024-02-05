@@ -11,6 +11,8 @@ import androidx.appcompat.content.res.AppCompatResources
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
 import com.ftrono.DJames.service.VoiceSearchService
+import com.squareup.picasso.Picasso
+import jp.wasabeef.picasso.transformations.CropCircleTransformation
 
 
 class EventReceiver: BroadcastReceiver() {
@@ -29,6 +31,7 @@ class EventReceiver: BroadcastReceiver() {
 
                 //START VOICE SEARCH SERVICE:
                 recordingMode = true
+                sourceIsVolume = true
                 context!!.startService(Intent(context, VoiceSearchService::class.java))
 
                 Log.d(
@@ -53,8 +56,10 @@ class EventReceiver: BroadcastReceiver() {
         //when logged in:
         if (intent.action == ACTION_LOGGED_IN) {
             Log.d(TAG, "ACTION_LOGGED_IN.")
+            loggedIn = true
+
+            //MAIN ACTIVITY:
             try {
-                loggedIn = true
                 //Set Logged-In UI:
                 if (loginButton != null) {
                     loginButton!!.setTitle("Logout")
@@ -69,11 +74,27 @@ class EventReceiver: BroadcastReceiver() {
                 descr_main!!.text = context.resources.getString(R.string.str_main_start)
                 descr_use!!.text = context.resources.getString(R.string.str_use_logged)
                 descr_use!!.setTextColor(AppCompatResources.getColorStateList(context, R.color.mid_grey))
-
-                Toast.makeText(context, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
-                Log.d(TAG, "ACTION_LOGGED_IN: resources not available.")
+                Log.d(TAG, "ACTION_LOGGED_IN: Main() resources not available.")
             }
+
+            //SETTINGS ACTIVITY:
+            try {
+                login_mini_button!!.text = "LOGOUT"
+                userNameView!!.text = prefs.userName
+                userEMailView!!.visibility = View.VISIBLE
+                userEMailView!!.text = prefs.userEMail
+                if (prefs.userImage != "") {
+                    Picasso.get().load(prefs.userImage)
+                        .transform(CropCircleTransformation())
+                        .into(userIcon)
+                }
+            } catch (e: Exception) {
+                Log.d(TAG, "ACTION_LOGGED_IN: Settings() resources not available.")
+            }
+
+            //End:
+            Toast.makeText(context, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
         }
 
         //when overlay status changed:

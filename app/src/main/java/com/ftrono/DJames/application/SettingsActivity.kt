@@ -1,29 +1,30 @@
 package com.ftrono.DJames.application
 
+import android.app.ActivityManager
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.appcompat.app.AppCompatActivity
 import com.ftrono.DJames.R
+import com.ftrono.DJames.service.FloatingViewService
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.squareup.picasso.Picasso
+import jp.wasabeef.picasso.transformations.CropCircleTransformation
 
 
 class SettingsActivity : AppCompatActivity() {
     //Text views:
     private var text_rec_timeout: TextView? = null
-    private var text_maps_timeout: TextView? = null
     private var text_clock_timeout: TextView? = null
-    private var text_maps_address: TextView? = null
     //New values:
     private var newRecTimeout: String = ""
-    private var newMapsTimeout: String = ""
     private var newClockTimeout: String = ""
-    private var newMapsAddress: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -33,21 +34,37 @@ class SettingsActivity : AppCompatActivity() {
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.title = "Settings"
 
+        userNameView = findViewById<TextView>(R.id.user_name)
+        userEMailView = findViewById<TextView>(R.id.user_email)
+        userIcon = findViewById<ImageView>(R.id.user_icon)
+        login_mini_button = findViewById<Button>(R.id.login_mini_button)
+
+        //Set login details:
+        if (prefs.userName != "") {
+            login_mini_button!!.text = "LOGOUT"
+            userNameView!!.text = prefs.userName
+            userEMailView!!.visibility = View.VISIBLE
+            userEMailView!!.text = prefs.userEMail
+            if (prefs.userImage != "") {
+                Picasso.get().load(prefs.userImage)
+                    .transform(CropCircleTransformation())
+                    .into(userIcon)
+            }
+        } else {
+            setViewLoggedOut()
+        }
+
+        login_mini_button!!.setOnClickListener {
+            logout()
+        }
+
         //RecTimeout:
         text_rec_timeout = findViewById<TextView>(R.id.val_rec_timeout)
         text_rec_timeout!!.text = prefs.recTimeout
 
-        //MapsTimeout:
-        text_maps_timeout = findViewById<TextView>(R.id.val_maps_timeout)
-        text_maps_timeout!!.text = prefs.mapsTimeout
-
         //ClockTimeout:
         text_clock_timeout = findViewById<TextView>(R.id.val_clock_timeout)
         text_clock_timeout!!.text = prefs.clockTimeout
-
-        //GMaps address:
-        text_maps_address = findViewById<TextView>(R.id.val_maps_address)
-        text_maps_address!!.text = prefs.mapsAddress
 
         //Save:
         val saveButton = findViewById<Button>(R.id.save_button)
@@ -55,11 +72,9 @@ class SettingsActivity : AppCompatActivity() {
         saveButton.setOnClickListener(View.OnClickListener {
             //Get new values:
             newRecTimeout = text_rec_timeout!!.text.toString()
-            newMapsTimeout = text_maps_timeout!!.text.toString()
             newClockTimeout = text_clock_timeout!!.text.toString()
-            newMapsAddress = text_maps_address!!.text.toString()
             //Save all:
-            saveAll(newRecTimeout, newMapsTimeout, newClockTimeout, newMapsAddress)
+            saveAll(newRecTimeout, newClockTimeout)
             Toast.makeText(applicationContext, "Settings saved!", Toast.LENGTH_SHORT).show()
             finish()
             //Start Main:
@@ -68,20 +83,26 @@ class SettingsActivity : AppCompatActivity() {
         })
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        login_mini_button = null
+        userNameView = null
+        userEMailView = null
+        userIcon = null
+    }
+
     override fun onBackPressed() {
         //Get new values:
         newRecTimeout = text_rec_timeout!!.text.toString()
-        newMapsTimeout = text_maps_timeout!!.text.toString()
         newClockTimeout = text_clock_timeout!!.text.toString()
-        newMapsAddress = text_maps_address!!.text.toString()
 
         //If changes made: show alert dialog:
-        if (prefs.recTimeout != newRecTimeout || prefs.mapsTimeout != newMapsTimeout || prefs.clockTimeout != newClockTimeout || prefs.mapsAddress != newMapsAddress) {
+        if (prefs.recTimeout != newRecTimeout || prefs.clockTimeout != newClockTimeout) {
             val alertDialog = MaterialAlertDialogBuilder(this)
             //Save all:
             alertDialog.setPositiveButton("Yes", object : OnClickListener {
                 override fun onClick(dialog: DialogInterface?, which: Int) {
-                    saveAll(newRecTimeout, newMapsTimeout, newClockTimeout, newMapsAddress)
+                    saveAll(newRecTimeout, newClockTimeout)
                     Toast.makeText(applicationContext, "Settings saved!", Toast.LENGTH_SHORT).show()
                     finish()
                     //Start Main:
@@ -121,26 +142,75 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveAll(newRecTimeout: String, newMapsTimeout: String, newClockTimeout: String, newMapsAddress: String) {
+    private fun saveAll(newRecTimeout: String, newClockTimeout: String) {
         //RecTimeout:
         if (newRecTimeout.isNotEmpty()) {
             //validate & overwrite:
             prefs.recTimeout = validateTimeout(newVal = newRecTimeout, origVal = prefs.recTimeout, min_val = 3, max_val = 10)
         }
-        //MapsTimeout:
-        if (newMapsTimeout.isNotEmpty()) {
-            //validate & overwrite:
-            prefs.mapsTimeout = validateTimeout(newVal = newMapsTimeout, origVal = prefs.mapsTimeout, min_val = 0, max_val = 10)
-        }
         //ClockTimeout:
         if (newClockTimeout.isNotEmpty()) {
             //validate & overwrite:
-            prefs.clockTimeout = validateTimeout(newVal = newClockTimeout, origVal = prefs.clockTimeout, min_val = 0, max_val = 60)
-        }
-        //GMaps address:
-        if (newMapsAddress.isNotEmpty()) {
-            //validate & overwrite:
-            prefs.mapsAddress = newMapsAddress
+            prefs.clockTimeout = validateTimeout(newVal = newClockTimeout, origVal = prefs.clockTimeout, min_val = 0, max_val = 15)
         }
     }
+
+    fun isMyServiceRunning(serviceClass: Class<*>): Boolean {
+        val manager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+        for (service in manager.getRunningServices(Int.MAX_VALUE)) {
+            if (serviceClass.name == service.service.className) {
+                return true
+            }
+        }
+        return false
+    }
+
+    fun logout() {
+        if (!loggedIn) {
+            //Login user -> Open WebView:
+            val intent1 = Intent(this, WebAuth::class.java)
+            startActivity(intent1)
+        } else {
+            val alertDialog = MaterialAlertDialogBuilder(this)
+            //Save all:
+            alertDialog.setPositiveButton("Yes", object : DialogInterface.OnClickListener {
+                override fun onClick(dialog: DialogInterface?, which: Int) {
+                    //LOG OUT:
+                    //Delete tokens & user details:
+                    prefs.spotifyToken = ""
+                    prefs.refreshToken = ""
+                    prefs.userName = ""
+                    prefs.userEMail = ""
+                    prefs.userImage = ""
+                    //Stop overlay service:
+                    if (isMyServiceRunning(FloatingViewService::class.java)) {
+                        stopService(Intent(applicationContext, FloatingViewService::class.java))
+                    }
+                    loggedIn = false
+                    setViewLoggedOut()
+                    Toast.makeText(applicationContext, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()
+                }
+            })
+            //Exit without saving:
+            alertDialog.setNegativeButton("No", object : DialogInterface.OnClickListener {
+                override fun onClick(dialog: DialogInterface?, which: Int) {
+                    loggedIn = true
+                }
+            })
+            alertDialog.setTitle("Log out")
+            alertDialog.setMessage("You will need to login again to Spotify to use DJames.\n\nDo you want to log out?")
+            alertDialog.show()
+        }
+    }
+
+    fun setViewLoggedOut() {
+        //User NOT logged in:
+        login_mini_button!!.text = "LOGIN"
+        userNameView!!.text = "Not logged in"
+        userEMailView!!.visibility = View.GONE
+        Picasso.get().load(R.drawable.user_icon)
+            .transform(CropCircleTransformation())
+            .into(userIcon)
+    }
+
 }

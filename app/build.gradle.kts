@@ -62,4 +62,7 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor")
     // GSON:
     implementation("com.google.code.gson:gson:2.10.1")
+    //Picasso:
+    implementation ("com.squareup.picasso:picasso:2.8")
+    implementation("jp.wasabeef:picasso-transformations:2.4.0")
 }

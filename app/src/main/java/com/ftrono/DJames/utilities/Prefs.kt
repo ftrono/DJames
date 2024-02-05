@@ -49,21 +49,22 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getString(KEY_CLOCK_TIMEOUT, "5") as String
         set(value) = sharedPrefs.edit().putString(KEY_CLOCK_TIMEOUT, value).apply()
 
-    //Maps timeout:
-    var mapsTimeout: String
-        get() = sharedPrefs.getString(KEY_MAPS_TIMEOUT, "3") as String
-        set(value) = sharedPrefs.edit().putString(KEY_MAPS_TIMEOUT, value).apply()
-
-    //GMaps address:
-    var mapsAddress: String
-        get() = sharedPrefs.getString(KEY_MAPS_ADDRESS, "https://www.google.com/maps/") as String
-        set(value) = sharedPrefs.edit().putString(KEY_MAPS_ADDRESS, value).apply()
-
 
     //User profile:
+    //Spotify user name:
     var userName: String
         get() = sharedPrefs.getString(KEY_USER_NAME, "") as String
         set(value) = sharedPrefs.edit().putString(KEY_USER_NAME, value).apply()
+
+    //Spotify user email:
+    var userEMail: String
+        get() = sharedPrefs.getString(KEY_USER_EMAIL, "") as String
+        set(value) = sharedPrefs.edit().putString(KEY_USER_EMAIL, value).apply()
+
+    //Spotify user image:
+    var userImage: String
+        get() = sharedPrefs.getString(KEY_USER_IMAGE, "") as String
+        set(value) = sharedPrefs.edit().putString(KEY_USER_IMAGE, value).apply()
 
 
     //ENCRYPTED PREFS:
@@ -83,9 +84,9 @@ class Prefs (context: Context) {
         //Shared prefs:
         const val KEY_REC_TIMEOUT = ".key.rec_timeout"
         const val KEY_CLOCK_TIMEOUT = ".key.clock_timeout"
-        const val KEY_MAPS_TIMEOUT = ".key.maps_timeout"
-        const val KEY_MAPS_ADDRESS = ".key.maps_address"
         const val KEY_USER_NAME = ".key.user_name"
+        const val KEY_USER_EMAIL = ".key.user_email"
+        const val KEY_USER_IMAGE = ".key.user_image"
 
         //Encrypted prefs:
         const val KEY_SPOTIFY_TOKEN = ".key.spotify_token"

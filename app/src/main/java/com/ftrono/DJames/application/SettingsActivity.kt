@@ -6,8 +6,11 @@ import android.content.DialogInterface.OnClickListener
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.AdapterView
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.ImageView
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -34,6 +37,7 @@ class SettingsActivity : AppCompatActivity() {
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.title = "Settings"
 
+        //User details:
         userNameView = findViewById<TextView>(R.id.user_name)
         userEMailView = findViewById<TextView>(R.id.user_email)
         userIcon = findViewById<ImageView>(R.id.user_icon)
@@ -62,9 +66,62 @@ class SettingsActivity : AppCompatActivity() {
         text_rec_timeout = findViewById<TextView>(R.id.val_rec_timeout)
         text_rec_timeout!!.text = prefs.recTimeout
 
+        //Overlay Position:
+        var spinner_overlay_pos = findViewById<Spinner>(R.id.spinner_overlay_pos)
+        spinner_overlay_pos!!.setSelection(prefs.overlayPosition.toInt())
+        spinner_overlay_pos.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(adapter: AdapterView<*>?, view: View, pos: Int, id: Long) {
+                prefs.overlayPosition = pos.toString()
+                //Restart overlay service:
+                if (isMyServiceRunning(FloatingViewService::class.java)) {
+                    stopService(Intent(applicationContext, FloatingViewService::class.java))
+                    if (!isMyServiceRunning(FloatingViewService::class.java)) {
+                        startService(Intent(applicationContext, FloatingViewService::class.java))
+                    }
+                }
+            }
+            override fun onNothingSelected(arg0: AdapterView<*>?) {}
+        })
+
         //ClockTimeout:
+        var text_clock_after = findViewById<TextView>(R.id.descr_clock_after)
+        var text_clock_descr = findViewById<TextView>(R.id.descr_clock_timeout)
+        var checkbox_timeout = findViewById<CheckBox>(R.id.checkbox_clock_redirect)
+        checkbox_timeout!!.setChecked(prefs.clockRedirectEnabled)
         text_clock_timeout = findViewById<TextView>(R.id.val_clock_timeout)
         text_clock_timeout!!.text = prefs.clockTimeout
+
+        //Initial clock timeout view:
+        if (!checkbox_timeout.isChecked) {
+            text_clock_after!!.visibility = View.GONE
+            text_clock_descr!!.visibility = View.GONE
+            text_clock_timeout!!.visibility = View.GONE
+        }
+
+        checkbox_timeout.setOnClickListener {
+            if (checkbox_timeout.isChecked) {
+                prefs.clockRedirectEnabled = true
+                text_clock_after!!.visibility = View.VISIBLE
+                text_clock_descr!!.visibility = View.VISIBLE
+                text_clock_timeout!!.visibility = View.VISIBLE
+            } else {
+                prefs.clockRedirectEnabled = false
+                text_clock_after!!.visibility = View.GONE
+                text_clock_descr!!.visibility = View.GONE
+                text_clock_timeout!!.visibility = View.GONE
+            }
+        }
+
+        //Volume Up:
+        var checkbox_volume_up = findViewById<CheckBox>(R.id.checkbox_volume_receiver)
+        checkbox_volume_up!!.setChecked(prefs.volumeUpEnabled)
+        checkbox_volume_up.setOnClickListener {
+            if (checkbox_volume_up.isChecked) {
+                prefs.volumeUpEnabled = true
+            } else {
+                prefs.volumeUpEnabled = false
+            }
+        }
 
         //Save:
         val saveButton = findViewById<Button>(R.id.save_button)
@@ -151,7 +208,7 @@ class SettingsActivity : AppCompatActivity() {
         //ClockTimeout:
         if (newClockTimeout.isNotEmpty()) {
             //validate & overwrite:
-            prefs.clockTimeout = validateTimeout(newVal = newClockTimeout, origVal = prefs.clockTimeout, min_val = 0, max_val = 15)
+            prefs.clockTimeout = validateTimeout(newVal = newClockTimeout, origVal = prefs.clockTimeout, min_val = 5, max_val = 15)
         }
     }
 

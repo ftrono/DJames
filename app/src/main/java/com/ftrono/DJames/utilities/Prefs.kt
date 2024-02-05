@@ -44,11 +44,25 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getString(KEY_REC_TIMEOUT, "5") as String
         set(value) = sharedPrefs.edit().putString(KEY_REC_TIMEOUT, value).apply()
 
+    var overlayPosition: String
+        //0 -> Left; 1 -> Right
+        get() = sharedPrefs.getString(KEY_OVERLAY_POSITION, "1") as String
+        set(value) = sharedPrefs.edit().putString(KEY_OVERLAY_POSITION, value).apply()
+
+    //Clock Screen enabled:
+    var clockRedirectEnabled: Boolean
+        get() = sharedPrefs.getBoolean(KEY_CLOCK_REDIRECT_ENABLED, true) as Boolean
+        set(value) = sharedPrefs.edit().putBoolean(KEY_CLOCK_REDIRECT_ENABLED, value).apply()
+
     //Clock timeout:
     var clockTimeout: String
         get() = sharedPrefs.getString(KEY_CLOCK_TIMEOUT, "5") as String
         set(value) = sharedPrefs.edit().putString(KEY_CLOCK_TIMEOUT, value).apply()
 
+    //VolumeUp enabled:
+    var volumeUpEnabled: Boolean
+        get() = sharedPrefs.getBoolean(KEY_VOLUME_UP_ENABLED, true) as Boolean
+        set(value) = sharedPrefs.edit().putBoolean(KEY_VOLUME_UP_ENABLED, value).apply()
 
     //User profile:
     //Spotify user name:
@@ -83,7 +97,10 @@ class Prefs (context: Context) {
         //KEYS:
         //Shared prefs:
         const val KEY_REC_TIMEOUT = ".key.rec_timeout"
+        const val KEY_OVERLAY_POSITION = ".key.overlay_position"
+        const val KEY_CLOCK_REDIRECT_ENABLED = ".key.clock_redirect_enabled"
         const val KEY_CLOCK_TIMEOUT = ".key.clock_timeout"
+        const val KEY_VOLUME_UP_ENABLED = ".key.volume_up_enabled"
         const val KEY_USER_NAME = ".key.user_name"
         const val KEY_USER_EMAIL = ".key.user_email"
         const val KEY_USER_IMAGE = ".key.user_image"

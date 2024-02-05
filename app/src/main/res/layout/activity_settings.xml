@@ -74,8 +74,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
-            android:layout_marginLeft="15dp"
-            android:layout_marginRight="15dp"
+            android:layout_marginLeft="20dp"
             android:text= "Voice recording timeout"
             android:textSize="16dp"
             android:textStyle="italic"
@@ -87,7 +86,6 @@
             android:id="@+id/val_rec_timeout"
             android:layout_width="60dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
             android:layout_marginLeft="15dp"
             android:inputType="number"
             android:text="5"
@@ -104,7 +102,6 @@
             android:id="@+id/descr_rec_timeout"
             android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
             android:layout_marginRight="15dp"
             android:text="seconds (keep between 3 and 10)"
             android:textSize="14dp"
@@ -114,27 +111,71 @@
             app:layout_constraintTop_toTopOf="@+id/val_rec_timeout"
             app:layout_constraintBottom_toBottomOf="@+id/val_rec_timeout"/>
 
-        <!-- Clock auto timeout-->
+
+        <!-- Overlay Button position-->
         <TextView
-            android:id="@+id/header_clock_timeout"
-            android:layout_width="match_parent"
+            android:id="@+id/header_overlay_position"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:layout_marginLeft="15dp"
-            android:layout_marginRight="15dp"
-            android:text= "Automatic clock redirecting timeout"
+            android:layout_marginTop="54dp"
+            android:layout_marginLeft="20dp"
+            android:text= "Overlay button position"
             android:textSize="16dp"
             android:textStyle="italic"
             android:textColor="@color/light_grey"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/val_rec_timeout"/>
+            app:layout_constraintTop_toBottomOf="@+id/descr_rec_timeout"/>
+
+        <Spinner
+            android:id="@+id/spinner_overlay_pos"
+            android:paddingEnd="8dp"
+            android:paddingStart="8dp"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginLeft="6dp"
+            android:backgroundTint="@color/light_grey"
+            android:entries="@array/overlayPos"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/header_overlay_position"/>
+
+
+        <!-- Clock auto timeout-->
+        <CheckBox
+            android:id="@+id/checkbox_clock_redirect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginLeft="11dp"
+            android:layout_marginRight="15dp"
+            android:text= "Go back automatically to Clock screen"
+            android:textSize="16dp"
+            android:textStyle="italic"
+            android:textColor="@color/light_grey"
+            android:checked="true"
+            app:theme="@style/CheckBoxStyle"
+            app:layout_constraintTop_toBottomOf="@+id/spinner_overlay_pos"
+            app:layout_constraintLeft_toLeftOf="parent"/>
+
+        <TextView
+            android:id="@+id/descr_clock_after"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:text="After"
+            android:textSize="14dp"
+            android:textColor="@color/mid_grey"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@+id/val_clock_timeout"
+            app:layout_constraintTop_toTopOf="@+id/val_clock_timeout"
+            app:layout_constraintBottom_toBottomOf="@+id/val_clock_timeout"/>
 
         <EditText
             android:id="@+id/val_clock_timeout"
             android:layout_width="60dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginLeft="15dp"
+            android:layout_marginTop="-12dp"
             android:inputType="number"
             android:text="5"
             android:textSize="18dp"
@@ -142,15 +183,14 @@
             android:textColor="@color/light_grey"
             android:backgroundTint="@color/dark_grey"
             app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintLeft_toRightOf="@+id/descr_clock_after"
             app:layout_constraintRight_toLeftOf="@+id/descr_clock_timeout"
-            app:layout_constraintTop_toBottomOf="@+id/header_clock_timeout"/>
+            app:layout_constraintTop_toBottomOf="@+id/checkbox_clock_redirect"/>
 
         <TextView
             android:id="@+id/descr_clock_timeout"
             android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
             android:layout_marginRight="15dp"
             android:text="seconds (keep between 5 and 15)"
             android:textSize="14dp"
@@ -161,19 +201,49 @@
             app:layout_constraintBottom_toBottomOf="@+id/val_clock_timeout"/>
 
 
+        <!-- Volume Up receiver -->
+        <CheckBox
+            android:id="@+id/checkbox_volume_receiver"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:layout_marginLeft="11dp"
+            android:layout_marginRight="15dp"
+            android:text= "VOLUME-UP key starts recording"
+            android:textSize="16dp"
+            android:textStyle="italic"
+            android:textColor="@color/light_grey"
+            android:checked="true"
+            app:theme="@style/CheckBoxStyle"
+            app:layout_constraintTop_toBottomOf="@+id/descr_clock_timeout"
+            app:layout_constraintLeft_toLeftOf="parent"/>
+
+        <TextView
+            android:id="@+id/descr_volume_up"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:text="Keep this enabled if you use Bluetooth remotes!"
+            android:textSize="14dp"
+            android:textColor="@color/mid_grey"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/checkbox_volume_receiver"/>
+
+
         <!-- SAVE BUTTON -->
         <Button
             android:id="@+id/save_button"
             android:layout_width="150dp"
             android:layout_height="60dp"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="40dp"
             android:text="S A V E"
             android:textColor="@color/light_grey"
             android:textStyle="bold"
             android:backgroundTint="@color/colorAccent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/val_clock_timeout"/>
+            app:layout_constraintTop_toBottomOf="@+id/descr_volume_up"/>
 
         <!-- APP INFO-->
         <TextView

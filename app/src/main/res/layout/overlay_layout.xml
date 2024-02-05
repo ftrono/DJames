@@ -6,6 +6,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
 
+    <!-- Clock overlay button-->
     <View
         android:id="@+id/clock_button"
         android:layout_width="65dp"
@@ -43,6 +44,7 @@
         app:layout_constraintTop_toBottomOf="@+id/clock_icon"
         app:layout_constraintBottom_toBottomOf="@+id/clock_button"/>
 
+    <!-- Main overlay button-->
     <View
         android:id="@+id/rounded_button"
         android:layout_width="100dp"

@@ -27,8 +27,7 @@ class EventReceiver: BroadcastReceiver() {
             val oldVolume = intent.getIntExtra("android.media.EXTRA_PREV_VOLUME_STREAM_VALUE", 0)
             val event = intent.getIntExtra("android.intent.extra.KEY_EVENT", 0)
 
-            if (newVolume >= oldVolume && !recordingMode && screenOn) {
-
+            if (newVolume >= oldVolume && !recordingMode && screenOn && prefs.volumeUpEnabled) {
                 //START VOICE SEARCH SERVICE:
                 recordingMode = true
                 sourceIsVolume = true

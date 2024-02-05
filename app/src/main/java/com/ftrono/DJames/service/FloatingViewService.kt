@@ -38,6 +38,11 @@ class FloatingViewService : Service() {
     private val TAG = FloatingViewService::class.java.simpleName
     private var fs_active : Boolean = false
 
+    //Pos:
+    var height = 0
+    var width = 0
+    var xpos = 0
+
     //View managers:
     private var mWindowManager: WindowManager? = null
     private var mFloatingView: View? = null
@@ -108,9 +113,20 @@ class FloatingViewService : Service() {
             //VIEW:
             // Init window manager
             mWindowManager = getSystemService(WINDOW_SERVICE) as WindowManager?
+
             // Store display height & width
-            var height = resources.displayMetrics.heightPixels
-            var width = resources.displayMetrics.widthPixels
+            height = resources.displayMetrics.heightPixels
+            width = resources.displayMetrics.widthPixels
+
+            //Preferred xpos:
+            if (prefs.overlayPosition.toInt() == 1) {
+                //RIGHT:
+                xpos = width
+            } else {
+                //LEFT:
+                xpos = -width
+            }
+
             //Layout flags:
             val LAYOUT_FLAGS = LayoutParams.FLAG_NOT_FOCUSABLE or LayoutParams.FLAG_KEEP_SCREEN_ON
 
@@ -128,7 +144,7 @@ class FloatingViewService : Service() {
             //Specify the overlay view position
             params!!.gravity =
                 Gravity.TOP or Gravity.LEFT //Initially view will be added to top-left corner
-            params!!.x = width
+            params!!.x = xpos
             params!!.y = round(height.toDouble()/3).toInt()
 
             //Add the overlay view to the window
@@ -141,12 +157,12 @@ class FloatingViewService : Service() {
                 LayoutParams.WRAP_CONTENT,
                 LayoutParams.WRAP_CONTENT,
                 LayoutParams.TYPE_APPLICATION_OVERLAY,
-                LAYOUT_FLAGS,
+                LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT
             )
 
             //Specify the overlay view position
-            params2!!.x = width
+            params2!!.x = xpos
             params2!!.y = height
 
             // Set the overlay button & icon
@@ -202,8 +218,6 @@ class FloatingViewService : Service() {
                             MotionEvent.ACTION_UP -> {
                                 val Xdiff = (event.rawX - initialTouchX).toInt()
                                 val Ydiff = (event.rawY - initialTouchY).toInt()
-                                height = resources.displayMetrics.heightPixels
-                                width = resources.displayMetrics.widthPixels
 
                                 //The check for abs(Xdiff) < 10 && abs(YDiff) < 10 is because sometime elements moves a little while clicking.
                                 //So that is click event.
@@ -270,10 +284,18 @@ class FloatingViewService : Service() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         // Store display height & width
-        var newWidth = resources.displayMetrics.widthPixels
-        var newHeight = resources.displayMetrics.heightPixels
-        params!!.x = newWidth
-        params!!.y = round(newHeight.toDouble()/3).toInt()
+        width = resources.displayMetrics.widthPixels
+        height = resources.displayMetrics.heightPixels
+        //Preferred xpos:
+        if (prefs.overlayPosition.toInt() == 1) {
+            //RIGHT:
+            xpos = width
+        } else {
+            //LEFT:
+            xpos = -width
+        }
+        params!!.x = xpos
+        params!!.y = round(height.toDouble()/3).toInt()
         mWindowManager!!.updateViewLayout(mFloatingView, params)
     }
 

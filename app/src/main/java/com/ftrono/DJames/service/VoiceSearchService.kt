@@ -309,7 +309,7 @@ class VoiceSearchService : Service() {
         intentSpotify.putExtra("fromwhere", "ser")
         startActivity(intentSpotify)
 
-        if (prefs.clockTimeout.toLong() > 0) {
+        if (prefs.clockRedirectEnabled) {
             //Clock redirect:
             Thread.sleep((prefs.clockTimeout.toLong()-1) * 1000)   //default: 10000
             //Launch Clock:

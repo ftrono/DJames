@@ -88,6 +88,7 @@ var startButton: Button? = null
 var loginButton: MenuItem? = null
 
 //Player views:
+var artworkView: ImageView? = null
 var songView: TextView? = null
 var artistView: TextView? = null
 var contextView: TextView? = null

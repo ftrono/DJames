@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import android.content.res.Configuration
+import android.widget.ImageView
 import com.ftrono.DJames.R
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -61,6 +62,7 @@ class FakeLockScreen: AppCompatActivity() {
         songView = findViewById<TextView>(R.id.song_name)
         artistView = findViewById<TextView>(R.id.artist_name)
         contextView = findViewById<TextView>(R.id.context_name)
+        artworkView = findViewById<ImageView>(R.id.artwork)
 
         //PLAYER INFO AREA:
         if (songName == "") {
@@ -95,7 +97,7 @@ class FakeLockScreen: AppCompatActivity() {
                 setMargins((50*density).roundToInt(),0,0,0)
             }
             //Fix constraint for last textView:
-            contextView!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+            artworkView!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
                 bottomToTop = ConstraintLayout.LayoutParams.UNSET   //clear
                 bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
             }
@@ -226,11 +228,11 @@ class FakeLockScreen: AppCompatActivity() {
         exitButtonVert!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
             topToTop = ConstraintLayout.LayoutParams.UNSET   //clear
             rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
-            topToBottom = R.id.context_name
+            topToBottom = R.id.artwork
             setMargins(0,(40*density).roundToInt(),0,0)
         }
         //Fix constraint for last textView:
-        contextView!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+        artworkView!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
             bottomToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
             bottomToTop = R.id.exit_button
         }
@@ -250,7 +252,7 @@ class FakeLockScreen: AppCompatActivity() {
             setMargins((50*density).roundToInt(),0,0,0)
         }
         //Fix constraint for last textView:
-        contextView!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+        artworkView!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
             bottomToTop = ConstraintLayout.LayoutParams.UNSET   //clear
             bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
         }

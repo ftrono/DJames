@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
@@ -14,15 +15,21 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.updateLayoutParams
 import com.ftrono.DJames.R
 import com.ftrono.DJames.service.FloatingViewService
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.squareup.picasso.Picasso
 import jp.wasabeef.picasso.transformations.CropCircleTransformation
+import kotlin.math.roundToInt
 
 
 class SettingsActivity : AppCompatActivity() {
-    //Text views:
+    //Views:
+    private var user_container: View? = null
+    private var divider: View? = null
+    private var header_rec_timeout: TextView? = null
     private var text_rec_timeout: TextView? = null
     private var text_clock_timeout: TextView? = null
     //New values:
@@ -37,11 +44,34 @@ class SettingsActivity : AppCompatActivity() {
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.title = "Settings"
 
+        //Views:
+        user_container = findViewById<View>(R.id.user_container)
+        divider = findViewById<View>(R.id.divider)
+        header_rec_timeout = findViewById<TextView>(R.id.header_rec_timeout)
+
         //User details:
         userNameView = findViewById<TextView>(R.id.user_name)
         userEMailView = findViewById<TextView>(R.id.user_email)
         userIcon = findViewById<ImageView>(R.id.user_icon)
         login_mini_button = findViewById<Button>(R.id.login_mini_button)
+
+        //Check initial orientation:
+        var config = getResources().getConfiguration()
+        if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            //HORIZONTAL:
+            user_container!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
+                rightToLeft = R.id.divider
+            }
+            divider!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
+                leftToRight = R.id.user_container
+            }
+            header_rec_timeout!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                topToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
+                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+            }
+        }
 
         //Set login details:
         if (prefs.userName != "") {
@@ -201,6 +231,40 @@ class SettingsActivity : AppCompatActivity() {
             //Start Main:
             val intent1 = Intent(this, MainActivity::class.java)
             startActivity(intent1)
+        }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            //VERTICAL:
+            user_container!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                rightToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
+                rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
+            }
+            divider!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                leftToRight = ConstraintLayout.LayoutParams.UNSET   //clear
+                leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
+            }
+            header_rec_timeout!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                topToTop = ConstraintLayout.LayoutParams.UNSET   //clear
+                topToBottom = R.id.user_container
+            }
+        }
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            //HORIZONTAL:
+            user_container!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
+                rightToLeft = R.id.divider
+            }
+            divider!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
+                leftToRight = R.id.user_container
+            }
+            header_rec_timeout!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                topToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
+                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+            }
         }
     }
 

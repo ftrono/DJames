@@ -155,23 +155,27 @@ class SpotifyInterpreter() {
                 Log.d(TAG, "spotify_URL: ${spotifyURL}")
 
                 //Track name:
-                returnJSON.add("song_name", JsonPrimitive(firstResult.get("name").asString))
+                returnJSON.add("song_name", firstResult.get("name"))
 
                 //Artist name:
                 var artists = firstResult.getAsJsonArray("artists")
                 var firstArtist = artists.get(0).asJsonObject
-                returnJSON.add("artist_name", JsonPrimitive(firstArtist.get("name").asString))
+                returnJSON.add("artist_name", firstArtist.get("name"))
 
-                //Artist name:
+                //CONTEXT:
+                //Album name:
                 var album = firstResult.get("album").asJsonObject
-                returnJSON.add("context_name", JsonPrimitive("Album: ${album.get("name").asString}"))
+                returnJSON.add("context_type", JsonPrimitive("Album"))
+                returnJSON.add("context_name", album.get("name"))
+                returnJSON.add("context_uri", album.get("uri"))
+                returnJSON.add("track_number", JsonPrimitive(firstResult.get("track_number").asInt - 1))   //offset = track_number - 1
 
                 //Artwork:
                 if (album.has("images")) {
                     try {
                         var images = album.getAsJsonArray("images")
                         var firstImage = images.get(0).asJsonObject
-                        returnJSON.add("artwork", JsonPrimitive(firstImage.get("url").asString))
+                        returnJSON.add("artwork", firstImage.get("url"))
                     } catch (e: Exception) {
                         Log.d(TAG, "Unable to retrieve album artwork: ", e)
                     }
@@ -196,13 +200,13 @@ class SpotifyInterpreter() {
         uris.add(JsonPrimitive(resultJSON.get("uri").asString))
 
         //Offset:
-        var position = 0
         var offset = JsonObject()
-        offset.add("position", JsonPrimitive(position))
+        offset.add("position", resultJSON.get("track_number"))
 
         var jsonBody = JsonObject()
-        jsonBody.add("uris", uris)
-        //jsonBody.add("offset", offset)
+        //jsonBody.add("uris", uris)
+        jsonBody.add("context_uri", resultJSON.get("context_uri"))
+        jsonBody.add("offset", offset)
         jsonBody.add("position_ms", JsonPrimitive(0))
 
         var body = jsonBody.toString().toRequestBody()

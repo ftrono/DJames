@@ -24,13 +24,14 @@ import com.ftrono.DJames.recorder.AndroidAudioRecorder
 import com.ftrono.DJames.api.SpotifyInterpreter
 import com.google.gson.JsonObject
 import java.io.File
+import java.net.URLEncoder
 
 
 class VoiceSearchService : Service() {
     //Main:
     private val TAG = VoiceSearchService::class.java.simpleName
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
-//    private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    //private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
     //Recorder:
     private val recorder by lazy {
@@ -259,7 +260,7 @@ class VoiceSearchService : Service() {
                                 artistName = artistName.slice(0..30) + "..."
                             }
                             //Context name:
-                            contextName = queryResult.get("context_name").asString
+                            contextName = "${queryResult.get("context_type").asString}: ${queryResult.get("context_name").asString}"
                             if (contextName.length > 30) {
                                 contextName = contextName.slice(0..30) + "..."
                             }
@@ -285,7 +286,10 @@ class VoiceSearchService : Service() {
                             if (sessionState == -1) {
                                 //Open externally:
                                 var spotifyUrl = queryResult.get("spotify_URL").asString
-                                openExternally(spotifyUrl)
+                                var contextUri = queryResult.get("context_uri").asString
+                                val encodedContextUri: String = URLEncoder.encode(contextUri, "UTF-8")
+                                openExternally("$spotifyUrl?context=$encodedContextUri")
+                                //openExternally(spotifyUrl)
                             }
 
                             //Reset:

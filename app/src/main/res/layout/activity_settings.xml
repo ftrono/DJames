@@ -89,19 +89,33 @@
             />
 
         <!-- SETTINGS-->
+        <!-- PREFERENCES-->
+        <TextView
+            android:id="@+id/header_preferences"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginLeft="20dp"
+            android:text= "PREFERENCES"
+            android:textSize="16dp"
+            android:textStyle="bold"
+            android:textColor="@color/mid_grey"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintTop_toBottomOf="@+id/user_container"/>
+
         <!-- Rec timeout-->
         <TextView
             android:id="@+id/header_rec_timeout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="12dp"
             android:layout_marginLeft="20dp"
             android:text= "Voice recording timeout"
             android:textSize="16dp"
             android:textStyle="italic"
             android:textColor="@color/light_grey"
             app:layout_constraintLeft_toRightOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/user_container"/>
+            app:layout_constraintTop_toBottomOf="@+id/header_preferences"/>
 
         <EditText
             android:id="@+id/val_rec_timeout"
@@ -179,6 +193,20 @@
             app:layout_constraintTop_toBottomOf="@+id/spinner_overlay_pos"/>
 
         <TextView
+            android:id="@+id/descr_clock_context"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="-6dp"
+            android:layout_marginLeft="20dp"
+            android:text="(Only when Spotify is opened for the first time)"
+            android:textSize="14dp"
+            android:textStyle="italic"
+            android:textColor="@color/mid_grey"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintTop_toBottomOf="@+id/checkbox_clock_redirect"/>
+
+        <TextView
             android:id="@+id/descr_clock_after"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -196,7 +224,6 @@
             android:id="@+id/val_clock_timeout"
             android:layout_width="60dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="-12dp"
             android:inputType="number"
             android:text="5"
             android:textSize="18dp"
@@ -206,7 +233,7 @@
             app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintLeft_toRightOf="@+id/descr_clock_after"
             app:layout_constraintRight_toLeftOf="@+id/descr_clock_timeout"
-            app:layout_constraintTop_toBottomOf="@+id/checkbox_clock_redirect"/>
+            app:layout_constraintTop_toBottomOf="@+id/descr_clock_context"/>
 
         <TextView
             android:id="@+id/descr_clock_timeout"
@@ -222,12 +249,25 @@
             app:layout_constraintBottom_toBottomOf="@+id/val_clock_timeout"/>
 
 
+        <!-- ADVANCED-->
+        <TextView
+            android:id="@+id/header_advanced"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="80dp"
+            android:layout_marginLeft="20dp"
+            android:text= "ADVANCED"
+            android:textSize="16dp"
+            android:textStyle="bold"
+            android:textColor="@color/mid_grey"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintTop_toBottomOf="@+id/descr_clock_timeout"/>
+
         <!-- Volume Up receiver -->
         <CheckBox
             android:id="@+id/checkbox_volume_receiver"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="40dp"
             android:layout_marginLeft="11dp"
             android:layout_marginRight="15dp"
             android:text= "VOLUME-UP key starts recording"
@@ -237,7 +277,7 @@
             android:checked="true"
             app:theme="@style/CheckBoxStyle"
             app:layout_constraintLeft_toRightOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/descr_clock_timeout"/>
+            app:layout_constraintTop_toBottomOf="@+id/header_advanced"/>
 
         <TextView
             android:id="@+id/descr_volume_up"
@@ -256,7 +296,7 @@
             android:id="@+id/header_mic"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="54dp"
+            android:layout_marginTop="40dp"
             android:layout_marginLeft="20dp"
             android:text= "Preferred microphone"
             android:textSize="16dp"

@@ -29,7 +29,7 @@ class SettingsActivity : AppCompatActivity() {
     //Views:
     private var user_container: View? = null
     private var divider: View? = null
-    private var header_rec_timeout: TextView? = null
+    private var header_preferences: TextView? = null
     private var text_rec_timeout: TextView? = null
     private var text_clock_timeout: TextView? = null
     //New values:
@@ -47,7 +47,7 @@ class SettingsActivity : AppCompatActivity() {
         //Views:
         user_container = findViewById<View>(R.id.user_container)
         divider = findViewById<View>(R.id.divider)
-        header_rec_timeout = findViewById<TextView>(R.id.header_rec_timeout)
+        header_preferences = findViewById<TextView>(R.id.header_preferences)
 
         //User details:
         userNameView = findViewById<TextView>(R.id.user_name)
@@ -67,7 +67,7 @@ class SettingsActivity : AppCompatActivity() {
                 leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
                 leftToRight = R.id.user_container
             }
-            header_rec_timeout!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+            header_preferences!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
                 topToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
                 topToTop = ConstraintLayout.LayoutParams.PARENT_ID
             }
@@ -246,7 +246,7 @@ class SettingsActivity : AppCompatActivity() {
                 leftToRight = ConstraintLayout.LayoutParams.UNSET   //clear
                 leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
             }
-            header_rec_timeout!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+            header_preferences!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
                 topToTop = ConstraintLayout.LayoutParams.UNSET   //clear
                 topToBottom = R.id.user_container
             }
@@ -261,7 +261,7 @@ class SettingsActivity : AppCompatActivity() {
                 leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
                 leftToRight = R.id.user_container
             }
-            header_rec_timeout!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+            header_preferences!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
                 topToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
                 topToTop = ConstraintLayout.LayoutParams.PARENT_ID
             }

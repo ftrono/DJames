@@ -166,6 +166,18 @@ class SpotifyInterpreter() {
                 var album = firstResult.get("album").asJsonObject
                 returnJSON.add("context_name", JsonPrimitive("Album: ${album.get("name").asString}"))
 
+                //Artwork:
+                if (album.has("images")) {
+                    try {
+                        var images = album.getAsJsonArray("images")
+                        var firstImage = images.get(0).asJsonObject
+                        returnJSON.add("artwork", JsonPrimitive(firstImage.get("url").asString))
+                    } catch (e: Exception) {
+                        Log.d(TAG, "Unable to retrieve album artwork: ", e)
+                    }
+                }
+
+
                 Log.d(TAG, "Spotify Search results successfully processed!")
             } else {
                 Log.d(TAG, "GET TRACK: EMPTY RESPONSE!")

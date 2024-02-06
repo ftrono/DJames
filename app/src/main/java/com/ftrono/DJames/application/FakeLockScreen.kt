@@ -19,6 +19,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import com.ftrono.DJames.receivers.EventReceiver
+import com.squareup.picasso.Picasso
 import kotlin.math.roundToInt
 
 
@@ -75,6 +76,10 @@ class FakeLockScreen: AppCompatActivity() {
             songView!!.text = songName
             artistView!!.text = artistName
             contextView!!.text = contextName
+            if (artwork != "") {
+                Picasso.get().load(artwork)
+                    .into(artworkView)
+            }
         }
 
         //Screen density:

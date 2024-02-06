@@ -172,6 +172,10 @@ class EventReceiver: BroadcastReceiver() {
                     songView!!.text = songName
                     artistView!!.text = artistName
                     contextView!!.text = contextName
+                    if (artwork != "") {
+                        Picasso.get().load(artwork)
+                            .into(artworkView)
+                    }
                 } catch (e: Exception) {
                     Log.d(TAG, "ACTION_NEW_SONG: resources not available.")
                 }

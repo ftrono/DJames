@@ -31,6 +31,7 @@ var clock_active: Boolean = false
 var searchFail: Boolean = false
 
 //Player info:
+var artwork: String = ""
 var songName: String = ""
 var artistName: String = ""
 var contextName: String = ""

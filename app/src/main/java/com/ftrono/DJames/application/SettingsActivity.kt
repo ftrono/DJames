@@ -121,6 +121,11 @@ class SettingsActivity : AppCompatActivity() {
             } else {
                 prefs.volumeUpEnabled = false
             }
+            //Send broadcast:
+            Intent().also { intent ->
+                intent.setAction(ACTION_VOLUME_UP_CHANGED)
+                sendBroadcast(intent)
+            }
         }
 
         //Mic type:

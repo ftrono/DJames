@@ -71,7 +71,11 @@ class EventReceiver: BroadcastReceiver() {
                 descr_main!!.setTextColor(AppCompatResources.getColorStateList(context, R.color.light_grey))
                 descr_main!!.setTypeface(null, Typeface.ITALIC)
                 descr_main!!.text = context.resources.getString(R.string.str_main_start)
-                descr_use!!.text = context.resources.getString(R.string.str_use_logged)
+                if (prefs.volumeUpEnabled) {
+                    descr_use!!.text = context.resources.getString(R.string.str_use_logged)
+                } else {
+                    descr_use!!.text = context.resources.getString(R.string.str_use_logged_no_vol)
+                }
                 descr_use!!.setTextColor(AppCompatResources.getColorStateList(context, R.color.mid_grey))
             } catch (e: Exception) {
                 Log.d(TAG, "ACTION_LOGGED_IN: Main() resources not available.")
@@ -110,6 +114,20 @@ class EventReceiver: BroadcastReceiver() {
                 descr_use!!.setTextColor(AppCompatResources.getColorStateList(context, R.color.mid_grey))
             } catch (e: Exception) {
                 Log.d(TAG, "ACTION_OVERLAY_DEACTIVATED: resources not available.")
+            }
+        }
+
+        //when Settings VOLUME-UP is changed:
+        if (intent.action == ACTION_VOLUME_UP_CHANGED) {
+            Log.d(TAG, "ACTION_VOLUME_UP_CHANGED.")
+            try {
+                if (prefs.volumeUpEnabled) {
+                    descr_use!!.text = context!!.resources.getString(R.string.str_use_logged)
+                } else {
+                    descr_use!!.text = context!!.resources.getString(R.string.str_use_logged_no_vol)
+                }
+            } catch (e: Exception) {
+                Log.d(TAG, "ACTION_VOLUME_UP_CHANGED: resources not available.")
             }
         }
 

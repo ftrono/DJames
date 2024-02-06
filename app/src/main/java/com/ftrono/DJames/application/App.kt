@@ -104,6 +104,7 @@ const val ACTION_OVERLAY_DEACTIVATED = "com.ftrono.DJames.eventReceiver.ACTION_O
 const val ACTION_CLOCK_OPENED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_OPENED"
 const val ACTION_CLOCK_CLOSED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_CLOSED"
 const val ACTION_NEW_SONG = "com.ftrono.DJames.eventReceiver.ACTION_NEW_SONG"
+const val ACTION_VOLUME_UP_CHANGED = "com.ftrono.DJames.eventReceiver.ACTION_VOLUME_UP_CHANGED"
 
 
 class App: Application()

@@ -1,6 +1,7 @@
 package com.ftrono.DJames.service
 
 import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -259,6 +260,10 @@ class FloatingViewService : Service() {
                 })
         } catch (e: Exception) {
             Log.d(TAG, "Exception: ", e)
+            //Stop Voice Search service:
+            if (isMyServiceRunning(VoiceSearchService::class.java)) {
+                stopService(Intent(applicationContext, VoiceSearchService::class.java))
+            }
             recordingMode = false
             fs_active = false
             overlayButton = null
@@ -303,6 +308,10 @@ class FloatingViewService : Service() {
         super.onDestroy()
         try {
             if (mFloatingView != null) mWindowManager!!.removeView(mFloatingView)
+            //Stop Voice Search service:
+            if (isMyServiceRunning(VoiceSearchService::class.java)) {
+                stopService(Intent(applicationContext, VoiceSearchService::class.java))
+            }
             fs_active = false
             recordingMode = false
             //unregister receivers:
@@ -345,4 +354,15 @@ class FloatingViewService : Service() {
             .build()
         startForeground(1, notification)
     }
+
+    fun isMyServiceRunning(serviceClass: Class<*>): Boolean {
+        val manager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+        for (service in manager.getRunningServices(Int.MAX_VALUE)) {
+            if (serviceClass.name == service.service.className) {
+                return true
+            }
+        }
+        return false
+    }
+
 }

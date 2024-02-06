@@ -104,6 +104,11 @@ class MainActivity : AppCompatActivity() {
             loggedIn = true
             supportActionBar!!.subtitle = "for ${prefs.userName}"
             descr_login_status!!.text = getString(R.string.str_status_logged)
+            if (prefs.volumeUpEnabled) {
+                descr_use!!.text = getString(R.string.str_use_logged)
+            } else {
+                descr_use!!.text = getString(R.string.str_use_logged_no_vol)
+            }
             face_cover!!.visibility = View.INVISIBLE
             if (overlay_active) {
                 setOverlayActive(exec = false)
@@ -116,6 +121,7 @@ class MainActivity : AppCompatActivity() {
         val filter = IntentFilter()
         filter.addAction(ACTION_LOGGED_IN)
         filter.addAction(ACTION_OVERLAY_DEACTIVATED)
+        filter.addAction(ACTION_VOLUME_UP_CHANGED)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
         registerReceiver(eventReceiver, filter, RECEIVER_EXPORTED)
@@ -291,7 +297,11 @@ class MainActivity : AppCompatActivity() {
             descr_main!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorHeader))
             descr_main!!.setTypeface(null, Typeface.BOLD_ITALIC)
             descr_main!!.text = getString(R.string.str_main_stop)
-            descr_use!!.text = getString(R.string.str_use_logged)
+            if (prefs.volumeUpEnabled) {
+                descr_use!!.text = getString(R.string.str_use_logged)
+            } else {
+                descr_use!!.text = getString(R.string.str_use_logged_no_vol)
+            }
             descr_use!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.light_grey))
         }
         return true
@@ -303,7 +313,11 @@ class MainActivity : AppCompatActivity() {
         descr_main!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.light_grey))
         descr_main!!.setTypeface(null, Typeface.ITALIC)
         descr_main!!.text = getString(R.string.str_main_start)
-        descr_use!!.text = getString(R.string.str_use_logged)
+        if (prefs.volumeUpEnabled) {
+            descr_use!!.text = getString(R.string.str_use_logged)
+        } else {
+            descr_use!!.text = getString(R.string.str_use_logged_no_vol)
+        }
         descr_use!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
         if (exec) {
             stopService(Intent(this, FloatingViewService::class.java))

@@ -7,6 +7,7 @@
     <string name="str_main_stop">Hi Sir!\nAsk me to play a Spotify Song! 🚗</string>
     <string name="str_use_not_logged">To work, I need access to your\nSpotify music!💿</string>
     <string name="str_use_logged">Use the FLOATING button, the VOLUME UP button,\nor a remote SHUTTER button to\nrecord a voice request!</string>
+    <string name="str_use_logged_no_vol">Use the FLOATING button to\nrecord a voice request!</string>
     <!-- Main: Login Status -->
     <string name="str_status_logged">🟢 LOGGED IN</string>
     <string name="str_status_not_logged">🔴 NOT LOGGED IN</string>

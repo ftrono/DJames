@@ -79,6 +79,9 @@ class FakeLockScreen: AppCompatActivity() {
             if (artwork != "") {
                 Picasso.get().load(artwork)
                     .into(artworkView)
+            } else {
+                Picasso.get().load(R.drawable.artwork_icon)
+                    .into(artworkView)
             }
         }
 

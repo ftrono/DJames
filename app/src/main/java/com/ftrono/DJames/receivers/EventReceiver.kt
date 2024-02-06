@@ -175,6 +175,9 @@ class EventReceiver: BroadcastReceiver() {
                     if (artwork != "") {
                         Picasso.get().load(artwork)
                             .into(artworkView)
+                    } else {
+                        Picasso.get().load(R.drawable.artwork_icon)
+                            .into(artworkView)
                     }
                 } catch (e: Exception) {
                     Log.d(TAG, "ACTION_NEW_SONG: resources not available.")

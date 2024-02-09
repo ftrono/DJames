@@ -282,12 +282,12 @@ class SettingsActivity : AppCompatActivity() {
         //RecTimeout:
         if (newRecTimeout.isNotEmpty()) {
             //validate & overwrite:
-            prefs.recTimeout = validateTimeout(newVal = newRecTimeout, origVal = prefs.recTimeout, min_val = 3, max_val = 10)
+            prefs.recTimeout = validateTimeout(newVal = newRecTimeout, origVal = prefs.recTimeout, min_val = 5, max_val = 10)
         }
         //ClockTimeout:
         if (newClockTimeout.isNotEmpty()) {
             //validate & overwrite:
-            prefs.clockTimeout = validateTimeout(newVal = newClockTimeout, origVal = prefs.clockTimeout, min_val = 5, max_val = 15)
+            prefs.clockTimeout = validateTimeout(newVal = newClockTimeout, origVal = prefs.clockTimeout, min_val = 5, max_val = 30)
         }
     }
 

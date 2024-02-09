@@ -290,13 +290,13 @@ class VoiceSearchService : Service() {
                                 val encodedContextUri: String = URLEncoder.encode(contextUri, "UTF-8")
                                 openExternally("$spotifyUrl?context=$encodedContextUri")
                                 //openExternally(spotifyUrl)
+                            } else {
+                                //Reset:
+                                recordingMode = false
+                                sourceIsVolume = false
+                                setOverlayReady()
+                                stopSelf()
                             }
-
-                            //Reset:
-                            recordingMode = false
-                            sourceIsVolume = false
-                            setOverlayReady()
-                            stopSelf()
                         }
                     }
                 }
@@ -330,6 +330,12 @@ class VoiceSearchService : Service() {
         intentSpotify.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         intentSpotify.putExtra("fromwhere", "ser")
         startActivity(intentSpotify)
+
+        //Reset:
+        recordingMode = false
+        sourceIsVolume = false
+        setOverlayReady()
+        stopSelf()
 
         if (prefs.clockRedirectEnabled) {
             //Clock redirect:

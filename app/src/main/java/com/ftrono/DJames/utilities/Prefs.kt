@@ -56,7 +56,7 @@ class Prefs (context: Context) {
 
     //Clock timeout:
     var clockTimeout: String
-        get() = sharedPrefs.getString(KEY_CLOCK_TIMEOUT, "5") as String
+        get() = sharedPrefs.getString(KEY_CLOCK_TIMEOUT, "10") as String
         set(value) = sharedPrefs.edit().putString(KEY_CLOCK_TIMEOUT, value).apply()
 
     //VolumeUp enabled:

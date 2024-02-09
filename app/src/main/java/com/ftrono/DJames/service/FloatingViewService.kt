@@ -12,6 +12,7 @@ import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.PixelFormat
+import android.graphics.Typeface
 import android.media.AudioManager
 import android.net.Uri
 import android.os.IBinder
@@ -27,12 +28,14 @@ import android.view.WindowManager.LayoutParams
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
 import com.ftrono.DJames.receivers.EventReceiver
 import kotlin.math.abs
 import kotlin.math.round
+import android.app.Application
 
 
 class FloatingViewService : Service() {
@@ -175,15 +178,33 @@ class FloatingViewService : Service() {
             overlayClockButton = mFloatingView!!.findViewById<View>(R.id.clock_button)
             overlayClockIcon = mFloatingView!!.findViewById<ImageView>(R.id.clock_icon)
             overlayClockText = mFloatingView!!.findViewById<TextView>(R.id.clock_desc)
+
             overlayClockButton!!.setOnClickListener {
+
                 if (!clock_active) {
                     //Start fake lock screen:
                     val intent1 = Intent(this, FakeLockScreen::class.java)
-                    intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_PREVIOUS_IS_TOP)
+                    intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
                     intent1.putExtra("fromwhere", "ser")
                     startActivity(intent1)
+
+                    //End Main():
+                    try {
+                        MainActivity.act!!.finishAndRemoveTask()
+                    } catch (e: Exception) {
+                        Log.d(TAG, "Main activity already closed.")
+                    }
+
+                    //End Settings():
+                    try {
+                        SettingsActivity.act!!.finishAndRemoveTask()
+                    } catch (e: Exception) {
+                        Log.d(TAG, "Settings activity already closed.")
+                    }
+
                 }
             }
+
             if (clock_active) {
                 overlayClockButton!!.visibility = View.INVISIBLE
                 overlayClockIcon!!.visibility = View.INVISIBLE
@@ -233,11 +254,6 @@ class FloatingViewService : Service() {
                                 } else if (abs(event.rawY) >= (height - 200)) {
                                     // If SWIPE DOWN -> CLOSE:
                                     // Log.d(FloatingViewService.TAG, "Current location: " + event.rawX + " / " + halfwidth + ", " + event.rawY + " / " + height)
-                                    //Send broadcast:
-                                    Intent().also { intent ->
-                                        intent.setAction(ACTION_OVERLAY_DEACTIVATED)
-                                        sendBroadcast(intent)
-                                    }
                                     stopSelf()
                                 }
                                 if (mCloseView != null) mWindowManager!!.removeView(mCloseView)
@@ -306,29 +322,50 @@ class FloatingViewService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        var processName = Application.getProcessName();
+        Log.d(TAG, "Current process: " + processName)
+        if (mFloatingView != null) mWindowManager!!.removeView(mFloatingView)
+        //Stop Voice Search service:
+        if (isMyServiceRunning(VoiceSearchService::class.java)) {
+            stopService(Intent(applicationContext, VoiceSearchService::class.java))
+        }
+        setOverlayDeactivated()
+        fs_active = false
+        recordingMode = false
+        //unregister receivers:
+        unregisterReceiver(eventReceiver)
+        Log.d(TAG, "Receiver stopped.")
+        //reset views:
+        overlayButton = null
+        overlayIcon = null
+        overlayClockButton = null
+        overlayClockIcon = null
+        overlayClockText = null
+        //Thread check:
+        if (volumeThread.isAlive()){
+            volumeThread.interrupt()
+        }
+        //If no activities active -> CLOSE APP:
+        Log.d(TAG, "$acts_active")
+        if (acts_active.size == 0) {
+            System.exit(0)
+        }
+    }
+
+    //Set Overlay Deactivated view in Main():
+    fun setOverlayDeactivated() {
+        Log.d(TAG, "Overlay deactivated.")
         try {
-            if (mFloatingView != null) mWindowManager!!.removeView(mFloatingView)
-            //Stop Voice Search service:
-            if (isMyServiceRunning(VoiceSearchService::class.java)) {
-                stopService(Intent(applicationContext, VoiceSearchService::class.java))
-            }
-            fs_active = false
-            recordingMode = false
-            //unregister receivers:
-            unregisterReceiver(eventReceiver)
-            Log.d(TAG, "Receiver stopped.")
-            //reset views:
-            overlayButton = null
-            overlayIcon = null
-            overlayClockButton = null
-            overlayClockIcon = null
-            overlayClockText = null
-            //Thread check:
-            if (volumeThread.isAlive()){
-                volumeThread.interrupt()
-            }
+            overlay_active = false
+            startButton!!.text = "S T A R T"
+            startButton!!.backgroundTintList = AppCompatResources.getColorStateList(applicationContext!!, R.color.colorAccent)
+            descr_main!!.setTextColor(AppCompatResources.getColorStateList(applicationContext, R.color.light_grey))
+            descr_main!!.setTypeface(null, Typeface.ITALIC)
+            descr_main!!.text = applicationContext.resources.getString(R.string.str_main_start)
+            descr_use!!.text = applicationContext.resources.getString(R.string.str_use_logged)
+            descr_use!!.setTextColor(AppCompatResources.getColorStateList(applicationContext, R.color.mid_grey))
         } catch (e: Exception) {
-            Log.d(TAG, "Interrupted: exception.", e)
+            Log.d(TAG, "Overlay deactivated: view resources not available.")
         }
     }
 

@@ -1,5 +1,6 @@
 package com.ftrono.DJames.application
 
+import android.app.Activity
 import android.app.ActivityManager
 import android.content.DialogInterface
 import android.content.Intent
@@ -13,11 +14,10 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.ImageView
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
@@ -26,11 +26,15 @@ import androidx.core.view.updateLayoutParams
 import com.ftrono.DJames.R
 import com.ftrono.DJames.receivers.EventReceiver
 import com.ftrono.DJames.service.FloatingViewService
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlin.math.roundToInt
-import com.google.android.material.snackbar.Snackbar
 
 
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        var act: Activity? = null
+    }
 
     private val TAG: String = MainActivity::class.java.getSimpleName()
     //Views:
@@ -52,6 +56,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         activity_active = true
+        act = this
+        acts_active.add(TAG)
 
         //Screen density:
         density = applicationContext.resources.displayMetrics.density
@@ -120,7 +126,6 @@ class MainActivity : AppCompatActivity() {
         //Start Receiver:
         val filter = IntentFilter()
         filter.addAction(ACTION_LOGGED_IN)
-        filter.addAction(ACTION_OVERLAY_DEACTIVATED)
         filter.addAction(ACTION_VOLUME_UP_CHANGED)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
@@ -140,6 +145,7 @@ class MainActivity : AppCompatActivity() {
                 val intent1 = Intent(this@MainActivity, FakeLockScreen::class.java)
                 startActivity(intent1)
                 Toast.makeText(applicationContext, "Ask me to play a Spotify Song!", Toast.LENGTH_LONG).show()
+                finish()
 //                Snackbar.make(findViewById(R.id.content_main), getString(R.string.str_use_logged), Snackbar.LENGTH_LONG)
 //                    .setAction("CLOSE") { }
 //                    .setActionTextColor(resources.getColor(android.R.color.holo_red_light))
@@ -180,6 +186,7 @@ class MainActivity : AppCompatActivity() {
         face_cover = null
         loginButton = null
         startButton = null
+        acts_active.remove(TAG)
     }
 
 

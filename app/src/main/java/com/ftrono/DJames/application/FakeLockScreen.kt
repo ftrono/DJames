@@ -1,5 +1,6 @@
 package com.ftrono.DJames.application
 
+import android.app.Activity
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
@@ -25,13 +26,17 @@ import kotlin.math.roundToInt
 
 class FakeLockScreen: AppCompatActivity() {
 
+    companion object {
+        var act: Activity? = null
+    }
+
     private val TAG: String = FakeLockScreen::class.java.getSimpleName()
 
     private var handler: Handler? = null
     private var runnable: Runnable? = null
 
     private var clockView: TextView? = null
-    private var exitButtonVert: View? = null
+    private var exitButton: View? = null
 
     //Parameters:
     private var density: Float = 0F
@@ -49,6 +54,8 @@ class FakeLockScreen: AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.fake_lock_screen)
+        act = this
+        acts_active.add(TAG)
 
         clock_active = true
         //Send broadcast:
@@ -59,7 +66,7 @@ class FakeLockScreen: AppCompatActivity() {
 
         //Load views:
         clockView = findViewById<TextView>(R.id.text_clock)
-        exitButtonVert = findViewById<View>(R.id.exit_button)
+        exitButton = findViewById<View>(R.id.exit_button)
         songView = findViewById<TextView>(R.id.song_name)
         artistView = findViewById<TextView>(R.id.artist_name)
         contextView = findViewById<TextView>(R.id.context_name)
@@ -98,7 +105,7 @@ class FakeLockScreen: AppCompatActivity() {
             //Horizontal:
             clockSeparator = ":"
             //Move exit button to the LEFT:
-            exitButtonVert!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+            exitButton!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
                 rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
                 topToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
                 topToTop = ConstraintLayout.LayoutParams.PARENT_ID
@@ -123,7 +130,7 @@ class FakeLockScreen: AppCompatActivity() {
         }
 
         //Exit buttons listeners:
-        exitButtonVert!!.setOnClickListener(View.OnClickListener {
+        exitButton!!.setOnClickListener(View.OnClickListener {
             finish()
             //Start Main:
             val intent1 = Intent(this, MainActivity::class.java)
@@ -175,9 +182,11 @@ class FakeLockScreen: AppCompatActivity() {
         //unregister receivers:
         unregisterReceiver(eventReceiver)
         //empty views:
+        artworkView = null
         songView = null
         artistView = null
         contextView = null
+        acts_active.remove(TAG)
         super.onDestroy()
     }
 
@@ -233,7 +242,7 @@ class FakeLockScreen: AppCompatActivity() {
         clockSeparator = "\n"
         clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
         //Move exit button to the BOTTOM:
-        exitButtonVert!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+        exitButton!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
             topToTop = ConstraintLayout.LayoutParams.UNSET   //clear
             rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
             topToBottom = R.id.artwork
@@ -253,7 +262,7 @@ class FakeLockScreen: AppCompatActivity() {
         clockSeparator = ":"
         clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
         //Move exit button to the LEFT:
-        exitButtonVert!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+        exitButton!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
             rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
             topToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
             topToTop = ConstraintLayout.LayoutParams.PARENT_ID

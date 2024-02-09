@@ -1,5 +1,6 @@
 package com.ftrono.DJames.application
 
+import android.app.Activity
 import android.app.ActivityManager
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
@@ -22,10 +23,16 @@ import com.ftrono.DJames.service.FloatingViewService
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.squareup.picasso.Picasso
 import jp.wasabeef.picasso.transformations.CropCircleTransformation
-import kotlin.math.roundToInt
 
 
 class SettingsActivity : AppCompatActivity() {
+
+    companion object {
+        var act: Activity? = null
+    }
+
+    private val TAG = SettingsActivity::class.java.simpleName
+
     //Views:
     private var user_container: View? = null
     private var divider: View? = null
@@ -40,6 +47,8 @@ class SettingsActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+        act = this
+        acts_active.add(TAG)
 
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.title = "Settings"
@@ -187,10 +196,11 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        login_mini_button = null
         userNameView = null
         userEMailView = null
         userIcon = null
+        login_mini_button = null
+        acts_active.remove(TAG)
     }
 
     override fun onBackPressed() {

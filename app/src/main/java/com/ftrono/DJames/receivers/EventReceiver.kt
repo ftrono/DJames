@@ -100,23 +100,6 @@ class EventReceiver: BroadcastReceiver() {
             Toast.makeText(context, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
         }
 
-        //when overlay status changed:
-        if (intent.action == ACTION_OVERLAY_DEACTIVATED) {
-            Log.d(TAG, "ACTION_OVERLAY_DEACTIVATED.")
-            try {
-                overlay_active = false
-                startButton!!.text = "S T A R T"
-                startButton!!.backgroundTintList = AppCompatResources.getColorStateList(context!!, R.color.colorAccent)
-                descr_main!!.setTextColor(AppCompatResources.getColorStateList(context, R.color.light_grey))
-                descr_main!!.setTypeface(null, Typeface.ITALIC)
-                descr_main!!.text = context.resources.getString(R.string.str_main_start)
-                descr_use!!.text = context.resources.getString(R.string.str_use_logged)
-                descr_use!!.setTextColor(AppCompatResources.getColorStateList(context, R.color.mid_grey))
-            } catch (e: Exception) {
-                Log.d(TAG, "ACTION_OVERLAY_DEACTIVATED: resources not available.")
-            }
-        }
-
         //when Settings VOLUME-UP is changed:
         if (intent.action == ACTION_VOLUME_UP_CHANGED) {
             Log.d(TAG, "ACTION_VOLUME_UP_CHANGED.")

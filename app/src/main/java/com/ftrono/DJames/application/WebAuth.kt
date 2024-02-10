@@ -8,11 +8,10 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
 import com.ftrono.DJames.R
-import java.util.Random
-import kotlin.streams.asSequence
 import android.webkit.WebSettings
 import android.webkit.CookieManager
 import android.widget.Toast
+import com.ftrono.DJames.utilities.Utilities
 
 
 class WebAuth : AppCompatActivity() {
@@ -32,7 +31,8 @@ class WebAuth : AppCompatActivity() {
         webView!!.settings.setCacheMode(WebSettings.LOAD_NO_CACHE)
 
         //Prepare auth request:
-        val state = generateRandomString(16)
+        var utils = Utilities()
+        val state = utils.generateRandomString(16)
 
         //concatenate queryParams:
         val queryParams = "response_type=code&client_id=$clientId&scope=$scope&redirect_uri=$redirectUri&state=$state"
@@ -96,15 +96,6 @@ class WebAuth : AppCompatActivity() {
         CookieManager.getInstance().removeAllCookies(null)
         CookieManager.getInstance().flush()
         webView = null
-    }
-
-
-    fun generateRandomString(length: Int): String {
-        val source = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-        return Random().ints(length.toLong(), 0, source.length)
-            .asSequence()
-            .map(source::get)
-            .joinToString("")
     }
 
 }

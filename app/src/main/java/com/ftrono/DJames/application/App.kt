@@ -11,6 +11,8 @@ import android.widget.TextView
 import android.widget.Button
 import com.ftrono.DJames.utilities.Prefs
 import com.ftrono.DJames.utilities.Utilities
+import com.google.cloud.dialogflow.v2.SessionName
+import com.google.cloud.dialogflow.v2.SessionsClient
 import com.google.gson.JsonObject
 import okhttp3.OkHttpClient
 import java.net.URLEncoder
@@ -39,6 +41,10 @@ var songName: String = ""
 var artistName: String = ""
 var contextName: String = ""
 
+//Recording preferences:
+val recFileName = "DJames_request"
+val recSamplingRate = 44100
+
 //Spotify Scopes:
 val scopes = arrayOf(
     "user-read-private",   //Read access to user’s email address
@@ -65,7 +71,8 @@ val scope = scopes.joinToString("%20", "", "")
 //HTTP:
 //DialogFlow:
 val dialogflow_id = "djames-nlp"
-val dialogflow_endpoint = "https://europe-west1-dialogflow.googleapis.com"
+var sessionId: SessionName? = null
+var sessionsClient: SessionsClient? = null
 
 //Spotify:
 var grantToken = ""

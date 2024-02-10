@@ -1,12 +1,102 @@
 package com.ftrono.DJames.api
 
+import android.content.Context
+import android.util.Log
+import com.ftrono.DJames.R
+import com.ftrono.DJames.application.*
+import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.auth.oauth2.GoogleCredentials
+import com.google.cloud.dialogflow.v2.AudioEncoding
+import com.google.cloud.dialogflow.v2.DetectIntentRequest
+import com.google.cloud.dialogflow.v2.InputAudioConfig
+import com.google.cloud.dialogflow.v2.QueryInput
+import com.google.cloud.dialogflow.v2.QueryResult
+import com.google.cloud.dialogflow.v2.SessionName
+import com.google.cloud.dialogflow.v2.SessionsClient
+import com.google.cloud.dialogflow.v2.SessionsSettings
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
+import com.google.protobuf.ByteString
 import java.io.File
+import com.google.protobuf.util.JsonFormat
 
 
-class NLPInterpreter {
+class NLPInterpreter(context: Context) {
     private val TAG = NLPInterpreter::class.java.simpleName
 
+    init {
+        try {
+            val stream = context.resources.openRawResource(R.raw.nlp_credentials)
+            val credentials = GoogleCredentials.fromStream(stream)
+            val settingsBuilder = SessionsSettings.newBuilder()
+            val sessionsSettings = settingsBuilder.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build()
+            sessionsClient = SessionsClient.create(sessionsSettings)
+            sessionId = SessionName.of(dialogflow_id, prefs.userId)
+            Log.d(TAG, "userId: ${prefs.userId}")
+            Log.d(TAG, "CREATED: sessionsClient: ${sessionsClient}")
+            Log.d(TAG, "CREATED: sessionId: ${sessionId}")
+        } catch (e: Exception) {
+            Log.d(TAG, "ERROR: NLP Session not created!", e)
+        }
+    }
+
+
+    fun detectIntentRequest(recFile: File): JsonObject {
+        var respJson = JsonObject()
+        try {
+            val inputAudioConfig: InputAudioConfig = InputAudioConfig.newBuilder()
+                .setAudioEncoding(AudioEncoding.AUDIO_ENCODING_LINEAR_16)
+                .setSampleRateHertz(recSamplingRate)
+                .setLanguageCode("en-US")
+                .setModel("latest_short")
+                .setSingleUtterance(false)
+                .build()
+
+            val queryInput: QueryInput = QueryInput.newBuilder()
+                .setAudioConfig(inputAudioConfig)
+                .build()
+
+            val detectIntentRequest = DetectIntentRequest.newBuilder()
+                .setSession(sessionId.toString())
+                .setQueryInput(queryInput)
+                .setInputAudio(ByteString.copyFrom(recFile.readBytes()))
+                .build()
+
+            //Log.d(TAG, "SENT detectIntentRequest REQUEST: ${JsonFormat.printer().print(detectIntentRequest)}")
+
+            val responseObj = sessionsClient!!.detectIntent(detectIntentRequest)
+            val queryResult: QueryResult = responseObj.queryResult
+            //Log.d(TAG, "SUCCESS detectIntentRequest RESPONSE: ${JsonFormat.printer().print(responseObj)}")
+            //Log.d(TAG, "SUCCESS detectIntentRequest RESPONSE: ${queryResult}")
+
+            try {
+                //EXTRACT NLP RESULTS:
+                var fulfillmentText = JsonParser.parseString(queryResult.fulfillmentText).asJsonObject
+                var keySet = fulfillmentText.keySet()
+                if (keySet.size == 0) {
+                    Log.d(TAG, "NLP: FALLBACK!")
+                } else {
+                    respJson.addProperty("query_text", queryResult.queryText)
+                    respJson.addProperty("intent", queryResult.intent.displayName)
+                    for (key in keySet) {
+                        respJson.add(key, fulfillmentText.get(key))
+                    }
+                    Log.d(TAG, "SUCCESS detectIntentRequest RESPONSE: ${respJson}")
+                }
+            } catch (e: Exception) {
+                //Response is not a JSON:
+                Log.d(TAG, "ERROR DetectIntentRequest: Not a JSON. ", e)
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "ERROR DetectIntentRequest: ", e)
+        }
+        return respJson
+    }
+
+
     fun queryNLP(recFile: File): Array<String> {
+        //QUERY:
+        var response = detectIntentRequest(recFile)
         //TEMP:
         var q = "Clarity"
         var qTrack = "track=Clarity"

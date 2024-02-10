@@ -44,6 +44,9 @@ android {
         resources.excludes.add("draftv3/*")
         resources.excludes.add("draftv4/*")
         resources.excludes.add("arrow-git.*")
+        resources.excludes.add("protobuf-java")
+        resources.excludes.add("com.google.protobuf:protobuf-javalite:3.25.1")
+        resources.excludes.add("com.google.protobuf:protobuf-java:3.25.2")
     }
 }
 
@@ -77,5 +80,23 @@ dependencies {
     implementation("org.jetbrains.kotlinx:dataframe:0.12.1") {
         exclude("org.apache.commons")
         exclude("commons-logging")
+    }
+    //DialogFlow:
+    implementation("com.google.cloud:google-cloud-dialogflow:4.40.0") {
+        exclude("org.apache.commons")
+        exclude("commons-logging")
+    }
+    //GRPC:
+    implementation("io.grpc:grpc-okhttp:1.61.0") {
+        exclude("com.google.protobuf")
+    }
+    implementation("io.grpc:grpc-protobuf-lite:1.61.0") {
+        exclude("com.google.protobuf")
+    }
+    implementation("io.grpc:grpc-stub:1.61.0") {
+        exclude("com.google.protobuf")
+    }
+    compileOnly("org.apache.tomcat:annotations-api:6.0.53") {
+        exclude("com.google.protobuf")
     }
 }

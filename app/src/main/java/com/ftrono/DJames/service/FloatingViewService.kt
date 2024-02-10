@@ -329,7 +329,9 @@ class FloatingViewService : Service() {
         if (isMyServiceRunning(VoiceSearchService::class.java)) {
             stopService(Intent(applicationContext, VoiceSearchService::class.java))
         }
-        setOverlayDeactivated()
+        if (loggedIn) {
+            setOverlayDeactivated()
+        }
         fs_active = false
         recordingMode = false
         //unregister receivers:

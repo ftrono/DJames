@@ -323,16 +323,17 @@ class SettingsActivity : AppCompatActivity() {
                 override fun onClick(dialog: DialogInterface?, which: Int) {
                     //LOG OUT:
                     //Delete tokens & user details:
+                    loggedIn = false
                     prefs.spotifyToken = ""
                     prefs.refreshToken = ""
                     prefs.userName = ""
                     prefs.userEMail = ""
                     prefs.userImage = ""
+                    prefs.userId = ""
                     //Stop overlay service:
                     if (isMyServiceRunning(FloatingViewService::class.java)) {
                         stopService(Intent(applicationContext, FloatingViewService::class.java))
                     }
-                    loggedIn = false
                     setViewLoggedOut()
                     Toast.makeText(applicationContext, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()
                 }

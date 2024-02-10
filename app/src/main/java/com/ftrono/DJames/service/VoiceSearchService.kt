@@ -25,13 +25,14 @@ import com.ftrono.DJames.api.SpotifyInterpreter
 import com.google.gson.JsonObject
 import java.io.File
 import java.net.URLEncoder
+import android.os.Environment
 
 
 class VoiceSearchService : Service() {
     //Main:
     private val TAG = VoiceSearchService::class.java.simpleName
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
-    //private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
     //Recorder:
     private val recorder by lazy {
@@ -39,8 +40,8 @@ class VoiceSearchService : Service() {
     }
 
     //API callers:
-    private var nlpInterpreter = NLPInterpreter()
-    private var spotifyInterpreter = SpotifyInterpreter()
+    private var nlpInterpreter: NLPInterpreter? = null
+    private var spotifyInterpreter: SpotifyInterpreter? = null
 
     //Audio manager:
     private var audioAttributes: AudioAttributes? = null
@@ -128,6 +129,10 @@ class VoiceSearchService : Service() {
                 }
             }
 
+            //API callers:
+            nlpInterpreter = NLPInterpreter(applicationContext)
+            spotifyInterpreter = SpotifyInterpreter()
+
         } catch (e: Exception) {
             Log.d(TAG, "Exception: ", e)
             //Abandon audio focus:
@@ -191,14 +196,15 @@ class VoiceSearchService : Service() {
                     toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
 
                     //Start recording (default: cacheDir, alternative: saveDir):
-                    var recFile = File(cacheDir, "audio.mp3")
+                    var recFile = File(saveDir, "$recFileName.pcm")
+                    var recFileWav = File(saveDir, "$recFileName.wav")
                     recorder.start(recFile)
 
                     //Countdown:
                     Thread.sleep(prefs.recTimeout.toLong() * 1000)   //default: 5000
 
                     //Stop recording:
-                    recorder.stop()
+                    recorder.stop(recFile, recFileWav)
                     Log.d(TAG, "RECORDING STOPPED.")
 
                     //Lower volume if maximum (to enable Receiver):
@@ -229,10 +235,10 @@ class VoiceSearchService : Service() {
                         setOverlayProcessing()
 
                         //B.1) NLP QUERY:
-                        var resultsNLP = nlpInterpreter.queryNLP(recFile)
+                        var resultsNLP = nlpInterpreter!!.queryNLP(recFile)
 
                         //B.2) SPOTIFY QUERY:
-                        var queryResult: JsonObject = spotifyInterpreter.dispatchCall(resultsNLP)
+                        var queryResult: JsonObject = spotifyInterpreter!!.dispatchCall(resultsNLP)
 
                         //A) EMPTY QUERY RESULT:
                         if (!queryResult.has("uri")) {
@@ -283,7 +289,7 @@ class VoiceSearchService : Service() {
                             audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
 
                             //C) PLAY:
-                            var sessionState = spotifyInterpreter.playInternally(queryResult)
+                            var sessionState = spotifyInterpreter!!.playInternally(queryResult)
                             Log.d(TAG, "SESSION STATE: ${sessionState}")
                             if (sessionState == -1) {
                                 //Open externally:

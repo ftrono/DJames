@@ -10,6 +10,7 @@ import okhttp3.Request
 import okhttp3.Headers
 import java.util.Base64
 import androidx.lifecycle.coroutineScope
+import com.ftrono.DJames.utilities.Utilities
 import kotlinx.coroutines.launch
 import com.google.gson.JsonParser
 import okhttp3.FormBody
@@ -90,6 +91,11 @@ class LoadingScreen: AppCompatActivity() {
                                         Log.d(TAG, "Unable to retrieve user image: ", e)
                                         prefs.userImage = ""
                                     }
+
+                                    //Generate NLP user ID:
+                                    var utils = Utilities()
+                                    prefs.userId = utils.generateRandomString(30, numOnly = true)
+
                                     //Send broadcast:
                                     Intent().also { intent ->
                                         intent.setAction(ACTION_LOGGED_IN)

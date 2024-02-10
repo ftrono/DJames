@@ -65,7 +65,6 @@ val scope = scopes.joinToString("%20", "", "")
 //HTTP:
 //DialogFlow:
 val dialogflow_id = "djames-nlp"
-val dialogflow_key = "AIzaSyBxsdfJ0RNnQAtiHb5SOMuESl57DqN_rS4"
 val dialogflow_endpoint = "https://europe-west1-dialogflow.googleapis.com"
 
 //Spotify:

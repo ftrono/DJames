@@ -37,6 +37,14 @@ android {
         viewBinding = true
         buildConfig = true
     }
+
+    packaging {
+        resources.excludes.add("META-INF/*")
+        resources.excludes.add("META-INF/kotlin-jupyter-libraries/libraries.json")
+        resources.excludes.add("draftv3/*")
+        resources.excludes.add("draftv4/*")
+        resources.excludes.add("arrow-git.*")
+    }
 }
 
 dependencies {
@@ -65,4 +73,9 @@ dependencies {
     //Picasso:
     implementation ("com.squareup.picasso:picasso:2.8")
     implementation("jp.wasabeef:picasso-transformations:2.4.0")
+    //Kotlin DataFrames:
+    implementation("org.jetbrains.kotlinx:dataframe:0.12.1") {
+        exclude("org.apache.commons")
+        exclude("commons-logging")
+    }
 }

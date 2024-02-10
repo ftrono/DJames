@@ -249,6 +249,8 @@ class VoiceSearchService : Service() {
                             //B) SPOTIFY RESULT RECEIVED!
 
                             //Overwrite player info:
+                            last_result = queryResult
+
                             //Song name:
                             songName = queryResult.get("song_name").asString
                             if (songName.length > 30) {

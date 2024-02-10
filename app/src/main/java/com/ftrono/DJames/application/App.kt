@@ -11,6 +11,7 @@ import android.widget.TextView
 import android.widget.Button
 import com.ftrono.DJames.utilities.Prefs
 import com.ftrono.DJames.utilities.Utilities
+import com.google.gson.JsonObject
 import okhttp3.OkHttpClient
 import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
@@ -32,6 +33,7 @@ var clock_active: Boolean = false
 var searchFail: Boolean = false
 
 //Player info:
+var last_result: JsonObject? = null
 var artwork: String = ""
 var songName: String = ""
 var artistName: String = ""
@@ -61,6 +63,12 @@ val scopes = arrayOf(
 val scope = scopes.joinToString("%20", "", "")
 
 //HTTP:
+//DialogFlow:
+val dialogflow_id = "djames-nlp"
+val dialogflow_key = "AIzaSyBxsdfJ0RNnQAtiHb5SOMuESl57DqN_rS4"
+val dialogflow_endpoint = "https://europe-west1-dialogflow.googleapis.com"
+
+//Spotify:
 var grantToken = ""
 val clientId = "f525169dff664aa192ab51d2bbeb9767"
 val clientSct = "c7296c5536b8409297760a7eafa0448a"
@@ -73,6 +81,7 @@ val client = OkHttpClient.Builder()
     .callTimeout(5, TimeUnit.SECONDS)
     .build()
 
+//VIEWS:
 //Overlay resources:
 var overlayButton: View? = null
 var overlayIcon: ImageView? = null
@@ -101,7 +110,7 @@ var userEMailView: TextView? = null
 var userIcon: ImageView? = null
 var login_mini_button: Button? = null
 
-//Broadcasts:
+//BROADCASTS:
 const val ACTION_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_LOGGED_IN"
 const val ACTION_CLOCK_OPENED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_OPENED"
 const val ACTION_CLOCK_CLOSED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_CLOSED"

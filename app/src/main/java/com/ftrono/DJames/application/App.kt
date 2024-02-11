@@ -11,8 +11,6 @@ import android.widget.TextView
 import android.widget.Button
 import com.ftrono.DJames.utilities.Prefs
 import com.ftrono.DJames.utilities.Utilities
-import com.google.cloud.dialogflow.v2.SessionName
-import com.google.cloud.dialogflow.v2.SessionsClient
 import com.google.gson.JsonObject
 import okhttp3.OkHttpClient
 import java.net.URLEncoder
@@ -35,6 +33,7 @@ var clock_active: Boolean = false
 var searchFail: Boolean = false
 
 //Player info:
+var last_nlp: JsonObject? = null
 var last_result: JsonObject? = null
 var artwork: String = ""
 var songName: String = ""
@@ -71,8 +70,6 @@ val scope = scopes.joinToString("%20", "", "")
 //HTTP:
 //DialogFlow:
 val dialogflow_id = "djames-nlp"
-var sessionId: SessionName? = null
-var sessionsClient: SessionsClient? = null
 
 //Spotify:
 var grantToken = ""
@@ -120,8 +117,10 @@ var login_mini_button: Button? = null
 const val ACTION_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_LOGGED_IN"
 const val ACTION_CLOCK_OPENED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_OPENED"
 const val ACTION_CLOCK_CLOSED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_CLOSED"
-const val ACTION_NEW_SONG = "com.ftrono.DJames.eventReceiver.ACTION_NEW_SONG"
 const val ACTION_VOLUME_UP_CHANGED = "com.ftrono.DJames.eventReceiver.ACTION_VOLUME_UP_CHANGED"
+const val ACTION_NEW_SONG = "com.ftrono.DJames.eventReceiver.ACTION_NEW_SONG"
+const val ACTION_NLP_RESULT = "com.ftrono.DJames.eventReceiver.ACTION_NLP_RESULT"
+const val ACTION_REDIRECT = "com.ftrono.DJames.eventReceiver.ACTION_REDIRECT"
 
 
 class App: Application()

@@ -236,6 +236,11 @@ class VoiceSearchService : Service() {
 
                         //B.1) NLP QUERY:
                         var resultsNLP = nlpInterpreter!!.queryNLP(recFile)
+                        //Send broadcast:
+                        Intent().also { intent ->
+                            intent.setAction(ACTION_NLP_RESULT)
+                            sendBroadcast(intent)
+                        }
 
                         //B.2) SPOTIFY QUERY:
                         var queryResult: JsonObject = spotifyInterpreter!!.dispatchCall(resultsNLP)
@@ -346,6 +351,11 @@ class VoiceSearchService : Service() {
         stopSelf()
 
         if (prefs.clockRedirectEnabled) {
+            //Send broadcast:
+            Intent().also { intent ->
+                intent.setAction(ACTION_REDIRECT)
+                sendBroadcast(intent)
+            }
             //Clock redirect:
             Thread.sleep((prefs.clockTimeout.toLong()-1) * 1000)   //default: 10000
             //Launch Clock:

@@ -109,6 +109,8 @@ class FloatingViewService : Service() {
             filter.addAction("android.media.VOLUME_CHANGED_ACTION")
             filter.addAction(ACTION_CLOCK_OPENED)
             filter.addAction(ACTION_CLOCK_CLOSED)
+            filter.addAction(ACTION_NLP_RESULT)
+            filter.addAction(ACTION_REDIRECT)
 
             //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
             registerReceiver(eventReceiver, filter, RECEIVER_EXPORTED)

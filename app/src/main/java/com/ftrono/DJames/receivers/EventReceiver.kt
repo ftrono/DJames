@@ -168,6 +168,26 @@ class EventReceiver: BroadcastReceiver() {
             }
         }
 
+        //when NLP result received:
+        if (intent.action == ACTION_NLP_RESULT) {
+            Log.d(TAG, "ACTION_NLP_RESULT.")
+            var query_text = ""
+            if (last_nlp!!.has("query_text")) {
+                query_text = last_nlp!!.get("query_text").asString
+            }
+            if (query_text != "") {
+                Toast.makeText(context, query_text.replaceFirstChar { it.uppercase() }, Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, "Sorry, I did not understand!", Toast.LENGTH_LONG).show()
+            }
+        }
+
+        //when redirect countdown activated:
+        if (intent.action == ACTION_REDIRECT) {
+            Log.d(TAG, "ACTION_REDIRECT.")
+            Toast.makeText(context, "Going back to Clock in ${prefs.clockTimeout} seconds...", Toast.LENGTH_LONG).show()
+        }
+
     }
 
 }

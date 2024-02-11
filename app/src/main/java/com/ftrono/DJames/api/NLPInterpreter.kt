@@ -18,11 +18,12 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.protobuf.ByteString
 import java.io.File
-import com.google.protobuf.util.JsonFormat
 
 
 class NLPInterpreter(context: Context) {
     private val TAG = NLPInterpreter::class.java.simpleName
+    private var sessionId: SessionName? = null
+    private var sessionsClient: SessionsClient? = null
 
     init {
         try {
@@ -96,7 +97,7 @@ class NLPInterpreter(context: Context) {
 
     fun queryNLP(recFile: File): Array<String> {
         //QUERY:
-        var response = detectIntentRequest(recFile)
+        last_nlp = detectIntentRequest(recFile)
         //TEMP:
         var q = "Clarity"
         var qTrack = "track=Clarity"

@@ -32,6 +32,8 @@ class VoiceSearchService : Service() {
     private val TAG = VoiceSearchService::class.java.simpleName
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
     private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    private var vqThread: Thread? = null
+    private var recInProgress = false
 
     //Recorder:
     private val recorder by lazy {
@@ -144,6 +146,18 @@ class VoiceSearchService : Service() {
             recordingMode = false
             searchFail = false
             sourceIsVolume = false
+            //Thread check:
+            if (vqThread!!.isAlive()){
+                vqThread!!.interrupt()
+            }
+            //Stop recorder:
+            if (recInProgress) {
+                try {
+                    var recFile = recorder.stop()
+                } catch (e: Exception) {
+                    Log.d(TAG, "Recorder not available.")
+                }
+            }
             val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
             val uri = Uri.fromParts("package", packageName, null)
             intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -178,11 +192,37 @@ class VoiceSearchService : Service() {
         startForeground(2, notification)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        //Stop recorder:
+        if (recInProgress) {
+            try {
+                var recFile = recorder.stop()
+            } catch (e: Exception) {
+                Log.d(TAG, "Recorder not available.")
+            }
+            //Thread check:
+            if (vqThread!!.isAlive()){
+                vqThread!!.interrupt()
+            }
+            //Play FAIL tone:
+            toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+        }
+        //Abandon audio focus:
+        audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
+        //Reset:
+        searchFail = false
+        recordingMode = false
+        sourceIsVolume = false
+        setOverlayReady()
+    }
+
+
 
     //MAIN VOICE QUERY CALLER:
     fun voiceQuery() {
         //prepare thread:
-        val mThread = Thread {
+        vqThread = Thread {
             try {
                 synchronized(this) {
 
@@ -195,6 +235,7 @@ class VoiceSearchService : Service() {
                     toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
 
                     //Start recording (default: cacheDir, alternative: saveDir):
+                    recInProgress = true
                     recorder.start(saveDir)
 
                     //Countdown:
@@ -202,11 +243,15 @@ class VoiceSearchService : Service() {
 
                     //Stop recording:
                     var recFile = recorder.stop()
+                    recInProgress = false
                     Log.d(TAG, "RECORDING STOPPED.")
 
                     //Lower volume if maximum (to enable Receiver):
                     if (sourceIsVolume && audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {
-                        audioManager!!.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND)
+                        audioManager!!.adjustVolume(
+                            AudioManager.ADJUST_LOWER,
+                            AudioManager.FLAG_PLAY_SOUND
+                        )
                         Log.d(TAG, "Countdown stopped. Volume lowered.")
                     }
 
@@ -233,17 +278,29 @@ class VoiceSearchService : Service() {
 
                         //B.1) NLP QUERY:
                         var resultsNLP = nlpInterpreter!!.queryNLP(recFile)
-                        //Send broadcast:
+
+                        //Check NLP results:
+                        nlp_queryText = ""
+                        var nlp_fail = false
+                        if (!resultsNLP.has("query_text")) {
+                            //Empty response:
+                            nlp_fail = true
+                        } else {
+                            //Get query_text:
+                            nlp_queryText = resultsNLP.get("query_text").asString
+                            if (nlp_queryText == "") {
+                                //Empty string:
+                                nlp_fail = true
+                            }
+                        }
+
+                        //TOAST -> Send broadcast:
                         Intent().also { intent ->
                             intent.setAction(ACTION_NLP_RESULT)
                             sendBroadcast(intent)
                         }
-
-                        //B.2) SPOTIFY QUERY:
-                        var queryResult: JsonObject = spotifyInterpreter!!.dispatchCall(resultsNLP)
-
-                        //A) EMPTY QUERY RESULT:
-                        if (!queryResult.has("uri")) {
+                        if (nlp_fail) {
+                            //NLP FAIL:
                             //Play FAIL tone:
                             toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                             //Abandon audio focus:
@@ -253,59 +310,80 @@ class VoiceSearchService : Service() {
                             sourceIsVolume = false
                             setOverlayReady()
                             stopSelf()
+
                         } else {
-                            //B) SPOTIFY RESULT RECEIVED!
+                            //B.2) SPOTIFY QUERY:
+                            var queryResult: JsonObject =
+                                spotifyInterpreter!!.dispatchCall(resultsNLP)
 
-                            //Overwrite player info:
-                            last_result = queryResult
-
-                            //Song name:
-                            songName = queryResult.get("song_name").asString
-                            if (songName.length > 30) {
-                                songName = songName.slice(0..30) + "..."
-                            }
-                            //Artist name:
-                            artistName = queryResult.get("artist_name").asString
-                            if (artistName.length > 30) {
-                                artistName = artistName.slice(0..30) + "..."
-                            }
-                            //Context name:
-                            contextName = "${queryResult.get("context_type").asString}: ${queryResult.get("context_name").asString}"
-                            if (contextName.length > 30) {
-                                contextName = contextName.slice(0..30) + "..."
-                            }
-                            //Artwork:
-                            if (queryResult.has("artwork")) {
-                                artwork = queryResult.get("artwork").asString
-                            } else {
-                                artwork = ""
-                            }
-
-                            //Send broadcast:
-                            Intent().also { intent ->
-                                intent.setAction(ACTION_NEW_SONG)
-                                sendBroadcast(intent)
-                            }
-
-                            //Abandon audio focus:
-                            audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
-
-                            //C) PLAY:
-                            var sessionState = spotifyInterpreter!!.playInternally(queryResult)
-                            Log.d(TAG, "SESSION STATE: ${sessionState}")
-                            if (sessionState == -1) {
-                                //Open externally:
-                                var spotifyUrl = queryResult.get("spotify_URL").asString
-                                var contextUri = queryResult.get("context_uri").asString
-                                val encodedContextUri: String = URLEncoder.encode(contextUri, "UTF-8")
-                                openExternally("$spotifyUrl?context=$encodedContextUri")
-                                //openExternally(spotifyUrl)
-                            } else {
+                            //A) EMPTY QUERY RESULT:
+                            if (!queryResult.has("uri")) {
+                                //Play FAIL tone:
+                                toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                                //Abandon audio focus:
+                                audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
                                 //Reset:
                                 recordingMode = false
                                 sourceIsVolume = false
                                 setOverlayReady()
                                 stopSelf()
+                            } else {
+                                //B) SPOTIFY RESULT RECEIVED!
+
+                                //Overwrite player info:
+                                last_result = queryResult
+
+                                //Song name:
+                                songName = queryResult.get("song_name").asString
+                                if (songName.length > 30) {
+                                    songName = songName.slice(0..30) + "..."
+                                }
+                                //Artist name:
+                                artistName = queryResult.get("artist_name").asString
+                                if (artistName.length > 30) {
+                                    artistName = artistName.slice(0..30) + "..."
+                                }
+                                //Context name:
+                                contextName = "${queryResult.get("context_type").asString}: ${
+                                    queryResult.get("context_name").asString
+                                }"
+                                if (contextName.length > 30) {
+                                    contextName = contextName.slice(0..30) + "..."
+                                }
+                                //Artwork:
+                                if (queryResult.has("artwork")) {
+                                    artwork = queryResult.get("artwork").asString
+                                } else {
+                                    artwork = ""
+                                }
+
+                                //Send broadcast:
+                                Intent().also { intent ->
+                                    intent.setAction(ACTION_NEW_SONG)
+                                    sendBroadcast(intent)
+                                }
+
+                                //Abandon audio focus:
+                                audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
+
+                                //C) PLAY:
+                                var sessionState = spotifyInterpreter!!.playInternally(queryResult)
+                                Log.d(TAG, "SESSION STATE: ${sessionState}")
+                                if (sessionState == -1) {
+                                    //Open externally:
+                                    var spotifyUrl = queryResult.get("spotify_URL").asString
+                                    var contextUri = queryResult.get("context_uri").asString
+                                    val encodedContextUri: String =
+                                        URLEncoder.encode(contextUri, "UTF-8")
+                                    openExternally("$spotifyUrl?context=$encodedContextUri")
+                                    //openExternally(spotifyUrl)
+                                } else {
+                                    //Reset:
+                                    recordingMode = false
+                                    sourceIsVolume = false
+                                    setOverlayReady()
+                                    stopSelf()
+                                }
                             }
                         }
                     }
@@ -327,7 +405,7 @@ class VoiceSearchService : Service() {
             }
         }
         //start thread:
-        mThread.start()
+        vqThread!!.start()
     }
 
 

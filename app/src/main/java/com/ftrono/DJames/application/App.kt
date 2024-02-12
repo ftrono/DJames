@@ -26,6 +26,7 @@ var audioManager: AudioManager? = null
 var streamMaxVolume: Int = 0
 var screenOn: Boolean = true
 var sourceIsVolume: Boolean = false
+var initialized: Boolean = false
 var recordingMode: Boolean = false
 var overlay_active: Boolean = false
 var loggedIn: Boolean = false
@@ -33,7 +34,7 @@ var clock_active: Boolean = false
 var searchFail: Boolean = false
 
 //Player info:
-var last_nlp: JsonObject? = null
+var nlp_queryText = ""
 var last_result: JsonObject? = null
 var artwork: String = ""
 var songName: String = ""

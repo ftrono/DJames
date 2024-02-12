@@ -17,10 +17,16 @@ import okhttp3.RequestBody.Companion.toRequestBody
 class SpotifyInterpreter {
     private val TAG = SpotifyInterpreter::class.java.simpleName
 
-    fun dispatchCall(resultsNLP: Array<String>): JsonObject {
+    fun dispatchCall(resultsNLP: JsonObject): JsonObject {
+        //TEMP:
+        var q = "Clarity"
+        var qTrack = "track=Clarity"
+        var qArtist = "artist=John Mayer"
+        //var qType = "type=track"
+        var resultsArray = arrayOf(q, qTrack, qArtist)
     //DISPATCH SPOTIFY CALLS ACCORDING TO NLP RESULTS:
         var search = SpotifySearch()
-        var returnJSON = search.genericSearch(resultsNLP)
+        var returnJSON = search.genericSearch(resultsArray)
         return returnJSON
     }
 

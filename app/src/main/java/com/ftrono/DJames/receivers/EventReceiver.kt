@@ -21,13 +21,13 @@ class EventReceiver: BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
 
-        //volumeUp receiver:
+        //VolumeUp receiver:
         if (intent!!.action == "android.media.VOLUME_CHANGED_ACTION") {
             val newVolume = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_VALUE", 0)
             val oldVolume = intent.getIntExtra("android.media.EXTRA_PREV_VOLUME_STREAM_VALUE", 0)
             val event = intent.getIntExtra("android.intent.extra.KEY_EVENT", 0)
 
-            if (newVolume >= oldVolume && !recordingMode && screenOn && prefs.volumeUpEnabled) {
+            if (newVolume >= oldVolume && !recordingMode && initialized && screenOn && prefs.volumeUpEnabled) {
                 //START VOICE SEARCH SERVICE:
                 recordingMode = true
                 sourceIsVolume = true
@@ -40,19 +40,19 @@ class EventReceiver: BroadcastReceiver() {
             }
         }
 
-        //when screen is off
+        //When screen is off:
         if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
             screenOn = false
             Log.d(TAG, "Screen Off.")
         }
 
-        //when screen is on
+        //When screen is on:
         if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
             screenOn = true
             Log.d(TAG, "Screen On.")
         }
 
-        //when logged in:
+        //When logged in:
         if (intent.action == ACTION_LOGGED_IN) {
             Log.d(TAG, "ACTION_LOGGED_IN.")
             loggedIn = true
@@ -100,7 +100,7 @@ class EventReceiver: BroadcastReceiver() {
             Toast.makeText(context, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
         }
 
-        //when Settings VOLUME-UP is changed:
+        //When Settings VOLUME-UP is changed:
         if (intent.action == ACTION_VOLUME_UP_CHANGED) {
             Log.d(TAG, "ACTION_VOLUME_UP_CHANGED.")
             try {
@@ -114,7 +114,7 @@ class EventReceiver: BroadcastReceiver() {
             }
         }
 
-        //when Fake Lock Screen is opened:
+        //When Fake Lock Screen is opened:
         if (intent.action == ACTION_CLOCK_OPENED) {
             Log.d(TAG, "ACTION_CLOCK_OPENED.")
             if (!recordingMode) {
@@ -130,7 +130,7 @@ class EventReceiver: BroadcastReceiver() {
             }
         }
 
-        //when Fake Lock Screen is closed:
+        //When Fake Lock Screen is closed:
         if (intent.action == ACTION_CLOCK_CLOSED) {
             Log.d(TAG, "ACTION_CLOCK_CLOSED.")
             if (!recordingMode) {
@@ -146,7 +146,7 @@ class EventReceiver: BroadcastReceiver() {
             }
         }
 
-        //when a new song is played:
+        //When a new song is played:
         if (intent.action == ACTION_NEW_SONG) {
             Log.d(TAG, "ACTION_NEW_SONG.")
             if (clock_active) {
@@ -168,21 +168,17 @@ class EventReceiver: BroadcastReceiver() {
             }
         }
 
-        //when NLP result received:
+        //When NLP result received -> TOAST:
         if (intent.action == ACTION_NLP_RESULT) {
             Log.d(TAG, "ACTION_NLP_RESULT.")
-            var query_text = ""
-            if (last_nlp!!.has("query_text")) {
-                query_text = last_nlp!!.get("query_text").asString
-            }
-            if (query_text != "") {
-                Toast.makeText(context, query_text.replaceFirstChar { it.uppercase() }, Toast.LENGTH_SHORT).show()
+            if (nlp_queryText != "") {
+                Toast.makeText(context, nlp_queryText.replaceFirstChar { it.uppercase() }, Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(context, "Sorry, I did not understand!", Toast.LENGTH_LONG).show()
             }
         }
 
-        //when redirect countdown activated:
+        //When redirect countdown activated -> TOAST:
         if (intent.action == ACTION_REDIRECT) {
             Log.d(TAG, "ACTION_REDIRECT.")
             Toast.makeText(context, "Going back to Clock in ${prefs.clockTimeout} seconds...", Toast.LENGTH_LONG).show()

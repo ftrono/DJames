@@ -63,9 +63,13 @@ class FloatingViewService : Service() {
                 synchronized(this) {
                     //Log.d(TAG, "Overlay Service: volumeThread alive.")
                     try {
-                        Thread.sleep(2000)
+                        Thread.sleep(3000)
                     } catch (e: InterruptedException) {
                         Log.d(TAG, "Overlay Service: volumeThread already stopped.")
+                    }
+                    //Initialized:
+                    if (!initialized) {
+                        initialized = true
                     }
                     //Lower volume if maximum (to enable Receiver):
                     if (audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {
@@ -89,12 +93,15 @@ class FloatingViewService : Service() {
         super.onCreate()
         try {
             startForeground()
+            initialized = false
             overlay_active = utils.setOverlayActive(applicationContext)   //true
 
             //RECEIVER:
-            //Prepare volume for Receiver:
-            audioManager!!.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND)
-            Log.d(TAG, "Volume lowered.")
+            //Lower volume if maximum (to enable Receiver):
+            if (audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {
+                audioManager!!.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND)
+                Log.d(TAG, "Overlay on: Volume lowered from Max.")
+            }
 
             //Thread check:
             if (!volumeThread.isAlive()){
@@ -285,6 +292,11 @@ class FloatingViewService : Service() {
             recordingMode = false
             overlayButton = null
             overlayIcon = null
+            initialized = false
+            //Thread check:
+            if (volumeThread.isAlive()){
+                volumeThread.interrupt()
+            }
             //unregister receivers:
             unregisterReceiver(eventReceiver)
             Log.d(TAG, "Receiver stopped.")
@@ -344,6 +356,7 @@ class FloatingViewService : Service() {
         overlayClockButton = null
         overlayClockIcon = null
         overlayClockText = null
+        initialized = false
         //Thread check:
         if (volumeThread.isAlive()){
             volumeThread.interrupt()

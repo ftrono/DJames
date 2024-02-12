@@ -42,7 +42,25 @@ class NLPInterpreter(context: Context) {
     }
 
 
-    fun detectIntentRequest(recFile: File): JsonObject {
+    //Service status checker:
+    val sessionThread = Thread {
+        try {
+            synchronized(this) {
+                try {
+                    Thread.sleep(5000)
+                    sessionsClient!!.shutdown()
+                    Log.d(TAG, "Connection Error: sessionsClient manually SHUT DOWN.")
+                } catch (e: InterruptedException) {
+                    Log.d(TAG, "NLPInterpreter: sessionThread already off.")
+                }
+            }
+        } catch (e: InterruptedException) {
+            Log.d(TAG, "Interrupted: exception.", e)
+        }
+    }
+
+
+    fun queryNLP(recFile: File): JsonObject {
         var respJson = JsonObject()
         try {
             val inputAudioConfig: InputAudioConfig = InputAudioConfig.newBuilder()
@@ -65,7 +83,14 @@ class NLPInterpreter(context: Context) {
 
             //Log.d(TAG, "SENT detectIntentRequest REQUEST: ${JsonFormat.printer().print(detectIntentRequest)}")
 
+            //Run NLP query with handmade timeout:
+            if (!sessionThread.isAlive()) {
+                sessionThread.start()
+            }
             val responseObj = sessionsClient!!.detectIntent(detectIntentRequest)
+            if (sessionThread.isAlive()) {
+                sessionThread.interrupt()
+            }
             val queryResult: QueryResult = responseObj.queryResult
             //Log.d(TAG, "SUCCESS detectIntentRequest RESPONSE: ${JsonFormat.printer().print(responseObj)}")
             //Log.d(TAG, "SUCCESS detectIntentRequest RESPONSE: ${queryResult}")
@@ -91,21 +116,12 @@ class NLPInterpreter(context: Context) {
         } catch (e: Exception) {
             Log.d(TAG, "ERROR DetectIntentRequest: ", e)
         }
+        try {
+            sessionsClient!!.shutdown()
+        } catch (e: Exception) {
+            Log.d(TAG, "SessionsClient already shut down.")
+        }
         return respJson
     }
-
-
-    fun queryNLP(recFile: File): Array<String> {
-        //QUERY:
-        last_nlp = detectIntentRequest(recFile)
-        //TEMP:
-        var q = "Clarity"
-        var qTrack = "track=Clarity"
-        var qArtist = "artist=John Mayer"
-        //var qType = "type=track"
-        var results = arrayOf(q, qTrack, qArtist)
-        return results
-    }
-
-
+    
 }

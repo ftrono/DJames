@@ -110,13 +110,12 @@ class SpotifyInterpreter {
         var ret = -1
         //BUILD PUT REQUEST:
         var url = "https://api.spotify.com/v1/me/player/play"
-        var uri = resultJSON.get("uri").asString
-        var uris = JsonArray()
-        uris.add(uri)
+        var offset = JsonObject()  //Context
+        offset.addProperty("uri", resultJSON.get("uri").asString)
 
         var jsonBody = JsonObject()
-        jsonBody.add("uris", uris)
-        //jsonBody.add("context_uri", resultJSON.get("context_uri"))
+        jsonBody.add("context_uri", resultJSON.get("context_uri"))
+        jsonBody.add("offset", offset)
         jsonBody.add("position_ms", JsonPrimitive(0))
 
         var body = jsonBody.toString().toRequestBody()

@@ -63,15 +63,20 @@ class SpotifySearch() {
             var bestInd = 0
             for (item in items) {
                 var currItem = item.asJsonObject
+                //Match name:
                 var curName = currItem.get("name").asString
                 var popularity = currItem.get("popularity").asInt
-                var similarity = (utils.findSimilarity(curName, matchName)*100).toInt()
-                var score = similarity + popularity
+                //Artist name:
+                var artists = currItem.getAsJsonArray("artists")
+                var curArtist = artists.get(0).asJsonObject.get("name").asString
+                var nameSimilarity = (utils.findSimilarity(curName, matchName)*100).toInt()
+                var artistSimilarity = (utils.findSimilarity(curArtist, artistName)*100).toInt()
+                var score = nameSimilarity + artistSimilarity + popularity
                 if (score > bestScore) {
                     bestScore = score
                     bestInd = c
                 }
-                Log.d(TAG, "RESULT: $curName, SCORE: $score, SIMILARITY: $similarity, POPULARITY: $popularity")
+                Log.d(TAG, "RESULT: $curName, SCORE: $score, SONG SIMILARITY: $nameSimilarity, ARTIST SIMILARITY: $artistSimilarity, POPULARITY: $popularity")
                 c += 1
             }
             var bestResult = items.get(bestInd).asJsonObject

@@ -2,6 +2,7 @@ package com.ftrono.DJames.api
 
 import android.util.Log
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
 import java.net.URLEncoder
 import com.google.gson.JsonPrimitive
@@ -10,17 +11,32 @@ import com.google.gson.JsonPrimitive
 class SpotifySearch() {
     private val TAG = SpotifySearch::class.java.simpleName
     private var query = SpotifyQuery()
+    private var utils = Utilities()
 
     //GENERIC SPOTIFY SEARCH -> PLAY WITHIN ALBUM:
-    fun genericSearch(results: Array<String>): JsonObject {
+    fun genericSearch(type: String, matchName: String, artistName: String): JsonObject {
         //BUILD GET REQUEST:
         var baseURL = "https://api.spotify.com/v1/search"
         var returnJSON = JsonObject()
+        var url = baseURL
+
+        //Extract query params:
+        var qParams = ArrayList<String>()
+        //qParams.add("track=${trackName}")
+        qParams.add("artist=${artistName}")
+        // if (resultsNLP.has("playlist")) {
+        // qParams.add("playlist=${resultsNLP.get("artist").asString}")
+        // }
 
         //Query params:
-        var queryParams = results.joinToString("&")
-        val encodedParams: String = URLEncoder.encode(queryParams, "UTF-8")
-        var url = baseURL + "?q=" + encodedParams + "&type=track"
+        if (qParams.isNotEmpty()) {
+            var queryParams = qParams.joinToString("&", prefix = "&")
+            val encodedParams: String = URLEncoder.encode(queryParams, "UTF-8")
+            url += "?q=${matchName} ${artistName}${encodedParams}&type=${type}&limit=5"
+        } else {
+            url += "?q=${matchName} ${artistName}&type=${type}"
+        }
+
         Log.d(TAG, url)
 
         //Headers:
@@ -41,38 +57,54 @@ class SpotifySearch() {
             var items = tracks.getAsJsonArray("items")
             //Log.d(TAG, "Items: ${items}")
 
-            //FROM FIRST RESULT:
-            var firstResult = items.get(0).asJsonObject
+            //GET BEST RESULT:
+            var c = 0
+            var bestScore = 0
+            var bestInd = 0
+            for (item in items) {
+                var currItem = item.asJsonObject
+                var curName = currItem.get("name").asString
+                var popularity = currItem.get("popularity").asInt
+                var similarity = (utils.findSimilarity(curName, matchName)*100).toInt()
+                var score = similarity + popularity
+                if (score > bestScore) {
+                    bestScore = score
+                    bestInd = c
+                }
+                Log.d(TAG, "RESULT: $curName, SCORE: $score, SIMILARITY: $similarity, POPULARITY: $popularity")
+                c += 1
+            }
+            var bestResult = items.get(bestInd).asJsonObject
 
             //Uri:
-            var uri = firstResult.get("uri").asString
+            var uri = bestResult.get("uri").asString
             returnJSON.add("uri", JsonPrimitive(uri))
             Log.d(TAG, "uri: ${uri}")
 
             //Spotify URL:
-            var extUrls = firstResult.getAsJsonObject("external_urls")
+            var extUrls = bestResult.getAsJsonObject("external_urls")
             var spotifyURL = extUrls.get("spotify").asString
             returnJSON.add("spotify_URL", JsonPrimitive(spotifyURL))
             Log.d(TAG, "spotify_URL: ${spotifyURL}")
 
             //Track name:
-            returnJSON.add("song_name", firstResult.get("name"))
+            returnJSON.add("song_name", bestResult.get("name"))
 
             //Artist name:
-            var artists = firstResult.getAsJsonArray("artists")
+            var artists = bestResult.getAsJsonArray("artists")
             var firstArtist = artists.get(0).asJsonObject
             returnJSON.add("artist_name", firstArtist.get("name"))
 
             //CONTEXT:
             //Album name:
-            var album = firstResult.get("album").asJsonObject
+            var album = bestResult.get("album").asJsonObject
+            returnJSON.add("album_name", album.get("name"))
+            returnJSON.add("album_uri", album.get("uri"))
+
+            //(TEMP) Context -> album:
             returnJSON.add("context_type", JsonPrimitive("Album"))
-            returnJSON.add("context_name", album.get("name"))
             returnJSON.add("context_uri", album.get("uri"))
-            returnJSON.add(
-                "track_number",
-                JsonPrimitive(firstResult.get("track_number").asInt - 1)
-            )   //offset = track_number - 1
+            returnJSON.add("context_name", album.get("name"))
 
             //Artwork:
             if (album.has("images")) {

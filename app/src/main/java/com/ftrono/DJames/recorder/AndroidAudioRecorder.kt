@@ -78,7 +78,7 @@ class AndroidAudioRecorder(private val context: Context): AudioRecorder {
 
     fun convertAudioFile(source: File, target: File) {
         try {
-            val session = FFmpegKit.execute("-i ${source.absolutePath} -c:v flac ${target.absolutePath} -y")
+            val session = FFmpegKit.execute("-i ${source.absolutePath} -c:v flac ${target.absolutePath} -y -loglevel quiet")
             Log.d(TAG, "Conversion return: ${session.returnCode}")
             //Log.d(TAG, "Conversion output: ${session.output}")
             Log.d(TAG, "Conversion fail track (if any): ${session.failStackTrace}")

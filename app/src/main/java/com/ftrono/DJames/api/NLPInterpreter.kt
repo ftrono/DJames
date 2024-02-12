@@ -93,7 +93,7 @@ class NLPInterpreter(context: Context) {
             }
             val queryResult: QueryResult = responseObj.queryResult
             //Log.d(TAG, "SUCCESS detectIntentRequest RESPONSE: ${JsonFormat.printer().print(responseObj)}")
-            //Log.d(TAG, "SUCCESS detectIntentRequest RESPONSE: ${queryResult}")
+            Log.d(TAG, "SUCCESS detectIntentRequest RESPONSE: ${queryResult}")
 
             try {
                 //EXTRACT NLP RESULTS:

@@ -26,6 +26,7 @@ import androidx.core.view.updateLayoutParams
 import com.ftrono.DJames.R
 import com.ftrono.DJames.receivers.EventReceiver
 import com.ftrono.DJames.service.FloatingViewService
+import com.ftrono.DJames.utilities.Utilities
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlin.math.roundToInt
 
@@ -37,6 +38,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val TAG: String = MainActivity::class.java.getSimpleName()
+    private var utils = Utilities()
+
     //Views:
     private var toolbar: Toolbar? = null
     private var baloon: View? = null
@@ -47,15 +50,11 @@ class MainActivity : AppCompatActivity() {
     //Receiver:
     var eventReceiver = EventReceiver()
 
-    //Statuses:
-    private var activity_active : Boolean = false
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        activity_active = true
         act = this
         acts_active.add(TAG)
 
@@ -117,9 +116,9 @@ class MainActivity : AppCompatActivity() {
             }
             face_cover!!.visibility = View.INVISIBLE
             if (overlay_active) {
-                setOverlayActive(exec=false)
+                utils.setOverlayActive(applicationContext)
             } else {
-                setOverlayInactive(exec=false)
+                utils.setOverlayInactive(applicationContext)
             }
         }
 
@@ -140,7 +139,9 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent1)
             } else if (!overlay_active) {
                 //START:
-                overlay_active = setOverlayActive(exec = true)
+                if (!isMyServiceRunning(FloatingViewService::class.java)) {
+                    startService(Intent(this, FloatingViewService::class.java))
+                }
                 //Start fake lock screen:
                 val intent1 = Intent(this@MainActivity, FakeLockScreen::class.java)
                 startActivity(intent1)
@@ -152,7 +153,9 @@ class MainActivity : AppCompatActivity() {
 //                    .show()
             } else {
                 //STOP:
-                overlay_active = setOverlayInactive(exec = true)
+                if (isMyServiceRunning(FloatingViewService::class.java)) {
+                    stopService(Intent(this, FloatingViewService::class.java))
+                }
             }
 
         })
@@ -168,14 +171,13 @@ class MainActivity : AppCompatActivity() {
             overlay_active = false
             setViewLoggedOut()
         } else if (!Settings.canDrawOverlays(this)) {
-            overlay_active = setOverlayInactive(exec=false)
+            overlay_active = utils.setOverlayInactive(applicationContext)
         }
     }
 
 
     override fun onDestroy() {
         super.onDestroy()
-        activity_active = false
         //unregister receivers:
         unregisterReceiver(eventReceiver)
         //empty views:
@@ -294,44 +296,6 @@ class MainActivity : AppCompatActivity() {
         return false
     }
 
-    fun setOverlayActive(exec: Boolean): Boolean {
-        if (exec) {
-            startService(Intent(this, FloatingViewService::class.java))
-        }
-        if (Settings.canDrawOverlays(this)) {
-            startButton!!.text = "S T O P"
-            startButton!!.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorStop)
-            descr_main!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.colorHeader))
-            descr_main!!.setTypeface(null, Typeface.BOLD_ITALIC)
-            descr_main!!.text = getString(R.string.str_main_stop)
-            if (prefs.volumeUpEnabled) {
-                descr_use!!.text = getString(R.string.str_use_logged)
-            } else {
-                descr_use!!.text = getString(R.string.str_use_logged_no_vol)
-            }
-            descr_use!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.light_grey))
-        }
-        return true
-    }
-
-    fun setOverlayInactive(exec: Boolean): Boolean {
-        startButton!!.text = "S T A R T"
-        startButton!!.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.colorAccent)
-        descr_main!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.light_grey))
-        descr_main!!.setTypeface(null, Typeface.ITALIC)
-        descr_main!!.text = getString(R.string.str_main_start)
-        if (prefs.volumeUpEnabled) {
-            descr_use!!.text = getString(R.string.str_use_logged)
-        } else {
-            descr_use!!.text = getString(R.string.str_use_logged_no_vol)
-        }
-        descr_use!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
-        if (exec) {
-            stopService(Intent(this, FloatingViewService::class.java))
-        }
-        return false
-    }
-
     //Logout user:
     fun logout() {
         val alertDialog = MaterialAlertDialogBuilder(this)
@@ -349,7 +313,7 @@ class MainActivity : AppCompatActivity() {
                 prefs.userId = ""
                 //Stop overlay service:
                 if (isMyServiceRunning(FloatingViewService::class.java)) {
-                    overlay_active = setOverlayInactive(exec=true)
+                    stopService(Intent(applicationContext, FloatingViewService::class.java))
                 }
                 setViewLoggedOut()
                 Toast.makeText(applicationContext, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()

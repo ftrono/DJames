@@ -106,18 +106,27 @@ class SettingsActivity : AppCompatActivity() {
         text_rec_timeout!!.text = prefs.recTimeout
 
         //Overlay Position:
+        var c = 0
         var spinner_overlay_pos = findViewById<Spinner>(R.id.spinner_overlay_pos)
         spinner_overlay_pos!!.setSelection(prefs.overlayPosition.toInt())
         spinner_overlay_pos.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(adapter: AdapterView<*>?, view: View, pos: Int, id: Long) {
                 prefs.overlayPosition = pos.toString()
-                //Restart overlay service:
-                if (isMyServiceRunning(FloatingViewService::class.java)) {
-                    stopService(Intent(applicationContext, FloatingViewService::class.java))
-                    if (!isMyServiceRunning(FloatingViewService::class.java)) {
-                        startService(Intent(applicationContext, FloatingViewService::class.java))
+                if (c > 0) {
+                    //Restart overlay service:
+                    if (isMyServiceRunning(FloatingViewService::class.java)) {
+                        stopService(Intent(applicationContext, FloatingViewService::class.java))
+                        if (!isMyServiceRunning(FloatingViewService::class.java)) {
+                            startService(
+                                Intent(
+                                    applicationContext,
+                                    FloatingViewService::class.java
+                                )
+                            )
+                        }
                     }
                 }
+                c += 1
             }
             override fun onNothingSelected(arg0: AdapterView<*>?) {}
         })
@@ -188,9 +197,6 @@ class SettingsActivity : AppCompatActivity() {
             saveAll(newRecTimeout, newClockTimeout)
             Toast.makeText(applicationContext, "Settings saved!", Toast.LENGTH_SHORT).show()
             finish()
-            //Start Main:
-            val intent1 = Intent(this, MainActivity::class.java)
-            startActivity(intent1)
         })
     }
 
@@ -217,9 +223,6 @@ class SettingsActivity : AppCompatActivity() {
                     saveAll(newRecTimeout, newClockTimeout)
                     Toast.makeText(applicationContext, "Settings saved!", Toast.LENGTH_SHORT).show()
                     finish()
-                    //Start Main:
-                    val intent1 = Intent(applicationContext, MainActivity::class.java)
-                    startActivity(intent1)
                 }
             })
             //Exit without saving:
@@ -228,9 +231,6 @@ class SettingsActivity : AppCompatActivity() {
                     Toast.makeText(applicationContext, "Settings NOT saved.", Toast.LENGTH_SHORT)
                         .show()
                     finish()
-                    //Start Main:
-                    val intent1 = Intent(applicationContext, MainActivity::class.java)
-                    startActivity(intent1)
                 }
             })
             alertDialog.setTitle("Warning")
@@ -238,9 +238,6 @@ class SettingsActivity : AppCompatActivity() {
             alertDialog.show()
         } else {
             finish()
-            //Start Main:
-            val intent1 = Intent(this, MainActivity::class.java)
-            startActivity(intent1)
         }
     }
 

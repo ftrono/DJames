@@ -12,7 +12,6 @@ import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.PixelFormat
-import android.graphics.Typeface
 import android.media.AudioManager
 import android.net.Uri
 import android.os.IBinder
@@ -28,11 +27,11 @@ import android.view.WindowManager.LayoutParams
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
 import com.ftrono.DJames.receivers.EventReceiver
+import com.ftrono.DJames.utilities.Utilities
 import kotlin.math.abs
 import kotlin.math.round
 import android.app.Application
@@ -40,7 +39,7 @@ import android.app.Application
 
 class FloatingViewService : Service() {
     private val TAG = FloatingViewService::class.java.simpleName
-    private var fs_active : Boolean = false
+    private var utils = Utilities()
 
     //Pos:
     var height = 0
@@ -60,7 +59,7 @@ class FloatingViewService : Service() {
     //Service status checker:
     val volumeThread = Thread {
         try {
-            while (fs_active) {
+            while (overlay_active) {
                 synchronized(this) {
                     //Log.d(TAG, "Overlay Service: volumeThread alive.")
                     try {
@@ -90,7 +89,7 @@ class FloatingViewService : Service() {
         super.onCreate()
         try {
             startForeground()
-            fs_active = true
+            overlay_active = utils.setOverlayActive(applicationContext)   //true
 
             //RECEIVER:
             //Prepare volume for Receiver:
@@ -278,12 +277,12 @@ class FloatingViewService : Service() {
                 })
         } catch (e: Exception) {
             Log.d(TAG, "Exception: ", e)
+            overlay_active = utils.setOverlayInactive(applicationContext)   //false
             //Stop Voice Search service:
             if (isMyServiceRunning(VoiceSearchService::class.java)) {
                 stopService(Intent(applicationContext, VoiceSearchService::class.java))
             }
             recordingMode = false
-            fs_active = false
             overlayButton = null
             overlayIcon = null
             //unregister receivers:
@@ -331,10 +330,10 @@ class FloatingViewService : Service() {
         if (isMyServiceRunning(VoiceSearchService::class.java)) {
             stopService(Intent(applicationContext, VoiceSearchService::class.java))
         }
+        overlay_active = false
         if (loggedIn) {
-            setOverlayDeactivated()
+            utils.setOverlayInactive(applicationContext)
         }
-        fs_active = false
         recordingMode = false
         //unregister receivers:
         unregisterReceiver(eventReceiver)
@@ -356,22 +355,7 @@ class FloatingViewService : Service() {
         }
     }
 
-    //Set Overlay Deactivated view in Main():
-    fun setOverlayDeactivated() {
-        Log.d(TAG, "Overlay deactivated.")
-        try {
-            overlay_active = false
-            startButton!!.text = "S T A R T"
-            startButton!!.backgroundTintList = AppCompatResources.getColorStateList(applicationContext!!, R.color.colorAccent)
-            descr_main!!.setTextColor(AppCompatResources.getColorStateList(applicationContext, R.color.light_grey))
-            descr_main!!.setTypeface(null, Typeface.ITALIC)
-            descr_main!!.text = applicationContext.resources.getString(R.string.str_main_start)
-            descr_use!!.text = applicationContext.resources.getString(R.string.str_use_logged)
-            descr_use!!.setTextColor(AppCompatResources.getColorStateList(applicationContext, R.color.mid_grey))
-        } catch (e: Exception) {
-            Log.d(TAG, "Overlay deactivated: view resources not available.")
-        }
-    }
+
 
     private fun startForeground() {
         //Foreground service:

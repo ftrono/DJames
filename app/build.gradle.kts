@@ -99,4 +99,6 @@ dependencies {
     compileOnly("org.apache.tomcat:annotations-api:6.0.53") {
         exclude("com.google.protobuf")
     }
+    //FFmpeg-kit:
+    implementation("com.arthenica:ffmpeg-kit-full:6.0-2")
 }

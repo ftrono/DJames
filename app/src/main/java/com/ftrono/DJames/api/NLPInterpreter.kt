@@ -46,7 +46,7 @@ class NLPInterpreter(context: Context) {
         var respJson = JsonObject()
         try {
             val inputAudioConfig: InputAudioConfig = InputAudioConfig.newBuilder()
-                .setAudioEncoding(AudioEncoding.AUDIO_ENCODING_LINEAR_16)
+                .setAudioEncoding(AudioEncoding.AUDIO_ENCODING_FLAC)
                 .setSampleRateHertz(recSamplingRate)
                 .setLanguageCode("en-US")
                 .setModel("latest_short")

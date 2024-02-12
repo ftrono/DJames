@@ -117,7 +117,7 @@ class MainActivity : AppCompatActivity() {
             }
             face_cover!!.visibility = View.INVISIBLE
             if (overlay_active) {
-                setOverlayActive(exec = false)
+                setOverlayActive(exec=false)
             } else {
                 setOverlayInactive(exec=false)
             }

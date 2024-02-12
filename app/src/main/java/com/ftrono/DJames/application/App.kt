@@ -41,7 +41,6 @@ var artistName: String = ""
 var contextName: String = ""
 
 //Recording preferences:
-val recFileName = "DJames_request"
 val recSamplingRate = 44100
 
 //Spotify Scopes:

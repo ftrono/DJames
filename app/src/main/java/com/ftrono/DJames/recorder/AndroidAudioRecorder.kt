@@ -1,199 +1,91 @@
 package com.ftrono.DJames.recorder
 
 import android.content.Context
-import android.media.AudioFormat
-import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.os.Build
 import android.util.Log
+import com.arthenica.ffmpegkit.FFmpegKit
+import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recSamplingRate
-import java.io.DataInputStream
-import java.io.DataOutputStream
+import com.ftrono.DJames.application.searchFail
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.IOException
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.util.concurrent.atomic.AtomicBoolean
 
 
-class AndroidAudioRecorder(context: Context): AudioRecorder {
-
+class AndroidAudioRecorder(private val context: Context): AudioRecorder {
     private val TAG = AndroidAudioRecorder::class.java.simpleName
-    val CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
-    val AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT
 
-    //The bigger the factor is the less likely it is that samples will be dropped
-    val BUFFER_SIZE_FACTOR = 2
+    private var recorder: MediaRecorder? = null
+    private val bitRate = 96000
+    private val recFileName = "DJames_request"
 
-    //Size of the buffer where the audio data is stored by Android
-    val BUFFER_SIZE = AudioRecord.getMinBufferSize(
-        recSamplingRate,
-        CHANNEL_CONFIG, AUDIO_FORMAT
-    ) * BUFFER_SIZE_FACTOR
+    private var recFileMp3: File? = null
+    private var recFileFlac: File? = null
 
-    val recordingInProgress = AtomicBoolean(false)
-    var recorder: AudioRecord? = null
-    var recordingThread: Thread? = null
 
-    override fun start(outputFile: File) {
-        try {
-            recorder = AudioRecord(
-                MediaRecorder.AudioSource.DEFAULT, recSamplingRate,
-                CHANNEL_CONFIG, AUDIO_FORMAT, BUFFER_SIZE
-            )
-            recorder!!.startRecording()
-            recordingInProgress.set(true)
-            recordingThread(outputFile)
-            Log.d(TAG, "Recorder started.")
-        } catch (e: SecurityException) {
-            Log.d(TAG, "Recorder NOT started. Security Exception: ", e)
-        }
+    private fun createRecorder(): MediaRecorder {
+        return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            MediaRecorder(context)
+        } else MediaRecorder()
     }
 
-    override fun stop(outputFile: File, convFile: File) {
+    override fun start(directory: File) {
         try {
-            if (null == recorder) {
-                return
-            }
-            recordingInProgress.set(false)
-            recorder!!.stop()
-            recorder!!.release()
-            recorder = null
-            recordingThread = null
-            Log.d(TAG, "Recorder stopped.")
-            try {
-                rawToWave(outputFile, convFile)
-            } catch (e: Exception) {
-                Log.d(TAG, "Recorder: conversion to WAV failed!")
+            //Create files:
+            recFileMp3 = File(directory, "$recFileName.mp3")
+            recFileFlac = File(directory, "$recFileName.flac")
+            //Init & start Recorder:
+            createRecorder().apply {
+                if (prefs.micType.toInt() == 0) {
+                    //Current default mic:
+                    setAudioSource(MediaRecorder.AudioSource.DEFAULT)
+                } else {
+                    //Primary mic:
+                    setAudioSource(MediaRecorder.AudioSource.MIC)
+                }
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setAudioEncodingBitRate(bitRate)
+                setAudioSamplingRate(recSamplingRate)
+                setAudioChannels(1)   //mono
+                setOutputFile(FileOutputStream(recFileMp3).fd)
+
+                prepare()
+                start()
+
+                recorder = this
             }
         } catch (e: Exception) {
-            Log.d(TAG, "Recorder NOT stopped: ", e)
+            searchFail = true
+            Log.d(TAG, "ERROR: Recorder start FAIL.", e)
         }
     }
 
-    fun getBufferReadFailureReason(errorCode: Int): String {
-        return when (errorCode) {
-            AudioRecord.ERROR_INVALID_OPERATION -> "ERROR_INVALID_OPERATION"
-            AudioRecord.ERROR_BAD_VALUE -> "ERROR_BAD_VALUE"
-            AudioRecord.ERROR_DEAD_OBJECT -> "ERROR_DEAD_OBJECT"
-            AudioRecord.ERROR -> "ERROR"
-            else -> "Unknown ($errorCode)"
-        }
-    }
-
-    fun recordingThread(outputFile: File) {
-        val buffer = ByteBuffer.allocateDirect(BUFFER_SIZE)
-        val recThread = Thread {
-            try {
-                synchronized(this) {
-                    FileOutputStream(outputFile).use { outStream ->
-                        while (recordingInProgress.get()) {
-                            val result: Int = recorder!!.read(buffer, BUFFER_SIZE)
-                            if (result < 0) {
-                                throw RuntimeException(
-                                    "Reading of audio buffer failed: " +
-                                            getBufferReadFailureReason(result)
-                                )
-                            }
-                            outStream.write(buffer.array(), 0, BUFFER_SIZE)
-                            buffer.clear()
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Log.d(TAG, "Writing of recorded audio failed: ", e)
-            }
-        }
-        //start thread:
-        recThread.start()
-    }
-
-
-    @Throws(IOException::class)
-    private fun rawToWave(rawFile: File, waveFile: File) {
-        val rawData = ByteArray(rawFile.length().toInt())
-        var input: DataInputStream? = null
+    override fun stop(convert: Boolean): File {
         try {
-            input = DataInputStream(FileInputStream(rawFile))
-            input.read(rawData)
-        } finally {
-            input?.close()
+            recorder!!.stop()
+            recorder!!.reset()
+            recorder!!.release()
+            recorder = null
+            //Convert:
+            convertAudioFile(source = recFileMp3!!, target = recFileFlac!!)
+        } catch (e: Exception) {
+            searchFail = true
+            Log.d(TAG, "ERROR: Recorder stop FAIL.", e)
         }
-        var output: DataOutputStream? = null
+        return recFileFlac!!
+    }
+
+    fun convertAudioFile(source: File, target: File) {
         try {
-            output = DataOutputStream(FileOutputStream(waveFile))
-            // WAVE header
-            // see http://ccrma.stanford.edu/courses/422/projects/WaveFormat/
-            writeString(output, "RIFF") // chunk id
-            writeInt(output, 36 + rawData.size) // chunk size
-            writeString(output, "WAVE") // format
-            writeString(output, "fmt ") // subchunk 1 id
-            writeInt(output, 16) // subchunk 1 size
-            writeShort(output, 1.toShort()) // audio format (1 = PCM)
-            writeShort(output, 1.toShort()) // number of channels
-            writeInt(output, 44100) // sample rate
-            writeInt(output, recSamplingRate * 2) // byte rate
-            writeShort(output, 2.toShort()) // block align
-            writeShort(output, 16.toShort()) // bits per sample
-            writeString(output, "data") // subchunk 2 id
-            writeInt(output, rawData.size) // subchunk 2 size
-            // Audio data (conversion big endian -> little endian)
-            val shorts = ShortArray(rawData.size / 2)
-            ByteBuffer.wrap(rawData).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()[shorts]
-            val bytes = ByteBuffer.allocate(shorts.size * 2)
-            for (s in shorts) {
-                bytes.putShort(s)
-            }
-            output.write(fullyReadFileToBytes(rawFile))
-        } finally {
-            output?.close()
+            val session = FFmpegKit.execute("-i ${source.absolutePath} -c:v flac ${target.absolutePath} -y")
+            Log.d(TAG, "Conversion return: ${session.returnCode}")
+            //Log.d(TAG, "Conversion output: ${session.output}")
+            Log.d(TAG, "Conversion fail track (if any): ${session.failStackTrace}")
+        } catch (e: Exception) {
+            Log.d(TAG, "Audio file conversion error: ", e)
         }
-    }
 
-    @Throws(IOException::class)
-    fun fullyReadFileToBytes(f: File): ByteArray? {
-        val size = f.length().toInt()
-        val bytes = ByteArray(size)
-        val tmpBuff = ByteArray(size)
-        val fis = FileInputStream(f)
-        try {
-            var read = fis.read(bytes, 0, size)
-            if (read < size) {
-                var remain = size - read
-                while (remain > 0) {
-                    read = fis.read(tmpBuff, 0, remain)
-                    System.arraycopy(tmpBuff, 0, bytes, size - remain, read)
-                    remain -= read
-                }
-            }
-        } catch (e: IOException) {
-            throw e
-        } finally {
-            fis.close()
-        }
-        return bytes
-    }
-
-    @Throws(IOException::class)
-    private fun writeInt(output: DataOutputStream, value: Int) {
-        output.write(value shr 0)
-        output.write(value shr 8)
-        output.write(value shr 16)
-        output.write(value shr 24)
-    }
-
-    @Throws(IOException::class)
-    private fun writeShort(output: DataOutputStream, value: Short) {
-        output.write(value.toInt() shr 0)
-        output.write(value.toInt() shr 8)
-    }
-
-    @Throws(IOException::class)
-    private fun writeString(output: DataOutputStream, value: String) {
-        for (i in 0 until value.length) {
-            output.write(value[i].code)
-        }
     }
 
 }

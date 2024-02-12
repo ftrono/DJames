@@ -12,6 +12,7 @@ import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.ToneGenerator
 import android.net.Uri
+import android.os.Environment
 import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
@@ -23,9 +24,7 @@ import com.ftrono.DJames.application.FakeLockScreen
 import com.ftrono.DJames.recorder.AndroidAudioRecorder
 import com.ftrono.DJames.api.SpotifyInterpreter
 import com.google.gson.JsonObject
-import java.io.File
 import java.net.URLEncoder
-import android.os.Environment
 
 
 class VoiceSearchService : Service() {
@@ -196,15 +195,13 @@ class VoiceSearchService : Service() {
                     toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
 
                     //Start recording (default: cacheDir, alternative: saveDir):
-                    var recFile = File(saveDir, "$recFileName.pcm")
-                    var recFileWav = File(saveDir, "$recFileName.wav")
-                    recorder.start(recFile)
+                    recorder.start(saveDir)
 
                     //Countdown:
                     Thread.sleep(prefs.recTimeout.toLong() * 1000)   //default: 5000
 
                     //Stop recording:
-                    recorder.stop(recFile, recFileWav)
+                    var recFile = recorder.stop()
                     Log.d(TAG, "RECORDING STOPPED.")
 
                     //Lower volume if maximum (to enable Receiver):

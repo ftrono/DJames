@@ -104,6 +104,16 @@ class NLPInterpreter(context: Context) {
                 } else {
                     respJson.addProperty("query_text", queryResult.queryText)
                     respJson.addProperty("intent", queryResult.intent.displayName)
+                    try {
+                        respJson.addProperty("artist", queryResult.parameters.fieldsMap["music-artist"]!!.stringValue)
+                    } catch (e: Exception) {
+                        respJson.addProperty("artist", "")
+                    }
+                    try {
+                        respJson.addProperty("playlist", queryResult.parameters.fieldsMap["PlaylistName"]!!.stringValue)
+                    } catch (e: Exception) {
+                        respJson.addProperty("playlist", "")
+                    }
                     for (key in keySet) {
                         respJson.add(key, fulfillmentText.get(key))
                     }

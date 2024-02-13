@@ -22,19 +22,18 @@ class SpotifySearch() {
 
         //Extract query params:
         var qParams = ArrayList<String>()
-        //qParams.add("track=${trackName}")
-        qParams.add("artist=${artistName}")
-        // if (resultsNLP.has("playlist")) {
-        // qParams.add("playlist=${resultsNLP.get("artist").asString}")
-        // }
+        qParams.add("${type}:${matchName}")
+        if (artistName != "") {
+            qParams.add("artist:${artistName}")
+        }
 
         //Query params:
         if (qParams.isNotEmpty()) {
             var queryParams = qParams.joinToString("&", prefix = "&")
             val encodedParams: String = URLEncoder.encode(queryParams, "UTF-8")
-            url += "?q=${matchName} ${artistName}${encodedParams}&type=${type}&limit=5"
+            url += "?q=${matchName}${encodedParams}&type=${type}&market=IT"
         } else {
-            url += "?q=${matchName} ${artistName}&type=${type}"
+            url += "?q=${matchName}&type=${type}&market=IT"
         }
 
         Log.d(TAG, url)
@@ -71,12 +70,12 @@ class SpotifySearch() {
                 var curArtist = artists.get(0).asJsonObject.get("name").asString
                 var nameSimilarity = (utils.findSimilarity(curName, matchName)*100).toInt()
                 var artistSimilarity = (utils.findSimilarity(curArtist, artistName)*100).toInt()
-                var score = nameSimilarity + artistSimilarity + popularity
+                var score = nameSimilarity + artistSimilarity
                 if (score > bestScore) {
                     bestScore = score
                     bestInd = c
                 }
-                Log.d(TAG, "RESULT: $curName, SCORE: $score, SONG SIMILARITY: $nameSimilarity, ARTIST SIMILARITY: $artistSimilarity, POPULARITY: $popularity")
+                Log.d(TAG, "RESULT: $curName BY $curArtist, SCORE: $score, SONG SIMILARITY: $nameSimilarity, ARTIST SIMILARITY: $artistSimilarity, POPULARITY: $popularity")
                 c += 1
             }
             var bestResult = items.get(bestInd).asJsonObject

@@ -19,8 +19,9 @@ class SpotifyInterpreter {
 
 
     //NOTE: To be called only if Intent HAS a song name inside!
-    fun extractMatchName(type: String, queryText: String, artistName: String, removeArtist: Boolean = false): String {
+    fun extractMatchName(type: String, queryText: String, artistName: String, removeArtist: Boolean = false): ArrayList<String> {
         var matchName = ""
+        var artistExtracted = ""
         var theType = false
         var findArtist = ArrayList<String>()
         findArtist.add("by the artist")
@@ -43,10 +44,8 @@ class SpotifyInterpreter {
             Log.d(TAG, "PLAY INDEX INCREASED: $playInd")
             Log.d(TAG, "TEXT FROM PLAY: $textFromPlay")
 
-            if (!removeArtist) {
-                //Keep artist:
-                matchName = textFromPlay
-            } else {
+            matchName = textFromPlay
+            if (removeArtist) {
                 //2) Find artist prelude:
                 var preludeInd = -1
                 for (sent in findArtist) {
@@ -60,8 +59,8 @@ class SpotifyInterpreter {
                     matchName = textFromPlay.slice(0..preludeInd).strip()
                     Log.d(TAG, "PRELUDE INDEX: $preludeInd")
                     Log.d(TAG, "TEXT UP TO PRELUDE: $matchName")
-                } else {
-                    //3) Check artistName:
+                } else if (artistName != "") {
+                    //3.A) Check artistName:
                     var artistInd = textFromPlay.indexOf(artistName, ignoreCase = true)
                     Log.d(TAG, "ARTIST INDEX: $artistInd")
                     if (artistInd > -1) {
@@ -75,6 +74,18 @@ class SpotifyInterpreter {
                         matchName = textFromPlay.slice(0..(artistInd - 1)).strip()
                         Log.d(TAG, "TEXT UP TO ARTIST: $matchName")
                     }
+                } else {
+                    //3.B) Find word "by":
+                    var byInd = textFromPlay.indexOf("by", ignoreCase = true)
+                    Log.d(TAG, "BY INDEX: $byInd")
+                    if (byInd > -1) {
+                        var artistInd = byInd + 3
+                        Log.d(TAG, "ARTIST INDEX FOUND: $artistInd")
+                        artistExtracted = textFromPlay.slice(artistInd .. textFromPlay.lastIndex).strip()
+                        Log.d(TAG, "ARTIST FOUND: $artistExtracted")
+                    }
+                    matchName = textFromPlay.slice(0..(byInd - 1)).strip()
+                    Log.d(TAG, "TEXT UP TO ARTIST: $matchName")
                 }
             }
         }
@@ -92,14 +103,21 @@ class SpotifyInterpreter {
             matchName = "the $type"
         }
         Log.d(TAG, "CLEANED MATCH NAME: $matchName")
-        return matchName
+        var retArray = ArrayList<String>()
+        retArray.add(matchName)
+        retArray.add(artistExtracted)
+        return retArray
     }
 
     fun dispatchCall(resultsNLP: JsonObject): JsonObject {
         //TEMP:
         var type = resultsNLP.get("type").asString
         var artistName = resultsNLP.get("artist").asString
-        var matchName = extractMatchName(type=type, queryText=resultsNLP.get("query_text").asString, artistName=artistName, removeArtist=true)
+        var matchArray = extractMatchName(type=type, queryText=resultsNLP.get("query_text").asString, artistName=artistName, removeArtist=true)
+        var matchName = matchArray.get(0)
+        if (artistName == "") {
+            artistName = matchArray.get(1)
+        }
         //DISPATCH SPOTIFY CALLS ACCORDING TO NLP RESULTS:
         var search = SpotifySearch()
         var returnJSON = search.genericSearch(type=type, matchName=matchName, artistName=artistName)

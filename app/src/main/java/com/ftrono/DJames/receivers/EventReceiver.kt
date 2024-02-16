@@ -24,7 +24,7 @@ class EventReceiver: BroadcastReceiver() {
             if (newVolume >= oldVolume && prefs.volumeUpEnabled) {
                 //If volume maximum -> Lower volume (to enable Receiver):
                 if (audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {
-                    audioManager!!.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND)
+                    audioManager!!.setStreamVolume(AudioManager.STREAM_MUSIC, streamMaxVolume-1, AudioManager.FLAG_PLAY_SOUND)
                     Log.d(TAG, "EVENT: VOLUME_CHANGED_ACTION: Volume lowered.")
                 }
                 //If not recordingMode:

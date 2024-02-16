@@ -98,7 +98,7 @@ class FloatingViewService : Service() {
             //RECEIVER:
             //Lower volume if maximum (to enable Receiver):
             if (audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {
-                audioManager!!.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND)
+                audioManager!!.setStreamVolume(AudioManager.STREAM_MUSIC, streamMaxVolume-1, AudioManager.FLAG_PLAY_SOUND)
                 Log.d(TAG, "Overlay on: Volume lowered from Max.")
             }
 

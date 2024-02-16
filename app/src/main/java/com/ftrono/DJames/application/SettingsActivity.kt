@@ -1,12 +1,15 @@
 package com.ftrono.DJames.application
 
-import android.app.Activity
 import android.app.ActivityManager
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.Button
@@ -27,11 +30,13 @@ import jp.wasabeef.picasso.transformations.CropCircleTransformation
 
 class SettingsActivity : AppCompatActivity() {
 
-    companion object {
-        var act: Activity? = null
-    }
-
     private val TAG = SettingsActivity::class.java.simpleName
+
+    //Settings views:
+    private var userNameView: TextView? = null   //eventReceiver(login settings)
+    private var userEMailView: TextView? = null   //eventReceiver(login settings)
+    private var userIcon: ImageView? = null   //eventReceiver(login settings)
+    private var login_mini_button: Button? = null   //eventReceiver(login settings)
 
     //Views:
     private var user_container: View? = null
@@ -47,7 +52,6 @@ class SettingsActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
-        act = this
         acts_active.add(TAG)
 
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
@@ -63,6 +67,15 @@ class SettingsActivity : AppCompatActivity() {
         userEMailView = findViewById<TextView>(R.id.user_email)
         userIcon = findViewById<ImageView>(R.id.user_icon)
         login_mini_button = findViewById<Button>(R.id.login_mini_button)
+
+        //Start personal Receiver:
+        val actFilter = IntentFilter()
+        actFilter.addAction(ACTION_SETTINGS_LOGGED_IN)
+        actFilter.addAction(ACTION_FINISH_SETTINGS)
+
+        //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
+        registerReceiver(settingsActReceiver, actFilter, RECEIVER_EXPORTED)
+        Log.d(TAG, "SettingsActReceiver started.")
 
         //Check initial orientation:
         var config = getResources().getConfiguration()
@@ -171,7 +184,7 @@ class SettingsActivity : AppCompatActivity() {
             }
             //Send broadcast:
             Intent().also { intent ->
-                intent.setAction(ACTION_VOLUME_UP_CHANGED)
+                intent.setAction(ACTION_SETTINGS_VOL_UP)
                 sendBroadcast(intent)
             }
         }
@@ -202,6 +215,8 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        //unregister receivers:
+        unregisterReceiver(settingsActReceiver)
         userNameView = null
         userEMailView = null
         userIcon = null
@@ -355,6 +370,42 @@ class SettingsActivity : AppCompatActivity() {
         Picasso.get().load(R.drawable.user_icon)
             .transform(CropCircleTransformation())
             .into(userIcon)
+    }
+
+
+    //PERSONAL RECEIVER:
+    private var settingsActReceiver = object: BroadcastReceiver() {
+
+        override fun onReceive(context: Context?, intent: Intent?) {
+
+            //When logged in:
+            if (intent!!.action == ACTION_SETTINGS_LOGGED_IN) {
+                Log.d(TAG, "SETTINGS: ACTION_SETTINGS_LOGGED_IN.")
+
+                loggedIn = true
+                //SETTINGS ACTIVITY:
+                try {
+                    //Set Logged-In UI:
+                    login_mini_button!!.text = "LOGOUT"
+                    userNameView!!.text = prefs.userName
+                    userEMailView!!.visibility = View.VISIBLE
+                    userEMailView!!.text = prefs.userEMail
+                    if (prefs.userImage != "") {
+                        Picasso.get().load(prefs.userImage)
+                            .transform(CropCircleTransformation())
+                            .into(userIcon)
+                    }
+                } catch (e: Exception) {
+                    Log.d(TAG, "SETTINGS: ACTION_SETTINGS_LOGGED_IN: resources not available.")
+                }
+            }
+
+            //Finish activity:
+            if (intent.action == ACTION_FINISH_SETTINGS) {
+                Log.d(TAG, "SETTINGS: ACTION_FINISH_SETTINGS.")
+                finishAndRemoveTask()
+            }
+        }
     }
 
 }

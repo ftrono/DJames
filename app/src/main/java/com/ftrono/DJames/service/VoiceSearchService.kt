@@ -18,7 +18,6 @@ import android.provider.Settings
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.application.*
-import com.ftrono.DJames.R
 import com.ftrono.DJames.api.NLPInterpreter
 import com.ftrono.DJames.application.FakeLockScreen
 import com.ftrono.DJames.recorder.AndroidAudioRecorder
@@ -214,7 +213,11 @@ class VoiceSearchService : Service() {
         searchFail = false
         recordingMode = false
         sourceIsVolume = false
-        setOverlayReady()
+        //Send broadcast:
+        Intent().also { intent ->
+            intent.setAction(ACTION_OVERLAY_READY)
+            sendBroadcast(intent)
+        }
     }
 
 
@@ -229,7 +232,10 @@ class VoiceSearchService : Service() {
                     //1) RECORDING:
                     Log.d(TAG, "RECORDING STARTED.")
                     //Set overlay BUSY color:
-                    setOverlayBusy()
+                    Intent().also { intent ->
+                        intent.setAction(ACTION_OVERLAY_BUSY)
+                        sendBroadcast(intent)
+                    }
 
                     //Play START tone:
                     toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
@@ -266,7 +272,11 @@ class VoiceSearchService : Service() {
                         searchFail = false
                         recordingMode = false
                         sourceIsVolume = false
-                        setOverlayReady()
+                        //Send broadcast:
+                        Intent().also { intent ->
+                            intent.setAction(ACTION_OVERLAY_READY)
+                            sendBroadcast(intent)
+                        }
                         stopSelf()
                     } else {
                         //B) RECORDING SUCCESS:
@@ -274,7 +284,10 @@ class VoiceSearchService : Service() {
                         toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
 
                         //Set overlay PROCESSING color & icon:
-                        setOverlayProcessing()
+                        Intent().also { intent ->
+                            intent.setAction(ACTION_OVERLAY_PROCESSING)
+                            sendBroadcast(intent)
+                        }
 
                         //B.1) NLP QUERY:
                         var resultsNLP = nlpInterpreter!!.queryNLP(recFile)
@@ -308,7 +321,11 @@ class VoiceSearchService : Service() {
                             //Reset:
                             recordingMode = false
                             sourceIsVolume = false
-                            setOverlayReady()
+                            //Send broadcast:
+                            Intent().also { intent ->
+                                intent.setAction(ACTION_OVERLAY_READY)
+                                sendBroadcast(intent)
+                            }
                             stopSelf()
 
                         } else {
@@ -325,7 +342,11 @@ class VoiceSearchService : Service() {
                                 //Reset:
                                 recordingMode = false
                                 sourceIsVolume = false
-                                setOverlayReady()
+                                //Send broadcast:
+                                Intent().also { intent ->
+                                    intent.setAction(ACTION_OVERLAY_READY)
+                                    sendBroadcast(intent)
+                                }
                                 stopSelf()
                             } else {
                                 //B) SPOTIFY RESULT RECEIVED!
@@ -381,7 +402,11 @@ class VoiceSearchService : Service() {
                                     //Reset:
                                     recordingMode = false
                                     sourceIsVolume = false
-                                    setOverlayReady()
+                                    //Send broadcast:
+                                    Intent().also { intent ->
+                                        intent.setAction(ACTION_OVERLAY_READY)
+                                        sendBroadcast(intent)
+                                    }
                                     stopSelf()
                                 }
                             }
@@ -400,7 +425,11 @@ class VoiceSearchService : Service() {
                 searchFail = false
                 recordingMode = false
                 sourceIsVolume = false
-                setOverlayReady()
+                //Send broadcast:
+                Intent().also { intent ->
+                    intent.setAction(ACTION_OVERLAY_READY)
+                    sendBroadcast(intent)
+                }
                 stopSelf()
             }
         }
@@ -422,7 +451,11 @@ class VoiceSearchService : Service() {
         //Reset:
         recordingMode = false
         sourceIsVolume = false
-        setOverlayReady()
+        //Send broadcast:
+        Intent().also { intent ->
+            intent.setAction(ACTION_OVERLAY_READY)
+            sendBroadcast(intent)
+        }
         stopSelf()
 
         if (prefs.clockRedirectEnabled) {
@@ -438,36 +471,6 @@ class VoiceSearchService : Service() {
             clockIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             clockIntent.putExtra("fromwhere", "ser")
             startActivity(clockIntent)
-        }
-    }
-
-    fun setOverlayReady() {
-        //Reset normal overlay ACCENT color & icon:
-        if (screenOn && overlayButton != null && overlayIcon != null) {
-            Thread.sleep(1000)   //default: 2000
-            if (clock_active) {
-                overlayButton!!.setBackgroundResource(R.drawable.rounded_button_dark)
-                overlayIcon!!.setImageResource(R.drawable.speak_icon_gray)
-            } else {
-                overlayButton!!.setBackgroundResource(R.drawable.rounded_button_ready)
-                overlayIcon!!.setImageResource(R.drawable.speak_icon)
-            }
-        }
-    }
-
-    fun setOverlayBusy() {
-        //Set overlay BUSY color:
-        if (screenOn && overlayButton != null) {
-            overlayButton!!.setBackgroundResource(R.drawable.rounded_button_busy)
-            overlayIcon!!.setImageResource(R.drawable.speak_icon)
-        }
-    }
-
-    fun setOverlayProcessing() {
-        //Set overlay PROCESSING color & icon:
-        if (screenOn && overlayButton != null && overlayIcon != null) {
-            overlayButton!!.setBackgroundResource(R.drawable.rounded_button_processing)
-            overlayIcon!!.setImageResource(R.drawable.looking_icon)
         }
     }
 

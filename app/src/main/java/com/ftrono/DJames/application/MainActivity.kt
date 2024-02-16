@@ -1,6 +1,5 @@
 package com.ftrono.DJames.application
 
-import android.app.Activity
 import android.app.ActivityManager
 import android.content.DialogInterface
 import android.content.Intent
@@ -18,27 +17,23 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.updateLayoutParams
 import com.ftrono.DJames.R
-import com.ftrono.DJames.receivers.EventReceiver
 import com.ftrono.DJames.service.FloatingViewService
-import com.ftrono.DJames.utilities.Utilities
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlin.math.roundToInt
+import android.content.BroadcastReceiver
+import android.content.Context
 
 
 class MainActivity : AppCompatActivity() {
 
-    companion object {
-        var act: Activity? = null
-    }
-
     private val TAG: String = MainActivity::class.java.getSimpleName()
-    private var utils = Utilities()
 
     //Views:
     private var toolbar: Toolbar? = null
@@ -47,15 +42,20 @@ class MainActivity : AppCompatActivity() {
     private var mega_face: ImageView? = null
     private var density: Float = 0F
 
-    //Receiver:
-    var eventReceiver = EventReceiver()
+    //View resources:
+    private var mainActionBar: ActionBar? = null    //eventReceiver (login)
+    private var descr_login_status: TextView? = null    //eventReceiver (login)
+    private var descr_main: TextView? = null    //eventReceiver (login), setOverlayActive(utilities)
+    private var descr_use: TextView? = null    //eventReceiver (login, volumeSettings, utilities)
+    private var face_cover: View? = null    //eventReceiver (login)
+    private var startButton: Button? = null    //eventReceiver (login), setOverlayActive(utilities)
+    private var loginButton: MenuItem? = null    //eventReceiver (login)
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        act = this
         acts_active.add(TAG)
 
         //Screen density:
@@ -116,20 +116,23 @@ class MainActivity : AppCompatActivity() {
             }
             face_cover!!.visibility = View.INVISIBLE
             if (overlay_active) {
-                utils.setOverlayActive(applicationContext)
+                setOverlayActive()
             } else {
-                utils.setOverlayInactive(applicationContext)
+                setOverlayInactive()
             }
         }
 
-        //Start Receiver:
-        val filter = IntentFilter()
-        filter.addAction(ACTION_LOGGED_IN)
-        filter.addAction(ACTION_VOLUME_UP_CHANGED)
+        //Start personal Receiver:
+        val actFilter = IntentFilter()
+        actFilter.addAction(ACTION_MAIN_LOGGED_IN)
+        actFilter.addAction(ACTION_SETTINGS_VOL_UP)
+        actFilter.addAction(ACTION_OVERLAY_ACTIVATED)
+        actFilter.addAction(ACTION_OVERLAY_DEACTIVATED)
+        actFilter.addAction(ACTION_FINISH_MAIN)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
-        registerReceiver(eventReceiver, filter, RECEIVER_EXPORTED)
-        Log.d(TAG, "Receiver started.")
+        registerReceiver(mainActReceiver, actFilter, RECEIVER_EXPORTED)
+        Log.d(TAG, "MainActReceiver started.")
 
         //Start:
         startButton!!.setOnClickListener(View.OnClickListener {
@@ -171,7 +174,7 @@ class MainActivity : AppCompatActivity() {
             overlay_active = false
             setViewLoggedOut()
         } else if (!Settings.canDrawOverlays(this)) {
-            overlay_active = utils.setOverlayInactive(applicationContext)
+            overlay_active = setOverlayInactive()
         }
     }
 
@@ -179,7 +182,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         //unregister receivers:
-        unregisterReceiver(eventReceiver)
+        unregisterReceiver(mainActReceiver)
         //empty views:
         mainActionBar = null
         descr_login_status = null
@@ -347,6 +350,140 @@ class MainActivity : AppCompatActivity() {
         startButton!!.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.faded_grey)
         return false
     }
+
+    //Set Overlay Active view in Main:
+    fun setOverlayActive(): Boolean {
+        try {
+            if (Settings.canDrawOverlays(applicationContext)) {
+                startButton!!.text = "S T O P"
+                startButton!!.backgroundTintList = AppCompatResources.getColorStateList(applicationContext, R.color.colorStop)
+                descr_main!!.setTextColor(AppCompatResources.getColorStateList(applicationContext, R.color.colorHeader))
+                descr_main!!.setTypeface(null, Typeface.BOLD_ITALIC)
+                descr_main!!.text = getString(R.string.str_main_stop)
+                if (prefs.volumeUpEnabled) {
+                    descr_use!!.text = getString(R.string.str_use_logged)
+                } else {
+                    descr_use!!.text = getString(R.string.str_use_logged_no_vol)
+                }
+                descr_use!!.setTextColor(AppCompatResources.getColorStateList(applicationContext, R.color.light_grey))
+            }
+            Log.d(TAG, "SetOverlayActive()")
+        } catch (e: Exception) {
+            Log.d(TAG, "SetOverlayActive(): resources not available.")
+        }
+        return true
+    }
+
+    //Set Overlay Inactive view in Main:
+    fun setOverlayInactive(): Boolean {
+        try {
+            startButton!!.text = "S T A R T"
+            startButton!!.backgroundTintList = AppCompatResources.getColorStateList(applicationContext, R.color.colorAccent)
+            descr_main!!.setTextColor(AppCompatResources.getColorStateList(applicationContext, R.color.light_grey))
+            descr_main!!.setTypeface(null, Typeface.ITALIC)
+            descr_main!!.text = getString(R.string.str_main_start)
+            if (prefs.volumeUpEnabled) {
+                descr_use!!.text = getString(R.string.str_use_logged)
+            } else {
+                descr_use!!.text = getString(R.string.str_use_logged_no_vol)
+            }
+            descr_use!!.setTextColor(AppCompatResources.getColorStateList(applicationContext, R.color.mid_grey))
+            Log.d(TAG, "SetOverlayInactive()")
+        } catch (e: Exception) {
+            Log.d(TAG, "SetOverlayInactive(): resources not available.")
+        }
+        return false
+    }
+
+
+    //PERSONAL RECEIVER:
+    private var mainActReceiver = object: BroadcastReceiver() {
+
+        override fun onReceive(context: Context?, intent: Intent?) {
+
+            //When logged in:
+            if (intent!!.action == ACTION_MAIN_LOGGED_IN) {
+                Log.d(TAG, "MAIN: ACTION_MAIN_LOGGED_IN.")
+
+                loggedIn = true
+                try {
+                    //Set Logged-In UI:
+                    if (loginButton != null) {
+                        loginButton!!.setTitle("Logout")
+                    }
+                    mainActionBar!!.subtitle = "for ${prefs.userName}"
+                    descr_login_status!!.text = context!!.getString(R.string.str_status_logged)
+                    face_cover!!.visibility = View.INVISIBLE
+                    startButton!!.text = "S T A R T"
+                    startButton!!.backgroundTintList =
+                        AppCompatResources.getColorStateList(context, R.color.colorAccent)
+                    descr_main!!.setTextColor(
+                        AppCompatResources.getColorStateList(
+                            context,
+                            R.color.light_grey
+                        )
+                    )
+                    descr_main!!.setTypeface(null, Typeface.ITALIC)
+                    descr_main!!.text = getString(R.string.str_main_start)
+                    if (prefs.volumeUpEnabled) {
+                        descr_use!!.text = getString(R.string.str_use_logged)
+                    } else {
+                        descr_use!!.text = getString(R.string.str_use_logged_no_vol)
+                    }
+                    descr_use!!.setTextColor(
+                        AppCompatResources.getColorStateList(
+                            context,
+                            R.color.mid_grey
+                        )
+                    )
+                } catch (e: Exception) {
+                    Log.d(TAG, "MAIN: ACTION_MAIN_LOGGED_IN: resources not available.")
+                }
+
+                //TOAST:
+                try {
+                    Toast.makeText(context, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
+                } catch (e: Exception) {
+                    Log.d(TAG, "MAIN: ACTION_MAIN_LOGGED_IN: cannot toast.")
+                }
+            }
+
+            //When Settings VOLUME-UP is changed:
+            if (intent.action == ACTION_SETTINGS_VOL_UP) {
+                Log.d(TAG, "MAIN: ACTION_SETTINGS_VOL_UP.")
+                try {
+                    if (prefs.volumeUpEnabled) {
+                        descr_use!!.text = context!!.resources.getString(R.string.str_use_logged)
+                    } else {
+                        descr_use!!.text = context!!.resources.getString(R.string.str_use_logged_no_vol)
+                    }
+                } catch (e: Exception) {
+                    Log.d(TAG, "MAIN: ACTION_SETTINGS_VOL_UP: resources not available.")
+                }
+            }
+
+
+            //When Overlay is activated:
+            if (intent.action == ACTION_OVERLAY_ACTIVATED) {
+                Log.d(TAG, "MAIN: ACTION_OVERLAY_ACTIVATED.")
+                setOverlayActive()
+            }
+
+
+            //When Overlay is deactivated:
+            if (intent.action == ACTION_OVERLAY_DEACTIVATED) {
+                Log.d(TAG, "MAIN: ACTION_OVERLAY_DEACTIVATED.")
+                setOverlayInactive()
+            }
+
+            //Finish activity:
+            if (intent.action == ACTION_FINISH_MAIN) {
+                Log.d(TAG, "MAIN: ACTION_FINISH_MAIN.")
+                finishAndRemoveTask()
+            }
+        }
+    }
+
 
 //    //Manage volume up keyEvent in Main Activity:
 //    override fun dispatchKeyEvent(event: KeyEvent): Boolean {

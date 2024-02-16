@@ -22,7 +22,6 @@ val prefs: Prefs by lazy {
 }
 var acts_active: MutableList<String> = ArrayList()
 var utils = Utilities()
-var audioManager: AudioManager? = null
 var streamMaxVolume: Int = 0
 var screenOn: Boolean = true
 var sourceIsVolume: Boolean = false
@@ -32,6 +31,9 @@ var overlay_active: Boolean = false
 var loggedIn: Boolean = false
 var clock_active: Boolean = false
 var searchFail: Boolean = false
+
+//Audio Manager:
+var audioManager: AudioManager? = null
 
 //Player info:
 var nlp_queryText = ""
@@ -43,29 +45,6 @@ var contextName: String = ""
 
 //Recording preferences:
 val recSamplingRate = 44100
-
-//Spotify Scopes:
-val scopes = arrayOf(
-    "user-read-private",   //Read access to user’s email address
-    "user-read-email",   //Read access to user’s subscription details (type of user account)
-    "user-read-playback-state",   //Read access to a user’s player state (devices, player state, track)
-    "user-modify-playback-state",   //Write access to a user’s playback state (add to queue)
-    "user-read-currently-playing",   //Read your currently playing content (track / queue)
-    "app-remote-control",   //Android only: communicate with the Spotify app on your device
-    "streaming",   //Play content and control playback on your other devices
-    "playlist-read-private",   //Read access to user's private playlists
-    "playlist-read-collaborative",   //Include collaborative playlists when requesting a user's playlists
-    "playlist-modify-private",   //Write access to a user's private playlists
-    "playlist-modify-public",   //Write access to a user's public playlists
-    "user-follow-modify",   //Write/delete access to the list of artists and other users that the user follows
-    "user-follow-read",   //Read access to the list of artists and other users that the user follows
-    "user-top-read",   //Read access to a user's top artists and tracks
-    "user-read-recently-played",   //Read access to a user’s recently played tracks
-    "user-library-read",   //Access saved content (tracks, albums)
-    "user-library-modify"   //Manage saved content (tracks, albums)
-)
-
-val scope = scopes.joinToString("%20", "", "")
 
 //HTTP:
 //DialogFlow:
@@ -84,43 +63,32 @@ val client = OkHttpClient.Builder()
     .callTimeout(5, TimeUnit.SECONDS)
     .build()
 
-//VIEWS:
-//Overlay resources:
-var overlayButton: View? = null
-var overlayIcon: ImageView? = null
-var overlayClockButton: View? = null
-var overlayClockIcon: ImageView? = null
-var overlayClockText: TextView? = null
-
-//View resources:
-var mainActionBar: ActionBar? = null
-var descr_login_status: TextView? = null
-var descr_main: TextView? = null
-var descr_use: TextView? = null
-var face_cover: View? = null
-var startButton: Button? = null
-var loginButton: MenuItem? = null
-
-//Player views:
-var artworkView: ImageView? = null
-var songView: TextView? = null
-var artistView: TextView? = null
-var contextView: TextView? = null
-
-//Settings views:
-var userNameView: TextView? = null
-var userEMailView: TextView? = null
-var userIcon: ImageView? = null
-var login_mini_button: Button? = null
-
 //BROADCASTS:
-const val ACTION_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_LOGGED_IN"
-const val ACTION_CLOCK_OPENED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_OPENED"
-const val ACTION_CLOCK_CLOSED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_CLOSED"
-const val ACTION_VOLUME_UP_CHANGED = "com.ftrono.DJames.eventReceiver.ACTION_VOLUME_UP_CHANGED"
-const val ACTION_NEW_SONG = "com.ftrono.DJames.eventReceiver.ACTION_NEW_SONG"
+//Event receiver:
+//ACTION_SCREEN_ON, ACTION_SCREEN_OFF, VOLUME_CHANGED_ACTION
 const val ACTION_NLP_RESULT = "com.ftrono.DJames.eventReceiver.ACTION_NLP_RESULT"
 const val ACTION_REDIRECT = "com.ftrono.DJames.eventReceiver.ACTION_REDIRECT"
+
+//Main Act receiver:
+const val ACTION_MAIN_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_MAIN_LOGGED_IN"
+const val ACTION_OVERLAY_ACTIVATED = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_ACTIVATED"
+const val ACTION_OVERLAY_DEACTIVATED = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_DEACTIVATED"
+const val ACTION_SETTINGS_VOL_UP = "com.ftrono.DJames.eventReceiver.ACTION_SETTINGS_VOL_UP"
+const val ACTION_FINISH_MAIN = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_MAIN"
+
+//Settings Act receiver:
+const val ACTION_SETTINGS_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_SETTINGS_LOGGED_IN"
+const val ACTION_FINISH_SETTINGS = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_SETTINGS"
+
+//Clock Act receiver:
+const val ACTION_NEW_SONG = "com.ftrono.DJames.eventReceiver.ACTION_NEW_SONG"
+
+//Overlay receiver:
+const val ACTION_CLOCK_OPENED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_OPENED"
+const val ACTION_CLOCK_CLOSED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_CLOSED"
+const val ACTION_OVERLAY_READY = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_READY"
+const val ACTION_OVERLAY_BUSY = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_BUSY"
+const val ACTION_OVERLAY_PROCESSING = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_PROCESSING"
 
 
 class App: Application()

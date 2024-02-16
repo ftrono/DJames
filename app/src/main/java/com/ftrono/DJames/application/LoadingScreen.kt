@@ -96,9 +96,13 @@ class LoadingScreen: AppCompatActivity() {
                                     var utils = Utilities()
                                     prefs.userId = utils.generateRandomString(30, numOnly = true)
 
-                                    //Send broadcast:
+                                    //Send broadcasts:
                                     Intent().also { intent ->
-                                        intent.setAction(ACTION_LOGGED_IN)
+                                        intent.setAction(ACTION_MAIN_LOGGED_IN)
+                                        sendBroadcast(intent)
+                                    }
+                                    Intent().also { intent ->
+                                        intent.setAction(ACTION_SETTINGS_LOGGED_IN)
                                         sendBroadcast(intent)
                                     }
                                 } else {

@@ -30,6 +30,29 @@ class WebAuth : AppCompatActivity() {
         webView!!.settings.javaScriptEnabled = true
         webView!!.settings.setCacheMode(WebSettings.LOAD_NO_CACHE)
 
+        //Spotify Scopes:
+        val scopes = arrayOf(
+            "user-read-private",   //Read access to user’s email address
+            "user-read-email",   //Read access to user’s subscription details (type of user account)
+            "user-read-playback-state",   //Read access to a user’s player state (devices, player state, track)
+            "user-modify-playback-state",   //Write access to a user’s playback state (add to queue)
+            "user-read-currently-playing",   //Read your currently playing content (track / queue)
+            "app-remote-control",   //Android only: communicate with the Spotify app on your device
+            "streaming",   //Play content and control playback on your other devices
+            "playlist-read-private",   //Read access to user's private playlists
+            "playlist-read-collaborative",   //Include collaborative playlists when requesting a user's playlists
+            "playlist-modify-private",   //Write access to a user's private playlists
+            "playlist-modify-public",   //Write access to a user's public playlists
+            "user-follow-modify",   //Write/delete access to the list of artists and other users that the user follows
+            "user-follow-read",   //Read access to the list of artists and other users that the user follows
+            "user-top-read",   //Read access to a user's top artists and tracks
+            "user-read-recently-played",   //Read access to a user’s recently played tracks
+            "user-library-read",   //Access saved content (tracks, albums)
+            "user-library-modify"   //Manage saved content (tracks, albums)
+        )
+
+        val scope = scopes.joinToString("%20", "", "")
+
         //Prepare auth request:
         var utils = Utilities()
         val state = utils.generateRandomString(16)

@@ -31,15 +31,14 @@ import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
 import com.ftrono.DJames.receivers.EventReceiver
-import com.ftrono.DJames.utilities.Utilities
 import kotlin.math.abs
 import kotlin.math.round
 import android.app.Application
+import android.content.BroadcastReceiver
 
 
 class FloatingViewService : Service() {
     private val TAG = FloatingViewService::class.java.simpleName
-    private var utils = Utilities()
 
     //Pos:
     var height = 0
@@ -56,26 +55,21 @@ class FloatingViewService : Service() {
     //Receiver:
     var eventReceiver = EventReceiver()
 
-    //Service status checker:
-    val volumeThread = Thread {
+    //Overlay resources:
+    private var overlayButton: View? = null   //eventReceiver(clock opened, clock closed), VoiceSearchService(setOverlay ready/busy/processing)
+    private var overlayIcon: ImageView? = null   //eventReceiver(clock opened, clock closed), VoiceSearchService(setOverlay ready/busy/processing)
+    private var overlayClockButton: View? = null   //eventReceiver(clock opened, clock closed)
+    private var overlayClockIcon: ImageView? = null   //eventReceiver(clock opened, clock closed)
+    private var overlayClockText: TextView? = null   //eventReceiver(clock opened, clock closed)
+
+    //Disable volume button press for the first 3 seconds:
+    val loadThread = Thread {
         try {
-            while (overlay_active) {
-                synchronized(this) {
-                    //Log.d(TAG, "Overlay Service: volumeThread alive.")
-                    try {
-                        Thread.sleep(3000)
-                    } catch (e: InterruptedException) {
-                        Log.d(TAG, "Overlay Service: volumeThread already stopped.")
-                    }
-                    //Initialized:
-                    if (!initialized) {
-                        initialized = true
-                    }
-                    //Lower volume if maximum (to enable Receiver):
-                    if (audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {
-                        audioManager!!.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND)
-                        Log.d(TAG, "Overlay Volume Check: Volume lowered.")
-                    }
+            synchronized(this) {
+                Thread.sleep(3000)
+                //Initialized:
+                if (!initialized) {
+                    initialized = true
                 }
             }
         } catch (e: InterruptedException) {
@@ -94,7 +88,12 @@ class FloatingViewService : Service() {
         try {
             startForeground()
             initialized = false
-            overlay_active = utils.setOverlayActive(applicationContext)   //true
+            //Send broadcast:
+            Intent().also { intent ->
+                intent.setAction(ACTION_OVERLAY_ACTIVATED)
+                sendBroadcast(intent)
+            }
+            overlay_active = true
 
             //RECEIVER:
             //Lower volume if maximum (to enable Receiver):
@@ -104,23 +103,33 @@ class FloatingViewService : Service() {
             }
 
             //Thread check:
-            if (!volumeThread.isAlive()){
-                volumeThread.start()
+            if (!loadThread.isAlive()){
+                loadThread.start()
             }
 
-            //Start Receiver:
+            //Start Event Receiver:
             val filter = IntentFilter()
             filter.addAction(Intent.ACTION_SCREEN_ON)
             filter.addAction(Intent.ACTION_SCREEN_OFF)
             filter.addAction("android.media.VOLUME_CHANGED_ACTION")
-            filter.addAction(ACTION_CLOCK_OPENED)
-            filter.addAction(ACTION_CLOCK_CLOSED)
             filter.addAction(ACTION_NLP_RESULT)
             filter.addAction(ACTION_REDIRECT)
 
             //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
             registerReceiver(eventReceiver, filter, RECEIVER_EXPORTED)
             Log.d(TAG, "Receiver started.")
+
+            //Start personal Receiver:
+            val actFilter = IntentFilter()
+            actFilter.addAction(ACTION_CLOCK_OPENED)
+            actFilter.addAction(ACTION_CLOCK_CLOSED)
+            actFilter.addAction(ACTION_OVERLAY_READY)
+            actFilter.addAction(ACTION_OVERLAY_BUSY)
+            actFilter.addAction(ACTION_OVERLAY_PROCESSING)
+
+            //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
+            registerReceiver(overlayReceiver, actFilter, RECEIVER_EXPORTED)
+            Log.d(TAG, "OverlayReceiver started.")
 
             //VIEW:
             // Init window manager
@@ -192,22 +201,22 @@ class FloatingViewService : Service() {
                 if (!clock_active) {
                     //Start fake lock screen:
                     val intent1 = Intent(this, FakeLockScreen::class.java)
-                    intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     intent1.putExtra("fromwhere", "ser")
                     startActivity(intent1)
 
                     //End Main():
-                    try {
-                        MainActivity.act!!.finishAndRemoveTask()
-                    } catch (e: Exception) {
-                        Log.d(TAG, "Main activity already closed.")
+                    //Send broadcast:
+                    Intent().also { intent ->
+                        intent.setAction(ACTION_FINISH_MAIN)
+                        sendBroadcast(intent)
                     }
 
                     //End Settings():
-                    try {
-                        SettingsActivity.act!!.finishAndRemoveTask()
-                    } catch (e: Exception) {
-                        Log.d(TAG, "Settings activity already closed.")
+                    //Send broadcast:
+                    Intent().also { intent ->
+                        intent.setAction(ACTION_FINISH_SETTINGS)
+                        sendBroadcast(intent)
                     }
 
                 }
@@ -284,7 +293,12 @@ class FloatingViewService : Service() {
                 })
         } catch (e: Exception) {
             Log.d(TAG, "Exception: ", e)
-            overlay_active = utils.setOverlayInactive(applicationContext)   //false
+            //Send broadcast:
+            Intent().also { intent ->
+                intent.setAction(ACTION_OVERLAY_DEACTIVATED)
+                sendBroadcast(intent)
+            }
+            overlay_active = false
             //Stop Voice Search service:
             if (isMyServiceRunning(VoiceSearchService::class.java)) {
                 stopService(Intent(applicationContext, VoiceSearchService::class.java))
@@ -293,13 +307,10 @@ class FloatingViewService : Service() {
             overlayButton = null
             overlayIcon = null
             initialized = false
-            //Thread check:
-            if (volumeThread.isAlive()){
-                volumeThread.interrupt()
-            }
             //unregister receivers:
             unregisterReceiver(eventReceiver)
-            Log.d(TAG, "Receiver stopped.")
+            unregisterReceiver(overlayReceiver)
+            Log.d(TAG, "Receivers stopped.")
             Toast.makeText(
                 applicationContext,
                 getString(R.string.str_enable_overlay),
@@ -342,14 +353,19 @@ class FloatingViewService : Service() {
         if (isMyServiceRunning(VoiceSearchService::class.java)) {
             stopService(Intent(applicationContext, VoiceSearchService::class.java))
         }
-        overlay_active = false
         if (loggedIn) {
-            utils.setOverlayInactive(applicationContext)
+            //Send broadcast:
+            Intent().also { intent ->
+                intent.setAction(ACTION_OVERLAY_DEACTIVATED)
+                sendBroadcast(intent)
+            }
         }
+        overlay_active = false
         recordingMode = false
         //unregister receivers:
         unregisterReceiver(eventReceiver)
-        Log.d(TAG, "Receiver stopped.")
+        unregisterReceiver(overlayReceiver)
+        Log.d(TAG, "Receivers stopped.")
         //reset views:
         overlayButton = null
         overlayIcon = null
@@ -357,10 +373,6 @@ class FloatingViewService : Service() {
         overlayClockIcon = null
         overlayClockText = null
         initialized = false
-        //Thread check:
-        if (volumeThread.isAlive()){
-            volumeThread.interrupt()
-        }
         //If no activities active -> CLOSE APP:
         Log.d(TAG, "$acts_active")
         if (acts_active.size == 0) {
@@ -401,6 +413,94 @@ class FloatingViewService : Service() {
             }
         }
         return false
+    }
+
+
+    //PERSONAL RECEIVER:
+    private var overlayReceiver = object: BroadcastReceiver() {
+
+        override fun onReceive(context: Context?, intent: Intent?) {
+
+            //When Fake Lock Screen is opened:
+            if (intent!!.action == ACTION_CLOCK_OPENED) {
+                Log.d(TAG, "OVERLAY: ACTION_CLOCK_OPENED.")
+                if (!recordingMode) {
+                    try {
+                        overlayButton!!.setBackgroundResource(R.drawable.rounded_button_dark)
+                        overlayIcon!!.setImageResource(R.drawable.speak_icon_gray)
+                        overlayClockButton!!.visibility = View.INVISIBLE
+                        overlayClockIcon!!.visibility = View.INVISIBLE
+                        overlayClockText!!.visibility = View.INVISIBLE
+                    } catch (e: Exception) {
+                        Log.d(TAG, "OVERLAY: ACTION_CLOCK_OPENED: resources not available.")
+                    }
+                }
+            }
+
+            //When Fake Lock Screen is closed:
+            if (intent.action == ACTION_CLOCK_CLOSED) {
+                Log.d(TAG, "OVERLAY: ACTION_CLOCK_CLOSED.")
+                if (!recordingMode) {
+                    try {
+                        overlayButton!!.setBackgroundResource(R.drawable.rounded_button_ready)
+                        overlayIcon!!.setImageResource(R.drawable.speak_icon)
+                        overlayClockButton!!.visibility = View.VISIBLE
+                        overlayClockIcon!!.visibility = View.VISIBLE
+                        overlayClockText!!.visibility = View.VISIBLE
+                    } catch (e: Exception) {
+                        Log.d(TAG, "OVERLAY: ACTION_CLOCK_CLOSED: resources not available.")
+                    }
+                }
+            }
+
+            //Set overlay ready:
+            if (intent.action == ACTION_OVERLAY_READY) {
+                Log.d(TAG, "OVERLAY: ACTION_OVERLAY_READY.")
+                try {
+                    //Reset normal overlay ACCENT color & icon:
+                    if (screenOn && overlayButton != null && overlayIcon != null) {
+                        Thread.sleep(1000)   //default: 2000
+                        if (clock_active) {
+                            overlayButton!!.setBackgroundResource(R.drawable.rounded_button_dark)
+                            overlayIcon!!.setImageResource(R.drawable.speak_icon_gray)
+                        } else {
+                            overlayButton!!.setBackgroundResource(R.drawable.rounded_button_ready)
+                            overlayIcon!!.setImageResource(R.drawable.speak_icon)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.d(TAG, "OVERLAY: ACTION_OVERLAY_READY: resources not available.")
+                }
+            }
+
+            //Set overlay busy:
+            if (intent.action == ACTION_OVERLAY_BUSY) {
+                Log.d(TAG, "OVERLAY: ACTION_OVERLAY_BUSY.")
+                try {
+                    //Set overlay BUSY color:
+                    if (screenOn && overlayButton != null) {
+                        overlayButton!!.setBackgroundResource(R.drawable.rounded_button_busy)
+                        overlayIcon!!.setImageResource(R.drawable.speak_icon)
+                    }
+                } catch (e: Exception) {
+                    Log.d(TAG, "OVERLAY: ACTION_OVERLAY_BUSY: resources not available.")
+                }
+            }
+
+            //Set overlay processing:
+            if (intent.action == ACTION_OVERLAY_PROCESSING) {
+                Log.d(TAG, "OVERLAY: ACTION_OVERLAY_PROCESSING.")
+                try {
+                    //Set overlay PROCESSING color & icon:
+                    if (screenOn && overlayButton != null && overlayIcon != null) {
+                        overlayButton!!.setBackgroundResource(R.drawable.rounded_button_processing)
+                        overlayIcon!!.setImageResource(R.drawable.looking_icon)
+                    }
+                } catch (e: Exception) {
+                    Log.d(TAG, "OVERLAY: ACTION_OVERLAY_PROCESSING: resources not available.")
+                }
+            }
+        }
     }
 
 }

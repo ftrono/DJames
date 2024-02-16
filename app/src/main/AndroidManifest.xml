@@ -64,14 +64,14 @@
             android:name=".service.FloatingViewService"
             android:label="Overlay Service"
             android:enabled="true"
-            android:exported="true"
+            android:exported="false"
             android:foregroundServiceType="microphone">
         </service>
         <service
             android:name=".service.VoiceSearchService"
             android:label="Voice Search Results"
             android:enabled="true"
-            android:exported="true"
+            android:exported="false"
             android:foregroundServiceType="microphone">
         </service>
 

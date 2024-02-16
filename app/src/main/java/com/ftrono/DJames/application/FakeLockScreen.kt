@@ -1,6 +1,7 @@
 package com.ftrono.DJames.application
 
-import android.app.Activity
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
@@ -19,16 +20,11 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
-import com.ftrono.DJames.receivers.EventReceiver
 import com.squareup.picasso.Picasso
 import kotlin.math.roundToInt
 
 
 class FakeLockScreen: AppCompatActivity() {
-
-    companion object {
-        var act: Activity? = null
-    }
 
     private val TAG: String = FakeLockScreen::class.java.getSimpleName()
 
@@ -46,15 +42,17 @@ class FakeLockScreen: AppCompatActivity() {
     private val minsFormat = DateTimeFormatter.ofPattern("mm")
     private var clockSeparator: String = "\n"
 
-    //Receiver:
-    var eventReceiver = EventReceiver()
+    //Player views:
+    private var artworkView: ImageView? = null   //eventReceiver(new song)
+    private var songView: TextView? = null   //eventReceiver(new song)
+    private var artistView: TextView? = null   //eventReceiver(new song)
+    private var contextView: TextView? = null   //eventReceiver(new song)
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.fake_lock_screen)
-        act = this
         acts_active.add(TAG)
 
         clock_active = true
@@ -71,6 +69,14 @@ class FakeLockScreen: AppCompatActivity() {
         artistView = findViewById<TextView>(R.id.artist_name)
         contextView = findViewById<TextView>(R.id.context_name)
         artworkView = findViewById<ImageView>(R.id.artwork)
+
+        //Start personal Receiver:
+        val actFilter = IntentFilter()
+        actFilter.addAction(ACTION_NEW_SONG)
+
+        //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
+        registerReceiver(clockActReceiver, actFilter, RECEIVER_EXPORTED)
+        Log.d(TAG, "ClockActReceiver started.")
 
         //PLAYER INFO AREA:
         if (songName == "") {
@@ -137,14 +143,6 @@ class FakeLockScreen: AppCompatActivity() {
             startActivity(intent1)
         })
 
-        //Start Receiver:
-        val filter = IntentFilter()
-        filter.addAction(ACTION_NEW_SONG)
-
-        //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
-        registerReceiver(eventReceiver, filter, RECEIVER_EXPORTED)
-        Log.d(TAG, "Receiver started.")
-
         //Date:
         val dateView = findViewById<TextView>(R.id.text_date)
 
@@ -180,7 +178,7 @@ class FakeLockScreen: AppCompatActivity() {
         }
         handler!!.removeCallbacks(runnable!!)
         //unregister receivers:
-        unregisterReceiver(eventReceiver)
+        unregisterReceiver(clockActReceiver)
         //empty views:
         artworkView = null
         songView = null
@@ -275,6 +273,35 @@ class FakeLockScreen: AppCompatActivity() {
         }
         //Fix Clock text size:
         clockView!!.textSize = 140F
+    }
+
+
+    //PERSONAL RECEIVER:
+    var clockActReceiver = object: BroadcastReceiver() {
+
+        override fun onReceive(context: Context?, intent: Intent?) {
+
+            //When logged in:
+            if (intent!!.action == ACTION_NEW_SONG) {
+                Log.d(TAG, "CLOCK: ACTION_NEW_SONG.")
+
+                try {
+                    //Populate player info:
+                    songView!!.text = songName
+                    artistView!!.text = artistName
+                    contextView!!.text = contextName
+                    if (artwork != "") {
+                        Picasso.get().load(artwork)
+                            .into(artworkView)
+                    } else {
+                        Picasso.get().load(R.drawable.artwork_icon)
+                            .into(artworkView)
+                    }
+                } catch (e: Exception) {
+                    Log.d(TAG, "CLOCK: ACTION_NEW_SONG: resources not available.")
+                }
+            }
+        }
     }
 
 }

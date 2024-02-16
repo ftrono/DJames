@@ -207,8 +207,12 @@ class VoiceSearchService : Service() {
             //Play FAIL tone:
             toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
         }
-        //Abandon audio focus:
-        audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
+        try {
+            //Abandon audio focus:
+            audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
+        } catch (e: Exception) {
+            Log.d(TAG, "Audio focus already released.")
+        }
         //Reset:
         searchFail = false
         recordingMode = false

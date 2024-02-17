@@ -112,7 +112,7 @@ class SpotifyInterpreter {
     fun dispatchCall(resultsNLP: JsonObject): JsonObject {
         //TEMP:
         var type = resultsNLP.get("type").asString
-        var artistName = resultsNLP.get("artist").asString
+        var artistName = resultsNLP.get("artists").asString
         var matchArray = extractMatchName(type=type, queryText=resultsNLP.get("query_text").asString, artistName=artistName, removeArtist=true)
         var matchName = matchArray.get(0)
         if (artistName == "") {

@@ -20,6 +20,11 @@ import java.util.concurrent.TimeUnit
 val prefs: Prefs by lazy {
     App.prefs!!
 }
+
+//Parameters:
+val deltaSimilarity = 30
+
+//Modes:
 var acts_active: MutableList<String> = ArrayList()
 var utils = Utilities()
 var streamMaxVolume: Int = 0

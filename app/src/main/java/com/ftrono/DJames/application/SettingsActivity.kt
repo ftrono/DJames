@@ -127,17 +127,7 @@ class SettingsActivity : AppCompatActivity() {
                 prefs.overlayPosition = pos.toString()
                 if (c > 0) {
                     //Restart overlay service:
-                    if (isMyServiceRunning(FloatingViewService::class.java)) {
-                        stopService(Intent(applicationContext, FloatingViewService::class.java))
-                        if (!isMyServiceRunning(FloatingViewService::class.java)) {
-                            startService(
-                                Intent(
-                                    applicationContext,
-                                    FloatingViewService::class.java
-                                )
-                            )
-                        }
-                    }
+                    restartOverlay()
                 }
                 c += 1
             }
@@ -179,8 +169,12 @@ class SettingsActivity : AppCompatActivity() {
         checkbox_volume_up.setOnClickListener {
             if (checkbox_volume_up.isChecked) {
                 prefs.volumeUpEnabled = true
+                //Restart overlay service:
+                restartOverlay()
             } else {
                 prefs.volumeUpEnabled = false
+                //Restart overlay service:
+                restartOverlay()
             }
             //Send broadcast:
             Intent().also { intent ->
@@ -290,7 +284,6 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-
     private fun validateTimeout(newVal: String, origVal: String, min_val: Int, max_val: Int) : String {
         val newInt = newVal.toInt()
         return if (newInt in min_val..max_val) {
@@ -321,6 +314,21 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
         return false
+    }
+
+    private fun restartOverlay() {
+        //Restart overlay service:
+        if (isMyServiceRunning(FloatingViewService::class.java)) {
+            stopService(Intent(applicationContext, FloatingViewService::class.java))
+            if (!isMyServiceRunning(FloatingViewService::class.java)) {
+                startService(
+                    Intent(
+                        applicationContext,
+                        FloatingViewService::class.java
+                    )
+                )
+            }
+        }
     }
 
     fun logout() {

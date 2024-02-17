@@ -48,37 +48,11 @@ class SpotifySearch() {
         var keySet = respJSON.keySet()
         if (keySet.size == 0) {
             Log.d(TAG, "ERROR: Spotify Search results not received!!")
-            Log.d(TAG, "returnJSON: ${returnJSON}")
+            //Log.d(TAG, "returnJSON: ${returnJSON}")
             return returnJSON
         } else {
-            //Analyse response:
-            var tracks = respJSON.getAsJsonObject("tracks")
-            var items = tracks.getAsJsonArray("items")
-            //Log.d(TAG, "Items: ${items}")
-
-            //GET BEST RESULT:
-            var c = 0
-            var bestScore = 0
-            var bestInd = 0
-            for (item in items) {
-                var currItem = item.asJsonObject
-                //Match name:
-                var curName = currItem.get("name").asString
-                var popularity = currItem.get("popularity").asInt
-                //Artist name:
-                var artists = currItem.getAsJsonArray("artists")
-                var curArtist = artists.get(0).asJsonObject.get("name").asString
-                var nameSimilarity = (utils.findSimilarity(curName, matchName)*100).toInt()
-                var artistSimilarity = (utils.findSimilarity(curArtist, artistName)*100).toInt()
-                var score = nameSimilarity + artistSimilarity
-                if (score > bestScore) {
-                    bestScore = score
-                    bestInd = c
-                }
-                Log.d(TAG, "RESULT: $curName BY $curArtist, SCORE: $score, SONG SIMILARITY: $nameSimilarity, ARTIST SIMILARITY: $artistSimilarity, POPULARITY: $popularity")
-                c += 1
-            }
-            var bestResult = items.get(bestInd).asJsonObject
+            //Analyse response & get index of best result:
+            var bestResult = utils.getBestResult(respJSON, matchName, artistName)
 
             //Uri:
             var uri = bestResult.get("uri").asString

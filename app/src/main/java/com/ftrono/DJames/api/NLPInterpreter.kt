@@ -105,9 +105,22 @@ class NLPInterpreter(context: Context) {
                     respJson.addProperty("query_text", queryResult.queryText)
                     respJson.addProperty("intent", queryResult.intent.displayName)
                     try {
-                        respJson.addProperty("artist", queryResult.parameters.fieldsMap["music-artist"]!!.stringValue)
+                        try {
+                            //Multiple artists:
+                            var artistsList = ArrayList<String>()
+                            var artistsObj = queryResult.parameters.fieldsMap["music-artist"]!!.listValue.valuesList
+                            for (artist in artistsObj) {
+                                artistsList.add(artist.stringValue)
+                            }
+                            Log.d(TAG, "ARTISTS LIST: $artistsList")
+                            respJson.addProperty("artists", artistsList.joinToString(", ", "", ""))
+                        } catch (e: Exception) {
+                            //Single artist:
+                            respJson.addProperty("artists", queryResult.parameters.fieldsMap["music-artist"]!!.stringValue)
+                        }
                     } catch (e: Exception) {
-                        respJson.addProperty("artist", "")
+                        //No artist:
+                        respJson.addProperty("artists", "")
                     }
                     try {
                         respJson.addProperty("playlist", queryResult.parameters.fieldsMap["PlaylistName"]!!.stringValue)

@@ -101,4 +101,6 @@ dependencies {
     }
     //FFmpeg-kit:
     implementation("com.arthenica:ffmpeg-kit-full:6.0-2")
+    //FuzzyWuzzy:
+    implementation("me.xdrop:fuzzywuzzy:1.4.0")
 }

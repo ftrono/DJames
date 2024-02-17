@@ -500,6 +500,7 @@ class FloatingViewService : Service() {
                     Log.d(TAG, "OVERLAY: ACTION_OVERLAY_PROCESSING: resources not available.")
                 }
             }
+
         }
     }
 

@@ -120,7 +120,7 @@ class SpotifyInterpreter {
         }
         //DISPATCH SPOTIFY CALLS ACCORDING TO NLP RESULTS:
         var search = SpotifySearch()
-        var returnJSON = search.genericSearch(type=type, matchName=matchName, artistName=artistName)
+        var returnJSON = search.genericSearch(type=type, matchName=matchName, artistName=artistName, getTwice=false)
         return returnJSON
     }
 

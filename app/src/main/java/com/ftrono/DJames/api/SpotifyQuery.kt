@@ -6,6 +6,7 @@ import com.ftrono.DJames.application.clientId
 import com.ftrono.DJames.application.clientSct
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import kotlinx.coroutines.runBlocking
@@ -132,7 +133,7 @@ class SpotifyQuery() {
     }
 
 
-    //MAIN QUERY PROCESS:
+    //MAIN QUERY PROCESS (JSON OUTPUT):
     fun querySpotify(type: String, url: String, jsonHeads: JsonObject, jsonBody: JsonObject? = null, formBody: FormBody? = null): JsonObject {
         /*RETURN:
             - empty JSON if fail
@@ -172,7 +173,7 @@ class SpotifyQuery() {
                             //RESPONSE RECEIVED:
                             Log.d(TAG, "Second Search answer received. Analysing...")
                             respJSON = JsonParser.parseString(response).asJsonObject
-                            Log.d(TAG, respJSON.toString())
+                            //Log.d(TAG, respJSON.toString())
 
                             //IF ERROR AGAIN:
                             if (respJSON.has("error")) {
@@ -195,11 +196,85 @@ class SpotifyQuery() {
                 return@runBlocking returnJSON
 
             } else {
-                Log.d(TAG, "GET TRACK: EMPTY RESPONSE!")
+                Log.d(TAG, "QUERY: EMPTY RESPONSE!")
                 return@runBlocking returnJSON
             }
         }
         return returnJSON
+    }
+
+
+    //MAIN QUERY PROCESS (ARRAY OUTPUT):
+    fun querySpotifyArray(type: String, url: String, jsonHeads: JsonObject, jsonBody: JsonObject? = null, formBody: FormBody? = null): JsonArray {
+        /*RETURN:
+            - empty JsonArray if fail
+            - respArray if success
+         */
+        var returnArray = JsonArray()
+        //FIRST GET REQUEST:
+        var request = buildRequest(type=type, url=url, jsonHeads=jsonHeads, jsonBody=jsonBody, formBody=formBody)
+
+        runBlocking {
+            var response = utils.makeRequest(client, request)
+            if (response != "") {
+                //RESPONSE RECEIVED:
+                Log.d(TAG, "First Search answer received. Analysing...")
+                try {
+                    var respArray = JsonParser.parseString(response).asJsonArray
+                    //SEARCH QUERY SUCCESS -> EXTRACT RESULTS:
+                    Log.d(TAG, "Spotify Search results received!")
+                    returnArray = respArray
+                    return@runBlocking returnArray
+                } catch (e: Exception) {
+                    //IF ERROR:
+                    var respJSON = JsonParser.parseString(response).asJsonObject
+                    var errorJSON = respJSON.get("error").asJsonObject
+                    var status = errorJSON.get("status").asString.toInt()
+                    Log.d(TAG, "First Search answer: received error ${status}.")
+
+                    //401 -> token expired!
+                    if (status == 401) {
+                        //Calling Refresh:
+                        Log.d(TAG, "Refreshing token...")
+                        refreshAuth()
+
+                        //SECOND GET REQUEST:
+                        var jsonHeads2 = jsonHeads
+                        jsonHeads2.addProperty("Authorization", "Bearer ${prefs.spotifyToken}")
+                        request = buildRequest(type=type, url=url, jsonHeads=jsonHeads, jsonBody=jsonBody, formBody=formBody)
+                        response = utils.makeRequest(client, request)
+
+                        if (response != "") {
+                            //RESPONSE RECEIVED:
+                            Log.d(TAG, "Second Search answer received. Analysing...")
+                            try {
+                                var respArray = JsonParser.parseString(response).asJsonArray
+                                //SEARCH QUERY SUCCESS -> EXTRACT RESULTS:
+                                Log.d(TAG, "Spotify Search results received!")
+                                returnArray = respArray
+                                return@runBlocking returnArray
+                            } catch (e: Exception) {
+                                //IF ERROR AGAIN:
+                                respJSON = JsonParser.parseString(response).asJsonObject
+                                Log.d(TAG, respJSON.toString())
+                                Log.d(TAG, "Refresh query did not work. Exiting interpreter.")
+                                return@runBlocking returnArray
+                            }
+                        } else {
+                            Log.d(TAG, "Empty refresh query. Exiting interpreter.")
+                            return@runBlocking returnArray
+                        }
+                    } else {
+                        Log.d(TAG, "Query error. Exiting interpreter.")
+                        return@runBlocking returnArray
+                    }
+                }
+            } else {
+                Log.d(TAG, "QUERY: EMPTY RESPONSE!")
+                return@runBlocking returnArray
+            }
+        }
+        return returnArray
     }
 
 }

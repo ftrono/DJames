@@ -130,8 +130,8 @@ class SpotifySearch() {
             //CONTEXT:
             //Album name:
             var album = bestResult.get("album").asJsonObject
-            returnJSON.add("album_name", album.get("name"))
-            returnJSON.add("album_uri", album.get("uri"))
+            returnJSON.addProperty("album_name", album.get("name").asString)
+            returnJSON.addProperty("album_uri", album.get("uri").asString)
 
             //(TEMP) Context -> album:
             returnJSON.addProperty("context_type", "Album")
@@ -218,7 +218,6 @@ class SpotifySearch() {
         }
 
         //Check saved:
-        //QUERYSPOTIFY() MUST RETURN ORIGINAL PAYLOAD, NOT AS JSONOBJECT!!!!!!!!!!!!!
         var saved = checkSaved(ids)
         Log.d(TAG, "Check saved: $saved")
         if (saved.size() > 0) {

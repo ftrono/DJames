@@ -37,6 +37,7 @@ var audioManager: AudioManager? = null
 //Player info:
 var nlp_queryText = ""
 var currently_playing: JsonObject? = null
+var update_artwork = false
 var artwork: String = ""
 var songName: String = ""
 var artistName: String = ""

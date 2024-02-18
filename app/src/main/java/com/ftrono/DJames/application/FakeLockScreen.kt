@@ -286,23 +286,27 @@ class FakeLockScreen: AppCompatActivity() {
         if (contextName.length > 30) {
             contextName = contextName.slice(0..30) + "..."
         }
-        //Artwork:
-        if (currently_playing!!.has("artwork")) {
-            artwork = currently_playing!!.get("artwork").asString
-        } else {
-            artwork = ""
-        }
 
         //Populate player info:
         songView!!.text = songName
         artistView!!.text = artistName
         contextView!!.text = contextName
-        if (artwork != "") {
-            Picasso.get().load(artwork)
-                .into(artworkView)
-        } else {
-            Picasso.get().load(R.drawable.artwork_icon)
-                .into(artworkView)
+
+        //Artwork:
+        if (update_artwork) {
+            if (currently_playing!!.has("artwork")) {
+                artwork = currently_playing!!.get("artwork").asString
+            } else {
+                artwork = ""
+            }
+
+            if (artwork != "") {
+                Picasso.get().load(artwork)
+                    .into(artworkView)
+            } else {
+                Picasso.get().load(R.drawable.artwork_icon)
+                    .into(artworkView)
+            }
         }
     }
 

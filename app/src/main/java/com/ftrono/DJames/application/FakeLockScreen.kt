@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
 import android.os.Bundle
-import android.os.Handler
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
@@ -29,9 +28,8 @@ class FakeLockScreen: AppCompatActivity() {
 
     private val TAG: String = FakeLockScreen::class.java.getSimpleName()
 
-    private var handler: Handler? = null
-    private var runnable: Runnable? = null
-
+    //Views:
+    private var dateView: TextView? = null
     private var clockView: TextView? = null
     private var exitButton: View? = null
 
@@ -64,6 +62,7 @@ class FakeLockScreen: AppCompatActivity() {
         }
 
         //Load views:
+        dateView = findViewById<TextView>(R.id.text_date)
         clockView = findViewById<TextView>(R.id.text_clock)
         exitButton = findViewById<View>(R.id.exit_button)
         songView = findViewById<TextView>(R.id.song_name)
@@ -73,12 +72,16 @@ class FakeLockScreen: AppCompatActivity() {
 
         //Start personal Receiver:
         val actFilter = IntentFilter()
+        actFilter.addAction(ACTION_TIME_TICK)
         actFilter.addAction(ACTION_NEW_SONG)
         actFilter.addAction(SPOTIFY_METADATA_CHANGED)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
         registerReceiver(clockActReceiver, actFilter, RECEIVER_EXPORTED)
         Log.d(TAG, "ClockActReceiver started.")
+
+        //Start clock:
+        updateDateClock()
 
         //PLAYER INFO AREA:
         if (songName == "") {
@@ -144,21 +147,6 @@ class FakeLockScreen: AppCompatActivity() {
             val intent1 = Intent(this, MainActivity::class.java)
             startActivity(intent1)
         })
-
-        //Date:
-        val dateView = findViewById<TextView>(R.id.text_date)
-
-        //Update date & clock:
-        handler = Handler()
-        runnable = object : Runnable {
-            override fun run() {
-                now = LocalDateTime.now()
-                dateView.text = now!!.format(dateFormat)
-                clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
-                handler!!.postDelayed(this, 10000)
-            }
-        }
-        handler!!.post(runnable!!)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -178,7 +166,6 @@ class FakeLockScreen: AppCompatActivity() {
             intent.setAction(ACTION_CLOCK_CLOSED)
             sendBroadcast(intent)
         }
-        handler!!.removeCallbacks(runnable!!)
         //unregister receivers:
         unregisterReceiver(clockActReceiver)
         //empty views:
@@ -277,6 +264,12 @@ class FakeLockScreen: AppCompatActivity() {
         clockView!!.textSize = 140F
     }
 
+    fun updateDateClock() {
+        now = LocalDateTime.now()
+        dateView!!.text = now!!.format(dateFormat)
+        clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
+    }
+
     fun updatePlayer() {
         //Song name:
         songName = currently_playing!!.get("song_name").asString
@@ -318,9 +311,13 @@ class FakeLockScreen: AppCompatActivity() {
     var clockActReceiver = object: BroadcastReceiver() {
 
         override fun onReceive(context: Context?, intent: Intent?) {
+            //Update clock (every minute):
+            if (intent!!.action == ACTION_TIME_TICK) {
+                updateDateClock()
+            }
 
             //Action New Song manually triggered:
-            if (intent!!.action == ACTION_NEW_SONG) {
+            if (intent.action == ACTION_NEW_SONG) {
                 Log.d(TAG, "CLOCK: ACTION_NEW_SONG.")
 
                 try {

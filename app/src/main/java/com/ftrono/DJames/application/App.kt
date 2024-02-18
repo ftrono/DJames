@@ -83,6 +83,7 @@ const val ACTION_SETTINGS_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_SE
 const val ACTION_FINISH_SETTINGS = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_SETTINGS"
 
 //Clock Act receiver:
+const val ACTION_TIME_TICK = "android.intent.action.TIME_TICK"
 const val ACTION_NEW_SONG = "com.ftrono.DJames.eventReceiver.ACTION_NEW_SONG"
 const val SPOTIFY_METADATA_CHANGED = "com.spotify.music.metadatachanged"
 

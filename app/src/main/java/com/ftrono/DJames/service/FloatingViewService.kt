@@ -111,7 +111,7 @@ class FloatingViewService : Service() {
             val filter = IntentFilter()
             filter.addAction(Intent.ACTION_SCREEN_ON)
             filter.addAction(Intent.ACTION_SCREEN_OFF)
-            filter.addAction("android.media.VOLUME_CHANGED_ACTION")
+            filter.addAction(VOLUME_CHANGED_ACTION)
             filter.addAction(ACTION_NLP_RESULT)
             filter.addAction(ACTION_REDIRECT)
 

@@ -4,23 +4,24 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.view.View
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import android.content.res.Configuration
-import android.widget.ImageView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.updateLayoutParams
 import com.ftrono.DJames.R
+import com.google.gson.JsonObject
+import com.squareup.picasso.Picasso
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import androidx.core.view.WindowCompat
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updateLayoutParams
-import com.squareup.picasso.Picasso
 import kotlin.math.roundToInt
 
 
@@ -73,6 +74,7 @@ class FakeLockScreen: AppCompatActivity() {
         //Start personal Receiver:
         val actFilter = IntentFilter()
         actFilter.addAction(ACTION_NEW_SONG)
+        actFilter.addAction(SPOTIFY_METADATA_CHANGED)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
         registerReceiver(clockActReceiver, actFilter, RECEIVER_EXPORTED)
@@ -275,30 +277,86 @@ class FakeLockScreen: AppCompatActivity() {
         clockView!!.textSize = 140F
     }
 
+    fun updatePlayer() {
+        //Song name:
+        songName = currently_playing!!.get("song_name").asString
+        if (songName.length > 30) {
+            songName = songName.slice(0..30) + "..."
+        }
+        //Artist name:
+        artistName = currently_playing!!.get("artist_name").asString
+        if (artistName.length > 30) {
+            artistName = artistName.slice(0..30) + "..."
+        }
+        //Context name:
+        contextName = currently_playing!!.get("album_name").asString
+        if (contextName.length > 30) {
+            contextName = contextName.slice(0..30) + "..."
+        }
+        //Artwork:
+        if (currently_playing!!.has("artwork")) {
+            artwork = currently_playing!!.get("artwork").asString
+        } else {
+            artwork = ""
+        }
+
+        //Populate player info:
+        songView!!.text = songName
+        artistView!!.text = artistName
+        contextView!!.text = contextName
+        if (artwork != "") {
+            Picasso.get().load(artwork)
+                .into(artworkView)
+        } else {
+            Picasso.get().load(R.drawable.artwork_icon)
+                .into(artworkView)
+        }
+    }
+
 
     //PERSONAL RECEIVER:
     var clockActReceiver = object: BroadcastReceiver() {
 
         override fun onReceive(context: Context?, intent: Intent?) {
 
-            //When logged in:
+            //Action New Song manually triggered:
             if (intent!!.action == ACTION_NEW_SONG) {
                 Log.d(TAG, "CLOCK: ACTION_NEW_SONG.")
 
                 try {
-                    //Populate player info:
-                    songView!!.text = songName
-                    artistView!!.text = artistName
-                    contextView!!.text = contextName
-                    if (artwork != "") {
-                        Picasso.get().load(artwork)
-                            .into(artworkView)
-                    } else {
-                        Picasso.get().load(R.drawable.artwork_icon)
-                            .into(artworkView)
-                    }
+                    updatePlayer()
                 } catch (e: Exception) {
                     Log.d(TAG, "CLOCK: ACTION_NEW_SONG: resources not available.")
+                }
+            }
+
+            //Spotify Metadata Changed:
+            if (intent.action == SPOTIFY_METADATA_CHANGED) {
+                Log.d(TAG, "CLOCK: SPOTIFY_METADATA_CHANGED.")
+
+                try {
+                    //get new track data:
+                    val id = intent.getStringExtra("id")
+                    val intentSongName = intent.getStringExtra("track")
+                    val intentArtistName = intent.getStringExtra("artist")
+                    val intentAlbumName = intent.getStringExtra("album")
+
+                    if (intentSongName != currently_playing!!.get("song_name").asString ||
+                        intentArtistName != currently_playing!!.get("artist_name").asString ||
+                        intentAlbumName != currently_playing!!.get("album_name").asString) {
+                        //Update currently_playing JSON:
+                        currently_playing = JsonObject()
+                        currently_playing!!.addProperty("id", id)
+                        currently_playing!!.addProperty("uri", "$uri_format$id")
+                        currently_playing!!.addProperty("spotify_URL", "$ext_format$id")
+                        currently_playing!!.addProperty("song_name", intentSongName)
+                        currently_playing!!.addProperty("artist_name", intentArtistName)
+                        currently_playing!!.addProperty("album_name", intentAlbumName)
+                        //Update player:
+                        updatePlayer()
+                    }
+                } catch (e: Exception) {
+                    Log.d(TAG, "CLOCK: SPOTIFY_METADATA_CHANGED: resources not available.")
                 }
             }
         }

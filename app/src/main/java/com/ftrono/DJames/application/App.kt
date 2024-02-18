@@ -1,14 +1,8 @@
 package com.ftrono.DJames.application
 
-import androidx.appcompat.app.ActionBar
 import android.app.Application
 import android.content.Context
 import android.media.AudioManager
-import android.view.MenuItem
-import android.widget.ImageView
-import android.view.View
-import android.widget.TextView
-import android.widget.Button
 import com.ftrono.DJames.utilities.Prefs
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
@@ -42,7 +36,7 @@ var audioManager: AudioManager? = null
 
 //Player info:
 var nlp_queryText = ""
-var last_result: JsonObject? = null
+var currently_playing: JsonObject? = null
 var artwork: String = ""
 var songName: String = ""
 var artistName: String = ""
@@ -52,8 +46,10 @@ var contextName: String = ""
 val recSamplingRate = 44100
 
 //HTTP:
-//DialogFlow:
+//DialogFlow & Spotify formats:
 val dialogflow_id = "djames-nlp"
+val uri_format = "spotify:track:"
+val ext_format = "http://open.spotify.com/track/"
 
 //Spotify:
 var grantToken = ""
@@ -70,7 +66,8 @@ val client = OkHttpClient.Builder()
 
 //BROADCASTS:
 //Event receiver:
-//ACTION_SCREEN_ON, ACTION_SCREEN_OFF, VOLUME_CHANGED_ACTION
+//ACTION_SCREEN_ON, ACTION_SCREEN_OFF
+const val VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION"
 const val ACTION_NLP_RESULT = "com.ftrono.DJames.eventReceiver.ACTION_NLP_RESULT"
 const val ACTION_REDIRECT = "com.ftrono.DJames.eventReceiver.ACTION_REDIRECT"
 
@@ -87,6 +84,7 @@ const val ACTION_FINISH_SETTINGS = "com.ftrono.DJames.eventReceiver.ACTION_FINIS
 
 //Clock Act receiver:
 const val ACTION_NEW_SONG = "com.ftrono.DJames.eventReceiver.ACTION_NEW_SONG"
+const val SPOTIFY_METADATA_CHANGED = "com.spotify.music.metadatachanged"
 
 //Overlay receiver:
 const val ACTION_CLOCK_OPENED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_OPENED"

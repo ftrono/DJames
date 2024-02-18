@@ -5,9 +5,7 @@ import android.util.Log
 import com.ftrono.DJames.application.client
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
-import com.google.gson.JsonArray
 import com.google.gson.JsonParser
-import com.google.gson.JsonPrimitive
 import kotlinx.coroutines.runBlocking
 import okhttp3.Headers
 import okhttp3.Request
@@ -132,9 +130,9 @@ class SpotifyInterpreter {
         offset.addProperty("uri", resultJSON.get("uri").asString)
 
         var jsonBody = JsonObject()
-        jsonBody.add("context_uri", resultJSON.get("context_uri"))
+        jsonBody.addProperty("context_uri", resultJSON.get("context_uri").asString)
         jsonBody.add("offset", offset)
-        jsonBody.add("position_ms", JsonPrimitive(0))
+        jsonBody.addProperty("position_ms", 0)
 
         var body = jsonBody.toString().toRequestBody()
 

@@ -2,11 +2,12 @@ package com.ftrono.DJames.api
 
 import android.util.Log
 import com.ftrono.DJames.application.deltaSimilarity
+import com.ftrono.DJames.application.uri_format
+import com.ftrono.DJames.application.ext_format
 import com.ftrono.DJames.application.prefs
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import java.net.URLEncoder
-import com.google.gson.JsonPrimitive
 import me.xdrop.fuzzywuzzy.FuzzySearch
 
 
@@ -46,18 +47,21 @@ class SpotifySearch() {
         jsonHeads.addProperty("Authorization", "Bearer ${prefs.spotifyToken}")
 
         //FIRST REQUEST:
-        //Query params:
+        //Compose query:
         var url1 = url
         if (qParams.isNotEmpty()) {
             var queryParams = qParams.joinToString("&", prefix = "&")
-            val encodedParams: String = URLEncoder.encode(queryParams, "UTF-8").replace("%26", "%20").replace("%3A", ":")
+            val encodedParams: String =
+                URLEncoder.encode(queryParams, "UTF-8").replace("%26", "%20").replace("%3A", ":")
             url1 += "?q=${encodedMatchName}${encodedParams}&type=${type}&limit=10&market=IT"
         } else {
             url1 += "?q=${encodedMatchName}&type=${type}&limit=10&market=IT"
         }
         Log.d(TAG, url1)
 
-        var respJSON = query.querySpotify(type="get", url=url1, jsonHeads=jsonHeads)
+        //First query (uses Params):
+        var respJSON = query.querySpotify(type = "get", url = url1, jsonHeads = jsonHeads)
+        Log.d(TAG, respJSON.toString())
         var keySet = respJSON.keySet()
         if (keySet.size == 0) {
             Log.d(TAG, "ERROR: Spotify Search results not received!!")
@@ -69,32 +73,35 @@ class SpotifySearch() {
         }
 
         //SECOND REQUEST:
-        //Query params:
         var url2 = url
-        if (artistName != "") {
-            val encodedArtistName: String = URLEncoder.encode(artistName, "UTF-8")
-            url2 += "?q=${encodedMatchName}+by+${encodedArtistName}&type=${type}&limit=10&market=IT"
-        } else {
-            url2 += "?q=${encodedMatchName}&type=${type}&limit=10&market=IT"
-        }
-        Log.d(TAG, url2)
-
-        if (getTwice && url2 != url1) {
-            respJSON = query.querySpotify(type = "get", url = url2, jsonHeads = jsonHeads)
-            keySet = respJSON.keySet()
-            if (keySet.size == 0) {
-                Log.d(TAG, "ERROR: Spotify Search results not received!!")
-                //Log.d(TAG, "returnJSON: ${returnJSON}")
+        if (getTwice || items.isEmpty()) {
+            //Compose query:
+            if (artistName != "") {
+                val encodedArtistName: String = URLEncoder.encode(artistName, "UTF-8")
+                url2 += "?q=${encodedMatchName}+by+${encodedArtistName}&type=${type}&limit=10&market=IT"
             } else {
-                //Analyse response & get index of best result:
-                var tracks = respJSON.getAsJsonObject("tracks")
-                items2 = tracks.getAsJsonArray("items")
+                url2 += "?q=${encodedMatchName}&type=${type}&limit=10&market=IT"
             }
+            Log.d(TAG, url2)
 
-            //MERGE RESULTS:
-            for (item in items2) {
-                if (!items.contains(item)) {
-                    items.add(item)
+            //Second query:
+            if (url2 != url1) {
+                respJSON = query.querySpotify(type = "get", url = url2, jsonHeads = jsonHeads)
+                keySet = respJSON.keySet()
+                if (keySet.size == 0) {
+                    Log.d(TAG, "ERROR: Spotify Search results not received!!")
+                    //Log.d(TAG, "returnJSON: ${returnJSON}")
+                } else {
+                    //Analyse response & get index of best result:
+                    var tracks = respJSON.getAsJsonObject("tracks")
+                    items2 = tracks.getAsJsonArray("items")
+                }
+
+                //MERGE RESULTS:
+                for (item in items2) {
+                    if (!items.contains(item)) {
+                        items.add(item)
+                    }
                 }
             }
         }
@@ -106,16 +113,11 @@ class SpotifySearch() {
             //GET BEST RESULT:
             var bestResult = getBestResult(items, matchName, artistName, live)
 
-            //Uri:
-            var uri = bestResult.get("uri").asString
-            returnJSON.add("uri", JsonPrimitive(uri))
-            Log.d(TAG, "uri: ${uri}")
-
-            //Spotify URL:
-            var extUrls = bestResult.getAsJsonObject("external_urls")
-            var spotifyURL = extUrls.get("spotify").asString
-            returnJSON.add("spotify_URL", JsonPrimitive(spotifyURL))
-            Log.d(TAG, "spotify_URL: ${spotifyURL}")
+            //ID & uri:
+            var id = bestResult.get("id").asString
+            returnJSON.addProperty("id", id)
+            returnJSON.addProperty("uri", "$uri_format$id")
+            returnJSON.addProperty("spotify_URL", "$ext_format$id")
 
             //Track name:
             returnJSON.add("song_name", bestResult.get("name"))
@@ -132,9 +134,9 @@ class SpotifySearch() {
             returnJSON.add("album_uri", album.get("uri"))
 
             //(TEMP) Context -> album:
-            returnJSON.add("context_type", JsonPrimitive("Album"))
-            returnJSON.add("context_uri", album.get("uri"))
-            returnJSON.add("context_name", album.get("name"))
+            returnJSON.addProperty("context_type", "Album")
+            returnJSON.addProperty("context_uri", album.get("uri").asString)
+            returnJSON.addProperty("context_name", album.get("name").asString)
 
             //Artwork:
             if (album.has("images")) {

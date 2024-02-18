@@ -17,7 +17,7 @@ class EventReceiver: BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
 
         //VolumeUp receiver:
-        if (intent!!.action == "android.media.VOLUME_CHANGED_ACTION") {
+        if (intent!!.action == VOLUME_CHANGED_ACTION) {
             val newVolume = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_VALUE", 0)
             val oldVolume = intent.getIntExtra("android.media.EXTRA_PREV_VOLUME_STREAM_VALUE", 0)
 

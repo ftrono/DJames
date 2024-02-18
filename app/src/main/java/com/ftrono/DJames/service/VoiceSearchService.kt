@@ -351,33 +351,8 @@ class VoiceSearchService : Service() {
                                 stopSelf()
                             } else {
                                 //B) SPOTIFY RESULT RECEIVED!
-
                                 //Overwrite player info:
-                                last_result = queryResult
-
-                                //Song name:
-                                songName = queryResult.get("song_name").asString
-                                if (songName.length > 30) {
-                                    songName = songName.slice(0..30) + "..."
-                                }
-                                //Artist name:
-                                artistName = queryResult.get("artist_name").asString
-                                if (artistName.length > 30) {
-                                    artistName = artistName.slice(0..30) + "..."
-                                }
-                                //Context name:
-                                contextName = "${queryResult.get("context_type").asString}: ${
-                                    queryResult.get("context_name").asString
-                                }"
-                                if (contextName.length > 30) {
-                                    contextName = contextName.slice(0..30) + "..."
-                                }
-                                //Artwork:
-                                if (queryResult.has("artwork")) {
-                                    artwork = queryResult.get("artwork").asString
-                                } else {
-                                    artwork = ""
-                                }
+                                currently_playing = queryResult
 
                                 //Send broadcast:
                                 Intent().also { intent ->

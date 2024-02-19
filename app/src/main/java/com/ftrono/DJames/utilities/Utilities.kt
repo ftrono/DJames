@@ -11,6 +11,13 @@ import java.util.Random
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.streams.asSequence
+import com.ftrono.DJames.application.logDir
+import com.google.gson.JsonArray
+import java.io.File
+import com.google.gson.JsonParser
+import java.io.FileReader
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 
 class Utilities {
@@ -44,6 +51,46 @@ class Utilities {
             .asSequence()
             .map(source::get)
             .joinToString("")
+    }
+
+
+    //LOG:
+    //Get JsonArray out of all log files:
+    fun getLogArray(): JsonArray {
+        var logArray = JsonArray()
+        if (logDir!!.exists()) {
+            var logFiles = logDir!!.list()
+            logFiles!!.sortDescending()   //Sort descending by date
+            Log.d(TAG, "LOGDIR CONTENT: ${logFiles}")
+            for (f in logFiles) {
+                var reader = FileReader(File(logDir, f))
+                logArray.add(JsonParser.parseReader(reader))
+            }
+        }
+        Log.d(TAG, logArray.toString())
+        return logArray
+    }
+
+    fun deleteOldLogs() {
+        if (logDir!!.exists()) {
+            val thresholdDate = LocalDateTime.now().minusDays(30)
+            val thresholdDateStr = thresholdDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            Log.d(TAG, "THRESHOLD DATE: $thresholdDateStr")
+            var c = 0
+            var logFiles = logDir!!.list()
+            logFiles!!.sort()   //Sort ascending by date
+            Log.d(TAG, logFiles.toList().toString())
+            for (f in logFiles) {
+                if (f < thresholdDateStr) {
+                    //Log.d(TAG, "Removing file: $f")
+                    File(logDir, f).delete()
+                    c ++
+                } else {
+                    break
+                }
+            }
+            Log.d(TAG, "Removed $c older logs.")
+        }
     }
 
 }

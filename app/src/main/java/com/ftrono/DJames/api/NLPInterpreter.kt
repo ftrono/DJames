@@ -144,6 +144,8 @@ class NLPInterpreter(context: Context) {
         } catch (e: Exception) {
             Log.d(TAG, "SessionsClient already shut down.")
         }
+        //Log:
+        last_log!!.add("nlp", respJson)
         return respJson
     }
     

@@ -24,6 +24,9 @@ import com.ftrono.DJames.recorder.AndroidAudioRecorder
 import com.ftrono.DJames.api.SpotifyInterpreter
 import com.google.gson.JsonObject
 import java.net.URLEncoder
+import java.io.File
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 
 class VoiceSearchService : Service() {
@@ -33,6 +36,7 @@ class VoiceSearchService : Service() {
     private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
     private var vqThread: Thread? = null
     private var recInProgress = false
+    private var logFile: File? = null
 
     //Recorder:
     private val recorder by lazy {
@@ -291,6 +295,13 @@ class VoiceSearchService : Service() {
                         }
 
                         //B.1) NLP QUERY:
+                        //Init Log:
+                        val now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                        logFile = File(logDir, "$now.json")
+                        logFile!!.createNewFile()
+                        last_log = JsonObject()
+                        last_log!!.addProperty("datetime", now)
+                        //Query NLP:
                         var resultsNLP = nlpInterpreter!!.queryNLP(recFile)
 
                         //Check NLP results:
@@ -322,6 +333,13 @@ class VoiceSearchService : Service() {
                             //Reset:
                             recordingMode = false
                             sourceIsVolume = false
+                            //Close log:
+                            logFile!!.writeText(last_log.toString())
+                            //Send broadcast:
+                            Intent().also { intent ->
+                                intent.setAction(ACTION_LOG_REFRESH)
+                                sendBroadcast(intent)
+                            }
                             //Send broadcast:
                             Intent().also { intent ->
                                 intent.setAction(ACTION_OVERLAY_READY)
@@ -343,6 +361,13 @@ class VoiceSearchService : Service() {
                                 //Reset:
                                 recordingMode = false
                                 sourceIsVolume = false
+                                //Close log:
+                                logFile!!.writeText(last_log.toString())
+                                //Send broadcast:
+                                Intent().also { intent ->
+                                    intent.setAction(ACTION_LOG_REFRESH)
+                                    sendBroadcast(intent)
+                                }
                                 //Send broadcast:
                                 Intent().also { intent ->
                                     intent.setAction(ACTION_OVERLAY_READY)
@@ -353,10 +378,19 @@ class VoiceSearchService : Service() {
                                 //B) SPOTIFY RESULT RECEIVED!
                                 //Overwrite player info:
                                 currently_playing = queryResult
+                                last_log!!.add("spotify_play", currently_playing)
+                                //Close log:
+                                logFile!!.writeText(last_log.toString())
 
                                 //Send broadcast:
                                 Intent().also { intent ->
                                     intent.setAction(ACTION_NEW_SONG)
+                                    sendBroadcast(intent)
+                                }
+
+                                //Send broadcast:
+                                Intent().also { intent ->
+                                    intent.setAction(ACTION_LOG_REFRESH)
                                     sendBroadcast(intent)
                                 }
 

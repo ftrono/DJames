@@ -4,6 +4,7 @@ import android.util.Log
 import com.ftrono.DJames.application.deltaSimilarity
 import com.ftrono.DJames.application.uri_format
 import com.ftrono.DJames.application.ext_format
+import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.prefs
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
@@ -62,6 +63,7 @@ class SpotifySearch() {
         //First query (uses Params):
         var respJSON = query.querySpotify(type = "get", url = url1, jsonHeads = jsonHeads)
         Log.d(TAG, respJSON.toString())
+        var n_items = 0
         var keySet = respJSON.keySet()
         if (keySet.size == 0) {
             Log.d(TAG, "ERROR: Spotify Search results not received!!")
@@ -70,7 +72,13 @@ class SpotifySearch() {
             //Analyse response & get index of best result:
             var tracks = respJSON.getAsJsonObject("tracks")
             items = tracks.getAsJsonArray("items")
+            n_items = items.size()
         }
+        //Log:
+        var logJSON = JsonObject()
+        logJSON.addProperty("url", url1)
+        logJSON.addProperty("n_items", n_items)
+        last_log!!.add("spotify_query1", logJSON)
 
         //SECOND REQUEST:
         var url2 = url
@@ -87,6 +95,7 @@ class SpotifySearch() {
             //Second query:
             if (url2 != url1) {
                 respJSON = query.querySpotify(type = "get", url = url2, jsonHeads = jsonHeads)
+                n_items = 0
                 keySet = respJSON.keySet()
                 if (keySet.size == 0) {
                     Log.d(TAG, "ERROR: Spotify Search results not received!!")
@@ -95,7 +104,13 @@ class SpotifySearch() {
                     //Analyse response & get index of best result:
                     var tracks = respJSON.getAsJsonObject("tracks")
                     items2 = tracks.getAsJsonArray("items")
+                    n_items = items2.size()
                 }
+                //Log:
+                var logJSON = JsonObject()
+                logJSON.addProperty("url", url1)
+                logJSON.addProperty("n_items", n_items)
+                last_log!!.add("spotify_query2", logJSON)
 
                 //MERGE RESULTS:
                 for (item in items2) {
@@ -268,6 +283,13 @@ class SpotifySearch() {
                 bestType = "album"
             }
         }
+        //Log:
+        var bestOnes = JsonArray()
+        for (k in bestScores.keys) {
+            bestOnes.add(matchesArray[k])
+        }
+        last_log!!.add("spotify_matches", bestOnes)
+        last_log!!.addProperty("spotify_selected_ind", bestInd)
         //GET FULL BEST JSON:
         bestResult = items.get(bestInd).asJsonObject
         Log.d(TAG, "BEST RESULT: INDEX $bestInd, ITEM: $bestResult")

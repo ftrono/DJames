@@ -9,6 +9,7 @@ import com.google.gson.JsonObject
 import okhttp3.OkHttpClient
 import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
+import java.io.File
 
 //GLOBALS:
 val prefs: Prefs by lazy {
@@ -34,9 +35,13 @@ var searchFail: Boolean = false
 //Audio Manager:
 var audioManager: AudioManager? = null
 
+//JSONs:
+var currently_playing: JsonObject? = null
+var last_log: JsonObject? = null
+var logDir: File? = null
+
 //Player info:
 var nlp_queryText = ""
-var currently_playing: JsonObject? = null
 var update_artwork = false
 var artwork: String = ""
 var songName: String = ""
@@ -71,6 +76,7 @@ val client = OkHttpClient.Builder()
 const val VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION"
 const val ACTION_NLP_RESULT = "com.ftrono.DJames.eventReceiver.ACTION_NLP_RESULT"
 const val ACTION_REDIRECT = "com.ftrono.DJames.eventReceiver.ACTION_REDIRECT"
+const val ACTION_LOG_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_LOG_REFRESH"
 
 //Main Act receiver:
 const val ACTION_MAIN_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_MAIN_LOGGED_IN"

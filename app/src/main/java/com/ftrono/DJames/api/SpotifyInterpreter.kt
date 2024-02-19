@@ -3,6 +3,7 @@ package com.ftrono.DJames.api
 import com.google.gson.JsonObject
 import android.util.Log
 import com.ftrono.DJames.application.client
+import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.google.gson.JsonParser
@@ -17,7 +18,7 @@ class SpotifyInterpreter {
 
 
     //NOTE: To be called only if Intent HAS a song name inside!
-    fun extractMatchName(type: String, queryText: String, artistName: String, removeArtist: Boolean = false): ArrayList<String> {
+    fun extractMatchName(type: String, queryText: String, artistName: String, removeArtist: Boolean = false): JsonObject {
         var matchName = ""
         var artistExtracted = ""
         var theType = false
@@ -101,20 +102,24 @@ class SpotifyInterpreter {
             matchName = "the $type"
         }
         Log.d(TAG, "CLEANED MATCH NAME: $matchName")
-        var retArray = ArrayList<String>()
-        retArray.add(matchName)
-        retArray.add(artistExtracted)
-        return retArray
+        Log.d(TAG, "ARTIST EXTRACTED NAME: $artistExtracted")
+        var retExtracted = JsonObject()
+        retExtracted.addProperty("match_extracted", matchName)
+        retExtracted.addProperty("artist_extracted", artistExtracted)
+        retExtracted.addProperty("artist_dialogflow", artistName)
+        //Add to log:
+        last_log!!.add("nlp_extractor", retExtracted)
+        return retExtracted
     }
 
     fun dispatchCall(resultsNLP: JsonObject): JsonObject {
         //TEMP:
         var type = resultsNLP.get("type").asString
         var artistName = resultsNLP.get("artists").asString
-        var matchArray = extractMatchName(type=type, queryText=resultsNLP.get("query_text").asString, artistName=artistName, removeArtist=true)
-        var matchName = matchArray.get(0)
+        var matchExtracted = extractMatchName(type=type, queryText=resultsNLP.get("query_text").asString, artistName=artistName, removeArtist=true)
+        var matchName = matchExtracted.get("match_extracted").asString
         if (artistName == "") {
-            artistName = matchArray.get(1)
+            artistName = matchExtracted.get("artist_extracted").asString
         }
         //DISPATCH SPOTIFY CALLS ACCORDING TO NLP RESULTS:
         var search = SpotifySearch()

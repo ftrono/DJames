@@ -17,4 +17,9 @@
         android:orderInCategory="3"
         android:title="@string/str_permissions"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_send_logs"
+        android:orderInCategory="4"
+        android:title="Send request logs"
+        app:showAsAction="never" />
 </menu>

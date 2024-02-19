@@ -29,11 +29,14 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlin.math.roundToInt
 import android.content.BroadcastReceiver
 import android.content.Context
+import androidx.core.content.FileProvider
+import java.io.File
 
 
 class MainActivity : AppCompatActivity() {
 
     private val TAG: String = MainActivity::class.java.getSimpleName()
+    private val logConsName = "requests_log.json"
 
     //Views:
     private var toolbar: Toolbar? = null
@@ -163,6 +166,14 @@ class MainActivity : AppCompatActivity() {
 
         })
 
+        //Init log directory:
+        logDir = File(cacheDir, "log_requests")
+        //logDir!!.deleteRecursively()
+        if (!logDir!!.exists()) {
+            logDir!!.mkdir()
+        }
+        //delete older logs:
+        utils.deleteOldLogs()
     }
 
 
@@ -222,17 +233,29 @@ class MainActivity : AppCompatActivity() {
                 logout()
             }
             return true
-            //Settings:
+        //Settings:
         } else if (id == R.id.action_settings) {
             val intent1 = Intent(this@MainActivity, SettingsActivity::class.java)
             startActivity(intent1)
             return true
-            //Set app preferences:
+        //Set app preferences:
         } else if (id == R.id.action_permissions) {
             val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
             val uri = Uri.fromParts("package", packageName, null)
             intent1.setData(uri)
             startActivity(intent1)
+            return true
+        //Send requests logs:
+        } else if (id == R.id.action_send_logs) {
+            val logCons = prepareLogCons()
+            val uriToFile = FileProvider.getUriForFile(applicationContext, "com.ftrono.DJames.provider", logCons)
+            val sendIntent: Intent = Intent().apply {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_STREAM, uriToFile)
+                type="image/jpeg"
+            }
+            startActivity(Intent.createChooser(sendIntent, null))
+            //Toast.makeText(applicationContext, "Preparing logs...", Toast.LENGTH_SHORT).show()
             return true
         } else {
             return super.onOptionsItemSelected(item)
@@ -393,6 +416,18 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "SetOverlayInactive(): resources not available.")
         }
         return false
+    }
+
+    //Prepare consolidated Log file:
+    fun prepareLogCons(): File {
+        val logArray = utils.getLogArray()
+        var consFile = File(cacheDir, logConsName)
+        if (consFile.exists()) {
+            consFile.delete()
+        }
+        consFile.createNewFile()
+        consFile.writeText(logArray.toString())
+        return consFile
     }
 
 

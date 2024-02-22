@@ -76,7 +76,6 @@ val client = OkHttpClient.Builder()
 const val VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION"
 const val ACTION_NLP_RESULT = "com.ftrono.DJames.eventReceiver.ACTION_NLP_RESULT"
 const val ACTION_REDIRECT = "com.ftrono.DJames.eventReceiver.ACTION_REDIRECT"
-const val ACTION_LOG_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_LOG_REFRESH"
 
 //Main Act receiver:
 const val ACTION_MAIN_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_MAIN_LOGGED_IN"
@@ -93,6 +92,11 @@ const val ACTION_FINISH_SETTINGS = "com.ftrono.DJames.eventReceiver.ACTION_FINIS
 const val ACTION_TIME_TICK = "android.intent.action.TIME_TICK"
 const val ACTION_NEW_SONG = "com.ftrono.DJames.eventReceiver.ACTION_NEW_SONG"
 const val SPOTIFY_METADATA_CHANGED = "com.spotify.music.metadatachanged"
+
+//History Act receiver:
+const val ACTION_LOG_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_LOG_REFRESH"
+const val ACTION_LOG_DELETE = "com.ftrono.DJames.eventReceiver.ACTION_LOG_DELETE"
+const val ACTION_FINISH_HISTORY = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_HISTORY"
 
 //Overlay receiver:
 const val ACTION_CLOCK_OPENED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_OPENED"

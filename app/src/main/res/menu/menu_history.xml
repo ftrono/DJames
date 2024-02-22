@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.ftrono.DJames.application.HistoryActivity">
+    <item
+        android:id="@+id/action_send_logs"
+        android:orderInCategory="1"
+        android:title="Send request logs"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_clean"
+        android:orderInCategory="2"
+        android:title="Delete history"
+        app:showAsAction="never" />
+</menu>

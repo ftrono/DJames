@@ -36,7 +36,6 @@ import java.io.File
 class MainActivity : AppCompatActivity() {
 
     private val TAG: String = MainActivity::class.java.getSimpleName()
-    private val logConsName = "requests_log.json"
 
     //Views:
     private var toolbar: Toolbar? = null
@@ -245,17 +244,10 @@ class MainActivity : AppCompatActivity() {
             intent1.setData(uri)
             startActivity(intent1)
             return true
-        //Send requests logs:
-        } else if (id == R.id.action_send_logs) {
-            val logCons = prepareLogCons()
-            val uriToFile = FileProvider.getUriForFile(applicationContext, "com.ftrono.DJames.provider", logCons)
-            val sendIntent: Intent = Intent().apply {
-                action = Intent.ACTION_SEND
-                putExtra(Intent.EXTRA_STREAM, uriToFile)
-                type="image/jpeg"
-            }
-            startActivity(Intent.createChooser(sendIntent, null))
-            //Toast.makeText(applicationContext, "Preparing logs...", Toast.LENGTH_SHORT).show()
+        //History:
+        } else if (id == R.id.action_history) {
+            val intent1 = Intent(this@MainActivity, HistoryActivity::class.java)
+            startActivity(intent1)
             return true
         } else {
             return super.onOptionsItemSelected(item)
@@ -416,18 +408,6 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "SetOverlayInactive(): resources not available.")
         }
         return false
-    }
-
-    //Prepare consolidated Log file:
-    fun prepareLogCons(): File {
-        val logArray = utils.getLogArray()
-        var consFile = File(cacheDir, logConsName)
-        if (consFile.exists()) {
-            consFile.delete()
-        }
-        consFile.createNewFile()
-        consFile.writeText(logArray.toString())
-        return consFile
     }
 
 

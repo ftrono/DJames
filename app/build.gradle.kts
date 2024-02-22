@@ -103,4 +103,6 @@ dependencies {
     implementation("com.arthenica:ffmpeg-kit-full:6.0-2")
     //FuzzyWuzzy:
     implementation("me.xdrop:fuzzywuzzy:1.4.0")
+    //Swipe to refresh:
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
 }

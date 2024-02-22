@@ -232,14 +232,17 @@ class SettingsActivity : AppCompatActivity() {
                     saveAll(newRecTimeout, newClockTimeout)
                     Toast.makeText(applicationContext, "Settings saved!", Toast.LENGTH_SHORT).show()
                     finish()
+                    val intent1 = Intent(applicationContext, MainActivity::class.java)
+                    startActivity(intent1)
                 }
             })
             //Exit without saving:
             alertDialog.setNegativeButton("No", object : OnClickListener {
                 override fun onClick(dialog: DialogInterface?, which: Int) {
-                    Toast.makeText(applicationContext, "Settings NOT saved.", Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(applicationContext, "Settings NOT saved.", Toast.LENGTH_SHORT).show()
                     finish()
+                    val intent1 = Intent(applicationContext, MainActivity::class.java)
+                    startActivity(intent1)
                 }
             })
             alertDialog.setTitle("Warning")
@@ -247,6 +250,8 @@ class SettingsActivity : AppCompatActivity() {
             alertDialog.show()
         } else {
             finish()
+            val intent1 = Intent(applicationContext, MainActivity::class.java)
+            startActivity(intent1)
         }
     }
 

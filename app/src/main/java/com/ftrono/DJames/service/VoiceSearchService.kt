@@ -295,12 +295,11 @@ class VoiceSearchService : Service() {
                         }
 
                         //B.1) NLP QUERY:
-                        //Init Log:
+                        //Init last_log:
                         val now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                        logFile = File(logDir, "$now.json")
-                        logFile!!.createNewFile()
                         last_log = JsonObject()
                         last_log!!.addProperty("datetime", now)
+
                         //Query NLP:
                         var resultsNLP = nlpInterpreter!!.queryNLP(recFile)
 
@@ -333,13 +332,6 @@ class VoiceSearchService : Service() {
                             //Reset:
                             recordingMode = false
                             sourceIsVolume = false
-                            //Close log:
-                            logFile!!.writeText(last_log.toString())
-                            //Send broadcast:
-                            Intent().also { intent ->
-                                intent.setAction(ACTION_LOG_REFRESH)
-                                sendBroadcast(intent)
-                            }
                             //Send broadcast:
                             Intent().also { intent ->
                                 intent.setAction(ACTION_OVERLAY_READY)
@@ -349,6 +341,7 @@ class VoiceSearchService : Service() {
 
                         } else {
                             //B.2) SPOTIFY QUERY:
+                            logFile = File(logDir, "$now.json")
                             var queryResult: JsonObject =
                                 spotifyInterpreter!!.dispatchCall(resultsNLP)
 

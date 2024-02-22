@@ -61,13 +61,18 @@ class Utilities {
         if (logDir!!.exists()) {
             var logFiles = logDir!!.list()
             logFiles!!.sortDescending()   //Sort descending by date
-            Log.d(TAG, "LOGDIR CONTENT: ${logFiles}")
             for (f in logFiles) {
                 var reader = FileReader(File(logDir, f))
-                logArray.add(JsonParser.parseReader(reader))
+                //Delete invalid files:
+                try {
+                    logArray.add(JsonParser.parseReader(reader).asJsonObject)
+                } catch (e: Exception) {
+                    File(logDir, f).delete()
+                    Log.d(TAG, "Deleted file: $f")
+                }
             }
         }
-        Log.d(TAG, logArray.toString())
+        //Log.d(TAG, logArray.toString())
         return logArray
     }
 
@@ -79,7 +84,7 @@ class Utilities {
             var c = 0
             var logFiles = logDir!!.list()
             logFiles!!.sort()   //Sort ascending by date
-            Log.d(TAG, logFiles.toList().toString())
+            //Log.d(TAG, logFiles.toList().toString())
             for (f in logFiles) {
                 if (f < thresholdDateStr) {
                     //Log.d(TAG, "Removing file: $f")

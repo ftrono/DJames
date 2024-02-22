@@ -102,7 +102,7 @@ class NLPInterpreter(context: Context) {
                 if (keySet.size == 0) {
                     Log.d(TAG, "NLP: FALLBACK!")
                 } else {
-                    respJson.addProperty("query_text", queryResult.queryText)
+                    respJson.addProperty("query_text", queryResult.queryText.lowercase())
                     respJson.addProperty("intent", queryResult.intent.displayName)
                     try {
                         try {

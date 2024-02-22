@@ -219,6 +219,13 @@ class FloatingViewService : Service() {
                         sendBroadcast(intent)
                     }
 
+                    //End History():
+                    //Send broadcast:
+                    Intent().also { intent ->
+                        intent.setAction(ACTION_FINISH_HISTORY)
+                        sendBroadcast(intent)
+                    }
+
                 }
             }
 

@@ -10,9 +10,7 @@ import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.ACTION_LOG_DELETE
-import com.ftrono.DJames.application.HistoryViewHolder
-import com.ftrono.DJames.application.logDir
+import com.ftrono.DJames.application.*
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import kotlin.math.roundToInt
@@ -21,13 +19,12 @@ import java.io.File
 
 class HistoryAdapter(
         private val context: Context,
-        private val activity: Activity,
         private var logItems: JsonArray)
     : RecyclerView.Adapter<HistoryViewHolder>() {
 
     private val TAG = HistoryAdapter::class.java.simpleName
     private var density: Float = 0F
-    private var toDelete = ArrayList<String>()
+    //private var toDelete = ArrayList<String>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryViewHolder {
         val view: View =
@@ -42,7 +39,18 @@ class HistoryAdapter(
         //POPOLA:
         var datetime = logItem.get("datetime").asString
         var filename = "$datetime.json"
-        holder.datetime.text = datetime
+        //result check:
+        try {
+            if (logItem.get("result").asString == "1") {
+                holder.datetime.text = "${context.getString(R.string.result_good)}   $datetime"
+            } else if (logItem.get("result").asString == "0") {
+                holder.datetime.text = "${context.getString(R.string.result_not_good)}   $datetime"
+            } else {
+                holder.datetime.text = "${context.getString(R.string.result_fail)}   $datetime"
+            }
+        } catch (e: Exception) {
+            holder.datetime.text = "${context.getString(R.string.result_fail)}   $datetime"
+        }
         //NLP:
         try {
             holder.nlp_text.text =
@@ -99,14 +107,10 @@ class HistoryAdapter(
     }
 
     private fun openFile(filename: String) {
-        //Open the current file:
-        val file = File(logDir, filename)
-
         // Get URI and MIME type of file
+        val file = File(logDir, filename)
         val uri = FileProvider.getUriForFile(context, "com.ftrono.DJames.provider", file)
         val mime = context.contentResolver.getType(uri)
-
-        // Open file with user selected app
 
         // Open file with user selected app
         val intent1 = Intent()

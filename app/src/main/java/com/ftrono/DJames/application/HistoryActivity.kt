@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -16,6 +17,7 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import android.widget.TextView
 import com.ftrono.DJames.R
 import com.ftrono.DJames.adapter.HistoryAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -28,8 +30,10 @@ class HistoryActivity : AppCompatActivity() {
     private val TAG = HistoryActivity::class.java.simpleName
 
     private val logConsName = "requests_log.json"
+    private var textNoData: TextView? = null
     private var historyList: RecyclerView? = null
     private var logItems = JsonArray()
+    private var subtitle = "Requests: 0 (last 30 days only)"
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -44,6 +48,7 @@ class HistoryActivity : AppCompatActivity() {
         //Load Main views:
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.title = "History"
+        supportActionBar!!.subtitle = subtitle
 
         //SwipeRefreshLayout:
         var swipeRefreshLayout = findViewById<SwipeRefreshLayout>(R.id.swipeRefreshLayout)
@@ -55,6 +60,7 @@ class HistoryActivity : AppCompatActivity() {
         }
 
         //Views:
+        textNoData = findViewById(R.id.text_no_data)
         historyList = findViewById(R.id.history_list)
         historyList!!.layoutManager = LinearLayoutManager(this)
         historyList!!.setHasFixedSize( true )
@@ -84,16 +90,25 @@ class HistoryActivity : AppCompatActivity() {
     fun updateRecyclerView() {
         //Load updated data:
         logItems = utils.getLogArray()
-        //Set updated adapter:
-        val mAdapter = HistoryAdapter(applicationContext, this, logItems)
-        historyList!!.adapter = mAdapter
-        //mAdapter.notifyDataSetChanged()
+        subtitle = "Requests: ${logItems.size()} (last 30 days only)"
+        supportActionBar!!.subtitle = subtitle
+        if (logItems.size() > 0) {
+            //Update visibility:
+            historyList!!.visibility = View.VISIBLE
+            textNoData!!.visibility = View.GONE
+            //Set updated adapter:
+            val mAdapter = HistoryAdapter(applicationContext, logItems)
+            historyList!!.adapter = mAdapter
+        } else {
+            //No data:
+            historyList!!.visibility = View.GONE
+            textNoData!!.visibility = View.VISIBLE
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_history, menu)
-
         return true
     }
 
@@ -104,14 +119,26 @@ class HistoryActivity : AppCompatActivity() {
         //Login / logout:
         if (id == R.id.action_send_logs) {
             val logCons = prepareLogCons()
-            val uriToFile = FileProvider.getUriForFile(applicationContext, "com.ftrono.DJames.provider", logCons)
+            val uriToFile = FileProvider.getUriForFile(
+                applicationContext,
+                "com.ftrono.DJames.provider",
+                logCons
+            )
             val sendIntent: Intent = Intent().apply {
                 action = Intent.ACTION_SEND
                 putExtra(Intent.EXTRA_STREAM, uriToFile)
-                type="image/jpeg"
+                type = "image/jpeg"
             }
             startActivity(Intent.createChooser(sendIntent, null))
             //Toast.makeText(applicationContext, "Preparing logs...", Toast.LENGTH_SHORT).show()
+            return true
+        } else if (id == R.id.action_clean_successful) {
+            //Delete successful logs:
+            deleteSuccessful()
+            return true
+        } else if (id == R.id.action_clean) {
+            //Delete all history:
+            deleteAll()
             return true
         } else {
             return super.onOptionsItemSelected(item)
@@ -120,7 +147,7 @@ class HistoryActivity : AppCompatActivity() {
 
 
     //Prepare consolidated Log file:
-    fun prepareLogCons(): File {
+    private fun prepareLogCons(): File {
         val logArray = utils.getLogArray()
         var consFile = File(cacheDir, logConsName)
         if (consFile.exists()) {
@@ -138,19 +165,23 @@ class HistoryActivity : AppCompatActivity() {
         startActivity(intent1)
     }
 
-    //Delete items in RecyclerView:
+    //Delete selected items in RecyclerView:
     fun deleteItems(toDeleteStr: String) {
         var toDelete = toDeleteStr.split(", ")
-        //Refresh
         val alertDialog = MaterialAlertDialogBuilder(this@HistoryActivity)
-        //Save all:
+        //Exec:
         alertDialog.setPositiveButton("Yes", object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
                 //Yes
+                for (f in toDelete) {
+                    File(logDir, f).delete()
+                    Log.d(TAG, "Deleted file: $f")
+                }
+                Toast.makeText(applicationContext, "Deleted!", Toast.LENGTH_SHORT).show()
                 updateRecyclerView()
             }
         })
-        //Exit without saving:
+        //Exit:
         alertDialog.setNegativeButton("No", object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
                 //No
@@ -164,6 +195,67 @@ class HistoryActivity : AppCompatActivity() {
             alertDialog.setTitle("Delete items")
             alertDialog.setMessage("Do you want to delete ${toDelete.size} log items?")
         }
+        alertDialog.show()
+    }
+
+    //Delete successful requests only;
+    fun deleteSuccessful() {
+        val alertDialog = MaterialAlertDialogBuilder(this@HistoryActivity)
+        //Exec:
+        alertDialog.setPositiveButton("Yes", object : DialogInterface.OnClickListener {
+            override fun onClick(dialog: DialogInterface?, which: Int) {
+                //Yes
+                for (logItem in logItems) {
+                    //get result status:
+                    var result = 0
+                    try {
+                        result = logItem.asJsonObject.get("result").asInt
+                    } catch (e: Exception) {
+                        result = -1
+                    }
+                    if (result > 0) {
+                        var datetime = logItem.asJsonObject.get("datetime").asString
+                        var filename = "$datetime.json"
+                        File(logDir, filename).delete()
+                        Log.d(TAG, "Deleted file: $filename")
+                    }
+                }
+                Toast.makeText(applicationContext, "All successful requests deleted!", Toast.LENGTH_SHORT).show()
+                updateRecyclerView()
+            }
+        })
+        //Exit:
+        alertDialog.setNegativeButton("No", object : DialogInterface.OnClickListener {
+            override fun onClick(dialog: DialogInterface?, which: Int) {
+                //No
+            }
+        })
+        alertDialog.setTitle("Delete all successful requests")
+        alertDialog.setMessage("Do you want to delete all successful requests from history?")
+        alertDialog.show()
+    }
+
+    //Delete ALL logs:
+    fun deleteAll() {
+        val alertDialog = MaterialAlertDialogBuilder(this@HistoryActivity)
+        //Exec:
+        alertDialog.setPositiveButton("Yes", object : DialogInterface.OnClickListener {
+            override fun onClick(dialog: DialogInterface?, which: Int) {
+                //Yes
+                logDir!!.deleteRecursively()
+                Log.d(TAG, "Deleted ALL logs.")
+                Toast.makeText(applicationContext, "History deleted!", Toast.LENGTH_SHORT).show()
+                updateRecyclerView()
+            }
+        })
+        //Exit:
+        alertDialog.setNegativeButton("No", object : DialogInterface.OnClickListener {
+            override fun onClick(dialog: DialogInterface?, which: Int) {
+                //No
+            }
+        })
+        alertDialog.setTitle("Delete history")
+        alertDialog.setMessage("Do you want to delete all history?")
         alertDialog.show()
     }
 

@@ -5,11 +5,16 @@
     <item
         android:id="@+id/action_send_logs"
         android:orderInCategory="1"
-        android:title="Send request logs"
+        android:title="Send requests logs"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_clean_successful"
+        android:orderInCategory="2"
+        android:title="Delete successful logs"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_clean"
         android:orderInCategory="2"
-        android:title="Delete history"
+        android:title="Delete all history logs"
         app:showAsAction="never" />
 </menu>

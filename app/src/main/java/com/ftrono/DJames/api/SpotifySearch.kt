@@ -75,10 +75,12 @@ class SpotifySearch() {
             n_items = items.size()
         }
         //Log:
+        var logQueries = JsonArray()
         var logJSON = JsonObject()
+        logJSON.addProperty("type", "genericSearch")
         logJSON.addProperty("url", url1)
         logJSON.addProperty("n_items", n_items)
-        last_log!!.add("spotify_query1", logJSON)
+        logQueries.add(logJSON)
 
         //SECOND REQUEST:
         var url2 = url
@@ -108,9 +110,10 @@ class SpotifySearch() {
                 }
                 //Log:
                 var logJSON = JsonObject()
+                logJSON.addProperty("type", "genericSearch")
                 logJSON.addProperty("url", url1)
                 logJSON.addProperty("n_items", n_items)
-                last_log!!.add("spotify_query2", logJSON)
+                logQueries.add(logJSON)
 
                 //MERGE RESULTS:
                 for (item in items2) {
@@ -120,6 +123,7 @@ class SpotifySearch() {
                 }
             }
         }
+        last_log!!.add("spotify_queries", logQueries)
         if (items.size() == 0) {
             Log.d(TAG, "ERROR: Spotify Search results not received!!")
             //Log.d(TAG, "returnJSON: ${returnJSON}")
@@ -254,7 +258,7 @@ class SpotifySearch() {
         val sortedScores = scoresMap.toList().sortedByDescending { it.second }.toMap()
         Log.d(TAG, "SORTED MAP: $sortedScores")
         //Default best Ind is 0 (max score):
-        var bestInd = sortedScores.keys.elementAt(0)
+        var bestInd = 0
         //Exclude lower items:
         var scoreThreshold = sortedScores.values.elementAt(0) - deltaSimilarity
         if (scoreThreshold < 0) {
@@ -289,7 +293,7 @@ class SpotifySearch() {
             bestOnes.add(matchesArray[k])
         }
         last_log!!.add("spotify_matches", bestOnes)
-        last_log!!.addProperty("spotify_selected_ind", bestInd)
+        last_log!!.addProperty("best_score", sortedScores[bestInd])
         //GET FULL BEST JSON:
         bestResult = items.get(bestInd).asJsonObject
         Log.d(TAG, "BEST RESULT: INDEX $bestInd, ITEM: $bestResult")

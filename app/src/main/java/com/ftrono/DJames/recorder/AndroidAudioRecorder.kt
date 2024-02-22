@@ -5,9 +5,7 @@ import android.media.MediaRecorder
 import android.os.Build
 import android.util.Log
 import com.arthenica.ffmpegkit.FFmpegKit
-import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.recSamplingRate
-import com.ftrono.DJames.application.searchFail
+import com.ftrono.DJames.application.*
 import java.io.File
 import java.io.FileOutputStream
 
@@ -17,7 +15,6 @@ class AndroidAudioRecorder(private val context: Context): AudioRecorder {
 
     private var recorder: MediaRecorder? = null
     private val bitRate = 96000
-    private val recFileName = "DJames_request"
 
     private var recFileMp3: File? = null
     private var recFileFlac: File? = null

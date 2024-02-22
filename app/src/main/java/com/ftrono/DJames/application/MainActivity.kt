@@ -167,12 +167,26 @@ class MainActivity : AppCompatActivity() {
 
         //Init log directory:
         logDir = File(cacheDir, "log_requests")
-        //logDir!!.deleteRecursively()
         if (!logDir!!.exists()) {
             logDir!!.mkdir()
         }
         //delete older logs:
         utils.deleteOldLogs()
+        //delete older recFiles in cache:
+        if (!overlay_active) {
+            try {
+                File(cacheDir, "$recFileName.mp3").delete()
+                Log.d(TAG, "Recording mp3 deleted.")
+            } catch (e: Exception) {
+                Log.d(TAG, "Recording mp3 not deleted.")
+            }
+            try {
+                File(cacheDir, "$recFileName.flac").delete()
+                Log.d(TAG, "Recording flac deleted.")
+            } catch (e: Exception) {
+                Log.d(TAG, "Recording flac not deleted.")
+            }
+        }
     }
 
 

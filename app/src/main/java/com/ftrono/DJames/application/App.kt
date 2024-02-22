@@ -15,9 +15,14 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
+val appVersion = "1.0"
 
-//Parameters:
+//Preferences:
 val deltaSimilarity = 30
+val matchThreshold = 150
+val recSamplingRate = 44100
+val queryTimeout = 5   //seconds
+val recFileName = "DJames_request"
 
 //Modes:
 var acts_active: MutableList<String> = ArrayList()
@@ -48,9 +53,6 @@ var songName: String = ""
 var artistName: String = ""
 var contextName: String = ""
 
-//Recording preferences:
-val recSamplingRate = 44100
-
 //HTTP:
 //DialogFlow & Spotify formats:
 val dialogflow_id = "djames-nlp"
@@ -64,10 +66,10 @@ val clientSct = "c7296c5536b8409297760a7eafa0448a"
 val redirectUriOrig ="http://localhost:8888/callback"
 val redirectUri = URLEncoder.encode(redirectUriOrig, "UTF-8")
 val client = OkHttpClient.Builder()
-    .connectTimeout(5, TimeUnit.SECONDS)
-    .writeTimeout(5, TimeUnit.SECONDS)
-    .readTimeout(5, TimeUnit.SECONDS)
-    .callTimeout(5, TimeUnit.SECONDS)
+    .connectTimeout(queryTimeout.toLong(), TimeUnit.SECONDS)
+    .writeTimeout(queryTimeout.toLong(), TimeUnit.SECONDS)
+    .readTimeout(queryTimeout.toLong(), TimeUnit.SECONDS)
+    .callTimeout(queryTimeout.toLong(), TimeUnit.SECONDS)
     .build()
 
 //BROADCASTS:

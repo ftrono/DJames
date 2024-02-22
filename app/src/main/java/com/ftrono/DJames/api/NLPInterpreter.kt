@@ -47,7 +47,7 @@ class NLPInterpreter(context: Context) {
         try {
             synchronized(this) {
                 try {
-                    Thread.sleep(5000)
+                    Thread.sleep(queryTimeout.toLong() * 1000)   //default: 5
                     sessionsClient!!.shutdown()
                     Log.d(TAG, "Connection Error: sessionsClient manually SHUT DOWN.")
                 } catch (e: InterruptedException) {

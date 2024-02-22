@@ -61,6 +61,8 @@ class SettingsActivity : AppCompatActivity() {
         user_container = findViewById<View>(R.id.user_container)
         divider = findViewById<View>(R.id.divider)
         header_preferences = findViewById<TextView>(R.id.header_preferences)
+        var version = findViewById<TextView>(R.id.version)
+        version.text = "Version $appVersion"
 
         //User details:
         userNameView = findViewById<TextView>(R.id.user_name)

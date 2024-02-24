@@ -1,11 +1,12 @@
 package com.ftrono.DJames.adapter
 
-import android.app.Activity
+import android.util.Log
 import android.content.Context
 import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
@@ -98,7 +99,7 @@ class HistoryAdapter(
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_STREAM, uriToFile)
-            type="image/jpeg"
+            type = "image/jpeg"
         }
         var chooserIntent = Intent.createChooser(sendIntent, null)
         chooserIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -107,19 +108,24 @@ class HistoryAdapter(
     }
 
     private fun openFile(filename: String) {
-        // Get URI and MIME type of file
-        val file = File(logDir, filename)
-        val uri = FileProvider.getUriForFile(context, "com.ftrono.DJames.provider", file)
-        val mime = context.contentResolver.getType(uri)
+        try {
+            // Get URI and MIME type of file
+            val file = File(logDir, filename)
+            val uri = FileProvider.getUriForFile(context, "com.ftrono.DJames.provider", file)
+            val mime = context.contentResolver.getType(uri)
 
-        // Open file with user selected app
-        val intent1 = Intent()
-        intent1.setAction(Intent.ACTION_VIEW)
-        intent1.setDataAndType(uri, mime)
-        intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        intent1.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        intent1.putExtra("fromwhere", "ser")
-        startActivity(context, intent1, null)
+            // Open file with user selected app
+            val intent1 = Intent()
+            intent1.setAction(Intent.ACTION_VIEW)
+            intent1.setDataAndType(uri, mime)
+            intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intent1.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            intent1.putExtra("fromwhere", "ser")
+            startActivity(context, intent1, null)
+        } catch (e: Exception) {
+            Log.d(TAG, "OpenLogFile(): viewer app not found!")
+            Toast.makeText(context, "No app to open the selected file!", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun deleteAction(filename: String) {

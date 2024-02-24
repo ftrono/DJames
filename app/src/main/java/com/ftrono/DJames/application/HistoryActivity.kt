@@ -33,7 +33,7 @@ class HistoryActivity : AppCompatActivity() {
     private var textNoData: TextView? = null
     private var historyList: RecyclerView? = null
     private var logItems = JsonArray()
-    private var subtitle = "Requests: 0 (last 30 days only)"
+    private var subtitle = "0 requests (last 30 days)"
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -90,7 +90,7 @@ class HistoryActivity : AppCompatActivity() {
     fun updateRecyclerView() {
         //Load updated data:
         logItems = utils.getLogArray()
-        subtitle = "Requests: ${logItems.size()} (last 30 days only)"
+        subtitle = "${logItems.size()} requests (last 30 days)"
         supportActionBar!!.subtitle = subtitle
         if (logItems.size() > 0) {
             //Update visibility:

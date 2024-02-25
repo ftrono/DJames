@@ -198,11 +198,7 @@ class NLPInterpreter (private val context: Context) {
         retExtracted.addProperty("context_type", contextType)
         retExtracted.addProperty("context_current", currentContext)
         retExtracted.addProperty("context_extracted", contextExtracted)
-        Log.d(TAG, "NLP EXTRACTOR RESULTS: $retExtracted")
-
-        //Add to log:
-        last_log!!.add("nlp_extractor", retExtracted)
-
+        //Log.d(TAG, "NLP EXTRACTOR RESULTS: $retExtracted")
         return retExtracted
     }
 }

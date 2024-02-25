@@ -6,6 +6,7 @@ import android.content.Context
 import com.ftrono.DJames.application.*
 import com.google.gson.JsonParser
 import kotlinx.coroutines.runBlocking
+import me.xdrop.fuzzywuzzy.FuzzySearch
 import okhttp3.Headers
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -17,20 +18,46 @@ class SpotifyInterpreter (private val context: Context) {
 
 
     fun dispatchCall(resultsNLP: JsonObject): JsonObject {
-        //TEMP:
+        //Init:
         var returnJSON = JsonObject()
-        var type = resultsNLP.get("type").asString
-        var matchExtracted = nlpInterpreter.extractMatches(type=type, queryText=resultsNLP.get("query_text").asString.lowercase())
+        var artistConfirmed = ""
+        val playType = resultsNLP.get("type").asString
 
+        //1) Call NLP Extractor:
+        var matchExtracted = nlpInterpreter.extractMatches(type=playType, queryText=resultsNLP.get("query_text").asString.lowercase())
+        val artistExtracted = matchExtracted.get("artist_extracted").asString
+
+        //2) Double check DF artists with NLP Extractor:
         if (!matchExtracted.isEmpty) {
-            //Double check with DF extraction: #############
-            var artistName = resultsNLP.get("artists").asString
-            if (artistName == "") {
-                artistName = matchExtracted.get("artist_extracted").asString
+            val artistsNlp = resultsNLP.get("artists").asJsonArray
+            if (artistsNlp.isEmpty) {
+                //Confirm artists extracted by Extractor:
+                artistConfirmed = artistExtracted
+            } else {
+                var artistsTemp = ArrayList<String>()
+                //Match one by one the artists extracted by DF with those extracted by Extractor:
+                var artist = ""
+                for (artJs in artistsNlp) {
+                    artist = artJs.asString
+                    if (FuzzySearch.tokenSortRatio(artist, artistExtracted) >= matchThreshold) {
+                        artistsTemp.add(artist)
+                    }
+                }
+                //Priority to DF if matches confirmed:
+                if (artistsTemp.isEmpty()) {
+                    artistConfirmed = artistExtracted
+                } else {
+                    artistConfirmed = artistsTemp.joinToString(", ", "", "")
+                }
             }
-            //DISPATCH SPOTIFY CALLS ACCORDING TO NLP MATCHES EXTRACTED:
+            matchExtracted.addProperty("artist_confirmed", artistConfirmed)
+            //Add to log:
+            last_log!!.add("nlp_extractor", matchExtracted)
+            Log.d(TAG, "NLP EXTRACTOR RESULTS: $matchExtracted")
+
+            //3) DISPATCH SPOTIFY CALLS ACCORDING TO NLP MATCHES EXTRACTED:
             var search = SpotifySearch()
-            returnJSON = search.genericSearch(searchData=matchExtracted, artistName=artistName, getTwice=false)
+            returnJSON = search.genericSearch(searchData=matchExtracted, getTwice=false)
         }
         return returnJSON
     }

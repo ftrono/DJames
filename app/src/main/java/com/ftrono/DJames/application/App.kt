@@ -19,7 +19,7 @@ val appVersion = "1.0"
 
 //Preferences:
 val deltaSimilarity = 30
-val matchThreshold = 150
+val matchThreshold = 75
 val recSamplingRate = 44100
 val queryTimeout = 5   //seconds
 val recFileName = "DJames_request"

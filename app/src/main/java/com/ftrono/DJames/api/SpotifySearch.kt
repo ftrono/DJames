@@ -17,11 +17,11 @@ class SpotifySearch() {
     private var query = SpotifyQuery()
 
     //GENERIC SPOTIFY SEARCH -> PLAY WITHIN ALBUM:
-    fun genericSearch(searchData: JsonObject, artistName: String, getTwice: Boolean = false): JsonObject {
+    fun genericSearch(searchData: JsonObject, getTwice: Boolean = false): JsonObject {
         //vars:
         var type = "track"   //searchData.get("play_type").asString
         var matchName = searchData.get("match_extracted").asString
-        //var artistName = searchData.get("artist_extracted").asString
+        var artistName = searchData.get("artist_confirmed").asString
 
         //BUILD GET REQUEST:
         var baseURL = "https://api.spotify.com/v1/search"
@@ -43,8 +43,8 @@ class SpotifySearch() {
 
         //Extract query params:
         var qParams = ArrayList<String>()
-        qParams.add("${type}:${matchName}")
         if (artistName != "") {
+            qParams.add("${type}:${matchName}")
             qParams.add("artist:${artistName}")
         }
 
@@ -97,10 +97,10 @@ class SpotifySearch() {
             } else {
                 url2 += "?q=${encodedMatchName}&type=${type}&limit=10&market=IT"
             }
-            Log.d(TAG, url2)
 
             //Second query:
             if (url2 != url1) {
+                Log.d(TAG, url2)
                 respJSON = query.querySpotify(type = "get", url = url2, jsonHeads = jsonHeads)
                 n_items = 0
                 keySet = respJSON.keySet()
@@ -116,7 +116,7 @@ class SpotifySearch() {
                 //Log:
                 var logJSON = JsonObject()
                 logJSON.addProperty("type", "genericSearch")
-                logJSON.addProperty("url", url1)
+                logJSON.addProperty("url", url2)
                 logJSON.addProperty("n_items", n_items)
                 logQueries.add(logJSON)
 

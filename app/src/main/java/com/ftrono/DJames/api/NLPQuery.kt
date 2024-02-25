@@ -16,6 +16,7 @@ import com.google.cloud.dialogflow.v2.SessionsClient
 import com.google.cloud.dialogflow.v2.SessionsSettings
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.google.gson.JsonArray
 import com.google.protobuf.ByteString
 import java.io.File
 
@@ -105,22 +106,21 @@ class NLPQuery(context: Context) {
                     respJson.addProperty("query_text", queryResult.queryText.lowercase())
                     respJson.addProperty("intent", queryResult.intent.displayName)
                     try {
+                        var artistsList = JsonArray()
                         try {
                             //Multiple artists:
-                            var artistsList = ArrayList<String>()
                             var artistsObj = queryResult.parameters.fieldsMap["music-artist"]!!.listValue.valuesList
                             for (artist in artistsObj) {
                                 artistsList.add(artist.stringValue)
                             }
-                            Log.d(TAG, "ARTISTS LIST: $artistsList")
-                            respJson.addProperty("artists", artistsList.joinToString(", ", "", ""))
                         } catch (e: Exception) {
                             //Single artist:
-                            respJson.addProperty("artists", queryResult.parameters.fieldsMap["music-artist"]!!.stringValue)
+                            artistsList.add(queryResult.parameters.fieldsMap["music-artist"]!!.stringValue)
                         }
+                        respJson.add("artists", artistsList)
                     } catch (e: Exception) {
                         //No artist:
-                        respJson.addProperty("artists", "")
+                        respJson.add("artists", JsonArray())
                     }
                     try {
                         respJson.addProperty("playlist", queryResult.parameters.fieldsMap["PlaylistName"]!!.stringValue)

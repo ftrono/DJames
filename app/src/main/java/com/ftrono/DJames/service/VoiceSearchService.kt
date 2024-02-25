@@ -375,7 +375,7 @@ class VoiceSearchService : Service() {
                                 currently_playing = queryResult
                                 last_log!!.add("spotify_play", currently_playing)
                                 //Close log:
-                                if (last_log!!.get("best_score").asInt > matchThreshold) {
+                                if (last_log!!.get("best_score").asInt > (matchThreshold*2)) {
                                     last_log!!.addProperty("result", "1")  //success
                                 } else {
                                     last_log!!.addProperty("result", "0")   //partial match

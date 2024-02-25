@@ -2,10 +2,8 @@ package com.ftrono.DJames.api
 
 import com.google.gson.JsonObject
 import android.util.Log
-import com.ftrono.DJames.application.client
-import com.ftrono.DJames.application.last_log
-import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.utils
+import android.content.Context
+import com.ftrono.DJames.application.*
 import com.google.gson.JsonParser
 import kotlinx.coroutines.runBlocking
 import okhttp3.Headers
@@ -13,117 +11,27 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 
 
-class SpotifyInterpreter {
+class SpotifyInterpreter (private val context: Context) {
     private val TAG = SpotifyInterpreter::class.java.simpleName
+    private val nlpInterpreter = NLPInterpreter(context)
 
-
-    //NOTE: To be called only if Intent HAS a song name inside!
-    fun extractMatchName(type: String, queryText: String, artistName: String, removeArtist: Boolean = false): JsonObject {
-        var matchName = ""
-        var artistExtracted = ""
-        var theType = false
-        var findArtist = ArrayList<String>()
-        findArtist.add("by the artist")
-        findArtist.add("from the artist")
-
-        //1) Slice string starting from "Play":
-        var playStr = "play the $type "
-        var playInd = queryText.indexOf(playStr, ignoreCase = true)
-        if (playInd > -1) {
-            theType = true
-        } else {
-            //Just "Play":
-            playStr = "play "
-            playInd = queryText.indexOf(playStr, ignoreCase = true)
-        }
-        if (playInd > -1) {
-            Log.d(TAG, "PLAY INDEX: $playInd")
-            playInd += playStr.length
-            var textFromPlay = queryText.slice(playInd..queryText.lastIndex).strip()
-            Log.d(TAG, "PLAY INDEX INCREASED: $playInd")
-            Log.d(TAG, "TEXT FROM PLAY: $textFromPlay")
-
-            matchName = textFromPlay
-            if (removeArtist) {
-                //2) Find artist prelude:
-                var preludeInd = -1
-                for (sent in findArtist) {
-                    preludeInd = textFromPlay.indexOf(sent, ignoreCase = true)
-                    if (preludeInd > -1) {
-                        break
-                    }
-                }
-                if (preludeInd > -1) {
-                    //Cut:
-                    matchName = textFromPlay.slice(0..preludeInd).strip()
-                    Log.d(TAG, "PRELUDE INDEX: $preludeInd")
-                    Log.d(TAG, "TEXT UP TO PRELUDE: $matchName")
-                } else if (artistName != "") {
-                    //3.A) Check artistName:
-                    var artistInd = textFromPlay.indexOf(artistName, ignoreCase = true)
-                    Log.d(TAG, "ARTIST INDEX: $artistInd")
-                    if (artistInd > -1) {
-                        //Check if previous word is "by":
-                        var byInd = textFromPlay.indexOf("by", ignoreCase = true)
-                        Log.d(TAG, "BY INDEX: $byInd")
-                        if (byInd == (artistInd - 3)) {
-                            artistInd -= 3
-                            Log.d(TAG, "ARTIST INDEX CORRECTED: $artistInd")
-                        }
-                        matchName = textFromPlay.slice(0..(artistInd - 1)).strip()
-                        Log.d(TAG, "TEXT UP TO ARTIST: $matchName")
-                    }
-                } else {
-                    //3.B) Find word "by":
-                    var byInd = textFromPlay.indexOf("by", ignoreCase = true)
-                    Log.d(TAG, "BY INDEX: $byInd")
-                    if (byInd > -1) {
-                        var artistInd = byInd + 3
-                        Log.d(TAG, "ARTIST INDEX FOUND: $artistInd")
-                        artistExtracted = textFromPlay.slice(artistInd .. textFromPlay.lastIndex).strip()
-                        Log.d(TAG, "ARTIST FOUND: $artistExtracted")
-                    }
-                    matchName = textFromPlay.slice(0..(byInd - 1)).strip()
-                    Log.d(TAG, "TEXT UP TO ARTIST: $matchName")
-                }
-            }
-        }
-        try {
-            var test = matchName.slice((matchName.lastIndex-6)..(matchName.lastIndex)).strip()
-            Log.d(TAG, "TEST: $test")
-            if (test.lowercase() == "by the") {
-                var matchName2 = matchName.slice(0..(matchName.lastIndex-6)).strip()
-                matchName = matchName2
-            }
-        } catch (e: Exception) {
-            Log.d(TAG, "Shorter matchName.")
-        }
-        if (matchName == "" && theType) {
-            matchName = "the $type"
-        }
-        Log.d(TAG, "CLEANED MATCH NAME: $matchName")
-        Log.d(TAG, "ARTIST EXTRACTED NAME: $artistExtracted")
-        var retExtracted = JsonObject()
-        retExtracted.addProperty("match_extracted", matchName)
-        retExtracted.addProperty("artist_extracted", artistExtracted)
-        retExtracted.addProperty("artist_dialogflow", artistName)
-        //Add to log:
-        last_log!!.add("nlp_extractor", retExtracted)
-        return retExtracted
-    }
 
     fun dispatchCall(resultsNLP: JsonObject): JsonObject {
         //TEMP:
+        var returnJSON = JsonObject()
         var type = resultsNLP.get("type").asString
-        var artistName = resultsNLP.get("artists").asString
-        var matchExtracted = extractMatchName(type=type, queryText=resultsNLP.get("query_text").asString, artistName=artistName, removeArtist=true)
-        var matchName = matchExtracted.get("match_extracted").asString
-        if (artistName == "") {
-            artistName = matchExtracted.get("artist_extracted").asString
+        var matchExtracted = nlpInterpreter.extractMatches(type=type, queryText=resultsNLP.get("query_text").asString.lowercase())
+
+        if (!matchExtracted.isEmpty) {
+            //Double check with DF extraction: #############
+            var artistName = resultsNLP.get("artists").asString
+            if (artistName == "") {
+                artistName = matchExtracted.get("artist_extracted").asString
+            }
+            //DISPATCH SPOTIFY CALLS ACCORDING TO NLP MATCHES EXTRACTED:
+            var search = SpotifySearch()
+            returnJSON = search.genericSearch(searchData=matchExtracted, artistName=artistName, getTwice=false)
         }
-        //DISPATCH SPOTIFY CALLS ACCORDING TO NLP RESULTS:
-        var search = SpotifySearch()
-        var returnJSON = search.genericSearch(type=type, matchName=matchName, artistName=artistName, getTwice=false)
         return returnJSON
     }
 

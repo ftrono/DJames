@@ -18,7 +18,7 @@ import android.provider.Settings
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.application.*
-import com.ftrono.DJames.api.NLPInterpreter
+import com.ftrono.DJames.api.NLPQuery
 import com.ftrono.DJames.application.FakeLockScreen
 import com.ftrono.DJames.recorder.AndroidAudioRecorder
 import com.ftrono.DJames.api.SpotifyInterpreter
@@ -44,7 +44,7 @@ class VoiceSearchService : Service() {
     }
 
     //API callers:
-    private var nlpInterpreter: NLPInterpreter? = null
+    private var nlpQuery: NLPQuery? = null
     private var spotifyInterpreter: SpotifyInterpreter? = null
 
     //Audio manager:
@@ -134,8 +134,8 @@ class VoiceSearchService : Service() {
             }
 
             //API callers:
-            nlpInterpreter = NLPInterpreter(applicationContext)
-            spotifyInterpreter = SpotifyInterpreter()
+            nlpQuery = NLPQuery(applicationContext)
+            spotifyInterpreter = SpotifyInterpreter(applicationContext)
 
         } catch (e: Exception) {
             Log.d(TAG, "Exception: ", e)
@@ -302,7 +302,7 @@ class VoiceSearchService : Service() {
                         last_log!!.addProperty("app_version", appVersion)
 
                         //Query NLP:
-                        var resultsNLP = nlpInterpreter!!.queryNLP(recFile)
+                        var resultsNLP = nlpQuery!!.queryNLP(recFile)
 
                         //Check NLP results:
                         nlp_queryText = ""

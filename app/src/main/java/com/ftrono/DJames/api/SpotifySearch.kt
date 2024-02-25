@@ -17,7 +17,12 @@ class SpotifySearch() {
     private var query = SpotifyQuery()
 
     //GENERIC SPOTIFY SEARCH -> PLAY WITHIN ALBUM:
-    fun genericSearch(type: String, matchName: String, artistName: String, getTwice: Boolean = false): JsonObject {
+    fun genericSearch(searchData: JsonObject, artistName: String, getTwice: Boolean = false): JsonObject {
+        //vars:
+        var type = "track"   //searchData.get("play_type").asString
+        var matchName = searchData.get("match_extracted").asString
+        //var artistName = searchData.get("artist_extracted").asString
+
         //BUILD GET REQUEST:
         var baseURL = "https://api.spotify.com/v1/search"
         val encodedMatchName: String = URLEncoder.encode(matchName, "UTF-8")

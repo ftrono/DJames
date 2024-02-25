@@ -1,0 +1,32 @@
+{
+  "play_sents": [
+    "play the song ",
+    "play the album ",
+    "play the playlist ",
+    "play "
+  ],
+  "by_sents": [
+    "by the artist",
+    "by this artist",
+    "from the artist",
+    "from this artist"
+  ],
+  "context_sents": [
+    "from the album",
+    "on the album",
+    "from my playlist",
+    "on my playlist",
+    "from this playlist",
+    "on this playlist",
+    "from this album",
+    "on this album",
+    "from album",
+    "on album",
+    "from the album",
+    "on the album",
+    "from playlist",
+    "on playlist",
+    "from the playlist",
+    "on the playlist"
+  ]
+}

@@ -1,6 +1,8 @@
 package com.ftrono.DJames.application
 
 import android.app.ActivityManager
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
@@ -20,17 +22,16 @@ import android.widget.Toast
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.updateLayoutParams
 import com.ftrono.DJames.R
 import com.ftrono.DJames.service.FloatingViewService
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlin.math.roundToInt
-import android.content.BroadcastReceiver
-import android.content.Context
-import androidx.core.content.FileProvider
 import java.io.File
+import kotlin.math.roundToInt
+import android.annotation.SuppressLint
 
 
 class MainActivity : AppCompatActivity() {
@@ -222,6 +223,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
+        @SuppressLint("RestrictedApi")
+        if (menu is MenuBuilder) {
+            menu.setOptionalIconsVisible(true)
+        }
         loginButton = menu.findItem(R.id.action_login)
         //Spotify login:
         if (prefs.spotifyToken != "") {
@@ -246,6 +251,11 @@ class MainActivity : AppCompatActivity() {
                 logout()
             }
             return true
+        //History:
+        } else if (id == R.id.action_history) {
+            val intent1 = Intent(this@MainActivity, HistoryActivity::class.java)
+            startActivity(intent1)
+            return true
         //Settings:
         } else if (id == R.id.action_settings) {
             val intent1 = Intent(this@MainActivity, SettingsActivity::class.java)
@@ -256,11 +266,6 @@ class MainActivity : AppCompatActivity() {
             val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
             val uri = Uri.fromParts("package", packageName, null)
             intent1.setData(uri)
-            startActivity(intent1)
-            return true
-        //History:
-        } else if (id == R.id.action_history) {
-            val intent1 = Intent(this@MainActivity, HistoryActivity::class.java)
             startActivity(intent1)
             return true
         } else {

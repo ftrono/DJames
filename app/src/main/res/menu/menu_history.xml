@@ -4,17 +4,17 @@
     tools:context="com.ftrono.DJames.application.HistoryActivity">
     <item
         android:id="@+id/action_send_logs"
-        android:orderInCategory="1"
         android:title="Send requests logs"
+        android:icon="@drawable/send_icon"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_clean_successful"
-        android:orderInCategory="2"
         android:title="Delete successful logs"
+        android:icon="@drawable/item_successful"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_clean"
-        android:orderInCategory="2"
         android:title="Delete all history logs"
+        android:icon="@drawable/delete_icon"
         app:showAsAction="never" />
 </menu>

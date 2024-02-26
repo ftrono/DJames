@@ -1,5 +1,6 @@
 package com.ftrono.DJames.application
 
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.DialogInterface
@@ -19,6 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import android.widget.TextView
+import androidx.appcompat.view.menu.MenuBuilder
 import com.ftrono.DJames.R
 import com.ftrono.DJames.adapter.HistoryAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -48,11 +50,10 @@ class HistoryActivity : AppCompatActivity() {
         setContentView(R.layout.activity_history)
         acts_active.add(TAG)
 
-        //Load Main views:
+        //Set Toolbar:
         var toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        //Load Main views:
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.title = "History"
         supportActionBar!!.subtitle = subtitle
@@ -141,6 +142,10 @@ class HistoryActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_history, menu)
+        @SuppressLint("RestrictedApi")
+        if (menu is MenuBuilder) {
+            menu.setOptionalIconsVisible(true)
+        }
         return true
     }
 

@@ -5,6 +5,7 @@ import com.ftrono.DJames.application.deltaSimilarity
 import com.ftrono.DJames.application.uri_format
 import com.ftrono.DJames.application.ext_format
 import com.ftrono.DJames.application.last_log
+import com.ftrono.DJames.application.matchDoubleThreshold
 import com.ftrono.DJames.application.prefs
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
@@ -17,7 +18,7 @@ class SpotifySearch() {
     private var query = SpotifyQuery()
 
     //GENERIC SPOTIFY SEARCH -> PLAY WITHIN ALBUM:
-    fun genericSearch(searchData: JsonObject, getTwice: Boolean = false): JsonObject {
+    fun genericSearch(searchData: JsonObject): JsonObject {
         //vars:
         var type = "track"   //searchData.get("play_type").asString
         var matchName = searchData.get("match_extracted").asString
@@ -36,10 +37,13 @@ class SpotifySearch() {
             }
         }
 
+        //Tools:
         var returnJSON = JsonObject()
         var url = baseURL
         var items = JsonArray()
         var items2 = JsonArray()
+        var bestMatches = JsonArray()
+        var bestScore = 0
 
         //Extract query params:
         var qParams = ArrayList<String>()
@@ -67,17 +71,21 @@ class SpotifySearch() {
 
         //First query (uses Params):
         var respJSON = query.querySpotify(type = "get", url = url1, jsonHeads = jsonHeads)
-        Log.d(TAG, respJSON.toString())
         var n_items = 0
         var keySet = respJSON.keySet()
         if (keySet.size == 0) {
+            //Empty:
             Log.d(TAG, "ERROR: Spotify Search results not received!!")
-            //Log.d(TAG, "returnJSON: ${returnJSON}")
         } else {
             //Analyse response & get index of best result:
             var tracks = respJSON.getAsJsonObject("tracks")
             items = tracks.getAsJsonArray("items")
             n_items = items.size()
+            //Get best score:
+            if (n_items > 0) {
+                bestMatches = getBestMatches(items, matchName, artistName, live)
+                bestScore = bestMatches[0].asJsonObject.get("score").asInt
+            }
         }
         //Log:
         var logQueries = JsonArray()
@@ -89,7 +97,7 @@ class SpotifySearch() {
 
         //SECOND REQUEST:
         var url2 = url
-        if (getTwice || items.isEmpty()) {
+        if (bestScore <= matchDoubleThreshold || items.isEmpty()) {
             //Compose query:
             if (artistName != "") {
                 val encodedArtistName: String = URLEncoder.encode(artistName, "UTF-8")
@@ -135,7 +143,15 @@ class SpotifySearch() {
             return returnJSON
         } else {
             //GET BEST RESULT:
-            var bestResult = getBestResult(items, matchName, artistName, live)
+            bestMatches = getBestMatches(items, matchName, artistName, live)
+            var bestInd = bestMatches[0].asJsonObject.get("ind").asInt
+            bestScore = bestMatches[0].asJsonObject.get("score").asInt
+
+            //GET FULL BEST JSON:
+            var bestResult = items.get(bestInd).asJsonObject
+            Log.d(TAG, "BEST RESULT: INDEX $bestInd, ITEM: $bestResult")
+            last_log!!.add("spotify_matches", bestMatches)
+            last_log!!.addProperty("best_score", bestScore)
 
             //ID & uri:
             var id = bestResult.get("id").asString
@@ -199,8 +215,8 @@ class SpotifySearch() {
     }
 
     //Spotify: get Best Result:
-    fun getBestResult(items: JsonArray, matchName: String, artistName: String, live: Boolean): JsonObject {
-        var bestResult = JsonObject()
+    fun getBestMatches(items: JsonArray, matchName: String, artistName: String, live: Boolean): JsonArray {
+        var bestMatches = JsonArray()
         //Analyse Spotify query result:
         //GET BEST RESULT:
         var c = 0
@@ -209,6 +225,7 @@ class SpotifySearch() {
         var scoresMap = mutableMapOf<Int, Int>()
         for (item in items) {
             var scoreJson = JsonObject()
+            scoreJson.addProperty("ind", c)
             var currItem = item.asJsonObject
             //Key info:
             val re = Regex("[^A-Za-z0-9 ]")
@@ -229,7 +246,7 @@ class SpotifySearch() {
             var score = scoreJson.get("nameSimilarity").asInt + scoreJson.get("artistSimilarity").asInt
             //Check if live:
             for (tok in name.split(" ")) {
-                if (tok.lowercase() == "live") {
+                if (!live && tok.lowercase() == "live") {
                     score -= deltaSimilarity
                     break
                 }
@@ -293,16 +310,10 @@ class SpotifySearch() {
             }
         }
         //Log:
-        var bestOnes = JsonArray()
         for (k in bestScores.keys) {
-            bestOnes.add(matchesArray[k])
+            bestMatches.add(matchesArray[k])
         }
-        last_log!!.add("spotify_matches", bestOnes)
-        last_log!!.addProperty("best_score", sortedScores[bestInd])
-        //GET FULL BEST JSON:
-        bestResult = items.get(bestInd).asJsonObject
-        Log.d(TAG, "BEST RESULT: INDEX $bestInd, ITEM: $bestResult")
-        return bestResult
+        return bestMatches
     }
 
 }

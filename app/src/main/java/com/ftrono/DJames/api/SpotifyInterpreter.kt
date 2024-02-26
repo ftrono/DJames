@@ -57,7 +57,7 @@ class SpotifyInterpreter (private val context: Context) {
 
             //3) DISPATCH SPOTIFY CALLS ACCORDING TO NLP MATCHES EXTRACTED:
             var search = SpotifySearch()
-            returnJSON = search.genericSearch(searchData=matchExtracted, getTwice=false)
+            returnJSON = search.genericSearch(searchData=matchExtracted)
         }
         return returnJSON
     }

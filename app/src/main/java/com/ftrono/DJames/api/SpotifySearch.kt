@@ -43,7 +43,13 @@ class SpotifySearch() {
         var items = JsonArray()
         var items2 = JsonArray()
         var bestMatches = JsonArray()
+        var bestInd = 0
         var bestScore = 0
+        var bestResult = JsonObject()
+
+        //Log:
+        var logQueries = JsonArray()
+        var logJSON = JsonObject()
 
         //Extract query params:
         var qParams = ArrayList<String>()
@@ -72,27 +78,32 @@ class SpotifySearch() {
         //First query (uses Params):
         var respJSON = query.querySpotify(type = "get", url = url1, jsonHeads = jsonHeads)
         var n_items = 0
+        //Log:
+        logJSON.addProperty("type", "genericSearch")
+        logJSON.addProperty("url", url1)
+        //Check content:
         var keySet = respJSON.keySet()
         if (keySet.size == 0) {
             //Empty:
+            logJSON.addProperty("n_items", n_items)
             Log.d(TAG, "ERROR: Spotify Search results not received!!")
         } else {
             //Analyse response & get index of best result:
             var tracks = respJSON.getAsJsonObject("tracks")
             items = tracks.getAsJsonArray("items")
             n_items = items.size()
+            logJSON.addProperty("n_items", n_items)
             //Get best score:
             if (n_items > 0) {
                 bestMatches = getBestMatches(items, matchName, artistName, live)
+                logJSON.add("spotify_matches", bestMatches)
+                //Best:
+                bestInd = bestMatches[0].asJsonObject.get("pos").asInt
                 bestScore = bestMatches[0].asJsonObject.get("score").asInt
+                bestResult = items.get(bestInd).asJsonObject
             }
         }
         //Log:
-        var logQueries = JsonArray()
-        var logJSON = JsonObject()
-        logJSON.addProperty("type", "genericSearch")
-        logJSON.addProperty("url", url1)
-        logJSON.addProperty("n_items", n_items)
         logQueries.add(logJSON)
 
         //SECOND REQUEST:
@@ -111,47 +122,46 @@ class SpotifySearch() {
                 Log.d(TAG, url2)
                 respJSON = query.querySpotify(type = "get", url = url2, jsonHeads = jsonHeads)
                 n_items = 0
+                //Log:
+                logJSON = JsonObject()
+                logJSON.addProperty("type", "genericSearch")
+                logJSON.addProperty("url", url2)
+                //Check content:
                 keySet = respJSON.keySet()
                 if (keySet.size == 0) {
+                    //Empty:
+                    logJSON.addProperty("n_items", n_items)
                     Log.d(TAG, "ERROR: Spotify Search results not received!!")
-                    //Log.d(TAG, "returnJSON: ${returnJSON}")
                 } else {
                     //Analyse response & get index of best result:
                     var tracks = respJSON.getAsJsonObject("tracks")
                     items2 = tracks.getAsJsonArray("items")
                     n_items = items2.size()
-                }
-                //Log:
-                var logJSON = JsonObject()
-                logJSON.addProperty("type", "genericSearch")
-                logJSON.addProperty("url", url2)
-                logJSON.addProperty("n_items", n_items)
-                logQueries.add(logJSON)
-
-                //MERGE RESULTS:
-                for (item in items2) {
-                    if (!items.contains(item)) {
-                        items.add(item)
+                    logJSON.addProperty("n_items", n_items)
+                    //Get best score:
+                    if (n_items > 0) {
+                        bestMatches = getBestMatches(items2, matchName, artistName, live)
+                        logJSON.add("spotify_matches", bestMatches)
+                        //Best:
+                        var bestScore2 = bestMatches[0].asJsonObject.get("score").asInt
+                        if (bestScore2 > bestScore) {
+                            //Overwrite global best:
+                            bestInd = bestMatches[0].asJsonObject.get("pos").asInt
+                            bestScore = bestScore2
+                            bestResult = items2.get(bestInd).asJsonObject
+                        }
                     }
                 }
+                //Log:
+                logQueries.add(logJSON)
             }
         }
         last_log!!.add("spotify_queries", logQueries)
-        if (items.size() == 0) {
-            Log.d(TAG, "ERROR: Spotify Search results not received!!")
-            //Log.d(TAG, "returnJSON: ${returnJSON}")
-            return returnJSON
-        } else {
-            //GET BEST RESULT:
-            bestMatches = getBestMatches(items, matchName, artistName, live)
-            var bestInd = bestMatches[0].asJsonObject.get("ind").asInt
-            bestScore = bestMatches[0].asJsonObject.get("score").asInt
+        last_log!!.addProperty("best_score", bestScore)
 
-            //GET FULL BEST JSON:
-            var bestResult = items.get(bestInd).asJsonObject
+        //EXTRACT INFO:
+        if (!bestResult.isEmpty) {
             Log.d(TAG, "BEST RESULT: INDEX $bestInd, ITEM: $bestResult")
-            last_log!!.add("spotify_matches", bestMatches)
-            last_log!!.addProperty("best_score", bestScore)
 
             //ID & uri:
             var id = bestResult.get("id").asString
@@ -191,8 +201,8 @@ class SpotifySearch() {
 
             Log.d(TAG, "Spotify Search results successfully processed!")
             Log.d(TAG, "returnJSON: ${returnJSON}")
-            return returnJSON
         }
+        return returnJSON
     }
 
 
@@ -225,7 +235,7 @@ class SpotifySearch() {
         var scoresMap = mutableMapOf<Int, Int>()
         for (item in items) {
             var scoreJson = JsonObject()
-            scoreJson.addProperty("ind", c)
+            scoreJson.addProperty("pos", c)
             var currItem = item.asJsonObject
             //Key info:
             val re = Regex("[^A-Za-z0-9 ]")

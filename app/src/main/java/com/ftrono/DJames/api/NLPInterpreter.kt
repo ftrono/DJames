@@ -239,7 +239,7 @@ class NLPInterpreter (private val context: Context) {
             Log.d(TAG, "Checked Artists List: $artistsTemp")
 
             //Priority to DF if matches confirmed:
-            if (artistsTemp.isEmpty()) {
+            if (listExtracted.size > artistsTemp.size) {
                 artistConfirmed = artistExtracted
             } else {
                 artistConfirmed = artistsTemp.joinToString(", ", "", "")

@@ -1,13 +1,16 @@
 package com.ftrono.DJames.api
 
 import android.util.Log
-import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.R
 import com.google.gson.JsonObject
 import android.content.Context
+import com.ftrono.DJames.application.matchThreshold
+import com.google.gson.JsonArray
 import com.google.gson.JsonParser
+import me.xdrop.fuzzywuzzy.FuzzySearch
 import java.io.BufferedReader
 import java.io.InputStreamReader
+
 
 class NLPInterpreter (private val context: Context) {
     private val TAG = NLPInterpreter::class.java.simpleName
@@ -22,6 +25,7 @@ class NLPInterpreter (private val context: Context) {
         var artistExtracted = ""
         var contextType = ""
         var currentContext = false
+        var contextLiked = false
         var contextExtracted = ""
         //Tools:
         var byNumber = 0
@@ -100,6 +104,10 @@ class NLPInterpreter (private val context: Context) {
                 }
                 //check "current":
                 if (sent.contains("this")) currentContext = true
+                //Check "liked songs":
+                else if (sent.contains("liked songs") || sent.contains("saved songs") || sent.contains("my songs")) {
+                    contextLiked = true
+                }
                 break
             }
         }
@@ -121,12 +129,12 @@ class NLPInterpreter (private val context: Context) {
                 } else {
                     if (contextInd < playInd) {
                         //"context" before "play":
-                        if (!currentContext) contextExtracted = queryText.slice((contextInd + contextStr.length)..< playInd).strip()
+                        if (!currentContext && !contextLiked) contextExtracted = queryText.slice((contextInd + contextStr.length)..< playInd).strip()
                         matchExtracted = queryText.slice((playInd + playStr.length)..queryText.lastIndex).strip()
 
                     } else {
                         //"play" before "context":
-                        if (!currentContext) contextExtracted = queryText.slice((contextInd + contextStr.length)..queryText.lastIndex) .strip()
+                        if (!currentContext && !contextLiked) contextExtracted = queryText.slice((contextInd + contextStr.length)..queryText.lastIndex) .strip()
                         matchExtracted = queryText.slice((playInd + playStr.length)..< contextInd).strip()
                     }
                 }
@@ -152,13 +160,13 @@ class NLPInterpreter (private val context: Context) {
 
                     if (playInd in (contextInd + 1)..<byInd) {
                         //order: "context", "play", "by":
-                        if (!currentContext) contextExtracted = queryText.slice((contextInd + contextStr.length)..< playInd).strip()
+                        if (!currentContext && !contextLiked) contextExtracted = queryText.slice((contextInd + contextStr.length)..< playInd).strip()
                         matchExtracted = queryText.slice((playInd + playStr.length)..< byInd).strip()
                         if (!currentArtist) artistExtracted = queryText.slice((byInd + byStr.length)..queryText.lastIndex).strip()
 
                     } else if (byInd in (contextInd + 1)..<playInd) {
                         //order: "context", "by", "play":
-                        if (!currentContext) contextExtracted = queryText.slice((contextInd + contextStr.length)..< byInd).strip()
+                        if (!currentContext && !contextLiked) contextExtracted = queryText.slice((contextInd + contextStr.length)..< byInd).strip()
                         if (!currentArtist) artistExtracted = queryText.slice((byInd + byStr.length)..< playInd).strip()
                         matchExtracted = queryText.slice((playInd + playStr.length)..queryText.lastIndex).strip()
 
@@ -166,24 +174,24 @@ class NLPInterpreter (private val context: Context) {
                         //order: "play", "by", "context":
                         matchExtracted = queryText.slice((playInd + playStr.length)..< byInd).strip()
                         if (!currentArtist) artistExtracted = queryText.slice((byInd + byStr.length)..< contextInd).strip()
-                        if (!currentContext) contextExtracted = queryText.slice((contextInd + contextStr.length)..queryText.lastIndex).strip()
+                        if (!currentContext && !contextLiked) contextExtracted = queryText.slice((contextInd + contextStr.length)..queryText.lastIndex).strip()
 
                     } else if (contextInd in (playInd + 1)..<byInd) {
                         //order: "play", "context", "by":
                         matchExtracted = queryText.slice((playInd + playStr.length)..< contextInd).strip()
-                        if (!currentContext) contextExtracted = queryText.slice((contextInd + contextStr.length)..< byInd).strip()
+                        if (!currentContext && !contextLiked) contextExtracted = queryText.slice((contextInd + contextStr.length)..< byInd).strip()
                         if (!currentArtist) artistExtracted = queryText.slice((byInd + byStr.length)..queryText.lastIndex).strip()
 
                     } else if (playInd in (byInd + 1)..<contextInd) {
                         //order: "by", "play", "context":
                         if (!currentArtist) artistExtracted = queryText.slice((byInd + byStr.length)..< playInd).strip()
                         matchExtracted = queryText.slice((playInd + playStr.length)..< contextInd).strip()
-                        if (!currentContext) contextExtracted = queryText.slice((contextInd + contextStr.length)..queryText.lastIndex).strip()
+                        if (!currentContext && !contextLiked) contextExtracted = queryText.slice((contextInd + contextStr.length)..queryText.lastIndex).strip()
 
                     } else {
                         //order: "by", "context", "play":
                         if (!currentArtist) artistExtracted = queryText.slice((byInd + byStr.length)..< contextInd).strip()
-                        if (!currentContext) contextExtracted = queryText.slice((contextInd + contextStr.length)..< playInd).strip()
+                        if (!currentContext && !contextLiked) contextExtracted = queryText.slice((contextInd + contextStr.length)..< playInd).strip()
                         matchExtracted = queryText.slice((playInd + playStr.length)..queryText.lastIndex).strip()
                     }
                 }
@@ -197,8 +205,48 @@ class NLPInterpreter (private val context: Context) {
         retExtracted.addProperty("artist_extracted", artistExtracted)
         retExtracted.addProperty("context_type", contextType)
         retExtracted.addProperty("context_current", currentContext)
+        retExtracted.addProperty("context_liked", contextLiked)
         retExtracted.addProperty("context_extracted", contextExtracted)
         //Log.d(TAG, "NLP EXTRACTOR RESULTS: $retExtracted")
         return retExtracted
     }
+
+
+    //Double check artists between DF & NLP Extractor:
+    fun checkArtists(artistsNlp: JsonArray, artistExtracted: String): String {
+        var artistConfirmed = ""
+        if (artistsNlp.isEmpty) {
+            //Confirm artists extracted by Extractor:
+            artistConfirmed = artistExtracted
+        } else if (artistExtracted != "") {
+            var score = 0
+            var artist = ""
+            var artistsTemp = ArrayList<String>()
+            //Split artists extracted:
+            var listExtracted = artistExtracted.split(" and ")
+            //Match one by one the artists extracted by DF with those extracted by Extractor:
+            for (extr in listExtracted) {
+                for (artJs in artistsNlp) {
+                    artist = artJs.asString
+                    score = FuzzySearch.ratio(artist.lowercase(), extr)
+                    Log.d(TAG, "COMPARING $artist WITH $extr, MATCH: $score")
+                    if (!artistsTemp.contains(artist) && score >= matchThreshold) {
+                        artistsTemp.add(artist)
+                    }
+                }
+            }
+
+            Log.d(TAG, "Checked Artists List: $artistsTemp")
+
+            //Priority to DF if matches confirmed:
+            if (artistsTemp.isEmpty()) {
+                artistConfirmed = artistExtracted
+            } else {
+                artistConfirmed = artistsTemp.joinToString(", ", "", "")
+            }
+        }
+        return  artistConfirmed
+    }
+
+
 }

@@ -30,26 +30,7 @@ class SpotifyInterpreter (private val context: Context) {
         //2) Double check DF artists with NLP Extractor:
         if (!matchExtracted.isEmpty) {
             val artistsNlp = resultsNLP.get("artists").asJsonArray
-            if (artistsNlp.isEmpty) {
-                //Confirm artists extracted by Extractor:
-                artistConfirmed = artistExtracted
-            } else {
-                var artistsTemp = ArrayList<String>()
-                //Match one by one the artists extracted by DF with those extracted by Extractor:
-                var artist = ""
-                for (artJs in artistsNlp) {
-                    artist = artJs.asString
-                    if (FuzzySearch.tokenSortRatio(artist, artistExtracted) >= matchThreshold) {
-                        artistsTemp.add(artist)
-                    }
-                }
-                //Priority to DF if matches confirmed:
-                if (artistsTemp.isEmpty()) {
-                    artistConfirmed = artistExtracted
-                } else {
-                    artistConfirmed = artistsTemp.joinToString(", ", "", "")
-                }
-            }
+            artistConfirmed = nlpInterpreter.checkArtists(artistsNlp, artistExtracted)
             matchExtracted.addProperty("artist_confirmed", artistConfirmed)
             //Add to log:
             last_log!!.add("nlp_extractor", matchExtracted)

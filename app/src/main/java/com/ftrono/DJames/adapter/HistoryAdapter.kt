@@ -42,12 +42,10 @@ class HistoryAdapter(
         var filename = "$datetime.json"
         //result check:
         try {
-            if (logItem.get("result").asString == "1") {
+            if (logItem.get("best_score").asInt > (matchDoubleThreshold)) {
                 holder.datetime.text = "${context.getString(R.string.result_good)}   $datetime"
-            } else if (logItem.get("result").asString == "0") {
-                holder.datetime.text = "${context.getString(R.string.result_not_good)}   $datetime"
             } else {
-                holder.datetime.text = "${context.getString(R.string.result_fail)}   $datetime"
+                holder.datetime.text = "${context.getString(R.string.result_not_good)}   $datetime"
             }
         } catch (e: Exception) {
             holder.datetime.text = "${context.getString(R.string.result_fail)}   $datetime"

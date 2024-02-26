@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -23,13 +24,19 @@ import com.ftrono.DJames.adapter.HistoryAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.gson.JsonArray
 import java.io.File
+import kotlin.math.roundToInt
 
 
 class HistoryActivity : AppCompatActivity() {
 
     private val TAG = HistoryActivity::class.java.simpleName
 
+    private var density: Float = 0F
+    private var height = 0
+    private var width = 0
+
     private val logConsName = "requests_log.json"
+    private var swipeRefreshLayout: SwipeRefreshLayout? = null
     private var textNoData: TextView? = null
     private var historyList: RecyclerView? = null
     private var logItems = JsonArray()
@@ -50,11 +57,28 @@ class HistoryActivity : AppCompatActivity() {
         supportActionBar!!.title = "History"
         supportActionBar!!.subtitle = subtitle
 
+        //Screen density:
+        density = applicationContext.resources.displayMetrics.density
+
+        // Store display height & width
+        height = resources.displayMetrics.heightPixels
+        width = resources.displayMetrics.widthPixels
+
+        //Check initial orientation:
+        var config = getResources().getConfiguration()
+
         //SwipeRefreshLayout:
-        var swipeRefreshLayout = findViewById<SwipeRefreshLayout>(R.id.swipeRefreshLayout)
-        swipeRefreshLayout.setOnRefreshListener {
+        swipeRefreshLayout = findViewById<SwipeRefreshLayout>(R.id.swipeRefreshLayout)
+        if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            swipeRefreshLayout!!.layoutParams.height = height - (100 * density).roundToInt()
+        } else {
+            swipeRefreshLayout!!.layoutParams.height = height - (80 * density).roundToInt()
+        }
+
+        //Refresh listener:
+        swipeRefreshLayout!!.setOnRefreshListener {
             Log.d(TAG, "onRefresh called from SwipeRefreshLayout")
-            swipeRefreshLayout.setRefreshing(false)
+            swipeRefreshLayout!!.setRefreshing(false)
             // setRefreshing(false) when it finishes.
             updateRecyclerView()
         }
@@ -64,7 +88,6 @@ class HistoryActivity : AppCompatActivity() {
         historyList = findViewById(R.id.history_list)
         historyList!!.layoutManager = LinearLayoutManager(this)
         historyList!!.setHasFixedSize( true )
-
 
         //Start personal Receiver:
         val actFilter = IntentFilter()
@@ -85,6 +108,15 @@ class HistoryActivity : AppCompatActivity() {
         //unregister receivers:
         unregisterReceiver(historyActReceiver)
         acts_active.remove(TAG)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // Store display height & width
+        width = resources.displayMetrics.widthPixels
+        height = resources.displayMetrics.heightPixels
+        //Update RecyclerView size:
+        swipeRefreshLayout!!.layoutParams.height = height-(100*density).roundToInt()
     }
 
     fun updateRecyclerView() {

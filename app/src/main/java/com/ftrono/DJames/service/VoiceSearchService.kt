@@ -356,7 +356,6 @@ class VoiceSearchService : Service() {
                                 recordingMode = false
                                 sourceIsVolume = false
                                 //Close log:
-                                last_log!!.addProperty("result", "-1")   //fail
                                 logFile!!.writeText(last_log.toString())
                                 //Send broadcast:
                                 Intent().also { intent ->
@@ -375,11 +374,6 @@ class VoiceSearchService : Service() {
                                 currently_playing = queryResult
                                 last_log!!.add("spotify_play", currently_playing)
                                 //Close log:
-                                if (last_log!!.get("best_score").asInt > (matchDoubleThreshold)) {
-                                    last_log!!.addProperty("result", "1")  //success
-                                } else {
-                                    last_log!!.addProperty("result", "0")   //partial match
-                                }
                                 logFile!!.writeText(last_log.toString())
 
                                 //Send broadcast:

@@ -219,13 +219,6 @@ class FloatingViewService : Service() {
                         sendBroadcast(intent)
                     }
 
-                    //End History():
-                    //Send broadcast:
-                    Intent().also { intent ->
-                        intent.setAction(ACTION_FINISH_HISTORY)
-                        sendBroadcast(intent)
-                    }
-
                 }
             }
 
@@ -318,11 +311,18 @@ class FloatingViewService : Service() {
             unregisterReceiver(eventReceiver)
             unregisterReceiver(overlayReceiver)
             Log.d(TAG, "Receivers stopped.")
+            //End Fake Lock Screen():
+            //Send broadcast:
+            Intent().also { intent ->
+                intent.setAction(ACTION_FINISH_CLOCK)
+                sendBroadcast(intent)
+            }
             Toast.makeText(
                 applicationContext,
                 getString(R.string.str_enable_overlay),
                 Toast.LENGTH_LONG
             ).show()
+            //Show permissions page:
             val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
             val uri = Uri.fromParts("package", packageName, null)
             intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -366,6 +366,12 @@ class FloatingViewService : Service() {
                 intent.setAction(ACTION_OVERLAY_DEACTIVATED)
                 sendBroadcast(intent)
             }
+        }
+        //End Fake Lock Screen():
+        //Send broadcast:
+        Intent().also { intent ->
+            intent.setAction(ACTION_FINISH_CLOCK)
+            sendBroadcast(intent)
         }
         overlay_active = false
         recordingMode = false

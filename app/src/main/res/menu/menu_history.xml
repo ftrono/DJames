@@ -1,7 +1,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.ftrono.DJames.application.HistoryActivity">
+    xmlns:tools="http://schemas.android.com/tools">
     <item
         android:id="@+id/action_send_logs"
         android:title="Send requests logs"

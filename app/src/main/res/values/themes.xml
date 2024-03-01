@@ -10,6 +10,7 @@
         <item name="android:windowBackground">@color/windowBackground</item>
         <item name="actionBarTheme">@style/ActionBarTheme</item>
         <item name="materialAlertDialogTheme">@style/DialogTheme</item>
+        <item name="popupMenuStyle">@style/PopupMenu</item>
     </style>
 
     <style name="AppTheme.NoActionBar" parent="AppTheme">
@@ -39,6 +40,21 @@
 
     <style name="CheckBoxStyle">
         <item name="colorPrimary">@color/light_grey</item>
+    </style>
+
+    <style name="NavBar.Indicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/colorPrimary</item>
+    </style>
+
+    <style name="NavRail.Indicator" parent="Widget.Material3.NavigationRailView.ActiveIndicator">
+        <item name="android:color">@color/colorPrimary</item>
+    </style>
+
+    <style name="PopupMenu" parent="Widget.Material3.PopupMenu">
+        <item name="android:textColor">@color/light_grey</item>
+        <item name="android:itemBackground">@color/dark_grey</item>
+        <item name="android:popupBackground">@color/dark_grey</item>
+        <item name="android:colorBackground">@color/dark_grey</item>
     </style>
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.Material3.Dark.ActionBar" />

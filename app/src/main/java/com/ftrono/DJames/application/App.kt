@@ -15,7 +15,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "1.01"
+val appVersion = "1.02"
 
 //Preferences:
 val deltaSimilarity = 30
@@ -82,10 +82,18 @@ const val ACTION_REDIRECT = "com.ftrono.DJames.eventReceiver.ACTION_REDIRECT"
 
 //Main Act receiver:
 const val ACTION_MAIN_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_MAIN_LOGGED_IN"
+const val ACTION_FINISH_MAIN = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_MAIN"
+
+//Home Fragment receiver:
+const val ACTION_HOME_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_HOME_LOGGED_IN"
+const val ACTION_HOME_LOGGED_OUT = "com.ftrono.DJames.eventReceiver.ACTION_HOME_LOGGED_OUT"
 const val ACTION_OVERLAY_ACTIVATED = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_ACTIVATED"
 const val ACTION_OVERLAY_DEACTIVATED = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_DEACTIVATED"
 const val ACTION_SETTINGS_VOL_UP = "com.ftrono.DJames.eventReceiver.ACTION_SETTINGS_VOL_UP"
-const val ACTION_FINISH_MAIN = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_MAIN"
+
+//History Fragment receiver:
+const val ACTION_LOG_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_LOG_REFRESH"
+const val ACTION_LOG_DELETE = "com.ftrono.DJames.eventReceiver.ACTION_LOG_DELETE"
 
 //Settings Act receiver:
 const val ACTION_SETTINGS_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_SETTINGS_LOGGED_IN"
@@ -95,11 +103,7 @@ const val ACTION_FINISH_SETTINGS = "com.ftrono.DJames.eventReceiver.ACTION_FINIS
 const val ACTION_TIME_TICK = "android.intent.action.TIME_TICK"
 const val ACTION_NEW_SONG = "com.ftrono.DJames.eventReceiver.ACTION_NEW_SONG"
 const val SPOTIFY_METADATA_CHANGED = "com.spotify.music.metadatachanged"
-
-//History Act receiver:
-const val ACTION_LOG_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_LOG_REFRESH"
-const val ACTION_LOG_DELETE = "com.ftrono.DJames.eventReceiver.ACTION_LOG_DELETE"
-const val ACTION_FINISH_HISTORY = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_HISTORY"
+const val ACTION_FINISH_CLOCK = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_CLOCK"
 
 //Overlay receiver:
 const val ACTION_CLOCK_OPENED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_OPENED"

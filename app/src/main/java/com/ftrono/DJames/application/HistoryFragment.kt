@@ -1,82 +1,70 @@
 package com.ftrono.DJames.application
 
-import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
-import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Button
+import android.widget.PopupMenu
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.core.content.FileProvider
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import android.widget.TextView
-import androidx.appcompat.view.menu.MenuBuilder
 import com.ftrono.DJames.R
 import com.ftrono.DJames.adapter.HistoryAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.gson.JsonArray
 import java.io.File
-import kotlin.math.roundToInt
 
 
-class HistoryActivity : AppCompatActivity() {
+class HistoryFragment : Fragment(R.layout.fragment_history) {
 
-    private val TAG = HistoryActivity::class.java.simpleName
-
-    private var density: Float = 0F
-    private var height = 0
-    private var width = 0
+    private val TAG: String = HistoryFragment::class.java.getSimpleName()
 
     private val logConsName = "requests_log.json"
     private var swipeRefreshLayout: SwipeRefreshLayout? = null
     private var textNoData: TextView? = null
     private var historyList: RecyclerView? = null
     private var logItems = JsonArray()
+    private var subtitleView: TextView? = null
     private var subtitle = "0 requests (last 30 days)"
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_history)
-        acts_active.add(TAG)
+        subtitleView = requireActivity().findViewById<TextView>(R.id.history_subtitle)
+        subtitleView!!.text = subtitle
 
-        //Set Toolbar:
-        var toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
+        //Options button:
+        var historyMenu = requireActivity().findViewById<Button>(R.id.history_menu)
 
-        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-        supportActionBar!!.title = "History"
-        supportActionBar!!.subtitle = subtitle
+        // Setting onClick behavior to the button
+        historyMenu.setOnClickListener {
+            // Initializing the popup menu and giving the reference as current context
+            val popupMenu = PopupMenu(requireActivity(), historyMenu)
 
-        //Screen density:
-        density = applicationContext.resources.displayMetrics.density
-
-        // Store display height & width
-        height = resources.displayMetrics.heightPixels
-        width = resources.displayMetrics.widthPixels
-
-        //Check initial orientation:
-        var config = getResources().getConfiguration()
-
-        //SwipeRefreshLayout:
-        swipeRefreshLayout = findViewById<SwipeRefreshLayout>(R.id.swipeRefreshLayout)
-        if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            swipeRefreshLayout!!.layoutParams.height = height - (100 * density).roundToInt()
-        } else {
-            swipeRefreshLayout!!.layoutParams.height = height - (80 * density).roundToInt()
+            // Inflating popup menu from popup_menu.xml file
+            popupMenu.menuInflater.inflate(R.menu.menu_history, popupMenu.menu)
+            popupMenu.setForceShowIcon(true)
+            popupMenu.setOnMenuItemClickListener { menuItem ->
+                // Toast message on menu item clicked
+                onPopupItemSelected(menuItem)
+            }
+            // Showing the popup menu
+            popupMenu.show()
         }
 
-        //Refresh listener:
+        //SwipeRefreshLayout:
+        swipeRefreshLayout = requireActivity().findViewById<SwipeRefreshLayout>(R.id.history_refresh)
         swipeRefreshLayout!!.setOnRefreshListener {
             Log.d(TAG, "onRefresh called from SwipeRefreshLayout")
             swipeRefreshLayout!!.setRefreshing(false)
@@ -85,19 +73,18 @@ class HistoryActivity : AppCompatActivity() {
         }
 
         //Views:
-        textNoData = findViewById(R.id.text_no_data)
-        historyList = findViewById(R.id.history_list)
-        historyList!!.layoutManager = LinearLayoutManager(this)
+        textNoData = requireActivity().findViewById(R.id.history_no_data)
+        historyList = requireActivity().findViewById(R.id.history_list)
+        historyList!!.layoutManager = LinearLayoutManager(requireActivity())
         historyList!!.setHasFixedSize( true )
 
         //Start personal Receiver:
         val actFilter = IntentFilter()
         actFilter.addAction(ACTION_LOG_REFRESH)
         actFilter.addAction(ACTION_LOG_DELETE)
-        actFilter.addAction(ACTION_FINISH_HISTORY)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
-        registerReceiver(historyActReceiver, actFilter, RECEIVER_EXPORTED)
+            requireActivity().registerReceiver(historyActReceiver, actFilter, AppCompatActivity.RECEIVER_EXPORTED)
         Log.d(TAG, "HistoryActReceiver started.")
 
         //Load data:
@@ -107,30 +94,20 @@ class HistoryActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         //unregister receivers:
-        unregisterReceiver(historyActReceiver)
-        acts_active.remove(TAG)
-    }
-
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        // Store display height & width
-        width = resources.displayMetrics.widthPixels
-        height = resources.displayMetrics.heightPixels
-        //Update RecyclerView size:
-        swipeRefreshLayout!!.layoutParams.height = height-(100*density).roundToInt()
+            requireActivity().unregisterReceiver(historyActReceiver)
     }
 
     fun updateRecyclerView() {
         //Load updated data:
         logItems = utils.getLogArray()
         subtitle = "${logItems.size()} requests (last 30 days)"
-        supportActionBar!!.subtitle = subtitle
+        subtitleView!!.text = subtitle
         if (logItems.size() > 0) {
             //Update visibility:
             historyList!!.visibility = View.VISIBLE
             textNoData!!.visibility = View.GONE
             //Set updated adapter:
-            val mAdapter = HistoryAdapter(applicationContext, logItems)
+            val mAdapter = HistoryAdapter(requireActivity(), logItems)
             historyList!!.adapter = mAdapter
         } else {
             //No data:
@@ -139,25 +116,15 @@ class HistoryActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_history, menu)
-        @SuppressLint("RestrictedApi")
-        if (menu is MenuBuilder) {
-            menu.setOptionalIconsVisible(true)
-        }
-        return true
-    }
 
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    fun onPopupItemSelected(item: MenuItem): Boolean {
         // Handle action bar item clicks here
         val id = item.itemId
         //Login / logout:
         if (id == R.id.action_send_logs) {
             val logCons = prepareLogCons()
             val uriToFile = FileProvider.getUriForFile(
-                applicationContext,
+                requireActivity(),
                 "com.ftrono.DJames.provider",
                 logCons
             )
@@ -168,25 +135,21 @@ class HistoryActivity : AppCompatActivity() {
             }
             startActivity(Intent.createChooser(sendIntent, null))
             //Toast.makeText(applicationContext, "Preparing logs...", Toast.LENGTH_SHORT).show()
-            return true
         } else if (id == R.id.action_clean_successful) {
             //Delete successful logs:
             deleteSuccessful()
-            return true
         } else if (id == R.id.action_clean) {
             //Delete all history:
             deleteAll()
-            return true
-        } else {
-            return super.onOptionsItemSelected(item)
         }
+        return true
     }
 
 
     //Prepare consolidated Log file:
     private fun prepareLogCons(): File {
         val logArray = utils.getLogArray()
-        var consFile = File(cacheDir, logConsName)
+        var consFile = File(requireActivity().cacheDir, logConsName)
         if (consFile.exists()) {
             consFile.delete()
         }
@@ -195,17 +158,11 @@ class HistoryActivity : AppCompatActivity() {
         return consFile
     }
 
-    override fun onBackPressed() {
-        //Finish and launch Main activity:
-        finish()
-        val intent1 = Intent(applicationContext, MainActivity::class.java)
-        startActivity(intent1)
-    }
 
     //Delete selected items in RecyclerView:
     fun deleteItems(toDeleteStr: String) {
         var toDelete = toDeleteStr.split(", ")
-        val alertDialog = MaterialAlertDialogBuilder(this@HistoryActivity)
+        val alertDialog = MaterialAlertDialogBuilder(requireActivity())
         //Exec:
         alertDialog.setPositiveButton("Yes", object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
@@ -214,7 +171,7 @@ class HistoryActivity : AppCompatActivity() {
                     File(logDir, f).delete()
                     Log.d(TAG, "Deleted file: $f")
                 }
-                Toast.makeText(applicationContext, "Deleted!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireActivity(), "Deleted!", Toast.LENGTH_SHORT).show()
                 updateRecyclerView()
             }
         })
@@ -237,7 +194,7 @@ class HistoryActivity : AppCompatActivity() {
 
     //Delete successful requests only;
     fun deleteSuccessful() {
-        val alertDialog = MaterialAlertDialogBuilder(this@HistoryActivity)
+        val alertDialog = MaterialAlertDialogBuilder(requireActivity())
         //Exec:
         alertDialog.setPositiveButton("Yes", object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
@@ -257,7 +214,7 @@ class HistoryActivity : AppCompatActivity() {
                         Log.d(TAG, "Deleted file: $filename")
                     }
                 }
-                Toast.makeText(applicationContext, "All successful requests deleted!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireActivity(), "All successful requests deleted!", Toast.LENGTH_SHORT).show()
                 updateRecyclerView()
             }
         })
@@ -274,14 +231,14 @@ class HistoryActivity : AppCompatActivity() {
 
     //Delete ALL logs:
     fun deleteAll() {
-        val alertDialog = MaterialAlertDialogBuilder(this@HistoryActivity)
+        val alertDialog = MaterialAlertDialogBuilder(requireActivity())
         //Exec:
         alertDialog.setPositiveButton("Yes", object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
                 //Yes
                 logDir!!.deleteRecursively()
                 Log.d(TAG, "Deleted ALL logs.")
-                Toast.makeText(applicationContext, "History deleted!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireActivity(), "History deleted!", Toast.LENGTH_SHORT).show()
                 updateRecyclerView()
             }
         })
@@ -313,12 +270,6 @@ class HistoryActivity : AppCompatActivity() {
                 Log.d(TAG, "HISTORY: ACTION_LOG_DELETE.")
                 var toDeleteStr = intent.getStringExtra("toDeleteStr")
                 deleteItems(toDeleteStr!!)
-            }
-
-            //Finish activity:
-            if (intent.action == ACTION_FINISH_HISTORY) {
-                Log.d(TAG, "HISTORY: ACTION_FINISH_SETTINGS.")
-                finishAndRemoveTask()
             }
         }
     }

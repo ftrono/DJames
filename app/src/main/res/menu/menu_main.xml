@@ -3,11 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.ftrono.DJames.application.MainActivity">
     <item
-        android:id="@+id/action_history"
-        android:title="History"
-        android:icon="@drawable/item_history"
-        app:showAsAction="never" />
-    <item
         android:id="@+id/action_settings"
         android:title="Settings"
         android:icon="@drawable/item_settings"

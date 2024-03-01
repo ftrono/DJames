@@ -75,6 +75,7 @@ class FakeLockScreen: AppCompatActivity() {
         actFilter.addAction(ACTION_TIME_TICK)
         actFilter.addAction(ACTION_NEW_SONG)
         actFilter.addAction(SPOTIFY_METADATA_CHANGED)
+        actFilter.addAction(ACTION_FINISH_CLOCK)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
         registerReceiver(clockActReceiver, actFilter, RECEIVER_EXPORTED)
@@ -360,6 +361,16 @@ class FakeLockScreen: AppCompatActivity() {
                     Log.d(TAG, "CLOCK: SPOTIFY_METADATA_CHANGED: resources not available.")
                 }
             }
+
+            //Finish activity:
+            if (intent.action == ACTION_FINISH_CLOCK) {
+                Log.d(TAG, "CLOCK: ACTION_FINISH_CLOCK.")
+//                //Start Main:
+//                val intent1 = Intent(applicationContext, MainActivity::class.java)
+//                startActivity(intent1)
+//                finish()
+            }
+
         }
     }
 

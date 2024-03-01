@@ -1,5 +1,6 @@
 package com.ftrono.DJames.application
 
+import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -7,7 +8,6 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
-import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -15,23 +15,18 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.widget.Toolbar
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.updateLayoutParams
+import androidx.fragment.app.Fragment
 import com.ftrono.DJames.R
 import com.ftrono.DJames.service.FloatingViewService
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.navigationrail.NavigationRailView
 import java.io.File
-import kotlin.math.roundToInt
-import android.annotation.SuppressLint
 
 
 class MainActivity : AppCompatActivity() {
@@ -40,19 +35,13 @@ class MainActivity : AppCompatActivity() {
 
     //Views:
     private var toolbar: Toolbar? = null
-    private var baloon: View? = null
-    private var baloon_arrow: View? = null
-    private var mega_face: ImageView? = null
-    private var density: Float = 0F
-
-    //View resources:
     private var mainActionBar: ActionBar? = null    //eventReceiver (login)
-    private var descr_login_status: TextView? = null    //eventReceiver (login)
-    private var descr_main: TextView? = null    //eventReceiver (login), setOverlayActive(utilities)
-    private var descr_use: TextView? = null    //eventReceiver (login, volumeSettings, utilities)
-    private var face_cover: View? = null    //eventReceiver (login)
-    private var startButton: Button? = null    //eventReceiver (login), setOverlayActive(utilities)
     private var loginButton: MenuItem? = null    //eventReceiver (login)
+    private var navBar: BottomNavigationView? = null
+    private var navRail: NavigationRailView? = null
+    private var curFragment: Fragment? = null
+    private var curNavItemId = R.id.nav_home
+    private var curInd = 0
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,110 +50,51 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         acts_active.add(TAG)
 
-        //Screen density:
-        density = applicationContext.resources.displayMetrics.density
-
         //Load Main views:
         toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         mainActionBar = supportActionBar
 
-        descr_login_status = findViewById<TextView>(R.id.descr_login_status)
-        baloon = findViewById<View>(R.id.baloon)
-        baloon_arrow = findViewById<View>(R.id.baloon_arrow)
-        descr_main = findViewById<TextView>(R.id.descr_main)
-        descr_use = findViewById<TextView>(R.id.descr_use)
-        mega_face = findViewById<ImageView>(R.id.DJames_face)
-        face_cover = findViewById<View>(R.id.face_cover)
-        startButton = findViewById<Button>(R.id.start_button)
-
-        //Check initial orientation:
-        var config = getResources().getConfiguration()
-        if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            //HORIZONTAL:
-            baloon!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
-                leftToRight = R.id.DJames_face
-                bottomToTop = R.id.start_button
-            }
-            mega_face!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
-                topToBottom = R.id.descr_login_status
-                rightToLeft = R.id.baloon
-                setMargins(0, 0, (50*density).roundToInt(),0)   //marginRight
-            }
-            baloon_arrow!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
-                rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
-                topToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
-                topToTop = R.id.baloon
-                bottomToBottom = R.id.baloon
-                rightToLeft = R.id.baloon
-                setMargins(0, 0,(-25*density).roundToInt(),0)   //marginRight
-            }
-        }
+        //Load Home fragment:
+        curFragment = HomeFragment()
+        curNavItemId = R.id.nav_home
+        supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.main_frame, curFragment!!)
+            .commit()
 
         //Check Login status:
         if (prefs.spotifyToken == "") {
             loggedIn = false
-            setViewLoggedOut()
         } else {
             loggedIn = true
             supportActionBar!!.subtitle = "for ${prefs.userName}"
-            descr_login_status!!.text = getString(R.string.str_status_logged)
-            if (prefs.volumeUpEnabled) {
-                descr_use!!.text = getString(R.string.str_use_logged)
-            } else {
-                descr_use!!.text = getString(R.string.str_use_logged_no_vol)
-            }
-            face_cover!!.visibility = View.INVISIBLE
-            if (overlay_active) {
-                setOverlayActive()
-            } else {
-                setOverlayInactive()
-            }
         }
 
         //Start personal Receiver:
         val actFilter = IntentFilter()
         actFilter.addAction(ACTION_MAIN_LOGGED_IN)
-        actFilter.addAction(ACTION_SETTINGS_VOL_UP)
-        actFilter.addAction(ACTION_OVERLAY_ACTIVATED)
-        actFilter.addAction(ACTION_OVERLAY_DEACTIVATED)
         actFilter.addAction(ACTION_FINISH_MAIN)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
         registerReceiver(mainActReceiver, actFilter, RECEIVER_EXPORTED)
         Log.d(TAG, "MainActReceiver started.")
 
-        //Start:
-        startButton!!.setOnClickListener(View.OnClickListener {
-            if (!loggedIn) {
-                //Login user -> Open WebView:
-                val intent1 = Intent(this@MainActivity, WebAuth::class.java)
-                startActivity(intent1)
-            } else if (!overlay_active) {
-                //START:
-                if (!isMyServiceRunning(FloatingViewService::class.java)) {
-                    startService(Intent(this, FloatingViewService::class.java))
-                }
-                //Start fake lock screen:
-                val intent1 = Intent(this@MainActivity, FakeLockScreen::class.java)
-                startActivity(intent1)
-                Toast.makeText(applicationContext, "Ask me to play a Spotify Song!", Toast.LENGTH_LONG).show()
-                finish()
-//                Snackbar.make(findViewById(R.id.content_main), getString(R.string.str_use_logged), Snackbar.LENGTH_LONG)
-//                    .setAction("CLOSE") { }
-//                    .setActionTextColor(resources.getColor(android.R.color.holo_red_light))
-//                    .show()
-            } else {
-                //STOP:
-                if (isMyServiceRunning(FloatingViewService::class.java)) {
-                    stopService(Intent(this, FloatingViewService::class.java))
-                }
-            }
+        //Navigation bars:
+        navBar = findViewById<BottomNavigationView>(R.id.navbar)
+        navBar!!.setOnItemSelectedListener {
+            selectNavItem(it)
+            true
+        }
+        navRail = findViewById<NavigationRailView>(R.id.navrail)
+        navRail!!.setOnItemSelectedListener {
+            selectNavItem(it)
+            true
+        }
 
-        })
+        //Check initial orientation:
+        var config = getResources().getConfiguration()
+        setOrientationLayout(config)
 
         //Init log directory:
         logDir = File(cacheDir, "log_requests")
@@ -196,10 +126,7 @@ class MainActivity : AppCompatActivity() {
         //ON RESUME() ONLY:
         //Check Login status:
         if (!loggedIn) {
-            overlay_active = false
             setViewLoggedOut()
-        } else if (!Settings.canDrawOverlays(this)) {
-            overlay_active = setOverlayInactive()
         }
     }
 
@@ -210,13 +137,69 @@ class MainActivity : AppCompatActivity() {
         unregisterReceiver(mainActReceiver)
         //empty views:
         mainActionBar = null
-        descr_login_status = null
-        descr_main = null
-        descr_use = null
-        face_cover = null
         loginButton = null
-        startButton = null
         acts_active.remove(TAG)
+    }
+
+    fun setOrientationLayout(config: Configuration){
+        if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            //HORIZONTAL:
+            navBar!!.visibility = View.GONE
+            navRail!!.visibility = View.VISIBLE
+            var item = navRail!!.menu.findItem(curNavItemId)
+            item.isChecked = true
+        } else {
+            //VERTICAL:
+            navRail!!.visibility = View.GONE
+            navBar!!.visibility = View.VISIBLE
+            var item = navBar!!.menu.findItem(curNavItemId)
+            item.isChecked = true
+        }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        setOrientationLayout(newConfig)
+    }
+
+    private fun selectNavItem(item: MenuItem) {
+        Log.d(TAG, "${item.itemId}")
+        if (item.itemId != curNavItemId) {
+            curFragment = when (item.itemId) {
+                R.id.nav_home -> HomeFragment()
+                R.id.nav_history -> HistoryFragment()
+                R.id.nav_vocabulary -> VocabularyFragment()
+                else -> HomeFragment()
+            }
+            var newInd = when (item.itemId) {
+                R.id.nav_home -> 0
+                R.id.nav_history -> 2
+                R.id.nav_vocabulary -> 1
+                else -> 0
+            }
+            var transaction = supportFragmentManager.beginTransaction()
+            if (newInd > curInd) {
+                transaction.setCustomAnimations(
+                    R.anim.slide_in_from_right, // enter
+                    R.anim.fade_out, // exit
+                    R.anim.fade_in, // popEnter
+                    R.anim.slide_out_from_right // popExit
+                )
+            } else {
+                transaction.setCustomAnimations(
+                    R.anim.slide_in_from_left, // enter
+                    R.anim.fade_out, // exit
+                    R.anim.fade_in, // popEnter
+                    R.anim.slide_out_from_left // popExit
+                )
+            }
+            transaction.replace(R.id.main_frame, curFragment!!)
+            transaction.commit()
+
+            item.isChecked = true
+            curNavItemId = item.itemId
+            curInd = newInd
+        }
     }
 
 
@@ -251,11 +234,6 @@ class MainActivity : AppCompatActivity() {
                 logout()
             }
             return true
-        //History:
-        } else if (id == R.id.action_history) {
-            val intent1 = Intent(this@MainActivity, HistoryActivity::class.java)
-            startActivity(intent1)
-            return true
         //Settings:
         } else if (id == R.id.action_settings) {
             val intent1 = Intent(this@MainActivity, SettingsActivity::class.java)
@@ -270,56 +248,6 @@ class MainActivity : AppCompatActivity() {
             return true
         } else {
             return super.onOptionsItemSelected(item)
-        }
-    }
-
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            //VERTICAL:
-            baloon!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                leftToRight = ConstraintLayout.LayoutParams.UNSET   //clear
-                leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
-                bottomToTop = R.id.DJames_face
-            }
-            mega_face!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                rightToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
-                topToBottom = R.id.baloon
-                rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
-                setMargins(0, (20*density).roundToInt(),0,0)   //marginTop
-            }
-            baloon_arrow!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                topToTop = ConstraintLayout.LayoutParams.UNSET   //clear
-                bottomToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
-                rightToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
-                leftToLeft = R.id.baloon
-                rightToRight = R.id.baloon
-                topToBottom = R.id.baloon
-                setMargins(0, (-40*density).roundToInt(),0,0)   //marginTop
-            }
-        }
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            //HORIZONTAL:
-            baloon!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
-                leftToRight = R.id.DJames_face
-                bottomToTop = R.id.start_button
-            }
-            mega_face!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
-                topToBottom = R.id.descr_login_status
-                rightToLeft = R.id.baloon
-                setMargins(0,0, (50*density).roundToInt(),0)   //marginRight
-            }
-            baloon_arrow!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
-                rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
-                topToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
-                topToTop = R.id.baloon
-                bottomToBottom = R.id.baloon
-                rightToLeft = R.id.baloon
-                setMargins(0, 0,(-25*density).roundToInt(),0)   //marginRight
-            }
         }
     }
 
@@ -353,6 +281,11 @@ class MainActivity : AppCompatActivity() {
                     stopService(Intent(applicationContext, FloatingViewService::class.java))
                 }
                 setViewLoggedOut()
+                //Send broadcasts:
+                Intent().also { intent ->
+                    intent.setAction(ACTION_HOME_LOGGED_OUT)
+                    sendBroadcast(intent)
+                }
                 Toast.makeText(applicationContext, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()
             }
         })
@@ -373,59 +306,6 @@ class MainActivity : AppCompatActivity() {
             loginButton!!.setTitle("Login")
         }
         supportActionBar!!.subtitle = ""
-        descr_login_status!!.text = getString(R.string.str_status_not_logged)
-        face_cover!!.visibility = View.VISIBLE
-        descr_main!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.light_grey))
-        descr_main!!.setTypeface(null, Typeface.ITALIC)
-        descr_main!!.text = getString(R.string.str_main_not_logged)
-        descr_use!!.text = getString(R.string.str_use_not_logged)
-        descr_use!!.setTextColor(AppCompatResources.getColorStateList(this, R.color.mid_grey))
-        startButton!!.text = "L O G I N"
-        startButton!!.backgroundTintList = AppCompatResources.getColorStateList(this, R.color.faded_grey)
-        return false
-    }
-
-    //Set Overlay Active view in Main:
-    fun setOverlayActive(): Boolean {
-        try {
-            if (Settings.canDrawOverlays(applicationContext)) {
-                startButton!!.text = "S T O P"
-                startButton!!.backgroundTintList = AppCompatResources.getColorStateList(applicationContext, R.color.colorStop)
-                descr_main!!.setTextColor(AppCompatResources.getColorStateList(applicationContext, R.color.colorHeader))
-                descr_main!!.setTypeface(null, Typeface.BOLD_ITALIC)
-                descr_main!!.text = getString(R.string.str_main_stop)
-                if (prefs.volumeUpEnabled) {
-                    descr_use!!.text = getString(R.string.str_use_logged)
-                } else {
-                    descr_use!!.text = getString(R.string.str_use_logged_no_vol)
-                }
-                descr_use!!.setTextColor(AppCompatResources.getColorStateList(applicationContext, R.color.light_grey))
-            }
-            Log.d(TAG, "SetOverlayActive()")
-        } catch (e: Exception) {
-            Log.d(TAG, "SetOverlayActive(): resources not available.")
-        }
-        return true
-    }
-
-    //Set Overlay Inactive view in Main:
-    fun setOverlayInactive(): Boolean {
-        try {
-            startButton!!.text = "S T A R T"
-            startButton!!.backgroundTintList = AppCompatResources.getColorStateList(applicationContext, R.color.colorAccent)
-            descr_main!!.setTextColor(AppCompatResources.getColorStateList(applicationContext, R.color.light_grey))
-            descr_main!!.setTypeface(null, Typeface.ITALIC)
-            descr_main!!.text = getString(R.string.str_main_start)
-            if (prefs.volumeUpEnabled) {
-                descr_use!!.text = getString(R.string.str_use_logged)
-            } else {
-                descr_use!!.text = getString(R.string.str_use_logged_no_vol)
-            }
-            descr_use!!.setTextColor(AppCompatResources.getColorStateList(applicationContext, R.color.mid_grey))
-            Log.d(TAG, "SetOverlayInactive()")
-        } catch (e: Exception) {
-            Log.d(TAG, "SetOverlayInactive(): resources not available.")
-        }
         return false
     }
 
@@ -438,7 +318,6 @@ class MainActivity : AppCompatActivity() {
             //When logged in:
             if (intent!!.action == ACTION_MAIN_LOGGED_IN) {
                 Log.d(TAG, "MAIN: ACTION_MAIN_LOGGED_IN.")
-
                 loggedIn = true
                 try {
                     //Set Logged-In UI:
@@ -446,30 +325,6 @@ class MainActivity : AppCompatActivity() {
                         loginButton!!.setTitle("Logout")
                     }
                     mainActionBar!!.subtitle = "for ${prefs.userName}"
-                    descr_login_status!!.text = context!!.getString(R.string.str_status_logged)
-                    face_cover!!.visibility = View.INVISIBLE
-                    startButton!!.text = "S T A R T"
-                    startButton!!.backgroundTintList =
-                        AppCompatResources.getColorStateList(context, R.color.colorAccent)
-                    descr_main!!.setTextColor(
-                        AppCompatResources.getColorStateList(
-                            context,
-                            R.color.light_grey
-                        )
-                    )
-                    descr_main!!.setTypeface(null, Typeface.ITALIC)
-                    descr_main!!.text = getString(R.string.str_main_start)
-                    if (prefs.volumeUpEnabled) {
-                        descr_use!!.text = getString(R.string.str_use_logged)
-                    } else {
-                        descr_use!!.text = getString(R.string.str_use_logged_no_vol)
-                    }
-                    descr_use!!.setTextColor(
-                        AppCompatResources.getColorStateList(
-                            context,
-                            R.color.mid_grey
-                        )
-                    )
                 } catch (e: Exception) {
                     Log.d(TAG, "MAIN: ACTION_MAIN_LOGGED_IN: resources not available.")
                 }
@@ -480,34 +335,6 @@ class MainActivity : AppCompatActivity() {
                 } catch (e: Exception) {
                     Log.d(TAG, "MAIN: ACTION_MAIN_LOGGED_IN: cannot toast.")
                 }
-            }
-
-            //When Settings VOLUME-UP is changed:
-            if (intent.action == ACTION_SETTINGS_VOL_UP) {
-                Log.d(TAG, "MAIN: ACTION_SETTINGS_VOL_UP.")
-                try {
-                    if (prefs.volumeUpEnabled) {
-                        descr_use!!.text = context!!.resources.getString(R.string.str_use_logged)
-                    } else {
-                        descr_use!!.text = context!!.resources.getString(R.string.str_use_logged_no_vol)
-                    }
-                } catch (e: Exception) {
-                    Log.d(TAG, "MAIN: ACTION_SETTINGS_VOL_UP: resources not available.")
-                }
-            }
-
-
-            //When Overlay is activated:
-            if (intent.action == ACTION_OVERLAY_ACTIVATED) {
-                Log.d(TAG, "MAIN: ACTION_OVERLAY_ACTIVATED.")
-                setOverlayActive()
-            }
-
-
-            //When Overlay is deactivated:
-            if (intent.action == ACTION_OVERLAY_DEACTIVATED) {
-                Log.d(TAG, "MAIN: ACTION_OVERLAY_DEACTIVATED.")
-                setOverlayInactive()
             }
 
             //Finish activity:

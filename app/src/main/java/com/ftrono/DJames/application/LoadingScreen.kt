@@ -102,6 +102,10 @@ class LoadingScreen: AppCompatActivity() {
                                         sendBroadcast(intent)
                                     }
                                     Intent().also { intent ->
+                                        intent.setAction(ACTION_HOME_LOGGED_IN)
+                                        sendBroadcast(intent)
+                                    }
+                                    Intent().also { intent ->
                                         intent.setAction(ACTION_SETTINGS_LOGGED_IN)
                                         sendBroadcast(intent)
                                     }

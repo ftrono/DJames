@@ -138,7 +138,7 @@ class VoiceSearchService : Service() {
             spotifyInterpreter = SpotifyInterpreter(applicationContext)
 
         } catch (e: Exception) {
-            Log.d(TAG, "Exception: ", e)
+            Log.e(TAG, "Exception: ", e)
             //Abandon audio focus:
             try {
                 audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
@@ -150,8 +150,10 @@ class VoiceSearchService : Service() {
             searchFail = false
             sourceIsVolume = false
             //Thread check:
-            if (vqThread!!.isAlive()){
-                vqThread!!.interrupt()
+            if (vqThread != null) {
+                if (vqThread!!.isAlive()) {
+                    vqThread!!.interrupt()
+                }
             }
             //Stop recorder:
             if (recInProgress) {
@@ -205,8 +207,10 @@ class VoiceSearchService : Service() {
                 Log.d(TAG, "Recorder not available.")
             }
             //Thread check:
-            if (vqThread!!.isAlive()){
-                vqThread!!.interrupt()
+            if (vqThread != null) {
+                if (vqThread!!.isAlive()) {
+                    vqThread!!.interrupt()
+                }
             }
             //Play FAIL tone:
             toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL

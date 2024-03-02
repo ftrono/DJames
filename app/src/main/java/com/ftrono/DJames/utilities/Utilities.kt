@@ -1,5 +1,6 @@
 package com.ftrono.DJames.utilities
 
+import android.content.Context
 import android.util.Log
 import okhttp3.Call
 import okhttp3.Callback
@@ -12,7 +13,10 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.streams.asSequence
 import com.ftrono.DJames.application.logDir
+import com.ftrono.DJames.application.matchDoubleThreshold
+import com.ftrono.DJames.application.utils
 import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import java.io.File
 import com.google.gson.JsonParser
 import java.io.FileReader
@@ -56,8 +60,10 @@ class Utilities {
 
     //LOG:
     //Get JsonArray out of all log files:
-    fun getLogArray(): JsonArray {
+    fun getLogArray(hideSuccessful: Boolean): JsonArray {
         var logArray = JsonArray()
+        var obj = JsonObject()
+        var score = 0
         if (logDir!!.exists()) {
             var logFiles = logDir!!.list()
             logFiles!!.sortDescending()   //Sort descending by date
@@ -65,7 +71,21 @@ class Utilities {
                 var reader = FileReader(File(logDir, f))
                 //Delete invalid files:
                 try {
-                    logArray.add(JsonParser.parseReader(reader).asJsonObject)
+                    obj = JsonParser.parseReader(reader).asJsonObject
+                    if (!hideSuccessful) {
+                        //Add all:
+                        logArray.add(obj)
+                    } else {
+                        //Add doubtful only:
+                        try {
+                            score = obj.get("best_score").asInt
+                            if (score <= matchDoubleThreshold){
+                                logArray.add(obj)
+                            }
+                        } catch (e: Exception) {
+                            Log.d(TAG, "File $f: No score.")
+                        }
+                    }
                 } catch (e: Exception) {
                     File(logDir, f).delete()
                     Log.d(TAG, "Deleted file: $f")
@@ -96,6 +116,19 @@ class Utilities {
             }
             Log.d(TAG, "Removed $c older logs.")
         }
+    }
+
+    //Prepare consolidated Log file:
+    fun prepareLogCons(context: Context, hideSuccessful: Boolean): File {
+        val logConsName = "requests_log.json"
+        val logArray = utils.getLogArray(hideSuccessful=hideSuccessful)
+        var consFile = File(context.cacheDir, logConsName)
+        if (consFile.exists()) {
+            consFile.delete()
+        }
+        consFile.createNewFile()
+        consFile.writeText(logArray.toString())
+        return consFile
     }
 
 }

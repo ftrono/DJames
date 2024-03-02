@@ -29,7 +29,7 @@ class HistoryAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryViewHolder {
         val view: View =
-            LayoutInflater.from(parent.context).inflate(R.layout.card_layout, parent, false)
+            LayoutInflater.from(parent.context).inflate(R.layout.history_card_layout, parent, false)
         //Screen density:
         density = context.resources.displayMetrics.density
         return HistoryViewHolder(view)

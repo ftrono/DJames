@@ -30,13 +30,14 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
 
     private val TAG: String = HistoryFragment::class.java.getSimpleName()
 
-    private val logConsName = "requests_log.json"
     private var swipeRefreshLayout: SwipeRefreshLayout? = null
     private var textNoData: TextView? = null
     private var historyList: RecyclerView? = null
     private var logItems = JsonArray()
     private var subtitleView: TextView? = null
     private var subtitle = "0 requests (last 30 days)"
+    private var filterButton: MenuItem? = null
+    private var hideSuccessful = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -55,6 +56,14 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
             // Inflating popup menu from popup_menu.xml file
             popupMenu.menuInflater.inflate(R.menu.menu_history, popupMenu.menu)
             popupMenu.setForceShowIcon(true)
+            filterButton = popupMenu.menu.findItem(R.id.action_filter_successful)
+            if (!hideSuccessful) {
+                filterButton!!.setTitle("Hide successful")
+                filterButton!!.setIcon(R.drawable.filter_icon)
+            } else {
+                filterButton!!.setTitle("Show successful")
+                filterButton!!.setIcon(R.drawable.unfilter_icon)
+            }
             popupMenu.setOnMenuItemClickListener { menuItem ->
                 // Toast message on menu item clicked
                 onPopupItemSelected(menuItem)
@@ -99,7 +108,7 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
 
     fun updateRecyclerView() {
         //Load updated data:
-        logItems = utils.getLogArray()
+        logItems = utils.getLogArray(hideSuccessful=hideSuccessful)
         subtitle = "${logItems.size()} requests (last 30 days)"
         subtitleView!!.text = subtitle
         if (logItems.size() > 0) {
@@ -121,8 +130,20 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         // Handle action bar item clicks here
         val id = item.itemId
         //Login / logout:
-        if (id == R.id.action_send_logs) {
-            val logCons = prepareLogCons()
+        if (id == R.id.action_filter_successful) {
+            if (!hideSuccessful) {
+                hideSuccessful = true
+                filterButton!!.setTitle("Show successful")
+                filterButton!!.setIcon(R.drawable.unfilter_icon)
+            } else {
+                hideSuccessful = false
+                filterButton!!.setTitle("Hide successful")
+                filterButton!!.setIcon(R.drawable.filter_icon)
+            }
+            updateRecyclerView()
+        }
+        else if (id == R.id.action_send_logs) {
+            val logCons = utils.prepareLogCons(requireActivity(), hideSuccessful=hideSuccessful)
             val uriToFile = FileProvider.getUriForFile(
                 requireActivity(),
                 "com.ftrono.DJames.provider",
@@ -143,19 +164,6 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
             deleteAll()
         }
         return true
-    }
-
-
-    //Prepare consolidated Log file:
-    private fun prepareLogCons(): File {
-        val logArray = utils.getLogArray()
-        var consFile = File(requireActivity().cacheDir, logConsName)
-        if (consFile.exists()) {
-            consFile.delete()
-        }
-        consFile.createNewFile()
-        consFile.writeText(logArray.toString())
-        return consFile
     }
 
 

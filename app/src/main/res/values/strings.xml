@@ -26,4 +26,9 @@
         <item>Current default</item>
         <item>Primary device</item>
     </string-array>
+    <string-array name="vocTypes">
+        <item>Artist</item>
+        <item>Album</item>
+        <item>Playlist</item>
+    </string-array>
 </resources>

@@ -9,9 +9,9 @@
     <item
         android:id="@+id/nav_vocabulary"
         android:title="Vocabulary"
-        android:icon="@drawable/item_settings" />
+        android:icon="@drawable/nav_vocabulary" />
     <item
         android:id="@+id/nav_history"
         android:title="History"
-        android:icon="@drawable/item_history" />
+        android:icon="@drawable/nav_history" />
 </menu>

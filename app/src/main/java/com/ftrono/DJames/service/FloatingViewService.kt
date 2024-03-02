@@ -67,9 +67,9 @@ class FloatingViewService : Service() {
         try {
             synchronized(this) {
                 Thread.sleep(3000)
-                //Initialized:
-                if (!initialized) {
-                    initialized = true
+                //Vol_initialized:
+                if (!vol_initialized) {
+                    vol_initialized = true
                 }
             }
         } catch (e: InterruptedException) {
@@ -87,7 +87,7 @@ class FloatingViewService : Service() {
         super.onCreate()
         try {
             startForeground()
-            initialized = false
+            vol_initialized = false
             //Send broadcast:
             Intent().also { intent ->
                 intent.setAction(ACTION_OVERLAY_ACTIVATED)
@@ -306,7 +306,7 @@ class FloatingViewService : Service() {
             recordingMode = false
             overlayButton = null
             overlayIcon = null
-            initialized = false
+            vol_initialized = false
             //unregister receivers:
             unregisterReceiver(eventReceiver)
             unregisterReceiver(overlayReceiver)
@@ -385,7 +385,7 @@ class FloatingViewService : Service() {
         overlayClockButton = null
         overlayClockIcon = null
         overlayClockText = null
-        initialized = false
+        vol_initialized = false
         //If no activities active -> CLOSE APP:
         Log.d(TAG, "$acts_active")
         if (acts_active.size == 0) {

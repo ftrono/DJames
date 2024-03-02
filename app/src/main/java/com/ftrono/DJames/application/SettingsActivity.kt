@@ -55,7 +55,7 @@ class SettingsActivity : AppCompatActivity() {
         acts_active.add(TAG)
 
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-        supportActionBar!!.title = "Settings"
+        supportActionBar!!.title = "Preferences"
 
         //Views:
         user_container = findViewById<View>(R.id.user_container)

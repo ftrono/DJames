@@ -21,21 +21,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingLeft="8dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
             android:text="2024-02-19 18:00:00"
             android:textColor="@color/mid_grey"
             android:textSize="12dp"
             app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            />
+            app:layout_constraintTop_toTopOf="@id/delete_button"
+            app:layout_constraintBottom_toBottomOf="@id/delete_button"/>
 
         <TextView
             android:id="@+id/nlp_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingLeft="8dp"
+            android:layout_marginTop="8dp"
             android:text="Play Song by Artist Name"
             android:textColor="@color/light_grey"
             android:textSize="14dp"
@@ -132,8 +131,8 @@
 
         <ImageView
             android:id="@+id/send_button"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:paddingRight="8dp"
             android:src="@drawable/send_icon"
             app:layout_constraintVertical_chainStyle="packed"
@@ -142,8 +141,8 @@
 
         <ImageView
             android:id="@+id/lookup_button"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:paddingRight="8dp"
             android:src="@drawable/lookup_icon"
             app:layout_constraintVertical_chainStyle="packed"
@@ -152,8 +151,8 @@
 
         <ImageView
             android:id="@+id/delete_button"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:paddingRight="8dp"
             android:src="@drawable/delete_icon"
             app:layout_constraintVertical_chainStyle="packed"

@@ -96,27 +96,36 @@ class MainActivity : AppCompatActivity() {
         var config = getResources().getConfiguration()
         setOrientationLayout(config)
 
-        //Init log directory:
-        logDir = File(cacheDir, "log_requests")
-        if (!logDir!!.exists()) {
-            logDir!!.mkdir()
-        }
-        //delete older logs:
-        utils.deleteOldLogs()
-        //delete older recFiles in cache:
-        if (!overlay_active) {
-            try {
-                File(cacheDir, "$recFileName.mp3").delete()
-                Log.d(TAG, "Recording mp3 deleted.")
-            } catch (e: Exception) {
-                Log.d(TAG, "Recording mp3 not deleted.")
+        //CLEANING:
+        if (!main_initialized) {
+            //Init log directory:
+            logDir = File(cacheDir, "log_requests")
+            if (!logDir!!.exists()) {
+                logDir!!.mkdir()
             }
-            try {
-                File(cacheDir, "$recFileName.flac").delete()
-                Log.d(TAG, "Recording flac deleted.")
-            } catch (e: Exception) {
-                Log.d(TAG, "Recording flac not deleted.")
+            //Init vocabulary directory:
+            logDir = File(cacheDir, "vocabulary")
+            if (!logDir!!.exists()) {
+                logDir!!.mkdir()
             }
+            //delete older logs:
+            utils.deleteOldLogs()
+            //delete older recFiles in cache:
+            if (!overlay_active) {
+                try {
+                    File(cacheDir, "$recFileName.mp3").delete()
+                    Log.d(TAG, "Recording mp3 deleted.")
+                } catch (e: Exception) {
+                    Log.d(TAG, "Recording mp3 not deleted.")
+                }
+                try {
+                    File(cacheDir, "$recFileName.flac").delete()
+                    Log.d(TAG, "Recording flac deleted.")
+                } catch (e: Exception) {
+                    Log.d(TAG, "Recording flac not deleted.")
+                }
+            }
+            main_initialized = true
         }
     }
 

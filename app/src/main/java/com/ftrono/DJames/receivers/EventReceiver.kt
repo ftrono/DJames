@@ -28,7 +28,7 @@ class EventReceiver: BroadcastReceiver() {
                     Log.d(TAG, "EVENT: VOLUME_CHANGED_ACTION: Volume lowered.")
                 }
                 //If not recordingMode:
-                if (!recordingMode && initialized && screenOn) {
+                if (!recordingMode && vol_initialized && screenOn) {
                     //START VOICE SEARCH SERVICE:
                     recordingMode = true
                     sourceIsVolume = true

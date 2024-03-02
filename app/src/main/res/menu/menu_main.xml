@@ -4,17 +4,17 @@
     tools:context="com.ftrono.DJames.application.MainActivity">
     <item
         android:id="@+id/action_settings"
-        android:title="Settings"
-        android:icon="@drawable/item_settings"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_permissions"
-        android:title="Set app permissions"
-        android:icon="@drawable/item_permissions"
-        app:showAsAction="never" />
+        android:title="Preferences"
+        android:icon="@drawable/item_preferences"
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_login"
         android:title="Login"
         android:icon="@drawable/item_user"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_permissions"
+        android:title="Permissions"
+        android:icon="@drawable/item_permissions"
         app:showAsAction="never" />
 </menu>

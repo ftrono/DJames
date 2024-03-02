@@ -32,7 +32,7 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
 
     private var swipeRefreshLayout: SwipeRefreshLayout? = null
     private var textNoData: TextView? = null
-    private var historyList: RecyclerView? = null
+    private var refreshList: RecyclerView? = null
     private var logItems = JsonArray()
     private var subtitleView: TextView? = null
     private var subtitle = "0 requests (last 30 days)"
@@ -83,9 +83,9 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
 
         //Views:
         textNoData = requireActivity().findViewById(R.id.history_no_data)
-        historyList = requireActivity().findViewById(R.id.history_list)
-        historyList!!.layoutManager = LinearLayoutManager(requireActivity())
-        historyList!!.setHasFixedSize( true )
+        refreshList = requireActivity().findViewById(R.id.history_list)
+        refreshList!!.layoutManager = LinearLayoutManager(requireActivity())
+        refreshList!!.setHasFixedSize( true )
 
         //Start personal Receiver:
         val actFilter = IntentFilter()
@@ -113,14 +113,14 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         subtitleView!!.text = subtitle
         if (logItems.size() > 0) {
             //Update visibility:
-            historyList!!.visibility = View.VISIBLE
+            refreshList!!.visibility = View.VISIBLE
             textNoData!!.visibility = View.GONE
             //Set updated adapter:
             val mAdapter = HistoryAdapter(requireActivity(), logItems)
-            historyList!!.adapter = mAdapter
+            refreshList!!.adapter = mAdapter
         } else {
             //No data:
-            historyList!!.visibility = View.GONE
+            refreshList!!.visibility = View.GONE
             textNoData!!.visibility = View.VISIBLE
         }
     }

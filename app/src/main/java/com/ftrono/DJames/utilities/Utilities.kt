@@ -12,9 +12,7 @@ import java.util.Random
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.streams.asSequence
-import com.ftrono.DJames.application.logDir
-import com.ftrono.DJames.application.matchDoubleThreshold
-import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.application.*
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import java.io.File
@@ -129,6 +127,38 @@ class Utilities {
         consFile.createNewFile()
         consFile.writeText(logArray.toString())
         return consFile
+    }
+
+    //VOCABULARY:
+    //Get Json with all Vocabulary files:
+    fun getVocabularyArray(filter: String = "", newItem: Boolean = false): JsonArray {
+        var vocArray = JsonArray()
+        if (vocDir!!.exists()) {
+            var vocFiles = vocDir!!.list()
+            vocFiles!!.sort()   //Sort ascending
+            if (newItem) {
+                var newObj = JsonObject()
+                newObj.addProperty("item_type", filter)
+                newObj.addProperty("item_text", "")
+                vocArray.add(newObj)
+            }
+            for (f in vocFiles) {
+                Log.d(TAG, f)
+                try {
+                    if (filter == "" || f.split("_")[0].lowercase() == filter) {
+                        //Add to array:
+                        var reader = FileReader(File(vocDir, f))
+                        vocArray.add(JsonParser.parseReader(reader).asJsonObject)
+                    }
+                } catch (e: Exception) {
+                    //Delete invalid files:
+                    File(vocDir, f).delete()
+                    Log.d(TAG, "Deleted file: $f")
+                }
+            }
+        }
+        //Log.d(TAG, vocArray.toString())
+        return vocArray
     }
 
 }

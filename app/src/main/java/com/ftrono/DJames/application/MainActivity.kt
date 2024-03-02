@@ -104,9 +104,9 @@ class MainActivity : AppCompatActivity() {
                 logDir!!.mkdir()
             }
             //Init vocabulary directory:
-            logDir = File(cacheDir, "vocabulary")
-            if (!logDir!!.exists()) {
-                logDir!!.mkdir()
+            vocDir = File(cacheDir, "vocabulary")
+            if (!vocDir!!.exists()) {
+                vocDir!!.mkdir()
             }
             //delete older logs:
             utils.deleteOldLogs()

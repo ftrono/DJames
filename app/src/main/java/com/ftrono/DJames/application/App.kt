@@ -46,6 +46,7 @@ var audioManager: AudioManager? = null
 var currently_playing: JsonObject? = null
 var last_log: JsonObject? = null
 var logDir: File? = null
+var vocDir: File? = null
 
 //Player info:
 var nlp_queryText = ""
@@ -95,6 +96,10 @@ const val ACTION_SETTINGS_VOL_UP = "com.ftrono.DJames.eventReceiver.ACTION_SETTI
 //History Fragment receiver:
 const val ACTION_LOG_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_LOG_REFRESH"
 const val ACTION_LOG_DELETE = "com.ftrono.DJames.eventReceiver.ACTION_LOG_DELETE"
+
+//History Vocabulary receiver:
+const val ACTION_VOC_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_VOC_REFRESH"
+const val ACTION_VOC_DELETE = "com.ftrono.DJames.eventReceiver.ACTION_VOC_DELETE"
 
 //Settings Act receiver:
 const val ACTION_SETTINGS_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_SETTINGS_LOGGED_IN"

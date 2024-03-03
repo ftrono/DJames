@@ -96,7 +96,7 @@ class VocabularyAdapter(
         doneButton.visibility = View.VISIBLE
         //End editMode with keyboard Enter key:
         editText.setOnEditorActionListener { v, actionId, event ->
-            if (event != null && (event.keyCode == KeyEvent.KEYCODE_ENTER || actionId == EditorInfo.IME_ACTION_DONE)) {
+            if (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER || actionId == EditorInfo.IME_ACTION_SEND || actionId == EditorInfo.IME_ACTION_DONE) {
                 doneAction(prevText=prevText, editText=editText, editButton=editButton, doneButton=doneButton)
                 true
             } else {
@@ -134,7 +134,7 @@ class VocabularyAdapter(
                     Toast.makeText(context, "ERROR: Vocabulary not updated!", Toast.LENGTH_LONG).show()
                 }
             }
-        } else {
+        } else if (prevText != "") {
             deleteAction(prevText = prevText)
         }
         //Send broadcast:

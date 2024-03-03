@@ -54,6 +54,7 @@ class MainActivity : AppCompatActivity() {
         toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         mainActionBar = supportActionBar
+        //toolbar!!.overflowIcon = AppCompatResources.getDrawable(this, R.drawable.user_icon)
 
         //Screen density:
         density = resources.displayMetrics.density

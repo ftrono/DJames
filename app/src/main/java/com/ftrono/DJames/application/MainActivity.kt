@@ -55,6 +55,9 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         mainActionBar = supportActionBar
 
+        //Screen density:
+        density = resources.displayMetrics.density
+
         //Load Home fragment:
         curFragment = HomeFragment()
         curNavItemId = R.id.nav_home
@@ -202,6 +205,8 @@ class MainActivity : AppCompatActivity() {
                     R.anim.slide_out_from_left // popExit
                 )
             }
+            //transaction.setReorderingAllowed(true)
+            //transaction.addToBackStack(null)
             transaction.replace(R.id.main_frame, curFragment!!)
             transaction.commit()
 

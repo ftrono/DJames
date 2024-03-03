@@ -13,6 +13,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.streams.asSequence
 import com.ftrono.DJames.application.*
+import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import java.io.File
@@ -130,35 +131,79 @@ class Utilities {
     }
 
     //VOCABULARY:
-    //Get Json with all Vocabulary files:
-    fun getVocabularyArray(filter: String = "", newItem: Boolean = false): JsonArray {
+    //Get Json with all Vocabulary items of a given "filter" category:
+    fun getVocabularyArray(filter: String, newItem: Boolean = false): JsonArray {
+        var vocFile = File(vocDir, vocFileName)
+        var vocJson = JsonObject()
         var vocArray = JsonArray()
-        if (vocDir!!.exists()) {
-            var vocFiles = vocDir!!.list()
-            vocFiles!!.sort()   //Sort ascending
-            if (newItem) {
-                var newObj = JsonObject()
-                newObj.addProperty("item_type", filter)
-                newObj.addProperty("item_text", "")
-                vocArray.add(newObj)
+        if (!vocFile.exists()) {
+            //Create new empty voc file (& return empty array):
+            try {
+                vocJson.add("artist", JsonArray())
+                vocJson.add("album", JsonArray())
+                vocJson.add("playlist", JsonArray())
+                vocFile.createNewFile()
+                vocFile.writeText(vocJson.toString())
+            } catch (e: Exception) {
+                Log.d(TAG, "Error: voc file not created!")
             }
-            for (f in vocFiles) {
-                Log.d(TAG, f)
-                try {
-                    if (filter == "" || f.split("_")[0].lowercase() == filter) {
-                        //Add to array:
-                        var reader = FileReader(File(vocDir, f))
-                        vocArray.add(JsonParser.parseReader(reader).asJsonObject)
-                    }
-                } catch (e: Exception) {
-                    //Delete invalid files:
-                    File(vocDir, f).delete()
-                    Log.d(TAG, "Deleted file: $f")
+        } else {
+            //Read array from existing voc file:
+            try {
+                var reader = FileReader(vocFile)
+                vocJson = JsonParser.parseReader(reader).asJsonObject
+                Log.d(TAG, vocJson.toString())
+                if (newItem) {
+                    //Empty placeholder + existing items:
+                    vocArray.add("")
+                    vocArray.addAll(vocJson.get(filter).asJsonArray)
+                } else {
+                    //Existing items:
+                    vocArray = vocJson.get(filter).asJsonArray
                 }
+            } catch (e: Exception) {
+                //Delete invalid file:
+                vocFile.delete()
+                Log.d(TAG, "Error in parsing vocabulary file. File deleted!", e)
             }
         }
         //Log.d(TAG, vocArray.toString())
         return vocArray
+    }
+
+    //Update Vocabulary file:
+    fun editVocFile(prevText: String = "", newText: String = ""): Int {
+        try {
+            //Pack JSON:
+            var vocFile = File(vocDir, vocFileName)
+            var reader = FileReader(vocFile)
+            var vocJson = JsonParser.parseReader(reader).asJsonObject
+            //Sort array keys:
+            var tempList: ArrayList<String> = Gson().fromJson(
+                vocJson.get(filter).asJsonArray,
+                ArrayList<String>()::class.java
+            )
+            if (prevText != "") {
+                tempList.remove(prevText)
+            }
+            if (newText != "") {
+                tempList.add(newText)
+            }
+            tempList.sort()
+            var vocArray = JsonArray()
+            for (item in tempList) {
+                vocArray.add(item)
+            }
+            //Sort ascending by date
+            vocJson.add(filter, vocArray)
+            Log.d(TAG, vocJson.toString())
+            //Overwrite saved file:
+            vocFile.writeText(vocJson.toString())
+            return 0
+        } catch (e: Exception) {
+            Log.d(TAG, "Error: vocFile not updated!", e)
+            return -1
+        }
     }
 
 }

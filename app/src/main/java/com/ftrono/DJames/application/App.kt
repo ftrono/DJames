@@ -26,6 +26,7 @@ val queryTimeout = 5   //seconds
 val recFileName = "DJames_request"
 
 //Modes:
+var density: Float = 0F
 var acts_active: MutableList<String> = ArrayList()
 var utils = Utilities()
 var streamMaxVolume: Int = 0
@@ -38,6 +39,7 @@ var overlay_active: Boolean = false
 var loggedIn: Boolean = false
 var clock_active: Boolean = false
 var searchFail: Boolean = false
+var filter = "artist"
 
 //Audio Manager:
 var audioManager: AudioManager? = null
@@ -47,6 +49,7 @@ var currently_playing: JsonObject? = null
 var last_log: JsonObject? = null
 var logDir: File? = null
 var vocDir: File? = null
+var vocFileName = "vocabulary.json"
 
 //Player info:
 var nlp_queryText = ""

@@ -24,14 +24,11 @@ class HistoryAdapter(
     : RecyclerView.Adapter<HistoryViewHolder>() {
 
     private val TAG = HistoryAdapter::class.java.simpleName
-    private var density: Float = 0F
     //private var toDelete = ArrayList<String>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryViewHolder {
         val view: View =
             LayoutInflater.from(parent.context).inflate(R.layout.history_card_layout, parent, false)
-        //Screen density:
-        density = context.resources.displayMetrics.density
         return HistoryViewHolder(view)
     }
 

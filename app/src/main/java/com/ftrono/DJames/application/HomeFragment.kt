@@ -33,7 +33,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private var baloon: View? = null
     private var baloon_arrow: View? = null
     private var mega_face: ImageView? = null
-    private var density: Float = 0F
 
     //View resources:
     private var descr_login_status: TextView? = null    //eventReceiver (login)
@@ -45,9 +44,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        //Screen density:
-        density = requireActivity().resources?.displayMetrics!!.density
 
         //Load views:
         descr_login_status = requireActivity().findViewById<TextView>(R.id.descr_login_status)

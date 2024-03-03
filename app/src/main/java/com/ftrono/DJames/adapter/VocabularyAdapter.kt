@@ -1,20 +1,22 @@
 package com.ftrono.DJames.adapter
 
-import android.util.Log
 import android.content.Context
 import android.content.Intent
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.recyclerview.widget.RecyclerView
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
 import com.google.gson.JsonArray
-import com.google.gson.JsonObject
-import java.io.File
+import kotlin.math.roundToInt
 
 
 class VocabularyAdapter(
@@ -32,30 +34,19 @@ class VocabularyAdapter(
     }
 
     override fun onBindViewHolder(holder: VocabularyViewHolder, position: Int) {
-        val vocItem: JsonObject = vocItems[position].asJsonObject
+        val prevText = vocItems[position].asString
         //POPOLA:
-        var itemType = vocItem.get("item_type").asString
-        var itemText = vocItem.get("item_text").asString
         var itemIcon = "🧑‍🎤"
-        if (itemType == "album") {
+        if (filter == "album") {
             itemIcon = "💿"
-        } else if (itemType == "playlist") {
+        } else if (filter == "playlist") {
             itemIcon = "▶️"
         }
-        holder.item_type.text = "$itemIcon   ${itemType.uppercase()}"
-        //A) NEW ITEM:
-        if (itemText == "") {
-            //Show EditText:
-            holder.item_text.visibility = View.GONE
-            holder.item_edit_text.visibility = View.VISIBLE
-            holder.item_edit_text.requestFocus()
-            //Replace EditButton with DoneButton:
-            holder.edit_button.visibility = View.GONE
-            holder.done_button.visibility = View.VISIBLE
-            //Done button:
-            holder.done_button.setOnClickListener { view ->
-                doneAction(itemType=itemType, editTextView=holder.item_edit_text, itemTextView=holder.item_text, editButton=holder.edit_button, doneButton=holder.done_button, createNew = true)
-            }
+        holder.item_type.text = "$itemIcon   ${filter.uppercase()}"
+        if (prevText == "") {
+            //A) NEW ITEM:
+            //Edit mode already on:
+            editMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, prevText=prevText)
             //Delete button:
             holder.delete_button.setOnClickListener { view ->
                 //Send broadcast:
@@ -64,53 +55,83 @@ class VocabularyAdapter(
                     context.sendBroadcast(intent)
                 }
             }
-
         } else {
             //B) ESISTING ITEMS:
-            holder.item_text.text = itemText
-            holder.item_text.visibility = View.VISIBLE
-            holder.item_edit_text.visibility = View.GONE
-            //Edit button:
-            holder.edit_button.setOnClickListener { view ->
-                //Show EditText:
-                holder.item_text.visibility = View.GONE
-                holder.item_edit_text.visibility = View.VISIBLE
-                holder.item_edit_text.text = itemText.strip()
-                holder.item_edit_text.requestFocus()
-                //Replace EditButton with DoneButton:
-                holder.edit_button.visibility = View.GONE
-                holder.done_button.visibility = View.VISIBLE
-                //Done button:
-                holder.done_button.setOnClickListener { view ->
-                    doneAction(itemType=itemType, editTextView=holder.item_edit_text, itemTextView=holder.item_text, editButton=holder.edit_button, doneButton=holder.done_button, createNew = false)
-                }
-            }
+            //No mode:
+            holder.edit_text.text = prevText.strip()
+            holder.edit_text.clearFocus()
             //Delete button:
-            holder.delete_button.setOnClickListener { view -> deleteAction("${itemType}_${itemText}.json") }
+            holder.delete_button.setOnClickListener { view ->
+                deleteAction(prevText = prevText)
+            }
+        }
+        //Edit mode:
+        //a) from editText:
+        holder.edit_text.setOnClickListener { view ->
+            editMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, prevText=prevText)
+        }
+        holder.edit_text.setOnFocusChangeListener() { view: View, hasFocus: Boolean ->
+            if (hasFocus) {
+                editMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, prevText=prevText)
+            } else {
+                noMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button)
+            }
+        }
+        //b) from editButton:
+        holder.edit_button.setOnClickListener { view ->
+            editMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, prevText=prevText)
+        }
+        //LENGTH:
+        if (position == (vocItems.size()-1)) {
+            holder.card.layoutParams.height = (150 * density).roundToInt()
         }
     }
 
-    private fun doneAction(itemType: String, editTextView: TextView, itemTextView: TextView, editButton: ImageView, doneButton: ImageView, createNew: Boolean) {
-        var newText = editTextView.text.toString().lowercase().strip()
+    private fun editMode(editText: TextView, editButton: ImageView, doneButton: ImageView, prevText: String) {
+        //EditText in edit mode:
+        editText.requestFocus()
+        editText.backgroundTintList = AppCompatResources.getColorStateList(context, R.color.dark_grey)
+        //Replace EditButton with DoneButton:
+        editButton.visibility = View.GONE
+        doneButton.visibility = View.VISIBLE
+        //End editMode with keyboard Enter key:
+        editText.setOnEditorActionListener { v, actionId, event ->
+            if (event != null && (event.keyCode == KeyEvent.KEYCODE_ENTER || actionId == EditorInfo.IME_ACTION_DONE)) {
+                doneAction(prevText=prevText, editText=editText, editButton=editButton, doneButton=doneButton)
+                true
+            } else {
+                false
+            }
+        }
+        //Done button:
+        doneButton.setOnClickListener { view ->
+            doneAction(prevText=prevText, editText=editText, editButton=editButton, doneButton=doneButton)
+        }
+        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
+        imm!!.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    private fun noMode(editText: TextView, editButton: ImageView, doneButton: ImageView) {
+        //Restore default visibility:
+        editButton.visibility = View.VISIBLE
+        doneButton.visibility = View.GONE
+        editText.backgroundTintList = AppCompatResources.getColorStateList(context, R.color.colorPrimaryDark)
+        editText.clearFocus()
+        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
+        imm!!.hideSoftInputFromWindow(editButton.getWindowToken(), 0)
+    }
+
+    private fun doneAction(prevText: String, editText: TextView, editButton: ImageView, doneButton: ImageView) {
+        var newText = editText.text.toString().lowercase().strip()
         if (newText != "") {
             //Save to file:
-            if (newText != itemTextView.text) {
-                //Pack JSON:
-                var newJSON = JsonObject()
-                newJSON.addProperty("item_type", itemType)
-                newJSON.addProperty("item_text", newText)
-                //Save:
-                var newFile = File(vocDir, "${itemType}_${newText}.json")
-                if (!createNew) {
-                    var oldFileName = "${itemType}_${itemTextView.text}.json"
-                    File(vocDir, oldFileName).delete()
-                    Log.d(TAG, "Deleted file: $oldFileName")
+            if (newText != prevText) {
+                var ret = utils.editVocFile(prevText = prevText, newText = newText)
+                if (ret == 0) {
+                    Toast.makeText(context, "Saved!", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(context, "ERROR: Vocabulary not updated!", Toast.LENGTH_LONG).show()
                 }
-                newFile.createNewFile()
-                newFile.writeText(newJSON.toString())
-                itemTextView.text = newText
-                //Toast:
-                Toast.makeText(context, "Saved!", Toast.LENGTH_LONG).show()
                 //Send broadcast:
                 Intent().also { intent ->
                     intent.setAction(ACTION_VOC_REFRESH)
@@ -119,20 +140,14 @@ class VocabularyAdapter(
             }
         }
         //Restore default visibility:
-        itemTextView.visibility = View.VISIBLE
-        editTextView.visibility = View.GONE
-        editButton.visibility = View.VISIBLE
-        doneButton.visibility = View.GONE
+        noMode(editText=editText, editButton=editButton, doneButton=doneButton)
     }
 
-    private fun deleteAction(filename: String) {
-        //Compose list of items to delete:
-        var singleToDelete = ArrayList<String>()
-        singleToDelete.add(filename)
+    private fun deleteAction(prevText: String) {
         //Send broadcast:
         Intent().also { intent ->
             intent.setAction(ACTION_VOC_DELETE)
-            intent.putExtra("toDeleteStr", singleToDelete.joinToString(",", "", ""))
+            intent.putExtra("prevText", prevText)
             context.sendBroadcast(intent)
         }
     }

@@ -34,7 +34,6 @@ class FakeLockScreen: AppCompatActivity() {
     private var exitButton: View? = null
 
     //Parameters:
-    private var density: Float = 0F
     private var now: LocalDateTime? = null
     private val dateFormat = DateTimeFormatter.ofPattern("E, dd MMM")
     private val hourFormat = DateTimeFormatter.ofPattern("HH")
@@ -103,9 +102,6 @@ class FakeLockScreen: AppCompatActivity() {
                     .into(artworkView)
             }
         }
-
-        //Screen density:
-        density = applicationContext.resources.displayMetrics.density
 
         //Check initial orientation:
         var config = getResources().getConfiguration()

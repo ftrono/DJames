@@ -33,8 +33,6 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
     private var textNoData: TextView? = null
     private var refreshList: RecyclerView? = null
     private var listItems = JsonArray()
-    private var filter = "artist"
-    private var addMode = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -106,10 +104,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         //FAB:
         var fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
         fab.setOnClickListener { view ->
-            if (!addMode) {
-                addMode = true
-                updateRecyclerView(newItem = true)
-            }
+            updateRecyclerView(newItem = true)
         }
     }
 
@@ -138,19 +133,19 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
     }
 
 
-    //Delete selected items in RecyclerView:
-    fun deleteItems(toDeleteStr: String) {
-        var toDelete = toDeleteStr.split(", ")
+    //Delete selected item in RecyclerView:
+    fun deleteItem(prevText: String) {
         val alertDialog = MaterialAlertDialogBuilder(requireActivity())
         //Exec:
         alertDialog.setPositiveButton("Yes", object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
                 //Yes
-                for (f in toDelete) {
-                    File(vocDir, f).delete()
-                    Log.d(TAG, "Deleted file: $f")
+                var ret = utils.editVocFile(prevText=prevText!!)
+                if (ret == 0) {
+                    Toast.makeText(context, "Deleted!", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(context, "ERROR: Vocabulary not updated!", Toast.LENGTH_LONG).show()
                 }
-                Toast.makeText(requireActivity(), "Deleted!", Toast.LENGTH_SHORT).show()
                 updateRecyclerView()
             }
         })
@@ -161,13 +156,8 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
                 updateRecyclerView()
             }
         })
-        if (toDelete.size == 1) {
-            alertDialog.setTitle("Delete item")
-            alertDialog.setMessage("Do you want to delete this $filter?\n\n${toDelete[0].replace(".json", "")}")
-        } else {
-            alertDialog.setTitle("Delete items")
-            alertDialog.setMessage("Do you want to delete ${toDelete.size} ${filter}s?")
-        }
+        alertDialog.setTitle("Remove items")
+        alertDialog.setMessage("Do you want to remove the item \"$prevText\" from this list?")
         alertDialog.show()
     }
 
@@ -204,17 +194,16 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             //Refresh RecycleView:
             if (intent!!.action == ACTION_VOC_REFRESH) {
                 Log.d(TAG, "VOCABULARY: ACTION_VOC_REFRESH.")
-                addMode = false
                 updateRecyclerView()
             }
 
             //Delete items:
-            if (intent!!.action == ACTION_VOC_DELETE) {
+            if (intent.action == ACTION_VOC_DELETE) {
                 Log.d(TAG, "VOCABULARY: ACTION_VOC_DELETE.")
-                var toDeleteStr = intent.getStringExtra("toDeleteStr")
-                deleteItems(toDeleteStr!!)
-                addMode = false
+                var prevText = intent.getStringExtra("prevText")
+                deleteItem(prevText!!)
             }
+
         }
     }
 

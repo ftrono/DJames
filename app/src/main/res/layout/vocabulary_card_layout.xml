@@ -11,6 +11,7 @@
     app:cardCornerRadius="10dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/voc_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -30,23 +31,6 @@
             app:layout_constraintTop_toTopOf="@+id/voc_delete_button"
             app:layout_constraintBottom_toBottomOf="@+id/voc_delete_button"/>
 
-        <TextView
-            android:id="@+id/item_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingLeft="8dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="8dp"
-            android:text=""
-            android:textSize="16dp"
-            android:textStyle="italic"
-            android:textColor="@color/light_grey"
-            android:visibility="visible"
-            app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/voc_delete_button"/>
-
         <EditText
             android:id="@+id/item_edit_text"
             android:layout_width="match_parent"
@@ -59,8 +43,9 @@
             android:textColorHint="@color/mid_grey"
             android:textSize="16dp"
             android:textStyle="italic"
-            android:backgroundTint="@color/dark_grey"
-            android:visibility="gone"
+            android:backgroundTint="@color/colorPrimaryDark"
+            android:inputType="text"
+            android:imeOptions="actionSend"
             app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintLeft_toLeftOf="parent"

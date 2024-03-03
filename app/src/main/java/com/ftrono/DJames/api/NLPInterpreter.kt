@@ -5,6 +5,7 @@ import com.ftrono.DJames.R
 import com.google.gson.JsonObject
 import android.content.Context
 import com.ftrono.DJames.application.matchThreshold
+import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
 import me.xdrop.fuzzywuzzy.FuzzySearch
@@ -215,6 +216,8 @@ class NLPInterpreter (private val context: Context) {
     //Double check artists between DF & NLP Extractor:
     fun checkArtists(artistsNlp: JsonArray, artistExtracted: String): String {
         var artistConfirmed = ""
+
+        //1) CHECK NLP ENTITIES VS ORIGINAL TEXT EXTRACTION:
         if (artistsNlp.isEmpty) {
             //Confirm artists extracted by Extractor:
             artistConfirmed = artistExtracted
@@ -229,22 +232,59 @@ class NLPInterpreter (private val context: Context) {
                 for (artJs in artistsNlp) {
                     artist = artJs.asString
                     score = FuzzySearch.ratio(artist.lowercase(), extr)
-                    Log.d(TAG, "COMPARING $artist WITH $extr, MATCH: $score")
+                    Log.d(TAG, "EVALUATION: COMPARING $artist WITH $extr, MATCH: $score")
                     if (!artistsTemp.contains(artist) && score >= matchThreshold) {
                         artistsTemp.add(artist)
                     }
                 }
             }
 
-            Log.d(TAG, "Checked Artists List: $artistsTemp")
+            Log.d(TAG, "Evalued Artists List: $artistsTemp")
 
-            //Priority to DF if matches confirmed:
+            //Priority to DF if matches found:
             if (listExtracted.size > artistsTemp.size) {
                 artistConfirmed = artistExtracted
             } else {
                 artistConfirmed = artistsTemp.joinToString(", ", "", "")
             }
         }
+
+        //2) Hand check artist evalued against user vocabulary:
+        val utils = Utilities()
+        var vocArtists = utils.getVocabularyArray(filter="artist")
+        if (artistConfirmed != "" && !vocArtists.isEmpty()) {
+            var score = 0
+            var artist = ""
+            var listEvalued = artistConfirmed.split(", ")
+            var listConfirmed = ArrayList<String>()
+            var scoresMap = mutableMapOf<String, Int>()
+            //Check each evaluated artist:
+            for (eval in listEvalued) {
+                for (vocArtJs in vocArtists) {
+                    artist = vocArtJs.asString
+                    score = FuzzySearch.ratio(artist.lowercase(), eval)
+                    Log.d(TAG, "VOC CONFIRMATION: COMPARING $artist WITH $eval, MATCH: $score")
+                    //Add only best matches:
+                    if (!scoresMap.keys.contains(artist) && score >= matchThreshold) {
+                        scoresMap[artist] = score
+                    }
+                }
+                if (scoresMap.isNotEmpty()) {
+                    //Sort and get highest match:
+                    val sortedScores = scoresMap.toList().sortedByDescending { it.second }.toMap()
+                    Log.d(TAG, "SORTED MAP FOR $eval: $sortedScores")
+                    listConfirmed.add(sortedScores.keys.toList()[0])
+                } else {
+                    //Keep original eval:
+                    listConfirmed.add(eval)
+                }
+            }
+            if (listConfirmed.isNotEmpty()) {
+                //Replace:
+                artistConfirmed = listConfirmed.joinToString(", ", "", "")
+            }
+        }
+        Log.d(TAG, "ARTISTS CONFIRMED: $artistConfirmed")
         return  artistConfirmed
     }
 

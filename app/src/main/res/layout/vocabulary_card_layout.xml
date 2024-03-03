@@ -19,8 +19,8 @@
 
         <ImageView
             android:id="@+id/voc_icon"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:src="@drawable/icon_person"
             android:visibility="visible"
             app:layout_constraintVertical_chainStyle="packed"

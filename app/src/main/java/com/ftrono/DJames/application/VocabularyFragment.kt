@@ -39,7 +39,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
 
         //Header intro:
         var textHeader = requireActivity().findViewById<TextView>(R.id.voc_intro)
-        textHeader.text = "✏️   Write your hardest-to-spell ${filter} names here..."
+        textHeader.text = "✏️   Write your hard-to-spell names here..."
 
         //Filters buttons:
         var vocArtists = requireActivity().findViewById<Button>(R.id.voc_artists)
@@ -49,7 +49,6 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         //Filters listeners:
         vocArtists.setOnClickListener(View.OnClickListener {
             filter = "artist"
-            textHeader.text = "✏️   Write your hardest-to-spell ${filter} names here..."
             vocArtists.backgroundTintList =
                 AppCompatResources.getColorStateList(requireActivity(), R.color.colorAccent)
             vocAlbums.backgroundTintList =
@@ -60,7 +59,6 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         })
         vocAlbums.setOnClickListener(View.OnClickListener {
             filter = "album"
-            textHeader.text = "✏️   Write your hardest-to-spell ${filter} names here..."
             vocArtists.backgroundTintList =
                 AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
             vocAlbums.backgroundTintList =
@@ -71,7 +69,6 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         })
         vocPlaylists.setOnClickListener(View.OnClickListener {
             filter = "playlist"
-            textHeader.text = "✏️   Write your hardest-to-spell ${filter} names here..."
             vocArtists.backgroundTintList =
                 AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
             vocAlbums.backgroundTintList =

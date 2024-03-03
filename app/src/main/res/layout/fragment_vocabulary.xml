@@ -26,6 +26,22 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/vocabulary_refresh"/>
 
+    <TextView
+        android:id="@+id/voc_intro"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Write your lesser known artists here"
+        android:textColor="@color/mid_grey"
+        android:textSize="14dp"
+        android:textStyle="italic"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/vocabulary_header"
+        app:layout_constraintBottom_toTopOf="@+id/voc_artists"/>
+
     <Button
         android:id="@+id/voc_artists"
         android:layout_width="wrap_content"
@@ -40,7 +56,7 @@
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@+id/voc_albums"
-        app:layout_constraintTop_toTopOf="@+id/vocabulary_header" />
+        app:layout_constraintTop_toBottomOf="@+id/voc_intro" />
 
     <Button
         android:id="@+id/voc_albums"
@@ -57,7 +73,7 @@
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintLeft_toRightOf="@+id/voc_artists"
         app:layout_constraintRight_toLeftOf="@+id/voc_playlists"
-        app:layout_constraintTop_toTopOf="@+id/vocabulary_header" />
+        app:layout_constraintTop_toBottomOf="@+id/voc_intro" />
 
     <Button
         android:id="@+id/voc_playlists"
@@ -74,22 +90,7 @@
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintLeft_toRightOf="@+id/voc_albums"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/vocabulary_header" />
-
-    <TextView
-        android:id="@+id/voc_intro"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
-        android:text="Write your lesser known artists here"
-        android:textColor="@color/mid_grey"
-        android:textSize="14dp"
-        android:textStyle="italic"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/voc_artists"
-        app:layout_constraintBottom_toBottomOf="@+id/vocabulary_header"/>
+        app:layout_constraintTop_toBottomOf="@+id/voc_intro" />
 
 
     <!-- Main -->

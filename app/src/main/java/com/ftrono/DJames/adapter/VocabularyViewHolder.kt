@@ -13,6 +13,9 @@ class VocabularyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     var card: ConstraintLayout = itemView.findViewById(R.id.voc_card)
 
     @JvmField
+    var item_icon: ImageView = itemView.findViewById(R.id.voc_icon)
+
+    @JvmField
     var item_type: TextView = itemView.findViewById(R.id.item_type)
 
     @JvmField

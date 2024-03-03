@@ -40,6 +40,7 @@ var loggedIn: Boolean = false
 var clock_active: Boolean = false
 var searchFail: Boolean = false
 var filter = "artist"
+var editModeOn = false
 
 //Audio Manager:
 var audioManager: AudioManager? = null

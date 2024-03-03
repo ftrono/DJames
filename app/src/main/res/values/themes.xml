@@ -11,6 +11,7 @@
         <item name="actionBarTheme">@style/ActionBarTheme</item>
         <item name="materialAlertDialogTheme">@style/DialogTheme</item>
         <item name="popupMenuStyle">@style/PopupMenu</item>
+        <item name="android:textColorHighlight">@color/colorPrimary</item>
     </style>
 
     <style name="AppTheme.NoActionBar" parent="AppTheme">

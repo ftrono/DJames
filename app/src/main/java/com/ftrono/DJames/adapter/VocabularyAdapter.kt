@@ -36,13 +36,12 @@ class VocabularyAdapter(
     override fun onBindViewHolder(holder: VocabularyViewHolder, position: Int) {
         val prevText = vocItems[position].asString
         //POPOLA:
-        var itemIcon = "🧑‍🎤"
         if (filter == "album") {
-            itemIcon = "💿"
+            holder.item_icon.setImageResource(R.drawable.icon_album)
         } else if (filter == "playlist") {
-            itemIcon = "▶️"
+            holder.item_icon.setImageResource(R.drawable.icon_playlist)
         }
-        holder.item_type.text = "$itemIcon   ${filter.uppercase()}"
+        holder.item_type.text = filter.uppercase()
         if (prevText == "") {
             //A) NEW ITEM:
             //Edit mode already on:
@@ -88,6 +87,7 @@ class VocabularyAdapter(
     }
 
     private fun editMode(editText: TextView, editButton: ImageView, doneButton: ImageView, prevText: String) {
+        editModeOn = true
         //EditText in edit mode:
         editText.requestFocus()
         editText.backgroundTintList = AppCompatResources.getColorStateList(context, R.color.dark_grey)
@@ -113,6 +113,7 @@ class VocabularyAdapter(
 
     private fun noMode(editText: TextView, editButton: ImageView, doneButton: ImageView) {
         //Restore default visibility:
+        editModeOn = false
         editButton.visibility = View.VISIBLE
         doneButton.visibility = View.GONE
         editText.backgroundTintList = AppCompatResources.getColorStateList(context, R.color.colorPrimaryDark)
@@ -132,14 +133,15 @@ class VocabularyAdapter(
                 } else {
                     Toast.makeText(context, "ERROR: Vocabulary not updated!", Toast.LENGTH_LONG).show()
                 }
-                //Send broadcast:
-                Intent().also { intent ->
-                    intent.setAction(ACTION_VOC_REFRESH)
-                    context.sendBroadcast(intent)
-                }
             }
+        } else {
+            deleteAction(prevText = prevText)
         }
-        //Restore default visibility:
+        //Send broadcast:
+        Intent().also { intent ->
+            intent.setAction(ACTION_VOC_REFRESH)
+            context.sendBroadcast(intent)
+        }
         noMode(editText=editText, editButton=editButton, doneButton=doneButton)
     }
 

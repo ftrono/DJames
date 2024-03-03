@@ -104,7 +104,9 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         //FAB:
         var fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
         fab.setOnClickListener { view ->
-            updateRecyclerView(newItem = true)
+            if (!editModeOn) {
+                updateRecyclerView(newItem = true)
+            }
         }
     }
 
@@ -195,6 +197,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             if (intent!!.action == ACTION_VOC_REFRESH) {
                 Log.d(TAG, "VOCABULARY: ACTION_VOC_REFRESH.")
                 updateRecyclerView()
+                editModeOn = false
             }
 
             //Delete items:
@@ -202,6 +205,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
                 Log.d(TAG, "VOCABULARY: ACTION_VOC_DELETE.")
                 var prevText = intent.getStringExtra("prevText")
                 deleteItem(prevText!!)
+                editModeOn = false
             }
 
         }

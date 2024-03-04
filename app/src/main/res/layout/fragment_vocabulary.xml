@@ -31,7 +31,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:layout_marginLeft="10dp"
+        android:layout_marginLeft="20dp"
         android:text="✏️ Write your hard-to-spell known artists here..."
         android:textColor="@color/mid_grey"
         android:textSize="14dp"
@@ -47,7 +47,7 @@
         android:layout_width="wrap_content"
         android:layout_height="40dp"
         android:layout_marginTop="5dp"
-        android:layout_marginLeft="10dp"
+        android:layout_marginLeft="20dp"
         android:backgroundTint="@color/colorAccent"
         android:text="ARTISTS"
         android:textColor="@color/light_grey"
@@ -56,23 +56,6 @@
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@+id/voc_albums"
-        app:layout_constraintTop_toBottomOf="@+id/voc_intro" />
-
-    <Button
-        android:id="@+id/voc_albums"
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginLeft="10dp"
-        android:backgroundTint="@color/dark_grey"
-        android:text="ALBUMS"
-        android:textColor="@color/light_grey"
-        android:textSize="11dp"
-        android:textAlignment="center"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintLeft_toRightOf="@+id/voc_artists"
         app:layout_constraintRight_toLeftOf="@+id/voc_playlists"
         app:layout_constraintTop_toBottomOf="@+id/voc_intro" />
 
@@ -81,7 +64,7 @@
         android:layout_width="wrap_content"
         android:layout_height="40dp"
         android:layout_marginTop="5dp"
-        android:layout_marginLeft="10dp"
+        android:layout_marginLeft="15dp"
         android:backgroundTint="@color/dark_grey"
         android:text="PLAYLISTS"
         android:textColor="@color/light_grey"
@@ -89,7 +72,7 @@
         android:textAlignment="center"
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintLeft_toRightOf="@+id/voc_albums"
+        app:layout_constraintLeft_toRightOf="@+id/voc_artists"
         app:layout_constraintTop_toBottomOf="@+id/voc_intro" />
 
 
@@ -137,8 +120,7 @@
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|right"
-        android:layout_marginRight="10dp"
+        android:layout_marginRight="20dp"
         android:backgroundTint="@color/colorAccent"
         app:tint="@color/light_grey"
         app:layout_constraintRight_toRightOf="parent"

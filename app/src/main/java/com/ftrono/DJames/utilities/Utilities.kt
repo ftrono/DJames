@@ -140,7 +140,6 @@ class Utilities {
             //Create new empty voc file (& return empty array):
             try {
                 vocJson.add("artist", JsonArray())
-                vocJson.add("album", JsonArray())
                 vocJson.add("playlist", JsonArray())
                 vocFile.createNewFile()
                 vocFile.writeText(vocJson.toString())
@@ -152,7 +151,7 @@ class Utilities {
             try {
                 var reader = FileReader(vocFile)
                 vocJson = JsonParser.parseReader(reader).asJsonObject
-                Log.d(TAG, vocJson.toString())
+                //Log.d(TAG, vocJson.toString())
                 if (newItem) {
                     //Empty placeholder + existing items:
                     vocArray.add("")

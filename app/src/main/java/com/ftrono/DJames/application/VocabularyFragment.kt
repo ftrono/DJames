@@ -44,7 +44,6 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
 
         //Filters buttons:
         var vocArtists = requireActivity().findViewById<Button>(R.id.voc_artists)
-        var vocAlbums = requireActivity().findViewById<Button>(R.id.voc_albums)
         var vocPlaylists = requireActivity().findViewById<Button>(R.id.voc_playlists)
 
         //Filters listeners:
@@ -52,19 +51,6 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             filter = "artist"
             textHeader.text = "✏️   Write your hard-to-spell names here..."
             vocArtists.backgroundTintList =
-                AppCompatResources.getColorStateList(requireActivity(), R.color.colorAccent)
-            vocAlbums.backgroundTintList =
-                AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
-            vocPlaylists.backgroundTintList =
-                AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
-            updateRecyclerView()
-        })
-        vocAlbums.setOnClickListener(View.OnClickListener {
-            filter = "album"
-            textHeader.text = "✏️   Write your hard-to-spell names here..."
-            vocArtists.backgroundTintList =
-                AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
-            vocAlbums.backgroundTintList =
                 AppCompatResources.getColorStateList(requireActivity(), R.color.colorAccent)
             vocPlaylists.backgroundTintList =
                 AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
@@ -74,8 +60,6 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             filter = "playlist"
             textHeader.text = "✏️   Write your playlists names & URLs here..."
             vocArtists.backgroundTintList =
-                AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
-            vocAlbums.backgroundTintList =
                 AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
             vocPlaylists.backgroundTintList =
                 AppCompatResources.getColorStateList(requireActivity(), R.color.colorAccent)
@@ -147,7 +131,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
                     "Your playlists vocabulary is empty!\n\nLet DJames know your playlists by\nwriting writing their names & links here.\n\n✏️"
             } else {
                 textNoData!!.text =
-                    "Your ${filter}s vocabulary is empty!\n\nHelp DJames understand\nyour hardest-to-spell ${filter} names\nby writing them here.\n\n✏️"
+                    "Your ${filter}s vocabulary is empty!\n\nHelp DJames understand your\n lesser known or hard-to-spell ${filter} names\nby writing them here.\n\n✏️"
             }
         }
     }

@@ -33,8 +33,8 @@ class NLPQuery(context: Context) {
             val settingsBuilder = SessionsSettings.newBuilder()
             val sessionsSettings = settingsBuilder.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build()
             sessionsClient = SessionsClient.create(sessionsSettings)
-            sessionId = SessionName.of(dialogflow_id, prefs.userId)
-            Log.d(TAG, "userId: ${prefs.userId}")
+            sessionId = SessionName.of(dialogflow_id, prefs.nlpUserId)
+            Log.d(TAG, "nlpUserId: ${prefs.nlpUserId}")
             Log.d(TAG, "CREATED: sessionsClient: ${sessionsClient}")
             Log.d(TAG, "CREATED: sessionId: ${sessionId}")
         } catch (e: Exception) {

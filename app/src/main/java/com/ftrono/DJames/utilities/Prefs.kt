@@ -71,6 +71,11 @@ class Prefs (context: Context) {
         set(value) = sharedPrefs.edit().putString(KEY_MIC_TYPE, value).apply()
 
     //User profile:
+    //Spotify user ID:
+    var spotUserId: String
+        get() = sharedPrefs.getString(KEY_SPOTIFY_USER_ID, "") as String
+        set(value) = sharedPrefs.edit().putString(KEY_SPOTIFY_USER_ID, value).apply()
+
     //Spotify user name:
     var userName: String
         get() = sharedPrefs.getString(KEY_USER_NAME, "") as String
@@ -87,9 +92,9 @@ class Prefs (context: Context) {
         set(value) = sharedPrefs.edit().putString(KEY_USER_IMAGE, value).apply()
 
     //NLP user ID:
-    var userId: String
-        get() = sharedPrefs.getString(KEY_USER_ID, "") as String
-        set(value) = sharedPrefs.edit().putString(KEY_USER_ID, value).apply()
+    var nlpUserId: String
+        get() = sharedPrefs.getString(KEY_NLP_USER_ID, "") as String
+        set(value) = sharedPrefs.edit().putString(KEY_NLP_USER_ID, value).apply()
 
 
     //ENCRYPTED PREFS:
@@ -113,10 +118,11 @@ class Prefs (context: Context) {
         const val KEY_CLOCK_TIMEOUT = ".key.clock_timeout"
         const val KEY_VOLUME_UP_ENABLED = ".key.volume_up_enabled"
         const val KEY_MIC_TYPE = ".key.mic_type"
+        const val KEY_SPOTIFY_USER_ID = ".key.spotify_user_id"
         const val KEY_USER_NAME = ".key.user_name"
         const val KEY_USER_EMAIL = ".key.user_email"
         const val KEY_USER_IMAGE = ".key.user_image"
-        const val KEY_USER_ID = ".key.user_id"
+        const val KEY_NLP_USER_ID = ".key.nlp_user_id"
 
         //Encrypted prefs:
         const val KEY_SPOTIFY_TOKEN = ".key.spotify_token"

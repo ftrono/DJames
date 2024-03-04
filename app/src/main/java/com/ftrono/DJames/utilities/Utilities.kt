@@ -178,7 +178,7 @@ class Utilities {
             var vocFile = File(vocDir, vocFileName)
             var reader = FileReader(vocFile)
             var vocJson = JsonParser.parseReader(reader).asJsonObject
-            //Sort array keys:
+            //ARTISTS / ALBUMS:
             var tempList: ArrayList<String> = Gson().fromJson(
                 vocJson.get(filter).asJsonArray,
                 ArrayList<String>()::class.java
@@ -189,14 +189,15 @@ class Utilities {
             if (newText != "") {
                 tempList.add(newText)
             }
+            //Sort ascending by date
             tempList.sort()
             var vocArray = JsonArray()
             for (item in tempList) {
                 vocArray.add(item)
             }
-            //Sort ascending by date
+            //Store:
             vocJson.add(filter, vocArray)
-            Log.d(TAG, vocJson.toString())
+            //Log.d(TAG, vocJson.toString())
             //Overwrite saved file:
             vocFile.writeText(vocJson.toString())
             return 0

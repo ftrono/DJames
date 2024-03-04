@@ -21,13 +21,15 @@
             android:id="@+id/voc_icon"
             android:layout_width="40dp"
             android:layout_height="40dp"
+            app:layout_constraintHorizontal_bias="0.0"
             android:src="@drawable/icon_person"
             android:visibility="visible"
             app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toLeftOf="@+id/item_edit_text"
             app:layout_constraintTop_toTopOf="@+id/voc_delete_button"
-            app:layout_constraintBottom_toBottomOf="@+id/item_edit_text" />
+            app:layout_constraintBottom_toBottomOf="parent" />
 
         <TextView
             android:id="@+id/item_type"
@@ -45,7 +47,7 @@
 
         <EditText
             android:id="@+id/item_edit_text"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:paddingLeft="8dp"
             android:text=""
@@ -58,10 +60,52 @@
             android:inputType="text"
             android:imeOptions="actionDone"
             android:singleLine="true"
+            android:scrollHorizontally="true"
             app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintLeft_toRightOf="@+id/voc_icon"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/item_type"/>
+
+        <TextView
+            android:id="@+id/voc_url_intro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="8dp"
+            android:layout_marginBottom="11dp"
+            android:text="LINK: "
+            android:textColor="@color/mid_grey"
+            android:textSize="10dp"
+            android:visibility="gone"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintLeft_toRightOf="@+id/voc_icon"
+            app:layout_constraintBottom_toBottomOf="@+id/voc_url"
+            />
+
+        <EditText
+            android:id="@+id/voc_url"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:paddingLeft="8dp"
+            android:layout_marginTop="-8dp"
+            android:text=""
+            android:hint="Paste playlist link here..."
+            android:textColor="@color/light_grey"
+            android:textColorHint="@color/mid_grey"
+            android:textSize="11dp"
+            android:textStyle="italic"
+            android:backgroundTint="@color/colorPrimaryDark"
+            android:inputType="textUri|textWebEditText"
+            android:imeOptions="actionDone"
+            android:singleLine="true"
+            android:scrollHorizontally="true"
+            android:visibility="gone"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintLeft_toRightOf="@+id/voc_url_intro"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/item_edit_text"/>
 
         <ImageView
             android:id="@+id/voc_edit_button"

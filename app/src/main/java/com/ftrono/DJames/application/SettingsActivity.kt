@@ -353,10 +353,11 @@ class SettingsActivity : AppCompatActivity() {
                     loggedIn = false
                     prefs.spotifyToken = ""
                     prefs.refreshToken = ""
+                    prefs.spotUserId = ""
                     prefs.userName = ""
                     prefs.userEMail = ""
                     prefs.userImage = ""
-                    prefs.userId = ""
+                    prefs.nlpUserId = ""
                     //Stop overlay service:
                     if (isMyServiceRunning(FloatingViewService::class.java)) {
                         stopService(Intent(applicationContext, FloatingViewService::class.java))

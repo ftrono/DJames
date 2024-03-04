@@ -31,14 +31,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="Write your lesser known artists here"
+        android:layout_marginLeft="10dp"
+        android:text="✏️ Write your hard-to-spell known artists here..."
         android:textColor="@color/mid_grey"
         android:textSize="14dp"
         android:textStyle="italic"
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="@+id/vocabulary_header"
         app:layout_constraintBottom_toTopOf="@+id/voc_artists"/>
 
@@ -47,6 +47,7 @@
         android:layout_width="wrap_content"
         android:layout_height="40dp"
         android:layout_marginTop="5dp"
+        android:layout_marginLeft="10dp"
         android:backgroundTint="@color/colorAccent"
         android:text="ARTISTS"
         android:textColor="@color/light_grey"
@@ -63,7 +64,7 @@
         android:layout_width="wrap_content"
         android:layout_height="40dp"
         android:layout_marginTop="5dp"
-        android:layout_marginLeft="20dp"
+        android:layout_marginLeft="10dp"
         android:backgroundTint="@color/dark_grey"
         android:text="ALBUMS"
         android:textColor="@color/light_grey"
@@ -80,7 +81,7 @@
         android:layout_width="wrap_content"
         android:layout_height="40dp"
         android:layout_marginTop="5dp"
-        android:layout_marginLeft="20dp"
+        android:layout_marginLeft="10dp"
         android:backgroundTint="@color/dark_grey"
         android:text="PLAYLISTS"
         android:textColor="@color/light_grey"
@@ -89,7 +90,6 @@
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintLeft_toRightOf="@+id/voc_albums"
-        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/voc_intro" />
 
 
@@ -138,12 +138,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|right"
-        android:layout_marginRight="20dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginRight="10dp"
         android:backgroundTint="@color/colorAccent"
         app:tint="@color/light_grey"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/vocabulary_header"
+        app:layout_constraintBottom_toBottomOf="@+id/vocabulary_header"
         android:src="@drawable/add_icon" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

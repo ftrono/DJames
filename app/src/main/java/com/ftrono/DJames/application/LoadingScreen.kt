@@ -81,6 +81,7 @@ class LoadingScreen: AppCompatActivity() {
                                     //SUCCESS!
                                     prefs.spotifyToken = spotToken
                                     prefs.refreshToken = refrToken
+                                    prefs.spotUserId = respJSON.get("id").asString
                                     prefs.userName = respJSON.get("display_name").asString
                                     prefs.userEMail = respJSON.get("email").asString
                                     try {
@@ -94,7 +95,7 @@ class LoadingScreen: AppCompatActivity() {
 
                                     //Generate NLP user ID:
                                     var utils = Utilities()
-                                    prefs.userId = utils.generateRandomString(30, numOnly = true)
+                                    prefs.nlpUserId = utils.generateRandomString(30, numOnly = true)
 
                                     //Send broadcasts:
                                     Intent().also { intent ->

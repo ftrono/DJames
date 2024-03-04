@@ -36,6 +36,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        filter = "artist"
 
         //Header intro:
         var textHeader = requireActivity().findViewById<TextView>(R.id.voc_intro)
@@ -49,6 +50,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         //Filters listeners:
         vocArtists.setOnClickListener(View.OnClickListener {
             filter = "artist"
+            textHeader.text = "✏️   Write your hard-to-spell names here..."
             vocArtists.backgroundTintList =
                 AppCompatResources.getColorStateList(requireActivity(), R.color.colorAccent)
             vocAlbums.backgroundTintList =
@@ -59,6 +61,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         })
         vocAlbums.setOnClickListener(View.OnClickListener {
             filter = "album"
+            textHeader.text = "✏️   Write your hard-to-spell names here..."
             vocArtists.backgroundTintList =
                 AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
             vocAlbums.backgroundTintList =
@@ -69,6 +72,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         })
         vocPlaylists.setOnClickListener(View.OnClickListener {
             filter = "playlist"
+            textHeader.text = "✏️   Write your playlists names & URLs here..."
             vocArtists.backgroundTintList =
                 AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
             vocAlbums.backgroundTintList =
@@ -97,6 +101,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         val actFilter = IntentFilter()
         actFilter.addAction(ACTION_VOC_REFRESH)
         actFilter.addAction(ACTION_VOC_DELETE)
+        actFilter.addAction(ACTION_VOC_REQUEST_URL)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
         requireActivity().registerReceiver(vocabularyActReceiver, actFilter, AppCompatActivity.RECEIVER_EXPORTED)
@@ -107,6 +112,9 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
 
         //FAB:
         var fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
+        if (!loggedIn) {
+            fab.visibility = View.GONE
+        }
         fab.setOnClickListener { view ->
             if (!editModeOn) {
                 updateRecyclerView(newItem = true)
@@ -134,19 +142,25 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             //No data:
             refreshList!!.visibility = View.GONE
             textNoData!!.visibility = View.VISIBLE
-            textNoData!!.text = "Your ${filter}s vocabulary is empty!\n\nHelp DJames understand\nyour hardest-to-spell ${filter} names\nby writing them here.\n\n✏️"
+            if (filter == "playlist") {
+                textNoData!!.text =
+                    "Your playlists vocabulary is empty!\n\nLet DJames know your playlists by\nwriting writing their names & links here.\n\n✏️"
+            } else {
+                textNoData!!.text =
+                    "Your ${filter}s vocabulary is empty!\n\nHelp DJames understand\nyour hardest-to-spell ${filter} names\nby writing them here.\n\n✏️"
+            }
         }
     }
 
 
     //Delete selected item in RecyclerView:
-    fun deleteItem(prevText: String) {
+    fun deleteItem(toDelete: String) {
         val alertDialog = MaterialAlertDialogBuilder(requireActivity())
         //Exec:
         alertDialog.setPositiveButton("Yes", object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
                 //Yes
-                var ret = utils.editVocFile(prevText=prevText!!)
+                var ret = utils.editVocFile(prevText=toDelete!!)
                 if (ret == 0) {
                     Toast.makeText(context, "Deleted!", Toast.LENGTH_LONG).show()
                 } else {
@@ -163,7 +177,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             }
         })
         alertDialog.setTitle("Remove items")
-        alertDialog.setMessage("Do you want to remove the item \"$prevText\" from this list?")
+        alertDialog.setMessage("Do you want to remove the item \"${toDelete.split(" %%% ")[0].strip()}\" from this list?")
         alertDialog.show()
     }
 
@@ -207,9 +221,23 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             //Delete items:
             if (intent.action == ACTION_VOC_DELETE) {
                 Log.d(TAG, "VOCABULARY: ACTION_VOC_DELETE.")
-                var prevText = intent.getStringExtra("prevText")
-                deleteItem(prevText!!)
+                var toDelete = intent.getStringExtra("toDelete")
+                deleteItem(toDelete!!)
                 editModeOn = false
+            }
+
+            //Dialog for add Url:
+            if (intent.action == ACTION_VOC_REQUEST_URL) {
+                Log.d(TAG, "VOCABULARY: ACTION_VOC_REQUEST_URL.")
+                val alertDialog = MaterialAlertDialogBuilder(requireActivity())
+                //Exec:
+                alertDialog.setPositiveButton("Ok", object : DialogInterface.OnClickListener {
+                    override fun onClick(dialog: DialogInterface?, which: Int) {
+                    }
+                })
+                alertDialog.setTitle("Playlist URL")
+                alertDialog.setMessage("Please enter a valid URL for the current Playlist!\n\nYou can copy it from Spotify -> your playlist -> Share -> Copy link.")
+                alertDialog.show()
             }
 
         }

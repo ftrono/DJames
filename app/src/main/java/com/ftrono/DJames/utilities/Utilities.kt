@@ -206,4 +206,16 @@ class Utilities {
         }
     }
 
+    //On Logout: delete user cache files:
+    fun deleteUserCache() {
+        try {
+            logDir!!.deleteRecursively()
+            Log.d(TAG, "Deleted ALL logs.")
+            File(vocDir, vocFileName).delete()
+            Log.d(TAG, "User vocabulary deleted.")
+        } catch (e: Exception) {
+            Log.d(TAG, "User cache not completely deleted.")
+        }
+    }
+
 }

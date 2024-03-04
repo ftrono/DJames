@@ -296,6 +296,7 @@ class MainActivity : AppCompatActivity() {
                 if (isMyServiceRunning(FloatingViewService::class.java)) {
                     stopService(Intent(applicationContext, FloatingViewService::class.java))
                 }
+                //utils.deleteUserCache()
                 setViewLoggedOut()
                 //Send broadcasts:
                 Intent().also { intent ->
@@ -312,7 +313,7 @@ class MainActivity : AppCompatActivity() {
             }
         })
         alertDialog.setTitle("Log out")
-        alertDialog.setMessage("You will need to login again to Spotify to use DJames.\n\nDo you want to log out?")
+        alertDialog.setMessage("You will need to login again to Spotify to use DJames and you'll lose your saved vocabulary & history.\n\nDo you want to log out?")
         alertDialog.show()
     }
 

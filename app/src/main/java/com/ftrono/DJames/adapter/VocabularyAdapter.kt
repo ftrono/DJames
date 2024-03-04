@@ -153,7 +153,7 @@ class VocabularyAdapter(
 
     private fun doneAction(prevText: String, editText: TextView, editButton: ImageView, doneButton: ImageView, prevUrl: String, editUrl: TextView) {
         var newText = editText.text.toString().lowercase().strip()
-        var newUrl = editUrl.text.toString().lowercase().strip()
+        var newUrl = editUrl.text.toString().strip()
         var urlTest = URLUtil.isValidUrl(newUrl) && Patterns.WEB_URL.matcher(newUrl).matches()
         if (filter == "playlist" && !urlTest) {
             //Send broadcast:

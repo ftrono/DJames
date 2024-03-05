@@ -31,7 +31,7 @@
 
         <activity
             android:name=".application.MainActivity"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="orientation|screenSize|keyboard|keyboardHidden|navigation"
             android:theme="@style/AppTheme.NoActionBar"
             android:exported="true"
             android:launchMode="singleInstance">
@@ -44,7 +44,7 @@
 
         <activity
             android:name=".application.SettingsActivity"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="orientation|screenSize|keyboard|keyboardHidden|navigation"
             android:label="Settings"
             android:launchMode="singleInstance"
             android:parentActivityName=".application.MainActivity">
@@ -52,7 +52,7 @@
 
         <activity
             android:name=".application.FakeLockScreen"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="orientation|screenSize|keyboard|keyboardHidden|navigation"
             android:label="FakeLockScreen"
             android:theme="@style/AppTheme.FakeLockScreen"
             android:launchMode="singleInstance"

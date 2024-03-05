@@ -107,25 +107,11 @@ class FakeLockScreen: AppCompatActivity() {
         var config = getResources().getConfiguration()
         if (config.orientation == Configuration.ORIENTATION_PORTRAIT) {
             //Vertical:
-            clockSeparator = "\n"
+            setVerticalView()
         }
         if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             //Horizontal:
-            clockSeparator = ":"
-            //Move exit button to the LEFT:
-            exitButton!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
-                topToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
-                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                setMargins((50*density).roundToInt(),0,0,0)
-            }
-            //Fix constraint for last textView:
-            artworkView!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                bottomToTop = ConstraintLayout.LayoutParams.UNSET   //clear
-                bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-            }
-            //Fix Clock text size:
-            clockView!!.textSize = 140F
+            setHorizontalView()
         }
 
         //Hide status bar:

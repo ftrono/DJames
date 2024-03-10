@@ -17,6 +17,7 @@ import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.ftrono.DJames.api.NLPInterpreter
 import com.ftrono.DJames.application.*
 import com.ftrono.DJames.api.NLPQuery
 import com.ftrono.DJames.application.FakeLockScreen
@@ -230,8 +231,8 @@ class VoiceSearchService : Service() {
             intent.setAction(ACTION_OVERLAY_READY)
             sendBroadcast(intent)
         }
+        Log.d(TAG, "VOICE SEARCH SERVICE TERMINATED.")
     }
-
 
 
     //MAIN VOICE QUERY CALLER:
@@ -330,10 +331,8 @@ class VoiceSearchService : Service() {
 
                             if (intentName == "CallRequest") {
                                 //A) PHONE CALL:
-                                //////////////////////////
-                                //TEMP:
-                                //Play FAIL tone:
-                                toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                                val nlpInterpreter = NLPInterpreter(applicationContext)
+                                val toCall = nlpInterpreter.extractToCall(nlp_queryText)
                                 //Close log:
                                 logFile!!.writeText(last_log.toString())
                                 //Send broadcast:
@@ -341,13 +340,27 @@ class VoiceSearchService : Service() {
                                     intent.setAction(ACTION_LOG_REFRESH)
                                     sendBroadcast(intent)
                                 }
-                                stopSelf()
+                                if (toCall == "") {
+                                    //Play FAIL tone:
+                                    toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                                    stopSelf()
+                                } else {
+                                    //Play ACKNOWLEDGE tone:
+                                    toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                                    //CALL:
+                                    Intent().also { intent ->
+                                        intent.setAction(ACTION_MAKE_CALL)
+                                        intent.putExtra("toCall", toCall)
+                                        sendBroadcast(intent)
+                                    }
+                                    stopSelf()
+                                }
 
                             } else if (intentName == "LikeRequest") {
                                 //B) LIKE REQUEST:
                                 /////////////////////////////////////////
                                 //TEMP:
-                                //Play FAIL tone:
+                                //Play ACKNOWLEDGE tone:
                                 toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                                 //Close log:
                                 logFile!!.writeText(last_log.toString())
@@ -381,7 +394,7 @@ class VoiceSearchService : Service() {
                                     audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
 
                                     //Wait 1 sec:
-                                    Thread.sleep(1000)   //default: 5000
+                                    Thread.sleep(1000)
 
                                     //Overwrite player info:
                                     currently_playing = queryResult

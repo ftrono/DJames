@@ -2,6 +2,7 @@ package com.ftrono.DJames.adapter
 
 import android.content.Context
 import android.content.Intent
+import android.telephony.PhoneNumberUtils
 import android.util.Patterns
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -36,20 +37,29 @@ class VocabularyAdapter(
 
     override fun onBindViewHolder(holder: VocabularyViewHolder, position: Int) {
         var prevText = vocItems[position].asString
-        var prevUrl = ""
+        var prevDetail = ""
         //POPOLA:
-        if (filter == "album") {
-            holder.item_icon.setImageResource(R.drawable.icon_album)
+        if (filter == "contact") {
+            holder.item_icon.setImageResource(R.drawable.icon_phone)
+            holder.detail_intro.text = "PHONE: "
+            holder.edit_detail.hint = "Write the main phone number here..."
+            holder.detail_intro.visibility= View.VISIBLE
+            holder.edit_detail.visibility= View.VISIBLE
         } else if (filter == "playlist") {
-            holder.item_icon.setImageResource(R.drawable.icon_playlist)
-            holder.url_intro.visibility= View.VISIBLE
-            holder.edit_url.visibility= View.VISIBLE
+            holder.item_icon.setImageResource(R.drawable.icon_album)
+            holder.detail_intro.text = "LINK: "
+            holder.edit_detail.hint = "Paste playlist link here..."
+            holder.detail_intro.visibility= View.VISIBLE
+            holder.edit_detail.visibility= View.VISIBLE
+        } else {
+            holder.item_icon.setImageResource(R.drawable.icon_music)
         }
+
         holder.item_type.text = filter.uppercase()
         if (prevText == "") {
             //A) NEW ITEM:
             //Edit mode already on:
-            editMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, prevText=prevText, prevUrl=prevUrl, editUrl=holder.edit_url)
+            editMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, prevText=prevText, prevDetail=prevDetail, editDetail=holder.edit_detail)
             //Delete button:
             holder.delete_button.setOnClickListener { view ->
                 //Send broadcast:
@@ -57,17 +67,17 @@ class VocabularyAdapter(
                     intent.setAction(ACTION_VOC_REFRESH)
                     context.sendBroadcast(intent)
                 }
-                noMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, editUrl=holder.edit_url)
+                noMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, editDetail=holder.edit_detail)
             }
         } else {
             //B) EXISTING ITEMS:
-            if (filter == "playlist") {
+            if (filter == "playlist" || filter == "contact") {
                 //Split playlist name from URL:
                 var temp = prevText.split(" %%% ")
                 prevText = temp[0].strip()
                 if (temp.size > 1) {
-                    prevUrl = temp[1].strip()
-                    holder.edit_url.text = prevUrl
+                    prevDetail = temp[1].strip()
+                    holder.edit_detail.text = prevDetail
                 }
             }
             //No mode:
@@ -75,36 +85,36 @@ class VocabularyAdapter(
             holder.edit_text.clearFocus()
             //Delete button:
             holder.delete_button.setOnClickListener { view ->
-                deleteAction(prevText=prevText, prevUrl=prevUrl)
-                noMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, editUrl=holder.edit_url)
+                deleteAction(prevText=prevText, prevDetail=prevDetail)
+                noMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, editDetail=holder.edit_detail)
             }
         }
         //Edit mode:
         //a) from editText:
         holder.edit_text.setOnClickListener { view ->
-            editMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, prevText=prevText, prevUrl=prevUrl, editUrl=holder.edit_url)
+            editMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, prevText=prevText, prevDetail=prevDetail, editDetail=holder.edit_detail)
         }
         holder.edit_text.setOnFocusChangeListener() { view: View, hasFocus: Boolean ->
             if (hasFocus) {
-                editMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, prevText=prevText, prevUrl=prevUrl, editUrl=holder.edit_url)
+                editMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, prevText=prevText, prevDetail=prevDetail, editDetail=holder.edit_detail)
             } else {
-                noMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, editUrl=holder.edit_url)
+                noMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, editDetail=holder.edit_detail)
             }
         }
         //b) from editButton:
         holder.edit_button.setOnClickListener { view ->
             holder.edit_text.requestFocus()
-            editMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, prevText=prevText, prevUrl=prevUrl, editUrl=holder.edit_url)
+            editMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, prevText=prevText, prevDetail=prevDetail, editDetail=holder.edit_detail)
         }
-        //c) from editUrl:
-        holder.edit_url.setOnClickListener { view ->
-            editMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, prevText=prevText, prevUrl=prevUrl, editUrl=holder.edit_url)
+        //c) from editDetail:
+        holder.edit_detail.setOnClickListener { view ->
+            editMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, prevText=prevText, prevDetail=prevDetail, editDetail=holder.edit_detail)
         }
-        holder.edit_url.setOnFocusChangeListener() { view: View, hasFocus: Boolean ->
+        holder.edit_detail.setOnFocusChangeListener() { view: View, hasFocus: Boolean ->
             if (hasFocus) {
-                editMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, prevText=prevText, prevUrl=prevUrl, editUrl=holder.edit_url)
+                editMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, prevText=prevText, prevDetail=prevDetail, editDetail=holder.edit_detail)
             } else {
-                noMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, editUrl=holder.edit_url)
+                noMode(editText=holder.edit_text, editButton=holder.edit_button, doneButton=holder.done_button, editDetail=holder.edit_detail)
             }
         }
         //LENGTH:
@@ -113,18 +123,19 @@ class VocabularyAdapter(
 //        }
     }
 
-    private fun editMode(editText: TextView, editButton: ImageView, doneButton: ImageView, prevText: String, prevUrl: String, editUrl: TextView) {
+    private fun editMode(editText: TextView, editButton: ImageView, doneButton: ImageView, prevText: String, prevDetail: String, editDetail: TextView) {
         editModeOn = true
         //EditText in edit mode:
         editText.backgroundTintList = AppCompatResources.getColorStateList(context, R.color.dark_grey)
-        editUrl.backgroundTintList = AppCompatResources.getColorStateList(context, R.color.dark_grey)
+        editDetail.backgroundTintList = AppCompatResources.getColorStateList(context, R.color.dark_grey)
+        editDetail.setTextColor(AppCompatResources.getColorStateList(context, R.color.light_grey))
         //Replace EditButton with DoneButton:
         editButton.visibility = View.GONE
         doneButton.visibility = View.VISIBLE
         //End editMode with keyboard Enter key:
         editText.setOnEditorActionListener { v, actionId, event ->
             if (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER || actionId == EditorInfo.IME_ACTION_SEND || actionId == EditorInfo.IME_ACTION_DONE) {
-                doneAction(prevText=prevText, editText=editText, editButton=editButton, doneButton=doneButton, prevUrl=prevUrl, editUrl=editUrl)
+                doneAction(prevText=prevText, editText=editText, editButton=editButton, doneButton=doneButton, prevDetail=prevDetail, editDetail=editDetail)
                 true
             } else {
                 false
@@ -132,42 +143,48 @@ class VocabularyAdapter(
         }
         //Done button:
         doneButton.setOnClickListener { view ->
-            doneAction(prevText=prevText, editText=editText, editButton=editButton, doneButton=doneButton, prevUrl=prevUrl, editUrl=editUrl)
+            doneAction(prevText=prevText, editText=editText, editButton=editButton, doneButton=doneButton, prevDetail=prevDetail, editDetail=editDetail)
         }
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
         imm!!.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
     }
 
-    private fun noMode(editText: TextView, editButton: ImageView, doneButton: ImageView, editUrl: TextView) {
+    private fun noMode(editText: TextView, editButton: ImageView, doneButton: ImageView, editDetail: TextView) {
         //Restore default visibility:
         editModeOn = false
         editButton.visibility = View.VISIBLE
         doneButton.visibility = View.GONE
         editText.backgroundTintList = AppCompatResources.getColorStateList(context, R.color.colorPrimaryDark)
-        editUrl.backgroundTintList = AppCompatResources.getColorStateList(context, R.color.colorPrimaryDark)
+        editDetail.backgroundTintList = AppCompatResources.getColorStateList(context, R.color.colorPrimaryDark)
+        editDetail.setTextColor(AppCompatResources.getColorStateList(context, R.color.mid_grey))
         editText.clearFocus()
-        editUrl.clearFocus()
+        editDetail.clearFocus()
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
         imm!!.hideSoftInputFromWindow(editButton.getWindowToken(), 0)
     }
 
-    private fun doneAction(prevText: String, editText: TextView, editButton: ImageView, doneButton: ImageView, prevUrl: String, editUrl: TextView) {
+    private fun doneAction(prevText: String, editText: TextView, editButton: ImageView, doneButton: ImageView, prevDetail: String, editDetail: TextView) {
         var newText = editText.text.toString().lowercase().strip()
-        var newUrl = editUrl.text.toString().strip()
-        var urlTest = URLUtil.isValidUrl(newUrl) && Patterns.WEB_URL.matcher(newUrl).matches()
-        if (filter == "playlist" && !urlTest) {
+        var newDetail = editDetail.text.toString().replace(" ", "")
+        var urlTest = URLUtil.isValidUrl(newDetail) && Patterns.WEB_URL.matcher(newDetail).matches()
+        var phoneTest = PhoneNumberUtils.isGlobalPhoneNumber(newDetail)
+        //Request valid detail (i.e. no URL, no phone number, no international prefix in phone number):
+        if ((filter == "playlist" && (!urlTest || !newDetail.contains("open.spotify.com")))
+            || (filter == "contact" && (!phoneTest || !newDetail.contains("+")))) {
             //Send broadcast:
             Intent().also { intent ->
-                intent.setAction(ACTION_VOC_REQUEST_URL)
+                intent.setAction(ACTION_VOC_REQUEST_DETAIL)
                 context.sendBroadcast(intent)
             }
         } else {
             if (newText != "") {
                 //Save to file:
-                if (newText != prevText || (filter == "playlist" && newUrl != prevUrl)) {
+                if (newText != prevText
+                    || (filter == "playlist" && newDetail != prevDetail)
+                    || (filter == "contact" && newDetail != prevDetail)) {
                     var ret = 0
-                    if (filter == "playlist") {
-                        ret = utils.editVocFile(prevText = "$prevText %%% $prevUrl", newText = "$newText %%% $newUrl")
+                    if (filter == "playlist" || filter == "contact") {
+                        ret = utils.editVocFile(prevText = "$prevText %%% $prevDetail", newText = "$newText %%% $newDetail")
                     } else {
                         ret = utils.editVocFile(prevText = prevText, newText = newText)
                     }
@@ -179,21 +196,21 @@ class VocabularyAdapter(
                     }
                 }
             } else if (prevText != "") {
-                deleteAction(prevText=prevText, prevUrl=prevUrl)
+                deleteAction(prevText=prevText, prevDetail=prevDetail)
             }
             //Send broadcast:
             Intent().also { intent ->
                 intent.setAction(ACTION_VOC_REFRESH)
                 context.sendBroadcast(intent)
             }
-            noMode(editText=editText, editButton=editButton, doneButton=doneButton, editUrl=editUrl)
+            noMode(editText=editText, editButton=editButton, doneButton=doneButton, editDetail=editDetail)
         }
     }
 
-    private fun deleteAction(prevText: String, prevUrl: String) {
+    private fun deleteAction(prevText: String, prevDetail: String) {
         var toDelete = prevText
-        if (filter == "playlist") {
-            toDelete = "$toDelete %%% $prevUrl"
+        if (filter == "playlist" || filter == "contact") {
+            toDelete = "$toDelete %%% $prevDetail"
         }
         //Send broadcast:
         Intent().also { intent ->

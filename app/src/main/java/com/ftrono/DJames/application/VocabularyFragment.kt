@@ -45,23 +45,42 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         //Filters buttons:
         var vocArtists = requireActivity().findViewById<Button>(R.id.voc_artists)
         var vocPlaylists = requireActivity().findViewById<Button>(R.id.voc_playlists)
+        var vocContacts = requireActivity().findViewById<Button>(R.id.voc_contacts)
 
         //Filters listeners:
         vocArtists.setOnClickListener(View.OnClickListener {
+            editModeOn = false
             filter = "artist"
             textHeader.text = "✏️   Write your hard-to-spell names here..."
             vocArtists.backgroundTintList =
                 AppCompatResources.getColorStateList(requireActivity(), R.color.colorAccent)
             vocPlaylists.backgroundTintList =
                 AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
+            vocContacts.backgroundTintList =
+                AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
             updateRecyclerView()
         })
         vocPlaylists.setOnClickListener(View.OnClickListener {
+            editModeOn = false
             filter = "playlist"
             textHeader.text = "✏️   Write your playlists names & URLs here..."
             vocArtists.backgroundTintList =
                 AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
             vocPlaylists.backgroundTintList =
+                AppCompatResources.getColorStateList(requireActivity(), R.color.colorAccent)
+            vocContacts.backgroundTintList =
+                AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
+            updateRecyclerView()
+        })
+        vocContacts.setOnClickListener(View.OnClickListener {
+            editModeOn = false
+            filter = "contact"
+            textHeader.text = "✏️   Write your fav contacts' names & phone here..."
+            vocArtists.backgroundTintList =
+                AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
+            vocPlaylists.backgroundTintList =
+                AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
+            vocContacts.backgroundTintList =
                 AppCompatResources.getColorStateList(requireActivity(), R.color.colorAccent)
             updateRecyclerView()
         })
@@ -85,7 +104,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         val actFilter = IntentFilter()
         actFilter.addAction(ACTION_VOC_REFRESH)
         actFilter.addAction(ACTION_VOC_DELETE)
-        actFilter.addAction(ACTION_VOC_REQUEST_URL)
+        actFilter.addAction(ACTION_VOC_REQUEST_DETAIL)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
         requireActivity().registerReceiver(vocabularyActReceiver, actFilter, AppCompatActivity.RECEIVER_EXPORTED)
@@ -126,7 +145,10 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             //No data:
             refreshList!!.visibility = View.GONE
             textNoData!!.visibility = View.VISIBLE
-            if (filter == "playlist") {
+            if (filter == "contact") {
+                textNoData!!.text =
+                    "Your contacts vocabulary is empty!\n\nLet DJames know your favourite contacts'\nnames and phone numbers by\nwriting writing them here.\n\n✏️"
+            } else if (filter == "playlist") {
                 textNoData!!.text =
                     "Your playlists vocabulary is empty!\n\nLet DJames know your playlists by\nwriting writing their names & links here.\n\n✏️"
             } else {
@@ -211,16 +233,23 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             }
 
             //Dialog for add Url:
-            if (intent.action == ACTION_VOC_REQUEST_URL) {
-                Log.d(TAG, "VOCABULARY: ACTION_VOC_REQUEST_URL.")
+            if (intent.action == ACTION_VOC_REQUEST_DETAIL) {
+                Log.d(TAG, "VOCABULARY: ACTION_VOC_REQUEST_DETAIL.")
                 val alertDialog = MaterialAlertDialogBuilder(requireActivity())
                 //Exec:
                 alertDialog.setPositiveButton("Ok", object : DialogInterface.OnClickListener {
                     override fun onClick(dialog: DialogInterface?, which: Int) {
                     }
                 })
-                alertDialog.setTitle("Playlist URL")
-                alertDialog.setMessage("Please enter a valid URL for the current Playlist!\n\nYou can copy it from Spotify -> your playlist -> Share -> Copy link.")
+                if (filter == "contact") {
+                    //CONTACT:
+                    alertDialog.setTitle("Contact Phone Number")
+                    alertDialog.setMessage("Please enter a valid phone number for the current Contact!\n\nPlease include the international prefix at the beginning (i.e. \"+39\", \"+44\", ...).")
+                } else {
+                    //PLAYLIST:
+                    alertDialog.setTitle("Playlist URL")
+                    alertDialog.setMessage("Please enter a valid URL for the current Playlist!\n\nPlease copy it from Spotify -> your playlist -> Share -> Copy link.")
+                }
                 alertDialog.show()
             }
 

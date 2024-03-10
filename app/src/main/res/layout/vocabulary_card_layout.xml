@@ -22,7 +22,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             app:layout_constraintHorizontal_bias="0.0"
-            android:src="@drawable/icon_person"
+            android:src="@drawable/icon_music"
             android:visibility="visible"
             app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintHorizontal_chainStyle="packed"
@@ -68,7 +68,7 @@
             app:layout_constraintTop_toBottomOf="@+id/item_type"/>
 
         <TextView
-            android:id="@+id/voc_url_intro"
+            android:id="@+id/voc_detail_intro"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingLeft="8dp"
@@ -80,20 +80,20 @@
             app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintLeft_toRightOf="@+id/voc_icon"
-            app:layout_constraintBottom_toBottomOf="@+id/voc_url"
+            app:layout_constraintBottom_toBottomOf="@+id/voc_detail"
             />
 
         <EditText
-            android:id="@+id/voc_url"
+            android:id="@+id/voc_detail"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:paddingLeft="8dp"
             android:layout_marginTop="-8dp"
             android:text=""
             android:hint="Paste playlist link here..."
-            android:textColor="@color/light_grey"
+            android:textColor="@color/mid_grey"
             android:textColorHint="@color/mid_grey"
-            android:textSize="11dp"
+            android:textSize="12dp"
             android:textStyle="italic"
             android:backgroundTint="@color/colorPrimaryDark"
             android:inputType="textUri|textWebEditText"
@@ -103,7 +103,7 @@
             android:visibility="gone"
             app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintLeft_toRightOf="@+id/voc_url_intro"
+            app:layout_constraintLeft_toRightOf="@+id/voc_detail_intro"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/item_edit_text"/>
 

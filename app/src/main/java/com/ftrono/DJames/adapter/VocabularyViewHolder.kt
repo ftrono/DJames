@@ -10,9 +10,6 @@ import com.ftrono.DJames.R
 class VocabularyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     @JvmField
-    var card: ConstraintLayout = itemView.findViewById(R.id.voc_card)
-
-    @JvmField
     var item_icon: ImageView = itemView.findViewById(R.id.voc_icon)
 
     @JvmField
@@ -22,10 +19,10 @@ class VocabularyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     var edit_text: TextView = itemView.findViewById(R.id.item_edit_text)
 
     @JvmField
-    var url_intro: TextView = itemView.findViewById(R.id.voc_url_intro)
+    var detail_intro: TextView = itemView.findViewById(R.id.voc_detail_intro)
 
     @JvmField
-    var edit_url: TextView = itemView.findViewById(R.id.voc_url)
+    var edit_detail: TextView = itemView.findViewById(R.id.voc_detail)
 
     @JvmField
     var edit_button: ImageView = itemView.findViewById(R.id.voc_edit_button)

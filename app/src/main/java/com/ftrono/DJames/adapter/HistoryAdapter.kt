@@ -39,7 +39,7 @@ class HistoryAdapter(
         var filename = "$datetime.json"
         //result check:
         try {
-            if (logItem.get("best_score").asInt > (matchDoubleThreshold)) {
+            if (logItem.get("best_score").asInt > matchDoubleThreshold) {
                 holder.datetime.text = "${context.getString(R.string.result_good)}   $datetime"
             } else {
                 holder.datetime.text = "${context.getString(R.string.result_not_good)}   $datetime"
@@ -54,8 +54,9 @@ class HistoryAdapter(
         } catch (e: Exception) {
             holder.nlp_text.text = "Not understood"
         }
-        //SPOTIFY:
+        //MATCH:
         try {
+            //SPOTIFY:
             holder.match_name_intro.text = "MATCH: "
             holder.match_name.text =
                 logItem.get("spotify_play").asJsonObject.get("song_name").asString
@@ -64,11 +65,25 @@ class HistoryAdapter(
             holder.match_context.text =
                 logItem.get("spotify_play").asJsonObject.get("context_name").asString
         } catch (e: Exception) {
-            holder.match_name_intro.text = "TYPE: "
             try {
-                holder.match_name.text = logItem.get("nlp").asJsonObject.get("intent").asString
-            } catch (e: Exception) {
-                holder.match_name.text = "PlayRequest"
+                //CONTACT CALL:
+                var called = logItem.get("contact_extractor").asJsonObject.get("contact_confirmed").asString.replaceFirstChar { it.uppercase() }
+                if (called != "") {
+                    holder.match_name_intro.text = "CALLED: "
+                    holder.match_name.text = called
+                } else {
+                    holder.match_name_intro.text = "TYPE: "
+                    holder.match_name.text = "CallRequest"
+                }
+
+            } catch (e:Exception) {
+                //GENERIC REQUEST:
+                holder.match_name_intro.text = "TYPE: "
+                try {
+                    holder.match_name.text = logItem.get("nlp").asJsonObject.get("intent").asString
+                } catch (e: Exception) {
+                    holder.match_name.text = "PlayRequest"
+                }
             }
             holder.match_name.setPadding(
                 (8 * density).roundToInt(),

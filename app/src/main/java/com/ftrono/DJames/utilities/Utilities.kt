@@ -141,6 +141,7 @@ class Utilities {
             try {
                 vocJson.add("artist", JsonArray())
                 vocJson.add("playlist", JsonArray())
+                vocJson.add("contact", JsonArray())
                 vocFile.createNewFile()
                 vocFile.writeText(vocJson.toString())
             } catch (e: Exception) {
@@ -162,8 +163,8 @@ class Utilities {
                 }
             } catch (e: Exception) {
                 //Delete invalid file:
-                vocFile.delete()
-                Log.d(TAG, "Error in parsing vocabulary file. File deleted!", e)
+                //vocFile.delete()
+                Log.d(TAG, "Error in parsing vocabulary file!", e)
             }
         }
         //Log.d(TAG, vocArray.toString())

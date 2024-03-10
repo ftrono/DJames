@@ -15,11 +15,12 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "1.02"
+val appVersion = "1.03"
 
 //Preferences:
 val deltaSimilarity = 30
-val matchThreshold = 70
+val maxThreshold = 70
+val midThreshold = 55
 val matchDoubleThreshold = 160
 val recSamplingRate = 44100
 val queryTimeout = 5   //seconds
@@ -35,6 +36,7 @@ var sourceIsVolume: Boolean = false
 var main_initialized: Boolean = false
 var vol_initialized: Boolean = false
 var recordingMode: Boolean = false
+var callMode: Boolean = false
 var overlay_active: Boolean = false
 var loggedIn: Boolean = false
 var clock_active: Boolean = false
@@ -83,6 +85,7 @@ val client = OkHttpClient.Builder()
 //Event receiver:
 //ACTION_SCREEN_ON, ACTION_SCREEN_OFF
 const val VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION"
+const val PHONE_STATE_ACTION = "android.intent.action.PHONE_STATE"
 const val ACTION_NLP_RESULT = "com.ftrono.DJames.eventReceiver.ACTION_NLP_RESULT"
 const val ACTION_REDIRECT = "com.ftrono.DJames.eventReceiver.ACTION_REDIRECT"
 
@@ -104,7 +107,7 @@ const val ACTION_LOG_DELETE = "com.ftrono.DJames.eventReceiver.ACTION_LOG_DELETE
 //History Vocabulary receiver:
 const val ACTION_VOC_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_VOC_REFRESH"
 const val ACTION_VOC_DELETE = "com.ftrono.DJames.eventReceiver.ACTION_VOC_DELETE"
-const val ACTION_VOC_REQUEST_URL = "com.ftrono.DJames.eventReceiver.ACTION_VOC_REQUEST_URL"
+const val ACTION_VOC_REQUEST_DETAIL = "com.ftrono.DJames.eventReceiver.ACTION_VOC_REQUEST_DETAIL"
 
 //Settings Act receiver:
 const val ACTION_SETTINGS_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_SETTINGS_LOGGED_IN"
@@ -122,6 +125,7 @@ const val ACTION_CLOCK_CLOSED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_CL
 const val ACTION_OVERLAY_READY = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_READY"
 const val ACTION_OVERLAY_BUSY = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_BUSY"
 const val ACTION_OVERLAY_PROCESSING = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_PROCESSING"
+const val ACTION_MAKE_CALL = "com.ftrono.DJames.eventReceiver.ACTION_MAKE_CALL"
 
 
 class App: Application()

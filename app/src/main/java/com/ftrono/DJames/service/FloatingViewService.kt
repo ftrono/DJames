@@ -2,10 +2,12 @@ package com.ftrono.DJames.service
 
 import android.annotation.SuppressLint
 import android.app.ActivityManager
+import android.app.Application
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -33,8 +35,6 @@ import com.ftrono.DJames.application.*
 import com.ftrono.DJames.receivers.EventReceiver
 import kotlin.math.abs
 import kotlin.math.round
-import android.app.Application
-import android.content.BroadcastReceiver
 
 
 class FloatingViewService : Service() {
@@ -88,6 +88,7 @@ class FloatingViewService : Service() {
         try {
             startForeground()
             vol_initialized = false
+            callMode = false
             //Send broadcast:
             Intent().also { intent ->
                 intent.setAction(ACTION_OVERLAY_ACTIVATED)
@@ -112,6 +113,7 @@ class FloatingViewService : Service() {
             filter.addAction(Intent.ACTION_SCREEN_ON)
             filter.addAction(Intent.ACTION_SCREEN_OFF)
             filter.addAction(VOLUME_CHANGED_ACTION)
+            filter.addAction(PHONE_STATE_ACTION)
             filter.addAction(ACTION_NLP_RESULT)
             filter.addAction(ACTION_REDIRECT)
 
@@ -126,10 +128,12 @@ class FloatingViewService : Service() {
             actFilter.addAction(ACTION_OVERLAY_READY)
             actFilter.addAction(ACTION_OVERLAY_BUSY)
             actFilter.addAction(ACTION_OVERLAY_PROCESSING)
+            actFilter.addAction(ACTION_MAKE_CALL)
 
             //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
             registerReceiver(overlayReceiver, actFilter, RECEIVER_EXPORTED)
             Log.d(TAG, "OverlayReceiver started.")
+
 
             //VIEW:
             // Init window manager
@@ -512,6 +516,19 @@ class FloatingViewService : Service() {
                 } catch (e: Exception) {
                     Log.d(TAG, "OVERLAY: ACTION_OVERLAY_PROCESSING: resources not available.")
                 }
+            }
+
+            //MAKE A PHONE CALL:
+            if (intent.action == ACTION_MAKE_CALL) {
+                Log.d(TAG, "OVERLAY: ACTION_MAKE_CALL.")
+                var toCall = intent.getStringExtra("toCall")
+                callMode = true
+                //MAKE CALL:
+                val intentCall = Intent(Intent.ACTION_CALL)
+                intentCall.setData(Uri.parse(toCall))
+                intentCall.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                intentCall.putExtra("fromwhere", "ser")
+                startActivity(intentCall)
             }
 
         }

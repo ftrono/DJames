@@ -1,4 +1,9 @@
 {
+  "call_sents": [
+    "call to ",
+    "contact ",
+    "call "
+  ],
   "play_sents": [
     "play the song ",
     "play the album ",

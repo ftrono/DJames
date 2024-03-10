@@ -127,6 +127,11 @@ class NLPQuery(context: Context) {
                     } catch (e: Exception) {
                         respJson.addProperty("playlist", "")
                     }
+                    try {
+                        respJson.addProperty("contact", queryResult.parameters.fieldsMap["ContactName"]!!.stringValue)
+                    } catch (e: Exception) {
+                        respJson.addProperty("contact", "")
+                    }
                     for (key in keySet) {
                         respJson.add(key, fulfillmentText.get(key))
                     }

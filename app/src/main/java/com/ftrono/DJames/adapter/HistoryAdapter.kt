@@ -56,6 +56,7 @@ class HistoryAdapter(
         }
         //SPOTIFY:
         try {
+            holder.match_name_intro.text = "MATCH: "
             holder.match_name.text =
                 logItem.get("spotify_play").asJsonObject.get("song_name").asString
             holder.match_artist.text =
@@ -63,9 +64,9 @@ class HistoryAdapter(
             holder.match_context.text =
                 logItem.get("spotify_play").asJsonObject.get("context_name").asString
         } catch (e: Exception) {
-            holder.match_name_intro.text = "TYPE"
+            holder.match_name_intro.text = "TYPE: "
             try {
-                holder.match_name.text = logItem.get("requestType").asString
+                holder.match_name.text = logItem.get("nlp").asJsonObject.get("intent").asString
             } catch (e: Exception) {
                 holder.match_name.text = "PlayRequest"
             }

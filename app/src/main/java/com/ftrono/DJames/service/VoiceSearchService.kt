@@ -327,14 +327,13 @@ class VoiceSearchService : Service() {
                             //B.2) ANSWER TO REQUEST:
                             logFile = File(logDir, "$now.json")
                             val intentName = resultsNLP.get("intent").asString
-                            last_log!!.addProperty("requestType", intentName)
 
                             if (intentName == "CallRequest") {
                                 //A) PHONE CALL:
                                 //////////////////////////
                                 //TEMP:
                                 //Play FAIL tone:
-                                toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                                toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                                 //Close log:
                                 logFile!!.writeText(last_log.toString())
                                 //Send broadcast:
@@ -349,7 +348,7 @@ class VoiceSearchService : Service() {
                                 /////////////////////////////////////////
                                 //TEMP:
                                 //Play FAIL tone:
-                                toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                                toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                                 //Close log:
                                 logFile!!.writeText(last_log.toString())
                                 //Send broadcast:

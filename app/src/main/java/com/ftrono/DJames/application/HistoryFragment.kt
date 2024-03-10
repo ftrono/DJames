@@ -133,11 +133,11 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         if (id == R.id.action_filter_successful) {
             if (!hideSuccessful) {
                 hideSuccessful = true
-                filterButton!!.setTitle("Show successful")
+                filterButton!!.setTitle("Show successful & generic")
                 filterButton!!.setIcon(R.drawable.unfilter_icon)
             } else {
                 hideSuccessful = false
-                filterButton!!.setTitle("Hide successful")
+                filterButton!!.setTitle("Hide successful & generic")
                 filterButton!!.setIcon(R.drawable.filter_icon)
             }
             updateRecyclerView()
@@ -222,7 +222,7 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
                         Log.d(TAG, "Deleted file: $filename")
                     }
                 }
-                Toast.makeText(requireActivity(), "All successful requests deleted!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireActivity(), "All successful & generic requests deleted!", Toast.LENGTH_SHORT).show()
                 updateRecyclerView()
             }
         })
@@ -232,8 +232,8 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
                 //No
             }
         })
-        alertDialog.setTitle("Delete all successful requests")
-        alertDialog.setMessage("Do you want to delete all successful requests from history?")
+        alertDialog.setTitle("Delete all successful & generic requests")
+        alertDialog.setMessage("Do you want to delete all successful & generic requests from history?")
         alertDialog.show()
     }
 

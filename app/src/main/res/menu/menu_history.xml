@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
     <item
         android:id="@+id/action_filter_successful"
-        android:title="Hide successful"
+        android:title="Hide successful &amp; generic"
         android:icon="@drawable/filter_icon"
         app:showAsAction="never" />
     <item

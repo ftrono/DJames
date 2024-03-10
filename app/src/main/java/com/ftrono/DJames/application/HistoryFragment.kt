@@ -58,10 +58,10 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
             popupMenu.setForceShowIcon(true)
             filterButton = popupMenu.menu.findItem(R.id.action_filter_successful)
             if (!hideSuccessful) {
-                filterButton!!.setTitle("Hide successful")
+                filterButton!!.setTitle("Hide successful & generic")
                 filterButton!!.setIcon(R.drawable.filter_icon)
             } else {
-                filterButton!!.setTitle("Show successful")
+                filterButton!!.setTitle("Show successful & generic")
                 filterButton!!.setIcon(R.drawable.unfilter_icon)
             }
             popupMenu.setOnMenuItemClickListener { menuItem ->

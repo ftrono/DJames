@@ -31,16 +31,26 @@
     "from my liked songs",
     "from my saved songs",
     "from my songs",
+    "from my liked tracks",
+    "from my saved tracks",
+    "from my tracks",
     "from the liked songs",
     "from the saved songs",
     "from liked songs",
     "from saved songs",
+    "from liked tracks",
+    "from saved tracks",
     "on my liked songs",
     "on my saved songs",
     "on my songs",
+    "on my liked tracks",
+    "on my saved tracks",
+    "on my tracks",
     "on the liked songs",
     "on the saved songs",
     "on liked songs",
-    "on saved songs"
+    "on saved songs",
+    "on liked tracks",
+    "on saved tracks"
   ]
 }

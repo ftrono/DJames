@@ -14,7 +14,7 @@
     <!-- History: Match result status -->
     <string name="result_good">🟢</string>
     <string name="result_not_good">🟡</string>
-    <string name="result_fail">🔴</string>
+    <string name="result_question">❔</string>
     <!-- Settings & various -->
     <string name="str_enable_overlay">Please enable the \'Display over other apps\' permission first!</string>
     <!-- Settings spinners -->

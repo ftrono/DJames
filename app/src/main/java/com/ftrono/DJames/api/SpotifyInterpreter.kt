@@ -6,7 +6,6 @@ import android.content.Context
 import com.ftrono.DJames.application.*
 import com.google.gson.JsonParser
 import kotlinx.coroutines.runBlocking
-import me.xdrop.fuzzywuzzy.FuzzySearch
 import okhttp3.Headers
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -21,10 +20,10 @@ class SpotifyInterpreter (private val context: Context) {
         //Init:
         var returnJSON = JsonObject()
         var artistConfirmed = ""
-        val playType = resultsNLP.get("type").asString
+        //val intentName = resultsNLP.get("intent").asString
 
         //1) Call NLP Extractor:
-        var matchExtracted = nlpInterpreter.extractMatches(type=playType, queryText=resultsNLP.get("query_text").asString.lowercase())
+        var matchExtracted = nlpInterpreter.extractMatches(queryText=resultsNLP.get("query_text").asString.lowercase())
         val artistExtracted = matchExtracted.get("artist_extracted").asString
 
         //2) Double check DF artists with NLP Extractor:

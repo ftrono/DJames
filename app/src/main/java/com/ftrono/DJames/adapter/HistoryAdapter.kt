@@ -45,7 +45,7 @@ class HistoryAdapter(
                 holder.datetime.text = "${context.getString(R.string.result_not_good)}   $datetime"
             }
         } catch (e: Exception) {
-            holder.datetime.text = "${context.getString(R.string.result_fail)}   $datetime"
+            holder.datetime.text = "${context.getString(R.string.result_question)}   $datetime"
         }
         //NLP:
         try {
@@ -63,7 +63,12 @@ class HistoryAdapter(
             holder.match_context.text =
                 logItem.get("spotify_play").asJsonObject.get("context_name").asString
         } catch (e: Exception) {
-            holder.match_name.text = "No match"
+            holder.match_name_intro.text = "TYPE"
+            try {
+                holder.match_name.text = logItem.get("requestType").asString
+            } catch (e: Exception) {
+                holder.match_name.text = "PlayRequest"
+            }
             holder.match_name.setPadding(
                 (8 * density).roundToInt(),
                 (8 * density).roundToInt(),

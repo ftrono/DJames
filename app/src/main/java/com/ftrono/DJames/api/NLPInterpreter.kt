@@ -17,10 +17,10 @@ class NLPInterpreter (private val context: Context) {
     private val TAG = NLPInterpreter::class.java.simpleName
 
     //NOTE: To be called only if Intent HAS a song name inside!
-    fun extractMatches(type: String, queryText: String): JsonObject {
+    fun extractMatches(queryText: String): JsonObject {
         //INIT:
         var retExtracted = JsonObject()
-        var playType = type
+        var playType = "track"
         var matchExtracted = ""
         var currentArtist = false
         var artistExtracted = ""

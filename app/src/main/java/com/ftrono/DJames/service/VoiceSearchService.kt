@@ -275,17 +275,6 @@ class VoiceSearchService : Service() {
                         //A) RECORDING FAIL -> END:
                         //Play FAIL tone:
                         toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-                        //Abandon audio focus:
-                        audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
-                        //Reset:
-                        searchFail = false
-                        recordingMode = false
-                        sourceIsVolume = false
-                        //Send broadcast:
-                        Intent().also { intent ->
-                            intent.setAction(ACTION_OVERLAY_READY)
-                            sendBroadcast(intent)
-                        }
                         stopSelf()
                     } else {
                         //B) RECORDING SUCCESS:
@@ -332,90 +321,102 @@ class VoiceSearchService : Service() {
                             //NLP FAIL:
                             //Play FAIL tone:
                             toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-                            //Abandon audio focus:
-                            audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
-                            //Reset:
-                            recordingMode = false
-                            sourceIsVolume = false
-                            //Send broadcast:
-                            Intent().also { intent ->
-                                intent.setAction(ACTION_OVERLAY_READY)
-                                sendBroadcast(intent)
-                            }
                             stopSelf()
 
                         } else {
-                            //B.2) SPOTIFY QUERY:
+                            //B.2) ANSWER TO REQUEST:
                             logFile = File(logDir, "$now.json")
-                            var queryResult: JsonObject =
-                                spotifyInterpreter!!.dispatchCall(resultsNLP)
+                            val intentName = resultsNLP.get("intent").asString
+                            last_log!!.addProperty("requestType", intentName)
 
-                            //A) EMPTY QUERY RESULT:
-                            if (!queryResult.has("uri")) {
+                            if (intentName == "CallRequest") {
+                                //A) PHONE CALL:
+                                //////////////////////////
+                                //TEMP:
                                 //Play FAIL tone:
                                 toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-                                //Abandon audio focus:
-                                audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
-                                //Reset:
-                                recordingMode = false
-                                sourceIsVolume = false
                                 //Close log:
                                 logFile!!.writeText(last_log.toString())
                                 //Send broadcast:
                                 Intent().also { intent ->
                                     intent.setAction(ACTION_LOG_REFRESH)
-                                    sendBroadcast(intent)
-                                }
-                                //Send broadcast:
-                                Intent().also { intent ->
-                                    intent.setAction(ACTION_OVERLAY_READY)
                                     sendBroadcast(intent)
                                 }
                                 stopSelf()
-                            } else {
-                                //B) SPOTIFY RESULT RECEIVED!
-                                //Overwrite player info:
-                                currently_playing = queryResult
-                                last_log!!.add("spotify_play", currently_playing)
+
+                            } else if (intentName == "LikeRequest") {
+                                //B) LIKE REQUEST:
+                                /////////////////////////////////////////
+                                //TEMP:
+                                //Play FAIL tone:
+                                toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                                 //Close log:
                                 logFile!!.writeText(last_log.toString())
-
-                                //Send broadcast:
-                                Intent().also { intent ->
-                                    intent.setAction(ACTION_NEW_SONG)
-                                    sendBroadcast(intent)
-                                }
-
                                 //Send broadcast:
                                 Intent().also { intent ->
                                     intent.setAction(ACTION_LOG_REFRESH)
                                     sendBroadcast(intent)
                                 }
+                                stopSelf()
 
-                                //Abandon audio focus:
-                                audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
+                            } else {
+                                //C) PLAY REQUEST:
+                                var queryResult: JsonObject =
+                                    spotifyInterpreter!!.dispatchCall(resultsNLP)
 
-                                //C) PLAY:
-                                var sessionState = spotifyInterpreter!!.playInternally(queryResult)
-                                Log.d(TAG, "SESSION STATE: ${sessionState}")
-                                if (sessionState == -1) {
-                                    //Open externally:
-                                    var spotifyUrl = queryResult.get("spotify_URL").asString
-                                    var contextUri = queryResult.get("context_uri").asString
-                                    val encodedContextUri: String =
-                                        URLEncoder.encode(contextUri, "UTF-8")
-                                    openExternally("$spotifyUrl?context=$encodedContextUri")
-                                    //openExternally(spotifyUrl)
-                                } else {
-                                    //Reset:
-                                    recordingMode = false
-                                    sourceIsVolume = false
+                                //A) EMPTY QUERY RESULT:
+                                if (!queryResult.has("uri")) {
+                                    //Play FAIL tone:
+                                    toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                                    //Close log:
+                                    logFile!!.writeText(last_log.toString())
                                     //Send broadcast:
                                     Intent().also { intent ->
-                                        intent.setAction(ACTION_OVERLAY_READY)
+                                        intent.setAction(ACTION_LOG_REFRESH)
                                         sendBroadcast(intent)
                                     }
                                     stopSelf()
+                                } else {
+                                    //B) SPOTIFY RESULT RECEIVED!
+                                    //Abandon audio focus:
+                                    audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
+
+                                    //Wait 1 sec:
+                                    Thread.sleep(1000)   //default: 5000
+
+                                    //Overwrite player info:
+                                    currently_playing = queryResult
+                                    last_log!!.add("spotify_play", currently_playing)
+                                    //Close log:
+                                    logFile!!.writeText(last_log.toString())
+
+                                    //Send broadcast:
+                                    Intent().also { intent ->
+                                        intent.setAction(ACTION_NEW_SONG)
+                                        sendBroadcast(intent)
+                                    }
+
+                                    //Send broadcast:
+                                    Intent().also { intent ->
+                                        intent.setAction(ACTION_LOG_REFRESH)
+                                        sendBroadcast(intent)
+                                    }
+
+                                    //C) PLAY:
+                                    var sessionState =
+                                        spotifyInterpreter!!.playInternally(queryResult)
+                                    Log.d(TAG, "SESSION STATE: ${sessionState}")
+                                    if (sessionState == -1) {
+                                        //Open externally:
+                                        var spotifyUrl = queryResult.get("spotify_URL").asString
+                                        var contextUri = queryResult.get("context_uri").asString
+                                        val encodedContextUri: String =
+                                            URLEncoder.encode(contextUri, "UTF-8")
+                                        openExternally("$spotifyUrl?context=$encodedContextUri")
+                                        //openExternally(spotifyUrl)
+                                    } else {
+                                        stopSelf()
+                                    }
                                 }
                             }
                         }
@@ -423,21 +424,6 @@ class VoiceSearchService : Service() {
                 }
             } catch (e: InterruptedException) {
                 Log.d(TAG, "Interrupted: exception.", e)
-                try {
-                    //Abandon audio focus:
-                    audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
-                } catch (e: Exception) {
-                    Log.d(TAG, "Audio focus already released.")
-                }
-                //Reset:
-                searchFail = false
-                recordingMode = false
-                sourceIsVolume = false
-                //Send broadcast:
-                Intent().also { intent ->
-                    intent.setAction(ACTION_OVERLAY_READY)
-                    sendBroadcast(intent)
-                }
                 stopSelf()
             }
         }
@@ -455,15 +441,6 @@ class VoiceSearchService : Service() {
         intentSpotify.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         intentSpotify.putExtra("fromwhere", "ser")
         startActivity(intentSpotify)
-
-        //Reset:
-        recordingMode = false
-        sourceIsVolume = false
-        //Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_OVERLAY_READY)
-            sendBroadcast(intent)
-        }
         stopSelf()
 
         if (prefs.clockRedirectEnabled) {

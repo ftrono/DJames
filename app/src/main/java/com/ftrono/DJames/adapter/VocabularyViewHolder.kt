@@ -19,9 +19,6 @@ class VocabularyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     var edit_text: TextView = itemView.findViewById(R.id.item_edit_text)
 
     @JvmField
-    var detail_intro: TextView = itemView.findViewById(R.id.voc_detail_intro)
-
-    @JvmField
     var edit_detail: TextView = itemView.findViewById(R.id.voc_detail)
 
     @JvmField

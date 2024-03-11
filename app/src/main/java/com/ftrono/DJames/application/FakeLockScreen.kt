@@ -317,17 +317,27 @@ class FakeLockScreen: AppCompatActivity() {
             //Spotify Metadata Changed:
             if (intent.action == SPOTIFY_METADATA_CHANGED) {
                 Log.d(TAG, "CLOCK: SPOTIFY_METADATA_CHANGED.")
-
+                var curSongName = ""
+                var curArtistName = ""
+                var curAlbumName = ""
                 try {
-                    //get new track data:
+                    //Get new track data:
                     val id = intent.getStringExtra("id")
                     val intentSongName = intent.getStringExtra("track")
                     val intentArtistName = intent.getStringExtra("artist")
                     val intentAlbumName = intent.getStringExtra("album")
 
-                    if (intentSongName != currently_playing!!.get("song_name").asString ||
-                        intentArtistName != currently_playing!!.get("artist_name").asString ||
-                        intentAlbumName != currently_playing!!.get("album_name").asString) {
+                    //Get last request:
+                    try {
+                        curSongName = currently_playing!!.get("song_name").asString
+                        curArtistName = currently_playing!!.get("artist_name").asString
+                        curAlbumName = currently_playing!!.get("album_name").asString
+                    } catch (e: Exception) {
+                        Log.d(TAG, "CLOCK: SPOTIFY_METADATA_CHANGED: last JSON not available.")
+                    }
+
+                    //If new track:
+                    if (intentSongName != curSongName || intentArtistName != curArtistName || intentAlbumName != curAlbumName) {
                         //Update currently_playing JSON:
                         currently_playing = JsonObject()
                         currently_playing!!.addProperty("id", id)

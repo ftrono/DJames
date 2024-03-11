@@ -41,15 +41,11 @@ class VocabularyAdapter(
         //POPOLA:
         if (filter == "contact") {
             holder.item_icon.setImageResource(R.drawable.icon_phone)
-            holder.detail_intro.text = "PHONE: "
             holder.edit_detail.hint = "Write the main phone number here..."
-            holder.detail_intro.visibility= View.VISIBLE
             holder.edit_detail.visibility= View.VISIBLE
         } else if (filter == "playlist") {
             holder.item_icon.setImageResource(R.drawable.icon_album)
-            holder.detail_intro.text = "LINK: "
             holder.edit_detail.hint = "Paste playlist link here..."
-            holder.detail_intro.visibility= View.VISIBLE
             holder.edit_detail.visibility= View.VISIBLE
         } else {
             holder.item_icon.setImageResource(R.drawable.icon_music)

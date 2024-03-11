@@ -77,11 +77,21 @@ class Utilities {
                     } else {
                         //Add doubtful only:
                         try {
-                            score = obj.get("best_score").asInt
-                            if (score <= matchDoubleThreshold){
-                                logArray.add(obj)
+                            if (obj.has("voc_score")) {
+                                //Call requests:
+                                score = obj.get("voc_score").asInt
+                                if (score <= midThreshold) {
+                                    logArray.add(obj)
+                                }
+                            } else {
+                                //Play requests:
+                                score = obj.get("best_score").asInt
+                                if (score <= matchDoubleThreshold) {
+                                    logArray.add(obj)
+                                }
                             }
                         } catch (e: Exception) {
+                            //Generic requests:
                             Log.d(TAG, "File $f: No score.")
                         }
                     }

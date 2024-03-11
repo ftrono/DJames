@@ -39,24 +39,6 @@ class EventReceiver: BroadcastReceiver() {
             }
         }
 
-        //Listen to phone state:
-        if (intent.action == PHONE_STATE_ACTION) {
-            Log.d(TAG, "EVENT: PHONE STATE CHANGED.")
-            try {
-                val state = intent.getStringExtra(TelephonyManager.EXTRA_STATE)
-                if (state == TelephonyManager.EXTRA_STATE_OFFHOOK) {
-                    callMode = true
-                    Log.d(TAG, "EVENT: CALL MODE ON.")
-                }
-                else if (state == TelephonyManager.EXTRA_STATE_IDLE) {
-                    callMode = false
-                    Log.d(TAG, "EVENT: CALL MODE OFF.")
-                }
-            } catch (e: Exception) {
-                Log.d(TAG, "EVENT: PHONE STATE CHANGED: receiver error.")
-            }
-        }
-
         //When screen is off:
         if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
             screenOn = false

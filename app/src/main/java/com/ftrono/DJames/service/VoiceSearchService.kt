@@ -307,7 +307,12 @@ class VoiceSearchService : Service() {
                         } else {
                             //Get query_text:
                             nlp_queryText = resultsNLP.get("query_text").asString
-                            if (nlp_queryText == "") {
+                            //Fallback cases:
+                            if (!resultsNLP.has("intent_response")) {
+                                nlp_fail = true
+                            } else if (resultsNLP.get("intent_response").asString == "fallback") {
+                                nlp_fail = true
+                            } else if (nlp_queryText == "") {
                                 //Empty string:
                                 nlp_fail = true
                             }

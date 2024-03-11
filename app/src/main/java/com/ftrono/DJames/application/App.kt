@@ -85,7 +85,6 @@ val client = OkHttpClient.Builder()
 //Event receiver:
 //ACTION_SCREEN_ON, ACTION_SCREEN_OFF
 const val VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION"
-const val PHONE_STATE_ACTION = "android.intent.action.PHONE_STATE"
 const val ACTION_NLP_RESULT = "com.ftrono.DJames.eventReceiver.ACTION_NLP_RESULT"
 const val ACTION_REDIRECT = "com.ftrono.DJames.eventReceiver.ACTION_REDIRECT"
 
@@ -126,6 +125,7 @@ const val ACTION_OVERLAY_READY = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY
 const val ACTION_OVERLAY_BUSY = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_BUSY"
 const val ACTION_OVERLAY_PROCESSING = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_PROCESSING"
 const val ACTION_MAKE_CALL = "com.ftrono.DJames.eventReceiver.ACTION_MAKE_CALL"
+const val PHONE_STATE_ACTION = "android.intent.action.PHONE_STATE"
 
 
 class App: Application()

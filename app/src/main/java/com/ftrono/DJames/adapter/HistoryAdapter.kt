@@ -37,15 +37,30 @@ class HistoryAdapter(
         //POPOLA:
         var datetime = logItem.get("datetime").asString
         var filename = "$datetime.json"
+        var icon = ""
         //result check:
-        try {
-            if (logItem.get("best_score").asInt > matchDoubleThreshold) {
-                holder.datetime.text = "${context.getString(R.string.result_good)}   $datetime"
+        if (logItem.has("voc_score")) {
+            //Phone calls:
+            icon = "📞"
+            if (logItem.get("voc_score").asInt > midThreshold) {
+                holder.datetime.text = "$icon  ${context.getString(R.string.result_good)}  $datetime"
             } else {
-                holder.datetime.text = "${context.getString(R.string.result_not_good)}   $datetime"
+                holder.datetime.text = "$icon  ${context.getString(R.string.result_not_good)}  $datetime"
             }
-        } catch (e: Exception) {
-            holder.datetime.text = "${context.getString(R.string.result_question)}   $datetime"
+        } else {
+            //Play requests:
+            try {
+                icon = "🎧"
+                if (logItem.get("best_score").asInt > matchDoubleThreshold) {
+                    holder.datetime.text = "$icon  ${context.getString(R.string.result_good)}  $datetime"
+                } else {
+                    holder.datetime.text =
+                        "$icon  ${context.getString(R.string.result_not_good)}  $datetime"
+                }
+            } catch (e: Exception) {
+                //Generic request:
+                holder.datetime.text = "${context.getString(R.string.result_question)}   $datetime"
+            }
         }
         //NLP:
         try {

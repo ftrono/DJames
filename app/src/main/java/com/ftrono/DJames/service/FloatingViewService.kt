@@ -18,6 +18,7 @@ import android.media.AudioManager
 import android.net.Uri
 import android.os.IBinder
 import android.provider.Settings
+import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -113,7 +114,6 @@ class FloatingViewService : Service() {
             filter.addAction(Intent.ACTION_SCREEN_ON)
             filter.addAction(Intent.ACTION_SCREEN_OFF)
             filter.addAction(VOLUME_CHANGED_ACTION)
-            filter.addAction(PHONE_STATE_ACTION)
             filter.addAction(ACTION_NLP_RESULT)
             filter.addAction(ACTION_REDIRECT)
 
@@ -129,6 +129,7 @@ class FloatingViewService : Service() {
             actFilter.addAction(ACTION_OVERLAY_BUSY)
             actFilter.addAction(ACTION_OVERLAY_PROCESSING)
             actFilter.addAction(ACTION_MAKE_CALL)
+            actFilter.addAction(PHONE_STATE_ACTION)
 
             //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
             registerReceiver(overlayReceiver, actFilter, RECEIVER_EXPORTED)
@@ -529,6 +530,43 @@ class FloatingViewService : Service() {
                 intentCall.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 intentCall.putExtra("fromwhere", "ser")
                 startActivity(intentCall)
+            }
+
+            //Listen to phone state:
+            if (intent.action == PHONE_STATE_ACTION) {
+                Log.d(TAG, "EVENT: PHONE STATE CHANGED.")
+                try {
+                    val state = intent.getStringExtra(TelephonyManager.EXTRA_STATE)
+                    if (state == TelephonyManager.EXTRA_STATE_OFFHOOK) {
+                        callMode = true
+                        vol_initialized = false
+                        Log.d(TAG, "EVENT: CALL MODE ON.")
+                    }
+                    else if (state == TelephonyManager.EXTRA_STATE_IDLE) {
+                        callMode = false
+                        //Private check thread:
+                        val loadThread2 = Thread {
+                            try {
+                                synchronized(this) {
+                                    Thread.sleep(3000)
+                                    //Vol_initialized:
+                                    if (!vol_initialized) {
+                                        vol_initialized = true
+                                    }
+                                }
+                            } catch (e: InterruptedException) {
+                                Log.d(TAG, "Interrupted: exception.", e)
+                            }
+                        }
+                        //Thread check:
+                        if (!loadThread2.isAlive()){
+                            loadThread2.start()
+                        }
+                        Log.d(TAG, "EVENT: CALL MODE OFF.")
+                    }
+                } catch (e: Exception) {
+                    Log.d(TAG, "EVENT: PHONE STATE CHANGED: receiver error. ", e)
+                }
             }
 
         }

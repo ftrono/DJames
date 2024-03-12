@@ -268,10 +268,6 @@ class NLPInterpreter (private val context: Context) {
         var matchConfirmed = JsonObject()
         if (text != "" && !vocArray.isEmpty()) {
             //Init:
-            var threshold = midThreshold
-            if (filter == "artist") {
-                threshold = maxThreshold
-            }
             var score = 0
             var current = ""
             var curName = ""
@@ -287,11 +283,13 @@ class NLPInterpreter (private val context: Context) {
                     if (filter == "playlist" || filter == "contact") {
                         var temp = current.split(" %%% ")
                         curName = temp[0]
+                    } else {
+                        curName = current
                     }
                     score = FuzzySearch.ratio(curName, eval)
                     Log.d(TAG, "VOC CONFIRMATION: COMPARING $curName WITH $eval, MATCH: $score")
                     //Add only best matches:
-                    if (!scoresMap.keys.contains(current) && score >= threshold) {
+                    if (!scoresMap.keys.contains(current) && score >= midThreshold) {
                         scoresMap[current] = score
                     }
                 }

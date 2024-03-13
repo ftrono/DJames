@@ -15,7 +15,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "1.03"
+val appVersion = "1.04"
 
 //Preferences:
 val deltaSimilarity = 30
@@ -107,6 +107,7 @@ const val ACTION_LOG_DELETE = "com.ftrono.DJames.eventReceiver.ACTION_LOG_DELETE
 const val ACTION_VOC_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_VOC_REFRESH"
 const val ACTION_VOC_DELETE = "com.ftrono.DJames.eventReceiver.ACTION_VOC_DELETE"
 const val ACTION_VOC_REQUEST_DETAIL = "com.ftrono.DJames.eventReceiver.ACTION_VOC_REQUEST_DETAIL"
+const val ACTION_VOC_TEST = "com.ftrono.DJames.eventReceiver.ACTION_VOC_TEST"
 
 //Settings Act receiver:
 const val ACTION_SETTINGS_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_SETTINGS_LOGGED_IN"

@@ -100,7 +100,7 @@
             android:src="@drawable/edit_icon"
             android:visibility="visible"
             app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintRight_toLeftOf="@+id/voc_delete_button"
+            app:layout_constraintRight_toLeftOf="@+id/voc_test_button"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
@@ -110,6 +110,16 @@
             android:paddingRight="8dp"
             android:src="@drawable/done_icon"
             android:visibility="gone"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintRight_toLeftOf="@+id/voc_test_button"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/voc_test_button"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:paddingRight="8dp"
+            android:src="@drawable/item_settings"
             app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintRight_toLeftOf="@+id/voc_delete_button"
             app:layout_constraintTop_toTopOf="parent" />

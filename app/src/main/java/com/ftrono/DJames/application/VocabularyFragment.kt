@@ -7,8 +7,10 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -22,7 +24,6 @@ import com.ftrono.DJames.adapter.VocabularyAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.JsonArray
-import java.io.File
 
 
 class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
@@ -40,7 +41,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
 
         //Header intro:
         var textHeader = requireActivity().findViewById<TextView>(R.id.voc_intro)
-        textHeader.text = "✏️   Write your hard-to-spell names here..."
+        textHeader.text = "Your hard-to-spell artists"
 
         //Filters buttons:
         var vocArtists = requireActivity().findViewById<Button>(R.id.voc_artists)
@@ -51,7 +52,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         vocArtists.setOnClickListener(View.OnClickListener {
             editModeOn = false
             filter = "artist"
-            textHeader.text = "✏️   Write your hard-to-spell names here..."
+            textHeader.text = "Your hard-to-spell artists"
             vocArtists.backgroundTintList =
                 AppCompatResources.getColorStateList(requireActivity(), R.color.colorAccent)
             vocPlaylists.backgroundTintList =
@@ -63,7 +64,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         vocPlaylists.setOnClickListener(View.OnClickListener {
             editModeOn = false
             filter = "playlist"
-            textHeader.text = "✏️   Write your playlists names & URLs here..."
+            textHeader.text = "Your favourite playlists"
             vocArtists.backgroundTintList =
                 AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
             vocPlaylists.backgroundTintList =
@@ -75,7 +76,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         vocContacts.setOnClickListener(View.OnClickListener {
             editModeOn = false
             filter = "contact"
-            textHeader.text = "✏️   Write your fav contacts' names & phone here..."
+            textHeader.text = "Your favourite contacts"
             vocArtists.backgroundTintList =
                 AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
             vocPlaylists.backgroundTintList =
@@ -105,6 +106,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         actFilter.addAction(ACTION_VOC_REFRESH)
         actFilter.addAction(ACTION_VOC_DELETE)
         actFilter.addAction(ACTION_VOC_REQUEST_DETAIL)
+        actFilter.addAction(ACTION_VOC_TEST)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
         requireActivity().registerReceiver(vocabularyActReceiver, actFilter, AppCompatActivity.RECEIVER_EXPORTED)
@@ -212,6 +214,48 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
     }
 
 
+    //TEST: show Edit Dialog:
+    fun showEditDialog() {
+        val inflater = LayoutInflater.from(activity)
+        val subView: View = inflater.inflate(R.layout.vocabulary_edit_layout, null)
+        //Load:
+        val alertDialog = MaterialAlertDialogBuilder(requireActivity())
+        alertDialog.setTitle("✏️  ${filter.replaceFirstChar { it.uppercase() }}")
+        alertDialog.setView(subView)
+
+        //Views:
+        var introDetail = subView.findViewById<TextView>(R.id.intro_detail)
+        var enterDetail = subView.findViewById<EditText>(R.id.enter_detail)
+        var introPhone = subView.findViewById<TextView>(R.id.intro_phone)
+        var enterPrefix = subView.findViewById<EditText>(R.id.enter_prefix)
+        var enterPhone = subView.findViewById<EditText>(R.id.enter_phone)
+        //Set visibility:
+        if (filter == "contact") {
+            //Contact:
+            introDetail.visibility = View.GONE
+            enterDetail.visibility = View.GONE
+        } else if (filter == "playlist") {
+            //Playlist:
+            introPhone.visibility = View.GONE
+            enterPrefix.visibility = View.GONE
+            enterPhone.visibility = View.GONE
+        } else {
+            //Artist:
+            introDetail.visibility = View.GONE
+            enterDetail.visibility = View.GONE
+            introPhone.visibility = View.GONE
+            enterPrefix.visibility = View.GONE
+            enterPhone.visibility = View.GONE
+        }
+        //Exec:
+        alertDialog.setPositiveButton("Ok", object : DialogInterface.OnClickListener {
+            override fun onClick(dialog: DialogInterface?, which: Int) {
+            }
+        })
+        alertDialog.show()
+    }
+
+
     //PERSONAL RECEIVER:
     private var vocabularyActReceiver = object: BroadcastReceiver() {
 
@@ -251,6 +295,12 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
                     alertDialog.setMessage("Please enter a valid URL for the current Playlist!\n\nPlease copy it from Spotify -> your playlist -> Share -> Copy link.")
                 }
                 alertDialog.show()
+            }
+
+            //Dialog for add Url:
+            if (intent.action == ACTION_VOC_TEST) {
+                Log.d(TAG, "VOCABULARY: ACTION_VOC_TEST.")
+                showEditDialog()
             }
 
         }

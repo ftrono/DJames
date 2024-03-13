@@ -52,6 +52,13 @@ class VocabularyAdapter(
         }
 
         holder.item_type.text = filter.uppercase()
+        holder.test_button.setOnClickListener { view ->
+            //Send broadcast:
+            Intent().also { intent ->
+                intent.setAction(ACTION_VOC_TEST)
+                context.sendBroadcast(intent)
+            }
+        }
         if (prevText == "") {
             //A) NEW ITEM:
             //Edit mode already on:

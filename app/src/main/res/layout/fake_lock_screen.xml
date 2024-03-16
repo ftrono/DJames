@@ -31,7 +31,6 @@
         android:layout_height="wrap_content"
         android:textAlignment="center"
         android:textColor="@color/faded_grey"
-        android:textStyle="bold"
         android:text= "00\n00"
         android:textSize="150dp"
         app:layout_constraintVertical_chainStyle="packed"

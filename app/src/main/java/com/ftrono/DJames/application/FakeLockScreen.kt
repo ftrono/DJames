@@ -39,6 +39,7 @@ class FakeLockScreen: AppCompatActivity() {
     private val hourFormat = DateTimeFormatter.ofPattern("HH")
     private val minsFormat = DateTimeFormatter.ofPattern("mm")
     private var clockSeparator: String = "\n"
+    private var enablePlayerInfo = false
 
     //Player views:
     private var artworkView: ImageView? = null   //eventReceiver(new song)
@@ -301,6 +302,7 @@ class FakeLockScreen: AppCompatActivity() {
             //Update clock (every minute):
             if (intent!!.action == ACTION_TIME_TICK) {
                 updateDateClock()
+                enablePlayerInfo = true
             }
 
             //Action New Song manually triggered:
@@ -317,40 +319,42 @@ class FakeLockScreen: AppCompatActivity() {
             //Spotify Metadata Changed:
             if (intent.action == SPOTIFY_METADATA_CHANGED) {
                 Log.d(TAG, "CLOCK: SPOTIFY_METADATA_CHANGED.")
-                var curSongName = ""
-                var curArtistName = ""
-                var curAlbumName = ""
-                try {
-                    //Get new track data:
-                    val id = intent.getStringExtra("id")
-                    val intentSongName = intent.getStringExtra("track")
-                    val intentArtistName = intent.getStringExtra("artist")
-                    val intentAlbumName = intent.getStringExtra("album")
-
-                    //Get last request:
+                if (songName != "" || enablePlayerInfo) {
+                    var curSongName = ""
+                    var curArtistName = ""
+                    var curAlbumName = ""
                     try {
-                        curSongName = currently_playing!!.get("song_name").asString
-                        curArtistName = currently_playing!!.get("artist_name").asString
-                        curAlbumName = currently_playing!!.get("album_name").asString
-                    } catch (e: Exception) {
-                        Log.d(TAG, "CLOCK: SPOTIFY_METADATA_CHANGED: last JSON not available.")
-                    }
+                        //Get new track data:
+                        val id = intent.getStringExtra("id")
+                        val intentSongName = intent.getStringExtra("track")
+                        val intentArtistName = intent.getStringExtra("artist")
+                        val intentAlbumName = intent.getStringExtra("album")
 
-                    //If new track:
-                    if (intentSongName != curSongName || intentArtistName != curArtistName || intentAlbumName != curAlbumName) {
-                        //Update currently_playing JSON:
-                        currently_playing = JsonObject()
-                        currently_playing!!.addProperty("id", id)
-                        currently_playing!!.addProperty("uri", "$uri_format$id")
-                        currently_playing!!.addProperty("spotify_URL", "$ext_format$id")
-                        currently_playing!!.addProperty("song_name", intentSongName)
-                        currently_playing!!.addProperty("artist_name", intentArtistName)
-                        currently_playing!!.addProperty("album_name", intentAlbumName)
-                        //Update player:
-                        updatePlayer()
+                        //Get last request:
+                        try {
+                            curSongName = currently_playing!!.get("song_name").asString
+                            curArtistName = currently_playing!!.get("artist_name").asString
+                            curAlbumName = currently_playing!!.get("album_name").asString
+                        } catch (e: Exception) {
+                            Log.d(TAG, "CLOCK: SPOTIFY_METADATA_CHANGED: last JSON not available.")
+                        }
+
+                        //If new track:
+                        if (intentSongName != curSongName || intentArtistName != curArtistName || intentAlbumName != curAlbumName) {
+                            //Update currently_playing JSON:
+                            currently_playing = JsonObject()
+                            currently_playing!!.addProperty("id", id)
+                            currently_playing!!.addProperty("uri", "$uri_format$id")
+                            currently_playing!!.addProperty("spotify_URL", "$ext_format$id")
+                            currently_playing!!.addProperty("song_name", intentSongName)
+                            currently_playing!!.addProperty("artist_name", intentArtistName)
+                            currently_playing!!.addProperty("album_name", intentAlbumName)
+                            //Update player:
+                            updatePlayer()
+                        }
+                    } catch (e: Exception) {
+                        Log.d(TAG, "CLOCK: SPOTIFY_METADATA_CHANGED: resources not available.")
                     }
-                } catch (e: Exception) {
-                    Log.d(TAG, "CLOCK: SPOTIFY_METADATA_CHANGED: resources not available.")
                 }
             }
 

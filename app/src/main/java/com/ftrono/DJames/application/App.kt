@@ -52,7 +52,6 @@ var currently_playing: JsonObject? = null
 var last_log: JsonObject? = null
 var logDir: File? = null
 var vocDir: File? = null
-var vocFileName = "vocabulary.json"
 
 //Player info:
 var nlp_queryText = ""

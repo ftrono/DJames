@@ -74,6 +74,18 @@
         app:layout_constraintLeft_toRightOf="@+id/voc_playlists"
         app:layout_constraintTop_toTopOf="@+id/vocabulary_header" />
 
+    <ImageView
+        android:id="@+id/voc_delete_all"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:paddingRight="8dp"
+        android:layout_marginRight="5dp"
+        android:src="@drawable/delete_icon"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/voc_artists"
+        app:layout_constraintBottom_toBottomOf="@+id/voc_artists"/>
+
     <TextView
         android:id="@+id/voc_intro"
         android:layout_width="wrap_content"

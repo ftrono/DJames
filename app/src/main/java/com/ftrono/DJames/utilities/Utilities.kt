@@ -142,16 +142,14 @@ class Utilities {
 
     //VOCABULARY:
     //Get Json with all Vocabulary items of a given "filter" category:
-    fun getVocabularyArray(filter: String, newItem: Boolean = false): JsonArray {
-        var vocFile = File(vocDir, vocFileName)
+    fun getVocabularyArray(filter: String): JsonArray {
+        var vocFile = File(vocDir, "voc_${filter}s.json")
         var vocJson = JsonObject()
         var vocArray = JsonArray()
         if (!vocFile.exists()) {
             //Create new empty voc file (& return empty array):
             try {
-                vocJson.add("artist", JsonArray())
-                vocJson.add("playlist", JsonArray())
-                vocJson.add("contact", JsonArray())
+                vocJson.add(filter, JsonArray())
                 vocFile.createNewFile()
                 vocFile.writeText(vocJson.toString())
             } catch (e: Exception) {
@@ -163,17 +161,10 @@ class Utilities {
                 var reader = FileReader(vocFile)
                 vocJson = JsonParser.parseReader(reader).asJsonObject
                 //Log.d(TAG, vocJson.toString())
-                if (newItem) {
-                    //Empty placeholder + existing items:
-                    vocArray.add("")
-                    vocArray.addAll(vocJson.get(filter).asJsonArray)
-                } else {
-                    //Existing items:
-                    vocArray = vocJson.get(filter).asJsonArray
-                }
+                vocArray = vocJson.get(filter).asJsonArray
             } catch (e: Exception) {
                 //Delete invalid file:
-                //vocFile.delete()
+                vocFile.delete()
                 Log.d(TAG, "Error in parsing vocabulary file!", e)
             }
         }
@@ -185,7 +176,7 @@ class Utilities {
     fun editVocFile(prevText: String = "", newText: String = ""): Int {
         try {
             //Pack JSON:
-            var vocFile = File(vocDir, vocFileName)
+            var vocFile = File(vocDir, "voc_${filter}s.json")
             var reader = FileReader(vocFile)
             var vocJson = JsonParser.parseReader(reader).asJsonObject
             //ARTISTS / ALBUMS:
@@ -222,7 +213,9 @@ class Utilities {
         try {
             logDir!!.deleteRecursively()
             Log.d(TAG, "Deleted ALL logs.")
-            File(vocDir, vocFileName).delete()
+            File(vocDir, "voc_artists.json").delete()
+            File(vocDir, "voc_playlists.json").delete()
+            File(vocDir, "voc_contacts.json").delete()
             Log.d(TAG, "User vocabulary deleted.")
         } catch (e: Exception) {
             Log.d(TAG, "User cache not completely deleted.")

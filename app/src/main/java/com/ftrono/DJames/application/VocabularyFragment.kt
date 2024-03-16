@@ -14,6 +14,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.webkit.URLUtil
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -28,6 +29,7 @@ import com.ftrono.DJames.adapter.VocabularyAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.JsonArray
+import java.io.File
 
 
 class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
@@ -117,6 +119,14 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         //Load data:
         updateRecyclerView()
 
+        //Delete vocabulary button:
+        var deleteVocButton = requireActivity().findViewById<ImageView>(R.id.voc_delete_all)
+        deleteVocButton.setOnClickListener { view ->
+            if (!editModeOn) {
+                deleteVocabulary()
+            }
+        }
+
         //FAB:
         var fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
         if (!loggedIn) {
@@ -135,9 +145,9 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         requireActivity().unregisterReceiver(vocabularyActReceiver)
     }
 
-    fun updateRecyclerView(newItem: Boolean = false) {
+    fun updateRecyclerView() {
         //Load updated data:
-        listItems = utils.getVocabularyArray(filter=filter, newItem=newItem)
+        listItems = utils.getVocabularyArray(filter=filter)
         if (listItems.size() > 0) {
             //Update visibility:
             refreshList!!.visibility = View.VISIBLE
@@ -192,15 +202,15 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
     }
 
     //Delete ALL vocs:
-    fun deleteAll() {
+    fun deleteVocabulary() {
         val alertDialog = MaterialAlertDialogBuilder(requireActivity())
         //Exec:
         alertDialog.setPositiveButton("Yes", object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
                 //Yes
-                vocDir!!.deleteRecursively()
-                Log.d(TAG, "Deleted ALL vocabulary.")
-                Toast.makeText(requireActivity(), "Vocabulary deleted!", Toast.LENGTH_SHORT).show()
+                File(vocDir, "voc_${filter}s.json").delete()
+                Log.d(TAG, "Deleted ${filter}s vocabulary.")
+                Toast.makeText(requireActivity(), "${filter.replaceFirstChar { it.uppercase() }}s vocabulary deleted!", Toast.LENGTH_SHORT).show()
                 updateRecyclerView()
             }
         })
@@ -210,8 +220,8 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
                 //No
             }
         })
-        alertDialog.setTitle("Delete vocabulary")
-        alertDialog.setMessage("Do you want to delete all vocabulary?")
+        alertDialog.setTitle("Delete ${filter}s vocabulary")
+        alertDialog.setMessage("Do you want to delete your ${filter}s vocabulary?")
         alertDialog.show()
     }
 

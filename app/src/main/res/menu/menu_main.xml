@@ -5,7 +5,7 @@
     <item
         android:id="@+id/action_settings"
         android:title="Preferences"
-        android:icon="@drawable/item_preferences"
+        android:icon="@drawable/item_settings"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_login"

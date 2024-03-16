@@ -23,8 +23,7 @@
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/vocabulary_refresh"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/voc_artists"

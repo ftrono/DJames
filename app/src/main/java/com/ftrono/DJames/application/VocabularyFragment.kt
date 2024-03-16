@@ -3,16 +3,20 @@ package com.ftrono.DJames.application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.DialogInterface
+import android.content.DialogInterface.OnShowListener
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.telephony.PhoneNumberUtils
 import android.util.Log
+import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
+import android.webkit.URLUtil
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.Fragment
@@ -103,10 +107,8 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
 
         //Start personal Receiver:
         val actFilter = IntentFilter()
-        actFilter.addAction(ACTION_VOC_REFRESH)
         actFilter.addAction(ACTION_VOC_DELETE)
-        actFilter.addAction(ACTION_VOC_REQUEST_DETAIL)
-        actFilter.addAction(ACTION_VOC_TEST)
+        actFilter.addAction(ACTION_VOC_EDIT)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
         requireActivity().registerReceiver(vocabularyActReceiver, actFilter, AppCompatActivity.RECEIVER_EXPORTED)
@@ -122,7 +124,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         }
         fab.setOnClickListener { view ->
             if (!editModeOn) {
-                updateRecyclerView(newItem = true)
+                showEditDialog("", "")
             }
         }
     }
@@ -213,43 +215,140 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         alertDialog.show()
     }
 
-
-    //TEST: show Edit Dialog:
-    fun showEditDialog() {
-        val inflater = LayoutInflater.from(activity)
-        val subView: View = inflater.inflate(R.layout.vocabulary_edit_layout, null)
-        //Load:
+    //Request detail:
+    fun requestDetail() {
         val alertDialog = MaterialAlertDialogBuilder(requireActivity())
-        alertDialog.setTitle("✏️  ${filter.replaceFirstChar { it.uppercase() }}")
-        alertDialog.setView(subView)
-
-        //Views:
-        var introDetail = subView.findViewById<TextView>(R.id.intro_detail)
-        var enterDetail = subView.findViewById<EditText>(R.id.enter_detail)
-        var introPhone = subView.findViewById<TextView>(R.id.intro_phone)
-        var enterPrefix = subView.findViewById<EditText>(R.id.enter_prefix)
-        var enterPhone = subView.findViewById<EditText>(R.id.enter_phone)
-        //Set visibility:
-        if (filter == "contact") {
-            //Contact:
-            introDetail.visibility = View.GONE
-            enterDetail.visibility = View.GONE
-        } else if (filter == "playlist") {
-            //Playlist:
-            introPhone.visibility = View.GONE
-            enterPrefix.visibility = View.GONE
-            enterPhone.visibility = View.GONE
-        } else {
-            //Artist:
-            introDetail.visibility = View.GONE
-            enterDetail.visibility = View.GONE
-            introPhone.visibility = View.GONE
-            enterPrefix.visibility = View.GONE
-            enterPhone.visibility = View.GONE
-        }
         //Exec:
         alertDialog.setPositiveButton("Ok", object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
+            }
+        })
+        if (filter == "contact") {
+            //CONTACT:
+            alertDialog.setTitle("Contact Phone Number")
+            alertDialog.setMessage("Please enter a valid phone number for the current Contact!\n\nPlease include the international prefix at the beginning (i.e. \"+39\", \"+44\", ...).")
+        } else {
+            //PLAYLIST:
+            alertDialog.setTitle("Playlist URL")
+            alertDialog.setMessage("Please enter a valid URL for the current Playlist!\n\nPlease copy it from Spotify -> your playlist -> Share -> Copy link.")
+        }
+        alertDialog.show()
+    }
+
+
+    //Edit item:
+    private fun editItem(prevText: String, prevDetail: String, newText: String, newDetail: String): Int {
+        var urlTest = URLUtil.isValidUrl(newDetail) && Patterns.WEB_URL.matcher(newDetail).matches()
+        var phoneTest = PhoneNumberUtils.isGlobalPhoneNumber(newDetail)
+        //Request valid detail (i.e. no URL, no phone number, no international prefix in phone number):
+        if ((filter == "playlist" && (!urlTest || !newDetail.contains("https://open.spotify.com/")))
+            || (filter == "contact" && (!phoneTest || !newDetail.contains("+") || (newDetail.length != 13 && newDetail.length != 14)))) {
+            //(Phone numbers length is 10 digits (Italy) or 11 digits (UK), + international prefix (3 digits))
+            requestDetail()
+            return -1
+        } else {
+            if (newText != "") {
+                //Save to file:
+                if (newText != prevText
+                    || (filter == "playlist" && newDetail != prevDetail)
+                    || (filter == "contact" && newDetail != prevDetail)) {
+                    var ret = 0
+                    if (filter == "playlist" || filter == "contact") {
+                        ret = utils.editVocFile(prevText = "$prevText %%% $prevDetail", newText = "$newText %%% $newDetail")
+                    } else {
+                        ret = utils.editVocFile(prevText = prevText, newText = newText)
+                    }
+                    if (ret == 0) {
+                        Toast.makeText(context, "Saved!", Toast.LENGTH_LONG).show()
+                    } else {
+                        Toast.makeText(context, "ERROR: Vocabulary not updated!", Toast.LENGTH_LONG)
+                            .show()
+                    }
+                }
+            }
+            updateRecyclerView()
+            return 0
+        }
+    }
+
+
+    //Show Edit Dialog:
+    fun showEditDialog(prevText: String, prevDetail: String) {
+        val inflater = LayoutInflater.from(activity)
+        val subView: View = inflater.inflate(R.layout.vocabulary_edit_layout, null)
+        //Load:
+        val alertDialogBuilder = MaterialAlertDialogBuilder(requireActivity())
+        alertDialogBuilder.setTitle("✏️  ${filter.replaceFirstChar { it.uppercase() }}")
+        alertDialogBuilder.setView(subView)
+
+        //Views:
+        var enterName = subView.findViewById<TextView>(R.id.enter_name)
+        var introDetail = subView.findViewById<TextView>(R.id.intro_detail)
+        var enterDetail = subView.findViewById<TextView>(R.id.enter_detail)
+        var introPhone = subView.findViewById<TextView>(R.id.intro_phone)
+        var enterPrefix = subView.findViewById<TextView>(R.id.enter_prefix)
+        var enterPhone = subView.findViewById<TextView>(R.id.enter_phone)
+        //PRESET:
+        if (filter == "contact") {
+            //CONTACT:
+            //Visibility:
+            introDetail.visibility = View.GONE
+            enterDetail.visibility = View.GONE
+            //Text:
+            enterName.text = prevText
+            if (prevDetail == "") {
+                enterPrefix.text = "+39"
+                enterPhone.text = ""
+            } else {
+                enterPrefix.text = prevDetail.slice(0..2).strip()
+                enterPhone.text = prevDetail.slice(3..prevDetail.lastIndex).strip()
+            }
+
+        } else if (filter == "playlist") {
+            //PLAYLIST:
+            //Visibility:
+            introPhone.visibility = View.GONE
+            enterPrefix.visibility = View.GONE
+            enterPhone.visibility = View.GONE
+            //Text:
+            enterName.text = prevText
+            enterDetail.text = prevDetail
+        } else {
+            //ARTIST:
+            //Visibility:
+            introDetail.visibility = View.GONE
+            enterDetail.visibility = View.GONE
+            introPhone.visibility = View.GONE
+            enterPrefix.visibility = View.GONE
+            enterPhone.visibility = View.GONE
+            //Text:
+            enterName.text = prevText
+        }
+        alertDialogBuilder.setPositiveButton("Ok", null)
+        alertDialogBuilder.setNegativeButton("Cancel", null)
+        val alertDialog = alertDialogBuilder.create()
+
+        alertDialog.setOnShowListener(OnShowListener { dialog ->
+            val positiveButton: Button = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            positiveButton.setOnClickListener {
+                var newText = enterName.text.toString().lowercase().strip()
+                var newDetail = ""
+                //Get new text:
+                if (filter == "playlist") {
+                    newDetail = enterDetail.text.toString().replace(" ", "")
+                } else if (filter == "contact") {
+                    newDetail = enterPrefix.text.toString().replace(" ", "") + enterPhone.text.toString().replace(" ", "")
+                }
+                var ret = editItem(prevText, prevDetail, newText, newDetail)
+                if (ret == 0) {
+                    //CLOSE THE DIALOG
+                    dialog.dismiss()
+                }
+            }
+            val negativeButton: Button = alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+            negativeButton.setOnClickListener {
+                //CLOSE THE DIALOG
+                dialog.dismiss()
             }
         })
         alertDialog.show()
@@ -261,46 +360,20 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
 
         override fun onReceive(context: Context?, intent: Intent?) {
 
-            //Refresh RecycleView:
-            if (intent!!.action == ACTION_VOC_REFRESH) {
-                Log.d(TAG, "VOCABULARY: ACTION_VOC_REFRESH.")
-                updateRecyclerView()
-                editModeOn = false
-            }
-
             //Delete items:
-            if (intent.action == ACTION_VOC_DELETE) {
+            if (intent!!.action == ACTION_VOC_DELETE) {
                 Log.d(TAG, "VOCABULARY: ACTION_VOC_DELETE.")
                 var toDelete = intent.getStringExtra("toDelete")
                 deleteItem(toDelete!!)
                 editModeOn = false
             }
 
-            //Dialog for add Url:
-            if (intent.action == ACTION_VOC_REQUEST_DETAIL) {
-                Log.d(TAG, "VOCABULARY: ACTION_VOC_REQUEST_DETAIL.")
-                val alertDialog = MaterialAlertDialogBuilder(requireActivity())
-                //Exec:
-                alertDialog.setPositiveButton("Ok", object : DialogInterface.OnClickListener {
-                    override fun onClick(dialog: DialogInterface?, which: Int) {
-                    }
-                })
-                if (filter == "contact") {
-                    //CONTACT:
-                    alertDialog.setTitle("Contact Phone Number")
-                    alertDialog.setMessage("Please enter a valid phone number for the current Contact!\n\nPlease include the international prefix at the beginning (i.e. \"+39\", \"+44\", ...).")
-                } else {
-                    //PLAYLIST:
-                    alertDialog.setTitle("Playlist URL")
-                    alertDialog.setMessage("Please enter a valid URL for the current Playlist!\n\nPlease copy it from Spotify -> your playlist -> Share -> Copy link.")
-                }
-                alertDialog.show()
-            }
-
-            //Dialog for add Url:
-            if (intent.action == ACTION_VOC_TEST) {
-                Log.d(TAG, "VOCABULARY: ACTION_VOC_TEST.")
-                showEditDialog()
+            //Dialog for voc Edit:
+            if (intent.action == ACTION_VOC_EDIT) {
+                Log.d(TAG, "VOCABULARY: ACTION_VOC_EDIT.")
+                val prevText = intent.getStringExtra("prevText")
+                val prevDetail = intent.getStringExtra("prevDetail")
+                showEditDialog(prevText!!, prevDetail!!)
             }
 
         }

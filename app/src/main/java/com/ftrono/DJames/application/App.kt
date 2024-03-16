@@ -104,10 +104,8 @@ const val ACTION_LOG_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_LOG_REFRE
 const val ACTION_LOG_DELETE = "com.ftrono.DJames.eventReceiver.ACTION_LOG_DELETE"
 
 //History Vocabulary receiver:
-const val ACTION_VOC_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_VOC_REFRESH"
 const val ACTION_VOC_DELETE = "com.ftrono.DJames.eventReceiver.ACTION_VOC_DELETE"
-const val ACTION_VOC_REQUEST_DETAIL = "com.ftrono.DJames.eventReceiver.ACTION_VOC_REQUEST_DETAIL"
-const val ACTION_VOC_TEST = "com.ftrono.DJames.eventReceiver.ACTION_VOC_TEST"
+const val ACTION_VOC_EDIT = "com.ftrono.DJames.eventReceiver.ACTION_VOC_EDIT"
 
 //Settings Act receiver:
 const val ACTION_SETTINGS_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_SETTINGS_LOGGED_IN"

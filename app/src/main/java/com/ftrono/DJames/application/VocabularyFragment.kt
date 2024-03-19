@@ -28,7 +28,7 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.adapter.VocabularyAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import java.io.File
 
 
@@ -39,7 +39,9 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
     private var swipeRefreshLayout: SwipeRefreshLayout? = null
     private var textNoData: TextView? = null
     private var refreshList: RecyclerView? = null
-    private var listItems = JsonArray()
+    private var vocItems = JsonObject()
+    private var listItems = listOf<String>()
+    private var editModeOn = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -134,7 +136,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         }
         fab.setOnClickListener { view ->
             if (!editModeOn) {
-                showEditDialog("", "")
+                showEditDialog("")
             }
         }
     }
@@ -146,9 +148,11 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
     }
 
     fun updateRecyclerView() {
+        editModeOn = false
         //Load updated data:
-        listItems = utils.getVocabularyArray(filter=filter)
-        if (listItems.size() > 0) {
+        vocItems = utils.getVocabulary(filter=filter)
+        listItems = vocItems.keySet().toList()
+        if (listItems.isNotEmpty()) {
             //Update visibility:
             refreshList!!.visibility = View.VISIBLE
             textNoData!!.visibility = View.GONE
@@ -180,7 +184,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         alertDialog.setPositiveButton("Yes", object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
                 //Yes
-                var ret = utils.editVocFile(prevText=toDelete!!)
+                var ret = utils.editVocFile(prevText=toDelete)
                 if (ret == 0) {
                     Toast.makeText(context, "Deleted!", Toast.LENGTH_LONG).show()
                 } else {
@@ -247,43 +251,49 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
 
 
     //Edit item:
-    private fun editItem(prevText: String, prevDetail: String, newText: String, newDetail: String): Int {
-        var urlTest = URLUtil.isValidUrl(newDetail) && Patterns.WEB_URL.matcher(newDetail).matches()
-        var phoneTest = PhoneNumberUtils.isGlobalPhoneNumber(newDetail)
-        //Request valid detail (i.e. no URL, no phone number, no international prefix in phone number):
-        if ((filter == "playlist" && (!urlTest || !newDetail.contains("https://open.spotify.com/")))
-            || (filter == "contact" && (!phoneTest || !newDetail.contains("+") || (newDetail.length != 13 && newDetail.length != 14)))) {
-            //(Phone numbers length is 10 digits (Italy) or 11 digits (UK), + international prefix (3 digits))
-            requestDetail()
-            return -1
-        } else {
-            if (newText != "") {
-                //Save to file:
-                if (newText != prevText
-                    || (filter == "playlist" && newDetail != prevDetail)
-                    || (filter == "contact" && newDetail != prevDetail)) {
-                    var ret = 0
-                    if (filter == "playlist" || filter == "contact") {
-                        ret = utils.editVocFile(prevText = "$prevText %%% $prevDetail", newText = "$newText %%% $newDetail")
-                    } else {
-                        ret = utils.editVocFile(prevText = prevText, newText = newText)
-                    }
-                    if (ret == 0) {
-                        Toast.makeText(context, "Saved!", Toast.LENGTH_LONG).show()
-                    } else {
-                        Toast.makeText(context, "ERROR: Vocabulary not updated!", Toast.LENGTH_LONG)
-                            .show()
-                    }
+    private fun editItem(prevText: String, newText: String, newDetails: JsonObject): Int {
+        if (newText != "") {
+            if (filter == "playlist") {
+                var newURL = newDetails.get("playlist_URL").asString
+                var urlTest = URLUtil.isValidUrl(newURL) && Patterns.WEB_URL.matcher(newURL).matches()
+                if (!urlTest || !newURL.contains("https://open.spotify.com/")) {
+                    //Request enter valid URL:
+                    requestDetail()
+                    return -1
+                }
+            } else if (filter == "contact") {
+                var newPrefix = newDetails.get("prefix").asString
+                var newPhone = newDetails.get("phone").asString
+                var phoneTest = PhoneNumberUtils.isGlobalPhoneNumber(newPhone)
+                //Request valid detail (i.e. no URL, no phone number, no international prefix in phone number):
+                if (!phoneTest || (!newPrefix.contains("+") && newPrefix.length != 3) || (newPhone.length != 10 && newPhone.length != 11)) {
+                    //(Phone numbers length is 10 digits (Italy) or 11 digits (UK), + international prefix (3 digits))
+                    requestDetail()
+                    return -1
+                }
+            }
+            var prevDetails = JsonObject()
+            if (vocItems.has(prevText)) {
+                prevDetails = vocItems.get(prevText).asJsonObject
+            }
+            //Save to file:
+            if (newText != prevText || newDetails != prevDetails) {
+                var ret = utils.editVocFile(prevText=prevText, newText=newText, newDetails=newDetails)
+                if (ret == 0) {
+                    Toast.makeText(context, "Saved!", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(context, "ERROR: Vocabulary not updated!", Toast.LENGTH_LONG).show()
                 }
             }
             updateRecyclerView()
-            return 0
         }
+        return 0
     }
 
 
     //Show Edit Dialog:
-    fun showEditDialog(prevText: String, prevDetail: String) {
+    fun showEditDialog(prevText: String) {
+        editModeOn = true
         val inflater = LayoutInflater.from(activity)
         val subView: View = inflater.inflate(R.layout.vocabulary_edit_layout, null)
         //Load:
@@ -298,6 +308,13 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         var introPhone = subView.findViewById<TextView>(R.id.intro_phone)
         var enterPrefix = subView.findViewById<TextView>(R.id.enter_prefix)
         var enterPhone = subView.findViewById<TextView>(R.id.enter_phone)
+
+        //Load data:
+        var prevDetails = JsonObject()
+        if (prevText != "") {
+            prevDetails = vocItems.get(prevText).asJsonObject
+        }
+
         //PRESET:
         if (filter == "contact") {
             //CONTACT:
@@ -306,12 +323,12 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             enterDetail.visibility = View.GONE
             //Text:
             enterName.text = prevText
-            if (prevDetail == "") {
+            if (prevDetails.isEmpty) {
                 enterPrefix.text = "+39"
                 enterPhone.text = ""
             } else {
-                enterPrefix.text = prevDetail.slice(0..2).strip()
-                enterPhone.text = prevDetail.slice(3..prevDetail.lastIndex).strip()
+                enterPrefix.text = prevDetails.get("prefix").asString
+                enterPhone.text = prevDetails.get("phone").asString
             }
 
         } else if (filter == "playlist") {
@@ -322,7 +339,11 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             enterPhone.visibility = View.GONE
             //Text:
             enterName.text = prevText
-            enterDetail.text = prevDetail
+            if (prevDetails.isEmpty) {
+                enterDetail.text = ""
+            } else {
+                enterDetail.text = prevDetails.get("playlist_URL").asString
+            }
         } else {
             //ARTIST:
             //Visibility:
@@ -341,26 +362,32 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         alertDialog.setOnShowListener(OnShowListener { dialog ->
             val positiveButton: Button = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE)
             positiveButton.setOnClickListener {
+                var ret = 0
                 var newText = enterName.text.toString().lowercase().strip()
-                var newDetail = ""
-                //Get new text:
+                var newDetails = JsonObject()
+                //Get new info:
                 if (filter == "playlist") {
-                    newDetail = enterDetail.text.toString().replace(" ", "")
+                    newDetails.addProperty("playlist_URL", enterDetail.text.toString().replace(" ", ""))
                 } else if (filter == "contact") {
-                    newDetail = enterPrefix.text.toString().replace(" ", "") + enterPhone.text.toString().replace(" ", "")
+                    newDetails.addProperty("prefix", enterPrefix.text.toString().replace(" ", ""))
+                    newDetails.addProperty("phone", enterPhone.text.toString().replace(" ", ""))
                 }
-                var ret = editItem(prevText, prevDetail, newText, newDetail)
+                //Edit:
+                ret = editItem(prevText=prevText, newText=newText, newDetails=newDetails)
                 if (ret == 0) {
-                    //CLOSE THE DIALOG
+                    //CLOSE THE DIALOG:
                     dialog.dismiss()
+                    editModeOn = false
                 }
             }
             val negativeButton: Button = alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE)
             negativeButton.setOnClickListener {
                 //CLOSE THE DIALOG
                 dialog.dismiss()
+                editModeOn = false
             }
         })
+        alertDialog.setCancelable(false)
         alertDialog.show()
     }
 
@@ -374,16 +401,15 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             if (intent!!.action == ACTION_VOC_DELETE) {
                 Log.d(TAG, "VOCABULARY: ACTION_VOC_DELETE.")
                 var toDelete = intent.getStringExtra("toDelete")
-                deleteItem(toDelete!!)
                 editModeOn = false
+                deleteItem(toDelete!!)
             }
 
             //Dialog for voc Edit:
             if (intent.action == ACTION_VOC_EDIT) {
                 Log.d(TAG, "VOCABULARY: ACTION_VOC_EDIT.")
                 val prevText = intent.getStringExtra("prevText")
-                val prevDetail = intent.getStringExtra("prevDetail")
-                showEditDialog(prevText!!, prevDetail!!)
+                showEditDialog(prevText!!)
             }
 
         }

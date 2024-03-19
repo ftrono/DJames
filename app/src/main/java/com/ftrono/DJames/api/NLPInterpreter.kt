@@ -253,8 +253,8 @@ class NLPInterpreter (private val context: Context) {
         }
 
         //2) Hand check artist evalued against user vocabulary:
-        var vocArtists = utils.getVocabularyArray(filter="artist")
-        var vocMatch = matchVocabulary(filter="artist", text=artistConfirmed, vocArray=vocArtists)
+        var vocArtists = utils.getVocabulary(filter="artist")
+        var vocMatch = matchVocabulary(filter="artist", text=artistConfirmed, vocJson=vocArtists)
         if (!vocMatch.isEmpty) {
             //Replace:
             artistConfirmed = vocMatch.get("text_confirmed").asString
@@ -264,30 +264,21 @@ class NLPInterpreter (private val context: Context) {
     }
 
 
-    fun matchVocabulary(filter: String, text: String, vocArray: JsonArray): JsonObject {
+    fun matchVocabulary(filter: String, text: String, vocJson: JsonObject): JsonObject {
         var matchConfirmed = JsonObject()
-        if (text != "" && !vocArray.isEmpty()) {
+        val vocArray = vocJson.keySet().toList()
+        if (text != "" && vocArray.isNotEmpty()) {
             //Init:
             var score = 0
-            var current = ""
-            var curName = ""
             var listEvalued = text.split(", ")
             var listConfirmed = ArrayList<String>()
             var scoresMap = mutableMapOf<String, Int>()
 
             //Check each evaluated artist:
             for (eval in listEvalued) {
-                for (vocArtJs in vocArray) {
-                    current = vocArtJs.asString
-                    //Split if needed:
-                    if (filter == "playlist" || filter == "contact") {
-                        var temp = current.split(" %%% ")
-                        curName = temp[0]
-                    } else {
-                        curName = current
-                    }
-                    score = FuzzySearch.ratio(curName, eval)
-                    Log.d(TAG, "VOC CONFIRMATION: COMPARING $curName WITH $eval, MATCH: $score")
+                for (current in vocArray) {
+                    score = FuzzySearch.ratio(current, eval)
+                    Log.d(TAG, "VOC CONFIRMATION: COMPARING $current WITH $eval, MATCH: $score")
                     //Add only best matches:
                     if (!scoresMap.keys.contains(current) && score >= midThreshold) {
                         scoresMap[current] = score
@@ -309,14 +300,16 @@ class NLPInterpreter (private val context: Context) {
 
             if (listConfirmed.isNotEmpty()) {
                 //Final:
-                if (filter == "playlist" || filter == "contact") {
-                    var temp = listConfirmed[0].split(" %%% ")
-                    matchConfirmed.addProperty("text_confirmed", temp[0].strip())
-                    matchConfirmed.addProperty("detail_confirmed", temp[1].strip())
-                } else {
-                    matchConfirmed.addProperty("text_confirmed", listConfirmed.joinToString(", ", "", ""))
+                var matchName = listConfirmed[0]
+                var itemDetails = vocJson.get(matchName).asJsonObject
+                matchConfirmed.addProperty("text_confirmed", matchName)
+                if (filter == "playlist") {
+                    matchConfirmed.addProperty("detail_confirmed", itemDetails.get("playlist_URL").asString)
+                } else if(filter == "contact") {
+                    var prefix = itemDetails.get("prefix").asString
+                    var phone = itemDetails.get("phone").asString
+                    matchConfirmed.addProperty("detail_confirmed", "${prefix}${phone}")
                 }
-
             }
         }
         Log.d(TAG, "VOCABULARY MATCH: ${matchConfirmed.get("text_confirmed")}")
@@ -334,7 +327,7 @@ class NLPInterpreter (private val context: Context) {
         contactExtractor.addProperty("contact_phone", "")
 
         //Get user vocabulary:
-        var vocContacts = utils.getVocabularyArray(filter="contact")
+        var vocContacts = utils.getVocabulary(filter="contact")
         if (vocContacts.isEmpty()) {
             return toCall
         } else {
@@ -362,7 +355,7 @@ class NLPInterpreter (private val context: Context) {
                 contactExtractor.addProperty("contact_extracted", toCallExtracted)
                 Log.d(TAG, "CONTACT EXTRACTED: $toCallExtracted")
                 //2) Match extracted contact name with user vocabulary:
-                var vocMatch = matchVocabulary(filter="contact", text=toCallExtracted, vocArray=vocContacts)
+                var vocMatch = matchVocabulary(filter="contact", text=toCallExtracted, vocJson=vocContacts)
                 if (!vocMatch.isEmpty) {
                     //Replace:
                     var phone = vocMatch.get("detail_confirmed").asString
@@ -376,6 +369,5 @@ class NLPInterpreter (private val context: Context) {
         last_log!!.add("contact_extractor", contactExtractor)
         return toCall
     }
-
 
 }

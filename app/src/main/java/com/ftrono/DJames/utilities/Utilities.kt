@@ -2,25 +2,24 @@ package com.ftrono.DJames.utilities
 
 import android.content.Context
 import android.util.Log
+import com.ftrono.DJames.application.*
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import java.io.File
+import java.io.FileReader
 import java.io.IOException
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Random
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.streams.asSequence
-import com.ftrono.DJames.application.*
-import com.google.gson.Gson
-import com.google.gson.JsonArray
-import com.google.gson.JsonObject
-import java.io.File
-import com.google.gson.JsonParser
-import java.io.FileReader
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 
 class Utilities {
@@ -142,14 +141,12 @@ class Utilities {
 
     //VOCABULARY:
     //Get Json with all Vocabulary items of a given "filter" category:
-    fun getVocabularyArray(filter: String): JsonArray {
+    fun getVocabulary(filter: String): JsonObject {
         var vocFile = File(vocDir, "voc_${filter}s.json")
         var vocJson = JsonObject()
-        var vocArray = JsonArray()
         if (!vocFile.exists()) {
             //Create new empty voc file (& return empty array):
             try {
-                vocJson.add(filter, JsonArray())
                 vocFile.createNewFile()
                 vocFile.writeText(vocJson.toString())
             } catch (e: Exception) {
@@ -160,47 +157,45 @@ class Utilities {
             try {
                 var reader = FileReader(vocFile)
                 vocJson = JsonParser.parseReader(reader).asJsonObject
-                //Log.d(TAG, vocJson.toString())
-                vocArray = vocJson.get(filter).asJsonArray
             } catch (e: Exception) {
                 //Delete invalid file:
                 vocFile.delete()
                 Log.d(TAG, "Error in parsing vocabulary file!", e)
             }
         }
-        //Log.d(TAG, vocArray.toString())
-        return vocArray
+        Log.d(TAG, vocJson.toString())
+        return vocJson
     }
 
     //Update Vocabulary file:
-    fun editVocFile(prevText: String = "", newText: String = ""): Int {
+    fun editVocFile(prevText: String, newText: String = "", newDetails: JsonObject = JsonObject()): Int {
         try {
             //Pack JSON:
             var vocFile = File(vocDir, "voc_${filter}s.json")
             var reader = FileReader(vocFile)
             var vocJson = JsonParser.parseReader(reader).asJsonObject
-            //ARTISTS / ALBUMS:
-            var tempList: ArrayList<String> = Gson().fromJson(
-                vocJson.get(filter).asJsonArray,
-                ArrayList<String>()::class.java
-            )
-            if (prevText != "") {
-                tempList.remove(prevText)
+            //Remove previous version:
+            if (prevText != "" && newText != prevText)  {
+                vocJson.remove(prevText)
             }
+            //Add new item & details:
             if (newText != "") {
-                tempList.add(newText)
+                vocJson.add(newText, newDetails)
             }
-            //Sort ascending by date
-            tempList.sort()
-            var vocArray = JsonArray()
-            for (item in tempList) {
-                vocArray.add(item)
+            //Sort ascending:
+            var keyList = vocJson.keySet().toMutableList()
+            keyList.sort()
+
+            //Build new vocabulary (sorted):
+            var newJson = JsonObject()
+            for (item in keyList) {
+                newJson.add(item, vocJson[item].asJsonObject)
             }
+            Log.d(TAG, vocJson.toString())
+
             //Store:
-            vocJson.add(filter, vocArray)
-            //Log.d(TAG, vocJson.toString())
             //Overwrite saved file:
-            vocFile.writeText(vocJson.toString())
+            vocFile.writeText(newJson.toString())
             return 0
         } catch (e: Exception) {
             Log.d(TAG, "Error: vocFile not updated!", e)

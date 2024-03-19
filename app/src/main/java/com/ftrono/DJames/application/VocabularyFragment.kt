@@ -41,7 +41,6 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
     private var refreshList: RecyclerView? = null
     private var vocItems = JsonObject()
     private var listItems = listOf<String>()
-    private var editModeOn = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -58,7 +57,6 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
 
         //Filters listeners:
         vocArtists.setOnClickListener(View.OnClickListener {
-            editModeOn = false
             filter = "artist"
             textHeader.text = "Your hard-to-spell artists"
             vocArtists.backgroundTintList =
@@ -70,7 +68,6 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             updateRecyclerView()
         })
         vocPlaylists.setOnClickListener(View.OnClickListener {
-            editModeOn = false
             filter = "playlist"
             textHeader.text = "Your favourite playlists"
             vocArtists.backgroundTintList =
@@ -82,7 +79,6 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             updateRecyclerView()
         })
         vocContacts.setOnClickListener(View.OnClickListener {
-            editModeOn = false
             filter = "contact"
             textHeader.text = "Your favourite contacts"
             vocArtists.backgroundTintList =
@@ -124,9 +120,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         //Delete vocabulary button:
         var deleteVocButton = requireActivity().findViewById<ImageView>(R.id.voc_delete_all)
         deleteVocButton.setOnClickListener { view ->
-            if (!editModeOn) {
-                deleteVocabulary()
-            }
+            deleteVocabulary()
         }
 
         //FAB:
@@ -135,9 +129,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             fab.visibility = View.GONE
         }
         fab.setOnClickListener { view ->
-            if (!editModeOn) {
-                showEditDialog("")
-            }
+            showEditDialog("")
         }
     }
 
@@ -148,7 +140,6 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
     }
 
     fun updateRecyclerView() {
-        editModeOn = false
         //Load updated data:
         vocItems = utils.getVocabulary(filter=filter)
         listItems = vocItems.keySet().toList()
@@ -293,7 +284,6 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
 
     //Show Edit Dialog:
     fun showEditDialog(prevText: String) {
-        editModeOn = true
         val inflater = LayoutInflater.from(activity)
         val subView: View = inflater.inflate(R.layout.vocabulary_edit_layout, null)
         //Load:
@@ -377,14 +367,12 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
                 if (ret == 0) {
                     //CLOSE THE DIALOG:
                     dialog.dismiss()
-                    editModeOn = false
                 }
             }
             val negativeButton: Button = alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE)
             negativeButton.setOnClickListener {
-                //CLOSE THE DIALOG
+                //CLOSE THE DIALOG:
                 dialog.dismiss()
-                editModeOn = false
             }
         })
         alertDialog.setCancelable(false)
@@ -401,7 +389,6 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             if (intent!!.action == ACTION_VOC_DELETE) {
                 Log.d(TAG, "VOCABULARY: ACTION_VOC_DELETE.")
                 var toDelete = intent.getStringExtra("toDelete")
-                editModeOn = false
                 deleteItem(toDelete!!)
             }
 

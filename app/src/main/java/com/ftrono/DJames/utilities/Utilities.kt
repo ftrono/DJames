@@ -163,7 +163,7 @@ class Utilities {
                 Log.d(TAG, "Error in parsing vocabulary file!", e)
             }
         }
-        Log.d(TAG, vocJson.toString())
+        // Log.d(TAG, vocJson.toString())
         return vocJson
     }
 
@@ -191,7 +191,7 @@ class Utilities {
             for (item in keyList) {
                 newJson.add(item, vocJson[item].asJsonObject)
             }
-            Log.d(TAG, vocJson.toString())
+            // Log.d(TAG, vocJson.toString())
 
             //Store:
             //Overwrite saved file:

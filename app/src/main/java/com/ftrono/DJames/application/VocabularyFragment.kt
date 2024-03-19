@@ -247,10 +247,13 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             if (filter == "playlist") {
                 var newURL = newDetails.get("playlist_URL").asString
                 var urlTest = URLUtil.isValidUrl(newURL) && Patterns.WEB_URL.matcher(newURL).matches()
-                if (!urlTest || !newURL.contains("https://open.spotify.com/")) {
+                if (!urlTest || !newURL.contains(playlistUrlIntro)) {
                     //Request enter valid URL:
                     requestDetail()
                     return -1
+                } else {
+                    newURL = newURL.split("?")[0]
+                    newDetails.addProperty("playlist_URL", newURL)
                 }
             } else if (filter == "contact") {
                 var newPrefix = newDetails.get("prefix").asString

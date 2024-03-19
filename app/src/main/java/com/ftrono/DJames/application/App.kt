@@ -65,6 +65,8 @@ var contextName: String = ""
 val dialogflow_id = "djames-nlp"
 val uri_format = "spotify:track:"
 val ext_format = "http://open.spotify.com/track/"
+val playlistUrlIntro = "https://open.spotify.com/playlist/"
+val likedSongsUri = "spotify:user:replaceUserId:collection"
 
 //Spotify:
 var grantToken = ""

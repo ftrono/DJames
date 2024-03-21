@@ -159,7 +159,7 @@ class Utilities {
                 vocJson = JsonParser.parseReader(reader).asJsonObject
             } catch (e: Exception) {
                 //Delete invalid file:
-                vocFile.delete()
+                // vocFile.delete()
                 Log.d(TAG, "Error in parsing vocabulary file!", e)
             }
         }

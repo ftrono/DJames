@@ -156,10 +156,10 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             textNoData!!.visibility = View.VISIBLE
             if (filter == "contact") {
                 textNoData!!.text =
-                    "Your contacts vocabulary is empty!\n\nLet DJames know your favourite contacts'\nnames and phone numbers by\nwriting writing them here.\n\n✏️"
+                    "Your contacts vocabulary is empty!\n\nLet DJames know your favourite contacts'\nnames and phone numbers by\nwriting them here.\n\n✏️"
             } else if (filter == "playlist") {
                 textNoData!!.text =
-                    "Your playlists vocabulary is empty!\n\nLet DJames know your playlists by\nwriting writing their names & links here.\n\n✏️"
+                    "Your playlists vocabulary is empty!\n\nLet DJames know your playlists by\nwriting their names & links here.\n\n✏️"
             } else {
                 textNoData!!.text =
                     "Your ${filter}s vocabulary is empty!\n\nHelp DJames understand your\n lesser known or hard-to-spell ${filter} names\nby writing them here.\n\n✏️"

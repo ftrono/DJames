@@ -420,19 +420,67 @@ class VoiceSearchService : Service() {
                                     }
 
                                     //C) PLAY:
+                                    //TRIAL 1:
+                                    //Try requested context:
                                     var sessionState =
-                                        spotifyInterpreter!!.playInternally(queryResult)
-                                    Log.d(TAG, "SESSION STATE: ${sessionState}")
-                                    if (sessionState == -1) {
+                                        spotifyInterpreter!!.playInternally(queryResult, useAlbum=false)
+                                    Log.d(TAG, "(FIRST) SESSION STATE: ${sessionState}")
+
+                                    if (sessionState == 0) {
+                                        if (queryResult.get("context_type").asString == "album") {
+                                            //If context was "album" -> terminate:
+                                            stopSelf()
+
+                                        } else {
+                                            //CUSTOM CONTEXT:
+                                            //Wait 1 sec:
+                                            Thread.sleep(1000)
+                                            //CHECK 204:
+                                            var playerState = spotifyInterpreter!!.getPlaybackState()
+                                            Log.d(TAG, "PLAYBACK STATE: $playerState")
+
+                                            if (playerState == 200) {
+                                                //200: OK -> Terminate:
+                                                stopSelf()
+
+                                            } else {
+                                                //204: WRONG CONTEXT or 400-on:
+                                                //TRIAL 2:
+                                                //Use album as context:
+                                                sessionState = spotifyInterpreter!!.playInternally(
+                                                    queryResult,
+                                                    useAlbum = true
+                                                )
+                                                Log.d(TAG, "(SECOND) SESSION STATE: ${sessionState}")
+
+                                                if (sessionState == 0) {
+                                                    //OK -> Terminate:
+                                                    stopSelf()
+
+                                                } else {
+                                                    //400-on: OPEN EXTERNALLY WITH CONTEXT = ALBUM:
+                                                    //Open externally:
+                                                    var spotifyUrl =
+                                                        queryResult.get("spotify_URL").asString
+                                                    var contextUri =
+                                                        queryResult.get("album_uri").asString
+                                                    val encodedContextUri: String =
+                                                        URLEncoder.encode(contextUri, "UTF-8")
+                                                    openExternally("$spotifyUrl?context=$encodedContextUri")
+                                                    //openExternally(spotifyUrl)
+                                                }
+                                            }
+                                        }
+
+                                    } else {
+                                        //400-on: OPEN EXTERNALLY WITH CONTEXT = ALBUM:
                                         //Open externally:
                                         var spotifyUrl = queryResult.get("spotify_URL").asString
-                                        var contextUri = queryResult.get("context_uri").asString
+                                        var contextUri = queryResult.get("album_uri").asString
                                         val encodedContextUri: String =
                                             URLEncoder.encode(contextUri, "UTF-8")
                                         openExternally("$spotifyUrl?context=$encodedContextUri")
                                         //openExternally(spotifyUrl)
-                                    } else {
-                                        stopSelf()
                                     }
                                 }
                             }

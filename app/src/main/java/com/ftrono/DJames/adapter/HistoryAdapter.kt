@@ -77,8 +77,11 @@ class HistoryAdapter(
                 logItem.get("spotify_play").asJsonObject.get("song_name").asString
             holder.match_artist.text =
                 logItem.get("spotify_play").asJsonObject.get("artist_name").asString
-            holder.match_context.text =
-                logItem.get("spotify_play").asJsonObject.get("context_name").asString
+            var contextType = logItem.get("spotify_play").asJsonObject.get("context_type").asString.replaceFirstChar { it.uppercase() }
+            var contextName = logItem.get("spotify_play").asJsonObject.get("context_name").asString
+            contextName = contextName.split(" ").joinToString(" ") { it.replaceFirstChar(Char::titlecase) }
+            holder.match_context.text = "($contextType) $contextName"
+
         } catch (e: Exception) {
             try {
                 //CONTACT CALL:

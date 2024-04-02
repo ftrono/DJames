@@ -41,7 +41,7 @@ class Prefs (context: Context) {
     //SHARED PREFS:
     //Rec timeout:
     var recTimeout: String
-        get() = sharedPrefs.getString(KEY_REC_TIMEOUT, "6") as String
+        get() = sharedPrefs.getString(KEY_REC_TIMEOUT, "8") as String
         set(value) = sharedPrefs.edit().putString(KEY_REC_TIMEOUT, value).apply()
 
     var overlayPosition: String

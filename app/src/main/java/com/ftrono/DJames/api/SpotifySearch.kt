@@ -177,16 +177,10 @@ class SpotifySearch() {
             var firstArtist = artists.get(0).asJsonObject
             returnJSON.add("artist_name", firstArtist.get("name"))
 
-            //CONTEXT:
             //Album name:
             var album = bestResult.get("album").asJsonObject
             returnJSON.addProperty("album_name", album.get("name").asString)
             returnJSON.addProperty("album_uri", album.get("uri").asString)
-
-            //(TEMP) Context -> album:
-            returnJSON.addProperty("context_type", "Album")
-            returnJSON.addProperty("context_uri", album.get("uri").asString)
-            returnJSON.addProperty("context_name", album.get("name").asString)
 
             //Artwork:
             if (album.has("images")) {

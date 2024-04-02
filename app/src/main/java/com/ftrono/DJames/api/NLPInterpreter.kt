@@ -27,7 +27,7 @@ class NLPInterpreter (private val context: Context) {
         var matchExtracted = ""
         var currentArtist = false
         var artistExtracted = ""
-        var contextType = ""
+        var contextType = "album"
         var currentContext = false
         var contextLiked = false
         var contextExtracted = ""
@@ -101,9 +101,7 @@ class NLPInterpreter (private val context: Context) {
             if (contextInd > -1) {
                 contextStr = sent
                 //Check context type:
-                if (sent.contains("album")) {
-                    contextType = "album"
-                } else if (sent.contains("playlist")) {
+                if (sent.contains("playlist")) {
                     contextType = "playlist"
                 }
                 //check "current":
@@ -111,6 +109,7 @@ class NLPInterpreter (private val context: Context) {
                 //Check "liked songs":
                 else if (sent.contains("liked songs") || sent.contains("saved songs") || sent.contains("my songs")) {
                     contextLiked = true
+                    contextType = "playlist"
                 }
                 break
             }
@@ -300,19 +299,23 @@ class NLPInterpreter (private val context: Context) {
 
             if (listConfirmed.isNotEmpty()) {
                 //Final:
+                Log.d(TAG, "listConfirmed: $listConfirmed")
                 var matchName = listConfirmed[0]
-                var itemDetails = vocJson.get(matchName).asJsonObject
+                var itemDetails = JsonObject()
                 matchConfirmed.addProperty("text_confirmed", matchName)
                 if (filter == "playlist") {
+                    itemDetails = vocJson.get(matchName).asJsonObject
                     matchConfirmed.addProperty("detail_confirmed", itemDetails.get("playlist_URL").asString)
                 } else if(filter == "contact") {
+                    itemDetails = vocJson.get(matchName).asJsonObject
                     var prefix = itemDetails.get("prefix").asString
                     var phone = itemDetails.get("phone").asString
                     matchConfirmed.addProperty("detail_confirmed", "${prefix}${phone}")
                 }
+                Log.d(TAG, "VOCABULARY MATCH: ${matchConfirmed.get("text_confirmed")}")
             }
         }
-        Log.d(TAG, "VOCABULARY MATCH: ${matchConfirmed.get("text_confirmed")}")
+
         return matchConfirmed
     }
 

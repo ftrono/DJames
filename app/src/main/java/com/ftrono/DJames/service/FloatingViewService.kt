@@ -433,6 +433,34 @@ class FloatingViewService : Service() {
         return false
     }
 
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
+        var faded = intent.getBooleanExtra("faded", false)
+        if (faded) {
+            setClockOpened()
+        } else {
+            setClockClosed()
+        }
+
+        return START_NOT_STICKY
+    }
+
+    fun setClockOpened() {
+        overlayButton!!.setBackgroundResource(R.drawable.rounded_button_dark)
+        overlayIcon!!.setImageResource(R.drawable.speak_icon_gray)
+        overlayClockButton!!.visibility = View.INVISIBLE
+        overlayClockIcon!!.visibility = View.INVISIBLE
+        overlayClockText!!.visibility = View.INVISIBLE
+    }
+
+    fun setClockClosed() {
+        overlayButton!!.setBackgroundResource(R.drawable.rounded_button_ready)
+        overlayIcon!!.setImageResource(R.drawable.speak_icon)
+        overlayClockButton!!.visibility = View.VISIBLE
+        overlayClockIcon!!.visibility = View.VISIBLE
+        overlayClockText!!.visibility = View.VISIBLE
+    }
+
 
     //PERSONAL RECEIVER:
     private var overlayReceiver = object: BroadcastReceiver() {
@@ -444,11 +472,7 @@ class FloatingViewService : Service() {
                 Log.d(TAG, "OVERLAY: ACTION_CLOCK_OPENED.")
                 if (!recordingMode) {
                     try {
-                        overlayButton!!.setBackgroundResource(R.drawable.rounded_button_dark)
-                        overlayIcon!!.setImageResource(R.drawable.speak_icon_gray)
-                        overlayClockButton!!.visibility = View.INVISIBLE
-                        overlayClockIcon!!.visibility = View.INVISIBLE
-                        overlayClockText!!.visibility = View.INVISIBLE
+                        setClockOpened()
                     } catch (e: Exception) {
                         Log.d(TAG, "OVERLAY: ACTION_CLOCK_OPENED: resources not available.")
                     }
@@ -460,11 +484,7 @@ class FloatingViewService : Service() {
                 Log.d(TAG, "OVERLAY: ACTION_CLOCK_CLOSED.")
                 if (!recordingMode) {
                     try {
-                        overlayButton!!.setBackgroundResource(R.drawable.rounded_button_ready)
-                        overlayIcon!!.setImageResource(R.drawable.speak_icon)
-                        overlayClockButton!!.visibility = View.VISIBLE
-                        overlayClockIcon!!.visibility = View.VISIBLE
-                        overlayClockText!!.visibility = View.VISIBLE
+                        setClockClosed()
                     } catch (e: Exception) {
                         Log.d(TAG, "OVERLAY: ACTION_CLOCK_CLOSED: resources not available.")
                     }

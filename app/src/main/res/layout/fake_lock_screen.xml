@@ -33,7 +33,6 @@
         android:textColor="@color/faded_grey"
         android:text= "00\n00"
         android:textSize="150dp"
-        android:textStyle="bold"
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintLeft_toLeftOf="parent"

@@ -116,6 +116,18 @@ class SettingsActivity : AppCompatActivity() {
             logout()
         }
 
+        //Auto Start-up:
+        var checkbox_startup = findViewById<CheckBox>(R.id.checkbox_startup)
+        checkbox_startup!!.setChecked(prefs.autoStartup)
+
+        checkbox_startup.setOnClickListener {
+            if (checkbox_startup.isChecked) {
+                prefs.autoStartup = true
+            } else {
+                prefs.autoStartup = false
+            }
+        }
+
         //RecTimeout:
         text_rec_timeout = findViewById<TextView>(R.id.val_rec_timeout)
         text_rec_timeout!!.text = prefs.recTimeout
@@ -328,12 +340,9 @@ class SettingsActivity : AppCompatActivity() {
         if (isMyServiceRunning(FloatingViewService::class.java)) {
             stopService(Intent(applicationContext, FloatingViewService::class.java))
             if (!isMyServiceRunning(FloatingViewService::class.java)) {
-                startService(
-                    Intent(
-                        applicationContext,
-                        FloatingViewService::class.java
-                    )
-                )
+                var intentOS = Intent(applicationContext, FloatingViewService::class.java)
+                intentOS.putExtra("faded", false)
+                applicationContext.startService(intentOS)
             }
         }
     }

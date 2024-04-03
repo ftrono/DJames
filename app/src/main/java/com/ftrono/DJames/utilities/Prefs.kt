@@ -39,6 +39,11 @@ class Prefs (context: Context) {
 
     //GETTERS & SETTERS:
     //SHARED PREFS:
+    //Clock Screen enabled:
+    var autoStartup: Boolean
+        get() = sharedPrefs.getBoolean(KEY_AUTO_STARTUP, false) as Boolean
+        set(value) = sharedPrefs.edit().putBoolean(KEY_AUTO_STARTUP, value).apply()
+
     //Rec timeout:
     var recTimeout: String
         get() = sharedPrefs.getString(KEY_REC_TIMEOUT, "8") as String
@@ -112,6 +117,7 @@ class Prefs (context: Context) {
     companion object {
         //KEYS:
         //Shared prefs:
+        const val KEY_AUTO_STARTUP = ".key.auto_startup"
         const val KEY_REC_TIMEOUT = ".key.rec_timeout"
         const val KEY_OVERLAY_POSITION = ".key.overlay_position"
         const val KEY_CLOCK_REDIRECT_ENABLED = ".key.clock_redirect_enabled"

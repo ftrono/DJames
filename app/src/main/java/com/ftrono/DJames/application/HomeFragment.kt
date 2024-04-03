@@ -120,7 +120,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             } else if (!overlay_active) {
                 //START:
                 if (!isMyServiceRunning(FloatingViewService::class.java)) {
-                    requireActivity().startService(Intent(requireActivity(), FloatingViewService::class.java))
+                    var intentOS = Intent(requireActivity(), FloatingViewService::class.java)
+                    intentOS.putExtra("faded", true)
+                    requireActivity().startService(intentOS)
                 }
                 //Start fake lock screen:
                 val intent1 = Intent(requireActivity(), FakeLockScreen::class.java)

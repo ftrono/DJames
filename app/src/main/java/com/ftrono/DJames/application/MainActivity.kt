@@ -59,6 +59,13 @@ class MainActivity : AppCompatActivity() {
         //Screen density:
         density = resources.displayMetrics.density
 
+        //AUTO START-UP:
+        if (prefs.autoStartup && !isMyServiceRunning(FloatingViewService::class.java)) {
+            var intentOS = Intent(applicationContext, FloatingViewService::class.java)
+            intentOS.putExtra("faded", false)
+            applicationContext.startService(intentOS)
+        }
+
         //Load Home fragment:
         curFragment = HomeFragment()
         curNavItemId = R.id.nav_home

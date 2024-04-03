@@ -59,27 +59,19 @@ class MainActivity : AppCompatActivity() {
         //Screen density:
         density = resources.displayMetrics.density
 
-        //AUTO START-UP:
-        if (prefs.autoStartup && !isMyServiceRunning(FloatingViewService::class.java)) {
-            var intentOS = Intent(applicationContext, FloatingViewService::class.java)
-            intentOS.putExtra("faded", false)
-            applicationContext.startService(intentOS)
-        }
-
-        //Load Home fragment:
-        curFragment = HomeFragment()
-        curNavItemId = R.id.nav_home
-        supportFragmentManager
-            .beginTransaction()
-            .replace(R.id.main_frame, curFragment!!)
-            .commit()
-
         //Check Login status:
         if (prefs.spotifyToken == "") {
             loggedIn = false
         } else {
             loggedIn = true
             supportActionBar!!.subtitle = "for ${prefs.userName}"
+        }
+
+        //AUTO START-UP:
+        if (loggedIn && prefs.autoStartup && !isMyServiceRunning(FloatingViewService::class.java)) {
+            var intentOS = Intent(applicationContext, FloatingViewService::class.java)
+            intentOS.putExtra("faded", false)
+            applicationContext.startService(intentOS)
         }
 
         //Start personal Receiver:
@@ -106,6 +98,14 @@ class MainActivity : AppCompatActivity() {
         //Check initial orientation:
         var config = getResources().getConfiguration()
         setOrientationLayout(config)
+
+        //Load Home fragment:
+        curFragment = HomeFragment()
+        curNavItemId = R.id.nav_home
+        supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.main_frame, curFragment!!)
+            .commit()
 
         //CLEANING:
         if (!main_initialized) {

@@ -39,7 +39,7 @@ class Prefs (context: Context) {
 
     //GETTERS & SETTERS:
     //SHARED PREFS:
-    //Clock Screen enabled:
+    //Auto start-up:
     var autoStartup: Boolean
         get() = sharedPrefs.getBoolean(KEY_AUTO_STARTUP, false) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_AUTO_STARTUP, value).apply()
@@ -49,12 +49,13 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getString(KEY_REC_TIMEOUT, "10") as String
         set(value) = sharedPrefs.edit().putString(KEY_REC_TIMEOUT, value).apply()
 
+    //Overlay position:
     var overlayPosition: String
         //0 -> Left; 1 -> Right
         get() = sharedPrefs.getString(KEY_OVERLAY_POSITION, "1") as String
         set(value) = sharedPrefs.edit().putString(KEY_OVERLAY_POSITION, value).apply()
 
-    //Clock Screen enabled:
+    //Auto Clock:
     var autoClock: Boolean
         get() = sharedPrefs.getBoolean(KEY_AUTO_CLOCK, true) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_AUTO_CLOCK, value).apply()
@@ -73,6 +74,11 @@ class Prefs (context: Context) {
     var volumeUpEnabled: Boolean
         get() = sharedPrefs.getBoolean(KEY_VOLUME_UP_ENABLED, true) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_VOLUME_UP_ENABLED, value).apply()
+
+    //Hide status bar in Clock:
+    var hideBars: Boolean
+        get() = sharedPrefs.getBoolean(KEY_HIDE_BARS, true) as Boolean
+        set(value) = sharedPrefs.edit().putBoolean(KEY_HIDE_BARS, value).apply()
 
     //Preferred mic:
     var micType: String
@@ -129,6 +135,7 @@ class Prefs (context: Context) {
         const val KEY_CLOCK_REDIRECT_ENABLED = ".key.clock_redirect_enabled"
         const val KEY_CLOCK_TIMEOUT = ".key.clock_timeout"
         const val KEY_VOLUME_UP_ENABLED = ".key.volume_up_enabled"
+        const val KEY_HIDE_BARS = ".key.hide_bars"
         const val KEY_MIC_TYPE = ".key.mic_type"
         const val KEY_SPOTIFY_USER_ID = ".key.spotify_user_id"
         const val KEY_USER_NAME = ".key.user_name"

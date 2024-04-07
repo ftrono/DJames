@@ -116,12 +116,14 @@ class FakeLockScreen: AppCompatActivity() {
         }
 
         //Hide status bar:
-        val mainContainer = findViewById<ConstraintLayout>(R.id.fake_lock_container)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        WindowInsetsControllerCompat(window, mainContainer).let { controller ->
-            controller.hide(WindowInsetsCompat.Type.statusBars())
-            controller.systemBarsBehavior =
-                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        if (prefs.hideBars) {
+            val mainContainer = findViewById<ConstraintLayout>(R.id.fake_lock_container)
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+            WindowInsetsControllerCompat(window, mainContainer).let { controller ->
+                controller.hide(WindowInsetsCompat.Type.statusBars())
+                controller.systemBarsBehavior =
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
         }
 
         //Exit buttons listeners:

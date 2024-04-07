@@ -165,7 +165,7 @@
             android:id="@+id/header_overlay_position"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="54dp"
+            android:layout_marginTop="48dp"
             android:layout_marginLeft="20dp"
             android:text= "Overlay button position"
             android:textSize="14dp"
@@ -322,19 +322,36 @@
             app:layout_constraintLeft_toRightOf="@+id/divider"
             app:layout_constraintTop_toBottomOf="@+id/checkbox_volume_receiver"/>
 
+        <!-- Auto Clock -->
+        <CheckBox
+            android:id="@+id/checkbox_hide_bars"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginLeft="11dp"
+            android:layout_marginRight="15dp"
+            android:text= "Hide system status bar in Clock screen"
+            android:textSize="14dp"
+            android:textStyle="italic"
+            android:textColor="@color/light_grey"
+            android:checked="true"
+            app:theme="@style/CheckBoxStyle"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintTop_toBottomOf="@+id/descr_volume_up"/>
+
         <!-- Overlay Button position-->
         <TextView
             android:id="@+id/header_mic"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="40dp"
+            android:layout_marginTop="24dp"
             android:layout_marginLeft="20dp"
             android:text= "Preferred microphone"
             android:textSize="14dp"
             android:textStyle="italic"
             android:textColor="@color/light_grey"
             app:layout_constraintLeft_toRightOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/descr_volume_up"/>
+            app:layout_constraintTop_toBottomOf="@+id/checkbox_hide_bars"/>
 
         <Spinner
             android:id="@+id/spinner_mic"

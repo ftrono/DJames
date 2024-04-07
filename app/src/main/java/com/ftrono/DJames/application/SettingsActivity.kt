@@ -209,6 +209,18 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
+        //Hide bars in Clock screen:
+        var checkbox_hide_bars = findViewById<CheckBox>(R.id.checkbox_hide_bars)
+        checkbox_hide_bars!!.setChecked(prefs.hideBars)
+
+        checkbox_hide_bars.setOnClickListener {
+            if (checkbox_hide_bars.isChecked) {
+                prefs.hideBars = true
+            } else {
+                prefs.hideBars = false
+            }
+        }
+
         //Mic type:
         var spinner_mic_type = findViewById<Spinner>(R.id.spinner_mic)
         spinner_mic_type!!.setSelection(prefs.micType.toInt())

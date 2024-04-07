@@ -182,21 +182,35 @@ class FakeLockScreen: AppCompatActivity() {
     }
 
     override fun onStart() {
-        clock_active = true
-        //Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_CLOCK_OPENED)
-            sendBroadcast(intent)
+        if (!overlay_active) {
+            //Start Main:
+            finish()
+            val intent1 = Intent(applicationContext, MainActivity::class.java)
+            startActivity(intent1)
+        } else {
+            clock_active = true
+            //Send broadcast:
+            Intent().also { intent ->
+                intent.setAction(ACTION_CLOCK_OPENED)
+                sendBroadcast(intent)
+            }
         }
         super.onStart()
     }
 
     override fun onResume() {
-        clock_active = true
-        //Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_CLOCK_OPENED)
-            sendBroadcast(intent)
+        if (!overlay_active) {
+            //Start Main:
+            finish()
+            val intent1 = Intent(applicationContext, MainActivity::class.java)
+            startActivity(intent1)
+        } else {
+            clock_active = true
+            //Send broadcast:
+            Intent().also { intent ->
+                intent.setAction(ACTION_CLOCK_OPENED)
+                sendBroadcast(intent)
+            }
         }
         super.onResume()
     }
@@ -361,10 +375,12 @@ class FakeLockScreen: AppCompatActivity() {
             //Finish activity:
             if (intent.action == ACTION_FINISH_CLOCK) {
                 Log.d(TAG, "CLOCK: ACTION_FINISH_CLOCK.")
-//                //Start Main:
-//                val intent1 = Intent(applicationContext, MainActivity::class.java)
-//                startActivity(intent1)
-//                finish()
+                finish()
+                if (clock_active) {
+                    //Start Main:
+                    val intent1 = Intent(applicationContext, MainActivity::class.java)
+                    startActivity(intent1)
+                }
             }
 
         }

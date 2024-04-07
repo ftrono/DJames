@@ -4,8 +4,10 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Color
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
@@ -35,8 +37,11 @@ class VoiceSearchService : Service() {
     private val TAG = VoiceSearchService::class.java.simpleName
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
     private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-    private var vqThread: Thread? = null
-    private var recInProgress = false
+    private var vqThreadRec: Thread? = null
+    private var vqThreadInt: Thread? = null
+    private var vqThreadExt: Thread? = null
+    private var stoppable: Boolean = false
+    private var recFile: File? = null
     private var logFile: File? = null
 
     //Recorder:
@@ -101,7 +106,7 @@ class VoiceSearchService : Service() {
         super.onCreate()
         try {
             startForeground()
-            recordingMode = true
+            voiceSearchOn = true
 
             //Audio manager:
             audioAttributes = AudioAttributes.Builder()
@@ -125,8 +130,8 @@ class VoiceSearchService : Service() {
                 }
 
                 AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {
-                    //START VOICE SEARCH:
-                    voiceQuery()
+                    //START VOICE SEARCH RECORDER:
+                    voiceQueryRecorder()
                 }
 
                 AudioManager.AUDIOFOCUS_REQUEST_DELAYED -> {
@@ -148,21 +153,33 @@ class VoiceSearchService : Service() {
             }
             //Reset:
             recordingMode = false
+            voiceSearchOn = false
             searchFail = false
             sourceIsVolume = false
-            //Thread check:
-            if (vqThread != null) {
-                if (vqThread!!.isAlive()) {
-                    vqThread!!.interrupt()
+            //Threads check:
+            if (vqThreadRec != null) {
+                if (vqThreadRec!!.isAlive()) {
+                    vqThreadRec!!.interrupt()
+                }
+            }
+            if (vqThreadInt != null) {
+                if (vqThreadInt!!.isAlive()) {
+                    vqThreadInt!!.interrupt()
                 }
             }
             //Stop recorder:
-            if (recInProgress) {
+            if (recordingMode) {
                 try {
-                    var recFile = recorder.stop()
+                    recFile = recorder.stop()
                 } catch (e: Exception) {
                     Log.d(TAG, "Recorder not available.")
                 }
+            }
+            //unregister receiver:
+            try {
+                unregisterReceiver(VSReceiver)
+            } catch (e: Exception) {
+                Log.d(TAG, "VQReceiver already unregistered.")
             }
             val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
             val uri = Uri.fromParts("package", packageName, null)
@@ -201,20 +218,25 @@ class VoiceSearchService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         //Stop recorder:
-        if (recInProgress) {
+        if (recordingMode) {
             try {
-                var recFile = recorder.stop()
+                recFile = recorder.stop()
             } catch (e: Exception) {
                 Log.d(TAG, "Recorder not available.")
             }
-            //Thread check:
-            if (vqThread != null) {
-                if (vqThread!!.isAlive()) {
-                    vqThread!!.interrupt()
-                }
-            }
             //Play FAIL tone:
             toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+        }
+        //Threads check:
+        if (vqThreadRec != null) {
+            if (vqThreadRec!!.isAlive()) {
+                vqThreadRec!!.interrupt()
+            }
+        }
+        if (vqThreadInt != null) {
+            if (vqThreadInt!!.isAlive()) {
+                vqThreadInt!!.interrupt()
+            }
         }
         try {
             //Abandon audio focus:
@@ -222,9 +244,16 @@ class VoiceSearchService : Service() {
         } catch (e: Exception) {
             Log.d(TAG, "Audio focus already released.")
         }
+        //unregister receiver:
+        try {
+            unregisterReceiver(VSReceiver)
+        } catch (e: Exception) {
+            Log.d(TAG, "VQReceiver already unregistered.")
+        }
         //Reset:
         searchFail = false
         recordingMode = false
+        voiceSearchOn = false
         sourceIsVolume = false
         //Send broadcast:
         Intent().also { intent ->
@@ -235,12 +264,11 @@ class VoiceSearchService : Service() {
     }
 
 
-    //MAIN VOICE QUERY CALLER:
-    fun voiceQuery() {
+    //VOICE QUERY THREADS:
+    fun voiceQueryRecorder() {
         //prepare thread:
-        vqThread = Thread {
+        vqThreadRec = Thread {
             try {
-                synchronized(this) {
 
                     //1) RECORDING:
                     Log.d(TAG, "RECORDING STARTED.")
@@ -254,15 +282,48 @@ class VoiceSearchService : Service() {
                     toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
 
                     //Start recording (default: cacheDir, alternative: saveDir):
-                    recInProgress = true
+                    recordingMode = true
                     recorder.start(saveDir)
 
-                    //Countdown:
-                    Thread.sleep(prefs.recTimeout.toLong() * 1000)   //default: 5000
+                    //Start personal Receiver:
+                    Thread.sleep(1000)
+                    val actFilter = IntentFilter()
+                    actFilter.addAction(ACTION_REC_EARLY_STOP)
 
+                    //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
+                    registerReceiver(VSReceiver, actFilter, RECEIVER_EXPORTED)
+                    Log.d(TAG, "VSReceiver started.")
+
+                    //Remaining rec countdown:
+                    Thread.sleep((prefs.recTimeout.toLong() -1) * 1000)   //default: 5000
+
+                    //START INTERPRETER:
+                    if (!stoppable) {
+                        Intent().also { intent ->
+                            intent.setAction(ACTION_REC_EARLY_STOP)
+                            sendBroadcast(intent)
+                        }
+                    }
+
+            } catch (e: InterruptedException) {
+                Log.d(TAG, "Interrupted: exception.", e)
+                stopSelf()
+            }
+        }
+        //start thread:
+        vqThreadRec!!.start()
+    }
+    
+    
+    fun voiceQueryInterpreter() {
+        //prepare thread:
+        vqThreadInt = Thread {
+            try {
+                synchronized(this) {
+                    //INTERPRETER:
                     //Stop recording:
-                    var recFile = recorder.stop()
-                    recInProgress = false
+                    recordingMode = false
+                    recFile = recorder.stop()
                     Log.d(TAG, "RECORDING STOPPED.")
 
                     //Lower volume if maximum (to enable Receiver):
@@ -296,7 +357,7 @@ class VoiceSearchService : Service() {
                         last_log!!.addProperty("app_version", appVersion)
 
                         //Query NLP:
-                        var resultsNLP = nlpQuery!!.queryNLP(recFile)
+                        var resultsNLP = nlpQuery!!.queryNLP(recFile!!)
 
                         //Check NLP results:
                         nlp_queryText = ""
@@ -453,6 +514,16 @@ class VoiceSearchService : Service() {
                                                 )
                                                 Log.d(TAG, "(SECOND) SESSION STATE: ${sessionState}")
 
+                                                //Update log:
+                                                last_log!!.addProperty("context_error", true)
+                                                logFile!!.writeText(last_log.toString())
+
+                                                //Send broadcast:
+                                                Intent().also { intent ->
+                                                    intent.setAction(ACTION_LOG_REFRESH)
+                                                    sendBroadcast(intent)
+                                                }
+
                                                 if (sessionState == 0) {
                                                     //OK -> Terminate:
                                                     stopSelf()
@@ -493,34 +564,68 @@ class VoiceSearchService : Service() {
             }
         }
         //start thread:
-        vqThread!!.start()
+        vqThreadInt!!.start()
     }
 
 
     private fun openExternally(spotifyToOpen: String) {
-        //Open query result in Spotify:
-        val intentSpotify = Intent(
-            Intent.ACTION_VIEW,
-            Uri.parse(spotifyToOpen)
-        )
-        intentSpotify.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        intentSpotify.putExtra("fromwhere", "ser")
-        startActivity(intentSpotify)
-        stopSelf()
+        //prepare thread:
+        vqThreadExt = Thread {
+            try {
+                synchronized(this) {
+                    //Open query result in Spotify:
+                    val intentSpotify = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(spotifyToOpen)
+                    )
+                    intentSpotify.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    intentSpotify.putExtra("fromwhere", "ser")
+                    startActivity(intentSpotify)
+                    stopSelf()
 
-        if (prefs.clockRedirectEnabled) {
-            //Send broadcast:
-            Intent().also { intent ->
-                intent.setAction(ACTION_REDIRECT)
-                sendBroadcast(intent)
+                    if (prefs.clockRedirectEnabled) {
+                        //Send broadcast:
+                        Intent().also { intent ->
+                            intent.setAction(ACTION_REDIRECT)
+                            sendBroadcast(intent)
+                        }
+                        //Clock redirect:
+                        Thread.sleep((prefs.clockTimeout.toLong() - 1) * 1000)   //default: 10000
+                        //Launch Clock:
+                        val clockIntent = Intent(this, FakeLockScreen::class.java)
+                        clockIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        clockIntent.putExtra("fromwhere", "ser")
+                        startActivity(clockIntent)
+                    }
+                }
+            } catch (e: InterruptedException) {
+                Log.d(TAG, "Interrupted: exception.", e)
+                stopSelf()
             }
-            //Clock redirect:
-            Thread.sleep((prefs.clockTimeout.toLong()-1) * 1000)   //default: 10000
-            //Launch Clock:
-            val clockIntent = Intent(this, FakeLockScreen::class.java)
-            clockIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            clockIntent.putExtra("fromwhere", "ser")
-            startActivity(clockIntent)
+        }
+        //start thread:
+        vqThreadExt!!.start()
+    }
+
+
+    //PERSONAL RECEIVER:
+    private var VSReceiver = object: BroadcastReceiver() {
+
+        override fun onReceive(context: Context?, intent: Intent?) {
+
+            //Early stop Recording:
+            if (intent!!.action == ACTION_REC_EARLY_STOP && recordingMode && !stoppable) {
+                Log.d(TAG, "VSRECEIVER: EARLY STOP REC -> ACTION_REC_EARLY_STOP.")
+                try {
+                    //Start Voice Query Interpreter:
+                    voiceQueryInterpreter()
+                    stoppable = true
+                } catch (e: Exception) {
+                    //Play FAIL tone:
+                    //toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                    Log.d(TAG, "VSRECEIVER: voiceQueryInterpreter not started. ", e)
+                }
+            }
         }
     }
 

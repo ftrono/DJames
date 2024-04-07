@@ -267,11 +267,21 @@ class FloatingViewService : Service() {
                                 //So that is click event.
                                 // ON CLICK:
                                 if (abs(Xdiff) < 10 && abs(Ydiff) < 10) {
-                                    if (!recordingMode) {
+                                    if (!voiceSearchOn) {
                                         //START VOICE SEARCH SERVICE:
-                                        recordingMode = true
                                         sourceIsVolume = false
-                                        startService(Intent(applicationContext, VoiceSearchService::class.java))
+                                        try {
+                                            startService(Intent(applicationContext, VoiceSearchService::class.java))
+                                            Log.d(TAG, "VOICE SEARCH SERVICE STARTED.")
+                                        } catch (e:Exception) {
+                                            Log.d(TAG, "ERROR: VOICE SEARCH SERVICE NOT STARTED. ", e)
+                                        }
+                                    } else if (recordingMode) {
+                                        //EARLY STOP RECORDING:
+                                        Intent().also { intent ->
+                                            intent.setAction(ACTION_REC_EARLY_STOP)
+                                            sendBroadcast(intent)
+                                        }
                                     }
                                 } else if (abs(event.rawY) >= (height - 200)) {
                                     // If SWIPE DOWN -> CLOSE:
@@ -308,7 +318,6 @@ class FloatingViewService : Service() {
             if (isMyServiceRunning(VoiceSearchService::class.java)) {
                 stopService(Intent(applicationContext, VoiceSearchService::class.java))
             }
-            recordingMode = false
             overlayButton = null
             overlayIcon = null
             vol_initialized = false
@@ -379,7 +388,6 @@ class FloatingViewService : Service() {
             sendBroadcast(intent)
         }
         overlay_active = false
-        recordingMode = false
         //unregister receivers:
         unregisterReceiver(eventReceiver)
         unregisterReceiver(overlayReceiver)
@@ -470,7 +478,7 @@ class FloatingViewService : Service() {
             //When Fake Lock Screen is opened:
             if (intent!!.action == ACTION_CLOCK_OPENED) {
                 Log.d(TAG, "OVERLAY: ACTION_CLOCK_OPENED.")
-                if (!recordingMode) {
+                if (!voiceSearchOn) {
                     try {
                         setClockOpened()
                     } catch (e: Exception) {
@@ -482,7 +490,7 @@ class FloatingViewService : Service() {
             //When Fake Lock Screen is closed:
             if (intent.action == ACTION_CLOCK_CLOSED) {
                 Log.d(TAG, "OVERLAY: ACTION_CLOCK_CLOSED.")
-                if (!recordingMode) {
+                if (!voiceSearchOn) {
                     try {
                         setClockClosed()
                     } catch (e: Exception) {

@@ -38,8 +38,9 @@ class HistoryAdapter(
         var datetime = logItem.get("datetime").asString
         var filename = "$datetime.json"
         var icon = ""
+        var context_error = false
         //result check:
-        if (logItem.has("voc_score")) {
+        if (logItem.has("voc_score") && !logItem.has("spotify_play")) {
             //Phone calls:
             icon = "📞"
             if (logItem.get("voc_score").asInt > midThreshold) {
@@ -51,11 +52,15 @@ class HistoryAdapter(
             //Play requests:
             try {
                 icon = "🎧"
-                if (logItem.get("best_score").asInt > matchDoubleThreshold) {
-                    holder.datetime.text = "$icon  ${context.getString(R.string.result_good)}  $datetime"
+                try {
+                    context_error = logItem.get("context_error").asBoolean
+                } catch (e: Exception) {
+                    context_error = false
+                }
+                if (logItem.get("best_score").asInt < matchDoubleThreshold || context_error) {
+                    holder.datetime.text = "$icon  ${context.getString(R.string.result_not_good)}  $datetime"
                 } else {
-                    holder.datetime.text =
-                        "$icon  ${context.getString(R.string.result_not_good)}  $datetime"
+                    holder.datetime.text = "$icon  ${context.getString(R.string.result_good)}  $datetime"
                 }
             } catch (e: Exception) {
                 //Generic request:

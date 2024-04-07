@@ -220,7 +220,6 @@ class SpotifySearch() {
 
     //Spotify: get Best Result:
     fun getBestMatches(items: JsonArray, matchName: String, artistName: String, live: Boolean): JsonArray {
-        var bestMatches = JsonArray()
         //Analyse Spotify query result:
         //GET BEST RESULT:
         var c = 0
@@ -236,6 +235,7 @@ class SpotifySearch() {
             var name = re.replace(currItem.get("name").asString, "")
             scoreJson.addProperty("name", name)
             scoreJson.addProperty("albumType", currItem.get("album").asJsonObject.get("album_type").asString)
+            scoreJson.addProperty("albumName", currItem.get("album").asJsonObject.get("name").asString)
             ids.add(currItem.get("id").asString)
             //Artists name:
             var foundArtists = ArrayList<String>()
@@ -292,7 +292,8 @@ class SpotifySearch() {
         }
         var bestScores = sortedScores.filter { (key, value) -> value >= scoreThreshold}
         Log.d(TAG, "FILTERED MAP: $bestScores")
-        //Get album (if present):
+
+        //Get saved & album (if present):
         var bestType = ""
         for (k in bestScores.keys) {
             var result = matchesArray[k]
@@ -313,9 +314,16 @@ class SpotifySearch() {
                 bestType = "album"
             }
         }
-        //Log:
+
+        //RETURN PREPARATION:
+        var bestMatches = JsonArray()
+        //position 0 -> BEST:
+        bestMatches.add(matchesArray[bestInd])
+        //the other results:
         for (k in bestScores.keys) {
-            bestMatches.add(matchesArray[k])
+            if (k != bestInd) {
+                bestMatches.add(matchesArray[k])
+            }
         }
         return bestMatches
     }

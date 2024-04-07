@@ -15,7 +15,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "1.05"
+val appVersion = "1.06"
 
 //Preferences:
 val deltaSimilarity = 30
@@ -35,6 +35,7 @@ var screenOn: Boolean = true
 var sourceIsVolume: Boolean = false
 var main_initialized: Boolean = false
 var vol_initialized: Boolean = false
+var voiceSearchOn: Boolean = false
 var recordingMode: Boolean = false
 var callMode: Boolean = false
 var overlay_active: Boolean = false
@@ -125,6 +126,9 @@ const val ACTION_OVERLAY_BUSY = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_
 const val ACTION_OVERLAY_PROCESSING = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_PROCESSING"
 const val ACTION_MAKE_CALL = "com.ftrono.DJames.eventReceiver.ACTION_MAKE_CALL"
 const val PHONE_STATE_ACTION = "android.intent.action.PHONE_STATE"
+
+//Voice Search receiver:
+const val ACTION_REC_EARLY_STOP = "com.ftrono.DJames.eventReceiver.ACTION_REC_EARLY_STOP"
 
 
 class App: Application()

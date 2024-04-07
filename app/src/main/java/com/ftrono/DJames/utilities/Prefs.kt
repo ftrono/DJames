@@ -55,6 +55,11 @@ class Prefs (context: Context) {
         set(value) = sharedPrefs.edit().putString(KEY_OVERLAY_POSITION, value).apply()
 
     //Clock Screen enabled:
+    var autoClock: Boolean
+        get() = sharedPrefs.getBoolean(KEY_AUTO_CLOCK, true) as Boolean
+        set(value) = sharedPrefs.edit().putBoolean(KEY_AUTO_CLOCK, value).apply()
+
+    //Clock Screen enabled:
     var clockRedirectEnabled: Boolean
         get() = sharedPrefs.getBoolean(KEY_CLOCK_REDIRECT_ENABLED, true) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_CLOCK_REDIRECT_ENABLED, value).apply()
@@ -120,6 +125,7 @@ class Prefs (context: Context) {
         const val KEY_AUTO_STARTUP = ".key.auto_startup"
         const val KEY_REC_TIMEOUT = ".key.rec_timeout"
         const val KEY_OVERLAY_POSITION = ".key.overlay_position"
+        const val KEY_AUTO_CLOCK = ".key.auto_clock"
         const val KEY_CLOCK_REDIRECT_ENABLED = ".key.clock_redirect_enabled"
         const val KEY_CLOCK_TIMEOUT = ".key.clock_timeout"
         const val KEY_VOLUME_UP_ENABLED = ".key.volume_up_enabled"

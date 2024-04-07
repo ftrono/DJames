@@ -148,6 +148,18 @@ class SettingsActivity : AppCompatActivity() {
             override fun onNothingSelected(arg0: AdapterView<*>?) {}
         })
 
+        //Auto Clock:
+        var checkbox_auto_clock = findViewById<CheckBox>(R.id.checkbox_auto_clock)
+        checkbox_auto_clock!!.setChecked(prefs.autoClock)
+
+        checkbox_auto_clock.setOnClickListener {
+            if (checkbox_auto_clock.isChecked) {
+                prefs.autoClock = true
+            } else {
+                prefs.autoClock = false
+            }
+        }
+
         //ClockTimeout:
         var text_clock_after = findViewById<TextView>(R.id.descr_clock_after)
         var text_clock_descr = findViewById<TextView>(R.id.descr_clock_timeout)

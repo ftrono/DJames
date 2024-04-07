@@ -121,14 +121,18 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 //START:
                 if (!isMyServiceRunning(FloatingViewService::class.java)) {
                     var intentOS = Intent(requireActivity(), FloatingViewService::class.java)
-                    intentOS.putExtra("faded", true)
+                    if (prefs.autoClock) {
+                        intentOS.putExtra("faded", true)
+                    }
                     requireActivity().startService(intentOS)
+                    Toast.makeText(requireActivity(), "Ask me to play a Spotify Song!", Toast.LENGTH_LONG).show()
                 }
                 //Start fake lock screen:
-                val intent1 = Intent(requireActivity(), FakeLockScreen::class.java)
-                startActivity(intent1)
-                Toast.makeText(requireActivity(), "Ask me to play a Spotify Song!", Toast.LENGTH_LONG).show()
-                requireActivity().finish()
+                if (prefs.autoClock) {
+                    val intent1 = Intent(requireActivity(), FakeLockScreen::class.java)
+                    startActivity(intent1)
+                    requireActivity().finish()
+                }
 //                Snackbar.make(findViewById(R.id.content_main), getString(R.string.str_use_logged), Snackbar.LENGTH_LONG)
 //                    .setAction("CLOSE") { }
 //                    .setActionTextColor(resources.getColor(android.R.color.holo_red_light))

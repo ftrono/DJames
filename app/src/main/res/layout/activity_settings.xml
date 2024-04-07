@@ -107,7 +107,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="11dp"
             android:layout_marginRight="15dp"
-            android:text= "Start automatically when app is opened"
+            android:text= "Start Service automatically when app is opened"
             android:textSize="14dp"
             android:textStyle="italic"
             android:textColor="@color/light_grey"
@@ -188,13 +188,30 @@
             app:layout_constraintLeft_toRightOf="@+id/divider"
             app:layout_constraintTop_toBottomOf="@+id/header_overlay_position"/>
 
+        <!-- Auto Clock -->
+        <CheckBox
+            android:id="@+id/checkbox_auto_clock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginLeft="11dp"
+            android:layout_marginRight="15dp"
+            android:text= "Show Clock screen when Service is started"
+            android:textSize="14dp"
+            android:textStyle="italic"
+            android:textColor="@color/light_grey"
+            android:checked="true"
+            app:theme="@style/CheckBoxStyle"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintTop_toBottomOf="@+id/spinner_overlay_pos"/>
+
 
         <!-- Clock auto timeout-->
         <CheckBox
             android:id="@+id/checkbox_clock_redirect"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="20dp"
             android:layout_marginLeft="11dp"
             android:layout_marginRight="15dp"
             android:text= "Go back automatically to Clock screen"
@@ -204,7 +221,7 @@
             android:checked="true"
             app:theme="@style/CheckBoxStyle"
             app:layout_constraintLeft_toRightOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/spinner_overlay_pos"/>
+            app:layout_constraintTop_toBottomOf="@+id/checkbox_auto_clock"/>
 
         <TextView
             android:id="@+id/descr_clock_context"
@@ -212,7 +229,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="-6dp"
             android:layout_marginLeft="20dp"
-            android:text="(Only when Spotify is opened for the first time)"
+            android:text="(Only when Spotify is launched for the first time)"
             android:textSize="12dp"
             android:textColor="@color/mid_grey"
             app:layout_constraintHorizontal_chainStyle="packed"

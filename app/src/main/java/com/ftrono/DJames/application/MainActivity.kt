@@ -187,14 +187,16 @@ class MainActivity : AppCompatActivity() {
         if (item.itemId != curNavItemId) {
             curFragment = when (item.itemId) {
                 R.id.nav_home -> HomeFragment()
-                R.id.nav_history -> HistoryFragment()
+                R.id.nav_help -> HelpFragment()
                 R.id.nav_vocabulary -> VocabularyFragment()
+                R.id.nav_history -> HistoryFragment()
                 else -> HomeFragment()
             }
             var newInd = when (item.itemId) {
                 R.id.nav_home -> 0
-                R.id.nav_history -> 2
-                R.id.nav_vocabulary -> 1
+                R.id.nav_help -> 1
+                R.id.nav_vocabulary -> 2
+                R.id.nav_history -> 3
                 else -> 0
             }
             var transaction = supportFragmentManager.beginTransaction()

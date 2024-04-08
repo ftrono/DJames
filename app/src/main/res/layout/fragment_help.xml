@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    android:id="@+id/home_fragment"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:fillViewport="true"
+    android:background="@color/colorPrimaryDark"
+    android:forceDarkAllowed="true"
+    android:nestedScrollingEnabled="true"
+    tools:context="com.ftrono.DJames.application.MainActivity"
+    tools:ignore="ContentDescription">
+
+    <ScrollView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical"
+        android:fillViewport="false"
+        android:background="@color/colorPrimaryDark"
+        android:forceDarkAllowed="true">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <TextView
+                android:id="@+id/guide_init"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:text="❔   What can I ask DJames?"
+                android:textColor="@color/mid_grey"
+                android:textSize="14dp"
+                android:textStyle="italic"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="TextSizeCheck"/>
+
+            <!-- SONGS -->
+            <TextView
+                android:id="@+id/guide_header_songs"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:layout_marginLeft="20dp"
+                android:text="🎧   Play a Song"
+                android:textColor="@color/light_grey"
+                android:textSize="20dp"
+                android:textStyle="bold"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintTop_toBottomOf="@+id/guide_init"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="TextSizeCheck"/>
+
+            <TextView
+                android:id="@+id/guide_header_descr"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="60dp"
+                android:layout_marginRight="20dp"
+                android:text="NOTE: you must say the words &quot;PLAY&quot; and &quot;BY&quot;!"
+                android:textColor="@color/mid_grey"
+                android:textSize="12dp"
+                android:textStyle="italic|bold"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintTop_toBottomOf="@+id/guide_header_songs"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="TextSizeCheck"/>
+
+            <TextView
+                android:id="@+id/guide_text_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginLeft="60dp"
+                android:layout_marginRight="20dp"
+                android:text="&quot;PLAY song name BY artist name&quot;"
+                android:textColor="@color/light_grey"
+                android:textSize="16dp"
+                android:textStyle="italic"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintTop_toBottomOf="@+id/guide_header_descr"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="TextSizeCheck"/>
+
+            <TextView
+                android:id="@+id/guide_descr_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="60dp"
+                android:layout_marginRight="20dp"
+                android:text="Plays a song in Spotify from its album. Preference is given to your saved tracks and to albums over singles."
+                android:textColor="@color/mid_grey"
+                android:textSize="12dp"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintTop_toBottomOf="@+id/guide_text_1"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="TextSizeCheck"/>
+
+            <TextView
+                android:id="@+id/guide_text_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginLeft="60dp"
+                android:layout_marginRight="20dp"
+                android:text="&quot;PLAY song name BY artist name FROM THE PLAYLIST playlist name&quot;"
+                android:textColor="@color/light_grey"
+                android:textSize="16dp"
+                android:textStyle="italic"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintTop_toBottomOf="@+id/guide_descr_1"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="TextSizeCheck"/>
+
+            <TextView
+                android:id="@+id/guide_descr_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="60dp"
+                android:layout_marginRight="20dp"
+                android:text="Plays a song in Spotify from a playlist of yours. NOTE: the playlist must be listed in DJames' Vocabulary, in the Playlists tab!"
+                android:textColor="@color/mid_grey"
+                android:textSize="12dp"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintTop_toBottomOf="@+id/guide_text_2"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="TextSizeCheck"/>
+
+            <TextView
+                android:id="@+id/guide_text_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginLeft="60dp"
+                android:layout_marginRight="20dp"
+                android:text="&quot;PLAY song name BY artist name FROM MY LIKED SONGS / SAVED TRACKS&quot;"
+                android:textColor="@color/light_grey"
+                android:textSize="16dp"
+                android:textStyle="italic"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintTop_toBottomOf="@+id/guide_descr_2"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="TextSizeCheck"/>
+
+            <TextView
+                android:id="@+id/guide_descr_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="60dp"
+                android:layout_marginRight="20dp"
+                android:text="Plays a song in Spotify from your playlist Liked Songs. NOTE: this will work only for your most recently saved tracks!"
+                android:textColor="@color/mid_grey"
+                android:textSize="12dp"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintTop_toBottomOf="@+id/guide_text_3"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="TextSizeCheck"/>
+
+            <!-- CALLS -->
+            <TextView
+                android:id="@+id/guide_header_calls"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="40dp"
+                android:layout_marginLeft="20dp"
+                android:text="📞   Make a call"
+                android:textColor="@color/light_grey"
+                android:textSize="20dp"
+                android:textStyle="bold"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintTop_toBottomOf="@+id/guide_descr_3"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="TextSizeCheck"/>
+
+            <TextView
+                android:id="@+id/guide_call_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginLeft="60dp"
+                android:layout_marginRight="20dp"
+                android:text="&quot;CALL / MAKE A CALL TO contact name&quot;"
+                android:textColor="@color/light_grey"
+                android:textSize="16dp"
+                android:textStyle="italic"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintTop_toBottomOf="@+id/guide_header_calls"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="TextSizeCheck"/>
+
+            <TextView
+                android:id="@+id/guide_call_descr"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="60dp"
+                android:layout_marginRight="20dp"
+                android:text="Starts a phone call to a contact of yours. NOTE: the contact must be listed in DJames' Vocabulary, in the Contacts tab!"
+                android:textColor="@color/mid_grey"
+                android:textSize="12dp"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintTop_toBottomOf="@+id/guide_call_text"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="TextSizeCheck"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ScrollView>
+
+</FrameLayout>

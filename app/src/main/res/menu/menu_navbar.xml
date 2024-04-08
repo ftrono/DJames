@@ -7,6 +7,10 @@
         android:title="Home"
         android:icon="@drawable/nav_home" />
     <item
+        android:id="@+id/nav_help"
+        android:title="Guide"
+        android:icon="@drawable/nav_help" />
+    <item
         android:id="@+id/nav_vocabulary"
         android:title="Vocabulary"
         android:icon="@drawable/nav_vocabulary" />

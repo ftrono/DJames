@@ -52,6 +52,7 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 tools:ignore="TextSizeCheck"/>
 
+
             <!-- SONGS -->
             <TextView
                 android:id="@+id/guide_header_songs"
@@ -189,6 +190,7 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 tools:ignore="TextSizeCheck"/>
 
+
             <!-- CALLS -->
             <TextView
                 android:id="@+id/guide_header_calls"
@@ -237,6 +239,26 @@
                 app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintVertical_chainStyle="packed"
                 app:layout_constraintTop_toBottomOf="@+id/guide_call_text"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="TextSizeCheck"/>
+
+
+            <!-- BOTTOM MARGIN -->
+            <TextView
+                android:id="@+id/ghost_bottom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="60dp"
+                android:layout_marginRight="20dp"
+                android:text="Ghost\nbottom\n"
+                android:textColor="@color/mid_grey"
+                android:textSize="12dp"
+                android:visibility="invisible"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintTop_toBottomOf="@+id/guide_call_descr"
                 app:layout_constraintLeft_toLeftOf="parent"
                 tools:ignore="TextSizeCheck"/>
 

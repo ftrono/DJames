@@ -12,7 +12,9 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
-**Version 1.06 (2024-04-07)** - Add early stop for voice recording, bugfixes.
+**Version 1.07 (2024-04-08)** - Add Guide tab.
+
+**Version 1.06 (2024-04-07)** - Add early stop for voice recording, usability improvements.
 
 **Version 1.05 (2024-04-02)** - Add support for custom context (playlists & liked songs).
 

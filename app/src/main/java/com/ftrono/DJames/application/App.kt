@@ -15,7 +15,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "1.06"
+val appVersion = "1.07"
 
 //Preferences:
 val deltaSimilarity = 30

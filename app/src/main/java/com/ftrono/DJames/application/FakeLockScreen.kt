@@ -248,9 +248,15 @@ class FakeLockScreen: AppCompatActivity() {
         //Horizontal:
         clockSeparator = ":"
         clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
-        //Move exit button to the LEFT:
+        //Move exit button to the LEFT/RIGHT:
         exitButton!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
-            rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
+            if (prefs.overlayPosition == "1") {
+                //Overlay to Right -> Exit Button to Left:
+                rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
+            } else {
+                //Overlay to Left -> Exit Button to Right:
+                leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
+            }
             topToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
             topToTop = ConstraintLayout.LayoutParams.PARENT_ID
             setMargins((50*density).roundToInt(),0,0,0)

@@ -398,7 +398,7 @@ class VoiceSearchService : Service() {
                             if (intentName == "CallRequest") {
                                 //A) PHONE CALL:
                                 val nlpInterpreter = NLPInterpreter(applicationContext)
-                                val toCall = nlpInterpreter.extractToCall(nlp_queryText)
+                                val phone = nlpInterpreter.extractContact(nlp_queryText)
                                 //Close log:
                                 logFile!!.writeText(last_log.toString())
                                 //Send broadcast:
@@ -406,7 +406,7 @@ class VoiceSearchService : Service() {
                                     intent.setAction(ACTION_LOG_REFRESH)
                                     sendBroadcast(intent)
                                 }
-                                if (toCall == "") {
+                                if (phone == "") {
                                     //Play FAIL tone:
                                     toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                                     stopSelf()
@@ -416,7 +416,7 @@ class VoiceSearchService : Service() {
                                     //CALL:
                                     Intent().also { intent ->
                                         intent.setAction(ACTION_MAKE_CALL)
-                                        intent.putExtra("toCall", toCall)
+                                        intent.putExtra("toCall", "tel:${phone}")
                                         sendBroadcast(intent)
                                     }
                                     stopSelf()

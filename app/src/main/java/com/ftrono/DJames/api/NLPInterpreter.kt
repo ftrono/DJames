@@ -263,6 +263,7 @@ class NLPInterpreter (private val context: Context) {
     }
 
 
+    //Match item from user query against user vocabulary:
     fun matchVocabulary(filter: String, text: String, vocJson: JsonObject): JsonObject {
         var matchConfirmed = JsonObject()
         val vocArray = vocJson.keySet().toList()
@@ -320,9 +321,9 @@ class NLPInterpreter (private val context: Context) {
     }
 
 
-    //Hand contact from user query against user vocabulary:
-    fun extractToCall(queryText: String): String {
-        var toCall = ""
+    //Match contact from user query against user vocabulary:
+    fun extractContact(queryText: String): String {
+        var phone = ""
         //Init log:
         var contactExtractor = JsonObject()
         contactExtractor.addProperty("contact_extracted", "")
@@ -332,45 +333,44 @@ class NLPInterpreter (private val context: Context) {
         //Get user vocabulary:
         var vocContacts = utils.getVocabulary(filter="contact")
         if (vocContacts.isEmpty()) {
-            return toCall
+            return phone
         } else {
             //Search items:
             val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents)))
             val sourceSents = JsonParser.parseReader(reader).asJsonObject
-            val callSents = sourceSents.get("call_sents").asJsonArray   //"call" (full phrasing)
+            val phoneSents = sourceSents.get("phone_sents").asJsonArray   //"call" (full phrasing)
 
-            //"call":
-            var callInd = -1
-            var callStr = ""
-            for (sentEl in callSents) {
+            //"to / call / message":
+            var toInd = -1
+            var toStr = ""
+            for (sentEl in phoneSents) {
                 val sent = sentEl.asString
-                callInd = queryText.indexOf(sent, ignoreCase = true)
-                //"call" (full phrasing) found:
-                if (callInd > -1) {
-                    callStr = sent
+                toInd = queryText.indexOf(sent, ignoreCase = true)
+                //found:
+                if (toInd > -1) {
+                    toStr = sent
                     break
                 }
             }
 
             //Match contact name:
-            if (callInd > -1) {
-                var toCallExtracted = queryText.slice((callInd + callStr.length)..queryText.lastIndex).strip()
-                contactExtractor.addProperty("contact_extracted", toCallExtracted)
-                Log.d(TAG, "CONTACT EXTRACTED: $toCallExtracted")
+            if (toInd > -1) {
+                var contactExtracted = queryText.slice((toInd + toStr.length)..queryText.lastIndex).strip()
+                contactExtractor.addProperty("contact_extracted", contactExtracted)
+                Log.d(TAG, "CONTACT EXTRACTED: $contactExtracted")
                 //2) Match extracted contact name with user vocabulary:
-                var vocMatch = matchVocabulary(filter="contact", text=toCallExtracted, vocJson=vocContacts)
+                var vocMatch = matchVocabulary(filter="contact", text=contactExtracted, vocJson=vocContacts)
                 if (!vocMatch.isEmpty) {
                     //Replace:
-                    var phone = vocMatch.get("detail_confirmed").asString
+                    phone = vocMatch.get("detail_confirmed").asString
                     contactExtractor.addProperty("contact_confirmed", vocMatch.get("text_confirmed").asString)
                     contactExtractor.addProperty("contact_phone", phone)
-                    toCall = "tel:${phone}"
                 }
-                Log.d(TAG, "CONTACT CONFIRMED: $toCall")
+                Log.d(TAG, "PHONE CONFIRMED: $phone")
             }
         }
         last_log!!.add("contact_extractor", contactExtractor)
-        return toCall
+        return phone
     }
 
 }

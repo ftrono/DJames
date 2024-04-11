@@ -39,14 +39,20 @@ class HistoryAdapter(
         var filename = "$datetime.json"
         var icon = ""
         var context_error = false
+        var intentName = logItem.get("nlp").asJsonObject.get("intent_response").asString
         //result check:
-        if (logItem.has("voc_score") && !logItem.has("spotify_play")) {
+        if (intentName == "CallRequest") {
             //Phone calls:
             icon = "📞"
-            if (logItem.get("voc_score").asInt > midThreshold) {
-                holder.datetime.text = "$icon  ${context.getString(R.string.result_good)}  $datetime"
-            } else {
-                holder.datetime.text = "$icon  ${context.getString(R.string.result_not_good)}  $datetime"
+            try {
+                if (logItem.get("voc_score").asInt > midThreshold) {
+                    holder.datetime.text = "$icon  ${context.getString(R.string.result_good)}  $datetime"
+                } else {
+                    holder.datetime.text = "$icon  ${context.getString(R.string.result_not_good)}  $datetime"
+                }
+            } catch (e: Exception) {
+                //Generic request:
+                holder.datetime.text = "${context.getString(R.string.result_question)}   $datetime"
             }
         } else {
             //Play requests:

@@ -1,8 +1,8 @@
 {
-  "call_sents": [
-    "call to ",
-    "contact ",
-    "call "
+  "phone_sents": [
+    "to ",
+    "call ",
+    "message "
   ],
   "play_sents": [
     "play the song ",

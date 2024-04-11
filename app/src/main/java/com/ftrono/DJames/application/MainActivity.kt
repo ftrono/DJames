@@ -20,7 +20,10 @@ import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.widget.Toolbar
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentContainerView
 import com.ftrono.DJames.R
 import com.ftrono.DJames.service.FloatingViewService
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -39,6 +42,7 @@ class MainActivity : AppCompatActivity() {
     private var loginButton: MenuItem? = null    //eventReceiver (login)
     private var navBar: BottomNavigationView? = null
     private var navRail: NavigationRailView? = null
+    private var mainFrame: FragmentContainerView? = null
     private var curFragment: Fragment? = null
     private var curNavItemId = R.id.nav_home
     private var curInd = 0
@@ -96,6 +100,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         //Check initial orientation:
+        mainFrame = findViewById(R.id.main_frame)
         var config = getResources().getConfiguration()
         setOrientationLayout(config)
 
@@ -166,6 +171,38 @@ class MainActivity : AppCompatActivity() {
             //HORIZONTAL:
             navBar!!.visibility = View.GONE
             navRail!!.visibility = View.VISIBLE
+            //Show NavRail:
+            navRail!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                if (prefs.overlayPosition == "1") {
+                    //Overlay to Right -> NavRail to Left:
+                    rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
+                    leftToRight = ConstraintLayout.LayoutParams.UNSET   //clear
+                    leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
+                    rightToLeft = R.id.main_frame
+                } else {
+                    //Overlay to Left -> NavRail to Right:
+                    leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
+                    rightToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
+                    rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
+                    leftToRight = R.id.main_frame
+                }
+            }
+            //Fix MainFrame:
+            mainFrame!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                if (prefs.overlayPosition == "1") {
+                    //Overlay to Right -> NavRail to Left:
+                    leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
+                    rightToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
+                    leftToRight = R.id.navrail
+                    rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
+                } else {
+                    //Overlay to Left -> NavRail to Right:
+                    rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
+                    leftToRight = ConstraintLayout.LayoutParams.UNSET   //clear
+                    rightToLeft = R.id.navrail
+                    leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
+                }
+            }
             var item = navRail!!.menu.findItem(curNavItemId)
             item.isChecked = true
         } else {

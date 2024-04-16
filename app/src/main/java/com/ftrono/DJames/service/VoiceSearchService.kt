@@ -533,8 +533,14 @@ class VoiceSearchService : Service() {
                         stopSelf()
                     } else {
                         //START MESSAGE RECORDING:
-                        messageModeOn = true
-                        vqThreadMessRec.start()
+                        if (voiceSearchOn) {
+                            messageModeOn = true
+                            vqThreadMessRec.start()
+                        } else {
+                            //Play FAIL tone:
+                            toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                            stopSelf()
+                        }
                     }
 
                 } else if (intentName == "LikeRequest") {

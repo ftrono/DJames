@@ -314,6 +314,7 @@ class FloatingViewService : Service() {
                 sendBroadcast(intent)
             }
             overlay_active = false
+            voiceSearchOn = false
             //Stop Voice Search service:
             if (isMyServiceRunning(VoiceSearchService::class.java)) {
                 stopService(Intent(applicationContext, VoiceSearchService::class.java))
@@ -370,6 +371,7 @@ class FloatingViewService : Service() {
         var processName = Application.getProcessName();
         Log.d(TAG, "Current process: " + processName)
         if (mFloatingView != null) mWindowManager!!.removeView(mFloatingView)
+        voiceSearchOn = false
         //Stop Voice Search service:
         if (isMyServiceRunning(VoiceSearchService::class.java)) {
             stopService(Intent(applicationContext, VoiceSearchService::class.java))

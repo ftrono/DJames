@@ -12,6 +12,8 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
+**Version 1.08 (2024-04-16)** - Add messaging support (SMS).
+
 **Version 1.07 (2024-04-08)** - Add Guide tab.
 
 **Version 1.06 (2024-04-07)** - Add early stop for voice recording, usability improvements.

@@ -40,10 +40,14 @@ class HistoryAdapter(
         var icon = ""
         var context_error = false
         var intentName = logItem.get("nlp").asJsonObject.get("intent_response").asString
-        //result check:
-        if (intentName == "CallRequest") {
-            //Phone calls:
-            icon = "📞"
+        //icon:
+        if (intentName == "CallRequest" || intentName == "MessageRequest") {
+            if (intentName == "CallRequest") {
+                icon = "📞"
+            } else {
+                icon = "💬"
+            }
+            //result check:
             try {
                 if (logItem.get("voc_score").asInt > midThreshold) {
                     holder.datetime.text = "$icon  ${context.getString(R.string.result_good)}  $datetime"
@@ -96,10 +100,10 @@ class HistoryAdapter(
         } catch (e: Exception) {
             try {
                 //CONTACT CALL:
-                var called = logItem.get("contact_extractor").asJsonObject.get("contact_confirmed").asString.replaceFirstChar { it.uppercase() }
-                if (called != "") {
-                    holder.match_name_intro.text = "CALLED: "
-                    holder.match_name.text = called
+                var contacted = logItem.get("contact_extractor").asJsonObject.get("contact_confirmed").asString.replaceFirstChar { it.uppercase() }
+                if (contacted != "") {
+                    holder.match_name_intro.text = "CONTACTED: "
+                    holder.match_name.text = contacted
                 } else {
                     holder.match_name_intro.text = "TYPE: "
                     holder.match_name.text = "CallRequest"

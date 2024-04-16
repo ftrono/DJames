@@ -15,7 +15,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "1.07"
+val appVersion = "1.08"
 
 //Preferences:
 val deltaSimilarity = 30
@@ -37,6 +37,7 @@ var main_initialized: Boolean = false
 var vol_initialized: Boolean = false
 var voiceSearchOn: Boolean = false
 var recordingMode: Boolean = false
+var messageModeOn: Boolean = false
 var callMode: Boolean = false
 var overlay_active: Boolean = false
 var loggedIn: Boolean = false

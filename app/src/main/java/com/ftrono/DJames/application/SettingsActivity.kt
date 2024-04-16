@@ -43,9 +43,11 @@ class SettingsActivity : AppCompatActivity() {
     private var divider: View? = null
     private var header_preferences: TextView? = null
     private var text_rec_timeout: TextView? = null
+    private var text_mess_timeout: TextView? = null
     private var text_clock_timeout: TextView? = null
     //New values:
     private var newRecTimeout: String = ""
+    private var newMessTimeout: String = ""
     private var newClockTimeout: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -116,6 +118,8 @@ class SettingsActivity : AppCompatActivity() {
             logout()
         }
 
+
+        //SECTION: OVERLAY:
         //Auto Start-up:
         var checkbox_startup = findViewById<CheckBox>(R.id.checkbox_startup)
         checkbox_startup!!.setChecked(prefs.autoStartup)
@@ -148,6 +152,24 @@ class SettingsActivity : AppCompatActivity() {
             override fun onNothingSelected(arg0: AdapterView<*>?) {}
         })
 
+
+        //SECTION: OVERLAY:
+        //Messages Timeout:
+        text_mess_timeout = findViewById<TextView>(R.id.val_mess_timeout)
+        text_mess_timeout!!.text = prefs.messageTimeout
+
+        //Messages default language:
+        var spinner_mess_language = findViewById<Spinner>(R.id.spinner_mess_language)
+        spinner_mess_language!!.setSelection(prefs.messageLanguage.toInt())
+        spinner_mess_language.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(adapter: AdapterView<*>?, view: View, pos: Int, id: Long) {
+                prefs.messageLanguage = pos.toString()
+            }
+            override fun onNothingSelected(arg0: AdapterView<*>?) {}
+        })
+
+
+        //SECTION: CLOCK:
         //Auto Clock:
         var checkbox_auto_clock = findViewById<CheckBox>(R.id.checkbox_auto_clock)
         checkbox_auto_clock!!.setChecked(prefs.autoClock)
@@ -189,6 +211,8 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
+
+        //SECTION: ADVANCED:
         //Volume Up:
         var checkbox_volume_up = findViewById<CheckBox>(R.id.checkbox_volume_receiver)
         checkbox_volume_up!!.setChecked(prefs.volumeUpEnabled)
@@ -237,9 +261,10 @@ class SettingsActivity : AppCompatActivity() {
         saveButton.setOnClickListener(View.OnClickListener {
             //Get new values:
             newRecTimeout = text_rec_timeout!!.text.toString()
+            newMessTimeout = text_mess_timeout!!.text.toString()
             newClockTimeout = text_clock_timeout!!.text.toString()
             //Save all:
-            saveAll(newRecTimeout, newClockTimeout)
+            saveAll(newRecTimeout, newMessTimeout, newClockTimeout)
             Toast.makeText(applicationContext, "Settings saved!", Toast.LENGTH_SHORT).show()
             finish()
         })
@@ -259,15 +284,16 @@ class SettingsActivity : AppCompatActivity() {
     override fun onBackPressed() {
         //Get new values:
         newRecTimeout = text_rec_timeout!!.text.toString()
+        newMessTimeout = text_mess_timeout!!.text.toString()
         newClockTimeout = text_clock_timeout!!.text.toString()
 
         //If changes made: show alert dialog:
-        if (prefs.recTimeout != newRecTimeout || prefs.clockTimeout != newClockTimeout) {
+        if (prefs.recTimeout != newRecTimeout || prefs.messageTimeout != newMessTimeout || prefs.clockTimeout != newClockTimeout) {
             val alertDialog = MaterialAlertDialogBuilder(this)
             //Save all:
             alertDialog.setPositiveButton("Yes", object : OnClickListener {
                 override fun onClick(dialog: DialogInterface?, which: Int) {
-                    saveAll(newRecTimeout, newClockTimeout)
+                    saveAll(newRecTimeout, newMessTimeout, newClockTimeout)
                     Toast.makeText(applicationContext, "Settings saved!", Toast.LENGTH_SHORT).show()
                     finish()
                     val intent1 = Intent(applicationContext, MainActivity::class.java)
@@ -336,11 +362,16 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveAll(newRecTimeout: String, newClockTimeout: String) {
+    private fun saveAll(newRecTimeout: String, newMessTimeout: String, newClockTimeout: String) {
         //RecTimeout:
         if (newRecTimeout.isNotEmpty()) {
             //validate & overwrite:
             prefs.recTimeout = validateTimeout(newVal = newRecTimeout, origVal = prefs.recTimeout, min_val = 5, max_val = 15)
+        }
+        //MessageTimeout:
+        if (newMessTimeout.isNotEmpty()) {
+            //validate & overwrite:
+            prefs.messageTimeout = validateTimeout(newVal = newMessTimeout, origVal = prefs.messageTimeout, min_val = 10, max_val = 60)
         }
         //ClockTimeout:
         if (newClockTimeout.isNotEmpty()) {

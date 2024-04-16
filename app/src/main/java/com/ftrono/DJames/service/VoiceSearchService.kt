@@ -17,17 +17,18 @@ import android.net.Uri
 import android.os.Environment
 import android.os.IBinder
 import android.provider.Settings
+import android.telephony.SmsManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.api.NLPInterpreter
-import com.ftrono.DJames.application.*
 import com.ftrono.DJames.api.NLPQuery
+import com.ftrono.DJames.api.SpotifyInterpreter
+import com.ftrono.DJames.application.*
 import com.ftrono.DJames.application.FakeLockScreen
 import com.ftrono.DJames.recorder.AndroidAudioRecorder
-import com.ftrono.DJames.api.SpotifyInterpreter
 import com.google.gson.JsonObject
-import java.net.URLEncoder
 import java.io.File
+import java.net.URLEncoder
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -37,12 +38,13 @@ class VoiceSearchService : Service() {
     private val TAG = VoiceSearchService::class.java.simpleName
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
     private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-    private var vqThreadRec: Thread? = null
-    private var vqThreadInt: Thread? = null
     private var vqThreadExt: Thread? = null
-    private var stoppable: Boolean = false
     private var recFile: File? = null
     private var logFile: File? = null
+    private var phone = ""
+    private var intStarted = false
+    private var messIntStarted = false
+    private var messageModeOn = false
 
     //Recorder:
     private val recorder by lazy {
@@ -50,7 +52,6 @@ class VoiceSearchService : Service() {
     }
 
     //API callers:
-    private var nlpQuery: NLPQuery? = null
     private var spotifyInterpreter: SpotifyInterpreter? = null
 
     //Audio manager:
@@ -97,6 +98,45 @@ class VoiceSearchService : Service() {
         }
     }
 
+    //THREADS:
+    private val vqThreadRec = Thread {
+        try {
+            voiceQueryRecorder()
+        } catch (e: InterruptedException) {
+            Log.d(TAG, "Interrupted: exception.", e)
+            stopSelf()
+        }
+    }
+
+    private val vqThreadMessRec = Thread {
+        try {
+            voiceQueryRecorder(messageMode = true)
+        } catch (e: InterruptedException) {
+            Log.d(TAG, "Interrupted: exception.", e)
+            stopSelf()
+        }
+    }
+
+    private val vqThreadInt = Thread {
+        try {
+            synchronized(this) {
+                voiceQueryInterpreter()
+            }
+        } catch (e: InterruptedException) {
+            Log.d(TAG, "Interrupted: exception.", e)
+        }
+    }
+
+    private val vqThreadMessInt = Thread {
+        try {
+            synchronized(this) {
+                voiceQueryInterpreter(messageMode = true)
+            }
+        } catch (e: InterruptedException) {
+            Log.d(TAG, "Interrupted: exception.", e)
+        }
+    }
+
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -131,7 +171,7 @@ class VoiceSearchService : Service() {
 
                 AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {
                     //START VOICE SEARCH RECORDER:
-                    voiceQueryRecorder()
+                    vqThreadRec.start()
                 }
 
                 AudioManager.AUDIOFOCUS_REQUEST_DELAYED -> {
@@ -139,8 +179,7 @@ class VoiceSearchService : Service() {
                 }
             }
 
-            //API callers:
-            nlpQuery = NLPQuery(applicationContext)
+            //API caller:
             spotifyInterpreter = SpotifyInterpreter(applicationContext)
 
         } catch (e: Exception) {
@@ -157,15 +196,17 @@ class VoiceSearchService : Service() {
             searchFail = false
             sourceIsVolume = false
             //Threads check:
-            if (vqThreadRec != null) {
-                if (vqThreadRec!!.isAlive()) {
-                    vqThreadRec!!.interrupt()
-                }
+            if (vqThreadRec.isAlive()) {
+                vqThreadRec.interrupt()
             }
-            if (vqThreadInt != null) {
-                if (vqThreadInt!!.isAlive()) {
-                    vqThreadInt!!.interrupt()
-                }
+            if (vqThreadInt.isAlive()) {
+                vqThreadInt.interrupt()
+            }
+            if (vqThreadMessRec.isAlive()) {
+                vqThreadMessRec.interrupt()
+            }
+            if (vqThreadMessInt.isAlive()) {
+                vqThreadMessInt.interrupt()
             }
             //Stop recorder:
             if (recordingMode) {
@@ -228,15 +269,17 @@ class VoiceSearchService : Service() {
             toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
         }
         //Threads check:
-        if (vqThreadRec != null) {
-            if (vqThreadRec!!.isAlive()) {
-                vqThreadRec!!.interrupt()
-            }
+        if (vqThreadRec.isAlive()) {
+            vqThreadRec.interrupt()
         }
-        if (vqThreadInt != null) {
-            if (vqThreadInt!!.isAlive()) {
-                vqThreadInt!!.interrupt()
-            }
+        if (vqThreadInt.isAlive()) {
+            vqThreadInt.interrupt()
+        }
+        if (vqThreadMessRec.isAlive()) {
+            vqThreadMessRec.interrupt()
+        }
+        if (vqThreadMessInt.isAlive()) {
+            vqThreadMessInt.interrupt()
         }
         try {
             //Abandon audio focus:
@@ -264,290 +307,326 @@ class VoiceSearchService : Service() {
     }
 
 
-    //VOICE QUERY THREADS:
-    fun voiceQueryRecorder() {
-        //prepare thread:
-        vqThreadRec = Thread {
-            try {
+    //VOICE QUERY FUNCTIONS:
+    fun voiceQueryRecorder(messageMode: Boolean = false) {
 
-                    //1) RECORDING:
-                    Log.d(TAG, "RECORDING STARTED.")
-                    //Set overlay BUSY color:
-                    Intent().also { intent ->
-                        intent.setAction(ACTION_OVERLAY_BUSY)
-                        sendBroadcast(intent)
-                    }
+        //1) RECORDING:
+        Log.d(TAG, "RECORDING STARTED.")
+        //Set overlay BUSY color:
+        Intent().also { intent ->
+            intent.setAction(ACTION_OVERLAY_BUSY)
+            sendBroadcast(intent)
+        }
 
-                    //Play START tone:
-                    toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
+        if (messageMode) {
+            //Play MESSAGE REC tone:
+            toneGen.startTone(ToneGenerator.TONE_CDMA_ONE_MIN_BEEP)   //MESSAGE REC
+        } else {
+            //Play START tone:
+            toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
+        }
 
-                    //Start recording (default: cacheDir, alternative: saveDir):
-                    recordingMode = true
-                    recorder.start(saveDir)
+        //Start recording (default: cacheDir, alternative: saveDir):
+        recordingMode = true
+        recorder.start(saveDir)
 
-                    //Start personal Receiver:
-                    Thread.sleep(1000)
-                    val actFilter = IntentFilter()
-                    actFilter.addAction(ACTION_REC_EARLY_STOP)
+        //Start personal Receiver:
+        Thread.sleep(1000)
+        val actFilter = IntentFilter()
+        actFilter.addAction(ACTION_REC_EARLY_STOP)
 
-                    //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
-                    registerReceiver(VSReceiver, actFilter, RECEIVER_EXPORTED)
-                    Log.d(TAG, "VSReceiver started.")
+        //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
+        registerReceiver(VSReceiver, actFilter, RECEIVER_EXPORTED)
+        Log.d(TAG, "VSReceiver started.")
 
-                    //Remaining rec countdown:
-                    Thread.sleep((prefs.recTimeout.toLong() -1) * 1000)   //default: 5000
+        //Remaining rec countdown:
+        if (messageMode) {
+            Thread.sleep((prefs.messageTimeout.toLong() -1) * 1000)   //default: 30000
+        } else {
+            Thread.sleep((prefs.recTimeout.toLong() -1) * 1000)   //default: 5000
+        }
 
-                    //START INTERPRETER:
-                    if (!stoppable) {
-                        Intent().also { intent ->
-                            intent.setAction(ACTION_REC_EARLY_STOP)
-                            sendBroadcast(intent)
-                        }
-                    }
-
-            } catch (e: InterruptedException) {
-                Log.d(TAG, "Interrupted: exception.", e)
-                stopSelf()
+        //START INTERPRETER:
+        if (messageMode && !messIntStarted) {
+            Intent().also { intent ->
+                intent.setAction(ACTION_REC_EARLY_STOP)
+                sendBroadcast(intent)
+            }
+        } else if (!messageMode && !intStarted) {
+            Intent().also { intent ->
+                intent.setAction(ACTION_REC_EARLY_STOP)
+                sendBroadcast(intent)
             }
         }
-        //start thread:
-        vqThreadRec!!.start()
     }
-    
-    
-    fun voiceQueryInterpreter() {
-        //prepare thread:
-        vqThreadInt = Thread {
-            try {
-                synchronized(this) {
-                    //INTERPRETER:
-                    //Stop recording:
-                    recordingMode = false
-                    recFile = recorder.stop()
-                    Log.d(TAG, "RECORDING STOPPED.")
 
-                    //Lower volume if maximum (to enable Receiver):
-                    if (sourceIsVolume && audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {
-                        audioManager!!.setStreamVolume(AudioManager.STREAM_MUSIC, streamMaxVolume-1, AudioManager.FLAG_PLAY_SOUND)
-                        Log.d(TAG, "Countdown stopped. Volume lowered.")
+
+    fun voiceQueryInterpreter(messageMode: Boolean = false) {
+
+        //INTERPRETER:
+        //Stop recording:
+        recordingMode = false
+        recFile = recorder.stop()
+        Log.d(TAG, "RECORDING STOPPED.")
+
+        //Lower volume if maximum (to enable Receiver):
+        if (sourceIsVolume && audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {
+            audioManager!!.setStreamVolume(AudioManager.STREAM_MUSIC, streamMaxVolume-1, AudioManager.FLAG_PLAY_SOUND)
+            Log.d(TAG, "Countdown stopped. Volume lowered.")
+        }
+
+        //2) RECORDING RESULT:
+        if (searchFail) {
+            //A) RECORDING FAIL -> END:
+            //Play FAIL tone:
+            toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+            stopSelf()
+        } else {
+            //B) RECORDING SUCCESS:
+            //Play STOP tone:
+            toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
+
+            //Set overlay PROCESSING color & icon:
+            Intent().also { intent ->
+                intent.setAction(ACTION_OVERLAY_PROCESSING)
+                sendBroadcast(intent)
+            }
+
+            //B.1) NLP QUERY:
+            //Init last_log:
+            val now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            last_log = JsonObject()
+            last_log!!.addProperty("datetime", now)
+            last_log!!.addProperty("app_version", appVersion)
+
+            //Query NLP:
+            val nlpQuery = NLPQuery(applicationContext)
+            var resultsNLP = nlpQuery.queryNLP(recFile!!, messageMode=messageMode)
+
+            //Check NLP results:
+            nlp_queryText = ""
+            var nlp_fail = false
+            if (!resultsNLP.has("query_text")) {
+                //Empty response:
+                nlp_fail = true
+            } else {
+                //Get query_text:
+                nlp_queryText = resultsNLP.get("query_text").asString
+                //Get DF auto-response:
+                var intent_response = ""
+                try {
+                    intent_response = resultsNLP.get("intent_response").asString
+                } catch (e: Exception) {
+                    Log.d(TAG, "No intent_response in NLP query result.")
+                }
+                //Fallback cases:
+                if (nlp_queryText == "") {
+                    nlp_fail = true
+                } else if (!messageMode && intent_response == "") {
+                    nlp_fail = true
+                } else if (!messageMode && intent_response.lowercase() == "fallback") {
+                    nlp_fail = true
+                } else if (messageMode && intent_response.lowercase() == "cancel") {
+                    nlp_fail = true
+                }
+            }
+
+            if (!messageMode) {
+                //TOAST -> Send broadcast:
+                Intent().also { intent ->
+                    intent.setAction(ACTION_NLP_RESULT)
+                    sendBroadcast(intent)
+                }
+            }
+
+            if (nlp_fail) {
+                //NLP FAIL:
+                //Play FAIL tone:
+                toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                stopSelf()
+
+            } else if (messageMode) {
+                // MESSAGE SENDER:
+                try {
+                    //Send SMS:
+                    val smsManager: SmsManager = SmsManager.getDefault()
+                    smsManager.sendTextMessage(phone, null, nlp_queryText, null, null)
+
+                    //SUCCESS -> Play ACKNOWLEDGE tone:
+                    toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+
+                } catch (e: Exception) {
+                    //Play FAIL tone:
+                    toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                }
+                stopSelf()
+
+            } else {
+                //B.2) ANSWER TO REQUEST:
+                logFile = File(logDir, "$now.json")
+                val intentName = resultsNLP.get("intent").asString
+
+                if (intentName == "CallRequest") {
+                    //A) PHONE CALL:
+                    val nlpInterpreter = NLPInterpreter(applicationContext)
+                    phone = nlpInterpreter.extractContact(nlp_queryText)
+                    //Close log:
+                    logFile!!.writeText(last_log.toString())
+                    //Send broadcast:
+                    Intent().also { intent ->
+                        intent.setAction(ACTION_LOG_REFRESH)
+                        sendBroadcast(intent)
                     }
-
-                    //2) RECORDING RESULT:
-                    if (searchFail) {
-                        //A) RECORDING FAIL -> END:
+                    if (phone == "") {
                         //Play FAIL tone:
                         toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                         stopSelf()
                     } else {
-                        //B) RECORDING SUCCESS:
-                        //Play STOP tone:
-                        toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
-
-                        //Set overlay PROCESSING color & icon:
+                        //Play ACKNOWLEDGE tone:
+                        toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                        //CALL:
                         Intent().also { intent ->
-                            intent.setAction(ACTION_OVERLAY_PROCESSING)
+                            intent.setAction(ACTION_MAKE_CALL)
+                            intent.putExtra("toCall", "tel:${phone}")
+                            sendBroadcast(intent)
+                        }
+                        stopSelf()
+                    }
+
+                } else if (intentName == "MessageRequest") {
+                    //B) MESSAGE:
+                    val nlpInterpreter = NLPInterpreter(applicationContext)
+                    phone = nlpInterpreter.extractContact(nlp_queryText)
+                    //Close log:
+                    logFile!!.writeText(last_log.toString())
+                    //Send broadcast:
+                    Intent().also { intent ->
+                        intent.setAction(ACTION_LOG_REFRESH)
+                        sendBroadcast(intent)
+                    }
+                    if (phone == "") {
+                        //Play FAIL tone:
+                        toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                        stopSelf()
+                    } else {
+                        //START MESSAGE RECORDING:
+                        messageModeOn = true
+                        vqThreadMessRec.start()
+                    }
+
+                } else if (intentName == "LikeRequest") {
+                    //C) LIKE REQUEST:
+                    /////////////////////////////////////////
+                    //TEMP:
+                    //Play ACKNOWLEDGE tone:
+                    toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                    //Close log:
+                    logFile!!.writeText(last_log.toString())
+                    //Send broadcast:
+                    Intent().also { intent ->
+                        intent.setAction(ACTION_LOG_REFRESH)
+                        sendBroadcast(intent)
+                    }
+                    stopSelf()
+
+                } else {
+                    //D) PLAY REQUEST:
+                    var queryResult: JsonObject =
+                        spotifyInterpreter!!.dispatchCall(resultsNLP)
+
+                    //A) EMPTY QUERY RESULT:
+                    if (!queryResult.has("uri")) {
+                        //Play FAIL tone:
+                        toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                        //Close log:
+                        logFile!!.writeText(last_log.toString())
+                        //Send broadcast:
+                        Intent().also { intent ->
+                            intent.setAction(ACTION_LOG_REFRESH)
+                            sendBroadcast(intent)
+                        }
+                        stopSelf()
+                    } else {
+                        //B) SPOTIFY RESULT RECEIVED!
+                        //Abandon audio focus:
+                        audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
+
+                        //Wait 1 sec:
+                        Thread.sleep(1000)
+
+                        //Overwrite player info:
+                        currently_playing = queryResult
+                        last_log!!.add("spotify_play", currently_playing)
+                        //Close log:
+                        logFile!!.writeText(last_log.toString())
+
+                        //Send broadcast:
+                        Intent().also { intent ->
+                            intent.setAction(ACTION_NEW_SONG)
                             sendBroadcast(intent)
                         }
 
-                        //B.1) NLP QUERY:
-                        //Init last_log:
-                        val now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                        last_log = JsonObject()
-                        last_log!!.addProperty("datetime", now)
-                        last_log!!.addProperty("app_version", appVersion)
-
-                        //Query NLP:
-                        var resultsNLP = nlpQuery!!.queryNLP(recFile!!)
-
-                        //Check NLP results:
-                        nlp_queryText = ""
-                        var nlp_fail = false
-                        if (!resultsNLP.has("query_text")) {
-                            //Empty response:
-                            nlp_fail = true
-                        } else {
-                            //Get query_text:
-                            nlp_queryText = resultsNLP.get("query_text").asString
-                            //Fallback cases:
-                            if (!resultsNLP.has("intent_response")) {
-                                nlp_fail = true
-                            } else if (resultsNLP.get("intent_response").asString == "fallback") {
-                                nlp_fail = true
-                            } else if (nlp_queryText == "") {
-                                //Empty string:
-                                nlp_fail = true
-                            }
-                        }
-
-                        //TOAST -> Send broadcast:
+                        //Send broadcast:
                         Intent().also { intent ->
-                            intent.setAction(ACTION_NLP_RESULT)
+                            intent.setAction(ACTION_LOG_REFRESH)
                             sendBroadcast(intent)
                         }
-                        if (nlp_fail) {
-                            //NLP FAIL:
-                            //Play FAIL tone:
-                            toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-                            stopSelf()
 
-                        } else {
-                            //B.2) ANSWER TO REQUEST:
-                            logFile = File(logDir, "$now.json")
-                            val intentName = resultsNLP.get("intent").asString
+                        //C) PLAY:
+                        //TRIAL 1:
+                        //Try requested context:
+                        var sessionState =
+                            spotifyInterpreter!!.playInternally(queryResult, useAlbum=false)
+                        Log.d(TAG, "(FIRST) SESSION STATE: ${sessionState}")
 
-                            if (intentName == "CallRequest") {
-                                //A) PHONE CALL:
-                                val nlpInterpreter = NLPInterpreter(applicationContext)
-                                val phone = nlpInterpreter.extractContact(nlp_queryText)
-                                //Close log:
-                                logFile!!.writeText(last_log.toString())
-                                //Send broadcast:
-                                Intent().also { intent ->
-                                    intent.setAction(ACTION_LOG_REFRESH)
-                                    sendBroadcast(intent)
-                                }
-                                if (phone == "") {
-                                    //Play FAIL tone:
-                                    toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-                                    stopSelf()
-                                } else {
-                                    //Play ACKNOWLEDGE tone:
-                                    toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
-                                    //CALL:
-                                    Intent().also { intent ->
-                                        intent.setAction(ACTION_MAKE_CALL)
-                                        intent.putExtra("toCall", "tel:${phone}")
-                                        sendBroadcast(intent)
-                                    }
-                                    stopSelf()
-                                }
-
-                            } else if (intentName == "LikeRequest") {
-                                //B) LIKE REQUEST:
-                                /////////////////////////////////////////
-                                //TEMP:
-                                //Play ACKNOWLEDGE tone:
-                                toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
-                                //Close log:
-                                logFile!!.writeText(last_log.toString())
-                                //Send broadcast:
-                                Intent().also { intent ->
-                                    intent.setAction(ACTION_LOG_REFRESH)
-                                    sendBroadcast(intent)
-                                }
+                        if (sessionState == 0) {
+                            if (queryResult.get("context_type").asString == "album") {
+                                //If context was "album" -> terminate:
                                 stopSelf()
 
                             } else {
-                                //C) PLAY REQUEST:
-                                var queryResult: JsonObject =
-                                    spotifyInterpreter!!.dispatchCall(resultsNLP)
+                                //CUSTOM CONTEXT:
+                                //Wait 1 sec:
+                                Thread.sleep(1000)
+                                //CHECK 204:
+                                var playerState = spotifyInterpreter!!.getPlaybackState()
+                                Log.d(TAG, "PLAYBACK STATE: $playerState")
 
-                                //A) EMPTY QUERY RESULT:
-                                if (!queryResult.has("uri")) {
-                                    //Play FAIL tone:
-                                    toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-                                    //Close log:
-                                    logFile!!.writeText(last_log.toString())
-                                    //Send broadcast:
-                                    Intent().also { intent ->
-                                        intent.setAction(ACTION_LOG_REFRESH)
-                                        sendBroadcast(intent)
-                                    }
+                                if (playerState == 200) {
+                                    //200: OK -> Terminate:
                                     stopSelf()
+
                                 } else {
-                                    //B) SPOTIFY RESULT RECEIVED!
-                                    //Abandon audio focus:
-                                    audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
+                                    //204: WRONG CONTEXT or 400-on:
+                                    //TRIAL 2:
+                                    //Use album as context:
+                                    sessionState = spotifyInterpreter!!.playInternally(
+                                        queryResult,
+                                        useAlbum = true
+                                    )
+                                    Log.d(TAG, "(SECOND) SESSION STATE: ${sessionState}")
 
-                                    //Wait 1 sec:
-                                    Thread.sleep(1000)
-
-                                    //Overwrite player info:
-                                    currently_playing = queryResult
-                                    last_log!!.add("spotify_play", currently_playing)
-                                    //Close log:
+                                    //Update log:
+                                    last_log!!.addProperty("context_error", true)
                                     logFile!!.writeText(last_log.toString())
-
-                                    //Send broadcast:
-                                    Intent().also { intent ->
-                                        intent.setAction(ACTION_NEW_SONG)
-                                        sendBroadcast(intent)
-                                    }
 
                                     //Send broadcast:
                                     Intent().also { intent ->
                                         intent.setAction(ACTION_LOG_REFRESH)
                                         sendBroadcast(intent)
                                     }
-
-                                    //C) PLAY:
-                                    //TRIAL 1:
-                                    //Try requested context:
-                                    var sessionState =
-                                        spotifyInterpreter!!.playInternally(queryResult, useAlbum=false)
-                                    Log.d(TAG, "(FIRST) SESSION STATE: ${sessionState}")
 
                                     if (sessionState == 0) {
-                                        if (queryResult.get("context_type").asString == "album") {
-                                            //If context was "album" -> terminate:
-                                            stopSelf()
-
-                                        } else {
-                                            //CUSTOM CONTEXT:
-                                            //Wait 1 sec:
-                                            Thread.sleep(1000)
-                                            //CHECK 204:
-                                            var playerState = spotifyInterpreter!!.getPlaybackState()
-                                            Log.d(TAG, "PLAYBACK STATE: $playerState")
-
-                                            if (playerState == 200) {
-                                                //200: OK -> Terminate:
-                                                stopSelf()
-
-                                            } else {
-                                                //204: WRONG CONTEXT or 400-on:
-                                                //TRIAL 2:
-                                                //Use album as context:
-                                                sessionState = spotifyInterpreter!!.playInternally(
-                                                    queryResult,
-                                                    useAlbum = true
-                                                )
-                                                Log.d(TAG, "(SECOND) SESSION STATE: ${sessionState}")
-
-                                                //Update log:
-                                                last_log!!.addProperty("context_error", true)
-                                                logFile!!.writeText(last_log.toString())
-
-                                                //Send broadcast:
-                                                Intent().also { intent ->
-                                                    intent.setAction(ACTION_LOG_REFRESH)
-                                                    sendBroadcast(intent)
-                                                }
-
-                                                if (sessionState == 0) {
-                                                    //OK -> Terminate:
-                                                    stopSelf()
-
-                                                } else {
-                                                    //400-on: OPEN EXTERNALLY WITH CONTEXT = ALBUM:
-                                                    //Open externally:
-                                                    var spotifyUrl =
-                                                        queryResult.get("spotify_URL").asString
-                                                    var contextUri =
-                                                        queryResult.get("album_uri").asString
-                                                    val encodedContextUri: String =
-                                                        URLEncoder.encode(contextUri, "UTF-8")
-                                                    openExternally("$spotifyUrl?context=$encodedContextUri")
-                                                    //openExternally(spotifyUrl)
-                                                }
-                                            }
-                                        }
+                                        //OK -> Terminate:
+                                        stopSelf()
 
                                     } else {
                                         //400-on: OPEN EXTERNALLY WITH CONTEXT = ALBUM:
                                         //Open externally:
-                                        var spotifyUrl = queryResult.get("spotify_URL").asString
-                                        var contextUri = queryResult.get("album_uri").asString
+                                        var spotifyUrl =
+                                            queryResult.get("spotify_URL").asString
+                                        var contextUri =
+                                            queryResult.get("album_uri").asString
                                         val encodedContextUri: String =
                                             URLEncoder.encode(contextUri, "UTF-8")
                                         openExternally("$spotifyUrl?context=$encodedContextUri")
@@ -555,16 +634,21 @@ class VoiceSearchService : Service() {
                                     }
                                 }
                             }
+
+                        } else {
+                            //400-on: OPEN EXTERNALLY WITH CONTEXT = ALBUM:
+                            //Open externally:
+                            var spotifyUrl = queryResult.get("spotify_URL").asString
+                            var contextUri = queryResult.get("album_uri").asString
+                            val encodedContextUri: String =
+                                URLEncoder.encode(contextUri, "UTF-8")
+                            openExternally("$spotifyUrl?context=$encodedContextUri")
+                            //openExternally(spotifyUrl)
                         }
                     }
                 }
-            } catch (e: InterruptedException) {
-                Log.d(TAG, "Interrupted: exception.", e)
-                stopSelf()
             }
         }
-        //start thread:
-        vqThreadInt!!.start()
     }
 
 
@@ -614,15 +698,18 @@ class VoiceSearchService : Service() {
         override fun onReceive(context: Context?, intent: Intent?) {
 
             //Early stop Recording:
-            if (intent!!.action == ACTION_REC_EARLY_STOP && recordingMode && !stoppable) {
+            if (intent!!.action == ACTION_REC_EARLY_STOP && recordingMode) {
                 Log.d(TAG, "VSRECEIVER: EARLY STOP REC -> ACTION_REC_EARLY_STOP.")
                 try {
                     //Start Voice Query Interpreter:
-                    voiceQueryInterpreter()
-                    stoppable = true
+                    if (messageModeOn && !messIntStarted) {
+                        vqThreadMessInt.start()
+                        messIntStarted = true
+                    } else if (!messageModeOn && !intStarted) {
+                        vqThreadInt.start()
+                        intStarted = true
+                    }
                 } catch (e: Exception) {
-                    //Play FAIL tone:
-                    //toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                     Log.d(TAG, "VSRECEIVER: voiceQueryInterpreter not started. ", e)
                 }
             }

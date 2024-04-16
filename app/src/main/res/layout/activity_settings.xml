@@ -86,14 +86,14 @@
             />
 
         <!-- SETTINGS-->
-        <!-- PREFERENCES-->
+        <!-- OVERLAY SERVICE-->
         <TextView
             android:id="@+id/header_preferences"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
             android:layout_marginLeft="20dp"
-            android:text= "Preferences"
+            android:text= "🗣️  Overlay Service"
             android:textSize="20dp"
             android:textStyle="bold"
             android:textColor="@color/light_grey"
@@ -105,9 +105,9 @@
             android:id="@+id/checkbox_startup"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="11dp"
+            android:layout_marginLeft="50dp"
             android:layout_marginRight="15dp"
-            android:text= "Start Service automatically when app is opened"
+            android:text= "Start Overlay when app is opened"
             android:textSize="14dp"
             android:textStyle="italic"
             android:textColor="@color/light_grey"
@@ -121,9 +121,9 @@
             android:id="@+id/header_rec_timeout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:layout_marginLeft="20dp"
-            android:text= "Voice recording timeout"
+            android:layout_marginTop="12dp"
+            android:layout_marginLeft="58dp"
+            android:text= "Voice query: timeout recording after"
             android:textSize="14dp"
             android:textStyle="italic"
             android:textColor="@color/light_grey"
@@ -134,7 +134,7 @@
             android:id="@+id/val_rec_timeout"
             android:layout_width="60dp"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="15dp"
+            android:layout_marginLeft="58dp"
             android:inputType="number"
             android:text="5"
             android:textSize="16dp"
@@ -165,8 +165,8 @@
             android:id="@+id/header_overlay_position"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="48dp"
-            android:layout_marginLeft="20dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginLeft="58dp"
             android:text= "Overlay button position"
             android:textSize="14dp"
             android:textStyle="italic"
@@ -181,20 +181,121 @@
             android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:layout_marginLeft="6dp"
+            android:layout_marginLeft="46dp"
             android:textSize="14dp"
             android:backgroundTint="@color/light_grey"
             android:entries="@array/overlayPos"
             app:layout_constraintLeft_toRightOf="@+id/divider"
             app:layout_constraintTop_toBottomOf="@+id/header_overlay_position"/>
 
+
+        <!-- MESSAGING -->
+        <TextView
+            android:id="@+id/header_messaging"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:layout_marginLeft="20dp"
+            android:text= "💬  Messaging"
+            android:textSize="20dp"
+            android:textStyle="bold"
+            android:textColor="@color/light_grey"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintTop_toBottomOf="@+id/spinner_overlay_pos"/>
+
+        <!-- Messaging timeout-->
+        <TextView
+            android:id="@+id/header_mess_timeout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:layout_marginLeft="58dp"
+            android:text= "Messages: timeout recording after"
+            android:textSize="14dp"
+            android:textStyle="italic"
+            android:textColor="@color/light_grey"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintTop_toBottomOf="@+id/header_messaging"/>
+
+        <EditText
+            android:id="@+id/val_mess_timeout"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="58dp"
+            android:inputType="number"
+            android:text="5"
+            android:textSize="16dp"
+            android:textAlignment="center"
+            android:textColor="@color/light_grey"
+            android:backgroundTint="@color/dark_grey"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toLeftOf="@+id/descr_mess_timeout"
+            app:layout_constraintTop_toBottomOf="@+id/header_mess_timeout"/>
+
+        <TextView
+            android:id="@+id/descr_mess_timeout"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="15dp"
+            android:text="seconds (keep between 10 and 60)"
+            android:textSize="14dp"
+            android:textColor="@color/mid_grey"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintLeft_toRightOf="@+id/val_mess_timeout"
+            app:layout_constraintTop_toTopOf="@+id/val_mess_timeout"
+            app:layout_constraintBottom_toBottomOf="@+id/val_mess_timeout"/>
+
+
+        <!-- Messages default language-->
+        <TextView
+            android:id="@+id/header_mess_language"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginLeft="58dp"
+            android:text= "Messages: default language"
+            android:textSize="14dp"
+            android:textStyle="italic"
+            android:textColor="@color/light_grey"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintTop_toBottomOf="@+id/descr_mess_timeout"/>
+
+        <Spinner
+            android:id="@+id/spinner_mess_language"
+            android:paddingEnd="8dp"
+            android:paddingStart="8dp"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="46dp"
+            android:textSize="14dp"
+            android:backgroundTint="@color/light_grey"
+            android:entries="@array/messageLanguage"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintTop_toBottomOf="@+id/header_mess_language"/>
+
+
+        <!-- CLOCK SCREEN -->
+        <TextView
+            android:id="@+id/header_clock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:layout_marginLeft="20dp"
+            android:text= "🕑  Clock Screen"
+            android:textSize="20dp"
+            android:textStyle="bold"
+            android:textColor="@color/light_grey"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintTop_toBottomOf="@+id/spinner_mess_language"/>
+
         <!-- Auto Clock -->
         <CheckBox
             android:id="@+id/checkbox_auto_clock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:layout_marginLeft="11dp"
+            android:layout_marginLeft="50dp"
             android:layout_marginRight="15dp"
             android:text= "Show Clock screen when Service is started"
             android:textSize="14dp"
@@ -203,7 +304,7 @@
             android:checked="true"
             app:theme="@style/CheckBoxStyle"
             app:layout_constraintLeft_toRightOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/spinner_overlay_pos"/>
+            app:layout_constraintTop_toBottomOf="@+id/header_clock"/>
 
 
         <!-- Clock auto timeout-->
@@ -211,8 +312,8 @@
             android:id="@+id/checkbox_clock_redirect"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginLeft="11dp"
+            android:layout_marginTop="-6dp"
+            android:layout_marginLeft="50dp"
             android:layout_marginRight="15dp"
             android:text= "Go back automatically to Clock screen"
             android:textSize="14dp"
@@ -228,7 +329,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="-6dp"
-            android:layout_marginLeft="20dp"
+            android:layout_marginLeft="82dp"
             android:text="(Only when Spotify is launched for the first time)"
             android:textSize="12dp"
             android:textColor="@color/mid_grey"
@@ -240,7 +341,7 @@
             android:id="@+id/descr_clock_after"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
+            android:layout_marginLeft="82dp"
             android:text="After"
             android:textSize="14dp"
             android:textColor="@color/mid_grey"
@@ -284,9 +385,9 @@
             android:id="@+id/header_advanced"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="80dp"
+            android:layout_marginTop="40dp"
             android:layout_marginLeft="20dp"
-            android:text= "Advanced"
+            android:text= "⚠️  Advanced"
             android:textSize="20dp"
             android:textStyle="bold"
             android:textColor="@color/light_grey"
@@ -298,7 +399,7 @@
             android:id="@+id/checkbox_volume_receiver"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="11dp"
+            android:layout_marginLeft="50dp"
             android:layout_marginRight="15dp"
             android:text= "VOLUME-UP key starts recording"
             android:textSize="14dp"
@@ -314,7 +415,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="-6dp"
-            android:layout_marginLeft="20dp"
+            android:layout_marginLeft="82dp"
             android:text="Keep this enabled if you use Bluetooth remotes!"
             android:textSize="12dp"
             android:textColor="@color/mid_grey"
@@ -327,8 +428,8 @@
             android:id="@+id/checkbox_hide_bars"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginLeft="11dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="50dp"
             android:layout_marginRight="15dp"
             android:text= "Hide system status bar in Clock screen"
             android:textSize="14dp"
@@ -344,8 +445,8 @@
             android:id="@+id/header_mic"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginLeft="20dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginLeft="58dp"
             android:text= "Preferred microphone"
             android:textSize="14dp"
             android:textStyle="italic"
@@ -360,7 +461,7 @@
             android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:layout_marginLeft="6dp"
+            android:layout_marginLeft="46dp"
             android:textSize="14dp"
             android:backgroundTint="@color/light_grey"
             android:entries="@array/micType"
@@ -388,7 +489,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
-            android:text= "Version 0.1"
+            android:text= "Version 1.0"
             android:textSize="12dp"
             android:textStyle="bold|italic"
             android:textColor="@color/midfaded_grey"

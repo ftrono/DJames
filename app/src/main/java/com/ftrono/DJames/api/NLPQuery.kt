@@ -61,15 +61,25 @@ class NLPQuery(context: Context) {
     }
 
 
-    fun queryNLP(recFile: File): JsonObject {
+    fun queryNLP(recFile: File, messageMode: Boolean = false): JsonObject {
         var respJson = JsonObject()
         try {
+            var languageCode = "en-US"
+            var punct = false
+            if (messageMode) {
+                punct = true
+                //Prefs: 0 -> Italian, 1 -> English:
+                if (prefs.messageLanguage.toInt() == 0) {
+                    languageCode = "it"
+                }
+            }
             val inputAudioConfig: InputAudioConfig = InputAudioConfig.newBuilder()
                 .setAudioEncoding(AudioEncoding.AUDIO_ENCODING_FLAC)
                 .setSampleRateHertz(recSamplingRate)
-                .setLanguageCode("en-US")
+                .setLanguageCode(languageCode)
                 .setModel("latest_short")
                 .setSingleUtterance(false)
+                .setEnableAutomaticPunctuation(punct)
                 .build()
 
             val queryInput: QueryInput = QueryInput.newBuilder()
@@ -103,7 +113,11 @@ class NLPQuery(context: Context) {
                 if (keySet.size == 0) {
                     Log.d(TAG, "NLP: FALLBACK!")
                 } else {
-                    respJson.addProperty("query_text", queryResult.queryText.lowercase())
+                    var queryText = queryResult.queryText
+                    if (!messageMode) {
+                        queryText = queryText.lowercase()
+                    }
+                    respJson.addProperty("query_text", queryText)
                     respJson.addProperty("intent", queryResult.intent.displayName)
                     try {
                         var artistsList = JsonArray()

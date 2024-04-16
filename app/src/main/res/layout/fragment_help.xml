@@ -243,6 +243,58 @@
                 tools:ignore="TextSizeCheck"/>
 
 
+            <!-- MESSAGES -->
+            <TextView
+                android:id="@+id/guide_header_messages"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="40dp"
+                android:layout_marginLeft="20dp"
+                android:text="💬   Messages"
+                android:textColor="@color/light_grey"
+                android:textSize="20dp"
+                android:textStyle="bold"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintTop_toBottomOf="@+id/guide_call_descr"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="TextSizeCheck"/>
+
+            <TextView
+                android:id="@+id/guide_mess_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginLeft="60dp"
+                android:layout_marginRight="20dp"
+                android:text="&quot;SEND A MESSAGE / SMS TO contact name&quot;"
+                android:textColor="@color/light_grey"
+                android:textSize="16dp"
+                android:textStyle="italic"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintTop_toBottomOf="@+id/guide_header_messages"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="TextSizeCheck"/>
+
+            <TextView
+                android:id="@+id/guide_mess_descr"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="60dp"
+                android:layout_marginRight="20dp"
+                android:text="2-step process.\n- 1) First, ASK to send an SMS a contact of yours. NOTE: the contact must be listed in DJames' Vocabulary, in the Contacts tab!\n- 2) Please WAIT for the second BEEP before dictating the text message via voice!"
+                android:textColor="@color/mid_grey"
+                android:textSize="12dp"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintTop_toBottomOf="@+id/guide_mess_text"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="TextSizeCheck"/>
+
+
             <!-- BOTTOM MARGIN -->
             <TextView
                 android:id="@+id/ghost_bottom"
@@ -258,7 +310,7 @@
                 android:visibility="invisible"
                 app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/guide_call_descr"
+                app:layout_constraintTop_toBottomOf="@+id/guide_mess_descr"
                 app:layout_constraintLeft_toLeftOf="parent"
                 tools:ignore="TextSizeCheck"/>
 

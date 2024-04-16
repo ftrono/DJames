@@ -55,6 +55,17 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getString(KEY_OVERLAY_POSITION, "1") as String
         set(value) = sharedPrefs.edit().putString(KEY_OVERLAY_POSITION, value).apply()
 
+    //Message timeout:
+    var messageTimeout: String
+        get() = sharedPrefs.getString(KEY_MESSAGE_TIMEOUT, "30") as String
+        set(value) = sharedPrefs.edit().putString(KEY_MESSAGE_TIMEOUT, value).apply()
+
+    //Message default language:
+    var messageLanguage: String
+        //"it" -> Italian; "en-US" -> English
+        get() = sharedPrefs.getString(KEY_MESSAGE_LANGUAGE, "0") as String
+        set(value) = sharedPrefs.edit().putString(KEY_MESSAGE_LANGUAGE, value).apply()
+
     //Auto Clock:
     var autoClock: Boolean
         get() = sharedPrefs.getBoolean(KEY_AUTO_CLOCK, true) as Boolean
@@ -131,6 +142,8 @@ class Prefs (context: Context) {
         const val KEY_AUTO_STARTUP = ".key.auto_startup"
         const val KEY_REC_TIMEOUT = ".key.rec_timeout"
         const val KEY_OVERLAY_POSITION = ".key.overlay_position"
+        const val KEY_MESSAGE_TIMEOUT = ".key.message_timeout"
+        const val KEY_MESSAGE_LANGUAGE = ".key.message_language"
         const val KEY_AUTO_CLOCK = ".key.auto_clock"
         const val KEY_CLOCK_REDIRECT_ENABLED = ".key.clock_redirect_enabled"
         const val KEY_CLOCK_TIMEOUT = ".key.clock_timeout"

@@ -76,6 +76,9 @@ class Utilities {
 
         //Replace:
         textReplaced = textReplaced.replace("Emoji", "emoji")
+        textReplaced = textReplaced.replace("emoji,", "emoji")
+        textReplaced = textReplaced.replace("emoji.", "emoji")
+        textReplaced = textReplaced.replace("emoji?", "emoji")
 
         for (sent in emojiMap.keySet()) {
             textReplaced = textReplaced.replace(sent, emojiMap.get(sent).asString)

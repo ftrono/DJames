@@ -371,7 +371,7 @@ class SettingsActivity : AppCompatActivity() {
         //MessageTimeout:
         if (newMessTimeout.isNotEmpty()) {
             //validate & overwrite:
-            prefs.messageTimeout = validateTimeout(newVal = newMessTimeout, origVal = prefs.messageTimeout, min_val = 10, max_val = 60)
+            prefs.messageTimeout = validateTimeout(newVal = newMessTimeout, origVal = prefs.messageTimeout, min_val = 5, max_val = 20)
         }
         //ClockTimeout:
         if (newClockTimeout.isNotEmpty()) {

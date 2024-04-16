@@ -234,7 +234,7 @@
             android:layout_width="250dp"
             android:layout_height="wrap_content"
             android:layout_marginRight="15dp"
-            android:text="seconds (keep between 10 and 60)"
+            android:text="seconds (keep between 5 and 20)"
             android:textSize="14dp"
             android:textColor="@color/mid_grey"
             app:layout_constraintHorizontal_chainStyle="packed"

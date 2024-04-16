@@ -24,7 +24,6 @@ import com.ftrono.DJames.api.NLPInterpreter
 import com.ftrono.DJames.api.NLPQuery
 import com.ftrono.DJames.api.SpotifyInterpreter
 import com.ftrono.DJames.application.*
-import com.ftrono.DJames.application.FakeLockScreen
 import com.ftrono.DJames.recorder.AndroidAudioRecorder
 import com.google.gson.JsonObject
 import java.io.File
@@ -458,7 +457,10 @@ class VoiceSearchService : Service() {
                     //Send SMS:
                     val smsManager: SmsManager = SmsManager.getDefault()
                     var messageText = utils.replaceEmojis(context=applicationContext, text=nlp_queryText)
-                    smsManager.sendTextMessage(phone, null, messageText, null, null)
+
+                    val parts = smsManager.divideMessage(messageText)
+                    smsManager.sendMultipartTextMessage(phone, null, parts, null, null)
+                    //smsManager.sendTextMessage(phone, null, messageText, null, null)
 
                     //SUCCESS -> Play ACKNOWLEDGE tone:
                     toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE

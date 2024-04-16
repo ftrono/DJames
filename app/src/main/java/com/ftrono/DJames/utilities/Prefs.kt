@@ -57,7 +57,7 @@ class Prefs (context: Context) {
 
     //Message timeout:
     var messageTimeout: String
-        get() = sharedPrefs.getString(KEY_MESSAGE_TIMEOUT, "30") as String
+        get() = sharedPrefs.getString(KEY_MESSAGE_TIMEOUT, "15") as String
         set(value) = sharedPrefs.edit().putString(KEY_MESSAGE_TIMEOUT, value).apply()
 
     //Message default language:

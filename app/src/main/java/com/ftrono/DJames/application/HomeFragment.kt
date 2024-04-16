@@ -125,7 +125,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                         intentOS.putExtra("faded", true)
                     }
                     requireActivity().startService(intentOS)
-                    Toast.makeText(requireActivity(), "Ask me to play a song or to make a call!", Toast.LENGTH_LONG).show()
+                    Toast.makeText(requireActivity(), "Ask me to play a song, make a call or send a message!", Toast.LENGTH_LONG).show()
                 }
                 //Start fake lock screen:
                 if (prefs.autoClock) {

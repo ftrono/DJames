@@ -37,7 +37,6 @@ var main_initialized: Boolean = false
 var vol_initialized: Boolean = false
 var voiceSearchOn: Boolean = false
 var recordingMode: Boolean = false
-var messageModeOn: Boolean = false
 var callMode: Boolean = false
 var overlay_active: Boolean = false
 var loggedIn: Boolean = false
@@ -87,7 +86,7 @@ val client = OkHttpClient.Builder()
 //Event receiver:
 //ACTION_SCREEN_ON, ACTION_SCREEN_OFF
 const val VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION"
-const val ACTION_NLP_RESULT = "com.ftrono.DJames.eventReceiver.ACTION_NLP_RESULT"
+const val ACTION_TOASTER = "com.ftrono.DJames.eventReceiver.ACTION_TOASTER"
 const val ACTION_REDIRECT = "com.ftrono.DJames.eventReceiver.ACTION_REDIRECT"
 
 //Main Act receiver:

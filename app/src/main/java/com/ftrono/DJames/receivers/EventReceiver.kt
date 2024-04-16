@@ -62,15 +62,12 @@ class EventReceiver: BroadcastReceiver() {
             Log.d(TAG, "EVENT: Screen On.")
         }
 
-        //When NLP result received -> TOAST:
-        if (intent.action == ACTION_NLP_RESULT) {
-            Log.d(TAG, "EVENT: ACTION_NLP_RESULT.")
+        //TOASTER:
+        if (intent.action == ACTION_TOASTER) {
+            Log.d(TAG, "EVENT: ACTION_TOASTER.")
+            var toastText = intent.getStringExtra("toastText")
             //TOAST:
-            if (nlp_queryText != "") {
-                Toast.makeText(context, nlp_queryText.replaceFirstChar { it.uppercase() }, Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(context, "Sorry, I did not understand!", Toast.LENGTH_LONG).show()
-            }
+            Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
         }
 
         //When redirect countdown activated -> TOAST:

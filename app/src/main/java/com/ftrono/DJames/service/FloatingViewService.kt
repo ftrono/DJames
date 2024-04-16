@@ -114,7 +114,7 @@ class FloatingViewService : Service() {
             filter.addAction(Intent.ACTION_SCREEN_ON)
             filter.addAction(Intent.ACTION_SCREEN_OFF)
             filter.addAction(VOLUME_CHANGED_ACTION)
-            filter.addAction(ACTION_NLP_RESULT)
+            filter.addAction(ACTION_TOASTER)
             filter.addAction(ACTION_REDIRECT)
 
             //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:

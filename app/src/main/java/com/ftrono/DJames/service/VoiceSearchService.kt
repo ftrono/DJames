@@ -432,9 +432,16 @@ class VoiceSearchService : Service() {
             }
 
             if (!messageMode) {
+                var toastText = nlp_queryText
+                if (toastText == "") {
+                    toastText = "Sorry, I did not understand!"
+                } else {
+                    toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
+                }
                 //TOAST -> Send broadcast:
                 Intent().also { intent ->
-                    intent.setAction(ACTION_NLP_RESULT)
+                    intent.setAction(ACTION_TOASTER)
+                    intent.putExtra("toastText", toastText)
                     sendBroadcast(intent)
                 }
             }
@@ -455,9 +462,22 @@ class VoiceSearchService : Service() {
                     //SUCCESS -> Play ACKNOWLEDGE tone:
                     toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
 
+                    //TOAST -> Send broadcast:
+                    Intent().also { intent ->
+                        intent.setAction(ACTION_TOASTER)
+                        intent.putExtra("toastText", "SMS sent!")
+                        sendBroadcast(intent)
+                    }
+
                 } catch (e: Exception) {
                     //Play FAIL tone:
                     toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                    //TOAST -> Send broadcast:
+                    Intent().also { intent ->
+                        intent.setAction(ACTION_TOASTER)
+                        intent.putExtra("toastText", "ERROR: SMS not sent!")
+                        sendBroadcast(intent)
+                    }
                 }
                 stopSelf()
 

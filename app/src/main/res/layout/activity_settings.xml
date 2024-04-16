@@ -297,7 +297,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="50dp"
             android:layout_marginRight="15dp"
-            android:text= "Show Clock screen when Service is started"
+            android:text= "Show Clock screen when Overlay is started"
             android:textSize="14dp"
             android:textStyle="italic"
             android:textColor="@color/light_grey"

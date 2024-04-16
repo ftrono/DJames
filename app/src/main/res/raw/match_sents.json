@@ -57,5 +57,25 @@
     "on saved songs",
     "on liked tracks",
     "on saved tracks"
-  ]
+  ],
+  "emojiMapIta": {
+    "emoji sorriso": "🙂",
+    "emoji felice": "😃",
+    "emoji sorrisino": "😁",
+    "emoji bacio": "😘",
+    "emoji occhiali da sole": "😎",
+    "emoji cuore": "❤️",
+    "emoji triste": "☹️",
+    "emoji preoccupato": "🫤"
+  },
+  "emojiMapEng": {
+    "emoji smile": "🙂",
+    "emoji happy": "😃",
+    "emoji grin": "😁",
+    "emoji kiss": "😘",
+    "emoji sunglasses": "😎",
+    "emoji heart": "❤️",
+    "emoji sad": "☹️",
+    "emoji worried": "🫤"
+  }
 }

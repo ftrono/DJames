@@ -2,6 +2,7 @@ package com.ftrono.DJames.utilities
 
 import android.content.Context
 import android.util.Log
+import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
@@ -11,9 +12,11 @@ import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
 import java.io.IOException
+import java.io.InputStreamReader
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Random
@@ -53,6 +56,31 @@ class Utilities {
             .asSequence()
             .map(source::get)
             .joinToString("")
+    }
+
+
+    //Emoji replacer:
+    fun replaceEmojis(context: Context, text: String): String {
+        var textReplaced = text
+        //Load map:
+        val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents)))
+        val sourceSents = JsonParser.parseReader(reader).asJsonObject
+        var emojiMap = JsonObject()
+
+        //Prefs: 0 -> Italian, 1 -> English:
+        if (prefs.messageLanguage.toInt() == 0) {
+            emojiMap = sourceSents.get("emojiMapIta").asJsonObject   //"ita"
+        } else {
+            emojiMap = sourceSents.get("emojiMapEng").asJsonObject   //"eng"
+        }
+
+        //Replace:
+        textReplaced = textReplaced.replace("Emoji", "emoji")
+
+        for (sent in emojiMap.keySet()) {
+            textReplaced = textReplaced.replace(sent, emojiMap.get(sent).asString)
+        }
+        return textReplaced
     }
 
 

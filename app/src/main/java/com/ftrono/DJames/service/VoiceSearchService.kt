@@ -457,7 +457,8 @@ class VoiceSearchService : Service() {
                 try {
                     //Send SMS:
                     val smsManager: SmsManager = SmsManager.getDefault()
-                    smsManager.sendTextMessage(phone, null, nlp_queryText, null, null)
+                    var messageText = utils.replaceEmojis(context=applicationContext, text=nlp_queryText)
+                    smsManager.sendTextMessage(phone, null, messageText, null, null)
 
                     //SUCCESS -> Play ACKNOWLEDGE tone:
                     toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE

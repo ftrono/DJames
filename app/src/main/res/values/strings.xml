@@ -30,4 +30,11 @@
         <item>Current default</item>
         <item>Primary device</item>
     </string-array>
+    <!-- Guide: Help descriptions -->
+    <string name="guide_song_str_1">"Plays a song in Spotify from its album. Preference is given to your saved tracks and to albums over singles."</string>
+    <string name="guide_song_str_2">"Plays a song in Spotify from a playlist of yours. NOTE: the playlist must be listed in DJames' Vocabulary, in the Playlists tab!"</string>
+    <string name="guide_song_str_3">"Plays a song in Spotify from your playlist Liked Songs. NOTE: this will work only for your most recently saved tracks!"</string>
+    <string name="guide_call_str">"Starts a phone call to a contact of yours. NOTE: the contact must be listed in DJames' Vocabulary, in the Contacts tab!"</string>
+    <string name="guide_mess_str">"Sends an SMS to a contact of yours. NOTE: the contact must be listed in DJames' Vocabulary, in the Contacts tab!\n\n2-step process:\n- 1) First, ASK to send a message to your contact;\n- 2) Then, WAIT for the second BEEP and dictate!"</string>
+    <string name="guide_mess_emoji_str">"To use emojis, say:\n- 🇬🇧: \"EMOJI\" + smile / happy / grin / kiss / sunglasses / heart / sad / worried.\n- 🇮🇹: \"EMOJI\" + sorriso / felice / sorrisino / bacio / occhiali da sole / cuore / triste / preoccupato."</string>
 </resources>

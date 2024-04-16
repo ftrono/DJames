@@ -89,7 +89,7 @@
                 tools:ignore="TextSizeCheck"/>
 
             <TextView
-                android:id="@+id/guide_text_1"
+                android:id="@+id/guide_song_text_1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
@@ -106,24 +106,24 @@
                 tools:ignore="TextSizeCheck"/>
 
             <TextView
-                android:id="@+id/guide_descr_1"
+                android:id="@+id/guide_song_descr_1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="10dp"
                 android:layout_marginLeft="60dp"
                 android:layout_marginRight="20dp"
-                android:text="Plays a song in Spotify from its album. Preference is given to your saved tracks and to albums over singles."
+                android:text="@string/guide_song_str_1"
                 android:textColor="@color/mid_grey"
                 android:textSize="12dp"
                 app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/guide_text_1"
+                app:layout_constraintTop_toBottomOf="@+id/guide_song_text_1"
                 app:layout_constraintLeft_toLeftOf="parent"
                 tools:ignore="TextSizeCheck"/>
 
             <TextView
-                android:id="@+id/guide_text_2"
+                android:id="@+id/guide_song_text_2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
@@ -135,29 +135,29 @@
                 android:textStyle="italic"
                 app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/guide_descr_1"
+                app:layout_constraintTop_toBottomOf="@+id/guide_song_descr_1"
                 app:layout_constraintLeft_toLeftOf="parent"
                 tools:ignore="TextSizeCheck"/>
 
             <TextView
-                android:id="@+id/guide_descr_2"
+                android:id="@+id/guide_song_descr_2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="10dp"
                 android:layout_marginLeft="60dp"
                 android:layout_marginRight="20dp"
-                android:text="Plays a song in Spotify from a playlist of yours. NOTE: the playlist must be listed in DJames' Vocabulary, in the Playlists tab!"
+                android:text="@string/guide_song_str_2"
                 android:textColor="@color/mid_grey"
                 android:textSize="12dp"
                 app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/guide_text_2"
+                app:layout_constraintTop_toBottomOf="@+id/guide_song_text_2"
                 app:layout_constraintLeft_toLeftOf="parent"
                 tools:ignore="TextSizeCheck"/>
 
             <TextView
-                android:id="@+id/guide_text_3"
+                android:id="@+id/guide_song_text_3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
@@ -169,24 +169,24 @@
                 android:textStyle="italic"
                 app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/guide_descr_2"
+                app:layout_constraintTop_toBottomOf="@+id/guide_song_descr_2"
                 app:layout_constraintLeft_toLeftOf="parent"
                 tools:ignore="TextSizeCheck"/>
 
             <TextView
-                android:id="@+id/guide_descr_3"
+                android:id="@+id/guide_song_descr_3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="10dp"
                 android:layout_marginLeft="60dp"
                 android:layout_marginRight="20dp"
-                android:text="Plays a song in Spotify from your playlist Liked Songs. NOTE: this will work only for your most recently saved tracks!"
+                android:text="@string/guide_song_str_3"
                 android:textColor="@color/mid_grey"
                 android:textSize="12dp"
                 app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/guide_text_3"
+                app:layout_constraintTop_toBottomOf="@+id/guide_song_text_3"
                 app:layout_constraintLeft_toLeftOf="parent"
                 tools:ignore="TextSizeCheck"/>
 
@@ -204,7 +204,7 @@
                 android:textStyle="bold"
                 app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/guide_descr_3"
+                app:layout_constraintTop_toBottomOf="@+id/guide_song_descr_3"
                 app:layout_constraintLeft_toLeftOf="parent"
                 tools:ignore="TextSizeCheck"/>
 
@@ -233,7 +233,7 @@
                 android:layout_marginBottom="10dp"
                 android:layout_marginLeft="60dp"
                 android:layout_marginRight="20dp"
-                android:text="Starts a phone call to a contact of yours. NOTE: the contact must be listed in DJames' Vocabulary, in the Contacts tab!"
+                android:text="@string/guide_call_str"
                 android:textColor="@color/mid_grey"
                 android:textSize="12dp"
                 app:layout_constraintHorizontal_chainStyle="packed"
@@ -285,12 +285,29 @@
                 android:layout_marginBottom="10dp"
                 android:layout_marginLeft="60dp"
                 android:layout_marginRight="20dp"
-                android:text="2-step process.\n- 1) First, ASK to send an SMS a contact of yours. NOTE: the contact must be listed in DJames' Vocabulary, in the Contacts tab!\n- 2) Please WAIT for the second BEEP before dictating the text message via voice!"
+                android:text="@string/guide_mess_str"
                 android:textColor="@color/mid_grey"
                 android:textSize="12dp"
                 app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintVertical_chainStyle="packed"
                 app:layout_constraintTop_toBottomOf="@+id/guide_mess_text"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="TextSizeCheck"/>
+
+            <TextView
+                android:id="@+id/guide_mess_descr_emoji"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="60dp"
+                android:layout_marginRight="20dp"
+                android:text="@string/guide_mess_emoji_str"
+                android:textColor="@color/mid_grey"
+                android:textSize="12dp"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintTop_toBottomOf="@+id/guide_mess_descr"
                 app:layout_constraintLeft_toLeftOf="parent"
                 tools:ignore="TextSizeCheck"/>
 
@@ -310,7 +327,7 @@
                 android:visibility="invisible"
                 app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/guide_mess_descr"
+                app:layout_constraintTop_toBottomOf="@+id/guide_mess_descr_emoji"
                 app:layout_constraintLeft_toLeftOf="parent"
                 tools:ignore="TextSizeCheck"/>
 

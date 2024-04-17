@@ -40,8 +40,9 @@ class HistoryAdapter(
         var icon = ""
         var context_error = false
         var intentName = logItem.get("nlp").asJsonObject.get("intent_response").asString
-        //icon:
+        //Call / message requests:
         if (intentName == "CallRequest" || intentName == "MessageRequest") {
+            //icon:
             if (intentName == "CallRequest") {
                 icon = "📞"
             } else {
@@ -86,6 +87,23 @@ class HistoryAdapter(
         }
         //MATCH:
         try {
+            //Reset:
+            holder.match_name.setPadding(
+                (8 * density).roundToInt(),
+                (8 * density).roundToInt(),
+                0,
+                0
+            )
+            holder.match_name_intro.setPadding(
+                (8 * density).roundToInt(),
+                (8 * density).roundToInt(),
+                0,
+                0
+            )
+            holder.match_artist_intro.visibility = View.VISIBLE
+            holder.match_artist.visibility = View.VISIBLE
+            holder.match_context_intro.visibility = View.VISIBLE
+            holder.match_context.visibility = View.VISIBLE
             //SPOTIFY:
             holder.match_name_intro.text = "MATCH: "
             holder.match_name.text =
@@ -99,7 +117,7 @@ class HistoryAdapter(
 
         } catch (e: Exception) {
             try {
-                //CONTACT CALL:
+                //CONTACT CALL / MESSAGE:
                 var contacted = logItem.get("contact_extractor").asJsonObject.get("contact_confirmed").asString.replaceFirstChar { it.uppercase() }
                 if (contacted != "") {
                     holder.match_name_intro.text = "CONTACTED: "

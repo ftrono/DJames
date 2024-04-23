@@ -182,17 +182,6 @@ class SpotifySearch() {
             returnJSON.addProperty("album_name", album.get("name").asString)
             returnJSON.addProperty("album_uri", album.get("uri").asString)
 
-            //Artwork:
-            if (album.has("images")) {
-                try {
-                    var images = album.getAsJsonArray("images")
-                    var firstImage = images.get(0).asJsonObject
-                    returnJSON.add("artwork", firstImage.get("url"))
-                } catch (e: Exception) {
-                    Log.d(TAG, "Unable to retrieve album artwork: ", e)
-                }
-            }
-
             Log.d(TAG, "Spotify Search results successfully processed!")
             Log.d(TAG, "returnJSON: ${returnJSON}")
         }

@@ -15,16 +15,17 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "1.08"
+val appVersion = "1.09"
 
 //Preferences:
-val deltaSimilarity = 30
+val deltaSimilarity = 0   //30
 val maxThreshold = 70
 val midThreshold = 55
 val matchDoubleThreshold = 160
 val recSamplingRate = 44100
 val queryTimeout = 5   //seconds
 val recFileName = "DJames_request"
+var enablePlayerInfo = false
 
 //Modes:
 var density: Float = 0F
@@ -55,8 +56,6 @@ var vocDir: File? = null
 
 //Player info:
 var nlp_queryText = ""
-var update_artwork = false
-var artwork: String = ""
 var songName: String = ""
 var artistName: String = ""
 var contextName: String = ""
@@ -114,7 +113,6 @@ const val ACTION_FINISH_SETTINGS = "com.ftrono.DJames.eventReceiver.ACTION_FINIS
 
 //Clock Act receiver:
 const val ACTION_TIME_TICK = "android.intent.action.TIME_TICK"
-const val ACTION_NEW_SONG = "com.ftrono.DJames.eventReceiver.ACTION_NEW_SONG"
 const val SPOTIFY_METADATA_CHANGED = "com.spotify.music.metadatachanged"
 const val ACTION_FINISH_CLOCK = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_CLOCK"
 

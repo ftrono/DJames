@@ -39,7 +39,6 @@ class FakeLockScreen: AppCompatActivity() {
     private val hourFormat = DateTimeFormatter.ofPattern("HH")
     private val minsFormat = DateTimeFormatter.ofPattern("mm")
     private var clockSeparator: String = "\n"
-    private var enablePlayerInfo = false
 
     //Player views:
     private var artworkView: ImageView? = null   //eventReceiver(new song)
@@ -73,7 +72,6 @@ class FakeLockScreen: AppCompatActivity() {
         //Start personal Receiver:
         val actFilter = IntentFilter()
         actFilter.addAction(ACTION_TIME_TICK)
-        actFilter.addAction(ACTION_NEW_SONG)
         actFilter.addAction(SPOTIFY_METADATA_CHANGED)
         actFilter.addAction(ACTION_FINISH_CLOCK)
 
@@ -95,13 +93,8 @@ class FakeLockScreen: AppCompatActivity() {
             songView!!.text = songName
             artistView!!.text = artistName
             contextView!!.text = contextName
-            if (artwork != "") {
-                Picasso.get().load(artwork)
-                    .into(artworkView)
-            } else {
-                Picasso.get().load(R.drawable.artwork_icon)
-                    .into(artworkView)
-            }
+            //Picasso.get().load(R.drawable.artwork_icon)
+            //    .into(artworkView)
         }
 
         //Check initial orientation:
@@ -276,44 +269,19 @@ class FakeLockScreen: AppCompatActivity() {
         clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
     }
 
+    fun trimName(nameOrig: String, maxLength: Int = 30): String {
+        var nameTrimmed = nameOrig
+        if (nameOrig.length > 30) {
+            nameTrimmed = nameOrig.slice(0..maxLength) + "..."
+        }
+        return nameTrimmed
+    }
+
     fun updatePlayer() {
-        //Song name:
-        songName = currently_playing!!.get("song_name").asString
-        if (songName.length > 30) {
-            songName = songName.slice(0..30) + "..."
-        }
-        //Artist name:
-        artistName = currently_playing!!.get("artist_name").asString
-        if (artistName.length > 30) {
-            artistName = artistName.slice(0..30) + "..."
-        }
-        //Context name:
-        contextName = currently_playing!!.get("album_name").asString
-        if (contextName.length > 30) {
-            contextName = contextName.slice(0..30) + "..."
-        }
-
         //Populate player info:
-        songView!!.text = songName
-        artistView!!.text = artistName
-        contextView!!.text = contextName
-
-        //Artwork:
-        if (update_artwork) {
-            if (currently_playing!!.has("artwork")) {
-                artwork = currently_playing!!.get("artwork").asString
-            } else {
-                artwork = ""
-            }
-
-            if (artwork != "") {
-                Picasso.get().load(artwork)
-                    .into(artworkView)
-            } else {
-                Picasso.get().load(R.drawable.artwork_icon)
-                    .into(artworkView)
-            }
-        }
+        songView!!.text = trimName(songName)
+        artistView!!.text = trimName(artistName)
+        contextView!!.text = trimName(contextName)
     }
 
 
@@ -324,59 +292,47 @@ class FakeLockScreen: AppCompatActivity() {
             //Update clock (every minute):
             if (intent!!.action == ACTION_TIME_TICK) {
                 updateDateClock()
-                enablePlayerInfo = true
-            }
-
-            //Action New Song manually triggered:
-            if (intent.action == ACTION_NEW_SONG) {
-                Log.d(TAG, "CLOCK: ACTION_NEW_SONG.")
-
-                try {
-                    updatePlayer()
-                } catch (e: Exception) {
-                    Log.d(TAG, "CLOCK: ACTION_NEW_SONG: resources not available.")
+                if (!enablePlayerInfo) {
+                    enablePlayerInfo = true
+                    if (songName != "") {
+                        updatePlayer()
+                    }
                 }
             }
 
             //Spotify Metadata Changed:
             if (intent.action == SPOTIFY_METADATA_CHANGED) {
                 Log.d(TAG, "CLOCK: SPOTIFY_METADATA_CHANGED.")
-                if (songName != "" || enablePlayerInfo) {
-                    var curSongName = ""
-                    var curArtistName = ""
-                    var curAlbumName = ""
-                    try {
-                        //Get new track data:
-                        val id = intent.getStringExtra("id")
-                        val intentSongName = intent.getStringExtra("track")
-                        val intentArtistName = intent.getStringExtra("artist")
-                        val intentAlbumName = intent.getStringExtra("album")
+                try {
+                    //Get new track data:
+                    val id = intent.getStringExtra("id")
+                    val intentSongName = intent.getStringExtra("track")
+                    val intentArtistName = intent.getStringExtra("artist")
+                    val intentAlbumName = intent.getStringExtra("album")
 
-                        //Get last request:
-                        try {
-                            curSongName = currently_playing!!.get("song_name").asString
-                            curArtistName = currently_playing!!.get("artist_name").asString
-                            curAlbumName = currently_playing!!.get("album_name").asString
-                        } catch (e: Exception) {
-                            Log.d(TAG, "CLOCK: SPOTIFY_METADATA_CHANGED: last JSON not available.")
-                        }
+                    //If new track:
+                    if (intentSongName != songName || intentArtistName != artistName || intentAlbumName != contextName) {
+                        //Update currently_playing JSON:
+                        currently_playing = JsonObject()
+                        currently_playing!!.addProperty("id", id)
+                        currently_playing!!.addProperty("uri", "$uri_format$id")
+                        currently_playing!!.addProperty("spotify_URL", "$ext_format$id")
+                        currently_playing!!.addProperty("song_name", intentSongName)
+                        currently_playing!!.addProperty("artist_name", intentArtistName)
+                        currently_playing!!.addProperty("album_name", intentAlbumName)
 
-                        //If new track:
-                        if (intentSongName != curSongName || intentArtistName != curArtistName || intentAlbumName != curAlbumName) {
-                            //Update currently_playing JSON:
-                            currently_playing = JsonObject()
-                            currently_playing!!.addProperty("id", id)
-                            currently_playing!!.addProperty("uri", "$uri_format$id")
-                            currently_playing!!.addProperty("spotify_URL", "$ext_format$id")
-                            currently_playing!!.addProperty("song_name", intentSongName)
-                            currently_playing!!.addProperty("artist_name", intentArtistName)
-                            currently_playing!!.addProperty("album_name", intentAlbumName)
-                            //Update player:
+                        //Update info:
+                        songName = intentSongName!!
+                        artistName = intentArtistName!!
+                        contextName = intentAlbumName!!
+
+                        //Update player:
+                        if (enablePlayerInfo) {
                             updatePlayer()
                         }
-                    } catch (e: Exception) {
-                        Log.d(TAG, "CLOCK: SPOTIFY_METADATA_CHANGED: resources not available.")
                     }
+                } catch (e: Exception) {
+                    Log.d(TAG, "CLOCK: SPOTIFY_METADATA_CHANGED: resources not available.")
                 }
             }
 

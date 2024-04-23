@@ -584,16 +584,9 @@ class VoiceSearchService : Service() {
                         Thread.sleep(1000)
 
                         //Overwrite player info:
-                        currently_playing = queryResult
-                        last_log!!.add("spotify_play", currently_playing)
+                        last_log!!.add("spotify_play", queryResult)
                         //Close log:
                         logFile!!.writeText(last_log.toString())
-
-                        //Send broadcast:
-                        Intent().also { intent ->
-                            intent.setAction(ACTION_NEW_SONG)
-                            sendBroadcast(intent)
-                        }
 
                         //Send broadcast:
                         Intent().also { intent ->

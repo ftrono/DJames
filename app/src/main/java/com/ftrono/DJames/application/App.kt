@@ -15,7 +15,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "1.09"
+val appVersion = "1.10"
 
 //Preferences:
 val deltaSimilarity = 0   //30
@@ -26,6 +26,7 @@ val recSamplingRate = 44100
 val queryTimeout = 5   //seconds
 val recFileName = "DJames_request"
 var enablePlayerInfo = false
+var supportedLanguageCodes = listOf<String>("en-US", "it")
 
 //Modes:
 var density: Float = 0F

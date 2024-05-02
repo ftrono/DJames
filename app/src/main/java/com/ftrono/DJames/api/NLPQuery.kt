@@ -61,17 +61,22 @@ class NLPQuery(context: Context) {
     }
 
 
-    fun queryNLP(recFile: File, messageMode: Boolean = false): JsonObject {
+    fun queryNLP(recFile: File, messageMode: Boolean = false, reqLanguage: String = ""): JsonObject {
         var respJson = JsonObject()
         try {
-            var languageCode = "en-US"
+            var languageCode = ""
             var punct = false
+            //punctuation:
             if (messageMode) {
                 punct = true
-                //Prefs: 0 -> Italian, 1 -> English:
-                if (prefs.messageLanguage.toInt() == 0) {
-                    languageCode = "it"
-                }
+            }
+            //requested language:
+            if (reqLanguage != "") {
+                languageCode = reqLanguage
+            } else if (messageMode) {
+                languageCode = supportedLanguageCodes[prefs.messageLanguage.toInt()]
+            } else {
+                languageCode = supportedLanguageCodes[prefs.queryLanguage.toInt()]
             }
             val inputAudioConfig: InputAudioConfig = InputAudioConfig.newBuilder()
                 .setAudioEncoding(AudioEncoding.AUDIO_ENCODING_FLAC)
@@ -113,12 +118,16 @@ class NLPQuery(context: Context) {
                 if (keySet.size == 0) {
                     Log.d(TAG, "NLP: FALLBACK!")
                 } else {
+                    //NLP basic results:
+                    var languageFound = queryResult.languageCode
                     var queryText = queryResult.queryText
                     if (!messageMode) {
                         queryText = queryText.lowercase()
                     }
+                    respJson.addProperty("language_code", languageFound)
                     respJson.addProperty("query_text", queryText)
                     respJson.addProperty("intent", queryResult.intent.displayName)
+                    //Artists:
                     try {
                         var artistsList = JsonArray()
                         try {
@@ -137,15 +146,11 @@ class NLPQuery(context: Context) {
                         respJson.add("artists", JsonArray())
                     }
                     try {
-                        respJson.addProperty("playlist", queryResult.parameters.fieldsMap["PlaylistName"]!!.stringValue)
+                        respJson.addProperty("language", queryResult.parameters.fieldsMap["language"]!!.stringValue.lowercase())
                     } catch (e: Exception) {
-                        respJson.addProperty("playlist", "")
+                        respJson.addProperty("language", "")
                     }
-                    try {
-                        respJson.addProperty("contact", queryResult.parameters.fieldsMap["ContactName"]!!.stringValue)
-                    } catch (e: Exception) {
-                        respJson.addProperty("contact", "")
-                    }
+                    //Response message (fake JSON):
                     for (key in keySet) {
                         respJson.add(key, fulfillmentText.get(key))
                     }

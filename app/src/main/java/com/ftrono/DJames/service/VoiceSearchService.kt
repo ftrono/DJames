@@ -20,13 +20,17 @@ import android.provider.Settings
 import android.telephony.SmsManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.ftrono.DJames.R
 import com.ftrono.DJames.api.NLPInterpreter
 import com.ftrono.DJames.api.NLPQuery
 import com.ftrono.DJames.api.SpotifyInterpreter
 import com.ftrono.DJames.application.*
 import com.ftrono.DJames.recorder.AndroidAudioRecorder
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
+import java.io.BufferedReader
 import java.io.File
+import java.io.InputStreamReader
 import java.net.URLEncoder
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -40,6 +44,9 @@ class VoiceSearchService : Service() {
     private var vqThreadExt: Thread? = null
     private var recFile: File? = null
     private var logFile: File? = null
+    private var reqQueryLanguage = ""
+    private var reqMessLanguage = ""
+    private var fullMessLanguage = ""
     private var phone = ""
     private var intStarted = false
     private var messIntStarted = false
@@ -398,30 +405,75 @@ class VoiceSearchService : Service() {
             last_log!!.addProperty("datetime", now)
             last_log!!.addProperty("app_version", appVersion)
 
-            //Query NLP:
-            val nlpQuery = NLPQuery(applicationContext)
-            var resultsNLP = nlpQuery.queryNLP(recFile!!, messageMode=messageMode)
-
-            //Check NLP results:
-            nlp_queryText = ""
             var nlp_fail = false
-            if (!resultsNLP.has("query_text")) {
+
+            //1st NLP Query (default language):
+            var nlpQuery = NLPQuery(applicationContext)
+            var resultsNLP = nlpQuery.queryNLP(recFile!!, messageMode=messageMode, reqLanguage=reqMessLanguage)
+            resultsNLP.addProperty("query_no", 1)
+            //1st trial: Get query_text:
+            try {
+                nlp_queryText = resultsNLP.get("query_text").asString
+            } catch (e: Exception) {
+                nlp_queryText = ""
+            }
+            //1st trial: Get DF auto-response:
+            var intent_response = ""
+            try {
+                intent_response = resultsNLP.get("intent_response").asString
+            } catch (e: Exception) {
+                Log.d(TAG, "No intent_response in NLP query result.")
+            }
+
+            //CHECK SWITCH LANGUAGE:
+            if (!messageMode) {
+                if (intent_response == "MessageRequest") {
+                    try {
+                        //Get requested messaging language:
+                        val reader = BufferedReader(InputStreamReader(applicationContext.resources.openRawResource(R.raw.languages)))
+                        val sourceMap = JsonParser.parseReader(reader).asJsonObject
+                        fullMessLanguage = resultsNLP.get("language").asString
+                        reqMessLanguage = sourceMap[fullMessLanguage].asString
+                    } catch (e: Exception) {
+                        fullMessLanguage = ""
+                        reqMessLanguage = ""
+                    }
+                    Log.d(TAG, "REQUESTED MESSAGING LANGUAGE: $reqMessLanguage")
+
+                } else if (nlp_queryText != "") {
+                    //Extract requested query language and transcribe again:
+                    reqQueryLanguage = utils.checkLanguageSwitch(applicationContext, resultsNLP)
+                    Log.d(TAG, "REQUESTED QUERY LANGUAGE: $reqQueryLanguage")
+                    if (reqQueryLanguage != "") {
+                        //2nd NLP Query, in the new requested language (overwrite):
+                        nlpQuery = NLPQuery(applicationContext)
+                        resultsNLP = nlpQuery.queryNLP(recFile!!, messageMode=false, reqLanguage=reqQueryLanguage)
+                        resultsNLP.addProperty("query_no", 2)
+
+                        //2nd trial: Get query_text:
+                        try {
+                            nlp_queryText = resultsNLP.get("query_text").asString
+                        } catch (e: Exception) {
+                            nlp_queryText = ""
+                        }
+                        //2nd trial: Get DF auto-response:
+                        try {
+                            intent_response = resultsNLP.get("intent_response").asString
+                        } catch (e: Exception) {
+                            Log.d(TAG, "No intent_response in NLP query result.")
+                        }
+                    }
+                }
+            }
+            resultsNLP.addProperty("reqLanguage", reqQueryLanguage)
+
+            //PROCESS:
+            if (nlp_queryText == "") {
                 //Empty response:
                 nlp_fail = true
             } else {
-                //Get query_text:
-                nlp_queryText = resultsNLP.get("query_text").asString
-                //Get DF auto-response:
-                var intent_response = ""
-                try {
-                    intent_response = resultsNLP.get("intent_response").asString
-                } catch (e: Exception) {
-                    Log.d(TAG, "No intent_response in NLP query result.")
-                }
                 //Fallback cases:
-                if (nlp_queryText == "") {
-                    nlp_fail = true
-                } else if (!messageMode && intent_response == "") {
+                if (!messageMode && intent_response == "") {
                     nlp_fail = true
                 } else if (!messageMode && intent_response.lowercase() == "fallback") {
                     nlp_fail = true
@@ -456,7 +508,7 @@ class VoiceSearchService : Service() {
                 try {
                     //Send SMS:
                     val smsManager: SmsManager = SmsManager.getDefault()
-                    var messageText = utils.replaceEmojis(context=applicationContext, text=nlp_queryText)
+                    var messageText = utils.replaceEmojis(context=applicationContext, text=nlp_queryText, reqLanguage=reqMessLanguage)
 
                     val parts = smsManager.divideMessage(messageText)
                     smsManager.sendMultipartTextMessage(phone, null, parts, null, null)
@@ -487,7 +539,7 @@ class VoiceSearchService : Service() {
             } else {
                 //B.2) ANSWER TO REQUEST:
                 logFile = File(logDir, "$now.json")
-                val intentName = resultsNLP.get("intent").asString
+                val intentName = resultsNLP.get("intent_response").asString
 
                 if (intentName == "CallRequest") {
                     //A) PHONE CALL:
@@ -519,7 +571,7 @@ class VoiceSearchService : Service() {
                 } else if (intentName == "MessageRequest") {
                     //B) MESSAGE:
                     val nlpInterpreter = NLPInterpreter(applicationContext)
-                    phone = nlpInterpreter.extractContact(nlp_queryText)
+                    phone = nlpInterpreter.extractContact(nlp_queryText, fullLanguage=fullMessLanguage)
                     //Close log:
                     logFile!!.writeText(last_log.toString())
                     //Send broadcast:
@@ -561,7 +613,7 @@ class VoiceSearchService : Service() {
                 } else {
                     //D) PLAY REQUEST:
                     var queryResult: JsonObject =
-                        spotifyInterpreter!!.dispatchCall(resultsNLP)
+                        spotifyInterpreter!!.dispatchCall(resultsNLP, reqLanguage=reqQueryLanguage)
 
                     //A) EMPTY QUERY RESULT:
                     if (!queryResult.has("uri")) {

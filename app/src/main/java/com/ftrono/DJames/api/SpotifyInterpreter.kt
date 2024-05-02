@@ -16,20 +16,25 @@ class SpotifyInterpreter (private val context: Context) {
     private val nlpInterpreter = NLPInterpreter(context)
 
 
-    fun dispatchCall(resultsNLP: JsonObject): JsonObject {
+    fun dispatchCall(resultsNLP: JsonObject, reqLanguage: String): JsonObject {
         //Init:
         var returnJSON = JsonObject()
         var artistConfirmed = ""
         //val intentName = resultsNLP.get("intent").asString
 
         //1) Call NLP Extractor:
-        var matchExtracted = nlpInterpreter.extractMatches(queryText=resultsNLP.get("query_text").asString.lowercase())
-        val artistExtracted = matchExtracted.get("artist_extracted").asString
+        var matchExtracted = nlpInterpreter.extractMatches(queryText=resultsNLP.get("query_text").asString.lowercase(), reqLanguage=reqLanguage)
+        var artistExtracted = ""
+        try {
+            artistExtracted = matchExtracted.get("artist_extracted").asString
+        } catch (e: Exception) {
+            Log.d(TAG, "No artist_extracted in nlpInterpreter.extractMatches()")
+        }
 
         //2) Double check DF artists with NLP Extractor:
         if (!matchExtracted.isEmpty) {
             val artistsNlp = resultsNLP.get("artists").asJsonArray
-            artistConfirmed = nlpInterpreter.checkArtists(artistsNlp, artistExtracted)
+            artistConfirmed = nlpInterpreter.checkArtists(artistsNlp, artistExtracted, reqLanguage=reqLanguage)
             matchExtracted.addProperty("artist_confirmed", artistConfirmed)
             //Add to log:
             last_log!!.add("nlp_extractor", matchExtracted)
@@ -37,7 +42,7 @@ class SpotifyInterpreter (private val context: Context) {
 
             //3) DISPATCH SPOTIFY CALLS ACCORDING TO NLP MATCHES EXTRACTED:
             var search = SpotifySearch()
-            returnJSON = search.genericSearch(searchData=matchExtracted)
+            returnJSON = search.genericSearch(searchData=matchExtracted, reqLanguage=reqLanguage)
 
             //4) CONTEXT:
             //context vars:

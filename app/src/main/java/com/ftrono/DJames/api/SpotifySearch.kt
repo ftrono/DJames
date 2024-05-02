@@ -7,6 +7,7 @@ import com.ftrono.DJames.application.ext_format
 import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.matchDoubleThreshold
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.supportedLanguageCodes
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import java.net.URLEncoder
@@ -18,11 +19,17 @@ class SpotifySearch() {
     private var query = SpotifyQuery()
 
     //GENERIC SPOTIFY SEARCH -> PLAY WITHIN ALBUM:
-    fun genericSearch(searchData: JsonObject): JsonObject {
+    fun genericSearch(searchData: JsonObject, reqLanguage: String): JsonObject {
         //vars:
         var type = "track"   //searchData.get("play_type").asString
         var matchName = searchData.get("match_extracted").asString
         var artistName = searchData.get("artist_confirmed").asString
+        var contextType = searchData.get("context_type").asString
+        //Query language:
+        var queryLanguage = supportedLanguageCodes[prefs.queryLanguage.toInt()]
+        if (reqLanguage != "") {
+            queryLanguage = reqLanguage
+        }
 
         //BUILD GET REQUEST:
         var baseURL = "https://api.spotify.com/v1/search"
@@ -95,7 +102,7 @@ class SpotifySearch() {
             logJSON.addProperty("n_items", n_items)
             //Get best score:
             if (n_items > 0) {
-                bestMatches = getBestMatches(items, matchName, artistName, live)
+                bestMatches = getBestMatches(items, matchName, artistName, contextType, live)
                 logJSON.add("spotify_matches", bestMatches)
                 //Best:
                 bestInd = bestMatches[0].asJsonObject.get("pos").asInt
@@ -108,7 +115,7 @@ class SpotifySearch() {
 
         //SECOND REQUEST:
         var url2 = url
-        if (bestScore <= matchDoubleThreshold || items.isEmpty()) {
+        if (bestScore <= matchDoubleThreshold || items.isEmpty() || queryLanguage == "it") {
             //Compose query:
             if (artistName != "") {
                 val encodedArtistName: String = URLEncoder.encode(artistName, "UTF-8")
@@ -140,7 +147,7 @@ class SpotifySearch() {
                     logJSON.addProperty("n_items", n_items)
                     //Get best score:
                     if (n_items > 0) {
-                        bestMatches = getBestMatches(items2, matchName, artistName, live)
+                        bestMatches = getBestMatches(items2, matchName, artistName, contextType, live)
                         logJSON.add("spotify_matches", bestMatches)
                         //Best:
                         var bestScore2 = bestMatches[0].asJsonObject.get("score").asInt
@@ -208,7 +215,7 @@ class SpotifySearch() {
     }
 
     //Spotify: get Best Result:
-    fun getBestMatches(items: JsonArray, matchName: String, artistName: String, live: Boolean): JsonArray {
+    fun getBestMatches(items: JsonArray, matchName: String, artistName: String, contextType: String, live: Boolean): JsonArray {
         //Analyse Spotify query result:
         //GET BEST RESULT:
         var c = 0

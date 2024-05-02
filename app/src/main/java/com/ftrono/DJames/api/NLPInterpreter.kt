@@ -7,6 +7,8 @@ import android.content.Context
 import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.maxThreshold
 import com.ftrono.DJames.application.midThreshold
+import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.supportedLanguageCodes
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
@@ -20,7 +22,7 @@ class NLPInterpreter (private val context: Context) {
     private val utils = Utilities()
 
     //NOTE: To be called only if Intent HAS a song name inside!
-    fun extractMatches(queryText: String): JsonObject {
+    fun extractMatches(queryText: String, reqLanguage: String): JsonObject {
         //INIT:
         var retExtracted = JsonObject()
         var playType = "track"
@@ -34,19 +36,38 @@ class NLPInterpreter (private val context: Context) {
         //Tools:
         var byNumber = 0
         var byFull = false
+        //Query language:
+        var queryLanguage = supportedLanguageCodes[prefs.queryLanguage.toInt()]
+        if (reqLanguage != "") {
+            queryLanguage = reqLanguage
+        }
 
         //Search items:
-        val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents)))
+        var reader: BufferedReader? = null
+        if (queryLanguage == "it") {
+            reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents_ita)))   //"ita"
+        } else {
+            reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents_eng)))   //"eng"
+        }
+        //Load:
         val sourceSents = JsonParser.parseReader(reader).asJsonObject
+        val thisWords = sourceSents.get("this_words").asJsonArray   //"this"
+        val contextSents = sourceSents.get("context_sents").asJsonArray   //"context"
+        val contextLikedSents = sourceSents.get("context_liked_sents").asJsonArray   //"liked songs"
         val playSents = sourceSents.get("play_sents").asJsonArray   //"play"
         val bySents = sourceSents.get("by_sents").asJsonArray   //"by" (full phrasing)
-        val contextSents = sourceSents.get("context_sents").asJsonArray   //"context"
-
+        val byWordsJson = sourceSents.get("by_words").asJsonArray   //"by" (single word)
+        var byWords = mutableListOf<String>()
+        for (wordEl in byWordsJson) {
+            val word = wordEl.asString
+            byWords.add(word)
+        }
+        Log.d(TAG, "BY_WORDS: $byWords")
 
         //1) COUNTERS:
         // Count number of occurrences of the world "by":
         for (tok in queryText.split(" ")) {
-            if (tok == "by") byNumber++
+            if (byWords.contains(tok)) byNumber++
         }
 
 
@@ -82,14 +103,25 @@ class NLPInterpreter (private val context: Context) {
                 byFull = true
                 byStr = sent
                 //check "current":
-                if (sent.contains("this ")) currentArtist = true
+                for (wordEl in thisWords) {
+                    val word = wordEl.asString
+                    if (sent.contains(word)) {
+                        currentArtist = true
+                        break
+                    }
+                }
                 break
             }
         }
         if (byInd == -1) {
             //If not full phrasing for "by" -> look for just "by":
-            byInd = queryText.indexOf("by ", ignoreCase = true)
-            if (byInd > -1) byStr = "by"
+            for (word in byWords) {
+                byInd = queryText.indexOf(word, ignoreCase = true)
+                if (byInd > -1) {
+                    byStr = word
+                    break
+                }
+            }
         }
 
         //"context":
@@ -105,11 +137,24 @@ class NLPInterpreter (private val context: Context) {
                     contextType = "playlist"
                 }
                 //check "current":
-                if (sent.contains("this")) currentContext = true
+                for (wordEl in thisWords) {
+                    val word = wordEl.asString
+                    if (sent.contains(word)) {
+                        currentContext = true
+                        break
+                    }
+                }
                 //Check "liked songs":
-                else if (sent.contains("liked songs") || sent.contains("saved songs") || sent.contains("my songs")) {
-                    contextLiked = true
-                    contextType = "playlist"
+                if (!currentContext) {
+                    //check "current":
+                    for (likedEl in contextLikedSents) {
+                        val likedSent = likedEl.asString
+                        if (sent.contains(likedSent)) {
+                            contextLiked = true
+                            contextType = "playlist"
+                            break
+                        }
+                    }
                 }
                 break
             }
@@ -216,7 +261,7 @@ class NLPInterpreter (private val context: Context) {
 
 
     //Double check artists between DF & NLP Extractor:
-    fun checkArtists(artistsNlp: JsonArray, artistExtracted: String): String {
+    fun checkArtists(artistsNlp: JsonArray, artistExtracted: String, reqLanguage: String): String {
         var artistConfirmed = ""
 
         //1) CHECK NLP ENTITIES VS ORIGINAL TEXT EXTRACTION:
@@ -228,9 +273,19 @@ class NLPInterpreter (private val context: Context) {
             var artist = ""
             var artistsTemp = ArrayList<String>()
             //Split artists extracted:
-            var listExtracted = artistExtracted.split(" and ")
+            var listExtracted: List<String>? = null
+            //language:
+            var queryLanguage = supportedLanguageCodes[prefs.queryLanguage.toInt()]
+            if (reqLanguage != "") {
+                queryLanguage = reqLanguage
+            }
+            if (queryLanguage == "it") {
+                listExtracted = artistExtracted.split(" e ")
+            } else {
+                listExtracted = artistExtracted.split(" and ")
+            }
             //Match one by one the artists extracted by DF with those extracted by Extractor:
-            for (extr in listExtracted) {
+            for (extr in listExtracted!!) {
                 for (artJs in artistsNlp) {
                     artist = artJs.asString
                     score = FuzzySearch.ratio(artist.lowercase(), extr)
@@ -322,8 +377,9 @@ class NLPInterpreter (private val context: Context) {
 
 
     //Match contact from user query against user vocabulary:
-    fun extractContact(queryText: String): String {
+    fun extractContact(queryText: String, fullLanguage: String = ""): String {
         var phone = ""
+        var queryClean = queryText
         //Init log:
         var contactExtractor = JsonObject()
         contactExtractor.addProperty("contact_extracted", "")
@@ -336,16 +392,31 @@ class NLPInterpreter (private val context: Context) {
             return phone
         } else {
             //Search items:
-            val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents)))
+            var reader: BufferedReader? = null
+            //Calls / message requests -> only use default query language:
+            if (prefs.queryLanguage.toInt() == 1) {
+                reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents_ita)))   //"ita"
+            } else {
+                reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents_eng)))   //"eng"
+            }
+            //Load:
             val sourceSents = JsonParser.parseReader(reader).asJsonObject
             val phoneSents = sourceSents.get("phone_sents").asJsonArray   //"call" (full phrasing)
+
+            //clean sent from language:
+            if (fullLanguage != "") {
+                //remove requested language name:
+                queryClean = queryClean.replace(fullLanguage, "")
+                queryClean = queryClean.replace(" in ", "")
+                queryClean = queryClean.strip()
+            }
 
             //"to / call / message":
             var toInd = -1
             var toStr = ""
             for (sentEl in phoneSents) {
                 val sent = sentEl.asString
-                toInd = queryText.indexOf(sent, ignoreCase = true)
+                toInd = queryClean.indexOf(sent, ignoreCase = true)
                 //found:
                 if (toInd > -1) {
                     toStr = sent
@@ -355,7 +426,9 @@ class NLPInterpreter (private val context: Context) {
 
             //Match contact name:
             if (toInd > -1) {
-                var contactExtracted = queryText.slice((toInd + toStr.length)..queryText.lastIndex).strip()
+                //slice:
+                Log.d(TAG, "TO_STR: $toStr")
+                var contactExtracted = queryClean.slice((toInd + toStr.length)..queryClean.lastIndex).strip()
                 contactExtractor.addProperty("contact_extracted", contactExtracted)
                 Log.d(TAG, "CONTACT EXTRACTED: $contactExtracted")
                 //2) Match extracted contact name with user vocabulary:

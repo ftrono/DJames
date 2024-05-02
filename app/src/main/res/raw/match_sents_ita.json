@@ -1,0 +1,91 @@
+{
+  "phone_sents": [
+    "telefona a ",
+    "telefonata a ",
+    "chiama ",
+    "chiamami ",
+    "chiamata a ",
+    "messaggio a ",
+    "sms a ",
+    "messaggia ",
+    "messaggiami ",
+    "contatto ",
+    " a "
+  ],
+  "this_words": [
+    "questo ",
+    "questa "
+  ],
+  "context_liked_sents": [
+    "canzoni salvate",
+    "mie canzoni",
+    "mia collezione",
+    "preferiti ",
+    "preferite"
+  ],
+  "play_sents": [
+    "riproduci la canzone ",
+    "metti la canzone ",
+    "fammi ascoltare la canzone ",
+    "fai partire la canzone ",
+    "play la canzone ",
+    "riproduci l'album ",
+    "metti l'album ",
+    "fammi ascoltare l'album ",
+    "fai partire l'album ",
+    "play l'album ",
+    "riproduci la playlist ",
+    "metti la playlist ",
+    "fammi ascoltare la playlist ",
+    "fai partire la playlist ",
+    "play la playlist ",
+    "fammi ascoltare ",
+    "fai partire ",
+    "riproduci ",
+    "mettimi ",
+    "metti ",
+    "play "
+  ],
+  "by_sents": [
+    "dal cantante ",
+    "del cantante ",
+    "dei cantanti ",
+    "dall'artista ",
+    "dell'artista ",
+    "degli artisti ",
+    "della band ",
+    "del gruppo ",
+    "cantata da ",
+    "cantata dagli ",
+    "cantata dai "
+  ],
+  "by_words": [
+    "by ",
+    "degli ",
+    "dei ",
+    "di "
+  ],
+  "context_sents": [
+    "dall'album",
+    "dalla playlist",
+    "dalla mia playlist",
+    "dalle mie canzoni salvate",
+    "dalle mie canzoni",
+    "dalla mia collezione",
+    "dalla collezione",
+    "dai preferiti",
+    "dai miei preferiti",
+    "dalle mie canzoni preferite",
+    "dalle mie preferite"
+  ],
+  "emojiMap": {
+    "sorriso": "🙂",
+    "felice": "😃",
+    "sorrisino": "😁",
+    "bacio": "😘",
+    "occhiali da sole": "😎",
+    "cuore": "❤️",
+    "triste": "☹️",
+    "preoccupato": "🫤"
+  }
+}

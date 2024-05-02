@@ -124,16 +124,20 @@ class HistoryAdapter(
                     holder.match_name.text = contacted
                 } else {
                     holder.match_name_intro.text = "TYPE: "
-                    holder.match_name.text = "CallRequest"
+                    try {
+                        holder.match_name.text = logItem.get("nlp").asJsonObject.get("intent_response").asString
+                    } catch (e: Exception) {
+                        holder.match_name.text = "Unknown request"
+                    }
                 }
 
             } catch (e:Exception) {
                 //GENERIC REQUEST:
                 holder.match_name_intro.text = "TYPE: "
                 try {
-                    holder.match_name.text = logItem.get("nlp").asJsonObject.get("intent").asString
+                    holder.match_name.text = logItem.get("nlp").asJsonObject.get("intent_response").asString
                 } catch (e: Exception) {
-                    holder.match_name.text = "PlayRequest"
+                    holder.match_name.text = "Unknown request"
                 }
             }
             holder.match_name.setPadding(

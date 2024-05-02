@@ -59,20 +59,53 @@ class Utilities {
     }
 
 
-    //Emoji replacer:
-    fun replaceEmojis(context: Context, text: String): String {
-        var textReplaced = text
-        //Load map:
-        val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents)))
-        val sourceSents = JsonParser.parseReader(reader).asJsonObject
-        var emojiMap = JsonObject()
-
-        //Prefs: 0 -> Italian, 1 -> English:
-        if (prefs.messageLanguage.toInt() == 0) {
-            emojiMap = sourceSents.get("emojiMapIta").asJsonObject   //"ita"
-        } else {
-            emojiMap = sourceSents.get("emojiMapEng").asJsonObject   //"eng"
+    //Check Language switch:
+    fun checkLanguageSwitch(context: Context, resultsNLP: JsonObject): String {
+        var reqLanguage = ""
+        //text:
+        val queryText = resultsNLP.get("query_text").asString
+        val tokens = queryText.split(" ")
+        //CHECK:
+        if (tokens.size > 1) {
+            //if language entity found: check if it's the first or second word of the sentence:
+            val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.languages)))
+            val sourceMap = JsonParser.parseReader(reader).asJsonObject
+            for (lang in sourceMap.keySet()) {
+                //if the queryText actually includes one of the switch sentences:
+                if (tokens[0] == lang || (tokens[1] == lang && tokens[0] == "in")) {
+                    //validate reqLanguage only if different from the default one:
+                    if (sourceMap[lang].asString != supportedLanguageCodes[prefs.queryLanguage.toInt()]) {
+                        //set reqLanguage to the entity value:
+                        reqLanguage = sourceMap[lang].asString
+                    }
+                    break
+                }
+            }
         }
+        Log.d(TAG, "DETECTED REQLANGUAGE: $reqLanguage")
+        return reqLanguage
+    }
+
+
+    //Emoji replacer:
+    fun replaceEmojis(context: Context, text: String, reqLanguage: String): String {
+        var textReplaced = text
+        var reader: BufferedReader? = null
+        //Query language:
+        var messLanguage = supportedLanguageCodes[prefs.messageLanguage.toInt()]
+        if (reqLanguage != "") {
+            messLanguage = reqLanguage
+        }
+        //language:
+        if (messLanguage == "it") {
+            reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents_ita)))   //"ita"
+        } else {
+            reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents_eng)))   //"eng"
+        }
+
+        //Load map:
+        val sourceSents = JsonParser.parseReader(reader).asJsonObject
+        val emojiMap = sourceSents.get("emojiMap").asJsonObject
 
         //Replace:
         textReplaced = textReplaced.replace("Emoji", "emoji")
@@ -81,7 +114,7 @@ class Utilities {
         textReplaced = textReplaced.replace("emoji?", "emoji")
 
         for (sent in emojiMap.keySet()) {
-            textReplaced = textReplaced.replace(sent, emojiMap.get(sent).asString)
+            textReplaced = textReplaced.replace("emoji $sent", emojiMap.get(sent).asString, ignoreCase=true)
         }
         return textReplaced
     }

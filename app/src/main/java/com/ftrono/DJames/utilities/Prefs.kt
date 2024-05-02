@@ -44,27 +44,33 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getBoolean(KEY_AUTO_STARTUP, false) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_AUTO_STARTUP, value).apply()
 
-    //Rec timeout:
-    var recTimeout: String
-        get() = sharedPrefs.getString(KEY_REC_TIMEOUT, "10") as String
-        set(value) = sharedPrefs.edit().putString(KEY_REC_TIMEOUT, value).apply()
-
     //Overlay position:
     var overlayPosition: String
         //0 -> Left; 1 -> Right
         get() = sharedPrefs.getString(KEY_OVERLAY_POSITION, "1") as String
         set(value) = sharedPrefs.edit().putString(KEY_OVERLAY_POSITION, value).apply()
 
+    //Voice queries default language:
+    var queryLanguage: String
+        //"en-US" -> English; "it" -> Italian
+        get() = sharedPrefs.getString(KEY_QUERY_LANGUAGE, "0") as String
+        set(value) = sharedPrefs.edit().putString(KEY_QUERY_LANGUAGE, value).apply()
+
+    //Rec timeout:
+    var recTimeout: String
+        get() = sharedPrefs.getString(KEY_REC_TIMEOUT, "10") as String
+        set(value) = sharedPrefs.edit().putString(KEY_REC_TIMEOUT, value).apply()
+
+    //Message default language:
+    var messageLanguage: String
+        //"en-US" -> English; "it" -> Italian
+        get() = sharedPrefs.getString(KEY_MESSAGE_LANGUAGE, "0") as String
+        set(value) = sharedPrefs.edit().putString(KEY_MESSAGE_LANGUAGE, value).apply()
+
     //Message timeout:
     var messageTimeout: String
         get() = sharedPrefs.getString(KEY_MESSAGE_TIMEOUT, "15") as String
         set(value) = sharedPrefs.edit().putString(KEY_MESSAGE_TIMEOUT, value).apply()
-
-    //Message default language:
-    var messageLanguage: String
-        //"it" -> Italian; "en-US" -> English
-        get() = sharedPrefs.getString(KEY_MESSAGE_LANGUAGE, "0") as String
-        set(value) = sharedPrefs.edit().putString(KEY_MESSAGE_LANGUAGE, value).apply()
 
     //Auto Clock:
     var autoClock: Boolean
@@ -88,7 +94,7 @@ class Prefs (context: Context) {
 
     //Hide status bar in Clock:
     var hideBars: Boolean
-        get() = sharedPrefs.getBoolean(KEY_HIDE_BARS, true) as Boolean
+        get() = sharedPrefs.getBoolean(KEY_HIDE_BARS, false) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_HIDE_BARS, value).apply()
 
     //Preferred mic:
@@ -140,10 +146,11 @@ class Prefs (context: Context) {
         //KEYS:
         //Shared prefs:
         const val KEY_AUTO_STARTUP = ".key.auto_startup"
-        const val KEY_REC_TIMEOUT = ".key.rec_timeout"
         const val KEY_OVERLAY_POSITION = ".key.overlay_position"
-        const val KEY_MESSAGE_TIMEOUT = ".key.message_timeout"
+        const val KEY_REC_TIMEOUT = ".key.rec_timeout"
+        const val KEY_QUERY_LANGUAGE = ".key.query_language"
         const val KEY_MESSAGE_LANGUAGE = ".key.message_language"
+        const val KEY_MESSAGE_TIMEOUT = ".key.message_timeout"
         const val KEY_AUTO_CLOCK = ".key.auto_clock"
         const val KEY_CLOCK_REDIRECT_ENABLED = ".key.clock_redirect_enabled"
         const val KEY_CLOCK_TIMEOUT = ".key.clock_timeout"

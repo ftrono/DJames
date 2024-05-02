@@ -1,8 +1,16 @@
 {
   "phone_sents": [
-    "to ",
+    " to ",
     "call ",
     "message "
+  ],
+  "this_words": [
+    "this "
+  ],
+  "context_liked_sents": [
+    "liked songs",
+    "saved songs",
+    "my songs"
   ],
   "play_sents": [
     "play the song ",
@@ -11,10 +19,13 @@
     "play "
   ],
   "by_sents": [
-    "by the artist",
-    "by this artist",
-    "from the artist",
-    "from this artist"
+    "by the artist ",
+    "by this artist ",
+    "from the artist ",
+    "from this artist "
+  ],
+  "by_words": [
+    "by "
   ],
   "context_sents": [
     "from the album",
@@ -58,24 +69,14 @@
     "on liked tracks",
     "on saved tracks"
   ],
-  "emojiMapIta": {
-    "emoji sorriso": "🙂",
-    "emoji felice": "😃",
-    "emoji sorrisino": "😁",
-    "emoji bacio": "😘",
-    "emoji occhiali da sole": "😎",
-    "emoji cuore": "❤️",
-    "emoji triste": "☹️",
-    "emoji preoccupato": "🫤"
-  },
-  "emojiMapEng": {
-    "emoji smile": "🙂",
-    "emoji happy": "😃",
-    "emoji grin": "😁",
-    "emoji kiss": "😘",
-    "emoji sunglasses": "😎",
-    "emoji heart": "❤️",
-    "emoji sad": "☹️",
-    "emoji worried": "🫤"
+  "emojiMap": {
+    "smile": "🙂",
+    "happy": "😃",
+    "grin": "😁",
+    "kiss": "😘",
+    "sunglasses": "😎",
+    "heart": "❤️",
+    "sad": "☹️",
+    "worried": "🫤"
   }
 }

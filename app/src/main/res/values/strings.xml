@@ -22,9 +22,9 @@
         <item>Left     </item>
         <item>Right     </item>
     </string-array>
-    <string-array name="messageLanguage">
-        <item>Italiano     </item>
+    <string-array name="languages">
         <item>English     </item>
+        <item>Italiano     </item>
     </string-array>
     <string-array name="micType">
         <item>Current default     </item>

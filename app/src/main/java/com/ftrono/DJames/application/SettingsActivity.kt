@@ -41,7 +41,7 @@ class SettingsActivity : AppCompatActivity() {
     //Views:
     private var user_container: View? = null
     private var divider: View? = null
-    private var header_preferences: TextView? = null
+    private var header_overlay: TextView? = null
     private var text_rec_timeout: TextView? = null
     private var text_mess_timeout: TextView? = null
     private var text_clock_timeout: TextView? = null
@@ -62,7 +62,7 @@ class SettingsActivity : AppCompatActivity() {
         //Views:
         user_container = findViewById<View>(R.id.user_container)
         divider = findViewById<View>(R.id.divider)
-        header_preferences = findViewById<TextView>(R.id.header_preferences)
+        header_overlay = findViewById<TextView>(R.id.header_overlay)
         var version = findViewById<TextView>(R.id.version)
         version.text = "Version $appVersion"
 
@@ -93,7 +93,7 @@ class SettingsActivity : AppCompatActivity() {
                 leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
                 leftToRight = R.id.user_container
             }
-            header_preferences!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+            header_overlay!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
                 topToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
                 topToTop = ConstraintLayout.LayoutParams.PARENT_ID
             }
@@ -132,10 +132,6 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-        //RecTimeout:
-        text_rec_timeout = findViewById<TextView>(R.id.val_rec_timeout)
-        text_rec_timeout!!.text = prefs.recTimeout
-
         //Overlay Position:
         var c = 0
         var spinner_overlay_pos = findViewById<Spinner>(R.id.spinner_overlay_pos)
@@ -152,12 +148,24 @@ class SettingsActivity : AppCompatActivity() {
             override fun onNothingSelected(arg0: AdapterView<*>?) {}
         })
 
+        
+        //SECTION: VOICE QUERIES:
+        //Voice queries: default language:
+        var spinner_query_language = findViewById<Spinner>(R.id.spinner_query_language)
+        spinner_query_language!!.setSelection(prefs.queryLanguage.toInt())
+        spinner_query_language.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(adapter: AdapterView<*>?, view: View, pos: Int, id: Long) {
+                prefs.queryLanguage = pos.toString()
+            }
+            override fun onNothingSelected(arg0: AdapterView<*>?) {}
+        })
 
-        //SECTION: OVERLAY:
-        //Messages Timeout:
-        text_mess_timeout = findViewById<TextView>(R.id.val_mess_timeout)
-        text_mess_timeout!!.text = prefs.messageTimeout
+        //Voice queries: RecTimeout:
+        text_rec_timeout = findViewById<TextView>(R.id.val_rec_timeout)
+        text_rec_timeout!!.text = prefs.recTimeout
 
+
+        //SECTION: MESSAGING:
         //Messages default language:
         var spinner_mess_language = findViewById<Spinner>(R.id.spinner_mess_language)
         spinner_mess_language!!.setSelection(prefs.messageLanguage.toInt())
@@ -167,6 +175,10 @@ class SettingsActivity : AppCompatActivity() {
             }
             override fun onNothingSelected(arg0: AdapterView<*>?) {}
         })
+
+        //Messages Timeout:
+        text_mess_timeout = findViewById<TextView>(R.id.val_mess_timeout)
+        text_mess_timeout!!.text = prefs.messageTimeout
 
 
         //SECTION: CLOCK:
@@ -331,7 +343,7 @@ class SettingsActivity : AppCompatActivity() {
                 leftToRight = ConstraintLayout.LayoutParams.UNSET   //clear
                 leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
             }
-            header_preferences!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+            header_overlay!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
                 topToTop = ConstraintLayout.LayoutParams.UNSET   //clear
                 topToBottom = R.id.user_container
             }
@@ -346,7 +358,7 @@ class SettingsActivity : AppCompatActivity() {
                 leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
                 leftToRight = R.id.user_container
             }
-            header_preferences!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
+            header_overlay!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
                 topToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
                 topToTop = ConstraintLayout.LayoutParams.PARENT_ID
             }

@@ -86,14 +86,14 @@
             />
 
         <!-- SETTINGS-->
-        <!-- OVERLAY SERVICE-->
+        <!-- OVERLAY BUTTON -->
         <TextView
-            android:id="@+id/header_preferences"
+            android:id="@+id/header_overlay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
             android:layout_marginLeft="20dp"
-            android:text= "🗣️  Overlay service"
+            android:text= "🔘️  Overlay button"
             android:textSize="20dp"
             android:textStyle="bold"
             android:textColor="@color/light_grey"
@@ -113,20 +113,88 @@
             android:checked="true"
             app:theme="@style/CheckBoxStyle"
             app:layout_constraintLeft_toRightOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/header_preferences"/>
+            app:layout_constraintTop_toBottomOf="@+id/header_overlay"/>
+
+        <!-- Overlay Button position-->
+        <TextView
+            android:id="@+id/header_overlay_position"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:layout_marginLeft="58dp"
+            android:text= "Overlay button position"
+            android:textSize="14dp"
+            android:textColor="@color/light_grey"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintTop_toBottomOf="@+id/checkbox_startup"/>
+
+        <Spinner
+            android:id="@+id/spinner_overlay_pos"
+            android:paddingEnd="8dp"
+            android:paddingStart="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="46dp"
+            android:textSize="14dp"
+            android:backgroundTint="@color/light_grey"
+            android:entries="@array/overlayPos"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintTop_toBottomOf="@+id/header_overlay_position"/>
+
+        <!-- VOICE QUERIES -->
+        <TextView
+            android:id="@+id/header_queries"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginLeft="20dp"
+            android:text= "🗣️  Voice queries"
+            android:textSize="20dp"
+            android:textStyle="bold"
+            android:textColor="@color/light_grey"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintTop_toBottomOf="@+id/spinner_overlay_pos"/>
+
+        <!-- Voice queries default language-->
+        <TextView
+            android:id="@+id/header_query_language"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:layout_marginLeft="58dp"
+            android:text= "Voice queries: default language"
+            android:textSize="14dp"
+            android:textColor="@color/light_grey"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintTop_toBottomOf="@+id/header_queries"/>
+
+        <Spinner
+            android:id="@+id/spinner_query_language"
+            android:paddingEnd="8dp"
+            android:paddingStart="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="46dp"
+            android:textSize="14dp"
+            android:backgroundTint="@color/light_grey"
+            android:entries="@array/languages"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintTop_toBottomOf="@+id/header_query_language"/>
 
         <!-- Rec timeout-->
         <TextView
             android:id="@+id/header_rec_timeout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="20dp"
             android:layout_marginLeft="58dp"
-            android:text= "Voice query: timeout recording after"
+            android:text= "Voice queries: timeout recording after"
             android:textSize="14dp"
             android:textColor="@color/light_grey"
             app:layout_constraintLeft_toRightOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/checkbox_startup"/>
+            app:layout_constraintTop_toBottomOf="@+id/spinner_query_language"/>
 
         <EditText
             android:id="@+id/val_rec_timeout"
@@ -158,33 +226,6 @@
             app:layout_constraintBottom_toBottomOf="@+id/val_rec_timeout"/>
 
 
-        <!-- Overlay Button position-->
-        <TextView
-            android:id="@+id/header_overlay_position"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:layout_marginLeft="58dp"
-            android:text= "Overlay button position"
-            android:textSize="14dp"
-            android:textColor="@color/light_grey"
-            app:layout_constraintLeft_toRightOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/descr_rec_timeout"/>
-
-        <Spinner
-            android:id="@+id/spinner_overlay_pos"
-            android:paddingEnd="8dp"
-            android:paddingStart="8dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginLeft="46dp"
-            android:textSize="14dp"
-            android:backgroundTint="@color/light_grey"
-            android:entries="@array/overlayPos"
-            app:layout_constraintLeft_toRightOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/header_overlay_position"/>
-
 
         <!-- MESSAGING -->
         <TextView
@@ -198,20 +239,47 @@
             android:textStyle="bold"
             android:textColor="@color/light_grey"
             app:layout_constraintLeft_toRightOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/spinner_overlay_pos"/>
+            app:layout_constraintTop_toBottomOf="@+id/descr_rec_timeout"/>
+
+        <!-- Messages default language-->
+        <TextView
+            android:id="@+id/header_mess_language"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:layout_marginLeft="58dp"
+            android:text= "Messages: default language"
+            android:textSize="14dp"
+            android:textColor="@color/light_grey"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintTop_toBottomOf="@+id/header_messaging"/>
+
+        <Spinner
+            android:id="@+id/spinner_mess_language"
+            android:paddingEnd="8dp"
+            android:paddingStart="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="46dp"
+            android:textSize="14dp"
+            android:backgroundTint="@color/light_grey"
+            android:entries="@array/languages"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintTop_toBottomOf="@+id/header_mess_language"/>
 
         <!-- Messaging timeout-->
         <TextView
             android:id="@+id/header_mess_timeout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
+            android:layout_marginTop="20dp"
             android:layout_marginLeft="58dp"
             android:text= "Messages: timeout recording after"
             android:textSize="14dp"
             android:textColor="@color/light_grey"
             app:layout_constraintLeft_toRightOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/header_messaging"/>
+            app:layout_constraintTop_toBottomOf="@+id/spinner_mess_language"/>
 
         <EditText
             android:id="@+id/val_mess_timeout"
@@ -243,34 +311,6 @@
             app:layout_constraintBottom_toBottomOf="@+id/val_mess_timeout"/>
 
 
-        <!-- Messages default language-->
-        <TextView
-            android:id="@+id/header_mess_language"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:layout_marginLeft="58dp"
-            android:text= "Messages: default language"
-            android:textSize="14dp"
-            android:textColor="@color/light_grey"
-            app:layout_constraintLeft_toRightOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/descr_mess_timeout"/>
-
-        <Spinner
-            android:id="@+id/spinner_mess_language"
-            android:paddingEnd="8dp"
-            android:paddingStart="8dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginLeft="46dp"
-            android:textSize="14dp"
-            android:backgroundTint="@color/light_grey"
-            android:entries="@array/messageLanguage"
-            app:layout_constraintLeft_toRightOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/header_mess_language"/>
-
-
         <!-- CLOCK SCREEN -->
         <TextView
             android:id="@+id/header_clock"
@@ -283,7 +323,7 @@
             android:textStyle="bold"
             android:textColor="@color/light_grey"
             app:layout_constraintLeft_toRightOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/spinner_mess_language"/>
+            app:layout_constraintTop_toBottomOf="@+id/descr_mess_timeout"/>
 
         <!-- Auto Clock -->
         <CheckBox
@@ -436,7 +476,7 @@
             android:id="@+id/header_mic"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="14dp"
             android:layout_marginLeft="58dp"
             android:text= "Preferred microphone"
             android:textSize="14dp"

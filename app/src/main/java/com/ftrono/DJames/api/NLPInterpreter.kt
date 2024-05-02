@@ -401,13 +401,17 @@ class NLPInterpreter (private val context: Context) {
             }
             //Load:
             val sourceSents = JsonParser.parseReader(reader).asJsonObject
-            val phoneSents = sourceSents.get("phone_sents").asJsonArray   //"call" (full phrasing)
+            val phoneSents = sourceSents.get("phone_sents").asJsonArray   //"call / message" (full phrasing)
+            val introLang = sourceSents.get("intro_lang").asJsonArray   //" in "
 
             //clean sent from language:
             if (fullLanguage != "") {
                 //remove requested language name:
                 queryClean = queryClean.replace(fullLanguage, "")
-                queryClean = queryClean.replace(" in ", "")
+                for (intro in introLang) {
+                    var introStr = intro.asString
+                    queryClean = queryClean.replace(introStr, "")
+                }
                 queryClean = queryClean.strip()
             }
 

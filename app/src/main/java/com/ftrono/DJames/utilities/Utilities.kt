@@ -62,6 +62,23 @@ class Utilities {
     //Check Language switch:
     fun checkLanguageSwitch(context: Context, resultsNLP: JsonObject): String {
         var reqLanguage = ""
+        //Search items:
+        var reader: BufferedReader? = null
+        //Calls / message requests -> only use default query language:
+        if (prefs.queryLanguage.toInt() == 1) {
+            reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents_ita)))   //"ita"
+        } else {
+            reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents_eng)))   //"eng"
+        }
+        //Load:
+        val sourceSents = JsonParser.parseReader(reader).asJsonObject
+        val introLang = sourceSents.get("intro_lang").asJsonArray   //" in "
+        var introWords = mutableListOf<String>()
+        for (wordEl in introLang) {
+            val word = wordEl.asString
+            introWords.add(word.strip())
+        }
+
         //text:
         val queryText = resultsNLP.get("query_text").asString
         val tokens = queryText.split(" ")
@@ -72,7 +89,7 @@ class Utilities {
             val sourceMap = JsonParser.parseReader(reader).asJsonObject
             for (lang in sourceMap.keySet()) {
                 //if the queryText actually includes one of the switch sentences:
-                if (tokens[0] == lang || (tokens[1] == lang && tokens[0] == "in")) {
+                if (tokens[0] == lang || (tokens[1] == lang && tokens[0] in introWords)) {
                     //validate reqLanguage only if different from the default one:
                     if (sourceMap[lang].asString != supportedLanguageCodes[prefs.queryLanguage.toInt()]) {
                         //set reqLanguage to the entity value:

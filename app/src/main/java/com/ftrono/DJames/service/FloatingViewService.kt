@@ -567,6 +567,7 @@ class FloatingViewService : Service() {
                 Log.d(TAG, "EVENT: PHONE STATE CHANGED.")
                 try {
                     val state = intent.getStringExtra(TelephonyManager.EXTRA_STATE)
+                    Log.d(TAG, "TELEPHONY INTENT STATE: $state")
                     if (state == TelephonyManager.EXTRA_STATE_OFFHOOK) {
                         callMode = true
                         vol_initialized = false

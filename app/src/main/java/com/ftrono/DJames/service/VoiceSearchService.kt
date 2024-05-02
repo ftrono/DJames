@@ -555,7 +555,6 @@ class VoiceSearchService : Service() {
                     if (phone == "") {
                         //Play FAIL tone:
                         toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-                        stopSelf()
                     } else {
                         //Play ACKNOWLEDGE tone:
                         toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
@@ -565,8 +564,8 @@ class VoiceSearchService : Service() {
                             intent.putExtra("toCall", "tel:${phone}")
                             sendBroadcast(intent)
                         }
-                        stopSelf()
                     }
+                    stopSelf()
 
                 } else if (intentName == "MessageRequest") {
                     //B) MESSAGE:

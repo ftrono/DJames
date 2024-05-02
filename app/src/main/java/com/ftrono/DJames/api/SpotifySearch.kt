@@ -304,8 +304,8 @@ class SpotifySearch() {
                     bestInd = k
                     bestType = "saved"
                 }
-            //PRIORITY 3) If just album & not a saved track found before -> update best:
-            } else if (bestInd == 0 && bestType != "saved" && result.get("albumType").asString == "album") {
+            //PRIORITY 3) If just album & not a saved track found before & context != playlist -> update best:
+            } else if (bestInd == 0 && bestType != "saved" && contextType != "playlist" && result.get("albumType").asString == "album") {
                 bestInd = k
                 bestType = "album"
             }

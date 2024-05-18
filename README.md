@@ -12,6 +12,8 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
+**Version 1.11 (2024-05-18)** - Minor usability improvements.
+
 **Version 1.10 (2024-05-02)** - Add support to voice queries in Italian.
 
 **Version 1.09 (2024-04-23)** - Simplify player info management, minor fixes.

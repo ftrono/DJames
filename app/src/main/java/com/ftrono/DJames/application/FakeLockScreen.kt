@@ -17,16 +17,18 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.updateLayoutParams
 import com.ftrono.DJames.R
+import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
-import com.squareup.picasso.Picasso
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
+//import com.squareup.picasso.Picasso
 
 
 class FakeLockScreen: AppCompatActivity() {
 
     private val TAG: String = FakeLockScreen::class.java.getSimpleName()
+    private val utils = Utilities()
 
     //Views:
     private var dateView: TextView? = null
@@ -269,19 +271,11 @@ class FakeLockScreen: AppCompatActivity() {
         clockView!!.text = now!!.format(hourFormat) + clockSeparator + now!!.format(minsFormat)
     }
 
-    fun trimName(nameOrig: String, maxLength: Int = 30): String {
-        var nameTrimmed = nameOrig
-        if (nameOrig.length > 30) {
-            nameTrimmed = nameOrig.slice(0..maxLength) + "..."
-        }
-        return nameTrimmed
-    }
-
     fun updatePlayer() {
         //Populate player info:
-        songView!!.text = trimName(songName)
-        artistView!!.text = trimName(artistName)
-        contextView!!.text = trimName(contextName)
+        songView!!.text = utils.trimString(songName)
+        artistView!!.text = utils.trimString(artistName)
+        contextView!!.text = utils.trimString(contextName)
     }
 
 

@@ -251,10 +251,12 @@ class NLPInterpreter (private val context: Context) {
         retExtracted.addProperty("match_extracted", matchExtracted)
         retExtracted.addProperty("artist_current", currentArtist)
         retExtracted.addProperty("artist_extracted", artistExtracted)
+        retExtracted.addProperty("artist_confirmed", "")
         retExtracted.addProperty("context_type", contextType)
         retExtracted.addProperty("context_current", currentContext)
         retExtracted.addProperty("context_liked", contextLiked)
         retExtracted.addProperty("context_extracted", contextExtracted)
+        retExtracted.addProperty("context_confirmed", "")
         //Log.d(TAG, "NLP EXTRACTOR RESULTS: $retExtracted")
         return retExtracted
     }

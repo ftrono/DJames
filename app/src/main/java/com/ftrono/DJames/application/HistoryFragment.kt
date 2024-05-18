@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.ftrono.DJames.R
 import com.ftrono.DJames.adapter.HistoryAdapter
+import com.ftrono.DJames.utilities.Utilities
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.gson.JsonArray
 import java.io.File
@@ -29,6 +30,7 @@ import java.io.File
 class HistoryFragment : Fragment(R.layout.fragment_history) {
 
     private val TAG: String = HistoryFragment::class.java.getSimpleName()
+    private var utils = Utilities()
 
     private var swipeRefreshLayout: SwipeRefreshLayout? = null
     private var textNoData: TextView? = null

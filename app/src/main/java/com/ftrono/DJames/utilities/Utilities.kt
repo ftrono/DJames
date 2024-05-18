@@ -59,6 +59,15 @@ class Utilities {
     }
 
 
+    fun trimString(textOrig: String, maxLength: Int = 30): String {
+        var textTrimmed = textOrig
+        if (textOrig.length > maxLength) {
+            textTrimmed = textOrig.slice(0..maxLength) + "..."
+        }
+        return textTrimmed
+    }
+
+
     //Check Language switch:
     fun checkLanguageSwitch(context: Context, resultsNLP: JsonObject): String {
         var reqLanguage = ""
@@ -210,7 +219,7 @@ class Utilities {
     //Prepare consolidated Log file:
     fun prepareLogCons(context: Context, hideSuccessful: Boolean): File {
         val logConsName = "requests_log.json"
-        val logArray = utils.getLogArray(hideSuccessful=hideSuccessful)
+        val logArray = getLogArray(hideSuccessful=hideSuccessful)
         var consFile = File(context.cacheDir, logConsName)
         if (consFile.exists()) {
             consFile.delete()

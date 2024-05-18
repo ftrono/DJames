@@ -4,6 +4,7 @@ import com.google.gson.JsonObject
 import android.util.Log
 import android.content.Context
 import com.ftrono.DJames.application.*
+import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonParser
 import kotlinx.coroutines.runBlocking
 import okhttp3.Headers
@@ -13,6 +14,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 class SpotifyInterpreter (private val context: Context) {
     private val TAG = SpotifyInterpreter::class.java.simpleName
+    private var utils = Utilities()
     private val nlpInterpreter = NLPInterpreter(context)
 
 
@@ -36,9 +38,6 @@ class SpotifyInterpreter (private val context: Context) {
             val artistsNlp = resultsNLP.get("artists").asJsonArray
             artistConfirmed = nlpInterpreter.checkArtists(artistsNlp, artistExtracted, reqLanguage=reqLanguage)
             matchExtracted.addProperty("artist_confirmed", artistConfirmed)
-            //Add to log:
-            last_log!!.add("nlp_extractor", matchExtracted)
-            Log.d(TAG, "NLP EXTRACTOR RESULTS: $matchExtracted")
 
             //3) DISPATCH SPOTIFY CALLS ACCORDING TO NLP MATCHES EXTRACTED:
             var search = SpotifySearch()
@@ -63,12 +62,14 @@ class SpotifyInterpreter (private val context: Context) {
                     var playlistMatch = nlpInterpreter.matchVocabulary("playlist", contextName, utils.getVocabulary("playlist"))
                     if (playlistMatch.has("text_confirmed")) {
                         Log.d(TAG, "Context -> Playlist in voc")
+                        var contextConfirmed = playlistMatch.get("text_confirmed").asString
+                        matchExtracted.addProperty("context_confirmed", contextConfirmed)
                         var playlistUrl = playlistMatch.get("detail_confirmed").asString
                         var playlistId = playlistUrl.split("/").last()
                         //Context -> Playlist:
                         returnJSON.addProperty("context_type", "playlist")
                         returnJSON.addProperty("context_uri", "spotify:playlist:${playlistId}")
-                        returnJSON.addProperty("context_name", playlistMatch.get("text_confirmed").asString)
+                        returnJSON.addProperty("context_name", contextConfirmed)
                     } else {
                         //Playlist not found -> Context -> album:
                         Log.d(TAG, "Context -> album")
@@ -86,6 +87,9 @@ class SpotifyInterpreter (private val context: Context) {
             }
 
         }
+        //Add to log:
+        last_log!!.add("nlp_extractor", matchExtracted)
+        Log.d(TAG, "NLP EXTRACTOR RESULTS: $matchExtracted")
         return returnJSON
     }
 

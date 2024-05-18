@@ -19,6 +19,7 @@ import okhttp3.FormBody
 class LoadingScreen: AppCompatActivity() {
 
     private val TAG: String = LoadingScreen::class.java.getSimpleName()
+    private var utils = Utilities()
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -94,7 +95,6 @@ class LoadingScreen: AppCompatActivity() {
                                     }
 
                                     //Generate NLP user ID:
-                                    var utils = Utilities()
                                     prefs.nlpUserId = utils.generateRandomString(30, numOnly = true)
 
                                     //Send broadcasts:

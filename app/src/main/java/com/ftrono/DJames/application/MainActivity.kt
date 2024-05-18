@@ -26,6 +26,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
 import com.ftrono.DJames.R
 import com.ftrono.DJames.service.FloatingViewService
+import com.ftrono.DJames.utilities.Utilities
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigationrail.NavigationRailView
@@ -35,6 +36,7 @@ import java.io.File
 class MainActivity : AppCompatActivity() {
 
     private val TAG: String = MainActivity::class.java.getSimpleName()
+    private var utils = Utilities()
 
     //Views:
     private var toolbar: Toolbar? = null

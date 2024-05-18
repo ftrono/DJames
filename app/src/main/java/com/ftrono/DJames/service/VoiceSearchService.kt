@@ -26,6 +26,7 @@ import com.ftrono.DJames.api.NLPQuery
 import com.ftrono.DJames.api.SpotifyInterpreter
 import com.ftrono.DJames.application.*
 import com.ftrono.DJames.recorder.AndroidAudioRecorder
+import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import java.io.BufferedReader
@@ -39,6 +40,7 @@ import java.time.format.DateTimeFormatter
 class VoiceSearchService : Service() {
     //Main:
     private val TAG = VoiceSearchService::class.java.simpleName
+    private var utils = Utilities()
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
     private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
     private var vqThreadExt: Thread? = null
@@ -717,6 +719,15 @@ class VoiceSearchService : Service() {
                                 URLEncoder.encode(contextUri, "UTF-8")
                             openExternally("$spotifyUrl?context=$encodedContextUri")
                             //openExternally(spotifyUrl)
+                            //Update log:
+                            last_log!!.addProperty("play_externally", true)
+                            logFile!!.writeText(last_log.toString())
+
+                            //Send broadcast:
+                            Intent().also { intent ->
+                                intent.setAction(ACTION_LOG_REFRESH)
+                                sendBroadcast(intent)
+                            }
                         }
                     }
                 }

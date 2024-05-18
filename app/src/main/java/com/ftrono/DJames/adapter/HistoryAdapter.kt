@@ -12,6 +12,7 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
+import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import kotlin.math.roundToInt
@@ -24,6 +25,8 @@ class HistoryAdapter(
     : RecyclerView.Adapter<HistoryViewHolder>() {
 
     private val TAG = HistoryAdapter::class.java.simpleName
+    private var utils = Utilities()
+    private var trimLength = 40
     //private var toDelete = ArrayList<String>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryViewHolder {
@@ -37,23 +40,24 @@ class HistoryAdapter(
         //POPOLA:
         var datetime = logItem.get("datetime").asString
         var filename = "$datetime.json"
-        var icon = ""
+        var type_icon = ""
         var context_error = false
+        var play_externally = false
         var intentName = logItem.get("nlp").asJsonObject.get("intent_response").asString
         //Call / message requests:
         if (intentName == "CallRequest" || intentName == "MessageRequest") {
-            //icon:
+            //type icon:
             if (intentName == "CallRequest") {
-                icon = "📞"
+                type_icon = "📞"
             } else {
-                icon = "💬"
+                type_icon = "💬"
             }
             //result check:
             try {
                 if (logItem.get("voc_score").asInt > midThreshold) {
-                    holder.datetime.text = "$icon  ${context.getString(R.string.result_good)}  $datetime"
+                    holder.datetime.text = "$type_icon  ${context.getString(R.string.result_good)}  $datetime"
                 } else {
-                    holder.datetime.text = "$icon  ${context.getString(R.string.result_not_good)}  $datetime"
+                    holder.datetime.text = "$type_icon  ${context.getString(R.string.result_not_good)}  $datetime"
                 }
             } catch (e: Exception) {
                 //Generic request:
@@ -62,16 +66,16 @@ class HistoryAdapter(
         } else {
             //Play requests:
             try {
-                icon = "🎧"
+                type_icon = "🎧"
                 try {
                     context_error = logItem.get("context_error").asBoolean
                 } catch (e: Exception) {
                     context_error = false
                 }
                 if (logItem.get("best_score").asInt < matchDoubleThreshold || context_error) {
-                    holder.datetime.text = "$icon  ${context.getString(R.string.result_not_good)}  $datetime"
+                    holder.datetime.text = "$type_icon  ${context.getString(R.string.result_not_good)}  $datetime"
                 } else {
-                    holder.datetime.text = "$icon  ${context.getString(R.string.result_good)}  $datetime"
+                    holder.datetime.text = "$type_icon  ${context.getString(R.string.result_good)}  $datetime"
                 }
             } catch (e: Exception) {
                 //Generic request:
@@ -107,15 +111,32 @@ class HistoryAdapter(
             //SPOTIFY:
             holder.match_name_intro.text = "MATCH: "
             holder.match_name.text =
-                logItem.get("spotify_play").asJsonObject.get("song_name").asString
+                utils.trimString(logItem.get("spotify_play").asJsonObject.get("song_name").asString, trimLength)
             holder.match_artist.text =
-                logItem.get("spotify_play").asJsonObject.get("artist_name").asString
+                utils.trimString(logItem.get("spotify_play").asJsonObject.get("artist_name").asString, trimLength)
             var contextType = logItem.get("spotify_play").asJsonObject.get("context_type").asString.replaceFirstChar { it.uppercase() }
             var contextName = logItem.get("spotify_play").asJsonObject.get("context_name").asString
+            try {
+                play_externally = logItem.get("play_externally").asBoolean
+            } catch (e: Exception) {
+                play_externally = false
+            }
+            if (context_error || play_externally) {
+                try {
+                    contextType = logItem.get("spotify_play").asJsonObject.get("album_type").asString.replaceFirstChar { it.uppercase() }
+                } catch (e: Exception) {
+                    contextType = "Album"
+                }
+                contextName = logItem.get("spotify_play").asJsonObject.get("album_name").asString
+            }
+            if (play_externally) {
+                contextType = "EXT - $contextType"
+            }
             contextName = contextName.split(" ").joinToString(" ") { it.replaceFirstChar(Char::titlecase) }
-            holder.match_context.text = "($contextType) $contextName"
+            holder.match_context.text = utils.trimString("($contextType) $contextName", trimLength)
 
         } catch (e: Exception) {
+            //Log.d(TAG, "ADAPTER ERROR: ", e)
             try {
                 //CONTACT CALL / MESSAGE:
                 var contacted = logItem.get("contact_extractor").asJsonObject.get("contact_confirmed").asString.replaceFirstChar { it.uppercase() }

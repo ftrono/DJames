@@ -15,7 +15,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "1.10"
+val appVersion = "1.11"
 
 //Preferences:
 val deltaSimilarity = 0   //30
@@ -31,7 +31,6 @@ var supportedLanguageCodes = listOf<String>("en-US", "it")
 //Modes:
 var density: Float = 0F
 var acts_active: MutableList<String> = ArrayList()
-var utils = Utilities()
 var streamMaxVolume: Int = 0
 var screenOn: Boolean = true
 var sourceIsVolume: Boolean = false

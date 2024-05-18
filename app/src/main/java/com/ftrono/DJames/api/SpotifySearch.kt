@@ -186,6 +186,7 @@ class SpotifySearch() {
 
             //Album name:
             var album = bestResult.get("album").asJsonObject
+            returnJSON.addProperty("album_type", album.get("album_type").asString)
             returnJSON.addProperty("album_name", album.get("name").asString)
             returnJSON.addProperty("album_uri", album.get("uri").asString)
 
@@ -304,8 +305,8 @@ class SpotifySearch() {
                     bestInd = k
                     bestType = "saved"
                 }
-            //PRIORITY 3) If just album & not a saved track found before & context != playlist -> update best:
-            } else if (bestInd == 0 && bestType != "saved" && contextType != "playlist" && result.get("albumType").asString == "album") {
+            //PRIORITY 3) If just album & not a saved track found before -> update best: (optional: && contextType != "playlist")
+            } else if (bestInd == 0 && bestType != "saved" && result.get("albumType").asString == "album") {
                 bestInd = k
                 bestType = "album"
             }

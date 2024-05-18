@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.ftrono.DJames.R
 import com.ftrono.DJames.adapter.VocabularyAdapter
+import com.ftrono.DJames.utilities.Utilities
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.JsonObject
@@ -35,6 +36,7 @@ import java.io.File
 class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
 
     private val TAG: String = VocabularyFragment::class.java.getSimpleName()
+    private var utils = Utilities()
 
     private var swipeRefreshLayout: SwipeRefreshLayout? = null
     private var textNoData: TextView? = null

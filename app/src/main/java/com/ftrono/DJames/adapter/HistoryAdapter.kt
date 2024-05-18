@@ -109,19 +109,24 @@ class HistoryAdapter(
             holder.match_context_intro.visibility = View.VISIBLE
             holder.match_context.visibility = View.VISIBLE
             //SPOTIFY:
-            holder.match_name_intro.text = "MATCH: "
+            holder.match_name_intro.text = "MATCH:     "
             holder.match_name.text =
                 utils.trimString(logItem.get("spotify_play").asJsonObject.get("song_name").asString, trimLength)
             holder.match_artist.text =
                 utils.trimString(logItem.get("spotify_play").asJsonObject.get("artist_name").asString, trimLength)
-            var contextType = logItem.get("spotify_play").asJsonObject.get("context_type").asString.replaceFirstChar { it.uppercase() }
-            var contextName = logItem.get("spotify_play").asJsonObject.get("context_name").asString
+            //Context:
             try {
                 play_externally = logItem.get("play_externally").asBoolean
             } catch (e: Exception) {
                 play_externally = false
             }
-            if (context_error || play_externally) {
+            var contextType = logItem.get("spotify_play").asJsonObject.get("context_type").asString.replaceFirstChar { it.uppercase() }
+            var contextName = ""
+            if (contextType == "Playlist" && !context_error && !play_externally) {
+                //Use Playlist:
+                contextName = logItem.get("spotify_play").asJsonObject.get("context_name").asString
+            } else {
+                //Default to Album type:
                 try {
                     contextType = logItem.get("spotify_play").asJsonObject.get("album_type").asString.replaceFirstChar { it.uppercase() }
                 } catch (e: Exception) {
@@ -129,11 +134,12 @@ class HistoryAdapter(
                 }
                 contextName = logItem.get("spotify_play").asJsonObject.get("album_name").asString
             }
-            if (play_externally) {
-                contextType = "EXT - $contextType"
-            }
             contextName = contextName.split(" ").joinToString(" ") { it.replaceFirstChar(Char::titlecase) }
-            holder.match_context.text = utils.trimString("($contextType) $contextName", trimLength)
+            var contextFull = "($contextType) $contextName"
+            if (play_externally) {
+                contextFull = "[EXT] $contextFull"
+            }
+            holder.match_context.text = utils.trimString(contextFull, trimLength)
 
         } catch (e: Exception) {
             //Log.d(TAG, "ADAPTER ERROR: ", e)

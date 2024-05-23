@@ -31,6 +31,8 @@
         <item>Primary device     </item>
     </string-array>
     <!-- Guide: Help descriptions -->
+    <string name="player_settings_str_1">"Open your Spotify app, then go to &quot;Settings &amp; Privacy&quot; -> &quot;Playback&quot; and ensure these 2 toggles are ON:"</string>
+    <string name="player_settings_str_2">"This will enable player info and ensure continuous playback."</string>
     <string name="guide_song_str_1">"Plays a song in Spotify from its album. Preference is given to your saved tracks and to albums over singles."</string>
     <string name="guide_song_str_2">"Plays a song in Spotify from a playlist of yours. NOTE: the playlist must be listed in DJames' Vocabulary, in the Playlists tab!"</string>
     <string name="guide_song_str_3">"Plays a song in Spotify from your playlist Liked Songs. NOTE: this will work only for your most recently saved tracks!"</string>

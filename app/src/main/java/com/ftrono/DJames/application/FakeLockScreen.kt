@@ -2,14 +2,18 @@ package com.ftrono.DJames.application
 
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.WindowCompat
@@ -18,6 +22,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.updateLayoutParams
 import com.ftrono.DJames.R
 import com.ftrono.DJames.utilities.Utilities
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.gson.JsonObject
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -127,6 +132,24 @@ class FakeLockScreen: AppCompatActivity() {
             //Start Main:
             val intent1 = Intent(this, MainActivity::class.java)
             startActivity(intent1)
+        })
+
+        //Player area listeners:
+        artworkView!!.setOnClickListener(View.OnClickListener {
+            //Show popup:
+            showPlayerPopup()
+        })
+        songView!!.setOnClickListener(View.OnClickListener {
+            //Show popup:
+            showPlayerPopup()
+        })
+        artistView!!.setOnClickListener(View.OnClickListener {
+            //Show popup:
+            showPlayerPopup()
+        })
+        contextView!!.setOnClickListener(View.OnClickListener {
+            //Show popup:
+            showPlayerPopup()
         })
     }
 
@@ -276,6 +299,27 @@ class FakeLockScreen: AppCompatActivity() {
         songView!!.text = utils.trimString(songName)
         artistView!!.text = utils.trimString(artistName)
         contextView!!.text = utils.trimString(contextName)
+    }
+
+    //Show Edit Dialog:
+    fun showPlayerPopup() {
+        val inflater = LayoutInflater.from(this@FakeLockScreen)
+        val subView: View = inflater.inflate(R.layout.player_popup, null)
+        //Load:
+        val alertDialogBuilder = MaterialAlertDialogBuilder(this@FakeLockScreen)
+        alertDialogBuilder.setView(subView)
+
+        alertDialogBuilder.setPositiveButton("Ok", null)
+        val alertDialog = alertDialogBuilder.create()
+
+        alertDialog.setOnShowListener(DialogInterface.OnShowListener { dialog ->
+            val positiveButton: Button = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            positiveButton.setOnClickListener {
+                //CLOSE THE DIALOG:
+                dialog.dismiss()
+            }
+        })
+        alertDialog.show()
     }
 
 

@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -33,6 +34,7 @@ class GuideFragment : Fragment(R.layout.fragment_guide) {
     private var swipeRefreshLayout: SwipeRefreshLayout? = null
     private var refreshList: RecyclerView? = null
     private var guideItems = JsonArray()
+    private var altsVisible = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -98,10 +100,14 @@ class GuideFragment : Fragment(R.layout.fragment_guide) {
         alertDialogBuilder.setView(subView)
 
         //Views:
+        altsVisible = false
         var popup_text_1 = subView.findViewById<TextView>(R.id.guide_popup_text_1)
         var popup_text_2 = subView.findViewById<TextView>(R.id.guide_popup_text_2)
         var popup_descr = subView.findViewById<TextView>(R.id.guide_popup_descr)
+        var popup_alts_intro = subView.findViewById<TextView>(R.id.guide_popup_alts_intro)
+        var popup_arrow = subView.findViewById<ImageView>(R.id.guide_popup_arrow)
         var popup_alts = subView.findViewById<TextView>(R.id.guide_popup_alts)
+        popup_alts.visibility = View.GONE
 
         //Populate:
         //Main:
@@ -129,6 +135,42 @@ class GuideFragment : Fragment(R.layout.fragment_guide) {
         }
         popup_alts.text = alts
 
+        //Arrow listeners:
+        popup_arrow.setOnClickListener(View.OnClickListener {
+            if (!altsVisible) {
+                altsVisible = true
+                popup_alts.visibility = View.VISIBLE
+                popup_arrow.setImageResource(R.drawable.icon_reduce)
+            } else {
+                altsVisible = false
+                popup_alts.visibility = View.GONE
+                popup_arrow.setImageResource(R.drawable.icon_expand)
+            }
+        })
+        popup_alts_intro.setOnClickListener(View.OnClickListener {
+            if (!altsVisible) {
+                altsVisible = true
+                popup_alts.visibility = View.VISIBLE
+                popup_arrow.setImageResource(R.drawable.icon_reduce)
+            } else {
+                altsVisible = false
+                popup_alts.visibility = View.GONE
+                popup_arrow.setImageResource(R.drawable.icon_expand)
+            }
+        })
+        popup_alts.setOnClickListener(View.OnClickListener {
+            if (!altsVisible) {
+                altsVisible = true
+                popup_alts.visibility = View.VISIBLE
+                popup_arrow.setImageResource(R.drawable.icon_reduce)
+            } else {
+                altsVisible = false
+                popup_alts.visibility = View.GONE
+                popup_arrow.setImageResource(R.drawable.icon_expand)
+            }
+        })
+
+        //Build:
         alertDialogBuilder.setPositiveButton("Ok", null)
         val alertDialog = alertDialogBuilder.create()
 

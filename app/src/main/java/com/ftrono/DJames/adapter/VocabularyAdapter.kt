@@ -43,15 +43,7 @@ class VocabularyAdapter(
                 context.sendBroadcast(intent)
             }
         }
-        holder.item_icon.setOnClickListener { view ->
-            //Send broadcast:
-            Intent().also { intent ->
-                intent.setAction(ACTION_VOC_EDIT)
-                intent.putExtra("prevText", prevText)
-                context.sendBroadcast(intent)
-            }
-        }
-        holder.item_text.setOnClickListener { view ->
+        holder.voc_card.setOnClickListener { view ->
             //Send broadcast:
             Intent().also { intent ->
                 intent.setAction(ACTION_VOC_EDIT)

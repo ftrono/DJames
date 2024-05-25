@@ -1,0 +1,104 @@
+[
+  {
+    "category": "calls",
+    "header": "\uD83D\uDCDE   Calls",
+    "sentences": [
+      {
+        "language": "en-US",
+        "intro": "Call a contact*:",
+        "sentence_1_intro": "Ask in english (default):",
+        "sentence_1": "\uD83C\uDDEC\uD83C\uDDE7  - \"CALL contact name\"",
+        "sentence_2_intro": "",
+        "sentence_2": "",
+        "description": "Starts a phone call to a contact of yours*.\n*NOTE: the contact must be listed in DJames' Vocabulary, in the Contacts tab!",
+        "alternatives": [
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"MAKE A CALL TO contact name\"",
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"MAKE A PHONE CALL TO contact name\""
+        ]
+      }
+    ]
+  },
+  {
+    "category": "messages",
+    "header":  "\uD83D\uDCAC   Messages",
+    "sentences": [
+      {
+        "language": "en-US",
+        "intro": "Send an SMS to a contact*:",
+        "sentence_1_intro": "Write in English (default):",
+        "sentence_1": "\uD83C\uDDEC\uD83C\uDDE7  - \"SEND A MESSAGE TO contact name\"",
+        "sentence_2_intro": "Write in Italian:",
+        "sentence_2": "\uD83C\uDDEE\uD83C\uDDF9  - \"SEND A MESSAGE IN ITALIAN TO contact name\"",
+        "description": "Sends an SMS to a contact of yours*. Messaging language MUST be told if it's not English.\n*NOTE: the contact must be listed in DJames' Vocabulary, in the Contacts tab!\n\n2-step process:\n- 1) First, ASK to send a message to your contact\n- 2) Then, WAIT for the second BEEP and dictate!\n\nTo use emojis, say:\n- \uD83C\uDDEC\uD83C\uDDE7: \"EMOJI\" + smile / happy / grin / kiss / sunglasses / heart / sad / worried.\n- \uD83C\uDDEE\uD83C\uDDF9: \"EMOJI\" + sorriso / felice / sorrisino / bacio / occhiali da sole / cuore / triste / preoccupato.",
+        "alternatives": [
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"WRITE A MESSAGE / AN SMS TO contact name\"",
+          "\uD83C\uDDEE\uD83C\uDDF9  - \"WRITE A MESSAGE / AN SMS IN ITALIAN TO contact name\""
+        ]
+      },
+      {
+        "language": "it",
+        "intro": "Send an SMS to a contact*:",
+        "sentence_1_intro": "Write in Italian (default):",
+        "sentence_1": "\uD83C\uDDEE\uD83C\uDDF9  - \"SEND A MESSAGE TO contact name\"",
+        "sentence_2_intro": "Write in English:",
+        "sentence_2": "\uD83C\uDDEC\uD83C\uDDE7  - \"SEND A MESSAGE IN ENGLISH TO contact name\"",
+        "description": "Sends an SMS to a contact of yours*. Messaging language MUST be told if it's not Italian.\n*NOTE: the contact must be listed in DJames' Vocabulary, in the Contacts tab!\n\n2-step process:\n- 1) First, ASK to send a message to your contact\n- 2) Then, WAIT for the second BEEP and dictate!\n\nTo use emojis, say:\n- \uD83C\uDDEC\uD83C\uDDE7: \"EMOJI\" + smile / happy / grin / kiss / sunglasses / heart / sad / worried.\n- \uD83C\uDDEE\uD83C\uDDF9: \"EMOJI\" + sorriso / felice / sorrisino / bacio / occhiali da sole / cuore / triste / preoccupato.",
+        "alternatives": [
+          "\uD83C\uDDEE\uD83C\uDDF9  - \"WRITE A MESSAGE / AN SMS TO contact name\"",
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"WRITE A MESSAGE / AN SMS IN ENGLISH TO contact name\""
+        ]
+      }
+    ]
+  },
+  {
+    "category": "songs",
+    "header":  "🎧   Spotify Songs",
+    "sentences": [
+      {
+        "language": "en-US",
+        "intro": "Play a song from its album:",
+        "sentence_1_intro": "English song (default):",
+        "sentence_1": "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY song name BY artist name\"",
+        "sentence_2_intro": "Italian song:",
+        "sentence_2": "\uD83C\uDDEE\uD83C\uDDF9  - \"in italiano, PLAY nome canzone BY nome artista\"",
+        "description": "Plays a song in Spotify from its album. Preference is given to your saved tracks and to albums over singles.\n*NOTE: Song language MUST be told if the song is not in English!",
+        "alternatives": [
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY song name BY THE ARTIST artist name\"",
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY THE SONG song name BY THE ARTIST artist name\"",
+          "\uD83C\uDDEE\uD83C\uDDF9  - \"in italiano, RIPRODUCI / METTI nome canzone DI nome artista\"",
+          "\uD83C\uDDEE\uD83C\uDDF9  - \"in italiano, FAI PARTIRE nome canzone DELL'ARTISTA / DEL GRUPPO nome artista\""
+        ]
+      },
+      {
+        "language": "en-US",
+        "intro": "Play a song from a playlist of yours*:",
+        "sentence_1_intro": "English song (default):",
+        "sentence_1": "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY song name BY artist name FROM THE PLAYLIST playlist name\"",
+        "sentence_2_intro": "Italian song:",
+        "sentence_2": "\uD83C\uDDEE\uD83C\uDDF9  - \"in italiano, PLAY nome canzone BY nome artista DALLA PLAYLIST nome playlist\"",
+        "description": "Plays a song in Spotify from a playlist of yours*. Song language MUST be told if the song is not in English.\n*NOTE: the playlist must be listed in DJames' Vocabulary, in the Playlists tab!",
+        "alternatives": [
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY song name BY THE ARTIST artist name FROM MY PLAYLIST playlist name\"",
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY THE SONG song name BY THE ARTIST artist name FROM MY PLAYLIST playlist name\"",
+          "\uD83C\uDDEE\uD83C\uDDF9  - \"in italiano, RIPRODUCI / METTI nome canzone DI nome artista DALLA PLAYLIST nome playlist\"",
+          "\uD83C\uDDEE\uD83C\uDDF9  - \"in italiano, FAI PARTIRE nome canzone DELL'ARTISTA / DEL GRUPPO nome artista DALLA PLAYLIST nome playlist\""
+        ]
+      },
+      {
+        "language": "en-US",
+        "intro": "Play a song from your Likes Songs playlist*:",
+        "sentence_1_intro": "English song (default):",
+        "sentence_1": "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY song name BY artist name FROM MY LIKED SONGS / SAVED TRACKS\"",
+        "sentence_2_intro": "Italian song:",
+        "sentence_2": "\uD83C\uDDEE\uD83C\uDDF9  - \"in italiano, PLAY nome canzone BY nome artista DALLE MIE CANZONI SALVATE\"",
+        "description": "Plays a song in Spotify from your playlist Liked Songs*. Song language MUST be told if the song is not in English.\n*NOTE: this will work only for your most recently saved tracks!",
+        "alternatives": [
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY song name BY THE ARTIST artist name FROM MY LIKED SONGS / SAVED TRACKS\"",
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY THE SONG song name BY THE ARTIST artist name FROM MY LIKED SONGS / SAVED TRACKS\"",
+          "\uD83C\uDDEE\uD83C\uDDF9  - \"in italiano, RIPRODUCI / METTI nome canzone DI nome artista DALLE MIE CANZONI SALVATE / PREFERITE\"",
+          "\uD83C\uDDEE\uD83C\uDDF9  - \"in italiano, FAI PARTIRE nome canzone DELL'ARTISTA / DEL GRUPPO nome artista DALLA MIA COLLEZIONE\""
+        ]
+      }
+    ]
+  }
+]

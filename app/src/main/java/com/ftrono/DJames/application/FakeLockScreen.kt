@@ -301,7 +301,7 @@ class FakeLockScreen: AppCompatActivity() {
         contextView!!.text = utils.trimString(contextName)
     }
 
-    //Show Edit Dialog:
+    //Show Player Popup:
     fun showPlayerPopup() {
         val inflater = LayoutInflater.from(this@FakeLockScreen)
         val subView: View = inflater.inflate(R.layout.player_popup, null)

@@ -187,6 +187,7 @@ class HistoryAdapter(
         //Button listeners:
         holder.send_button.setOnClickListener { view -> sendFile(filename) }
         holder.lookup_button.setOnClickListener { view -> openFile(filename) }
+        holder.history_card.setOnClickListener { view -> openFile(filename) }
         holder.delete_button.setOnClickListener { view -> deleteAction(filename) }
     }
 

@@ -156,6 +156,11 @@ class SettingsActivity : AppCompatActivity() {
         spinner_query_language.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(adapter: AdapterView<*>?, view: View, pos: Int, id: Long) {
                 prefs.queryLanguage = pos.toString()
+                //Send broadcast:
+                Intent().also { intent ->
+                    intent.setAction(ACTION_GUIDE_REFRESH)
+                    applicationContext.sendBroadcast(intent)
+                }
             }
             override fun onNothingSelected(arg0: AdapterView<*>?) {}
         })
@@ -172,6 +177,11 @@ class SettingsActivity : AppCompatActivity() {
         spinner_mess_language.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(adapter: AdapterView<*>?, view: View, pos: Int, id: Long) {
                 prefs.messageLanguage = pos.toString()
+                //Send broadcast:
+                Intent().also { intent ->
+                    intent.setAction(ACTION_GUIDE_REFRESH)
+                    applicationContext.sendBroadcast(intent)
+                }
             }
             override fun onNothingSelected(arg0: AdapterView<*>?) {}
         })

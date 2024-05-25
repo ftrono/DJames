@@ -226,7 +226,7 @@ class MainActivity : AppCompatActivity() {
         if (item.itemId != curNavItemId) {
             curFragment = when (item.itemId) {
                 R.id.nav_home -> HomeFragment()
-                R.id.nav_help -> HelpFragment()
+                R.id.nav_help -> GuideFragment()
                 R.id.nav_vocabulary -> VocabularyFragment()
                 R.id.nav_history -> HistoryFragment()
                 else -> HomeFragment()

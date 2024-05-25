@@ -4,6 +4,7 @@
   <color name="colorPrimaryDark">#00100C</color>
   <color name="windowBackground">#00100C</color>
   <color name="colorAccent">#00684D</color>
+  <color name="colorAccentLight">#84BAA2</color>
   <color name="colorHeader">#FFC000</color>
   <color name="colorBusy">#ED7D31</color>
   <color name="colorBusyDark">#8A3F0C</color>

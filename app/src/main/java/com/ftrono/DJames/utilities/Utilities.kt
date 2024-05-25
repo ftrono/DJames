@@ -293,6 +293,59 @@ class Utilities {
         }
     }
 
+
+    //GUIDE:
+    //Get JsonArray out of Guide JSON:
+    fun getGuideArray(context: Context): JsonArray {
+        var guideArray = JsonArray()
+        var catJson = JsonObject()
+        var sents = JsonArray()
+        var obj = JsonObject()
+        var sentJson = JsonObject()
+        var category: String = ""
+        var reader: BufferedReader? = null
+        try {
+            //Get default query language:
+            if (prefs.queryLanguage.toInt() == 1) {
+                reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.guide_ita)))   //"ita"
+            } else {
+                reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.guide_eng)))   //"eng"
+            }
+            //Load:
+            val categories = JsonParser.parseReader(reader).asJsonArray
+            for (catRaw in categories) {
+                catJson = catRaw.asJsonObject
+                //1) Parse header:
+                obj = JsonObject()
+                category = catJson.get("category").asString
+                obj.addProperty("header", catJson.get("header").asString)
+                guideArray.add(obj)
+                //2) Parse sentences:
+                sents = catJson.get("sentences").asJsonArray
+                for (sentRaw in sents) {
+                    sentJson = sentRaw.asJsonObject
+                    //For messages, take only the JSON with the default messageLanguage:
+                    if (category != "messages" || sentJson.get("language").asString == supportedLanguageCodes[prefs.messageLanguage.toInt()]){
+                        obj = JsonObject()
+                        obj.addProperty("intro", sentJson.get("intro").asString)
+                        obj.addProperty("sentence_1_intro", sentJson.get("sentence_1_intro").asString)
+                        obj.addProperty("sentence_1", sentJson.get("sentence_1").asString)
+                        obj.addProperty("sentence_2_intro", sentJson.get("sentence_2_intro").asString)
+                        obj.addProperty("sentence_2", sentJson.get("sentence_2").asString)
+                        obj.addProperty("description", sentJson.get("description").asString)
+                        obj.add("alternatives", sentJson.get("alternatives").asJsonArray)
+                        guideArray.add(obj)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "GUIDE PARSING ERROR: ", e)
+        }
+        //Log.d(TAG, guideArray.toString())
+        return guideArray
+    }
+
+
     //On Logout: delete user cache files:
     fun deleteUserCache() {
         try {

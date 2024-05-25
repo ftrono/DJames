@@ -99,13 +99,17 @@ const val ACTION_OVERLAY_ACTIVATED = "com.ftrono.DJames.eventReceiver.ACTION_OVE
 const val ACTION_OVERLAY_DEACTIVATED = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_DEACTIVATED"
 const val ACTION_SETTINGS_VOL_UP = "com.ftrono.DJames.eventReceiver.ACTION_SETTINGS_VOL_UP"
 
+//Guide Fragment receiver:
+const val ACTION_GUIDE_POPUP = "com.ftrono.DJames.eventReceiver.ACTION_GUIDE_POPUP"
+const val ACTION_GUIDE_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_GUIDE_REFRESH"
+
+//Vocabulary Fragment receiver:
+const val ACTION_VOC_DELETE = "com.ftrono.DJames.eventReceiver.ACTION_VOC_DELETE"
+const val ACTION_VOC_EDIT = "com.ftrono.DJames.eventReceiver.ACTION_VOC_EDIT"
+
 //History Fragment receiver:
 const val ACTION_LOG_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_LOG_REFRESH"
 const val ACTION_LOG_DELETE = "com.ftrono.DJames.eventReceiver.ACTION_LOG_DELETE"
-
-//History Vocabulary receiver:
-const val ACTION_VOC_DELETE = "com.ftrono.DJames.eventReceiver.ACTION_VOC_DELETE"
-const val ACTION_VOC_EDIT = "com.ftrono.DJames.eventReceiver.ACTION_VOC_EDIT"
 
 //Settings Act receiver:
 const val ACTION_SETTINGS_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_SETTINGS_LOGGED_IN"

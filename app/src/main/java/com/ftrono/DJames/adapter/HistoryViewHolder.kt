@@ -5,8 +5,12 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.ftrono.DJames.R
+import com.google.android.material.card.MaterialCardView
 
 class HistoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+
+    @JvmField
+    var history_card: MaterialCardView = itemView.findViewById(R.id.history_card)
 
     @JvmField
     var datetime: TextView = itemView.findViewById(R.id.datetime)

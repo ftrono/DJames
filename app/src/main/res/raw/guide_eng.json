@@ -61,7 +61,7 @@
         "sentence_1": "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY song name BY artist name\"",
         "sentence_2_intro": "Italian song:",
         "sentence_2": "\uD83C\uDDEE\uD83C\uDDF9  - \"in italiano, PLAY nome canzone BY nome artista\"",
-        "description": "Plays a song in Spotify from its album. Preference is given to your saved tracks and to albums over singles.\n*NOTE: Song language MUST be told if the song is not in English!",
+        "description": "Plays a song in Spotify from its album. Preference is given to your saved tracks and to albums over singles.\nNOTE: Song language MUST be told if the song is not in English!",
         "alternatives": [
           "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY song name BY THE ARTIST artist name\"",
           "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY THE SONG song name BY THE ARTIST artist name\"",
@@ -86,7 +86,7 @@
       },
       {
         "language": "en-US",
-        "intro": "Play a song from your Likes Songs playlist*:",
+        "intro": "Play a song from your Liked Songs* playlist:",
         "sentence_1_intro": "English song (default):",
         "sentence_1": "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY song name BY artist name FROM MY LIKED SONGS / SAVED TRACKS\"",
         "sentence_2_intro": "Italian song:",

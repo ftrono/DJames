@@ -73,13 +73,6 @@ class MainActivity : AppCompatActivity() {
             supportActionBar!!.subtitle = "for ${prefs.userName}"
         }
 
-        //AUTO START-UP:
-        if (loggedIn && prefs.autoStartup && !main_initialized && !isMyServiceRunning(FloatingViewService::class.java)) {
-            var intentOS = Intent(applicationContext, FloatingViewService::class.java)
-            intentOS.putExtra("faded", false)
-            applicationContext.startService(intentOS)
-        }
-
         //Start personal Receiver:
         val actFilter = IntentFilter()
         actFilter.addAction(ACTION_MAIN_LOGGED_IN)
@@ -144,6 +137,13 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             main_initialized = true
+        }
+
+        //AUTO START-UP:
+        if (loggedIn && prefs.autoStartup && !isMyServiceRunning(FloatingViewService::class.java)) {
+            var intentOS = Intent(applicationContext, FloatingViewService::class.java)
+            intentOS.putExtra("faded", false)
+            applicationContext.startService(intentOS)
         }
     }
 

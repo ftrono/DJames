@@ -379,7 +379,7 @@ class NLPInterpreter (private val context: Context) {
 
 
     //Match contact from user query against user vocabulary:
-    fun extractContact(queryText: String, fullLanguage: String = ""): String {
+    fun extractContact(queryText: String, fullLanguage: String = ""): JsonObject {
         var phone = ""
         var queryClean = queryText
         //Init log:
@@ -391,7 +391,7 @@ class NLPInterpreter (private val context: Context) {
         //Get user vocabulary:
         var vocContacts = utils.getVocabulary(filter="contact")
         if (vocContacts.isEmpty()) {
-            return phone
+            return contactExtractor
         } else {
             //Search items:
             var reader: BufferedReader? = null
@@ -449,7 +449,7 @@ class NLPInterpreter (private val context: Context) {
             }
         }
         last_log!!.add("contact_extractor", contactExtractor)
-        return phone
+        return contactExtractor
     }
 
 }

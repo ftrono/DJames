@@ -46,9 +46,12 @@ class VoiceSearchService : Service() {
     private var vqThreadExt: Thread? = null
     private var recFile: File? = null
     private var logFile: File? = null
+    private var intentName = ""
     private var reqQueryLanguage = ""
     private var reqMessLanguage = ""
     private var fullMessLanguage = ""
+    private var contact = JsonObject()
+    private var contact_name = ""
     private var phone = ""
     private var intStarted = false
     private var messIntStarted = false
@@ -420,16 +423,16 @@ class VoiceSearchService : Service() {
                 nlp_queryText = ""
             }
             //1st trial: Get DF auto-response:
-            var intent_response = ""
             try {
-                intent_response = resultsNLP.get("intent_response").asString
+                intentName = resultsNLP.get("intent_response").asString
             } catch (e: Exception) {
+                intentName = ""
                 Log.d(TAG, "No intent_response in NLP query result.")
             }
 
             //CHECK SWITCH LANGUAGE:
             if (!messageMode) {
-                if (intent_response == "MessageRequest") {
+                if (intentName == "MessageRequest") {
                     try {
                         //Get requested messaging language:
                         val reader = BufferedReader(InputStreamReader(applicationContext.resources.openRawResource(R.raw.languages)))
@@ -460,8 +463,9 @@ class VoiceSearchService : Service() {
                         }
                         //2nd trial: Get DF auto-response:
                         try {
-                            intent_response = resultsNLP.get("intent_response").asString
+                            intentName = resultsNLP.get("intent_response").asString
                         } catch (e: Exception) {
+                            intentName = ""
                             Log.d(TAG, "No intent_response in NLP query result.")
                         }
                     }
@@ -475,21 +479,38 @@ class VoiceSearchService : Service() {
                 nlp_fail = true
             } else {
                 //Fallback cases:
-                if (!messageMode && intent_response == "") {
+                if (!messageMode && intentName == "") {
                     nlp_fail = true
-                } else if (!messageMode && intent_response.lowercase() == "fallback") {
+                } else if (!messageMode && intentName.lowercase() == "fallback") {
                     nlp_fail = true
-                } else if (messageMode && intent_response.lowercase() == "cancel") {
+                } else if (messageMode && intentName.lowercase() == "cancel") {
                     nlp_fail = true
                 }
             }
 
             if (!messageMode) {
-                var toastText = nlp_queryText
+                //Prepare toast text:
+                var toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
                 if (toastText == "") {
                     toastText = "Sorry, I did not understand!"
-                } else {
-                    toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
+                }
+                //CALL OR MESSAGE REQUEST -> replace actual contact name:
+                if (intentName == "CallRequest" || intentName == "MessageRequest") {
+                    val nlpInterpreter = NLPInterpreter(applicationContext)
+                    if (intentName == "MessageRequest") {
+                        //Message:
+                        contact = nlpInterpreter.extractContact(nlp_queryText, fullLanguage=fullMessLanguage)
+                    } else {
+                        //Call:
+                        contact = nlpInterpreter.extractContact(nlp_queryText)
+                    }
+                    //Extract:
+                    contact_name = contact.get("contact_confirmed").asString
+                    phone = contact.get("contact_phone").asString
+                    //Replace:
+                    if (contact_name != "") {
+                        toastText = toastText.replace(contact.get("contact_extracted").asString, contact_name.uppercase())
+                    }
                 }
                 //TOAST -> Send broadcast:
                 Intent().also { intent ->
@@ -522,7 +543,7 @@ class VoiceSearchService : Service() {
                     //TOAST -> Send broadcast:
                     Intent().also { intent ->
                         intent.setAction(ACTION_TOASTER)
-                        intent.putExtra("toastText", "SMS sent!")
+                        intent.putExtra("toastText", "SMS sent to ${contact_name.uppercase()}")
                         sendBroadcast(intent)
                     }
 
@@ -541,12 +562,9 @@ class VoiceSearchService : Service() {
             } else {
                 //B.2) ANSWER TO REQUEST:
                 logFile = File(logDir, "$now.json")
-                val intentName = resultsNLP.get("intent_response").asString
 
                 if (intentName == "CallRequest") {
                     //A) PHONE CALL:
-                    val nlpInterpreter = NLPInterpreter(applicationContext)
-                    phone = nlpInterpreter.extractContact(nlp_queryText)
                     //Close log:
                     logFile!!.writeText(last_log.toString())
                     //Send broadcast:
@@ -571,8 +589,6 @@ class VoiceSearchService : Service() {
 
                 } else if (intentName == "MessageRequest") {
                     //B) MESSAGE:
-                    val nlpInterpreter = NLPInterpreter(applicationContext)
-                    phone = nlpInterpreter.extractContact(nlp_queryText, fullLanguage=fullMessLanguage)
                     //Close log:
                     logFile!!.writeText(last_log.toString())
                     //Send broadcast:

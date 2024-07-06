@@ -194,7 +194,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             }
         })
         alertDialog.setTitle("Remove items")
-        alertDialog.setMessage("Do you want to remove the item \"${toDelete.split(" %%% ")[0].strip()}\" from this list?")
+        alertDialog.setMessage("Do you want to remove the item \"${toDelete}\" from this list?")
         alertDialog.show()
     }
 

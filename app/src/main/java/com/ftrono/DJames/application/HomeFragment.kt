@@ -87,9 +87,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         } else {
             descr_login_status!!.text = getString(R.string.str_status_logged)
             if (prefs.volumeUpEnabled) {
-                descr_use!!.text = getString(R.string.str_use_logged)
+                descr_use!!.text = getString(R.string.str_use_active)
             } else {
-                descr_use!!.text = getString(R.string.str_use_logged_no_vol)
+                descr_use!!.text = getString(R.string.str_use_active_no_vol)
             }
             face_cover!!.visibility = View.INVISIBLE
             if (overlay_active) {
@@ -138,7 +138,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     startActivity(intent1)
                     requireActivity().finish()
                 }
-//                Snackbar.make(findViewById(R.id.content_main), getString(R.string.str_use_logged), Snackbar.LENGTH_LONG)
+//                Snackbar.make(findViewById(R.id.content_main), getString(R.string.str_use_active), Snackbar.LENGTH_LONG)
 //                    .setAction("CLOSE") { }
 //                    .setActionTextColor(resources.getColor(android.R.color.holo_red_light))
 //                    .show()
@@ -261,9 +261,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 descr_main!!.setTypeface(null, Typeface.BOLD_ITALIC)
                 descr_main!!.text = getString(R.string.str_main_stop)
                 if (prefs.volumeUpEnabled) {
-                    descr_use!!.text = getString(R.string.str_use_logged)
+                    descr_use!!.text = getString(R.string.str_use_active)
                 } else {
-                    descr_use!!.text = getString(R.string.str_use_logged_no_vol)
+                    descr_use!!.text = getString(R.string.str_use_active_no_vol)
                 }
                 descr_use!!.setTextColor(AppCompatResources.getColorStateList(requireActivity(), R.color.light_grey))
             }
@@ -282,11 +282,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             descr_main!!.setTextColor(AppCompatResources.getColorStateList(requireActivity(), R.color.light_grey))
             descr_main!!.setTypeface(null, Typeface.ITALIC)
             descr_main!!.text = getString(R.string.str_main_start)
-            if (prefs.volumeUpEnabled) {
-                descr_use!!.text = getString(R.string.str_use_logged)
-            } else {
-                descr_use!!.text = getString(R.string.str_use_logged_no_vol)
-            }
+            descr_use!!.text = getString(R.string.str_use_logged)
             descr_use!!.setTextColor(AppCompatResources.getColorStateList(requireActivity(), R.color.mid_grey))
             Log.d(TAG, "SetOverlayInactive()")
         } catch (e: Exception) {
@@ -319,9 +315,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     descr_main!!.setTypeface(null, Typeface.ITALIC)
                     descr_main!!.text = getString(R.string.str_main_start)
                     if (prefs.volumeUpEnabled) {
-                        descr_use!!.text = getString(R.string.str_use_logged)
+                        descr_use!!.text = getString(R.string.str_use_active)
                     } else {
-                        descr_use!!.text = getString(R.string.str_use_logged_no_vol)
+                        descr_use!!.text = getString(R.string.str_use_active_no_vol)
                     }
                     descr_use!!.setTextColor(
                         AppCompatResources.getColorStateList(
@@ -339,10 +335,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 Log.d(TAG, "MAIN: ACTION_SETTINGS_VOL_UP.")
                 try {
                     if (prefs.volumeUpEnabled) {
-                        descr_use!!.text = context!!.resources.getString(R.string.str_use_logged)
+                        descr_use!!.text = context!!.resources.getString(R.string.str_use_active)
                     } else {
                         descr_use!!.text =
-                            context!!.resources.getString(R.string.str_use_logged_no_vol)
+                            context!!.resources.getString(R.string.str_use_active_no_vol)
                     }
                 } catch (e: Exception) {
                     Log.d(TAG, "HOME: ACTION_SETTINGS_VOL_UP: resources not available.")

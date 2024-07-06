@@ -92,7 +92,7 @@
             android:id="@+id/descr_use"
             android:layout_width="300dp"
             android:layout_height="wrap_content"
-            android:text="@string/str_use_logged"
+            android:text="@string/str_use_active"
             android:textAlignment="center"
             android:textColor="@color/mid_grey"
             android:textSize="12dp"

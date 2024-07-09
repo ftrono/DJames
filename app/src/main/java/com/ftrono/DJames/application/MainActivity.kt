@@ -136,15 +136,17 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "Recording flac not deleted.")
                 }
             }
-            main_initialized = true
         }
 
         //AUTO START-UP:
-        if (loggedIn && prefs.autoStartup && !isMyServiceRunning(FloatingViewService::class.java)) {
+        if (loggedIn && prefs.autoStartup && !main_initialized && !isMyServiceRunning(FloatingViewService::class.java)) {
             var intentOS = Intent(applicationContext, FloatingViewService::class.java)
             intentOS.putExtra("faded", false)
             applicationContext.startService(intentOS)
         }
+
+        //Done:
+        main_initialized = true
     }
 
 

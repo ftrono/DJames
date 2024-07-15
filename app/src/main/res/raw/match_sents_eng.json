@@ -19,6 +19,10 @@
     "play the song ",
     "play the album ",
     "play the playlist ",
+    "play the artist ",
+    "play songs ",
+    "play my liked songs",
+    "play my saved songs",
     "play "
   ],
   "by_sents": [

@@ -354,7 +354,7 @@ class FakeLockScreen: AppCompatActivity() {
                         currently_playing = JsonObject()
                         currently_playing!!.addProperty("id", id)
                         currently_playing!!.addProperty("uri", "$uri_format$id")
-                        currently_playing!!.addProperty("spotify_URL", "$ext_format$id")
+                        currently_playing!!.addProperty("spotify_URL", "${ext_format}track/$id")
                         currently_playing!!.addProperty("song_name", intentSongName)
                         currently_playing!!.addProperty("artist_name", intentArtistName)
                         currently_playing!!.addProperty("album_name", intentAlbumName)

@@ -15,7 +15,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "1.12"
+val appVersion = "1.13"
 
 //Preferences:
 val deltaSimilarity = 0   //30
@@ -64,7 +64,7 @@ var contextName: String = ""
 //DialogFlow & Spotify formats:
 val dialogflow_id = "djames-nlp"
 val uri_format = "spotify:track:"
-val ext_format = "http://open.spotify.com/track/"
+val ext_format = "http://open.spotify.com/"
 val playlistUrlIntro = "https://open.spotify.com/playlist/"
 val likedSongsUri = "spotify:user:replaceUserId:collection"
 

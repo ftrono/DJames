@@ -664,6 +664,7 @@ class VoiceSearchService : Service() {
                         }
 
                         //C) PLAY:
+                        var playType = queryResult.get("play_type").asString
                         //TRIAL 1:
                         //Try requested context:
                         var sessionState =
@@ -691,10 +692,7 @@ class VoiceSearchService : Service() {
                                     //204: WRONG CONTEXT or 400-on:
                                     //TRIAL 2:
                                     //Use album as context:
-                                    sessionState = spotifyInterpreter!!.playInternally(
-                                        queryResult,
-                                        useAlbum = true
-                                    )
+                                    sessionState = spotifyInterpreter!!.playInternally(queryResult, useAlbum = true)
                                     Log.d(TAG, "(SECOND) SESSION STATE: ${sessionState}")
 
                                     //Update log:
@@ -716,12 +714,15 @@ class VoiceSearchService : Service() {
                                         //Open externally:
                                         var spotifyUrl =
                                             queryResult.get("spotify_URL").asString
-                                        var contextUri =
-                                            queryResult.get("album_uri").asString
-                                        val encodedContextUri: String =
-                                            URLEncoder.encode(contextUri, "UTF-8")
-                                        openExternally("$spotifyUrl?context=$encodedContextUri")
-                                        //openExternally(spotifyUrl)
+                                        if (playType != "track") {
+                                            openExternally(spotifyUrl)
+                                        } else {
+                                            var contextUri =
+                                                queryResult.get("album_uri").asString
+                                            val encodedContextUri: String =
+                                                URLEncoder.encode(contextUri, "UTF-8")
+                                            openExternally("$spotifyUrl?context=$encodedContextUri")
+                                        }
                                     }
                                 }
                             }
@@ -730,11 +731,14 @@ class VoiceSearchService : Service() {
                             //400-on: OPEN EXTERNALLY WITH CONTEXT = ALBUM:
                             //Open externally:
                             var spotifyUrl = queryResult.get("spotify_URL").asString
-                            var contextUri = queryResult.get("album_uri").asString
-                            val encodedContextUri: String =
-                                URLEncoder.encode(contextUri, "UTF-8")
-                            openExternally("$spotifyUrl?context=$encodedContextUri")
-                            //openExternally(spotifyUrl)
+                            if (playType != "track") {
+                                openExternally(spotifyUrl)
+                            } else {
+                                var contextUri = queryResult.get("album_uri").asString
+                                val encodedContextUri: String =
+                                    URLEncoder.encode(contextUri, "UTF-8")
+                                openExternally("$spotifyUrl?context=$encodedContextUri")
+                            }
                             //Update log:
                             last_log!!.addProperty("play_externally", true)
                             logFile!!.writeText(last_log.toString())
@@ -767,7 +771,7 @@ class VoiceSearchService : Service() {
                     startActivity(intentSpotify)
                     stopSelf()
 
-                    if (prefs.clockRedirectEnabled) {
+                    if (clock_active && prefs.clockRedirectEnabled) {
                         //Send broadcast:
                         Intent().also { intent ->
                             intent.setAction(ACTION_REDIRECT)

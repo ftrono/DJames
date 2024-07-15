@@ -169,12 +169,13 @@ class SpotifySearch() {
         //EXTRACT INFO:
         if (!bestResult.isEmpty) {
             Log.d(TAG, "BEST RESULT: INDEX $bestInd, ITEM: $bestResult")
+            returnJSON.addProperty("play_type", type)
 
             //ID & uri:
             var id = bestResult.get("id").asString
             returnJSON.addProperty("id", id)
             returnJSON.addProperty("uri", "$uri_format$id")
-            returnJSON.addProperty("spotify_URL", "$ext_format$id")
+            returnJSON.addProperty("spotify_URL", "${ext_format}$type/$id")
 
             //Track name:
             returnJSON.add("song_name", bestResult.get("name"))

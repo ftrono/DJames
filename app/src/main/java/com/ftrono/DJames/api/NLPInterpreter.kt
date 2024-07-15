@@ -85,8 +85,16 @@ class NLPInterpreter (private val context: Context) {
                 //Check what to play:
                 if (sent.contains("album")) {
                     playType = "album"
+                } else if (sent.contains("liked") || sent.contains("saved")) {
+                    contextLiked = true
+                    playType = "playlist"
+                    contextType = "playlist"
                 } else if (sent.contains("playlist")) {
                     playType = "playlist"
+                    contextType = "playlist"
+                } else if (sent.contains("artist") || sent.contains("songs")) {   //"play songs by"
+                    playType = "artist"
+                    contextType = "playlist"
                 }
                 break
             }

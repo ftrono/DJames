@@ -17,6 +17,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import kotlin.math.roundToInt
 import java.io.File
+import java.util.Locale
 
 
 class HistoryAdapter(
@@ -44,6 +45,12 @@ class HistoryAdapter(
         var context_error = false
         var play_externally = false
         var intentName = logItem.get("nlp").asJsonObject.get("intent_response").asString
+        var playType = "track"
+        try {
+            playType = logItem.get("spotify_play").asJsonObject.get("play_type").asString
+        } catch (e: Exception) {
+            Log.d(TAG, "No play_type in spotify_play!")
+        }
         //Call / message requests:
         if (intentName == "CallRequest" || intentName == "MessageRequest") {
             //type icon:
@@ -72,10 +79,18 @@ class HistoryAdapter(
                 } catch (e: Exception) {
                     context_error = false
                 }
-                if (logItem.get("best_score").asInt < matchDoubleThreshold || context_error) {
-                    holder.datetime.text = "$type_icon  ${context.getString(R.string.result_not_good)}  $datetime"
+                if (logItem.has("voc_score")) {
+                    if (logItem.get("voc_score").asInt > midThreshold) {
+                        holder.datetime.text = "$type_icon  ${context.getString(R.string.result_good)}  $datetime"
+                    } else {
+                        holder.datetime.text = "$type_icon  ${context.getString(R.string.result_not_good)}  $datetime"
+                    }
                 } else {
-                    holder.datetime.text = "$type_icon  ${context.getString(R.string.result_good)}  $datetime"
+                    if (logItem.get("best_score").asInt < matchDoubleThreshold || context_error) {
+                        holder.datetime.text = "$type_icon  ${context.getString(R.string.result_not_good)}  $datetime"
+                    } else {
+                        holder.datetime.text = "$type_icon  ${context.getString(R.string.result_good)}  $datetime"
+                    }
                 }
             } catch (e: Exception) {
                 //Generic request:
@@ -144,17 +159,26 @@ class HistoryAdapter(
         } catch (e: Exception) {
             //Log.d(TAG, "ADAPTER ERROR: ", e)
             try {
-                //CONTACT CALL / MESSAGE:
-                var contacted = logItem.get("contact_extractor").asJsonObject.get("contact_confirmed").asString.replaceFirstChar { it.uppercase() }
-                if (contacted != "") {
-                    holder.match_name_intro.text = "CONTACTED: "
-                    holder.match_name.text = contacted
+                if (playType != "track") {
+                    //PLAY PLAYLIST:
+                    holder.match_name_intro.text = "MATCH: "
+                    var playTypeCaps = playType.replaceFirstChar { it.uppercase() }
+                    var matchName = logItem.get("spotify_play").asJsonObject.get("context_name").asString.split(" ").map { it.lowercase().capitalize(Locale.getDefault()) }.joinToString(" ")
+                    holder.match_name.text = "($playTypeCaps) $matchName"
+
                 } else {
-                    holder.match_name_intro.text = "TYPE: "
-                    try {
-                        holder.match_name.text = logItem.get("nlp").asJsonObject.get("intent_response").asString
-                    } catch (e: Exception) {
-                        holder.match_name.text = "Unknown request"
+                    //CONTACT CALL / MESSAGE:
+                    var contacted = logItem.get("contact_extractor").asJsonObject.get("contact_confirmed").asString.replaceFirstChar { it.uppercase() }
+                    if (contacted != "") {
+                        holder.match_name_intro.text = "CONTACTED: "
+                        holder.match_name.text = contacted
+                    } else {
+                        holder.match_name_intro.text = "TYPE: "
+                        try {
+                            holder.match_name.text = logItem.get("nlp").asJsonObject.get("intent_response").asString
+                        } catch (e: Exception) {
+                            holder.match_name.text = "Unknown request"
+                        }
                     }
                 }
 

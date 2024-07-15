@@ -22,70 +22,139 @@ class SpotifyInterpreter (private val context: Context) {
         //Init:
         var returnJSON = JsonObject()
         var artistConfirmed = ""
+        var uri = ""
         //val intentName = resultsNLP.get("intent").asString
 
         //1) Call NLP Extractor:
         var matchExtracted = nlpInterpreter.extractMatches(queryText=resultsNLP.get("query_text").asString.lowercase(), reqLanguage=reqLanguage)
+        //artist:
+        var matchName = ""
+        try {
+            matchName = matchExtracted.get("match_extracted").asString
+        } catch (e: Exception) {
+            Log.d(TAG, "No match_extracted in nlpInterpreter.extractMatches()")
+        }
+        //artist:
         var artistExtracted = ""
         try {
             artistExtracted = matchExtracted.get("artist_extracted").asString
         } catch (e: Exception) {
             Log.d(TAG, "No artist_extracted in nlpInterpreter.extractMatches()")
         }
+        //play type:
+        var playType = "track"
+        try {
+            playType = matchExtracted.get("play_type").asString
+            if (playType == "") {
+                playType = "track"
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "No play_type in nlpInterpreter.extractMatches()")
+        }
+        //liked songs:
+        var contextLiked = false
+        try {
+            contextLiked = matchExtracted.get("context_liked").asBoolean
+        } catch (e: Exception) {
+            Log.d(TAG, "No context_liked in nlpInterpreter.extractMatches()")
+        }
 
-        //2) Double check DF artists with NLP Extractor:
+        //IF MATCHES:
         if (!matchExtracted.isEmpty) {
+            //store play type:
+            if (playType == "track") {
+                returnJSON.addProperty("play_type", "track")
+            } else {
+                returnJSON.addProperty("play_type", playType)
+            }
+
+            //2) Double check DF artists with NLP Extractor:
             val artistsNlp = resultsNLP.get("artists").asJsonArray
             artistConfirmed = nlpInterpreter.checkArtists(artistsNlp, artistExtracted, reqLanguage=reqLanguage)
             matchExtracted.addProperty("artist_confirmed", artistConfirmed)
 
             //3) DISPATCH SPOTIFY CALLS ACCORDING TO NLP MATCHES EXTRACTED:
-            var search = SpotifySearch()
-            returnJSON = search.genericSearch(searchData=matchExtracted, reqLanguage=reqLanguage)
-
-            //4) CONTEXT:
-            //context vars:
-            var contextType = matchExtracted.get("context_type").asString
-            var contextLiked = matchExtracted.get("context_liked").asBoolean
-            var contextName = matchExtracted.get("context_extracted").asString
-
-            //Match playlist name with voc:
-            if (contextType != "album") {
+            if (playType == "playlist") {
                 if (contextLiked) {
-                    //Context -> Liked Songs:
-                    Log.d(TAG, "Context -> Liked Songs")
+                    //PLAY -> Liked Songs:
+                    Log.d(TAG, "PLAY -> Liked Songs")
                     returnJSON.addProperty("context_type", "playlist")
-                    returnJSON.addProperty("context_uri", likedSongsUri.replace("replaceUserId", prefs.spotUserId))
+                    uri = likedSongsUri.replace("replaceUserId", prefs.spotUserId)
+                    returnJSON.addProperty("uri", uri)
+                    returnJSON.addProperty("context_uri", uri)
                     returnJSON.addProperty("context_name", "Liked Songs")
+                    returnJSON.addProperty("spotify_URL", "${ext_format}collection/tracks")
+                    last_log!!.addProperty("voc_score", 100)
                 } else {
-                    //Check Playlists in vocabulary:
-                    var playlistMatch = nlpInterpreter.matchVocabulary("playlist", contextName, utils.getVocabulary("playlist"))
+                    //PLAY -> Playlists in vocabulary:
+                    var playlistMatch = nlpInterpreter.matchVocabulary("playlist", matchName, utils.getVocabulary("playlist"))
                     if (playlistMatch.has("text_confirmed")) {
-                        Log.d(TAG, "Context -> Playlist in voc")
+                        Log.d(TAG, "PLAY -> Playlist in voc")
                         var contextConfirmed = playlistMatch.get("text_confirmed").asString
                         matchExtracted.addProperty("context_confirmed", contextConfirmed)
                         var playlistUrl = playlistMatch.get("detail_confirmed").asString
                         var playlistId = playlistUrl.split("/").last()
-                        //Context -> Playlist:
+                        //PLAY -> Playlist:
                         returnJSON.addProperty("context_type", "playlist")
-                        returnJSON.addProperty("context_uri", "spotify:playlist:${playlistId}")
+                        uri = "spotify:playlist:${playlistId}"
+                        returnJSON.addProperty("uri", uri)
+                        returnJSON.addProperty("context_uri", uri)
                         returnJSON.addProperty("context_name", contextConfirmed)
+                        returnJSON.addProperty("spotify_URL", "${ext_format}$playType/$playlistId")
                     } else {
-                        //Playlist not found -> Context -> album:
-                        Log.d(TAG, "Context -> album")
-                        returnJSON.addProperty("context_type", "album")
-                        returnJSON.addProperty("context_uri", returnJSON.get("album_uri").asString)
-                        returnJSON.addProperty("context_name", returnJSON.get("album_name").asString)
+                        //PLAY -> Playlist not found:
+                        Log.d(TAG, "PLAY -> Playlist not found!")
                     }
                 }
+            // TODO: ADD OTHER PLAY TYPE CASES HERE!
             } else {
-                //Context -> album:
-                Log.d(TAG, "Context -> album")
-                returnJSON.addProperty("context_type", "album")
-                returnJSON.addProperty("context_uri", returnJSON.get("album_uri").asString)
-                returnJSON.addProperty("context_name", returnJSON.get("album_name").asString)
-            }
+                var search = SpotifySearch()
+                returnJSON = search.genericSearch(searchData = matchExtracted, reqLanguage = reqLanguage)
 
+                //4) CONTEXT:
+                //context vars:
+                var contextType = matchExtracted.get("context_type").asString
+                var contextName = matchExtracted.get("context_extracted").asString
+
+                //Match playlist name with voc:
+                if (contextType != "album") {
+                    if (contextLiked) {
+                        //Context -> Liked Songs:
+                        Log.d(TAG, "Context -> Liked Songs")
+                        uri = likedSongsUri.replace("replaceUserId", prefs.spotUserId)
+                        returnJSON.addProperty("context_type", "playlist")
+                        returnJSON.addProperty("context_uri", uri)
+                        returnJSON.addProperty("context_name", "Liked Songs")
+                    } else {
+                        //Check Playlists in vocabulary:
+                        var playlistMatch = nlpInterpreter.matchVocabulary("playlist", contextName, utils.getVocabulary("playlist"))
+                        if (playlistMatch.has("text_confirmed")) {
+                            Log.d(TAG, "Context -> Playlist in voc")
+                            var contextConfirmed = playlistMatch.get("text_confirmed").asString
+                            matchExtracted.addProperty("context_confirmed", contextConfirmed)
+                            var playlistUrl = playlistMatch.get("detail_confirmed").asString
+                            var playlistId = playlistUrl.split("/").last()
+                            //Context -> Playlist:
+                            returnJSON.addProperty("context_type", "playlist")
+                            uri = "spotify:playlist:${playlistId}"
+                            returnJSON.addProperty("context_uri", uri)
+                            returnJSON.addProperty("context_name", contextConfirmed)
+                        } else {
+                            //Playlist not found -> Context -> album:
+                            Log.d(TAG, "Context -> album")
+                            returnJSON.addProperty("context_type", "album")
+                            returnJSON.addProperty("context_uri", returnJSON.get("album_uri").asString)
+                            returnJSON.addProperty("context_name", returnJSON.get("album_name").asString)
+                        }
+                    }
+                } else {
+                    //Context -> album:
+                    Log.d(TAG, "Context -> album")
+                    returnJSON.addProperty("context_type", "album")
+                    returnJSON.addProperty("context_uri", returnJSON.get("album_uri").asString)
+                    returnJSON.addProperty("context_name", returnJSON.get("album_name").asString)
+                }
+            }
         }
         //Add to log:
         last_log!!.add("nlp_extractor", matchExtracted)
@@ -98,22 +167,30 @@ class SpotifyInterpreter (private val context: Context) {
         var ret = -1
         //BUILD PUT REQUEST:
         var url = "https://api.spotify.com/v1/me/player/play"
+        var playType = resultJSON.get("play_type").asString
         var offset = JsonObject()  //Context
-        offset.addProperty("uri", resultJSON.get("uri").asString)
+        if (playType == "track") {
+            //Start playing from the song:
+            offset.addProperty("uri", resultJSON.get("uri").asString)
+        } else {
+            //Start playing from the beginning:
+            offset.addProperty("position", 0)
+        }
 
         var jsonBody = JsonObject()
-        if (!useAlbum) {
-            //Use requested context:
-            jsonBody.addProperty("context_uri", resultJSON.get("context_uri").asString)
-        } else {
+        if (useAlbum && playType == "track") {
             //use album context:
             jsonBody.addProperty("context_uri", resultJSON.get("album_uri").asString)
+        } else {
+            //Use requested context:
+            jsonBody.addProperty("context_uri", resultJSON.get("context_uri").asString)
         }
         jsonBody.add("offset", offset)
         jsonBody.addProperty("position_ms", 0)
 
         var body = jsonBody.toString().toRequestBody()
 
+        //FIRST PUT REQUEST:
         var headers = Headers.Builder()
             .add("Authorization", "Bearer ${prefs.spotifyToken}")
             .add("Content-Type", "application/json")
@@ -128,6 +205,43 @@ class SpotifyInterpreter (private val context: Context) {
         try {
             runBlocking {
                 var response = utils.makeRequest(client, request)
+                //Log.d(TAG, response)
+                try {
+                    //Check if error 401:
+                    var respJSON = JsonParser.parseString(response).asJsonObject
+                    if (respJSON.has("error")) {
+                        var errorJSON = respJSON.get("error").asJsonObject
+                        var status = errorJSON.get("status").asString.toInt()
+                        Log.d(TAG, "First Search answer: received error ${status}.")
+
+                        //401 -> token expired!
+                        if (status == 401) {
+                            //Calling Refresh:
+                            Log.d(TAG, "Refreshing token...")
+                            var query = SpotifyQuery()
+                            query.refreshAuth()
+
+                            //SECOND PUT REQUEST:
+                            headers = Headers.Builder()
+                                .add("Authorization", "Bearer ${prefs.spotifyToken}")
+                                .add("Content-Type", "application/json")
+                                .build()
+
+                            request = Request.Builder()
+                                .url(url)
+                                .put(body)
+                                .headers(headers)
+                                .build()
+
+                            response = utils.makeRequest(client, request)
+                            //Log.d(TAG, response)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.d(TAG, "PlayInternally(): Response is not a JSON -> OK")
+                }
+
+                //CHECK RESPONSE:
                 if (response == "") {
                     Log.d(TAG, "PLAY INTERNALLY: request sent.")
                     ret = 0

@@ -86,6 +86,7 @@ class SpotifyInterpreter (private val context: Context) {
                     returnJSON.addProperty("spotify_URL", "${ext_format}collection/tracks")
                     last_log!!.addProperty("voc_score", 100)
                 } else {
+                    // TODO: ADD OTHER PLAY TYPE CASES HERE!
                     //PLAY -> Playlists in vocabulary:
                     var playlistMatch = nlpInterpreter.matchVocabulary("playlist", matchName, utils.getVocabulary("playlist"))
                     if (playlistMatch.has("text_confirmed")) {
@@ -106,10 +107,11 @@ class SpotifyInterpreter (private val context: Context) {
                         Log.d(TAG, "PLAY -> Playlist not found!")
                     }
                 }
-            // TODO: ADD OTHER PLAY TYPE CASES HERE!
+
             } else {
+                //TRACKS + ALBUMS
                 var search = SpotifySearch()
-                returnJSON = search.genericSearch(searchData = matchExtracted, reqLanguage = reqLanguage)
+                returnJSON = search.searchTrackOrAlbum(searchData = matchExtracted, reqLanguage = reqLanguage)
 
                 //4) CONTEXT:
                 //context vars:

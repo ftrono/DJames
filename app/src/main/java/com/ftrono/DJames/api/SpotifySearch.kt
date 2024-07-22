@@ -2,7 +2,6 @@ package com.ftrono.DJames.api
 
 import android.util.Log
 import com.ftrono.DJames.application.deltaSimilarity
-import com.ftrono.DJames.application.uri_format
 import com.ftrono.DJames.application.ext_format
 import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.matchDoubleThreshold
@@ -172,11 +171,11 @@ class SpotifySearch() {
             //ID & uri:
             var id = bestResult.get("id").asString
             returnJSON.addProperty("id", id)
-            returnJSON.addProperty("uri", "$uri_format$id")
+            returnJSON.addProperty("uri", "spotify:$type:$id")
             returnJSON.addProperty("spotify_URL", "${ext_format}$type/$id")
 
-            //Track name:
-            returnJSON.add("song_name", bestResult.get("name"))
+            //Item name:
+            returnJSON.add("match_name", bestResult.get("name"))
 
             //Artist name:
             var artists = bestResult.getAsJsonArray("artists")
@@ -195,7 +194,7 @@ class SpotifySearch() {
                 returnJSON.addProperty("album_uri", album.get("uri").asString)
             }
 
-            Log.d(TAG, "Spotify Search results successfully processed!")
+            Log.d(TAG, "Spotify Item Search results successfully processed!")
             Log.d(TAG, "returnJSON: ${returnJSON}")
         }
         return returnJSON

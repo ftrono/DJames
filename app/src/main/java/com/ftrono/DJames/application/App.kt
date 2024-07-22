@@ -63,7 +63,7 @@ var contextName: String = ""
 //HTTP:
 //DialogFlow & Spotify formats:
 val dialogflow_id = "djames-nlp"
-val uri_format = "spotify:track:"
+val uri_format = "spotify:track:"   ///spotify:<type>:<id>
 val ext_format = "http://open.spotify.com/"
 val playlistUrlIntro = "https://open.spotify.com/playlist/"
 val likedSongsUri = "spotify:user:replaceUserId:collection"

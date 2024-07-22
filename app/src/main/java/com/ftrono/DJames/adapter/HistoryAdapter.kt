@@ -126,7 +126,7 @@ class HistoryAdapter(
             //SPOTIFY:
             holder.match_name_intro.text = "MATCH:     "
             holder.match_name.text =
-                utils.trimString(logItem.get("spotify_play").asJsonObject.get("song_name").asString, trimLength)
+                utils.trimString(logItem.get("spotify_play").asJsonObject.get("match_name").asString, trimLength)
             holder.match_artist.text =
                 utils.trimString(logItem.get("spotify_play").asJsonObject.get("artist_name").asString, trimLength)
             //Context:

@@ -86,7 +86,6 @@ class SpotifyInterpreter (private val context: Context) {
                     returnJSON.addProperty("spotify_URL", "${ext_format}collection/tracks")
                     last_log!!.addProperty("voc_score", 100)
                 } else {
-                    // TODO: ADD OTHER PLAY TYPE CASES HERE!
                     //PLAY -> Playlists in vocabulary:
                     var playlistMatch = nlpInterpreter.matchVocabulary("playlist", matchName, utils.getVocabulary("playlist"))
                     if (playlistMatch.has("text_confirmed")) {
@@ -103,13 +102,50 @@ class SpotifyInterpreter (private val context: Context) {
                         returnJSON.addProperty("context_name", contextConfirmed)
                         returnJSON.addProperty("spotify_URL", "${ext_format}$playType/$playlistId")
                     } else {
-                        //PLAY -> Playlist not found:
-                        Log.d(TAG, "PLAY -> Playlist not found!")
+                        //PLAY -> Playlist not found: search in Spotify!
+                        //SEARCH PLAYLIST:
+                        var search = SpotifySearchPlaylists()
+                        returnJSON = search.searchPlaylists(searchData = matchExtracted, bySpotify = false)
+
+                        if (!returnJSON.isEmpty) {
+                            Log.d(TAG, "PLAY -> Playlist found")
+                            //PLAY -> Playlist:
+                            returnJSON.addProperty("context_type", "playlist")
+                            var id = returnJSON.get("id").asString
+                            uri = "spotify:playlist:${id}"
+                            returnJSON.addProperty("uri", uri)
+                            returnJSON.addProperty("context_uri", uri)
+                            returnJSON.addProperty("context_name", returnJSON.get("match_name").asString)
+                            returnJSON.addProperty("spotify_URL", "${ext_format}playlist/$id")
+                        } else {
+                            //PLAY -> Playlist not found:
+                            Log.d(TAG, "PLAY -> Playlist not found!")
+                        }
                     }
                 }
+            } else if (playType == "artist") {
+                //PLAY -> Artist: playlist "This is <artist name> by Spotify:
+                //SEARCH PLAYLIST:
+                var search = SpotifySearchPlaylists()
+                returnJSON = search.searchPlaylists(searchData = matchExtracted, bySpotify = true)
 
+                if (!returnJSON.isEmpty) {
+                    Log.d(TAG, "PLAY -> Artist playlist found")
+                    //PLAY -> Artist playlist:
+                    returnJSON.addProperty("context_type", "playlist")
+                    var id = returnJSON.get("id").asString
+                    uri = "spotify:playlist:${id}"
+                    returnJSON.addProperty("uri", uri)
+                    returnJSON.addProperty("context_uri", uri)
+                    returnJSON.addProperty("context_name", returnJSON.get("match_name").asString)
+                    returnJSON.addProperty("spotify_URL", "${ext_format}playlist/$id")
+                } else {
+                    //PLAY -> Playlist not found:
+                    Log.d(TAG, "PLAY -> Artist playlist not found!")
+                }
+            // TODO: ADD OTHER PLAY TYPE CASES HERE!
             } else {
-                //TRACKS + ALBUMS
+                //SEARCH TRACKS + ALBUMS
                 var search = SpotifySearch()
                 returnJSON = search.searchTrackOrAlbum(searchData = matchExtracted, reqLanguage = reqLanguage)
 

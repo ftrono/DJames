@@ -83,6 +83,19 @@
       },
       {
         "language": "en-US",
+        "intro": "Search & play an artist collection / mix:",
+        "sentence_1_intro": "English album (default):",
+        "sentence_1": "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY THE ARTIST artist name\"",
+        "sentence_2_intro": "",
+        "sentence_2": "",
+        "description": "Search & play the default playlist \"This is <artist name>\" in Spotify, if it exists.\nIf you add the word \"Mix\" after the artist name, DJames will search the Artist Mix playlist instead.",
+        "alternatives": [
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY THE ARTIST artist name\"",
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY THE ARTIST artist name MIX\""
+        ]
+      },
+      {
+        "language": "en-US",
         "intro": "Play a playlist of yours*:",
         "sentence_1_intro": "English name (default):",
         "sentence_1": "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY THE PLAYLIST playlist name\"",
@@ -91,6 +104,18 @@
         "description": "Plays a playlist of yours* in Spotify.\n*NOTE: the playlist must be listed in DJames' Vocabulary, in the Playlists tab!",
         "alternatives": [
           "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY MY PLAYLIST playlist name\""
+        ]
+      },
+      {
+        "language": "en-US",
+        "intro": "Search & play any playlist:",
+        "sentence_1_intro": "English name (default):",
+        "sentence_1": "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY THE PLAYLIST playlist name\"",
+        "sentence_2_intro": "",
+        "sentence_2": "",
+        "description": "Search & plays any playlist in Spotify.",
+        "alternatives": [
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY A PLAYLIST playlist name\""
         ]
       },
       {

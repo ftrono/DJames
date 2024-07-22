@@ -56,7 +56,7 @@
     "sentences": [
       {
         "language": "en-US",
-        "intro": "Play a song from its album:",
+        "intro": "Search & play a song from its album:",
         "sentence_1_intro": "English song (default):",
         "sentence_1": "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY song name BY artist name\"",
         "sentence_2_intro": "Italian song:",
@@ -67,6 +67,45 @@
           "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY THE SONG song name BY THE ARTIST artist name\"",
           "\uD83C\uDDEE\uD83C\uDDF9  - \"in italiano, RIPRODUCI / METTI nome canzone DI nome artista\"",
           "\uD83C\uDDEE\uD83C\uDDF9  - \"in italiano, FAI PARTIRE nome canzone DELL'ARTISTA / DEL GRUPPO nome artista\""
+        ]
+      },
+      {
+        "language": "en-US",
+        "intro": "Search & play an album:",
+        "sentence_1_intro": "English album (default):",
+        "sentence_1": "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY THE ALBUM album name BY artist name\"",
+        "sentence_2_intro": "",
+        "sentence_2": "",
+        "description": "Search & play an album in Spotify.",
+        "alternatives": [
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY THE ALBUM album name BY THE ARTIST artist name\""
+        ]
+      },
+      {
+        "language": "en-US",
+        "intro": "Play a playlist of yours*:",
+        "sentence_1_intro": "English name (default):",
+        "sentence_1": "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY THE PLAYLIST playlist name\"",
+        "sentence_2_intro": "",
+        "sentence_2": "",
+        "description": "Plays a playlist of yours* in Spotify.\n*NOTE: the playlist must be listed in DJames' Vocabulary, in the Playlists tab!",
+        "alternatives": [
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY MY PLAYLIST playlist name\""
+        ]
+      },
+      {
+        "language": "en-US",
+        "intro": "Play your Liked Songs collection:",
+        "sentence_1_intro": "English (default):",
+        "sentence_1": "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY my liked songs\"",
+        "sentence_2_intro": "",
+        "sentence_2": "",
+        "description": "Plays your Liked Songs collection in Spotify.",
+        "alternatives": [
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY my saved songs\"",
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY my saved tracks\"",
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY my liked tracks\"",
+          "\uD83C\uDDEC\uD83C\uDDE7  - \"PLAY my collection\""
         ]
       },
       {

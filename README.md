@@ -12,7 +12,9 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
-**Version 1.13 (2024-07-15)** - Add support for directly playing liked songs & playlists from vocabulary (english only).
+**Version 1.14 (2024-07-22)** - Minor usability improvements.
+
+**Version 1.13 (2024-07-14)** - Add support for directly playing liked songs & playlists from vocabulary (english only).
 
 **Version 1.12 (2024-07-06)** - Minor usability improvements.
 

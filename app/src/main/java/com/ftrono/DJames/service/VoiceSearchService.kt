@@ -667,6 +667,7 @@ class VoiceSearchService : Service() {
                         var playType = queryResult.get("play_type").asString
                         //TRIAL 1:
                         //Try requested context:
+                        val clockWasActive = clock_active
                         var sessionState =
                             spotifyInterpreter!!.playInternally(queryResult, useAlbum=false)
                         Log.d(TAG, "(FIRST) SESSION STATE: ${sessionState}")
@@ -715,13 +716,13 @@ class VoiceSearchService : Service() {
                                         var spotifyUrl =
                                             queryResult.get("spotify_URL").asString
                                         if (playType != "track") {
-                                            openExternally(spotifyUrl)
+                                            openExternally(spotifyUrl, clockWasActive)
                                         } else {
                                             var contextUri =
                                                 queryResult.get("album_uri").asString
                                             val encodedContextUri: String =
                                                 URLEncoder.encode(contextUri, "UTF-8")
-                                            openExternally("$spotifyUrl?context=$encodedContextUri")
+                                            openExternally("$spotifyUrl?context=$encodedContextUri", clockWasActive)
                                         }
                                     }
                                 }
@@ -732,12 +733,12 @@ class VoiceSearchService : Service() {
                             //Open externally:
                             var spotifyUrl = queryResult.get("spotify_URL").asString
                             if (playType != "track") {
-                                openExternally(spotifyUrl)
+                                openExternally(spotifyUrl, clockWasActive)
                             } else {
                                 var contextUri = queryResult.get("album_uri").asString
                                 val encodedContextUri: String =
                                     URLEncoder.encode(contextUri, "UTF-8")
-                                openExternally("$spotifyUrl?context=$encodedContextUri")
+                                openExternally("$spotifyUrl?context=$encodedContextUri", clockWasActive)
                             }
                             //Update log:
                             last_log!!.addProperty("play_externally", true)
@@ -756,7 +757,7 @@ class VoiceSearchService : Service() {
     }
 
 
-    private fun openExternally(spotifyToOpen: String) {
+    private fun openExternally(spotifyToOpen: String, clockWasActive: Boolean) {
         //prepare thread:
         vqThreadExt = Thread {
             try {
@@ -771,10 +772,10 @@ class VoiceSearchService : Service() {
                     startActivity(intentSpotify)
                     stopSelf()
 
-                    if (clock_active && prefs.clockRedirectEnabled) {
-                        //Send broadcast:
+                    if (clockWasActive && prefs.clockRedirectEnabled) {
+                        //Toaster -> Send broadcast:
                         Intent().also { intent ->
-                            intent.setAction(ACTION_REDIRECT)
+                            intent.setAction(ACTION_REDIRECT_TOAST)
                             sendBroadcast(intent)
                         }
                         //Clock redirect:

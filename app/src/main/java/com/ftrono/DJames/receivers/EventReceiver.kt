@@ -71,8 +71,8 @@ class EventReceiver: BroadcastReceiver() {
         }
 
         //When redirect countdown activated -> TOAST:
-        if (intent.action == ACTION_REDIRECT) {
-            Log.d(TAG, "EVENT: ACTION_REDIRECT.")
+        if (intent.action == ACTION_REDIRECT_TOAST) {
+            Log.d(TAG, "EVENT: ACTION_REDIRECT_TOAST.")
             //TOAST:
             Toast.makeText(context, "Going back to Clock in ${prefs.clockTimeout} seconds...", Toast.LENGTH_LONG).show()
         }

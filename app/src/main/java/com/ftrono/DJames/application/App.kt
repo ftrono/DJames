@@ -15,7 +15,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "1.13"
+val appVersion = "1.14"
 
 //Preferences:
 val deltaSimilarity = 0   //30
@@ -86,7 +86,7 @@ val client = OkHttpClient.Builder()
 //ACTION_SCREEN_ON, ACTION_SCREEN_OFF
 const val VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION"
 const val ACTION_TOASTER = "com.ftrono.DJames.eventReceiver.ACTION_TOASTER"
-const val ACTION_REDIRECT = "com.ftrono.DJames.eventReceiver.ACTION_REDIRECT"
+const val ACTION_REDIRECT_TOAST = "com.ftrono.DJames.eventReceiver.ACTION_REDIRECT_TOAST"
 
 //Main Act receiver:
 const val ACTION_MAIN_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_MAIN_LOGGED_IN"

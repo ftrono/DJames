@@ -92,6 +92,8 @@ class SpotifySearchPlaylists() {
             returnJSON.addProperty("id", id)
             returnJSON.addProperty("uri", "spotify:playlist:$id")
             returnJSON.addProperty("spotify_URL", "${ext_format}playlist/$id")
+            var owner = bestResult.get("owner").asJsonObject.get("display_name").asString   //display_name!
+            returnJSON.addProperty("owner", owner)
 
             //Match name:
             returnJSON.add("match_name", bestResult.get("name"))

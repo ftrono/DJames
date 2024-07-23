@@ -17,6 +17,8 @@ import android.net.Uri
 import android.os.Environment
 import android.os.IBinder
 import android.provider.Settings
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.telephony.SmsManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -29,12 +31,14 @@ import com.ftrono.DJames.recorder.AndroidAudioRecorder
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import kotlinx.coroutines.runBlocking
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
 import java.net.URLEncoder
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 
 class VoiceSearchService : Service() {
@@ -315,6 +319,78 @@ class VoiceSearchService : Service() {
             sendBroadcast(intent)
         }
         Log.d(TAG, "VOICE SEARCH SERVICE TERMINATED.")
+    }
+
+    fun getTTS(language: String, text: String, dimAudio: Boolean = true): Int {
+        //INIT AUDIOFOCUS:
+        if (dimAudio) {
+            //Focus request:
+            audioFocusRequest =
+                AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+                    .setAudioAttributes(audioAttributes!!)
+                    .setAcceptsDelayedFocusGain(true)
+                    .setOnAudioFocusChangeListener(audioFocusChangeListener)
+                    .build()
+
+            //REQUEST AUDIO FOCUS:
+            val focusRequest = audioManager!!.requestAudioFocus(audioFocusRequest!!)
+            when (focusRequest) {
+                AudioManager.AUDIOFOCUS_REQUEST_FAILED -> {
+                    Log.d(TAG, "Cannot gain audio focus! Try again.")
+                }
+
+                AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {
+                }
+
+                AudioManager.AUDIOFOCUS_REQUEST_DELAYED -> {
+                    mAudioFocusPlaybackDelayed = true
+                }
+            }
+        }
+
+        //SET UP TTS:
+        var completed = false
+        var tts: TextToSpeech? = null
+        tts = TextToSpeech(applicationContext) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                val result = tts!!.setLanguage(Locale.UK)
+                if (result == TextToSpeech.LANG_MISSING_DATA ||
+                    result == TextToSpeech.LANG_NOT_SUPPORTED
+                ) {
+                    Log.e(TAG, "Language ${language} not supported!")
+                } else {
+                    tts!!.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                        override fun onStart(utteranceId: String) {
+                            completed = false
+                        }
+
+                        override fun onDone(utteranceId: String) {
+                            completed = true
+                        }
+
+                        override fun onError(utteranceId: String) {
+                            Log.e(TAG, "Error on $utteranceId")
+                            completed = false
+                        }
+                    })
+                    tts!!.speak(text, TextToSpeech.QUEUE_FLUSH, null, utils.generateRandomString(8))
+                }
+            } else {
+                Log.e(TAG, "Initialization Failed!")
+                completed = true
+            }
+        }
+        while (!completed) {
+            Thread.sleep(1000)
+            if (completed) {
+                //Abandon audio focus:
+                if (dimAudio) {
+                    audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
+                }
+                break
+            }
+        }
+        return 0
     }
 
 
@@ -665,6 +741,13 @@ class VoiceSearchService : Service() {
 
                         //C) PLAY:
                         var playType = queryResult.get("play_type").asString
+                        //READ TTS:
+                        if (queryResult.has("tts")) {
+                            runBlocking {
+                                getTTS(language = "en", text = queryResult.get("tts").asString, dimAudio = true)
+                            }
+                        }
+
                         //TRIAL 1:
                         //Try requested context:
                         val clockWasActive = clock_active

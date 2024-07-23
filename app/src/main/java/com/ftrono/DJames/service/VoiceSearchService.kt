@@ -744,7 +744,7 @@ class VoiceSearchService : Service() {
                         //READ TTS:
                         if (queryResult.has("tts")) {
                             runBlocking {
-                                getTTS(language = "en", text = queryResult.get("tts").asString, dimAudio = true)
+                                getTTS(language = "en", text = queryResult.get("tts").asString.lowercase(), dimAudio = true)
                             }
                         }
 

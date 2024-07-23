@@ -202,7 +202,7 @@ class SpotifyInterpreter (private val context: Context) {
                     returnJSON.addProperty("context_type", "album")
                     returnJSON.addProperty("context_uri", returnJSON.get("album_uri").asString)
                     returnJSON.addProperty("context_name", returnJSON.get("album_name").asString)
-                    returnJSON.addProperty("tts", "Playing the album ${track} by ${artist}!")
+                    returnJSON.addProperty("tts", "Playing the ${playType} ${track} by ${artist}!")
                 }
             }
         }

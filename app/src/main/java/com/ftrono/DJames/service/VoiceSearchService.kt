@@ -380,6 +380,7 @@ class VoiceSearchService : Service() {
                 completed = true
             }
         }
+        var c = 0
         while (!completed) {
             Thread.sleep(1000)
             if (completed) {
@@ -388,7 +389,10 @@ class VoiceSearchService : Service() {
                     audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
                 }
                 break
+            } else if (c >= 5) {
+                break
             }
+            c += 1
         }
         return 0
     }
@@ -623,6 +627,10 @@ class VoiceSearchService : Service() {
                         sendBroadcast(intent)
                     }
 
+                    runBlocking {
+                        getTTS(language = "en", text = "Message sent to ${contact_name}!", dimAudio = false)
+                    }
+
                 } catch (e: Exception) {
                     //Play FAIL tone:
                     toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
@@ -652,8 +660,13 @@ class VoiceSearchService : Service() {
                         //Play FAIL tone:
                         toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                     } else {
+                        runBlocking {
+                            getTTS(language = "en", text = "Calling ${contact_name}...", dimAudio = false)
+                        }
                         //Play ACKNOWLEDGE tone:
                         toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                        //Abandon audio focus:
+                        audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
                         //CALL:
                         Intent().also { intent ->
                             intent.setAction(ACTION_MAKE_CALL)
@@ -679,6 +692,9 @@ class VoiceSearchService : Service() {
                     } else {
                         //START MESSAGE RECORDING:
                         if (voiceSearchOn) {
+                            runBlocking {
+                                getTTS(language = "en", text = "Please, dictate the message for ${contact_name}.", dimAudio = false)
+                            }
                             messageModeOn = true
                             vqThreadMessRec.start()
                         } else {

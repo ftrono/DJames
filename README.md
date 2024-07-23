@@ -12,7 +12,7 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
-**Version 1.14 (2024-07-22)** - Add support for: album search & play, artist play ("This is <artist name>), playlist play outside vocabulary (all English only). Add TTS read for Play requests (English only). Minor usability improvements.
+**Version 1.14 (2024-07-22)** - Add support for: album search & play, artist play ("This is <artist name>), playlist play outside vocabulary (all English only). Add TTS read (English only). Minor usability improvements.
 
 **Version 1.13 (2024-07-14)** - Add support for directly playing liked songs & playlists from vocabulary (english only).
 

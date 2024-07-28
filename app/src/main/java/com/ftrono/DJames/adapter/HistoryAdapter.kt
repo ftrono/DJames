@@ -86,10 +86,14 @@ class HistoryAdapter(
                         holder.datetime.text = "$type_icon  ${context.getString(R.string.result_not_good)}  $datetime"
                     }
                 } else {
-                    if (logItem.get("best_score").asInt < matchDoubleThreshold || context_error) {
-                        holder.datetime.text = "$type_icon  ${context.getString(R.string.result_not_good)}  $datetime"
-                    } else {
+                    var bestScore = logItem.get("best_score").asInt
+                    if (!context_error && bestScore >= matchDoubleThreshold) {
+                        //TODO: TEMPORARY ONLY (remove after August 28, 2024):
                         holder.datetime.text = "$type_icon  ${context.getString(R.string.result_good)}  $datetime"
+                    } else if (!context_error && bestScore <= 100 && bestScore >= playThreshold) {
+                        holder.datetime.text = "$type_icon  ${context.getString(R.string.result_good)}  $datetime"
+                    } else {
+                        holder.datetime.text = "$type_icon  ${context.getString(R.string.result_not_good)}  $datetime"
                     }
                 }
             } catch (e: Exception) {

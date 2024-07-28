@@ -9,6 +9,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import java.net.URLEncoder
 import me.xdrop.fuzzywuzzy.FuzzySearch
+import kotlin.math.roundToInt
 
 
 class SpotifySearchPlaylists() {
@@ -124,8 +125,13 @@ class SpotifySearchPlaylists() {
             //Artists name:
             var owner = currItem.get("owner").asJsonObject.get("id").asString   //if by Spotify, id is "spotify"
             //calculate similarity:
-            scoreJson.addProperty("nameSimilarity", FuzzySearch.tokenSetRatio(scoreJson.get("name").asString, matchName))
-            var score = scoreJson.get("nameSimilarity").asInt
+            var nameSet = FuzzySearch.tokenSetRatio(scoreJson.get("name").asString, matchName)
+            var namePartial = FuzzySearch.partialRatio(scoreJson.get("name").asString, matchName)
+            var nameFull = FuzzySearch.ratio(scoreJson.get("name").asString, matchName)
+            scoreJson.addProperty("nameSetSimilarity", nameSet)
+            scoreJson.addProperty("namePartialSimilarity", namePartial)
+            scoreJson.addProperty("nameFullSimilarity", nameFull)
+            var score = listOf<Int>(nameSet, namePartial, nameFull).average().roundToInt()
             //Check if bySpotify:
             if (bySpotify && owner == "spotify") {
                 score += 100
@@ -142,8 +148,6 @@ class SpotifySearchPlaylists() {
         Log.d(TAG, "MAP: $scoresMap")
         val sortedScores = scoresMap.toList().sortedByDescending { it.second }.toMap()
         Log.d(TAG, "SORTED MAP: $sortedScores")
-        //Default best Ind is 0 (max score):
-        var bestInd = 0
         //Exclude lower items:
         var scoreThreshold = sortedScores.values.elementAt(0) - deltaSimilarity
         if (scoreThreshold < 0) {
@@ -151,6 +155,8 @@ class SpotifySearchPlaylists() {
         }
         var bestScores = sortedScores.filter { (key, value) -> value >= scoreThreshold}
         Log.d(TAG, "FILTERED MAP: $bestScores")
+        //Default best Ind is the first (max score):
+        var bestInd = sortedScores.keys.elementAt(0)
 
         //RETURN PREPARATION:
         var bestMatches = JsonArray()

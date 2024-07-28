@@ -4,13 +4,14 @@ import android.util.Log
 import com.ftrono.DJames.application.deltaSimilarity
 import com.ftrono.DJames.application.ext_format
 import com.ftrono.DJames.application.last_log
-import com.ftrono.DJames.application.matchDoubleThreshold
+import com.ftrono.DJames.application.playThreshold
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.supportedLanguageCodes
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import java.net.URLEncoder
 import me.xdrop.fuzzywuzzy.FuzzySearch
+import kotlin.math.roundToInt
 
 
 class SpotifySearch() {
@@ -113,7 +114,7 @@ class SpotifySearch() {
 
         //SECOND REQUEST:
         var url2 = url
-        if (bestScore <= matchDoubleThreshold || items.isEmpty() || queryLanguage == "it") {
+        if (bestScore <= playThreshold || items.isEmpty() || queryLanguage == "it") {
             //Compose query:
             if (artistName != "") {
                 val encodedArtistName: String = URLEncoder.encode(artistName, "UTF-8")
@@ -250,9 +251,20 @@ class SpotifySearch() {
             }
             scoreJson.addProperty("artists", foundArtists.joinToString(", ", "", ""))
             //calculate similarity:
-            scoreJson.addProperty("nameSimilarity", FuzzySearch.tokenSetRatio(scoreJson.get("name").asString, matchName))
-            scoreJson.addProperty("artistSimilarity", FuzzySearch.tokenSetRatio(scoreJson.get("artists").asString, artistName))
-            var score = scoreJson.get("nameSimilarity").asInt + scoreJson.get("artistSimilarity").asInt
+            var nameSet = FuzzySearch.tokenSetRatio(scoreJson.get("name").asString, matchName)
+            var namePartial = FuzzySearch.partialRatio(scoreJson.get("name").asString, matchName)
+            var nameFull = FuzzySearch.ratio(scoreJson.get("name").asString, matchName)
+            var artistSet = FuzzySearch.tokenSetRatio(scoreJson.get("artists").asString, artistName)
+            var artistPartial = FuzzySearch.partialRatio(scoreJson.get("artists").asString, artistName)
+//            var artistFull = FuzzySearch.ratio(scoreJson.get("artists").asString, artistName)
+            scoreJson.addProperty("nameSetSimilarity", nameSet)
+            scoreJson.addProperty("namePartialSimilarity", namePartial)
+            scoreJson.addProperty("nameFullSimilarity", nameFull)
+            scoreJson.addProperty("artistSetSimilarity", artistSet)
+            scoreJson.addProperty("artistPartialSimilarity", artistPartial)
+//            scoreJson.addProperty("artistFullSimilarity", artistFull)
+            //TRIAL:
+            var score = listOf<Int>(nameSet, namePartial, nameFull, artistSet, artistPartial).average().roundToInt()
             //Check if live:
             for (tok in name.split(" ")) {
                 if (!live && tok.lowercase() == "live") {
@@ -295,8 +307,6 @@ class SpotifySearch() {
         Log.d(TAG, "MAP: $scoresMap")
         val sortedScores = scoresMap.toList().sortedByDescending { it.second }.toMap()
         Log.d(TAG, "SORTED MAP: $sortedScores")
-        //Default best Ind is 0 (max score):
-        var bestInd = 0
         //Exclude lower items:
         var scoreThreshold = sortedScores.values.elementAt(0) - deltaSimilarity
         if (scoreThreshold < 0) {
@@ -304,11 +314,18 @@ class SpotifySearch() {
         }
         var bestScores = sortedScores.filter { (key, value) -> value >= scoreThreshold}
         Log.d(TAG, "FILTERED MAP: $bestScores")
+        //Default best Ind is the first (max score):
+        var bestInd = sortedScores.keys.elementAt(0)
 
         //Get saved & album (if present):
         var bestType = ""
+        var albumFound = false
         for (k in bestScores.keys) {
             var result = matchesArray[k]
+            //0) STORE THE FACT THAT YOU FOUND AN ALBUM:
+            if (result.get("albumType").asString == "album") {
+                albumFound = true
+            }
             //A) If SAVED:
             if (result.get("saved").asBoolean) {
                 //PRIORITY 1) If album -> BEST FOUND -> STOP!
@@ -321,7 +338,7 @@ class SpotifySearch() {
                     bestType = "saved"
                 }
             //PRIORITY 3) If just album & not a saved track found before -> update best: (optional: && contextType != "playlist")
-            } else if (bestInd == 0 && bestType != "saved" && result.get("albumType").asString == "album") {
+            } else if (!albumFound && bestType != "saved" && result.get("albumType").asString == "album") {
                 bestInd = k
                 bestType = "album"
             }

@@ -120,7 +120,7 @@ class SpotifyInterpreter (private val context: Context) {
                             var playlistName = returnJSON.get("match_name").asString
                             returnJSON.addProperty("context_name", playlistName)
                             returnJSON.addProperty("spotify_URL", "${ext_format}playlist/$id")
-                            returnJSON.addProperty("tts", "Playing the playlist ${playlistName} by ${returnJSON.get("owner").asString}!")
+                            returnJSON.addProperty("tts", "Playing the playlist ${playlistName}, by ${returnJSON.get("owner").asString}!")
                         } else {
                             //PLAY -> Playlist not found:
                             Log.d(TAG, "PLAY -> Playlist not found!")
@@ -144,7 +144,7 @@ class SpotifyInterpreter (private val context: Context) {
                     var playlistName = returnJSON.get("match_name").asString
                     returnJSON.addProperty("context_name", playlistName)
                     returnJSON.addProperty("spotify_URL", "${ext_format}playlist/$id")
-                    returnJSON.addProperty("tts", "Playing the playlist ${playlistName} by ${returnJSON.get("owner").asString}!")
+                    returnJSON.addProperty("tts", "Playing the playlist ${playlistName}, by ${returnJSON.get("owner").asString}!")
                 } else {
                     //PLAY -> Playlist not found:
                     Log.d(TAG, "PLAY -> Artist playlist not found!")
@@ -171,7 +171,7 @@ class SpotifyInterpreter (private val context: Context) {
                         returnJSON.addProperty("context_type", "playlist")
                         returnJSON.addProperty("context_uri", uri)
                         returnJSON.addProperty("context_name", "Liked Songs")
-                        returnJSON.addProperty("tts", "Playing the song ${track} by ${artist}!")
+                        returnJSON.addProperty("tts", "Playing the track ${track}, by ${artist}!")
                     } else {
                         //Check Playlists in vocabulary:
                         var playlistMatch = nlpInterpreter.matchVocabulary("playlist", contextName, utils.getVocabulary("playlist"))
@@ -186,14 +186,14 @@ class SpotifyInterpreter (private val context: Context) {
                             uri = "spotify:playlist:${playlistId}"
                             returnJSON.addProperty("context_uri", uri)
                             returnJSON.addProperty("context_name", contextConfirmed)
-                            returnJSON.addProperty("tts", "Playing the song ${track} by ${artist}!")
+                            returnJSON.addProperty("tts", "Playing the track ${track}, by ${artist}!")
                         } else {
                             //Playlist not found -> Context -> album:
                             Log.d(TAG, "Context -> album")
                             returnJSON.addProperty("context_type", "album")
                             returnJSON.addProperty("context_uri", returnJSON.get("album_uri").asString)
                             returnJSON.addProperty("context_name", returnJSON.get("album_name").asString)
-                            returnJSON.addProperty("tts", "Playing the song ${track} by ${artist}!")
+                            returnJSON.addProperty("tts", "Playing the track ${track}, by ${artist}!")
                         }
                     }
                 } else {
@@ -202,7 +202,7 @@ class SpotifyInterpreter (private val context: Context) {
                     returnJSON.addProperty("context_type", "album")
                     returnJSON.addProperty("context_uri", returnJSON.get("album_uri").asString)
                     returnJSON.addProperty("context_name", returnJSON.get("album_name").asString)
-                    returnJSON.addProperty("tts", "Playing the ${playType} ${track} by ${artist}!")
+                    returnJSON.addProperty("tts", "Playing the ${playType} ${track}, by ${artist}!")
                 }
             }
         }

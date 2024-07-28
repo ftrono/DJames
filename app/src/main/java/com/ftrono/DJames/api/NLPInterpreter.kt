@@ -15,6 +15,7 @@ import com.google.gson.JsonParser
 import me.xdrop.fuzzywuzzy.FuzzySearch
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import kotlin.math.roundToInt
 
 
 class NLPInterpreter (private val context: Context) {
@@ -339,10 +340,16 @@ class NLPInterpreter (private val context: Context) {
             var listConfirmed = ArrayList<String>()
             var scoresMap = mutableMapOf<String, Int>()
 
-            //Check each evaluated artist:
+            //Check each evaluated item:
             for (eval in listEvalued) {
                 for (current in vocArray) {
-                    score = FuzzySearch.ratio(current, eval)
+                    if (filter == "playlist") {
+                        var namePartial = FuzzySearch.partialRatio(current, eval)
+                        var nameFull = FuzzySearch.ratio(current, eval)
+                        score = listOf<Int>(namePartial, nameFull).average().roundToInt()
+                    } else {
+                        score = FuzzySearch.ratio(current, eval)
+                    }
                     Log.d(TAG, "VOC CONFIRMATION: COMPARING $current WITH $eval, MATCH: $score")
                     //Add only best matches:
                     if (!scoresMap.keys.contains(current) && score >= midThreshold) {

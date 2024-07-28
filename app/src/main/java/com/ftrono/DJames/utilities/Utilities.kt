@@ -175,7 +175,7 @@ class Utilities {
                             } else {
                                 //Play requests:
                                 score = obj.get("best_score").asInt
-                                if (score <= matchDoubleThreshold) {
+                                if (score <= playThreshold) {
                                     logArray.add(obj)
                                 }
                             }

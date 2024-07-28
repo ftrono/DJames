@@ -15,10 +15,11 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "1.14"
+val appVersion = "1.15"
 
 //Preferences:
-val deltaSimilarity = 0   //30
+val deltaSimilarity = 5   //30
+val playThreshold = 80
 val maxThreshold = 70
 val midThreshold = 55
 val matchDoubleThreshold = 160

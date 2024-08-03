@@ -1,4 +1,4 @@
-package com.ftrono.DJames.service
+package com.ftrono.DJames.services
 
 import android.annotation.SuppressLint
 import android.app.ActivityManager
@@ -33,7 +33,6 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
-import com.ftrono.DJames.receivers.EventReceiver
 import kotlin.math.abs
 import kotlin.math.round
 
@@ -115,7 +114,6 @@ class FloatingViewService : Service() {
             filter.addAction(Intent.ACTION_SCREEN_OFF)
             filter.addAction(VOLUME_CHANGED_ACTION)
             filter.addAction(ACTION_TOASTER)
-            filter.addAction(ACTION_REDIRECT_TOAST)
 
             //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
             registerReceiver(eventReceiver, filter, RECEIVER_EXPORTED)

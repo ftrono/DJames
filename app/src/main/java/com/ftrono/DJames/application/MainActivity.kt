@@ -25,7 +25,7 @@ import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
 import com.ftrono.DJames.R
-import com.ftrono.DJames.service.FloatingViewService
+import com.ftrono.DJames.services.FloatingViewService
 import com.ftrono.DJames.utilities.Utilities
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder

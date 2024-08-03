@@ -75,14 +75,14 @@
         </activity>
 
         <service
-            android:name=".service.FloatingViewService"
+            android:name=".services.FloatingViewService"
             android:label="Overlay Service"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="microphone">
         </service>
         <service
-            android:name=".service.VoiceSearchService"
+            android:name=".services.VoiceSearchService"
             android:label="Voice Search Results"
             android:enabled="true"
             android:exported="false"

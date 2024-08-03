@@ -21,7 +21,7 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.updateLayoutParams
 import com.ftrono.DJames.R
-import com.ftrono.DJames.service.FloatingViewService
+import com.ftrono.DJames.services.FloatingViewService
 import kotlin.math.roundToInt
 
 

@@ -1,4 +1,4 @@
-package com.ftrono.DJames.api
+package com.ftrono.DJames.nlp
 
 import android.util.Log
 import com.ftrono.DJames.R

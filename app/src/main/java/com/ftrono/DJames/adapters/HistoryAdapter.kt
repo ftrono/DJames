@@ -1,4 +1,4 @@
-package com.ftrono.DJames.adapter
+package com.ftrono.DJames.adapters
 
 import android.util.Log
 import android.content.Context

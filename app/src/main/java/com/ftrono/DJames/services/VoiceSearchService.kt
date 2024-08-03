@@ -1,4 +1,4 @@
-package com.ftrono.DJames.service
+package com.ftrono.DJames.services
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -23,9 +23,9 @@ import android.telephony.SmsManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.R
-import com.ftrono.DJames.api.NLPInterpreter
-import com.ftrono.DJames.api.NLPQuery
-import com.ftrono.DJames.api.SpotifyInterpreter
+import com.ftrono.DJames.nlp.NLPInterpreter
+import com.ftrono.DJames.nlp.NLPQuery
+import com.ftrono.DJames.spotify.SpotifyInterpreter
 import com.ftrono.DJames.application.*
 import com.ftrono.DJames.recorder.AndroidAudioRecorder
 import com.ftrono.DJames.utilities.Utilities
@@ -872,9 +872,10 @@ class VoiceSearchService : Service() {
                     stopSelf()
 
                     if (clockWasActive && prefs.clockRedirectEnabled) {
-                        //Toaster -> Send broadcast:
+                        //TOAST -> Send broadcast:
                         Intent().also { intent ->
-                            intent.setAction(ACTION_REDIRECT_TOAST)
+                            intent.setAction(ACTION_TOASTER)
+                            intent.putExtra("toastText", "Going back to Clock in ${prefs.clockTimeout} seconds...")
                             sendBroadcast(intent)
                         }
                         //Clock redirect:

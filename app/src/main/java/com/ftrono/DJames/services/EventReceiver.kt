@@ -1,14 +1,12 @@
-package com.ftrono.DJames.receivers
+package com.ftrono.DJames.services
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
-import android.telephony.TelephonyManager
 import android.util.Log
 import android.widget.Toast
 import com.ftrono.DJames.application.*
-import com.ftrono.DJames.service.VoiceSearchService
 
 
 class EventReceiver: BroadcastReceiver() {
@@ -68,13 +66,6 @@ class EventReceiver: BroadcastReceiver() {
             var toastText = intent.getStringExtra("toastText")
             //TOAST:
             Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
-        }
-
-        //When redirect countdown activated -> TOAST:
-        if (intent.action == ACTION_REDIRECT_TOAST) {
-            Log.d(TAG, "EVENT: ACTION_REDIRECT_TOAST.")
-            //TOAST:
-            Toast.makeText(context, "Going back to Clock in ${prefs.clockTimeout} seconds...", Toast.LENGTH_LONG).show()
         }
 
     }

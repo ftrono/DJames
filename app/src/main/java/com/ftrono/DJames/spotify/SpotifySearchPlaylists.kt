@@ -1,4 +1,4 @@
-package com.ftrono.DJames.api
+package com.ftrono.DJames.spotify
 
 import android.util.Log
 import com.ftrono.DJames.application.deltaSimilarity

@@ -1,4 +1,4 @@
-package com.ftrono.DJames.adapter
+package com.ftrono.DJames.adapters
 
 import android.content.Context
 import android.content.Intent

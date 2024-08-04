@@ -230,8 +230,15 @@ class Utilities {
     }
 
     //VOCABULARY:
-    //Get Json with all Vocabulary items of a given "filter" category:
+    //Get Json with all Vocabulary items for a given "filter" category:
     fun getVocabulary(filter: String): JsonObject {
+        /*
+        STRUCTURE:
+        {
+            "item_name_1": {"key_1": "value_1", ...},
+            ...
+        }
+        */
         var vocFile = File(vocDir, "voc_${filter}s.json")
         var vocJson = JsonObject()
         if (!vocFile.exists()) {
@@ -255,6 +262,24 @@ class Utilities {
         }
         // Log.d(TAG, vocJson.toString())
         return vocJson
+    }
+
+    //Get number of Vocabulary items for a given "filter" category:
+    fun getVocSize(filter: String): Int {
+        var vocFile = File(vocDir, "voc_${filter}s.json")
+        var size = 0
+        if (vocFile.exists()) {
+            //Read array from existing voc file:
+            try {
+                var reader = FileReader(vocFile)
+                var vocJson = JsonParser.parseReader(reader).asJsonObject
+                size = vocJson.keySet().size
+                //Log.d(TAG, vocJson.toString())
+            } catch (e: Exception) {
+                Log.d(TAG, "Error in parsing vocabulary file!", e)
+            }
+        }
+        return size
     }
 
     //Update Vocabulary file:

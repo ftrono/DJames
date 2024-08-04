@@ -29,9 +29,9 @@ class VocabularyAdapter(
         if (filter == "contact") {
             holder.item_icon.setImageResource(R.drawable.icon_contact)
         } else if (filter == "playlist") {
-            holder.item_icon.setImageResource(R.drawable.icon_album)
+            holder.item_icon.setImageResource(R.drawable.icon_headphones)
         } else {
-            holder.item_icon.setImageResource(R.drawable.icon_music)
+            holder.item_icon.setImageResource(R.drawable.icon_note)
         }
         holder.item_text.text = prevText
         //EDIT LISTENERS:

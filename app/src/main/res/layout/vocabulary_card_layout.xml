@@ -22,7 +22,7 @@
             android:layout_width="35dp"
             android:layout_height="35dp"
             app:layout_constraintHorizontal_bias="0.0"
-            android:src="@drawable/icon_music"
+            android:src="@drawable/icon_note"
             android:visibility="visible"
             app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintHorizontal_chainStyle="packed"

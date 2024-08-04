@@ -470,7 +470,7 @@ class SettingsActivity : AppCompatActivity() {
         login_mini_button!!.text = "LOGIN"
         userNameView!!.text = "Not logged in"
         userEMailView!!.visibility = View.GONE
-        Picasso.get().load(R.drawable.user_icon)
+        Picasso.get().load(R.drawable.icon_user)
             .transform(CropCircleTransformation())
             .into(userIcon)
     }

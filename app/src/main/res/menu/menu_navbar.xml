@@ -11,8 +11,8 @@
         android:title="Guide"
         android:icon="@drawable/nav_help" />
     <item
-        android:id="@+id/nav_vocabulary"
-        android:title="Vocabulary"
+        android:id="@+id/nav_myDJames"
+        android:title="My DJames"
         android:icon="@drawable/nav_vocabulary" />
     <item
         android:id="@+id/nav_history"

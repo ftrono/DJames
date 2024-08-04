@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
     private var curFragment: Fragment? = null
     private var curNavItemId = R.id.nav_home
     private var curInd = 0
+    private var prevMdFragment: Fragment = MyDJamesFragment()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,6 +78,7 @@ class MainActivity : AppCompatActivity() {
         val actFilter = IntentFilter()
         actFilter.addAction(ACTION_MAIN_LOGGED_IN)
         actFilter.addAction(ACTION_FINISH_MAIN)
+        actFilter.addAction(ACTION_SWITCH_FRAGMENT)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
         registerReceiver(mainActReceiver, actFilter, RECEIVER_EXPORTED)
@@ -229,14 +231,14 @@ class MainActivity : AppCompatActivity() {
             curFragment = when (item.itemId) {
                 R.id.nav_home -> HomeFragment()
                 R.id.nav_help -> GuideFragment()
-                R.id.nav_vocabulary -> VocabularyFragment()
+                R.id.nav_myDJames -> MyDJamesFragment()
                 R.id.nav_history -> HistoryFragment()
                 else -> HomeFragment()
             }
             var newInd = when (item.itemId) {
                 R.id.nav_home -> 0
                 R.id.nav_help -> 1
-                R.id.nav_vocabulary -> 2
+                R.id.nav_myDJames -> 2
                 R.id.nav_history -> 3
                 else -> 0
             }
@@ -408,6 +410,35 @@ class MainActivity : AppCompatActivity() {
             if (intent.action == ACTION_FINISH_MAIN) {
                 Log.d(TAG, "MAIN: ACTION_FINISH_MAIN.")
                 finishAndRemoveTask()
+            }
+
+            //Switch fragment:
+            if (intent.action == ACTION_SWITCH_FRAGMENT) {
+                val mdId = intent.getIntExtra("mdId", 0)
+                var mdFragment = when (mdId) {
+                    0 -> MyDJamesFragment()
+                    1 -> VocabularyFragment()
+                    //2 -> ForYouFragment()
+                    else -> MyDJamesFragment()
+                }
+
+                if (mdId > 0) {
+                    supportFragmentManager
+                        .beginTransaction()
+                        .replace(R.id.main_frame, mdFragment)
+                        .addToBackStack("tag")
+                        .commit()
+
+                } else {
+                    supportFragmentManager
+                        .beginTransaction()
+                        .replace(R.id.main_frame, mdFragment)
+                        .addToBackStack(null)
+                        .commit()
+                }
+
+                prevMdFragment = mdFragment
+
             }
         }
     }

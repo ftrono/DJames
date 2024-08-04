@@ -3,6 +3,7 @@
   <color name="colorPrimary">#002A1F</color>
   <color name="colorPrimaryDark">#00100C</color>
   <color name="windowBackground">#00100C</color>
+  <color name="colorLogo">#004C38</color>
   <color name="colorAccent">#00684D</color>
   <color name="colorAccentLight">#84BAA2</color>
   <color name="colorHeader">#FFC000</color>
@@ -14,6 +15,7 @@
   <color name="mid_grey">#9c9c9c</color>
   <color name="midfaded_grey">#747474</color>
   <color name="faded_grey">#525252</color>
+  <color name="transparent_green">#9F00684D</color>
   <color name="transparent_grey">#7F9c9c9c</color>
   <color name="transparent_bg">#9F00100C</color>
   <color name="transparent_black">#9F000000</color>

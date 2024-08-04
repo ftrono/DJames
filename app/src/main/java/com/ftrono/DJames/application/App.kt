@@ -15,7 +15,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "1.15"
+val appVersion = "1.16"
 
 //Preferences:
 val deltaSimilarity = 5   //30
@@ -91,6 +91,7 @@ const val ACTION_TOASTER = "com.ftrono.DJames.eventReceiver.ACTION_TOASTER"
 //Main Act receiver:
 const val ACTION_MAIN_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_MAIN_LOGGED_IN"
 const val ACTION_FINISH_MAIN = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_MAIN"
+const val ACTION_SWITCH_FRAGMENT = "com.ftrono.DJames.eventReceiver.ACTION_SWITCH_FRAGMENT"
 
 //Home Fragment receiver:
 const val ACTION_HOME_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_HOME_LOGGED_IN"

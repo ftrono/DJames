@@ -6,7 +6,6 @@ import android.content.DialogInterface
 import android.content.DialogInterface.OnShowListener
 import android.content.Intent
 import android.content.IntentFilter
-import android.graphics.Typeface
 import android.os.Bundle
 import android.telephony.PhoneNumberUtils
 import android.util.Log
@@ -20,7 +19,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -48,68 +46,19 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        filter = "artist"
 
         //Header intro:
         var vocTitle = requireActivity().findViewById<TextView>(R.id.voc_title)
-        vocTitle.text = "Your hard-to-spell artists"
         vocSubtitle = requireActivity().findViewById<TextView>(R.id.voc_subtitle)
 
-        //Filters buttons:
-        var vocArtists = requireActivity().findViewById<Button>(R.id.voc_artists)
-        var vocPlaylists = requireActivity().findViewById<Button>(R.id.voc_playlists)
-        var vocContacts = requireActivity().findViewById<Button>(R.id.voc_contacts)
-        var textArtists = requireActivity().findViewById<TextView>(R.id.text_artists)
-        var textPlaylists = requireActivity().findViewById<TextView>(R.id.text_playlists)
-        var textContacts = requireActivity().findViewById<TextView>(R.id.text_contacts)
-
-        textArtists.setTypeface(null, Typeface.BOLD)
-        textPlaylists.setTypeface(null, Typeface.NORMAL)
-        textContacts.setTypeface(null, Typeface.NORMAL)
-
         //Filters listeners:
-        vocArtists.setOnClickListener(View.OnClickListener {
-            filter = "artist"
+        if (filter == "artist") {
             vocTitle.text = "Your hard-to-spell artists"
-            vocArtists.backgroundTintList =
-                AppCompatResources.getColorStateList(requireActivity(), R.color.colorAccent)
-            vocPlaylists.backgroundTintList =
-                AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
-            vocContacts.backgroundTintList =
-                AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
-            textArtists.setTypeface(null, Typeface.BOLD)
-            textPlaylists.setTypeface(null, Typeface.NORMAL)
-            textContacts.setTypeface(null, Typeface.NORMAL)
-            updateRecyclerView()
-        })
-        vocPlaylists.setOnClickListener(View.OnClickListener {
-            filter = "playlist"
+        } else if (filter == "playlist") {
             vocTitle.text = "Your favourite playlists"
-            vocArtists.backgroundTintList =
-                AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
-            vocPlaylists.backgroundTintList =
-                AppCompatResources.getColorStateList(requireActivity(), R.color.colorAccent)
-            vocContacts.backgroundTintList =
-                AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
-            textArtists.setTypeface(null, Typeface.NORMAL)
-            textPlaylists.setTypeface(null, Typeface.BOLD)
-            textContacts.setTypeface(null, Typeface.NORMAL)
-            updateRecyclerView()
-        })
-        vocContacts.setOnClickListener(View.OnClickListener {
-            filter = "contact"
+        } else if (filter == "contact") {
             vocTitle.text = "Your favourite contacts"
-            vocArtists.backgroundTintList =
-                AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
-            vocPlaylists.backgroundTintList =
-                AppCompatResources.getColorStateList(requireActivity(), R.color.dark_grey)
-            vocContacts.backgroundTintList =
-                AppCompatResources.getColorStateList(requireActivity(), R.color.colorAccent)
-            textArtists.setTypeface(null, Typeface.NORMAL)
-            textPlaylists.setTypeface(null, Typeface.NORMAL)
-            textContacts.setTypeface(null, Typeface.BOLD)
-            updateRecyclerView()
-        })
+        }
 
         //SwipeRefreshLayout:
         swipeRefreshLayout = requireActivity().findViewById<SwipeRefreshLayout>(R.id.vocabulary_refresh)
@@ -217,8 +166,8 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
                 updateRecyclerView()
             }
         })
-        alertDialog.setTitle("Remove items")
-        alertDialog.setMessage("Do you want to remove the item \"${toDelete}\" from this list?")
+        alertDialog.setTitle("Delete item")
+        alertDialog.setMessage("Do you want to delete the item \"${toDelete}\" from your Vocabulary?")
         alertDialog.show()
     }
 

@@ -46,7 +46,7 @@
         android:id="@+id/artwork"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:src="@drawable/artwork_icon"
+        android:src="@drawable/artwork_empty"
         android:layout_marginTop="20dp"
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintHorizontal_chainStyle="packed"

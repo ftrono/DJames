@@ -107,7 +107,7 @@ class VoiceSearchService : Service() {
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
                 focusState = false
                 Log.d(TAG, "Audio focus transient lost.")
-                mAudioFocusResumeOnFocusGained = true
+                mAudioFocusResumeOnFocusGained = false
                 mAudioFocusPlaybackDelayed = false
             }
         }

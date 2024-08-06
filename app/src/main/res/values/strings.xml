@@ -27,10 +27,6 @@
         <item>English     </item>
         <item>Italiano     </item>
     </string-array>
-    <string-array name="micType">
-        <item>Current default     </item>
-        <item>Primary device     </item>
-    </string-array>
     <!-- Guide: Help descriptions -->
     <string name="player_settings_str_1">"Open your Spotify app, then go to \"Settings &amp; Privacy\" -> \"Playback\" and ensure these 2 toggles are ON:"</string>
     <string name="player_settings_str_2">"This will enable player info and ensure continuous playback."</string>

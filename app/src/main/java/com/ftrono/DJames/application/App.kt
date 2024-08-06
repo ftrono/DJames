@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Context
 import android.media.AudioManager
 import com.ftrono.DJames.utilities.Prefs
-import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
 import okhttp3.OkHttpClient
 import java.net.URLEncoder

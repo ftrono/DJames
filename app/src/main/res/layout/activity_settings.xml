@@ -455,7 +455,7 @@
             app:layout_constraintLeft_toRightOf="@+id/divider"
             app:layout_constraintTop_toBottomOf="@+id/checkbox_volume_receiver"/>
 
-        <!-- Auto Clock -->
+        <!-- Hide system bars -->
         <CheckBox
             android:id="@+id/checkbox_hide_bars"
             android:layout_width="wrap_content"
@@ -471,33 +471,6 @@
             app:layout_constraintLeft_toRightOf="@+id/divider"
             app:layout_constraintTop_toBottomOf="@+id/descr_volume_up"/>
 
-        <!-- Overlay Button position-->
-        <TextView
-            android:id="@+id/header_mic"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:layout_marginLeft="58dp"
-            android:text= "Preferred microphone"
-            android:textSize="14dp"
-            android:textColor="@color/light_grey"
-            app:layout_constraintLeft_toRightOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/checkbox_hide_bars"/>
-
-        <Spinner
-            android:id="@+id/spinner_mic"
-            android:paddingEnd="8dp"
-            android:paddingStart="8dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginLeft="46dp"
-            android:textSize="14dp"
-            android:backgroundTint="@color/light_grey"
-            android:entries="@array/micType"
-            app:layout_constraintLeft_toRightOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/header_mic"/>
-
 
         <!-- SAVE BUTTON -->
         <Button
@@ -511,7 +484,7 @@
             android:backgroundTint="@color/colorAccent"
             app:layout_constraintLeft_toRightOf="@+id/divider"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/spinner_mic"/>
+            app:layout_constraintTop_toBottomOf="@+id/checkbox_hide_bars"/>
 
         <!-- APP INFO-->
         <TextView

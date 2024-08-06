@@ -291,8 +291,9 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Handle action bar item clicks here
         val id = item.itemId
-        //Login / logout:
+
         if (id == R.id.action_login) {
+            //Login / logout:
             if (!loggedIn) {
                 //Login user -> Open WebView:
                 val intent1 = Intent(this@MainActivity, WebAuth::class.java)
@@ -301,18 +302,27 @@ class MainActivity : AppCompatActivity() {
                 logout()
             }
             return true
-        //Settings:
+
         } else if (id == R.id.action_settings) {
+            //Settings:
             val intent1 = Intent(this@MainActivity, SettingsActivity::class.java)
             startActivity(intent1)
             return true
-        //Set app preferences:
+
         } else if (id == R.id.action_permissions) {
+            //Set app preferences:
             val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
             val uri = Uri.fromParts("package", packageName, null)
             intent1.setData(uri)
             startActivity(intent1)
             return true
+
+        } else if (id == R.id.action_tts) {
+            //Set app preferences:
+            val intent1 = Intent("com.android.settings.TTS_SETTINGS")
+            startActivity(intent1)
+            return true
+
         } else {
             return super.onOptionsItemSelected(item)
         }

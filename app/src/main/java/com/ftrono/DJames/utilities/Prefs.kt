@@ -97,12 +97,6 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getBoolean(KEY_HIDE_BARS, false) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_HIDE_BARS, value).apply()
 
-    //Preferred mic:
-    var micType: String
-        //0 -> Current default; 1 -> Primary device
-        get() = sharedPrefs.getString(KEY_MIC_TYPE, "0") as String
-        set(value) = sharedPrefs.edit().putString(KEY_MIC_TYPE, value).apply()
-
     //User profile:
     //Spotify user ID:
     var spotUserId: String
@@ -156,7 +150,6 @@ class Prefs (context: Context) {
         const val KEY_CLOCK_TIMEOUT = ".key.clock_timeout"
         const val KEY_VOLUME_UP_ENABLED = ".key.volume_up_enabled"
         const val KEY_HIDE_BARS = ".key.hide_bars"
-        const val KEY_MIC_TYPE = ".key.mic_type"
         const val KEY_SPOTIFY_USER_ID = ".key.spotify_user_id"
         const val KEY_USER_NAME = ".key.user_name"
         const val KEY_USER_EMAIL = ".key.user_email"

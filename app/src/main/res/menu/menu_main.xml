@@ -13,6 +13,11 @@
         android:icon="@drawable/item_user"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_tts"
+        android:title="Voice settings"
+        android:icon="@drawable/speak_icon_gray"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_permissions"
         android:title="Permissions"
         android:icon="@drawable/item_permissions"

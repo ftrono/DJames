@@ -148,10 +148,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     requireActivity().stopService(Intent(requireActivity(), FloatingViewService::class.java))
                 }
             }
-
         })
-
     }
+
 
     override fun onResume() {
         super.onResume()

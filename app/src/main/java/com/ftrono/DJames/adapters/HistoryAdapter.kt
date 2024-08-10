@@ -110,7 +110,7 @@ class HistoryAdapter(
         //NLP:
         try {
             var queryText = logItem.get("nlp").asJsonObject.get("query_text").asString
-            if (intentName.contains("Play") && !queryText.contains("play")) {
+            if (intentName.contains("Play") && !queryText.contains("play ")) {
                 holder.nlp_text.text = "play: $queryText"
             } else {
                 holder.nlp_text.text = queryText

@@ -55,11 +55,11 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
 
         //Filters listeners:
         if (filter == "artist") {
-            vocTitle.text = "Your hard-to-spell artists"
+            vocTitle.text = "✏️  Your hard-to-spell artists"
         } else if (filter == "playlist") {
-            vocTitle.text = "Your favourite playlists"
+            vocTitle.text = "✏️  Your favourite playlists"
         } else if (filter == "contact") {
-            vocTitle.text = "Your favourite contacts"
+            vocTitle.text = "✏️  Your favourite contacts"
         }
 
         //SwipeRefreshLayout:

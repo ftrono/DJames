@@ -33,7 +33,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginLeft="20dp"
-        android:text="History"
+        android:text="🕑  History"
         android:textColor="@color/light_grey"
         android:textSize="24dp"
         android:textStyle="bold"

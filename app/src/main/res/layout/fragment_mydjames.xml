@@ -22,7 +22,7 @@
         android:layout_marginLeft="20dp"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
-        android:text="My DJames"
+        android:text="🎧  My DJames"
         android:textColor="@color/light_grey"
         android:textSize="24dp"
         android:textStyle="bold"
@@ -61,7 +61,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"
                 android:layout_marginTop="10dp"
-                android:text="Vocabulary"
+                android:text="📝  Vocabulary"
                 android:textColor="@color/light_grey"
                 android:textSize="20dp"
                 android:textStyle="bold"
@@ -78,7 +78,7 @@
                 android:layout_marginLeft="20dp"
                 android:layout_marginTop="4dp"
                 android:text="Help DJames understand you:"
-                android:textColor="@color/light_grey"
+                android:textColor="@color/mid_grey"
                 android:textSize="12dp"
                 app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintVertical_chainStyle="packed"
@@ -100,56 +100,73 @@
                 android:focusable="true"
                 android:checkable="true"
                 android:backgroundTint="@color/dark_grey"
-                app:strokeColor="@color/midfaded_grey"
+                app:strokeColor="@color/dark_grey"
                 app:cardElevation="2dp"
                 app:cardCornerRadius="10dp"
                 app:layout_constraintVertical_chainStyle="packed"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toLeftOf="@+id/md_card_playlists"
-                app:layout_constraintTop_toBottomOf="@+id/md_voc_subtitle"/>
+                app:layout_constraintTop_toBottomOf="@+id/md_voc_subtitle">
 
-            <ImageView
-                android:id="@+id/md_artists_icon"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_marginBottom="4dp"
-                android:src="@drawable/png_note"
-                android:translationZ="100dp"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toTopOf="@+id/md_card_artists"
-                app:layout_constraintBottom_toTopOf="@+id/md_artists_main"
-                app:layout_constraintLeft_toLeftOf="@+id/md_card_artists"
-                app:layout_constraintRight_toRightOf="@+id/md_card_artists" />
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
-            <TextView
-                android:id="@+id/md_artists_main"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="My Artists"
-                android:textColor="@color/light_grey"
-                android:textSize="18dp"
-                android:textStyle="bold"
-                android:translationZ="100dp"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/md_artists_icon"
-                app:layout_constraintBottom_toTopOf="@+id/md_artists_sub"
-                app:layout_constraintLeft_toLeftOf="@+id/md_card_artists"
-                app:layout_constraintRight_toRightOf="@+id/md_card_artists" />
+                    <ImageView
+                        android:id="@+id/md_artists_bg"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/bg_artists"
+                        android:adjustViewBounds="true"
+                        android:scaleType="centerCrop"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"/>
 
-            <TextView
-                android:id="@+id/md_artists_sub"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0 items"
-                android:textColor="@color/mid_grey"
-                android:textStyle="italic"
-                android:textSize="12dp"
-                android:translationZ="100dp"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/md_artists_main"
-                app:layout_constraintBottom_toBottomOf="@+id/md_card_artists"
-                app:layout_constraintLeft_toLeftOf="@+id/md_card_artists"
-                app:layout_constraintRight_toRightOf="@+id/md_card_artists"/>
+                        <ImageView
+                            android:id="@+id/md_artists_icon"
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:layout_marginBottom="4dp"
+                            android:src="@drawable/png_note"
+                            android:translationZ="100dp"
+                            app:layout_constraintVertical_chainStyle="packed"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toTopOf="@+id/md_artists_main"
+                            app:layout_constraintLeft_toLeftOf="parent"
+                            app:layout_constraintRight_toRightOf="parent" />
+
+                        <TextView
+                            android:id="@+id/md_artists_main"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="My Artists"
+                            android:textColor="@color/light_grey"
+                            android:textSize="18dp"
+                            android:textStyle="bold"
+                            android:translationZ="100dp"
+                            app:layout_constraintVertical_chainStyle="packed"
+                            app:layout_constraintTop_toBottomOf="@+id/md_artists_icon"
+                            app:layout_constraintBottom_toTopOf="@+id/md_artists_sub"
+                            app:layout_constraintLeft_toLeftOf="parent"
+                            app:layout_constraintRight_toRightOf="parent" />
+
+                        <TextView
+                            android:id="@+id/md_artists_sub"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0 items"
+                            android:textColor="@color/light_grey"
+                            android:textStyle="italic"
+                            android:textSize="12dp"
+                            android:translationZ="100dp"
+                            app:layout_constraintVertical_chainStyle="packed"
+                            app:layout_constraintTop_toBottomOf="@+id/md_artists_main"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintLeft_toLeftOf="parent"
+                            app:layout_constraintRight_toRightOf="parent"/>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
 
 
             <!-- Playlists -->
@@ -164,56 +181,73 @@
                 android:focusable="true"
                 android:checkable="true"
                 android:backgroundTint="@color/dark_grey"
-                app:strokeColor="@color/midfaded_grey"
+                app:strokeColor="@color/dark_grey"
                 app:cardElevation="2dp"
                 app:cardCornerRadius="10dp"
                 app:layout_constraintVertical_chainStyle="packed"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintLeft_toRightOf="@+id/md_card_artists"
-                app:layout_constraintTop_toBottomOf="@+id/md_voc_subtitle"/>
+                app:layout_constraintTop_toBottomOf="@+id/md_voc_subtitle">
 
-            <ImageView
-                android:id="@+id/md_playlists_icon"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_marginBottom="4dp"
-                android:src="@drawable/png_headphones"
-                android:translationZ="100dp"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toTopOf="@+id/md_card_playlists"
-                app:layout_constraintBottom_toTopOf="@+id/md_playlists_main"
-                app:layout_constraintLeft_toLeftOf="@+id/md_card_playlists"
-                app:layout_constraintRight_toRightOf="@+id/md_card_playlists" />
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
-            <TextView
-                android:id="@+id/md_playlists_main"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="My Playlists"
-                android:textColor="@color/light_grey"
-                android:textSize="18dp"
-                android:textStyle="bold"
-                android:translationZ="100dp"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/md_playlists_icon"
-                app:layout_constraintBottom_toTopOf="@+id/md_playlists_sub"
-                app:layout_constraintLeft_toLeftOf="@+id/md_card_playlists"
-                app:layout_constraintRight_toRightOf="@+id/md_card_playlists" />
+                    <ImageView
+                        android:id="@+id/md_playlists_bg"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/bg_playlists"
+                        android:adjustViewBounds="true"
+                        android:scaleType="centerCrop"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"/>
 
-            <TextView
-                android:id="@+id/md_playlists_sub"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0 items"
-                android:textColor="@color/mid_grey"
-                android:textStyle="italic"
-                android:textSize="12dp"
-                android:translationZ="100dp"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/md_playlists_main"
-                app:layout_constraintBottom_toBottomOf="@+id/md_card_playlists"
-                app:layout_constraintLeft_toLeftOf="@+id/md_card_playlists"
-                app:layout_constraintRight_toRightOf="@+id/md_card_playlists"/>
+                    <ImageView
+                        android:id="@+id/md_playlists_icon"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_marginBottom="4dp"
+                        android:src="@drawable/png_headphones"
+                        android:translationZ="100dp"
+                        app:layout_constraintVertical_chainStyle="packed"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toTopOf="@+id/md_playlists_main"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent" />
+
+                    <TextView
+                        android:id="@+id/md_playlists_main"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="My Playlists"
+                        android:textColor="@color/light_grey"
+                        android:textSize="18dp"
+                        android:textStyle="bold"
+                        android:translationZ="100dp"
+                        app:layout_constraintVertical_chainStyle="packed"
+                        app:layout_constraintTop_toBottomOf="@+id/md_playlists_icon"
+                        app:layout_constraintBottom_toTopOf="@+id/md_playlists_sub"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent" />
+
+                    <TextView
+                        android:id="@+id/md_playlists_sub"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 items"
+                        android:textColor="@color/light_grey"
+                        android:textStyle="italic"
+                        android:textSize="12dp"
+                        android:translationZ="100dp"
+                        app:layout_constraintVertical_chainStyle="packed"
+                        app:layout_constraintTop_toBottomOf="@+id/md_playlists_main"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"/>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
 
 
             <!-- Contacts -->
@@ -228,56 +262,73 @@
                 android:focusable="true"
                 android:checkable="true"
                 android:backgroundTint="@color/dark_grey"
-                app:strokeColor="@color/midfaded_grey"
+                app:strokeColor="@color/dark_grey"
                 app:cardElevation="2dp"
                 app:cardCornerRadius="10dp"
                 app:layout_constraintVertical_chainStyle="packed"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toLeftOf="@+id/md_card_places"
-                app:layout_constraintTop_toBottomOf="@+id/md_card_artists"/>
+                app:layout_constraintTop_toBottomOf="@+id/md_card_artists">
 
-            <ImageView
-                android:id="@+id/md_contacts_icon"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_marginBottom="4dp"
-                android:src="@drawable/png_contact"
-                android:translationZ="100dp"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toTopOf="@+id/md_card_contacts"
-                app:layout_constraintBottom_toTopOf="@+id/md_contacts_main"
-                app:layout_constraintLeft_toLeftOf="@+id/md_card_contacts"
-                app:layout_constraintRight_toRightOf="@+id/md_card_contacts" />
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
-            <TextView
-                android:id="@+id/md_contacts_main"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="My Contacts"
-                android:textColor="@color/light_grey"
-                android:textSize="18dp"
-                android:textStyle="bold"
-                android:translationZ="100dp"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/md_contacts_icon"
-                app:layout_constraintBottom_toTopOf="@+id/md_contacts_sub"
-                app:layout_constraintLeft_toLeftOf="@+id/md_card_contacts"
-                app:layout_constraintRight_toRightOf="@+id/md_card_contacts" />
+                    <ImageView
+                        android:id="@+id/md_contacts_bg"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/bg_contacts"
+                        android:adjustViewBounds="true"
+                        android:scaleType="centerCrop"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"/>
 
-            <TextView
-                android:id="@+id/md_contacts_sub"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0 items"
-                android:textColor="@color/mid_grey"
-                android:textStyle="italic"
-                android:textSize="12dp"
-                android:translationZ="100dp"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/md_contacts_main"
-                app:layout_constraintBottom_toBottomOf="@+id/md_card_contacts"
-                app:layout_constraintLeft_toLeftOf="@+id/md_card_contacts"
-                app:layout_constraintRight_toRightOf="@+id/md_card_contacts"/>
+                    <ImageView
+                        android:id="@+id/md_contacts_icon"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_marginBottom="4dp"
+                        android:src="@drawable/png_contact"
+                        android:translationZ="100dp"
+                        app:layout_constraintVertical_chainStyle="packed"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toTopOf="@+id/md_contacts_main"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent" />
+
+                    <TextView
+                        android:id="@+id/md_contacts_main"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="My Contacts"
+                        android:textColor="@color/light_grey"
+                        android:textSize="18dp"
+                        android:textStyle="bold"
+                        android:translationZ="100dp"
+                        app:layout_constraintVertical_chainStyle="packed"
+                        app:layout_constraintTop_toBottomOf="@+id/md_contacts_icon"
+                        app:layout_constraintBottom_toTopOf="@+id/md_contacts_sub"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent" />
+
+                    <TextView
+                        android:id="@+id/md_contacts_sub"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 items"
+                        android:textColor="@color/light_grey"
+                        android:textStyle="italic"
+                        android:textSize="12dp"
+                        android:translationZ="100dp"
+                        app:layout_constraintVertical_chainStyle="packed"
+                        app:layout_constraintTop_toBottomOf="@+id/md_contacts_main"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"/>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
 
 
             <!-- Places -->
@@ -292,56 +343,73 @@
                 android:focusable="true"
                 android:checkable="true"
                 android:backgroundTint="@color/dark_grey"
-                app:strokeColor="@color/midfaded_grey"
+                app:strokeColor="@color/dark_grey"
                 app:cardElevation="2dp"
                 app:cardCornerRadius="10dp"
                 app:layout_constraintVertical_chainStyle="packed"
                 app:layout_constraintLeft_toRightOf="@+id/md_card_contacts"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/md_card_artists"/>
+                app:layout_constraintTop_toBottomOf="@+id/md_card_artists">
 
-            <ImageView
-                android:id="@+id/md_places_icon"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_marginBottom="4dp"
-                android:src="@drawable/png_pin"
-                android:translationZ="100dp"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toTopOf="@+id/md_card_places"
-                app:layout_constraintBottom_toTopOf="@+id/md_places_main"
-                app:layout_constraintLeft_toLeftOf="@+id/md_card_places"
-                app:layout_constraintRight_toRightOf="@+id/md_card_places" />
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
-            <TextView
-                android:id="@+id/md_places_main"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="My Places"
-                android:textColor="@color/mid_grey"
-                android:textSize="18dp"
-                android:textStyle="bold"
-                android:translationZ="100dp"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/md_places_icon"
-                app:layout_constraintBottom_toTopOf="@+id/md_places_sub"
-                app:layout_constraintLeft_toLeftOf="@+id/md_card_places"
-                app:layout_constraintRight_toRightOf="@+id/md_card_places" />
+                    <ImageView
+                        android:id="@+id/md_places_bg"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/bg_places"
+                        android:adjustViewBounds="true"
+                        android:scaleType="centerCrop"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"/>
 
-            <TextView
-                android:id="@+id/md_places_sub"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0 items"
-                android:textColor="@color/mid_grey"
-                android:textStyle="italic"
-                android:textSize="12dp"
-                android:translationZ="100dp"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/md_places_main"
-                app:layout_constraintBottom_toBottomOf="@+id/md_card_places"
-                app:layout_constraintLeft_toLeftOf="@+id/md_card_places"
-                app:layout_constraintRight_toRightOf="@+id/md_card_places"/>
+                    <ImageView
+                        android:id="@+id/md_places_icon"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_marginBottom="4dp"
+                        android:src="@drawable/png_pin"
+                        android:translationZ="100dp"
+                        app:layout_constraintVertical_chainStyle="packed"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toTopOf="@+id/md_places_main"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent" />
+
+                    <TextView
+                        android:id="@+id/md_places_main"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="My Places"
+                        android:textColor="@color/mid_grey"
+                        android:textSize="18dp"
+                        android:textStyle="bold"
+                        android:translationZ="100dp"
+                        app:layout_constraintVertical_chainStyle="packed"
+                        app:layout_constraintTop_toBottomOf="@+id/md_places_icon"
+                        app:layout_constraintBottom_toTopOf="@+id/md_places_sub"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent" />
+
+                    <TextView
+                        android:id="@+id/md_places_sub"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 items"
+                        android:textColor="@color/mid_grey"
+                        android:textStyle="italic"
+                        android:textSize="12dp"
+                        android:translationZ="100dp"
+                        app:layout_constraintVertical_chainStyle="packed"
+                        app:layout_constraintTop_toBottomOf="@+id/md_places_main"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"/>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
 
 
             <!-- TITLES 2 -->
@@ -351,7 +419,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"
                 android:layout_marginTop="40dp"
-                android:text="For you"
+                android:text="🔍  For you"
                 android:textColor="@color/light_grey"
                 android:textSize="20dp"
                 android:textStyle="bold"
@@ -376,57 +444,74 @@
                 android:focusable="true"
                 android:checkable="true"
                 android:backgroundTint="@color/dark_grey"
-                app:strokeColor="@color/midfaded_grey"
+                app:strokeColor="@color/dark_grey"
                 app:cardElevation="2dp"
                 app:cardCornerRadius="10dp"
                 app:layout_constraintVertical_chainStyle="packed"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toLeftOf="@+id/md_card_news"
                 app:layout_constraintTop_toBottomOf="@+id/md_you_title"
-                app:layout_constraintBottom_toBottomOf="parent"/>
+                app:layout_constraintBottom_toBottomOf="parent">
 
-            <ImageView
-                android:id="@+id/md_parking_icon"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_marginBottom="4dp"
-                android:src="@drawable/png_car"
-                android:translationZ="100dp"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toTopOf="@+id/md_card_parking"
-                app:layout_constraintBottom_toTopOf="@+id/md_parking_main"
-                app:layout_constraintLeft_toLeftOf="@+id/md_card_parking"
-                app:layout_constraintRight_toRightOf="@+id/md_card_parking" />
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
-            <TextView
-                android:id="@+id/md_parking_main"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Last Parking"
-                android:textColor="@color/mid_grey"
-                android:textSize="18dp"
-                android:textStyle="bold"
-                android:translationZ="100dp"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/md_parking_icon"
-                app:layout_constraintBottom_toTopOf="@+id/md_parking_sub"
-                app:layout_constraintLeft_toLeftOf="@+id/md_card_parking"
-                app:layout_constraintRight_toRightOf="@+id/md_card_parking" />
+                    <ImageView
+                        android:id="@+id/md_parking_bg"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/bg_parking"
+                        android:adjustViewBounds="true"
+                        android:scaleType="centerCrop"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"/>
 
-            <TextView
-                android:id="@+id/md_parking_sub"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Not saved"
-                android:textColor="@color/mid_grey"
-                android:textStyle="italic"
-                android:textSize="12dp"
-                android:translationZ="100dp"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/md_parking_main"
-                app:layout_constraintBottom_toBottomOf="@+id/md_card_parking"
-                app:layout_constraintLeft_toLeftOf="@+id/md_card_parking"
-                app:layout_constraintRight_toRightOf="@+id/md_card_parking"/>
+                    <ImageView
+                        android:id="@+id/md_parking_icon"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_marginBottom="4dp"
+                        android:src="@drawable/png_car"
+                        android:translationZ="100dp"
+                        app:layout_constraintVertical_chainStyle="packed"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toTopOf="@+id/md_parking_main"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent" />
+
+                    <TextView
+                        android:id="@+id/md_parking_main"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Last Parking"
+                        android:textColor="@color/mid_grey"
+                        android:textSize="18dp"
+                        android:textStyle="bold"
+                        android:translationZ="100dp"
+                        app:layout_constraintVertical_chainStyle="packed"
+                        app:layout_constraintTop_toBottomOf="@+id/md_parking_icon"
+                        app:layout_constraintBottom_toTopOf="@+id/md_parking_sub"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent" />
+
+                    <TextView
+                        android:id="@+id/md_parking_sub"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Not saved"
+                        android:textColor="@color/mid_grey"
+                        android:textStyle="italic"
+                        android:textSize="12dp"
+                        android:translationZ="100dp"
+                        app:layout_constraintVertical_chainStyle="packed"
+                        app:layout_constraintTop_toBottomOf="@+id/md_parking_main"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"/>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
 
 
             <!-- News -->
@@ -442,56 +527,73 @@
                 android:focusable="true"
                 android:checkable="true"
                 android:backgroundTint="@color/dark_grey"
-                app:strokeColor="@color/midfaded_grey"
+                app:strokeColor="@color/dark_grey"
                 app:cardElevation="2dp"
                 app:cardCornerRadius="10dp"
                 app:layout_constraintVertical_chainStyle="packed"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintLeft_toRightOf="@+id/md_card_parking"
-                app:layout_constraintTop_toBottomOf="@+id/md_you_title"/>
+                app:layout_constraintTop_toBottomOf="@+id/md_you_title">
 
-            <ImageView
-                android:id="@+id/md_news_icon"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_marginBottom="4dp"
-                android:src="@drawable/png_news"
-                android:translationZ="100dp"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toTopOf="@+id/md_card_news"
-                app:layout_constraintBottom_toTopOf="@+id/md_news_main"
-                app:layout_constraintLeft_toLeftOf="@+id/md_card_news"
-                app:layout_constraintRight_toRightOf="@+id/md_card_news" />
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
-            <TextView
-                android:id="@+id/md_news_main"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="My News"
-                android:textColor="@color/mid_grey"
-                android:textSize="18dp"
-                android:textStyle="bold"
-                android:translationZ="100dp"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/md_news_icon"
-                app:layout_constraintBottom_toTopOf="@+id/md_news_sub"
-                app:layout_constraintLeft_toLeftOf="@+id/md_card_news"
-                app:layout_constraintRight_toRightOf="@+id/md_card_news" />
+                    <ImageView
+                        android:id="@+id/md_news_bg"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/bg_news"
+                        android:adjustViewBounds="true"
+                        android:scaleType="centerCrop"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"/>
 
-            <TextView
-                android:id="@+id/md_news_sub"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0 articles"
-                android:textColor="@color/mid_grey"
-                android:textStyle="italic"
-                android:textSize="12dp"
-                android:translationZ="100dp"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintTop_toBottomOf="@+id/md_news_main"
-                app:layout_constraintBottom_toBottomOf="@+id/md_card_news"
-                app:layout_constraintLeft_toLeftOf="@+id/md_card_news"
-                app:layout_constraintRight_toRightOf="@+id/md_card_news"/>
+                    <ImageView
+                        android:id="@+id/md_news_icon"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_marginBottom="4dp"
+                        android:src="@drawable/png_news"
+                        android:translationZ="100dp"
+                        app:layout_constraintVertical_chainStyle="packed"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toTopOf="@+id/md_news_main"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent" />
+
+                    <TextView
+                        android:id="@+id/md_news_main"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="My News"
+                        android:textColor="@color/mid_grey"
+                        android:textSize="18dp"
+                        android:textStyle="bold"
+                        android:translationZ="100dp"
+                        app:layout_constraintVertical_chainStyle="packed"
+                        app:layout_constraintTop_toBottomOf="@+id/md_news_icon"
+                        app:layout_constraintBottom_toTopOf="@+id/md_news_sub"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent" />
+
+                    <TextView
+                        android:id="@+id/md_news_sub"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 articles"
+                        android:textColor="@color/mid_grey"
+                        android:textStyle="italic"
+                        android:textSize="12dp"
+                        android:translationZ="100dp"
+                        app:layout_constraintVertical_chainStyle="packed"
+                        app:layout_constraintTop_toBottomOf="@+id/md_news_main"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"/>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

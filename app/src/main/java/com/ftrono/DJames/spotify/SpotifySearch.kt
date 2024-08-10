@@ -6,7 +6,6 @@ import com.ftrono.DJames.application.ext_format
 import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.playThreshold
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.supportedLanguageCodes
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import java.net.URLEncoder
@@ -19,17 +18,11 @@ class SpotifySearch() {
     private var query = SpotifyQuery()
 
     //SEARCH TRACKS OR ALBUMS:
-    fun searchTrackOrAlbum(searchData: JsonObject, reqLanguage: String): JsonObject {
+    fun searchTrackOrAlbum(searchData: JsonObject): JsonObject {
         //vars:
         var type = searchData.get("play_type").asString
         var matchName = searchData.get("match_extracted").asString
         var artistName = searchData.get("artist_confirmed").asString
-        var contextType = searchData.get("context_type").asString
-        //Query language:
-        var queryLanguage = supportedLanguageCodes[prefs.queryLanguage.toInt()]
-        if (reqLanguage != "") {
-            queryLanguage = reqLanguage
-        }
 
         //BUILD GET REQUEST:
         var baseURL = "https://api.spotify.com/v1/search"
@@ -101,7 +94,7 @@ class SpotifySearch() {
             logJSON.addProperty("n_items", n_items)
             //Get best score:
             if (n_items > 0) {
-                bestMatches = getBestMatches(items, type, matchName, artistName, contextType, live)
+                bestMatches = getBestMatches(items, type, matchName, artistName, live)
                 logJSON.add("spotify_matches", bestMatches)
                 //Best:
                 bestInd = bestMatches[0].asJsonObject.get("pos").asInt
@@ -114,7 +107,7 @@ class SpotifySearch() {
 
         //SECOND REQUEST:
         var url2 = url
-        if (bestScore <= playThreshold || items.isEmpty() || queryLanguage == "it") {
+        if (bestScore <= playThreshold || items.isEmpty()) {
             //Compose query:
             if (artistName != "") {
                 val encodedArtistName: String = URLEncoder.encode(artistName, "UTF-8")
@@ -145,7 +138,7 @@ class SpotifySearch() {
                     logJSON.addProperty("n_items", n_items)
                     //Get best score:
                     if (n_items > 0) {
-                        bestMatches = getBestMatches(items2, type, matchName, artistName, contextType, live)
+                        bestMatches = getBestMatches(items2, type, matchName, artistName, live)
                         logJSON.add("spotify_matches", bestMatches)
                         //Best:
                         var bestScore2 = bestMatches[0].asJsonObject.get("score").asInt
@@ -221,7 +214,7 @@ class SpotifySearch() {
     }
 
     //Spotify: get Best Result:
-    fun getBestMatches(items: JsonArray, type: String, matchName: String, artistName: String, contextType: String, live: Boolean): JsonArray {
+    fun getBestMatches(items: JsonArray, type: String, matchName: String, artistName: String, live: Boolean): JsonArray {
         //Analyse Spotify query result:
         //GET BEST RESULT:
         var c = 0
@@ -250,30 +243,56 @@ class SpotifySearch() {
                 foundArtists.add(artist.asJsonObject.get("name").asString)
             }
             scoreJson.addProperty("artists", foundArtists.joinToString(", ", "", ""))
+
             //calculate similarity:
-            var nameSet = FuzzySearch.tokenSetRatio(scoreJson.get("name").asString, matchName)
-            var namePartial = FuzzySearch.partialRatio(scoreJson.get("name").asString, matchName)
-            var nameFull = FuzzySearch.ratio(scoreJson.get("name").asString, matchName)
-            var artistSet = FuzzySearch.tokenSetRatio(scoreJson.get("artists").asString, artistName)
-            var artistPartial = FuzzySearch.partialRatio(scoreJson.get("artists").asString, artistName)
-//            var artistFull = FuzzySearch.ratio(scoreJson.get("artists").asString, artistName)
+            //var intersection = 0
+            var nameSet = 0
+            var namePartial = 0
+            var nameFull = 0
+            var artistSet = 0
+            var artistPartial = 0
+            var sumScore = 0
+            var score = 0
+
+            //TODO: always update n_metrics below!
+            if (artistName == "") {
+                var curToMatch = scoreJson.get("name").asString + " " + scoreJson.get("artists").asString
+                nameSet = FuzzySearch.tokenSetRatio(curToMatch, matchName)
+                namePartial = FuzzySearch.partialRatio(curToMatch, matchName)
+                nameFull = FuzzySearch.ratio(curToMatch, matchName)
+                //intersection = utils.countIntersection(toMatch = curToMatch, target = matchName)
+                sumScore = listOf<Int>(nameSet, namePartial, nameFull).sum()
+                score = listOf<Int>(nameSet, namePartial, nameFull).average().roundToInt()
+            } else {
+                nameSet = FuzzySearch.tokenSetRatio(scoreJson.get("name").asString, matchName)
+                namePartial = FuzzySearch.partialRatio(scoreJson.get("name").asString, matchName)
+                nameFull = FuzzySearch.ratio(scoreJson.get("name").asString, matchName)
+                artistSet = FuzzySearch.tokenSetRatio(scoreJson.get("artists").asString, artistName)
+                artistPartial = FuzzySearch.partialRatio(scoreJson.get("artists").asString, artistName)
+                // artistFull = FuzzySearch.ratio(scoreJson.get("artists").asString, artistName)
+                sumScore = listOf<Int>(nameSet, namePartial, nameFull, artistSet, artistPartial).sum()
+                score = listOf<Int>(nameSet, namePartial, nameFull, artistSet, artistPartial).average().roundToInt()
+            }
+
+            //scoreJson.addProperty("intersection", intersection)
             scoreJson.addProperty("nameSetSimilarity", nameSet)
             scoreJson.addProperty("namePartialSimilarity", namePartial)
             scoreJson.addProperty("nameFullSimilarity", nameFull)
             scoreJson.addProperty("artistSetSimilarity", artistSet)
             scoreJson.addProperty("artistPartialSimilarity", artistPartial)
 //            scoreJson.addProperty("artistFullSimilarity", artistFull)
-            //TRIAL:
-            var score = listOf<Int>(nameSet, namePartial, nameFull, artistSet, artistPartial).average().roundToInt()
+
             //Check if live:
             for (tok in name.split(" ")) {
                 if (!live && tok.lowercase() == "live") {
                     score -= deltaSimilarity
+                    sumScore -= deltaSimilarity
                     break
                 }
             }
             scoreJson.addProperty("score", score)
-            scoresMap[c] = score
+            scoreJson.addProperty("sum_score", sumScore)
+            scoresMap[c] = sumScore
             matchesArray.add(scoreJson)
             Log.d(TAG, scoreJson.toString())
             c += 1
@@ -303,9 +322,15 @@ class SpotifySearch() {
             }
         }
 
+        //TODO: n_metrics to update always:
+        var n_metrics = 5
+        if (artistName == "") {
+            n_metrics = 3
+        }
+
         //Sort map:
         Log.d(TAG, "MAP: $scoresMap")
-        val sortedScores = scoresMap.toList().sortedByDescending { it.second }.toMap()
+        val sortedScores = scoresMap.toList().sortedByDescending { it.second }.toMap().mapValues {  it.value / n_metrics }
         Log.d(TAG, "SORTED MAP: $sortedScores")
         //Exclude lower items:
         var scoreThreshold = sortedScores.values.elementAt(0) - deltaSimilarity
@@ -337,7 +362,7 @@ class SpotifySearch() {
                     bestInd = k
                     bestType = "saved"
                 }
-            //PRIORITY 3) If just album & not a saved track found before -> update best: (optional: && contextType != "playlist")
+            //PRIORITY 3) If just album & not a saved track found before -> update best:
             } else if (!albumFound && bestType != "saved" && result.get("albumType").asString == "album") {
                 bestInd = k
                 bestType = "album"

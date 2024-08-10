@@ -97,7 +97,9 @@
             android:textSize="20dp"
             android:textStyle="bold"
             android:textColor="@color/light_grey"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/user_container"/>
 
         <!-- App start-up -->
@@ -112,7 +114,9 @@
             android:textColor="@color/light_grey"
             android:checked="true"
             app:theme="@style/CheckBoxStyle"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/header_overlay"/>
 
         <!-- Overlay Button position-->
@@ -125,7 +129,9 @@
             android:text= "Overlay button position"
             android:textSize="14dp"
             android:textColor="@color/light_grey"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/checkbox_startup"/>
 
         <Spinner
@@ -139,7 +145,9 @@
             android:textSize="14dp"
             android:backgroundTint="@color/light_grey"
             android:entries="@array/overlayPos"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/header_overlay_position"/>
 
         <!-- VOICE QUERIES -->
@@ -153,7 +161,9 @@
             android:textSize="20dp"
             android:textStyle="bold"
             android:textColor="@color/light_grey"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/spinner_overlay_pos"/>
 
         <!-- Voice queries default language-->
@@ -166,7 +176,9 @@
             android:text= "Voice queries: default language"
             android:textSize="14dp"
             android:textColor="@color/light_grey"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/header_queries"/>
 
         <Spinner
@@ -180,7 +192,9 @@
             android:textSize="14dp"
             android:backgroundTint="@color/light_grey"
             android:entries="@array/languages"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/header_query_language"/>
 
         <!-- Rec timeout-->
@@ -193,7 +207,9 @@
             android:text= "Voice queries: timeout recording after"
             android:textSize="14dp"
             android:textColor="@color/light_grey"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/spinner_query_language"/>
 
         <EditText
@@ -208,6 +224,7 @@
             android:textColor="@color/light_grey"
             android:backgroundTint="@color/dark_grey"
             app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
             app:layout_constraintRight_toLeftOf="@+id/descr_rec_timeout"
             app:layout_constraintTop_toBottomOf="@+id/header_rec_timeout"/>
@@ -221,9 +238,28 @@
             android:textSize="14dp"
             android:textColor="@color/mid_grey"
             app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/val_rec_timeout"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="@+id/val_rec_timeout"
             app:layout_constraintBottom_toBottomOf="@+id/val_rec_timeout"/>
+
+        <!-- App start-up -->
+        <CheckBox
+            android:id="@+id/checkbox_silence"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="15dp"
+            android:text= "Stop recording when silence is detected"
+            android:textSize="14dp"
+            android:textColor="@color/light_grey"
+            android:checked="true"
+            app:theme="@style/CheckBoxStyle"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/val_rec_timeout"/>
 
 
 
@@ -238,8 +274,10 @@
             android:textSize="20dp"
             android:textStyle="bold"
             android:textColor="@color/light_grey"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/descr_rec_timeout"/>
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/checkbox_silence"/>
 
         <!-- Messages default language-->
         <TextView
@@ -251,7 +289,9 @@
             android:text= "Messages: default language"
             android:textSize="14dp"
             android:textColor="@color/light_grey"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/header_messaging"/>
 
         <Spinner
@@ -264,8 +304,10 @@
             android:layout_marginLeft="46dp"
             android:textSize="14dp"
             android:backgroundTint="@color/light_grey"
-            android:entries="@array/languages"
+            android:entries="@array/messLanguages"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/header_mess_language"/>
 
         <!-- Messaging timeout-->
@@ -278,7 +320,9 @@
             android:text= "Messages: timeout recording after"
             android:textSize="14dp"
             android:textColor="@color/light_grey"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/spinner_mess_language"/>
 
         <EditText
@@ -293,6 +337,7 @@
             android:textColor="@color/light_grey"
             android:backgroundTint="@color/dark_grey"
             app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
             app:layout_constraintRight_toLeftOf="@+id/descr_mess_timeout"
             app:layout_constraintTop_toBottomOf="@+id/header_mess_timeout"/>
@@ -306,7 +351,9 @@
             android:textSize="14dp"
             android:textColor="@color/mid_grey"
             app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/val_mess_timeout"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="@+id/val_mess_timeout"
             app:layout_constraintBottom_toBottomOf="@+id/val_mess_timeout"/>
 
@@ -322,7 +369,9 @@
             android:textSize="20dp"
             android:textStyle="bold"
             android:textColor="@color/light_grey"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/descr_mess_timeout"/>
 
         <!-- Auto Clock -->
@@ -337,7 +386,9 @@
             android:textColor="@color/light_grey"
             android:checked="true"
             app:theme="@style/CheckBoxStyle"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/header_clock"/>
 
 
@@ -354,7 +405,9 @@
             android:textColor="@color/light_grey"
             android:checked="true"
             app:theme="@style/CheckBoxStyle"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/checkbox_auto_clock"/>
 
         <TextView
@@ -367,7 +420,9 @@
             android:textSize="12dp"
             android:textColor="@color/mid_grey"
             app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/checkbox_clock_redirect"/>
 
         <TextView
@@ -379,6 +434,7 @@
             android:textSize="14dp"
             android:textColor="@color/mid_grey"
             app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
             app:layout_constraintRight_toLeftOf="@+id/val_clock_timeout"
             app:layout_constraintTop_toTopOf="@+id/val_clock_timeout"
@@ -395,6 +451,7 @@
             android:textColor="@color/light_grey"
             android:backgroundTint="@color/dark_grey"
             app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/descr_clock_after"
             app:layout_constraintRight_toLeftOf="@+id/descr_clock_timeout"
             app:layout_constraintTop_toBottomOf="@+id/descr_clock_context"/>
@@ -408,7 +465,9 @@
             android:textSize="14dp"
             android:textColor="@color/mid_grey"
             app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/val_clock_timeout"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="@+id/val_clock_timeout"
             app:layout_constraintBottom_toBottomOf="@+id/val_clock_timeout"/>
 
@@ -424,7 +483,9 @@
             android:textSize="20dp"
             android:textStyle="bold"
             android:textColor="@color/light_grey"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/descr_clock_timeout"/>
 
         <!-- Volume Up receiver -->
@@ -439,7 +500,9 @@
             android:textColor="@color/light_grey"
             android:checked="true"
             app:theme="@style/CheckBoxStyle"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/header_advanced"/>
 
         <TextView
@@ -452,7 +515,9 @@
             android:textSize="12dp"
             android:textColor="@color/mid_grey"
             app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/checkbox_volume_receiver"/>
 
         <!-- Hide system bars -->
@@ -468,7 +533,9 @@
             android:textColor="@color/light_grey"
             android:checked="true"
             app:theme="@style/CheckBoxStyle"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/divider"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/descr_volume_up"/>
 
 
@@ -505,13 +572,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text= "Copyright © Francesco Trono (2024)\n\n\n"
+            android:layout_marginBottom="50dp"
+            android:text= "Copyright © Francesco Trono (2024)"
             android:textSize="12dp"
             android:textStyle="italic"
             android:textColor="@color/midfaded_grey"
             app:layout_constraintLeft_toRightOf="@+id/divider"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/version"/>
+            app:layout_constraintTop_toBottomOf="@+id/version"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

@@ -1,12 +1,18 @@
 package com.ftrono.DJames.utilities
 
 import android.content.Context
+import android.content.Intent
+import android.media.AudioFocusRequest
+import android.media.AudioManager
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import kotlinx.coroutines.runBlocking
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
@@ -19,9 +25,11 @@ import java.io.IOException
 import java.io.InputStreamReader
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import java.util.Random
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.math.min
 import kotlin.streams.asSequence
 
 
@@ -59,6 +67,7 @@ class Utilities {
     }
 
 
+    //Trim strings:
     fun trimString(textOrig: String, maxLength: Int = 30): String {
         var textTrimmed = textOrig
         if (textOrig.length > maxLength) {
@@ -68,50 +77,167 @@ class Utilities {
     }
 
 
-    //Check Language switch:
-    fun checkLanguageSwitch(context: Context, resultsNLP: JsonObject): String {
-        var reqLanguage = ""
-        //Search items:
-        var reader: BufferedReader? = null
-        //Calls / message requests -> only use default query language:
-        if (prefs.queryLanguage.toInt() == 1) {
-            reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents_ita)))   //"ita"
-        } else {
-            reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents_eng)))   //"eng"
+    //From a detected language name, get the supported language code:
+    fun getLanguageCode(context: Context, language: String, default: String): String {
+        var reqLanguage = default
+        val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.language_codes)))
+        val sourceJson = JsonParser.parseReader(reader).asJsonObject
+        if (sourceJson.has(language)) {
+            reqLanguage = sourceJson[language].asString
         }
-        //Load:
-        val sourceSents = JsonParser.parseReader(reader).asJsonObject
-        val introLang = sourceSents.get("intro_lang").asJsonArray   //" in "
-        var introWords = mutableListOf<String>()
-        for (wordEl in introLang) {
-            val word = wordEl.asString
-            introWords.add(word.strip())
-        }
-
-        //text:
-        val queryText = resultsNLP.get("query_text").asString
-        val tokens = queryText.split(" ")
-        //CHECK:
-        if (tokens.size > 1) {
-            //if language entity found: check if it's the first or second word of the sentence:
-            val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.languages)))
-            val sourceMap = JsonParser.parseReader(reader).asJsonObject
-            for (lang in sourceMap.keySet()) {
-                //if the queryText actually includes one of the switch sentences:
-                if (tokens[0] == lang || (tokens[1] == lang && tokens[0] in introWords)) {
-                    //validate reqLanguage only if different from the default one:
-                    if (sourceMap[lang].asString != supportedLanguageCodes[prefs.queryLanguage.toInt()]) {
-                        //set reqLanguage to the entity value:
-                        reqLanguage = sourceMap[lang].asString
-                    }
-                    break
-                }
-            }
-        }
-        Log.d(TAG, "DETECTED REQLANGUAGE: $reqLanguage")
         return reqLanguage
     }
 
+
+    //Get the corresponding language name in preferred language for the detected language code:
+    fun getLanguageName(context: Context, languageCode: String): String {
+        val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.language_names)))
+        val prefLanguage = supportedLanguageCodes[prefs.queryLanguage.toInt()]
+        val sourceJson = JsonParser.parseReader(reader).asJsonObject.get(prefLanguage).asJsonObject
+        return sourceJson[languageCode].asString
+    }
+
+
+    //Open new log:
+    fun openLog() {
+        val now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        last_log = JsonObject()
+        last_log!!.addProperty("datetime", now)
+        last_log!!.addProperty("app_version", appVersion)
+    }
+
+
+    //Close last open log:
+    fun closeLog(context: Context) {
+        try {
+            var now = last_log!!.get("datetime").asString
+            var logFile = File(logDir, "$now.json")
+            logFile.writeText(last_log.toString())
+            //Send broadcast:
+            Intent().also { intent ->
+                intent.setAction(ACTION_LOG_REFRESH)
+                context.sendBroadcast(intent)
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "ERROR: Log not saved! $e")
+        }
+    }
+
+    //FALLBACK:
+    fun fallback(toastText: String = ""): JsonObject {
+        var processStatus = JsonObject()
+        processStatus.addProperty("fail", true)
+        if (toastText != "") {
+            processStatus.addProperty("toastText", "Sorry, I did not understand!")
+        }
+        return processStatus
+    }
+
+    //Count number of occurrences in intersection:
+    fun countIntersection(toMatch: String, target: String): Int{
+        val a = toMatch.lowercase().split(" ")
+        val b = target.lowercase().split(" ")
+        val counter = a.intersect(b).map { x -> min(a.count {it == x}, b.count {it == x}) }.sum()
+        val result = (counter / b.size) * 100
+        return result
+    }
+
+
+    //HELPER: TTS directly read:
+    private suspend fun ttsReadNoFocus(context: Context, langCode: String, text: String): Unit = suspendCoroutine { continuation ->
+        //SET UP TTS:
+        //Set Locale:
+        var locale = Locale.UK
+        if (langCode == "it") {
+            locale = Locale.ITALY
+        }
+        var tts: TextToSpeech? = null
+        tts = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                val result = tts!!.setLanguage(locale)
+                if (result == TextToSpeech.LANG_MISSING_DATA ||
+                    result == TextToSpeech.LANG_NOT_SUPPORTED
+                ) {
+                    Log.e(TAG, "Language ${langCode} not supported!")
+                } else {
+                    tts!!.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                        override fun onStart(utteranceId: String) {
+                        }
+
+                        override fun onDone(utteranceId: String) {
+                            continuation.resume(Unit)
+                        }
+
+                        override fun onError(utteranceId: String) {
+                            Log.e(TAG, "Error on $utteranceId")
+                            //continuation.resume(Unit)
+                        }
+                    })
+                    tts!!.speak(text, TextToSpeech.QUEUE_FLUSH, null, generateRandomString(8))
+                }
+            } else {
+                Log.e(TAG, "Initialization Failed!")
+                continuation.resume(Unit)
+            }
+        }
+    }
+
+
+    //HELPER: TTS read with audio dimming:
+    private fun ttsReadWithFocus(context: Context, audioFocusRequest: AudioFocusRequest, language: String, text: String) {
+        //BUILD FOCUS REQUEST:
+        val focusRequest = audioManager!!.requestAudioFocus(audioFocusRequest)
+        when (focusRequest) {
+            AudioManager.AUDIOFOCUS_REQUEST_FAILED -> {
+                Log.d(TAG, "Cannot gain audio focus! Try again.")
+            }
+
+            AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {
+                runBlocking {
+                    ttsReadNoFocus(context, language, text)
+                }
+                audioManager!!.abandonAudioFocusRequest(audioFocusRequest)
+            }
+
+            AudioManager.AUDIOFOCUS_REQUEST_DELAYED -> {
+                //mAudioFocusPlaybackDelayed = true
+            }
+        }
+    }
+
+    //TTS READER: MAIN FUNCTION:
+    fun ttsRead(context: Context, language: String, text: String, dimAudio: Boolean = false) {
+        try {
+            Thread.sleep(1000)
+            if (dimAudio) {
+                //Build AudioFocus dim request:
+                audioFocusRequest =
+                    AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+                        .setAudioAttributes(audioAttributes!!)
+                        .setAcceptsDelayedFocusGain(true)
+                        .setOnAudioFocusChangeListener(audioFocusChangeListener)
+                        .build()
+                ttsReadWithFocus(context, audioFocusRequest!!, language, text)
+            } else {
+                runBlocking {
+                    ttsReadNoFocus(context, language, text)
+                }
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "ttsRead: cannot read TTS. EXCEPTION: $e")
+        }
+    }
+
+
+    //Release AudioFocus
+    fun releaseAudioFocus() {
+        try {
+            audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
+        } catch (e: Exception) {
+            Log.d(TAG, "ERROR: AudioFocus already released.")
+        }
+    }
+    
 
     //Emoji replacer:
     fun replaceEmojis(context: Context, text: String, reqLanguage: String): String {
@@ -285,6 +411,7 @@ class Utilities {
     //Update Vocabulary file:
     fun editVocFile(prevText: String, newText: String = "", newDetails: JsonObject = JsonObject()): Int {
         try {
+            //Log.d(TAG, newDetails.toString())
             //Pack JSON:
             var vocFile = File(vocDir, "voc_${filter}s.json")
             var reader = FileReader(vocFile)

@@ -61,6 +61,11 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getString(KEY_REC_TIMEOUT, "10") as String
         set(value) = sharedPrefs.edit().putString(KEY_REC_TIMEOUT, value).apply()
 
+    //Auto start-up:
+    var silenceEnabled: Boolean
+        get() = sharedPrefs.getBoolean(KEY_SILENCE_ENABLED, true) as Boolean
+        set(value) = sharedPrefs.edit().putBoolean(KEY_SILENCE_ENABLED, value).apply()
+
     //Message default language:
     var messageLanguage: String
         //"en-US" -> English; "it" -> Italian
@@ -141,8 +146,9 @@ class Prefs (context: Context) {
         //Shared prefs:
         const val KEY_AUTO_STARTUP = ".key.auto_startup"
         const val KEY_OVERLAY_POSITION = ".key.overlay_position"
-        const val KEY_REC_TIMEOUT = ".key.rec_timeout"
         const val KEY_QUERY_LANGUAGE = ".key.query_language"
+        const val KEY_REC_TIMEOUT = ".key.rec_timeout"
+        const val KEY_SILENCE_ENABLED = ".key.enable_silence"
         const val KEY_MESSAGE_LANGUAGE = ".key.message_language"
         const val KEY_MESSAGE_TIMEOUT = ".key.message_timeout"
         const val KEY_AUTO_CLOCK = ".key.auto_clock"

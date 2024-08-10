@@ -44,7 +44,13 @@ class HistoryAdapter(
         var type_icon = ""
         var context_error = false
         var play_externally = false
-        var intentName = logItem.get("nlp").asJsonObject.get("intent_response").asString
+        var intentName = ""
+        try {
+            intentName = logItem.get("intent_name").asString
+        } catch (e: Exception) {
+            //TODO: Temporary (remove after September 10, 2024)
+            intentName = logItem.get("nlp").asJsonObject.get("intent_response").asString
+        }
         var playType = "track"
         try {
             playType = logItem.get("spotify_play").asJsonObject.get("play_type").asString
@@ -62,13 +68,13 @@ class HistoryAdapter(
             //result check:
             try {
                 if (logItem.get("voc_score").asInt > midThreshold) {
-                    holder.datetime.text = "$type_icon  ${context.getString(R.string.result_good)}  $datetime"
+                    holder.datetime.text = "$type_icon  ${context.getString(R.string.result_good)}  $intentName: $datetime"
                 } else {
-                    holder.datetime.text = "$type_icon  ${context.getString(R.string.result_not_good)}  $datetime"
+                    holder.datetime.text = "$type_icon  ${context.getString(R.string.result_not_good)}  $intentName: $datetime"
                 }
             } catch (e: Exception) {
                 //Generic request:
-                holder.datetime.text = "${context.getString(R.string.result_question)}   $datetime"
+                holder.datetime.text = "${context.getString(R.string.result_question)}   $intentName: $datetime"
             }
         } else {
             //Play requests:
@@ -81,30 +87,34 @@ class HistoryAdapter(
                 }
                 if (logItem.has("voc_score")) {
                     if (logItem.get("voc_score").asInt > midThreshold) {
-                        holder.datetime.text = "$type_icon  ${context.getString(R.string.result_good)}  $datetime"
+                        holder.datetime.text = "$type_icon  ${context.getString(R.string.result_good)}  $intentName: $datetime"
                     } else {
-                        holder.datetime.text = "$type_icon  ${context.getString(R.string.result_not_good)}  $datetime"
+                        holder.datetime.text = "$type_icon  ${context.getString(R.string.result_not_good)}  $intentName: $datetime"
                     }
                 } else {
                     var bestScore = logItem.get("best_score").asInt
                     if (!context_error && bestScore >= matchDoubleThreshold) {
                         //TODO: TEMPORARY ONLY (remove after August 28, 2024):
-                        holder.datetime.text = "$type_icon  ${context.getString(R.string.result_good)}  $datetime"
+                        holder.datetime.text = "$type_icon  ${context.getString(R.string.result_good)}  $intentName: $datetime"
                     } else if (!context_error && bestScore <= 100 && bestScore >= playThreshold) {
-                        holder.datetime.text = "$type_icon  ${context.getString(R.string.result_good)}  $datetime"
+                        holder.datetime.text = "$type_icon  ${context.getString(R.string.result_good)}  $intentName: $datetime"
                     } else {
-                        holder.datetime.text = "$type_icon  ${context.getString(R.string.result_not_good)}  $datetime"
+                        holder.datetime.text = "$type_icon  ${context.getString(R.string.result_not_good)}  $intentName: $datetime"
                     }
                 }
             } catch (e: Exception) {
                 //Generic request:
-                holder.datetime.text = "${context.getString(R.string.result_question)}   $datetime"
+                holder.datetime.text = "${context.getString(R.string.result_question)}   $intentName: $datetime"
             }
         }
         //NLP:
         try {
-            holder.nlp_text.text =
-                logItem.get("nlp").asJsonObject.get("query_text").asString
+            var queryText = logItem.get("nlp").asJsonObject.get("query_text").asString
+            if (intentName.contains("Play") && !queryText.contains("play")) {
+                holder.nlp_text.text = "play: $queryText"
+            } else {
+                holder.nlp_text.text = queryText
+            }
         } catch (e: Exception) {
             holder.nlp_text.text = "Not understood"
         }
@@ -179,7 +189,7 @@ class HistoryAdapter(
                     } else {
                         holder.match_name_intro.text = "TYPE: "
                         try {
-                            holder.match_name.text = logItem.get("nlp").asJsonObject.get("intent_response").asString
+                            holder.match_name.text = logItem.get("nlp").asJsonObject.get("intent_name").asString
                         } catch (e: Exception) {
                             holder.match_name.text = "Unknown request"
                         }
@@ -190,7 +200,7 @@ class HistoryAdapter(
                 //GENERIC REQUEST:
                 holder.match_name_intro.text = "TYPE: "
                 try {
-                    holder.match_name.text = logItem.get("nlp").asJsonObject.get("intent_response").asString
+                    holder.match_name.text = logItem.get("nlp").asJsonObject.get("intent_name").asString
                 } catch (e: Exception) {
                     holder.match_name.text = "Unknown request"
                 }
@@ -214,7 +224,6 @@ class HistoryAdapter(
         }
         //Button listeners:
         holder.send_button.setOnClickListener { view -> sendFile(filename) }
-        holder.lookup_button.setOnClickListener { view -> openFile(filename) }
         holder.history_card.setOnClickListener { view -> openFile(filename) }
         holder.delete_button.setOnClickListener { view -> deleteAction(filename) }
     }

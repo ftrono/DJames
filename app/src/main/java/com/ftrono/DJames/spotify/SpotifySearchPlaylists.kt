@@ -20,7 +20,8 @@ class SpotifySearchPlaylists() {
     fun searchPlaylists(searchData: JsonObject, bySpotify: Boolean = false): JsonObject {
         //vars:
         var matchName = searchData.get("match_extracted").asString
-        if (bySpotify) {
+        var playType = searchData.get("play_type").asString
+        if (playType == "artist") {
             matchName = "this is $matchName"
         }
 
@@ -50,7 +51,7 @@ class SpotifySearchPlaylists() {
         url += "?q=${encodedMatchName}&type=playlist&limit=10&market=IT"
         Log.d(TAG, url)
 
-        //First query (uses Params):
+        //QUERY:
         var respJSON = query.querySpotify(type = "get", url = url, jsonHeads = jsonHeads)
         var n_items = 0
         //Log:
@@ -79,7 +80,6 @@ class SpotifySearchPlaylists() {
         }
         //Log:
         logQueries.add(logJSON)
-
         last_log!!.add("spotify_queries", logQueries)
         last_log!!.addProperty("best_score", bestScore)
 

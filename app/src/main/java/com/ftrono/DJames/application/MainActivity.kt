@@ -142,9 +142,14 @@ class MainActivity : AppCompatActivity() {
 
         //AUTO START-UP:
         if (loggedIn && prefs.autoStartup && !main_initialized && !isMyServiceRunning(FloatingViewService::class.java)) {
-            var intentOS = Intent(applicationContext, FloatingViewService::class.java)
-            intentOS.putExtra("faded", false)
-            applicationContext.startService(intentOS)
+            try {
+                var intentOS = Intent(applicationContext, FloatingViewService::class.java)
+                intentOS.putExtra("faded", false)
+                applicationContext.startService(intentOS)
+            } catch (e: Exception) {
+                Log.d(TAG, "Cannot auto-start Overlay Service. EXCEPTION: $e")
+            }
+
         }
 
         //Done:

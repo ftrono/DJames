@@ -113,52 +113,53 @@ class NLPQuery(context: Context) {
 
             try {
                 //EXTRACT NLP RESULTS:
-                var fulfillmentText = JsonParser.parseString(queryResult.fulfillmentText).asJsonObject
-                var keySet = fulfillmentText.keySet()
-                if (keySet.size == 0) {
-                    Log.d(TAG, "NLP: FALLBACK!")
-                } else {
-                    //NLP basic results:
-                    var languageFound = queryResult.languageCode
-                    var queryText = queryResult.queryText
-                    if (!messageMode) {
-                        queryText = queryText.lowercase()
-                    }
-                    respJson.addProperty("language_code", languageFound)
-                    respJson.addProperty("query_text", queryText)
-                    respJson.addProperty("intent", queryResult.intent.displayName)
-                    //Artists:
-                    try {
-                        var artistsList = JsonArray()
-                        try {
-                            //Multiple artists:
-                            var artistsObj = queryResult.parameters.fieldsMap["music-artist"]!!.listValue.valuesList
-                            for (artist in artistsObj) {
-                                artistsList.add(artist.stringValue)
-                            }
-                        } catch (e: Exception) {
-                            //Single artist:
-                            artistsList.add(queryResult.parameters.fieldsMap["music-artist"]!!.stringValue)
-                        }
-                        respJson.add("artists", artistsList)
-                    } catch (e: Exception) {
-                        //No artist:
-                        respJson.add("artists", JsonArray())
-                    }
-                    try {
-                        respJson.addProperty("language", queryResult.parameters.fieldsMap["language"]!!.stringValue.lowercase())
-                    } catch (e: Exception) {
-                        respJson.addProperty("language", "")
-                    }
-                    //Response message (fake JSON):
-                    for (key in keySet) {
-                        respJson.add(key, fulfillmentText.get(key))
-                    }
-                    Log.d(TAG, "SUCCESS detectIntentRequest RESPONSE: ${respJson}")
+                //NLP basic results:
+                var languageFound = queryResult.languageCode
+                var queryText = queryResult.queryText
+                if (!messageMode) {
+                    queryText = queryText.lowercase()
                 }
+                //Key information:
+                respJson.addProperty("request_language", languageFound)
+                respJson.addProperty("query_text", queryText)
+                respJson.addProperty("intent_name", queryResult.intent.displayName)
+                //Artists:
+                try {
+                    var artistsList = JsonArray()
+                    try {
+                        //Multiple artists:
+                        var artistsObj = queryResult.parameters.fieldsMap["music-artist"]!!.listValue.valuesList
+                        for (artist in artistsObj) {
+                            artistsList.add(artist.stringValue)
+                        }
+                    } catch (e: Exception) {
+                        //Single artist:
+                        artistsList.add(queryResult.parameters.fieldsMap["music-artist"]!!.stringValue)
+                    }
+                    //LIST:
+                    respJson.add("artists", artistsList)
+                } catch (e: Exception) {
+                    //No artist:
+                    respJson.add("artists", JsonArray())
+                }
+                //Genre:
+                try {
+                    respJson.addProperty("genre", queryResult.parameters.fieldsMap["music-genre"]!!.stringValue.lowercase())
+                } catch (e: Exception) {
+                    respJson.addProperty("genre", "")
+                }
+                //Language:
+                try {
+                    respJson.addProperty("reqLanguage", queryResult.parameters.fieldsMap["language"]!!.stringValue.lowercase())
+                } catch (e: Exception) {
+                    respJson.addProperty("reqLanguage", "")
+                }
+
+                Log.d(TAG, "SUCCESS detectIntentResponse RESPONSE: ${respJson}")
+
             } catch (e: Exception) {
                 //Response is not a JSON:
-                Log.d(TAG, "ERROR DetectIntentRequest: Not a JSON. ", e)
+                Log.d(TAG, "ERROR DetectIntentResponse: cannot interpret the response received. ", e)
             }
         } catch (e: Exception) {
             Log.d(TAG, "ERROR DetectIntentRequest: ", e)
@@ -168,8 +169,6 @@ class NLPQuery(context: Context) {
         } catch (e: Exception) {
             Log.d(TAG, "SessionsClient already shut down.")
         }
-        //Log:
-        last_log!!.add("nlp", respJson)
         return respJson
     }
     

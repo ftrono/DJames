@@ -2,7 +2,11 @@ package com.ftrono.DJames.application
 
 import android.app.Application
 import android.content.Context
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
 import android.media.AudioManager
+import android.os.Environment
+import android.util.Log
 import com.ftrono.DJames.utilities.Prefs
 import com.google.gson.JsonObject
 import okhttp3.OkHttpClient
@@ -14,10 +18,12 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "1.16"
+val appVersion = "2.0"
 
 //Preferences:
-val deltaSimilarity = 5   //30
+val silenceInitPatience = 3
+val silencePatience = 2
+val deltaSimilarity = 10   //5
 val playThreshold = 80
 val maxThreshold = 70
 val midThreshold = 55
@@ -26,7 +32,10 @@ val recSamplingRate = 44100
 val queryTimeout = 5   //seconds
 val recFileName = "DJames_request"
 var enablePlayerInfo = false
-var supportedLanguageCodes = listOf<String>("en-US", "it")
+var supportedLanguageCodes = listOf<String>("en", "it")
+var supportedMessLangCodes = listOf<String>("en", "it", "de", "fr", "es")
+var supportedMessLangNames = listOf<String>("english", "italian", "german", "french", "spanish")
+val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
 //Modes:
 var density: Float = 0F
@@ -36,7 +45,7 @@ var screenOn: Boolean = true
 var sourceIsVolume: Boolean = false
 var main_initialized: Boolean = false
 var vol_initialized: Boolean = false
-var voiceSearchOn: Boolean = false
+var voiceQueryOn: Boolean = false
 var recordingMode: Boolean = false
 var callMode: Boolean = false
 var overlay_active: Boolean = false
@@ -44,6 +53,7 @@ var loggedIn: Boolean = false
 var clock_active: Boolean = false
 var searchFail: Boolean = false
 var filter = "artist"
+var newsTalk = false
 
 //Audio Manager:
 var audioManager: AudioManager? = null
@@ -129,8 +139,61 @@ const val ACTION_OVERLAY_PROCESSING = "com.ftrono.DJames.eventReceiver.ACTION_OV
 const val ACTION_MAKE_CALL = "com.ftrono.DJames.eventReceiver.ACTION_MAKE_CALL"
 const val PHONE_STATE_ACTION = "android.intent.action.PHONE_STATE"
 
-//Voice Search receiver:
-const val ACTION_REC_EARLY_STOP = "com.ftrono.DJames.eventReceiver.ACTION_REC_EARLY_STOP"
+//Voice Query receiver:
+const val ACTION_REC_STOP = "com.ftrono.DJames.eventReceiver.ACTION_REC_STOP"
+
+//AUDIOFOCUS:
+//AudioFocus:
+var focusState: Boolean = false
+var audioFocusRequest: AudioFocusRequest? = null
+
+//var mAudioFocusPlaybackDelayed: Boolean = false
+//var mAudioFocusResumeOnFocusGained: Boolean = false
+
+var audioAttributes = AudioAttributes.Builder()
+    .setUsage(AudioAttributes.USAGE_MEDIA)
+    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+    .build()
+
+val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
+    when (focusChange) {
+        AudioManager.AUDIOFOCUS_GAIN -> {
+            focusState = true
+            Log.d("DJames", "Audio focus gained!")
+            /*
+            if (mAudioFocusPlaybackDelayed || mAudioFocusResumeOnFocusGained) {
+                mAudioFocusPlaybackDelayed = false
+                mAudioFocusResumeOnFocusGained = false
+            }
+            */
+        }
+
+        AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE -> {
+            focusState = true
+            Log.d("DJames", "Audio focus transient exclusive gained!")
+            /*
+            if (mAudioFocusPlaybackDelayed || mAudioFocusResumeOnFocusGained) {
+                mAudioFocusPlaybackDelayed = false
+                mAudioFocusResumeOnFocusGained = false
+            }
+            */
+        }
+
+        AudioManager.AUDIOFOCUS_LOSS -> {
+            focusState = false
+            Log.d("DJames", "Audio focus lost.")
+            // mAudioFocusResumeOnFocusGained = false
+            // mAudioFocusPlaybackDelayed = false
+        }
+
+        AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+            focusState = false
+            Log.d("DJames", "Audio focus transient lost.")
+            // mAudioFocusResumeOnFocusGained = false
+            // mAudioFocusPlaybackDelayed = false
+        }
+    }
+}
 
 
 class App: Application()

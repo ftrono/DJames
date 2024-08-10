@@ -56,8 +56,8 @@ class FloatingViewService : Service() {
     var eventReceiver = EventReceiver()
 
     //Overlay resources:
-    private var overlayButton: View? = null   //eventReceiver(clock opened, clock closed), VoiceSearchService(setOverlay ready/busy/processing)
-    private var overlayIcon: ImageView? = null   //eventReceiver(clock opened, clock closed), VoiceSearchService(setOverlay ready/busy/processing)
+    private var overlayButton: View? = null   //eventReceiver(clock opened, clock closed), VoiceQueryService(setOverlay ready/busy/processing)
+    private var overlayIcon: ImageView? = null   //eventReceiver(clock opened, clock closed), VoiceQueryService(setOverlay ready/busy/processing)
     private var overlayClockButton: View? = null   //eventReceiver(clock opened, clock closed)
     private var overlayClockIcon: ImageView? = null   //eventReceiver(clock opened, clock closed)
     private var overlayClockText: TextView? = null   //eventReceiver(clock opened, clock closed)
@@ -265,19 +265,19 @@ class FloatingViewService : Service() {
                                 //So that is click event.
                                 // ON CLICK:
                                 if (abs(Xdiff) < 10 && abs(Ydiff) < 10) {
-                                    if (!voiceSearchOn) {
-                                        //START VOICE SEARCH SERVICE:
+                                    if (!voiceQueryOn) {
+                                        //START VOICE QUERY SERVICE:
                                         sourceIsVolume = false
                                         try {
-                                            startService(Intent(applicationContext, VoiceSearchService::class.java))
-                                            Log.d(TAG, "VOICE SEARCH SERVICE STARTED.")
+                                            startService(Intent(applicationContext, VoiceQueryService::class.java))
+                                            Log.d(TAG, "OVERLAY SERVICE: VOICE QUERY SERVICE CALLED.")
                                         } catch (e:Exception) {
-                                            Log.d(TAG, "ERROR: VOICE SEARCH SERVICE NOT STARTED. ", e)
+                                            Log.d(TAG, "OVERLAY SERVICE ERROR: VOICE QUERY SERVICE NOT STARTED. ", e)
                                         }
                                     } else if (recordingMode) {
                                         //EARLY STOP RECORDING:
                                         Intent().also { intent ->
-                                            intent.setAction(ACTION_REC_EARLY_STOP)
+                                            intent.setAction(ACTION_REC_STOP)
                                             sendBroadcast(intent)
                                         }
                                     }
@@ -312,10 +312,10 @@ class FloatingViewService : Service() {
                 sendBroadcast(intent)
             }
             overlay_active = false
-            voiceSearchOn = false
-            //Stop Voice Search service:
-            if (isMyServiceRunning(VoiceSearchService::class.java)) {
-                stopService(Intent(applicationContext, VoiceSearchService::class.java))
+            voiceQueryOn = false
+            //Stop Voice Query service:
+            if (isMyServiceRunning(VoiceQueryService::class.java)) {
+                stopService(Intent(applicationContext, VoiceQueryService::class.java))
             }
             overlayButton = null
             overlayIcon = null
@@ -369,10 +369,10 @@ class FloatingViewService : Service() {
         var processName = Application.getProcessName();
         Log.d(TAG, "Current process: " + processName)
         if (mFloatingView != null) mWindowManager!!.removeView(mFloatingView)
-        voiceSearchOn = false
-        //Stop Voice Search service:
-        if (isMyServiceRunning(VoiceSearchService::class.java)) {
-            stopService(Intent(applicationContext, VoiceSearchService::class.java))
+        voiceQueryOn = false
+        //Stop Voice Query service:
+        if (isMyServiceRunning(VoiceQueryService::class.java)) {
+            stopService(Intent(applicationContext, VoiceQueryService::class.java))
         }
         if (loggedIn) {
             //Send broadcast:
@@ -478,7 +478,7 @@ class FloatingViewService : Service() {
             //When Fake Lock Screen is opened:
             if (intent!!.action == ACTION_CLOCK_OPENED) {
                 Log.d(TAG, "OVERLAY: ACTION_CLOCK_OPENED.")
-                if (!voiceSearchOn) {
+                if (!voiceQueryOn) {
                     try {
                         setClockOpened()
                     } catch (e: Exception) {
@@ -490,7 +490,7 @@ class FloatingViewService : Service() {
             //When Fake Lock Screen is closed:
             if (intent.action == ACTION_CLOCK_CLOSED) {
                 Log.d(TAG, "OVERLAY: ACTION_CLOCK_CLOSED.")
-                if (!voiceSearchOn) {
+                if (!voiceQueryOn) {
                     try {
                         setClockClosed()
                     } catch (e: Exception) {

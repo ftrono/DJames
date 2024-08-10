@@ -40,8 +40,5 @@ class HistoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     var send_button: ImageView = itemView.findViewById(R.id.send_button)
 
     @JvmField
-    var lookup_button: ImageView = itemView.findViewById(R.id.lookup_button)
-
-    @JvmField
     var delete_button: ImageView = itemView.findViewById(R.id.delete_button)
 }

@@ -169,6 +169,18 @@ class SettingsActivity : AppCompatActivity() {
         text_rec_timeout = findViewById<TextView>(R.id.val_rec_timeout)
         text_rec_timeout!!.text = prefs.recTimeout
 
+        //Enable silence detection:
+        var checkbox_silence = findViewById<CheckBox>(R.id.checkbox_silence)
+        checkbox_silence!!.setChecked(prefs.silenceEnabled)
+
+        checkbox_silence.setOnClickListener {
+            if (checkbox_silence.isChecked) {
+                prefs.silenceEnabled = true
+            } else {
+                prefs.silenceEnabled = false
+            }
+        }
+
 
         //SECTION: MESSAGING:
         //Messages default language:

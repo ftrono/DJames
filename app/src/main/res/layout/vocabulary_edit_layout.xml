@@ -13,7 +13,11 @@
         android:layout_height="fill_parent"
         android:orientation="vertical"
         android:fillViewport="false"
-        android:forceDarkAllowed="true">
+        android:forceDarkAllowed="true"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:orientation="vertical"
@@ -26,6 +30,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent">
 
+            <!-- NAME -->
             <TextView
                 android:id="@+id/intro_name"
                 android:layout_width="match_parent"
@@ -63,6 +68,7 @@
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/intro_name"/>
 
+            <!-- PLAYLIST URL -->
             <TextView
                 android:id="@+id/intro_detail"
                 android:layout_width="match_parent"
@@ -100,6 +106,41 @@
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/intro_detail"/>
 
+
+            <!-- MESSAGING LANGUAGE -->
+            <TextView
+                android:id="@+id/intro_contact_lang"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Preferred messaging language"
+                android:textSize="14dp"
+                android:textStyle="bold"
+                android:layout_marginTop="10dp"
+                android:layout_marginRight="10dp"
+                android:textColor="@color/colorAccentLight"
+                android:padding="12dp"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/enter_detail"/>
+
+            <Spinner
+                android:id="@+id/spinner_contact_lang"
+                android:paddingEnd="8dp"
+                android:paddingStart="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="-3dp"
+                android:textSize="14dp"
+                android:backgroundTint="@color/light_grey"
+                android:entries="@array/messLanguages"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/intro_contact_lang"/>
+
+            <!-- PHONE -->
             <TextView
                 android:id="@+id/intro_phone"
                 android:layout_width="match_parent"
@@ -114,7 +155,7 @@
                 app:layout_constraintVertical_chainStyle="packed"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/enter_detail"/>
+                app:layout_constraintTop_toBottomOf="@+id/spinner_contact_lang"/>
 
             <EditText
                 android:id="@+id/enter_prefix"

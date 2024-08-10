@@ -82,8 +82,8 @@
             android:foregroundServiceType="microphone">
         </service>
         <service
-            android:name=".services.VoiceSearchService"
-            android:label="Voice Search Results"
+            android:name=".services.VoiceQueryService"
+            android:label="Voice Query Service"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="microphone">

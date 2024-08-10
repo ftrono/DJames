@@ -26,21 +26,21 @@ class EventReceiver: BroadcastReceiver() {
                     audioManager!!.setStreamVolume(AudioManager.STREAM_MUSIC, streamMaxVolume-1, AudioManager.FLAG_PLAY_SOUND)
                     Log.d(TAG, "EVENT: VOLUME_CHANGED_ACTION: Volume lowered.")
                 }
-                //If not voiceSearchOn and not callMode:
+                //If not voiceQueryOn and not callMode:
                 if (!callMode && vol_initialized && screenOn) {
-                    if (!voiceSearchOn) {
-                        //START VOICE SEARCH SERVICE:
+                    if (!voiceQueryOn) {
+                        //START VOICE QUERY SERVICE:
                         sourceIsVolume = true
                         try {
-                            context!!.startService(Intent(context, VoiceSearchService::class.java))
-                            Log.d(TAG, "EVENT: VOLUME_CHANGED_ACTION: VOICE SEARCH SERVICE STARTED.")
+                            context!!.startService(Intent(context, VoiceQueryService::class.java))
+                            Log.d(TAG, "EVENT: VOLUME_CHANGED_ACTION: VOICE QUERY SERVICE STARTED.")
                         } catch (e:Exception) {
-                            Log.d(TAG, "ERROR: VOLUME_CHANGED_ACTION: VOICE SEARCH SERVICE NOT STARTED. ", e)
+                            Log.d(TAG, "ERROR: VOLUME_CHANGED_ACTION: VOICE QUERY SERVICE NOT STARTED. ", e)
                         }
                     } else if (recordingMode) {
                         //EARLY STOP RECORDING:
                         Intent().also { intent ->
-                            intent.setAction(ACTION_REC_EARLY_STOP)
+                            intent.setAction(ACTION_REC_STOP)
                             context!!.sendBroadcast(intent)
                         }
                     }

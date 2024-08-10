@@ -12,6 +12,8 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
+**Version 2.0 (2024-08-10)** - New NLP structure & engine, new modular code structure, first repo cleaning & streamlining.
+
 **Version 1.16 (2024-08-04)** - Init preparation for v2: new "MyDJames" screen.
 
 **Version 1.15 (2024-08-03)** - FuzzySearch & matching improvements. Minor usability improvements. Refactor repo.

@@ -13,8 +13,10 @@ import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.webkit.URLUtil
+import android.widget.AdapterView
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -273,9 +275,17 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         var enterName = subView.findViewById<TextView>(R.id.enter_name)
         var introDetail = subView.findViewById<TextView>(R.id.intro_detail)
         var enterDetail = subView.findViewById<TextView>(R.id.enter_detail)
+        var introContactLang = subView.findViewById<TextView>(R.id.intro_contact_lang)
+        var spinnerContactLang = subView.findViewById<Spinner>(R.id.spinner_contact_lang)
         var introPhone = subView.findViewById<TextView>(R.id.intro_phone)
         var enterPrefix = subView.findViewById<TextView>(R.id.enter_prefix)
         var enterPhone = subView.findViewById<TextView>(R.id.enter_phone)
+
+        //Init language management:
+        var oldLang = supportedMessLangNames[prefs.messageLanguage.toInt()]
+        var oldLangId = prefs.messageLanguage.toInt()
+        var newLang = supportedMessLangNames[prefs.messageLanguage.toInt()]
+        var newLangId = prefs.messageLanguage.toInt()
 
         //Load data:
         var prevDetails = JsonObject()
@@ -289,6 +299,20 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             //Visibility:
             introDetail.visibility = View.GONE
             enterDetail.visibility = View.GONE
+            //Spinner languages:
+            if (prevDetails.has("contact_language")) {
+                oldLang = prevDetails.get("contact_language").asString.lowercase()
+                oldLangId = supportedMessLangNames.indexOf(oldLang)
+            }
+            spinnerContactLang.setSelection(oldLangId)
+            spinnerContactLang.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(adapter: AdapterView<*>?, view: View, pos: Int, id: Long) {
+                    newLangId = pos
+                    newLang = supportedMessLangNames[pos]
+                }
+                override fun onNothingSelected(arg0: AdapterView<*>?) {}
+            })
+
             //Text:
             enterName.text = prevText
             if (prevDetails.isEmpty) {
@@ -302,6 +326,8 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         } else if (filter == "playlist") {
             //PLAYLIST:
             //Visibility:
+            introContactLang.visibility = View.GONE
+            spinnerContactLang.visibility = View.GONE
             introPhone.visibility = View.GONE
             enterPrefix.visibility = View.GONE
             enterPhone.visibility = View.GONE
@@ -317,6 +343,8 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
             //Visibility:
             introDetail.visibility = View.GONE
             enterDetail.visibility = View.GONE
+            introContactLang.visibility = View.GONE
+            spinnerContactLang.visibility = View.GONE
             introPhone.visibility = View.GONE
             enterPrefix.visibility = View.GONE
             enterPhone.visibility = View.GONE
@@ -337,6 +365,9 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
                 if (filter == "playlist") {
                     newDetails.addProperty("playlist_URL", enterDetail.text.toString().replace(" ", ""))
                 } else if (filter == "contact") {
+                    if (newLang != oldLang) {
+                        newDetails.addProperty("contact_language", newLang)
+                    }
                     newDetails.addProperty("prefix", enterPrefix.text.toString().replace(" ", ""))
                     newDetails.addProperty("phone", enterPhone.text.toString().replace(" ", ""))
                 }

@@ -137,16 +137,6 @@
             android:paddingRight="8dp"
             android:src="@drawable/send_icon"
             app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintRight_toLeftOf="@+id/lookup_button"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <ImageView
-            android:id="@+id/lookup_button"
-            android:layout_width="35dp"
-            android:layout_height="35dp"
-            android:paddingRight="8dp"
-            android:src="@drawable/lookup_icon"
-            app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintRight_toLeftOf="@+id/delete_button"
             app:layout_constraintTop_toTopOf="parent" />
 

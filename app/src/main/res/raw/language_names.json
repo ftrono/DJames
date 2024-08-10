@@ -1,0 +1,16 @@
+{
+  "en": {
+    "en": "english",
+    "it": "italian",
+    "fr": "french",
+    "es": "spanish",
+    "de": "german"
+  },
+  "it": {
+    "en": "inglese",
+    "it": "italiano",
+    "fr": "francese",
+    "es": "spagnolo",
+    "de": "tedesco"
+  }
+}

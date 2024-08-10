@@ -147,7 +147,7 @@ class SpotifyPlayer (private val context: Context) {
                     }
                 }
             } catch (e: InterruptedException) {
-                Log.d(TAG, "Interrupted: exception.", e)
+                Log.w(TAG, "Interrupted: exception.", e)
             }
         }
         //start thread:
@@ -247,14 +247,14 @@ class SpotifyPlayer (private val context: Context) {
                             Log.d(TAG, "PLAY INTERNALLY: Error response: ${response}")
                         }
                     } catch (e:Exception) {
-                        Log.d(TAG, "PLAY INTERNALLY: Could not parse response. Error: ", e)
+                        Log.w(TAG, "PLAY INTERNALLY: Could not parse response. Error: ", e)
                     }
                     ret = -1
                 }
             }
             return ret
         } catch (e: Exception) {
-            Log.d(TAG, "PLAY INTERNALLY ERROR: ", e)
+            Log.w(TAG, "PLAY INTERNALLY ERROR: ", e)
             return -1
         }
     }
@@ -299,13 +299,13 @@ class SpotifyPlayer (private val context: Context) {
                             Log.d(TAG, "PLAYBACK STATE: Error response")
                         }
                     } catch (e:Exception) {
-                        Log.d(TAG, "PLAYBACK STATE: Could not parse response. Error: ", e)
+                        Log.w(TAG, "PLAYBACK STATE: Could not parse response. Error: ", e)
                     }
                 }
             }
             return ret
         } catch (e: Exception) {
-            Log.d(TAG, "PLAYBACK STATE ERROR: ", e)
+            Log.w(TAG, "PLAYBACK STATE ERROR: ", e)
             return -1
         }
     }

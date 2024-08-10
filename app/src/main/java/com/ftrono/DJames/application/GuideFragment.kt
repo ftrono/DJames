@@ -201,7 +201,7 @@ class GuideFragment : Fragment(R.layout.fragment_guide) {
                     Log.d(TAG, item.toString())
                     showGuidePopup(item=item)
                 } catch (e: Exception) {
-                    Log.d(TAG, "GUIDE: ACTION_GUIDE_POPUP: ERROR: ", e)
+                    Log.w(TAG, "GUIDE: ACTION_GUIDE_POPUP: ERROR: ", e)
                 }
 
             }

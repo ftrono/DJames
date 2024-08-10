@@ -38,7 +38,7 @@ class NLPQuery(context: Context) {
             Log.d(TAG, "CREATED: sessionsClient: ${sessionsClient}")
             Log.d(TAG, "CREATED: sessionId: ${sessionId}")
         } catch (e: Exception) {
-            Log.d(TAG, "ERROR: NLP Session not created!", e)
+            Log.w(TAG, "ERROR: NLP Session not created!", e)
         }
     }
 
@@ -56,7 +56,7 @@ class NLPQuery(context: Context) {
                 }
             }
         } catch (e: InterruptedException) {
-            Log.d(TAG, "Interrupted: exception.", e)
+            Log.w(TAG, "Interrupted: exception.", e)
         }
     }
 
@@ -159,10 +159,10 @@ class NLPQuery(context: Context) {
 
             } catch (e: Exception) {
                 //Response is not a JSON:
-                Log.d(TAG, "ERROR DetectIntentResponse: cannot interpret the response received. ", e)
+                Log.w(TAG, "ERROR DetectIntentResponse: cannot interpret the response received. ", e)
             }
         } catch (e: Exception) {
-            Log.d(TAG, "ERROR DetectIntentRequest: ", e)
+            Log.w(TAG, "ERROR DetectIntentRequest: ", e)
         }
         try {
             sessionsClient!!.shutdown()

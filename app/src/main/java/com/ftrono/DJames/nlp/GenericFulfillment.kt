@@ -105,7 +105,7 @@ class GenericFulfillment (private var context: Context) {
             reqLangCode = sourceJson[reqLangName].asString
             Log.d(TAG, "REQUESTED MESSAGING LANGUAGE: $reqLangCode")
         } catch (e: Exception) {
-            Log.d(TAG, "No specific language provided in the voice request.")
+            Log.w(TAG, "No specific language provided in the voice request.", e)
         }
 
         //Extract contact:
@@ -199,7 +199,7 @@ class GenericFulfillment (private var context: Context) {
 
 
         } catch (e: Exception) {
-            Log.d(TAG, "sendMessage2: EXCEPTION: ")
+            Log.w(TAG, "sendMessage2: EXCEPTION: ", e)
             return utils.fallback("ERROR: SMS not sent!")
         }
 

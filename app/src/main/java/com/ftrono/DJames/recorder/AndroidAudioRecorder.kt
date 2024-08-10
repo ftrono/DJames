@@ -51,7 +51,7 @@ class AndroidAudioRecorder(private val context: Context): AudioRecorder {
 
         } catch (e: Exception) {
             searchFail = true
-            Log.d(TAG, "ERROR: Recorder start FAIL.", e)
+            Log.w(TAG, "ERROR: Recorder start FAIL.", e)
         }
     }
 
@@ -77,7 +77,7 @@ class AndroidAudioRecorder(private val context: Context): AudioRecorder {
             convertAudioFile(source = recFileMp3!!, target = recFileFlac!!)
         } catch (e: Exception) {
             searchFail = true
-            Log.d(TAG, "ERROR: Recorder stop FAIL.", e)
+            Log.w(TAG, "ERROR: Recorder stop FAIL.", e)
         }
         return recFileFlac!!
     }
@@ -89,7 +89,7 @@ class AndroidAudioRecorder(private val context: Context): AudioRecorder {
             //Log.d(TAG, "Conversion output: ${session.output}")
             Log.d(TAG, "Conversion fail track (if any): ${session.failStackTrace}")
         } catch (e: Exception) {
-            Log.d(TAG, "Audio file conversion error: ", e)
+            Log.w(TAG, "Audio file conversion error: ", e)
         }
 
     }

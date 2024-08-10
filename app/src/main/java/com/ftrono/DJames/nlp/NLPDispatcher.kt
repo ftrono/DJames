@@ -69,7 +69,7 @@ class NLPDispatcher (private var context: Context) {
                     intentName = resultsNLP.get("intent_name").asString
                     Log.d(TAG, "NLPDispatcher1: detected intent: $intentName")
                 } catch (e: Exception) {
-                    Log.d(TAG, "NLPDispatcher1: no NLP results!")
+                    Log.w(TAG, "NLPDispatcher1: no NLP results!")
                     return utils.fallback()
                 }
 
@@ -130,7 +130,7 @@ class NLPDispatcher (private var context: Context) {
                     intentName = resultsNLP.get("intent_name").asString
                     Log.d(TAG, "NLPDispatcher2: detected intent: $intentName")
                 } catch (e: Exception) {
-                    Log.d(TAG, "NLPDispatcher2: no NLP results!")
+                    Log.w(TAG, "NLPDispatcher2: no NLP results!")
                     return utils.fallback()
                 }
 

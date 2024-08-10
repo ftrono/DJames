@@ -55,7 +55,7 @@ class HistoryAdapter(
         try {
             playType = logItem.get("spotify_play").asJsonObject.get("play_type").asString
         } catch (e: Exception) {
-            Log.d(TAG, "No play_type in spotify_play!")
+            Log.w(TAG, "No play_type in spotify_play!")
         }
         //Call / message requests:
         if (intentName == "CallRequest" || intentName == "MessageRequest") {
@@ -171,7 +171,7 @@ class HistoryAdapter(
             holder.match_context.text = utils.trimString(contextFull, trimLength)
 
         } catch (e: Exception) {
-            //Log.d(TAG, "ADAPTER ERROR: ", e)
+            //Log.w(TAG, "ADAPTER ERROR: ", e)
             try {
                 if (playType != "track") {
                     //PLAY PLAYLIST:

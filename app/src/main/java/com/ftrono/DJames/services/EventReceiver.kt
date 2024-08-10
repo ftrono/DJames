@@ -35,7 +35,7 @@ class EventReceiver: BroadcastReceiver() {
                             context!!.startService(Intent(context, VoiceQueryService::class.java))
                             Log.d(TAG, "EVENT: VOLUME_CHANGED_ACTION: VOICE QUERY SERVICE STARTED.")
                         } catch (e:Exception) {
-                            Log.d(TAG, "ERROR: VOLUME_CHANGED_ACTION: VOICE QUERY SERVICE NOT STARTED. ", e)
+                            Log.w(TAG, "ERROR: VOLUME_CHANGED_ACTION: VOICE QUERY SERVICE NOT STARTED. ", e)
                         }
                     } else if (recordingMode) {
                         //EARLY STOP RECORDING:

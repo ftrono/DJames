@@ -54,8 +54,8 @@ class VoiceQueryService: Service() {
     private val MyRecorder by lazy {
         AndroidAudioRecorder(applicationContext)
     }
-    private var recThread: Thread? = null
-    private var processThread: Thread? = null
+    private var allThreads = mutableListOf<Thread>()
+    private var processing = false
 
     //Status:
     private var followUp = false
@@ -96,35 +96,37 @@ class VoiceQueryService: Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        followUp = false
+        messageMode = false
         //Stop:
         Intent().also { intent ->
             intent.setAction(ACTION_REC_STOP)
             applicationContext.sendBroadcast(intent)
         }
-        //Stop recorder:
-        if (recordingMode) {
-            try {
-                var recFile = MyRecorder.stop()
-            } catch (e: Exception) {
-                Log.d(TAG, "MyRecorder not available.")
-            }
-            //Play FAIL tone:
-            toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+        try {
+            MyRecorder.stop()
+        } catch (e: Exception) {
+            Log.w(TAG, "MyRecorder not available.")
         }
         //Stop threads:
-        try {
-            if (recThread!!.isAlive()) {
-                recThread!!.interrupt()
+        var t_count = 1
+        var t_max = allThreads.size
+        for (t in allThreads) {
+            try {
+                if (t.isAlive()) {
+                    t.interrupt()
+                    Log.d(TAG, "Stopped thread $t_count / $t_max.")
+                }
+                Log.d(TAG, "Thread $t_count / $t_max not active.")
+            } catch (e: Exception) {
+                Log.w(TAG, "Thread $t_count / $t_max: EXCEPTION: ", e)
             }
-        } catch (e: Exception) {
-            Log.d(TAG, "No RecThread active.")
+            t_count ++
         }
-        try {
-            if (processThread!!.isAlive()) {
-                processThread!!.interrupt()
-            }
-        } catch (e: Exception) {
-            Log.d(TAG, "No ProcessThread active.")
+        //Stop recorder:
+        if (recordingMode || processing) {
+            //Play FAIL tone:
+            toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
         }
         //Abandon audio focus:
         utils.releaseAudioFocus()
@@ -139,6 +141,7 @@ class VoiceQueryService: Service() {
         recordingMode = false
         voiceQueryOn = false
         sourceIsVolume = false
+        processing = false
         processStatus = JsonObject()
         //Send broadcast:
         Intent().also { intent ->
@@ -199,21 +202,22 @@ class VoiceQueryService: Service() {
         MyRecorder.start(saveDir)
 
         //Start rec Thread:
-        recThread = Thread {
+        var recThread = Thread {
             whileRecording(MyRecorder, messageMode=messageMode)
         }
-        recThread!!.start()
+        recThread.start()
+        allThreads.add(recThread)
     }
 
 
     //Start recording:
     private fun startRecording() {
         try {
-            if (followUp) {
+            if (followUp && voiceQueryOn) {
                 //START RECORDING with no new audiofocus request:
                 record()
 
-            } else {
+            } else if (voiceQueryOn) {
                 //PREPARE AUDIOFOCUS REQUEST:
                 //Focus request:
                 audioFocusRequest =
@@ -242,7 +246,7 @@ class VoiceQueryService: Service() {
                 }
             }
         } catch (e: Exception) {
-            Log.d(TAG, "VQSERVICE: EXCEPTION: $e")
+            Log.w(TAG, "VQSERVICE: EXCEPTION: ", e)
             fail()
         }
     }
@@ -272,23 +276,27 @@ class VoiceQueryService: Service() {
                 //Play STOP tone:
                 toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
 
-                //Set overlay PROCESSING color & icon:
-                Intent().also { intent ->
-                    intent.setAction(ACTION_OVERLAY_PROCESSING)
-                    sendBroadcast(intent)
-                }
-
-                //PROCESS REQUEST:
-                processThread = Thread {
-                    synchronized(this) {
-                        processResults(recFile)
+                if (voiceQueryOn) {
+                    processing = true
+                    //Set overlay PROCESSING color & icon:
+                    Intent().also { intent ->
+                        intent.setAction(ACTION_OVERLAY_PROCESSING)
+                        sendBroadcast(intent)
                     }
+
+                    //PROCESS REQUEST:
+                    var processThread = Thread {
+                        synchronized(this) {
+                            processResults(recFile)
+                        }
+                    }
+                    processThread.start()
+                    allThreads.add(processThread)
                 }
-                processThread!!.start()
             }
 
         } catch (e: Exception) {
-            Log.d(TAG, "VQSERVICE: EXCEPTION: $e")
+            Log.w(TAG, "VQSERVICE: EXCEPTION: ", e)
             fail()
         }
     }
@@ -298,6 +306,7 @@ class VoiceQueryService: Service() {
         //CALL NLP DISPATCHER:
         var nlpDispatcher = NLPDispatcher(applicationContext)
         processStatus = nlpDispatcher.dispatch(recFile, processStatus, followUp, messageMode)
+        processing = false
 
         if (processStatus.isEmpty || processStatus.has("fail")) {
             var toastText = ""
@@ -320,7 +329,7 @@ class VoiceQueryService: Service() {
             try {
                 startRecording()
             } catch (e: Exception) {
-                Log.d(TAG, "VQRECEIVER: recording not started. ", e)
+                Log.w(TAG, "VQRECEIVER: recording not started. ", e)
                 fail()
             }
 
@@ -330,7 +339,7 @@ class VoiceQueryService: Service() {
             try {
                 startRecording()
             } catch (e: Exception) {
-                Log.d(TAG, "VQRECEIVER: recording not started. ", e)
+                Log.w(TAG, "VQRECEIVER: recording not started. ", e)
                 fail()
             }
         } else {
@@ -390,7 +399,7 @@ class VoiceQueryService: Service() {
                         max = amplitudes.max()
                         std = amplitudes.filter { it > 0 }.std().roundToInt()
                     } catch (e: Exception) {
-                        Log.d(TAG, "No min/max.")
+                        Log.w(TAG, "No min/max.")
                     }
 
                     //Tolerance period ended:
@@ -448,7 +457,7 @@ class VoiceQueryService: Service() {
             }
 
         } catch (e: InterruptedException) {
-            Log.d(TAG, "Interrupted: exception.", e)
+            Log.w(TAG, "Interrupted: exception.", e)
         }
     }
 

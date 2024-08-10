@@ -91,7 +91,7 @@ class LoadingScreen: AppCompatActivity() {
                                         var firstImage = images.get(0).asJsonObject
                                         prefs.spotUserImage = firstImage.get("url").asString
                                     } catch (e: Exception) {
-                                        Log.d(TAG, "Unable to retrieve user image: ", e)
+                                        Log.w(TAG, "Unable to retrieve user image: ", e)
                                         prefs.spotUserImage = ""
                                     }
 
@@ -120,7 +120,7 @@ class LoadingScreen: AppCompatActivity() {
                                     ).show()
                                 }
                             } catch (e: Exception) {
-                                Log.d(TAG, "Profile parsing error: ", e)
+                                Log.w(TAG, "Profile parsing error: ", e)
                                 Toast.makeText(
                                     applicationContext,
                                     "Authentication ERROR: not logged in.",
@@ -133,7 +133,7 @@ class LoadingScreen: AppCompatActivity() {
                         Toast.makeText(applicationContext, "Authentication ERROR: not logged in.", Toast.LENGTH_LONG).show()
                     }
                 } catch (e: Exception) {
-                    Log.d(TAG, "ERROR IN RESPONSE PARSING: ", e)
+                    Log.w(TAG, "ERROR IN RESPONSE PARSING: ", e)
                     Toast.makeText(applicationContext, "Authentication ERROR: not logged in.", Toast.LENGTH_LONG).show()
                 }
             } else {

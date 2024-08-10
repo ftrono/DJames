@@ -129,13 +129,13 @@ class MainActivity : AppCompatActivity() {
                     File(cacheDir, "$recFileName.mp3").delete()
                     Log.d(TAG, "Recording mp3 deleted.")
                 } catch (e: Exception) {
-                    Log.d(TAG, "Recording mp3 not deleted.")
+                    Log.w(TAG, "Recording mp3 not deleted.")
                 }
                 try {
                     File(cacheDir, "$recFileName.flac").delete()
                     Log.d(TAG, "Recording flac deleted.")
                 } catch (e: Exception) {
-                    Log.d(TAG, "Recording flac not deleted.")
+                    Log.w(TAG, "Recording flac not deleted.")
                 }
             }
         }
@@ -152,7 +152,7 @@ class MainActivity : AppCompatActivity() {
                 intentOS.putExtra("faded", false)
                 applicationContext.startService(intentOS)
             } catch (e: Exception) {
-                Log.d(TAG, "Cannot auto-start Overlay Service. EXCEPTION: $e")
+                Log.w(TAG, "Cannot auto-start Overlay Service. EXCEPTION: ", e)
             }
 
         }
@@ -408,7 +408,7 @@ class MainActivity : AppCompatActivity() {
                 try {
                     Toast.makeText(context, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
                 } catch (e: Exception) {
-                    Log.d(TAG, "MAIN: ACTION_MAIN_LOGGED_IN: cannot toast.")
+                    Log.w(TAG, "MAIN: ACTION_MAIN_LOGGED_IN: cannot toast.")
                 }
             }
 

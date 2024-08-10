@@ -66,7 +66,7 @@ class SpotifyQuery() {
                         Log.d(TAG, "REFRESH: RESPONSE ERROR: ${response}")
                     }
                 } catch (e: Exception) {
-                    Log.d(TAG, "REFRESH: ERROR IN RESPONSE PARSING: ", e)
+                    Log.w(TAG, "REFRESH: ERROR IN RESPONSE PARSING: ", e)
                 }
             } else {
                 Log.d(TAG, "Token Refresh ERROR: not refreshed.")
@@ -231,7 +231,7 @@ class SpotifyQuery() {
                     var respJSON = JsonParser.parseString(response).asJsonObject
                     var errorJSON = respJSON.get("error").asJsonObject
                     var status = errorJSON.get("status").asString.toInt()
-                    Log.d(TAG, "First Search answer: received error ${status}.")
+                    Log.w(TAG, "First Search answer: received error ${status}.")
 
                     //401 -> token expired!
                     if (status == 401) {
@@ -258,7 +258,7 @@ class SpotifyQuery() {
                                 //IF ERROR AGAIN:
                                 respJSON = JsonParser.parseString(response).asJsonObject
                                 Log.d(TAG, respJSON.toString())
-                                Log.d(TAG, "Refresh query did not work. Exiting interpreter.")
+                                Log.w(TAG, "Refresh query did not work. Exiting interpreter.")
                                 return@runBlocking returnArray
                             }
                         } else {

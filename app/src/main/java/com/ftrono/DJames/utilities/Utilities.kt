@@ -120,7 +120,7 @@ class Utilities {
                 context.sendBroadcast(intent)
             }
         } catch (e: Exception) {
-            Log.d(TAG, "ERROR: Log not saved! $e")
+            Log.w(TAG, "ERROR: Log not saved!", e)
         }
     }
 
@@ -243,7 +243,7 @@ class Utilities {
                 }
             }
         } catch (e: Exception) {
-            Log.d(TAG, "ttsRead: cannot read TTS. EXCEPTION: $e")
+            Log.w(TAG, "ttsRead: cannot read TTS. EXCEPTION: ", e)
         }
     }
 
@@ -253,7 +253,7 @@ class Utilities {
         try {
             audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
         } catch (e: Exception) {
-            Log.d(TAG, "ERROR: AudioFocus already released.")
+            Log.w(TAG, "ERROR: AudioFocus already released.")
         }
     }
     
@@ -326,12 +326,12 @@ class Utilities {
                             }
                         } catch (e: Exception) {
                             //Generic requests:
-                            Log.d(TAG, "File $f: No score.")
+                            Log.w(TAG, "File $f: No score.")
                         }
                     }
                 } catch (e: Exception) {
                     File(logDir, f).delete()
-                    Log.d(TAG, "Deleted file: $f")
+                    Log.w(TAG, "Deleted file: $f")
                 }
             }
         }
@@ -392,7 +392,7 @@ class Utilities {
                 vocFile.createNewFile()
                 vocFile.writeText(vocJson.toString())
             } catch (e: Exception) {
-                Log.d(TAG, "Error: voc file not created!")
+                Log.w(TAG, "Error: voc file not created!", e)
             }
         } else {
             //Read array from existing voc file:
@@ -402,7 +402,7 @@ class Utilities {
             } catch (e: Exception) {
                 //Delete invalid file:
                 // vocFile.delete()
-                Log.d(TAG, "Error in parsing vocabulary file!", e)
+                Log.w(TAG, "Error in parsing vocabulary file!", e)
             }
         }
         // Log.d(TAG, vocJson.toString())
@@ -421,7 +421,7 @@ class Utilities {
                 size = vocJson.keySet().size
                 //Log.d(TAG, vocJson.toString())
             } catch (e: Exception) {
-                Log.d(TAG, "Error in parsing vocabulary file!", e)
+                Log.w(TAG, "Error in parsing vocabulary file!", e)
             }
         }
         return size
@@ -459,7 +459,7 @@ class Utilities {
             vocFile.writeText(newJson.toString())
             return 0
         } catch (e: Exception) {
-            Log.d(TAG, "Error: vocFile not updated!", e)
+            Log.w(TAG, "Error: vocFile not updated!", e)
             return -1
         }
     }
@@ -510,7 +510,7 @@ class Utilities {
                 }
             }
         } catch (e: Exception) {
-            Log.d(TAG, "GUIDE PARSING ERROR: ", e)
+            Log.w(TAG, "GUIDE PARSING ERROR: ", e)
         }
         //Log.d(TAG, guideArray.toString())
         return guideArray
@@ -527,7 +527,7 @@ class Utilities {
             File(vocDir, "voc_contacts.json").delete()
             Log.d(TAG, "User vocabulary deleted.")
         } catch (e: Exception) {
-            Log.d(TAG, "User cache not completely deleted.")
+            Log.w(TAG, "User cache not completely deleted.")
         }
     }
 

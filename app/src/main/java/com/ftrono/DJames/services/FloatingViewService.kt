@@ -73,7 +73,7 @@ class FloatingViewService : Service() {
                 }
             }
         } catch (e: InterruptedException) {
-            Log.d(TAG, "Interrupted: exception.", e)
+            Log.w(TAG, "Interrupted: exception.", e)
         }
     }
 
@@ -272,7 +272,7 @@ class FloatingViewService : Service() {
                                             startService(Intent(applicationContext, VoiceQueryService::class.java))
                                             Log.d(TAG, "OVERLAY SERVICE: VOICE QUERY SERVICE CALLED.")
                                         } catch (e:Exception) {
-                                            Log.d(TAG, "OVERLAY SERVICE ERROR: VOICE QUERY SERVICE NOT STARTED. ", e)
+                                            Log.w(TAG, "OVERLAY SERVICE ERROR: VOICE QUERY SERVICE NOT STARTED. ", e)
                                         }
                                     } else if (recordingMode) {
                                         //EARLY STOP RECORDING:
@@ -305,7 +305,7 @@ class FloatingViewService : Service() {
                     }
                 })
         } catch (e: Exception) {
-            Log.d(TAG, "Exception: ", e)
+            Log.w(TAG, "Exception: ", e)
             //Send broadcast:
             Intent().also { intent ->
                 intent.setAction(ACTION_OVERLAY_DEACTIVATED)
@@ -481,7 +481,7 @@ class FloatingViewService : Service() {
                     try {
                         setClockOpened()
                     } catch (e: Exception) {
-                        Log.d(TAG, "OVERLAY: ACTION_CLOCK_OPENED: resources not available.")
+                        Log.w(TAG, "OVERLAY: ACTION_CLOCK_OPENED: resources not available.")
                     }
                 }
             }
@@ -493,7 +493,7 @@ class FloatingViewService : Service() {
                     try {
                         setClockClosed()
                     } catch (e: Exception) {
-                        Log.d(TAG, "OVERLAY: ACTION_CLOCK_CLOSED: resources not available.")
+                        Log.w(TAG, "OVERLAY: ACTION_CLOCK_CLOSED: resources not available.")
                     }
                 }
             }
@@ -514,7 +514,7 @@ class FloatingViewService : Service() {
                         }
                     }
                 } catch (e: Exception) {
-                    Log.d(TAG, "OVERLAY: ACTION_OVERLAY_READY: resources not available.")
+                    Log.w(TAG, "OVERLAY: ACTION_OVERLAY_READY: resources not available.")
                 }
             }
 
@@ -528,7 +528,7 @@ class FloatingViewService : Service() {
                         overlayIcon!!.setImageResource(R.drawable.speak_icon)
                     }
                 } catch (e: Exception) {
-                    Log.d(TAG, "OVERLAY: ACTION_OVERLAY_BUSY: resources not available.")
+                    Log.w(TAG, "OVERLAY: ACTION_OVERLAY_BUSY: resources not available.")
                 }
             }
 
@@ -542,7 +542,7 @@ class FloatingViewService : Service() {
                         overlayIcon!!.setImageResource(R.drawable.looking_icon)
                     }
                 } catch (e: Exception) {
-                    Log.d(TAG, "OVERLAY: ACTION_OVERLAY_PROCESSING: resources not available.")
+                    Log.w(TAG, "OVERLAY: ACTION_OVERLAY_PROCESSING: resources not available.")
                 }
             }
 
@@ -583,7 +583,7 @@ class FloatingViewService : Service() {
                                     }
                                 }
                             } catch (e: InterruptedException) {
-                                Log.d(TAG, "Interrupted: exception.", e)
+                                Log.w(TAG, "Interrupted: exception.", e)
                             }
                         }
                         //Thread check:

@@ -2,16 +2,14 @@
     <string name="app_name">DJames</string>
     <string name="app_title">🎧 DJames</string>
     <!-- Main: DJames view -->
-    <string name="str_main_not_logged">Hi, Sir!\nPlease, LOGIN first!</string>
     <string name="str_main_start">Hi, Sir!\nTap on START to begin! 🚗</string>
     <string name="str_main_stop">Hi, Sir!\nHow can I help you? 🚗</string>
-    <string name="str_use_not_logged">To work, I need access to your\nSpotify music!💿</string>
-    <string name="str_use_logged">You can ask me to play Spotify songs,\nmake calls or send SMSs!</string>
+    <string name="str_use_main">You can ask me many things:\ngo have a look to the Guide!</string>
     <string name="str_use_active">Use the FLOATING button, the VOLUME UP button,\nor a remote SHUTTER button to\nrecord a voice request!</string>
     <string name="str_use_active_no_vol">Use the FLOATING button to\nrecord a voice request!</string>
     <!-- Main: Login Status -->
-    <string name="str_status_logged">🟢 LOGGED IN</string>
-    <string name="str_status_not_logged">🔴 NOT LOGGED IN</string>
+    <string name="str_status_logged">LOGGED IN</string>
+    <string name="str_status_not_logged">NOT LOGGED IN</string>
     <!-- History: Match result status -->
     <string name="result_good">🟢</string>
     <string name="result_not_good">🟡</string>

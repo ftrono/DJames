@@ -68,10 +68,10 @@ class MainActivity : AppCompatActivity() {
 
         //Check Login status:
         if (prefs.spotifyToken == "") {
-            loggedIn = false
+            spotifyLoggedIn = false
         } else {
-            loggedIn = true
-            supportActionBar!!.subtitle = "for ${prefs.userName}"
+            spotifyLoggedIn = true
+            supportActionBar!!.subtitle = "for ${prefs.spotUserName}"
         }
 
         //Start personal Receiver:
@@ -140,8 +140,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        //NLP USER ID:
+        if (prefs.nlpUserId == "") {
+            prefs.nlpUserId = utils.generateRandomString(12)
+        }
+
         //AUTO START-UP:
-        if (loggedIn && prefs.autoStartup && !main_initialized && !isMyServiceRunning(FloatingViewService::class.java)) {
+        if (prefs.autoStartup && !main_initialized && !isMyServiceRunning(FloatingViewService::class.java)) {
             try {
                 var intentOS = Intent(applicationContext, FloatingViewService::class.java)
                 intentOS.putExtra("faded", false)
@@ -161,7 +166,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         //ON RESUME() ONLY:
         //Check Login status:
-        if (!loggedIn) {
+        if (!spotifyLoggedIn) {
             setViewLoggedOut()
         }
     }
@@ -285,9 +290,9 @@ class MainActivity : AppCompatActivity() {
         loginButton = menu.findItem(R.id.action_login)
         //Spotify login:
         if (prefs.spotifyToken != "") {
-            loginButton!!.setTitle("Logout")
+            loginButton!!.setTitle("Logout from Spotify")
         } else {
-            loginButton!!.setTitle("Login")
+            loginButton!!.setTitle("Login to Spotify")
         }
         return true
     }
@@ -299,12 +304,12 @@ class MainActivity : AppCompatActivity() {
 
         if (id == R.id.action_login) {
             //Login / logout:
-            if (!loggedIn) {
+            if (!spotifyLoggedIn) {
                 //Login user -> Open WebView:
                 val intent1 = Intent(this@MainActivity, WebAuth::class.java)
                 startActivity(intent1)
             } else {
-                logout()
+                logout(applicationContext)
             }
             return true
 
@@ -344,39 +349,25 @@ class MainActivity : AppCompatActivity() {
     }
 
     //Logout user:
-    fun logout() {
+    fun logout(context: Context) {
         val alertDialog = MaterialAlertDialogBuilder(this)
         //Save all:
         alertDialog.setPositiveButton("Yes", object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
                 //LOG OUT:
-                //Delete tokens & user details:
-                loggedIn = false
-                prefs.spotifyToken = ""
-                prefs.refreshToken = ""
-                prefs.spotUserId = ""
-                prefs.userName = ""
-                prefs.userEMail = ""
-                prefs.userImage = ""
-                prefs.nlpUserId = ""
-                //Stop overlay service:
-                if (isMyServiceRunning(FloatingViewService::class.java)) {
-                    stopService(Intent(applicationContext, FloatingViewService::class.java))
-                }
-                //utils.deleteUserCache()
+                utils.logoutCommons(context)
                 setViewLoggedOut()
                 //Send broadcasts:
                 Intent().also { intent ->
                     intent.setAction(ACTION_HOME_LOGGED_OUT)
                     sendBroadcast(intent)
                 }
-                Toast.makeText(applicationContext, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()
             }
         })
         //Exit without saving:
         alertDialog.setNegativeButton("No", object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
-                loggedIn = true
+                spotifyLoggedIn = true
             }
         })
         alertDialog.setTitle("Log out")
@@ -387,7 +378,7 @@ class MainActivity : AppCompatActivity() {
     fun setViewLoggedOut(): Boolean {
         //Set NOT Logged-In UI:
         if (loginButton != null) {
-            loginButton!!.setTitle("Login")
+            loginButton!!.setTitle("Login to Spotify")
         }
         supportActionBar!!.subtitle = ""
         return false
@@ -402,13 +393,13 @@ class MainActivity : AppCompatActivity() {
             //When logged in:
             if (intent!!.action == ACTION_MAIN_LOGGED_IN) {
                 Log.d(TAG, "MAIN: ACTION_MAIN_LOGGED_IN.")
-                loggedIn = true
+                spotifyLoggedIn = true
                 try {
                     //Set Logged-In UI:
                     if (loginButton != null) {
-                        loginButton!!.setTitle("Logout")
+                        loginButton!!.setTitle("Logout from Spotify")
                     }
-                    mainActionBar!!.subtitle = "for ${prefs.userName}"
+                    mainActionBar!!.subtitle = "for ${prefs.spotUserName}"
                 } catch (e: Exception) {
                     Log.d(TAG, "MAIN: ACTION_MAIN_LOGGED_IN: resources not available.")
                 }

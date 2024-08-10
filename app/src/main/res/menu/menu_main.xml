@@ -9,7 +9,7 @@
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_login"
-        android:title="Login"
+        android:title="Login to Spotify"
         android:icon="@drawable/item_user"
         app:showAsAction="never" />
     <item

@@ -109,19 +109,24 @@ class Prefs (context: Context) {
         set(value) = sharedPrefs.edit().putString(KEY_SPOTIFY_USER_ID, value).apply()
 
     //Spotify user name:
-    var userName: String
-        get() = sharedPrefs.getString(KEY_USER_NAME, "") as String
-        set(value) = sharedPrefs.edit().putString(KEY_USER_NAME, value).apply()
+    var spotUserName: String
+        get() = sharedPrefs.getString(KEY_SPOTIFY_USER_NAME, "") as String
+        set(value) = sharedPrefs.edit().putString(KEY_SPOTIFY_USER_NAME, value).apply()
 
     //Spotify user email:
-    var userEMail: String
-        get() = sharedPrefs.getString(KEY_USER_EMAIL, "") as String
-        set(value) = sharedPrefs.edit().putString(KEY_USER_EMAIL, value).apply()
+    var spotUserEMail: String
+        get() = sharedPrefs.getString(KEY_SPOTIFY_USER_EMAIL, "") as String
+        set(value) = sharedPrefs.edit().putString(KEY_SPOTIFY_USER_EMAIL, value).apply()
 
     //Spotify user image:
-    var userImage: String
-        get() = sharedPrefs.getString(KEY_USER_IMAGE, "") as String
-        set(value) = sharedPrefs.edit().putString(KEY_USER_IMAGE, value).apply()
+    var spotUserImage: String
+        get() = sharedPrefs.getString(KEY_SPOTIFY_USER_IMAGE, "") as String
+        set(value) = sharedPrefs.edit().putString(KEY_SPOTIFY_USER_IMAGE, value).apply()
+
+    //Spotify country:
+    var spotCountry: String
+        get() = sharedPrefs.getString(KEY_SPOTIFY_COUNTRY, "") as String
+        set(value) = sharedPrefs.edit().putString(KEY_SPOTIFY_COUNTRY, value).apply()
 
     //NLP user ID:
     var nlpUserId: String
@@ -137,8 +142,8 @@ class Prefs (context: Context) {
 
     //(Encrypted) Spotify refresh token:
     var refreshToken: String
-        get() = encryptedPrefs.getString(KEY_REFRESH_TOKEN, "") as String
-        set(value) = encryptedPrefs.edit().putString(KEY_REFRESH_TOKEN, value).apply()
+        get() = encryptedPrefs.getString(KEY_SPOTIFY_REFRESH_TOKEN, "") as String
+        set(value) = encryptedPrefs.edit().putString(KEY_SPOTIFY_REFRESH_TOKEN, value).apply()
 
 
     companion object {
@@ -157,13 +162,14 @@ class Prefs (context: Context) {
         const val KEY_VOLUME_UP_ENABLED = ".key.volume_up_enabled"
         const val KEY_HIDE_BARS = ".key.hide_bars"
         const val KEY_SPOTIFY_USER_ID = ".key.spotify_user_id"
-        const val KEY_USER_NAME = ".key.user_name"
-        const val KEY_USER_EMAIL = ".key.user_email"
-        const val KEY_USER_IMAGE = ".key.user_image"
+        const val KEY_SPOTIFY_USER_NAME = ".key.spotify_user_name"
+        const val KEY_SPOTIFY_USER_EMAIL = ".key.spotify_user_email"
+        const val KEY_SPOTIFY_USER_IMAGE = ".key.spotify_user_image"
+        const val KEY_SPOTIFY_COUNTRY = ".key.spotify_country"
         const val KEY_NLP_USER_ID = ".key.nlp_user_id"
 
         //Encrypted prefs:
         const val KEY_SPOTIFY_TOKEN = ".key.spotify_token"
-        const val KEY_REFRESH_TOKEN = ".key.refresh_token"
+        const val KEY_SPOTIFY_REFRESH_TOKEN = ".key.spotify_refresh_token"
     }
 }

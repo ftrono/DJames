@@ -343,7 +343,7 @@ class VoiceQueryService: Service() {
     private fun fail(toastText: String = "") {
         //Play FAIL tone:
         toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-        if (toastText.strip() != "") {
+        if (toastText != "") {
             //TOAST -> Send broadcast:
             Intent().also { intent ->
                 intent.setAction(ACTION_TOASTER)

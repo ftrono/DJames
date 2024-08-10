@@ -105,4 +105,6 @@ dependencies {
     implementation("me.xdrop:fuzzywuzzy:1.4.0")
     //Swipe to refresh:
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
+    //Advanced WebView:
+    implementation("com.github.delight-im:Android-AdvancedWebView:v3.2.1")
 }

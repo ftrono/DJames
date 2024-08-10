@@ -12,6 +12,7 @@ import android.webkit.WebSettings
 import android.webkit.CookieManager
 import android.widget.Toast
 import com.ftrono.DJames.utilities.Utilities
+import im.delight.android.webview.AdvancedWebView
 
 
 class WebAuth : AppCompatActivity() {
@@ -23,10 +24,10 @@ class WebAuth : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.web_view)
-        supportActionBar!!.title = "Spotify Login"
+        supportActionBar!!.title = "Login to Spotify"
 
         //Load WebView:
-        webView = findViewById<View>(R.id.webview) as WebView
+        webView = findViewById<View>(R.id.webview) as AdvancedWebView
         webView!!.settings.javaScriptEnabled = true
         webView!!.settings.setCacheMode(WebSettings.LOAD_NO_CACHE)
 

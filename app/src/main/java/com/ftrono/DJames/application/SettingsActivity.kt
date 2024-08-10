@@ -23,6 +23,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.updateLayoutParams
 import com.ftrono.DJames.R
 import com.ftrono.DJames.services.FloatingViewService
+import com.ftrono.DJames.utilities.Utilities
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.squareup.picasso.Picasso
 import jp.wasabeef.picasso.transformations.CropCircleTransformation
@@ -100,13 +101,13 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         //Set login details:
-        if (prefs.userName != "") {
+        if (prefs.spotUserName != "") {
             login_mini_button!!.text = "LOGOUT"
-            userNameView!!.text = prefs.userName
+            userNameView!!.text = prefs.spotUserName
             userEMailView!!.visibility = View.VISIBLE
-            userEMailView!!.text = prefs.userEMail
-            if (prefs.userImage != "") {
-                Picasso.get().load(prefs.userImage)
+            userEMailView!!.text = prefs.spotUserEMail
+            if (prefs.spotUserImage != "") {
+                Picasso.get().load(prefs.spotUserImage)
                     .transform(CropCircleTransformation())
                     .into(userIcon)
             }
@@ -115,7 +116,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         login_mini_button!!.setOnClickListener {
-            logout()
+            logout(applicationContext)
         }
 
 
@@ -426,8 +427,8 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    fun logout() {
-        if (!loggedIn) {
+    fun logout(context: Context) {
+        if (!spotifyLoggedIn) {
             //Login user -> Open WebView:
             val intent1 = Intent(this, WebAuth::class.java)
             startActivity(intent1)
@@ -437,28 +438,15 @@ class SettingsActivity : AppCompatActivity() {
             alertDialog.setPositiveButton("Yes", object : DialogInterface.OnClickListener {
                 override fun onClick(dialog: DialogInterface?, which: Int) {
                     //LOG OUT:
-                    //Delete tokens & user details:
-                    loggedIn = false
-                    prefs.spotifyToken = ""
-                    prefs.refreshToken = ""
-                    prefs.spotUserId = ""
-                    prefs.userName = ""
-                    prefs.userEMail = ""
-                    prefs.userImage = ""
-                    prefs.nlpUserId = ""
-                    //Stop overlay service:
-                    if (isMyServiceRunning(FloatingViewService::class.java)) {
-                        stopService(Intent(applicationContext, FloatingViewService::class.java))
-                    }
-                    //utils.deleteUserCache()
+                    var utils = Utilities()
+                    utils.logoutCommons(context)
                     setViewLoggedOut()
-                    Toast.makeText(applicationContext, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()
                 }
             })
             //Exit without saving:
             alertDialog.setNegativeButton("No", object : DialogInterface.OnClickListener {
                 override fun onClick(dialog: DialogInterface?, which: Int) {
-                    loggedIn = true
+                    spotifyLoggedIn = true
                 }
             })
             alertDialog.setTitle("Log out")
@@ -487,16 +475,16 @@ class SettingsActivity : AppCompatActivity() {
             if (intent!!.action == ACTION_SETTINGS_LOGGED_IN) {
                 Log.d(TAG, "SETTINGS: ACTION_SETTINGS_LOGGED_IN.")
 
-                loggedIn = true
+                spotifyLoggedIn = true
                 //SETTINGS ACTIVITY:
                 try {
                     //Set Logged-In UI:
                     login_mini_button!!.text = "LOGOUT"
-                    userNameView!!.text = prefs.userName
+                    userNameView!!.text = prefs.spotUserName
                     userEMailView!!.visibility = View.VISIBLE
-                    userEMailView!!.text = prefs.userEMail
-                    if (prefs.userImage != "") {
-                        Picasso.get().load(prefs.userImage)
+                    userEMailView!!.text = prefs.spotUserEMail
+                    if (prefs.spotUserImage != "") {
+                        Picasso.get().load(prefs.spotUserImage)
                             .transform(CropCircleTransformation())
                             .into(userIcon)
                     }

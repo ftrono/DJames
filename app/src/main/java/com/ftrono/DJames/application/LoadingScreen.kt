@@ -83,15 +83,16 @@ class LoadingScreen: AppCompatActivity() {
                                     prefs.spotifyToken = spotToken
                                     prefs.refreshToken = refrToken
                                     prefs.spotUserId = respJSON.get("id").asString
-                                    prefs.userName = respJSON.get("display_name").asString
-                                    prefs.userEMail = respJSON.get("email").asString
+                                    prefs.spotUserName = respJSON.get("display_name").asString
+                                    prefs.spotUserEMail = respJSON.get("email").asString
+                                    prefs.spotCountry = respJSON.get("country").asString
                                     try {
                                         var images = respJSON.getAsJsonArray("images")
                                         var firstImage = images.get(0).asJsonObject
-                                        prefs.userImage = firstImage.get("url").asString
+                                        prefs.spotUserImage = firstImage.get("url").asString
                                     } catch (e: Exception) {
                                         Log.d(TAG, "Unable to retrieve user image: ", e)
-                                        prefs.userImage = ""
+                                        prefs.spotUserImage = ""
                                     }
 
                                     //Generate NLP user ID:

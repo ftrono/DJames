@@ -25,23 +25,37 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- Main -->
+        <!-- MAIN -->
+        <!-- Spotify status -->
+        <ImageView
+            android:id="@+id/spotify_logo"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="20dp"
+            android:src="@drawable/logo_spotify"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@+id/descr_login_status"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/baloon"
+            tools:ignore="TextSizeCheck" />
+
         <TextView
             android:id="@+id/descr_login_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="20dp"
+            android:layout_marginLeft="10dp"
             android:text="@string/str_status_logged"
-            android:textAlignment="center"
             android:textColor="@color/light_grey"
             android:textSize="12dp"
             app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintLeft_toRightOf="@+id/spotify_logo"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/baloon"
+            app:layout_constraintTop_toTopOf="@+id/spotify_logo"
+            app:layout_constraintBottom_toBottomOf="@+id/spotify_logo"
             tools:ignore="TextSizeCheck" />
 
         <!-- Baloon arrow -->
@@ -67,7 +81,7 @@
             app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/descr_login_status"
+            app:layout_constraintTop_toBottomOf="@+id/spotify_logo"
             app:layout_constraintBottom_toTopOf="@+id/DJames_face" />
 
         <TextView
@@ -119,19 +133,6 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/baloon"
             app:layout_constraintBottom_toTopOf="@+id/start_button"/>
-
-        <View
-            android:id="@+id/face_cover"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:background="@color/transparent_bg"
-            android:visibility="invisible"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintLeft_toLeftOf="@+id/DJames_face"
-            app:layout_constraintRight_toRightOf="@+id/DJames_face"
-            app:layout_constraintTop_toTopOf="@+id/DJames_face"
-            app:layout_constraintBottom_toBottomOf="@+id/DJames_face"/>
 
         <!-- Button -->
         <Button

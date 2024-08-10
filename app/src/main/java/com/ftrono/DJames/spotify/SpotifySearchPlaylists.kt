@@ -48,7 +48,7 @@ class SpotifySearchPlaylists() {
 
         //FIRST REQUEST:
         //Compose query:
-        url += "?q=${encodedMatchName}&type=playlist&limit=10&market=IT"
+        url += "?q=${encodedMatchName}&type=playlist&limit=10&market=${prefs.spotCountry}"
         Log.d(TAG, url)
 
         //QUERY:

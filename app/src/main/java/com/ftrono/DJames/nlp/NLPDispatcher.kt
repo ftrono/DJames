@@ -3,7 +3,7 @@ package com.ftrono.DJames.nlp
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.last_log
-import com.ftrono.DJames.application.loggedIn
+import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.newsTalk
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
@@ -79,11 +79,11 @@ class NLPDispatcher (private var context: Context) {
                     when (intentName) {
                         "CallRequest" -> return fulfillment.makeCall(resultsNLP)
                         "MessageRequest" -> return fulfillment.sendMessage1(resultsNLP)
-                        "PlaySong" -> if (loggedIn) return spotify.playItem1(resultsNLP) else utils.fallback("Not logged in to Spotify!")
-                        "PlayAlbum" -> if (loggedIn) return spotify.playItem1(resultsNLP) else utils.fallback("Not logged in to Spotify!")
-                        "PlayArtist" -> if (loggedIn) return spotify.playItem1(resultsNLP) else utils.fallback("Not logged in to Spotify!")
-                        "PlayPlaylist" -> if (loggedIn) return spotify.playItem1(resultsNLP) else utils.fallback("Not logged in to Spotify!")
-                        "PlayCollection" -> if (loggedIn) return spotify.playCollection(resultsNLP) else utils.fallback("Not logged in to Spotify!")
+                        "PlaySong" -> if (spotifyLoggedIn) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
+                        "PlayAlbum" -> if (spotifyLoggedIn) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
+                        "PlayArtist" -> if (spotifyLoggedIn) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
+                        "PlayPlaylist" -> if (spotifyLoggedIn) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
+                        "PlayCollection" -> if (spotifyLoggedIn) return spotify.playCollection(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
                         "Cancel" -> return utils.fallback()
                         else -> return utils.fallback("Sorry, I did not understand!")
                     }
@@ -147,10 +147,10 @@ class NLPDispatcher (private var context: Context) {
                             "Cancel" -> return utils.fallback()
                             else -> {
                                 when (prevIntent) {
-                                    "PlaySong" -> if (loggedIn) return spotify.playSongAlbum2(resultsNLP, prevStatus) else utils.fallback("Not logged in to Spotify!")
-                                    "PlayAlbum" -> if (loggedIn) return spotify.playSongAlbum2(resultsNLP, prevStatus) else utils.fallback("Not logged in to Spotify!")
-                                    "PlayArtist" -> if (loggedIn) return spotify.playArtistPlaylist2(resultsNLP, prevStatus) else utils.fallback("Not logged in to Spotify!")
-                                    "PlayPlaylist" -> if (loggedIn) return spotify.playArtistPlaylist2(resultsNLP, prevStatus) else utils.fallback("Not logged in to Spotify!")
+                                    "PlaySong" -> if (spotifyLoggedIn) return spotify.playSongAlbum2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
+                                    "PlayAlbum" -> if (spotifyLoggedIn) return spotify.playSongAlbum2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
+                                    "PlayArtist" -> if (spotifyLoggedIn) return spotify.playArtistPlaylist2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
+                                    "PlayPlaylist" -> if (spotifyLoggedIn) return spotify.playArtistPlaylist2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
                                 }
                             }
                         }

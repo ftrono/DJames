@@ -97,7 +97,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
 
         //FAB:
         var fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
-        if (!loggedIn) {
+        if (!spotifyLoggedIn) {
             fab.visibility = View.GONE
         }
         fab.setOnClickListener { view ->

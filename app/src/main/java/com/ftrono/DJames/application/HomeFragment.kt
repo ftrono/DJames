@@ -6,11 +6,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.Typeface
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
@@ -20,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.updateLayoutParams
+import androidx.fragment.app.Fragment
 import com.ftrono.DJames.R
 import com.ftrono.DJames.services.FloatingViewService
 import kotlin.math.roundToInt
@@ -33,12 +35,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private var baloon: View? = null
     private var baloon_arrow: View? = null
     private var mega_face: ImageView? = null
+    private var spotifyLogo: ImageView? = null
 
     //View resources:
     private var descr_login_status: TextView? = null    //eventReceiver (login)
     private var descr_main: TextView? = null    //eventReceiver (login), setOverlayActive(utilities)
     private var descr_use: TextView? = null    //eventReceiver (login, volumeSettings, utilities)
-    private var face_cover: View? = null    //eventReceiver (login)
     private var startButton: Button? = null    //eventReceiver (login), setOverlayActive(utilities)
 
 
@@ -52,8 +54,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         descr_main = requireActivity().findViewById<TextView>(R.id.descr_main)
         descr_use = requireActivity().findViewById<TextView>(R.id.descr_use)
         mega_face = requireActivity().findViewById<ImageView>(R.id.DJames_face)
-        face_cover = requireActivity().findViewById<View>(R.id.face_cover)
         startButton = requireActivity().findViewById<Button>(R.id.start_button)
+        spotifyLogo = requireActivity().findViewById<ImageView>(R.id.spotify_logo)
 
         //Check initial orientation:
         var config = getResources().getConfiguration()
@@ -86,12 +88,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             setViewLoggedOut()
         } else {
             descr_login_status!!.text = getString(R.string.str_status_logged)
-            if (prefs.volumeUpEnabled) {
-                descr_use!!.text = getString(R.string.str_use_active)
-            } else {
-                descr_use!!.text = getString(R.string.str_use_active_no_vol)
-            }
-            face_cover!!.visibility = View.INVISIBLE
             if (overlay_active) {
                 setOverlayActive()
             } else {
@@ -111,13 +107,17 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         requireActivity().registerReceiver(homeReceiver, actFilter, AppCompatActivity.RECEIVER_EXPORTED)
         Log.d(TAG, "HomeReceiver started.")
 
+        //Spotify:
+        spotifyLogo!!.setOnClickListener(View.OnClickListener {
+            spotifyTap(requireActivity())
+        })
+        descr_login_status!!.setOnClickListener(View.OnClickListener {
+            spotifyTap(requireActivity())
+        })
+
         //Start:
         startButton!!.setOnClickListener(View.OnClickListener {
-            if (!loggedIn) {
-                //Login user -> Open WebView:
-                val intent1 = Intent(requireActivity(), WebAuth::class.java)
-                startActivity(intent1)
-            } else if (!overlay_active) {
+            if (!overlay_active) {
                 //START:
                 if (!isMyServiceRunning(FloatingViewService::class.java)) {
                     var intentOS = Intent(requireActivity(), FloatingViewService::class.java)
@@ -156,9 +156,13 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         super.onResume()
         //ON RESUME() ONLY:
         //Check Login status:
-        if (!loggedIn) {
-            overlay_active = false
+        if (!spotifyLoggedIn) {
             setViewLoggedOut()
+            if (overlay_active) {
+                setOverlayActive()
+            } else {
+                setOverlayInactive()
+            }
         } else if (!Settings.canDrawOverlays(requireActivity())) {
             overlay_active = setOverlayInactive()
         }
@@ -172,9 +176,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         descr_login_status = null
         descr_main = null
         descr_use = null
-        face_cover = null
         startButton = null
+        spotifyLogo = null
     }
+
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
@@ -226,6 +231,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
     }
 
+
     fun isMyServiceRunning(serviceClass: Class<*>): Boolean {
         val manager = requireActivity().getSystemService(AppCompatActivity.ACTIVITY_SERVICE) as ActivityManager
         for (service in manager.getRunningServices(Int.MAX_VALUE)) {
@@ -236,19 +242,27 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         return false
     }
 
+
+    fun spotifyTap(context: Context) {
+        if (!spotifyLoggedIn) {
+            Toast.makeText(context, "Log in from Settings to unlock music functions!", Toast.LENGTH_LONG).show()
+        } else {
+            Toast.makeText(context, "Logged in to Spotify as: ${prefs.spotUserName}!", Toast.LENGTH_LONG).show()
+        }
+    }
+
+
     fun setViewLoggedOut(): Boolean {
         //Set NOT Logged-In UI:
         descr_login_status!!.text = getString(R.string.str_status_not_logged)
-        face_cover!!.visibility = View.VISIBLE
-        descr_main!!.setTextColor(AppCompatResources.getColorStateList(requireActivity(), R.color.light_grey))
-        descr_main!!.setTypeface(null, Typeface.ITALIC)
-        descr_main!!.text = getString(R.string.str_main_not_logged)
-        descr_use!!.text = getString(R.string.str_use_not_logged)
-        descr_use!!.setTextColor(AppCompatResources.getColorStateList(requireActivity(), R.color.mid_grey))
-        startButton!!.text = "L O G I N"
-        startButton!!.backgroundTintList = AppCompatResources.getColorStateList(requireActivity(), R.color.faded_grey)
+        //Set logo to B&W:
+        val matrix = ColorMatrix()
+        matrix.setSaturation(0F)
+        val filter = ColorMatrixColorFilter(matrix)
+        spotifyLogo!!.colorFilter = filter
         return false
     }
+
 
     //Set Overlay Active view in Main:
     fun setOverlayActive(): Boolean {
@@ -273,6 +287,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         return true
     }
 
+
     //Set Overlay Inactive view in Main:
     fun setOverlayInactive(): Boolean {
         try {
@@ -281,7 +296,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             descr_main!!.setTextColor(AppCompatResources.getColorStateList(requireActivity(), R.color.light_grey))
             descr_main!!.setTypeface(null, Typeface.ITALIC)
             descr_main!!.text = getString(R.string.str_main_start)
-            descr_use!!.text = getString(R.string.str_use_logged)
+            descr_use!!.text = getString(R.string.str_use_main)
             descr_use!!.setTextColor(AppCompatResources.getColorStateList(requireActivity(), R.color.mid_grey))
             Log.d(TAG, "SetOverlayInactive()")
         } catch (e: Exception) {
@@ -289,6 +304,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
         return false
     }
+
 
     //PERSONAL RECEIVER:
     private var homeReceiver = object: BroadcastReceiver() {
@@ -301,29 +317,11 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 try {
                     //Set Logged-In UI:
                     descr_login_status!!.text = context!!.getString(R.string.str_status_logged)
-                    face_cover!!.visibility = View.INVISIBLE
-                    startButton!!.text = "S T A R T"
-                    startButton!!.backgroundTintList =
-                        AppCompatResources.getColorStateList(context, R.color.colorAccent)
-                    descr_main!!.setTextColor(
-                        AppCompatResources.getColorStateList(
-                            context,
-                            R.color.light_grey
-                        )
-                    )
-                    descr_main!!.setTypeface(null, Typeface.ITALIC)
-                    descr_main!!.text = getString(R.string.str_main_start)
-                    if (prefs.volumeUpEnabled) {
-                        descr_use!!.text = getString(R.string.str_use_active)
-                    } else {
-                        descr_use!!.text = getString(R.string.str_use_active_no_vol)
-                    }
-                    descr_use!!.setTextColor(
-                        AppCompatResources.getColorStateList(
-                            context,
-                            R.color.mid_grey
-                        )
-                    )
+                    //Set logo to B&W:
+                    val matrix = ColorMatrix()
+                    matrix.setSaturation(1F)
+                    val filter = ColorMatrixColorFilter(matrix)
+                    spotifyLogo!!.colorFilter = filter
                 } catch (e: Exception) {
                     Log.d(TAG, "HOME: ACTION_MAIN_LOGGED_IN: resources not available.")
                 }

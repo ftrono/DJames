@@ -7,6 +7,7 @@ import android.media.AudioManager
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
+import android.widget.Toast
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
 import com.google.gson.JsonArray
@@ -128,9 +129,27 @@ class Utilities {
         var processStatus = JsonObject()
         processStatus.addProperty("fail", true)
         if (toastText != "") {
-            processStatus.addProperty("toastText", "Sorry, I did not understand!")
+            processStatus.addProperty("toastText", toastText)
         }
+        //Log.d(TAG, "processStatus: $processStatus")
         return processStatus
+    }
+
+    //LOGOUT:
+    fun logoutCommons(context: Context) {
+        //Delete tokens & user details:
+        var utils = Utilities()
+        spotifyLoggedIn = false
+        prefs.spotifyToken = ""
+        prefs.refreshToken = ""
+        prefs.spotUserId = ""
+        prefs.spotUserName = ""
+        prefs.spotUserEMail = ""
+        prefs.spotUserImage = ""
+        prefs.spotCountry = ""
+        prefs.nlpUserId = utils.generateRandomString(12)
+        //utils.deleteUserCache()
+        Toast.makeText(context, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()
     }
 
     //Count number of occurrences in intersection:

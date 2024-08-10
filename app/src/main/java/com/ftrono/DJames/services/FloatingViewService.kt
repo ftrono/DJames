@@ -374,13 +374,12 @@ class FloatingViewService : Service() {
         if (isMyServiceRunning(VoiceQueryService::class.java)) {
             stopService(Intent(applicationContext, VoiceQueryService::class.java))
         }
-        if (loggedIn) {
-            //Send broadcast:
-            Intent().also { intent ->
-                intent.setAction(ACTION_OVERLAY_DEACTIVATED)
-                sendBroadcast(intent)
-            }
+        //Send broadcast:
+        Intent().also { intent ->
+            intent.setAction(ACTION_OVERLAY_DEACTIVATED)
+            sendBroadcast(intent)
         }
+
         //End Fake Lock Screen():
         //Send broadcast:
         Intent().also { intent ->

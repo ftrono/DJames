@@ -429,18 +429,28 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 if (mdId > 0) {
-                    supportFragmentManager
-                        .beginTransaction()
-                        .replace(R.id.main_frame, mdFragment)
-                        .addToBackStack("tag")
-                        .commit()
+                    var transaction = supportFragmentManager.beginTransaction()
+                    transaction.setCustomAnimations(
+                        R.anim.fade_in, // enter
+                        R.anim.fade_out, // exit
+                        R.anim.fade_in, // popEnter
+                        R.anim.fade_out // popExit
+                    )
+                    transaction.replace(R.id.main_frame, mdFragment)
+                    transaction.addToBackStack("tag")
+                    transaction.commit()
 
                 } else {
-                    supportFragmentManager
-                        .beginTransaction()
-                        .replace(R.id.main_frame, mdFragment)
-                        .addToBackStack(null)
-                        .commit()
+                    var transaction = supportFragmentManager.beginTransaction()
+                    transaction.setCustomAnimations(
+                        R.anim.fade_out, // enter
+                        R.anim.fade_in, // exit
+                        R.anim.fade_out, // popEnter
+                        R.anim.fade_in // popExit
+                    )
+                    transaction.replace(R.id.main_frame, mdFragment)
+                    transaction.addToBackStack(null)
+                    transaction.commit()
                 }
 
                 prevMdFragment = mdFragment

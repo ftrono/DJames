@@ -13,6 +13,7 @@ import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.webkit.URLUtil
+import android.widget.AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL
 import android.widget.AdapterView
 import android.widget.Button
 import android.widget.ImageView
@@ -29,6 +30,7 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.adapters.VocabularyAdapter
 import com.ftrono.DJames.utilities.Utilities
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.JsonObject
 import java.io.File
@@ -39,6 +41,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
     private val TAG: String = VocabularyFragment::class.java.getSimpleName()
     private var utils = Utilities()
 
+    private var fab: ExtendedFloatingActionButton? = null
     private var swipeRefreshLayout: SwipeRefreshLayout? = null
     private var textNoData: TextView? = null
     private var refreshList: RecyclerView? = null
@@ -52,14 +55,18 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         //Header intro:
         var vocTitle = requireActivity().findViewById<TextView>(R.id.voc_title)
         vocSubtitle = requireActivity().findViewById<TextView>(R.id.voc_subtitle)
+        var vocHeader = requireActivity().findViewById<ImageView>(R.id.vocabulary_header)
 
         //Filters listeners:
         if (filter == "artist") {
             vocTitle.text = "✏️  Your hard-to-spell artists"
+            vocHeader.setImageResource(R.drawable.bg_artists)
         } else if (filter == "playlist") {
             vocTitle.text = "✏️  Your favourite playlists"
+            vocHeader.setImageResource(R.drawable.bg_playlists)
         } else if (filter == "contact") {
             vocTitle.text = "✏️  Your favourite contacts"
+            vocHeader.setImageResource(R.drawable.bg_contacts)
         }
 
         //SwipeRefreshLayout:
@@ -72,6 +79,7 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         }
 
         //Views:
+        fab = requireActivity().findViewById<ExtendedFloatingActionButton>(R.id.fab)
         textNoData = requireActivity().findViewById(R.id.vocabulary_no_data)
         refreshList = requireActivity().findViewById(R.id.vocabulary_list)
         refreshList!!.layoutManager = LinearLayoutManager(requireActivity())
@@ -96,13 +104,27 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         }
 
         //FAB:
-        var fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
         if (!spotifyLoggedIn) {
-            fab.visibility = View.GONE
+            fab!!.visibility = View.GONE
         }
-        fab.setOnClickListener { view ->
+        fab!!.setOnClickListener { view ->
             showEditDialog("")
         }
+        refreshList!!.addOnScrollListener(object: RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                var initPosY = fab!!.scrollY.toFloat()
+                if (recyclerView.scrollState == RecyclerView.SCROLL_STATE_SETTLING) {
+                    if (dy > 0) {
+                        fab!!.hide()
+                        fab!!.animate().translationYBy(1F)
+                    } else if (dy < 0) {
+                        fab!!.show()
+                        fab!!.animate().translationY(0F)
+                    }
+                }
+            }
+        })
     }
 
     override fun onDestroy() {
@@ -115,6 +137,8 @@ class VocabularyFragment : Fragment(R.layout.fragment_vocabulary) {
         //Load updated data:
         vocItems = utils.getVocabulary(filter=filter)
         listItems = vocItems.keySet().toList()
+        fab!!.show()
+        fab!!.animate().translationY(0F)
         if (listItems.size == 1) {
             vocSubtitle!!.text = "1 ${filter}"
         } else {

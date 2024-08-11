@@ -60,7 +60,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="15dp"
                 android:text="📝  Vocabulary"
                 android:textColor="@color/light_grey"
                 android:textSize="20dp"
@@ -92,7 +92,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/md_card_artists"
                 android:layout_width="0dp"
-                android:layout_height="100dp"
+                android:layout_height="120dp"
                 android:layout_marginTop="15dp"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="5dp"
@@ -173,7 +173,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/md_card_playlists"
                 android:layout_width="0dp"
-                android:layout_height="100dp"
+                android:layout_height="120dp"
                 android:layout_marginTop="15dp"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="20dp"
@@ -254,7 +254,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/md_card_contacts"
                 android:layout_width="0dp"
-                android:layout_height="100dp"
+                android:layout_height="120dp"
                 android:layout_marginTop="15dp"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="5dp"
@@ -335,7 +335,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/md_card_places"
                 android:layout_width="0dp"
-                android:layout_height="100dp"
+                android:layout_height="120dp"
                 android:layout_marginTop="15dp"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="20dp"
@@ -435,7 +435,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/md_card_parking"
                 android:layout_width="0dp"
-                android:layout_height="100dp"
+                android:layout_height="120dp"
                 android:layout_marginTop="15dp"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="5dp"
@@ -518,7 +518,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/md_card_news"
                 android:layout_width="0dp"
-                android:layout_height="100dp"
+                android:layout_height="120dp"
                 android:layout_marginTop="15dp"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="20dp"

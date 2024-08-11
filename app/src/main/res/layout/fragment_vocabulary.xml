@@ -145,7 +145,7 @@
         android:backgroundTint="@color/colorAccent"
         app:iconTint="@color/light_grey"
         app:icon="@drawable/add_icon"
-        android:text="New"
+        android:text="Add"
         android:textSize="16dp"
         android:textColor="@color/light_grey"
         app:layout_constraintRight_toRightOf="parent"

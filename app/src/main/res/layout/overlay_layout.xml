@@ -61,7 +61,7 @@
         android:id="@+id/record_icon"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:src="@drawable/speak_icon_gray"
+        android:src="@drawable/djames"
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintLeft_toLeftOf="@+id/rounded_button"
         app:layout_constraintRight_toRightOf="@+id/rounded_button"

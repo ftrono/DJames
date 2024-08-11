@@ -454,7 +454,7 @@ class FloatingViewService : Service() {
 
     fun setClockOpened() {
         overlayButton!!.setBackgroundResource(R.drawable.rounded_button_dark)
-        overlayIcon!!.setImageResource(R.drawable.speak_icon_gray)
+        //overlayIcon!!.setImageResource(R.drawable.speak_icon_gray)
         overlayClockButton!!.visibility = View.INVISIBLE
         overlayClockIcon!!.visibility = View.INVISIBLE
         overlayClockText!!.visibility = View.INVISIBLE
@@ -462,7 +462,7 @@ class FloatingViewService : Service() {
 
     fun setClockClosed() {
         overlayButton!!.setBackgroundResource(R.drawable.rounded_button_ready)
-        overlayIcon!!.setImageResource(R.drawable.speak_icon)
+        //overlayIcon!!.setImageResource(R.drawable.speak_icon)
         overlayClockButton!!.visibility = View.VISIBLE
         overlayClockIcon!!.visibility = View.VISIBLE
         overlayClockText!!.visibility = View.VISIBLE
@@ -507,10 +507,10 @@ class FloatingViewService : Service() {
                         Thread.sleep(1000)   //default: 2000
                         if (clock_active) {
                             overlayButton!!.setBackgroundResource(R.drawable.rounded_button_dark)
-                            overlayIcon!!.setImageResource(R.drawable.speak_icon_gray)
+                            overlayIcon!!.setImageResource(R.drawable.djames)
                         } else {
                             overlayButton!!.setBackgroundResource(R.drawable.rounded_button_ready)
-                            overlayIcon!!.setImageResource(R.drawable.speak_icon)
+                            overlayIcon!!.setImageResource(R.drawable.djames)
                         }
                     }
                 } catch (e: Exception) {
@@ -525,7 +525,7 @@ class FloatingViewService : Service() {
                     //Set overlay BUSY color:
                     if (screenOn && overlayButton != null) {
                         overlayButton!!.setBackgroundResource(R.drawable.rounded_button_busy)
-                        overlayIcon!!.setImageResource(R.drawable.speak_icon)
+                        //overlayIcon!!.setImageResource(R.drawable.speak_icon)
                     }
                 } catch (e: Exception) {
                     Log.w(TAG, "OVERLAY: ACTION_OVERLAY_BUSY: resources not available.")

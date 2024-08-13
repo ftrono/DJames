@@ -25,14 +25,5 @@ class GuideViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     var guide_info: TextView = itemView.findViewById(R.id.guide_info)
 
     @JvmField
-    var guide_text_1_intro: TextView = itemView.findViewById(R.id.guide_text_1_intro)
-
-    @JvmField
-    var guide_text_1: TextView = itemView.findViewById(R.id.guide_text_1)
-
-    @JvmField
-    var guide_text_2_intro: TextView = itemView.findViewById(R.id.guide_text_2_intro)
-
-    @JvmField
-    var guide_text_2: TextView = itemView.findViewById(R.id.guide_text_2)
+    var guide_text: TextView = itemView.findViewById(R.id.guide_text)
 }

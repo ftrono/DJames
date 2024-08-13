@@ -37,10 +37,7 @@ class GuideAdapter(
             holder.guide_icon.visibility = View.GONE
             holder.guide_info.visibility = View.GONE
             holder.guide_intro.visibility = View.GONE
-            holder.guide_text_1_intro.visibility = View.GONE
-            holder.guide_text_1.visibility = View.GONE
-            holder.guide_text_2_intro.visibility = View.GONE
-            holder.guide_text_2.visibility = View.GONE
+            holder.guide_text.visibility = View.GONE
             holder.guide_header.updateLayoutParams<ConstraintLayout.LayoutParams> {
                 bottomToTop = ConstraintLayout.LayoutParams.UNSET   //clear
                 bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
@@ -56,26 +53,15 @@ class GuideAdapter(
             holder.guide_icon.visibility = View.VISIBLE
             holder.guide_info.visibility = View.VISIBLE
             holder.guide_intro.visibility = View.VISIBLE
-            holder.guide_text_1_intro.visibility = View.VISIBLE
-            holder.guide_text_1.visibility = View.VISIBLE
+            holder.guide_text.visibility = View.VISIBLE
             holder.guide_intro.updateLayoutParams<ConstraintLayout.LayoutParams> {
                 topToBottom = ConstraintLayout.LayoutParams.UNSET   //clear
                 topToTop = ConstraintLayout.LayoutParams.PARENT_ID
             }
             //Popola:
             holder.guide_intro.text = item.get("intro").asString
-            holder.guide_text_1_intro.text = item.get("sentence_1_intro").asString
-            holder.guide_text_1.text = item.get("sentence_1").asString
-            var text_2 = item.get("sentence_2").asString
-            if (text_2 == "") {
-                holder.guide_text_2_intro.visibility = View.GONE
-                holder.guide_text_2.visibility = View.GONE
-            } else {
-                holder.guide_text_2_intro.visibility = View.VISIBLE
-                holder.guide_text_2.visibility = View.VISIBLE
-                holder.guide_text_2_intro.text = item.get("sentence_2_intro").asString
-                holder.guide_text_2.text = text_2
-            }
+            holder.guide_text.text = item.get("sentence").asString
+
             //Listener:
             holder.guide_card.setOnClickListener { view ->
                 //Send broadcast:

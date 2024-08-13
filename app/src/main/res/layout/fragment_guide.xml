@@ -18,7 +18,7 @@
     <View
         android:id="@+id/guide_header_box"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="75dp"
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -50,7 +50,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:layout_marginLeft="53dp"
-        android:text="What you can ask"
+        android:text="What you can ask:"
         android:textColor="@color/mid_grey"
         android:textSize="14dp"
         android:textAlignment="center"

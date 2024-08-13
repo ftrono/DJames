@@ -496,17 +496,11 @@ class Utilities {
                 for (sentRaw in sents) {
                     sentJson = sentRaw.asJsonObject
                     //For messages, take only the JSON with the default messageLanguage:
-                    if (category != "messages" || sentJson.get("language").asString == supportedLanguageCodes[prefs.messageLanguage.toInt()]){
-                        obj = JsonObject()
-                        obj.addProperty("intro", sentJson.get("intro").asString)
-                        obj.addProperty("sentence_1_intro", sentJson.get("sentence_1_intro").asString)
-                        obj.addProperty("sentence_1", sentJson.get("sentence_1").asString)
-                        obj.addProperty("sentence_2_intro", sentJson.get("sentence_2_intro").asString)
-                        obj.addProperty("sentence_2", sentJson.get("sentence_2").asString)
-                        obj.addProperty("description", sentJson.get("description").asString)
-                        obj.add("alternatives", sentJson.get("alternatives").asJsonArray)
-                        guideArray.add(obj)
-                    }
+                    obj = JsonObject()
+                    obj.addProperty("intro", sentJson.get("intro").asString)
+                    obj.addProperty("sentence", sentJson.get("sentence").asString)
+                    obj.addProperty("description", sentJson.get("description").asString)
+                    guideArray.add(obj)
                 }
             }
         } catch (e: Exception) {

@@ -526,6 +526,8 @@ class FloatingViewService : Service() {
                     if (screenOn && overlayButton != null) {
                         overlayButton!!.setBackgroundResource(R.drawable.rounded_button_busy)
                         //overlayIcon!!.setImageResource(R.drawable.speak_icon)
+                        //TOAST:
+                        Toast.makeText(context, "Speak now!", Toast.LENGTH_LONG).show()
                     }
                 } catch (e: Exception) {
                     Log.w(TAG, "OVERLAY: ACTION_OVERLAY_BUSY: resources not available.")

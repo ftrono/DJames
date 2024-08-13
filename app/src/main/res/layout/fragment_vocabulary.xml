@@ -85,7 +85,7 @@
         android:layout_height="35dp"
         android:paddingRight="8dp"
         android:layout_marginLeft="20dp"
-        android:layout_marginRight="3dp"
+        android:layout_marginRight="10dp"
         android:src="@drawable/delete_icon"
         android:translationZ="100dp"
         app:layout_constraintHorizontal_bias="1.0"

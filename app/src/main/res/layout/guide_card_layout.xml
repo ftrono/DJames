@@ -47,7 +47,7 @@
             app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintVertical_bias="0.0"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toLeftOf="@+id/guide_text_1"
+            app:layout_constraintRight_toLeftOf="@+id/guide_text"
             app:layout_constraintTop_toTopOf="@id/guide_intro"
             app:layout_constraintBottom_toTopOf="@+id/guide_info" />
 
@@ -56,7 +56,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="INFO"
-            android:textColor="@color/mid_grey"
+            android:textColor="@color/light_grey"
             android:textSize="10dp"
             android:visibility="visible"
             app:layout_constraintVertical_bias="0.0"
@@ -77,77 +77,26 @@
             android:text="Play a song from its album:"
             android:textColor="@color/colorAccentLight"
             android:textSize="14dp"
-            android:textStyle="bold"
             android:visibility="visible"
             app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintLeft_toRightOf="@id/guide_icon"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@id/guide_header"
-            app:layout_constraintBottom_toTopOf="@id/guide_text_1_intro"/>
+            app:layout_constraintBottom_toTopOf="@id/guide_text"/>
 
         <TextView
-            android:id="@+id/guide_text_1_intro"
+            android:id="@+id/guide_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:paddingLeft="12dp"
-            android:layout_marginBottom="6dp"
-            android:text="English songs:"
-            android:textColor="@color/mid_grey"
-            android:textSize="11dp"
-            android:visibility="visible"
-            app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintLeft_toRightOf="@id/guide_icon"
+            android:text="&quot;PLAY song name BY artist name&quot;"
+            android:textColor="@color/light_grey"
+            android:textSize="16dp"
+            android:textStyle="italic"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintLeft_toRightOf="@+id/guide_icon"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@id/guide_intro"
-            app:layout_constraintBottom_toTopOf="@id/guide_text_1"/>
-
-        <TextView
-            android:id="@+id/guide_text_1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:paddingLeft="12dp"
-            android:layout_marginBottom="2dp"
-            android:text="🇬🇧  - &quot;PLAY song name BY artist name&quot;"
-            android:textColor="@color/light_grey"
-            android:textSize="14dp"
-            android:textStyle="italic"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintLeft_toRightOf="@+id/guide_icon"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/guide_text_1_intro"
-            app:layout_constraintBottom_toTopOf="@+id/guide_text_2_intro"
-            app:layout_constraintVertical_chainStyle="packed" />
-
-        <TextView
-            android:id="@+id/guide_text_2_intro"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:paddingLeft="12dp"
-            android:layout_marginTop="6dp"
-            android:layout_marginBottom="6dp"
-            android:text="Italian songs:"
-            android:textColor="@color/mid_grey"
-            android:textSize="11dp"
-            android:visibility="visible"
-            app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintLeft_toRightOf="@id/guide_icon"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/guide_text_1"
-            app:layout_constraintBottom_toTopOf="@id/guide_text_2"/>
-
-        <TextView
-            android:id="@+id/guide_text_2"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:paddingLeft="12dp"
-            android:text="🇮🇹  - &quot;in italiano, PLAY nome canzone BY nome artista&quot;"
-            android:textColor="@color/light_grey"
-            android:textSize="14dp"
-            android:textStyle="italic"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintLeft_toRightOf="@+id/guide_icon"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/guide_text_2_intro"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintVertical_chainStyle="packed" />
 

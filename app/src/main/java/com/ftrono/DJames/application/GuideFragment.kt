@@ -10,7 +10,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -101,74 +100,13 @@ class GuideFragment : Fragment(R.layout.fragment_guide) {
 
         //Views:
         altsVisible = false
-        var popup_text_1 = subView.findViewById<TextView>(R.id.guide_popup_text_1)
-        var popup_text_2 = subView.findViewById<TextView>(R.id.guide_popup_text_2)
+        var popup_sentence = subView.findViewById<TextView>(R.id.guide_popup_sentence)
         var popup_descr = subView.findViewById<TextView>(R.id.guide_popup_descr)
-        var popup_alts_intro = subView.findViewById<TextView>(R.id.guide_popup_alts_intro)
-        var popup_arrow = subView.findViewById<ImageView>(R.id.guide_popup_arrow)
-        var popup_alts = subView.findViewById<TextView>(R.id.guide_popup_alts)
-        popup_alts.visibility = View.GONE
 
         //Populate:
         //Main:
-        popup_text_1.text = item.get("sentence_1").asString
+        popup_sentence.text = item.get("sentence").asString
         popup_descr.text = item.get("description").asString
-        //Text_2:
-        var text_2 = item.get("sentence_2").asString
-        if (text_2 == "") {
-            popup_text_2.visibility = View.GONE
-        } else {
-            popup_text_2.visibility = View.VISIBLE
-            popup_text_2.text = "\n$text_2"
-        }
-        //Alts:
-        var cur = ""
-        var alts = ""
-        for (curRaw in item.get("alternatives").asJsonArray) {
-            cur = curRaw.asString
-            if (alts == "") {
-                alts = "$cur\n"
-            } else {
-                alts = "$alts\n$cur\n"
-            }
-
-        }
-        popup_alts.text = alts
-
-        //Arrow listeners:
-        popup_arrow.setOnClickListener(View.OnClickListener {
-            if (!altsVisible) {
-                altsVisible = true
-                popup_alts.visibility = View.VISIBLE
-                popup_arrow.setImageResource(R.drawable.icon_reduce)
-            } else {
-                altsVisible = false
-                popup_alts.visibility = View.GONE
-                popup_arrow.setImageResource(R.drawable.icon_expand)
-            }
-        })
-        popup_alts_intro.setOnClickListener(View.OnClickListener {
-            if (!altsVisible) {
-                altsVisible = true
-                popup_alts.visibility = View.VISIBLE
-                popup_arrow.setImageResource(R.drawable.icon_reduce)
-            } else {
-                altsVisible = false
-                popup_alts.visibility = View.GONE
-                popup_arrow.setImageResource(R.drawable.icon_expand)
-            }
-        })
-        popup_alts.setOnClickListener(View.OnClickListener {
-            if (!altsVisible) {
-                altsVisible = true
-                popup_alts.visibility = View.VISIBLE
-                popup_arrow.setImageResource(R.drawable.icon_reduce)
-            } else {
-                altsVisible = false
-                popup_alts.visibility = View.GONE
-                popup_arrow.setImageResource(R.drawable.icon_expand)
-            }
-        })
 
         //Build:
         alertDialogBuilder.setPositiveButton("Ok", null)

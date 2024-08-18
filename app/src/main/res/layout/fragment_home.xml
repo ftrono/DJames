@@ -125,7 +125,7 @@
             android:id="@+id/DJames_face"
             android:layout_width="150dp"
             android:layout_height="150dp"
-            android:src="@drawable/djames_logo"
+            android:src="@drawable/djames"
             android:layout_marginTop="20dp"
             app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintVertical_chainStyle="packed"

@@ -33,6 +33,8 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.math.abs
 import kotlin.math.round
 
@@ -55,11 +57,15 @@ class FloatingViewService : Service() {
     //Receiver:
     var eventReceiver = EventReceiver()
 
+    //Mini Clock:
+    private var now: LocalDateTime? = null
+    private val miniClockFormat = DateTimeFormatter.ofPattern("HH:mm")
+
     //Overlay resources:
     private var overlayButton: View? = null   //eventReceiver(clock opened, clock closed), VoiceQueryService(setOverlay ready/busy/processing)
     private var overlayIcon: ImageView? = null   //eventReceiver(clock opened, clock closed), VoiceQueryService(setOverlay ready/busy/processing)
     private var overlayClockButton: View? = null   //eventReceiver(clock opened, clock closed)
-    private var overlayClockIcon: ImageView? = null   //eventReceiver(clock opened, clock closed)
+    private var overlayClockIntro: TextView? = null   //eventReceiver(clock opened, clock closed)
     private var overlayClockText: TextView? = null   //eventReceiver(clock opened, clock closed)
 
     //Disable volume button press for the first 3 seconds:
@@ -121,6 +127,7 @@ class FloatingViewService : Service() {
 
             //Start personal Receiver:
             val actFilter = IntentFilter()
+            actFilter.addAction(ACTION_TIME_TICK)
             actFilter.addAction(ACTION_CLOCK_OPENED)
             actFilter.addAction(ACTION_CLOCK_CLOSED)
             actFilter.addAction(ACTION_OVERLAY_READY)
@@ -196,7 +203,7 @@ class FloatingViewService : Service() {
 
             //Set the overlay Clock button
             overlayClockButton = mFloatingView!!.findViewById<View>(R.id.clock_button)
-            overlayClockIcon = mFloatingView!!.findViewById<ImageView>(R.id.clock_icon)
+            overlayClockIntro = mFloatingView!!.findViewById<TextView>(R.id.clock_intro)
             overlayClockText = mFloatingView!!.findViewById<TextView>(R.id.clock_desc)
 
             overlayClockButton!!.setOnClickListener {
@@ -227,7 +234,7 @@ class FloatingViewService : Service() {
 
             if (clock_active) {
                 overlayClockButton!!.visibility = View.INVISIBLE
-                overlayClockIcon!!.visibility = View.INVISIBLE
+                overlayClockIntro!!.visibility = View.INVISIBLE
                 overlayClockText!!.visibility = View.INVISIBLE
             }
 
@@ -304,6 +311,10 @@ class FloatingViewService : Service() {
                         return false
                     }
                 })
+
+            //Set current time:
+            updateMiniClock()
+
         } catch (e: Exception) {
             Log.w(TAG, "Exception: ", e)
             //Send broadcast:
@@ -395,7 +406,7 @@ class FloatingViewService : Service() {
         overlayButton = null
         overlayIcon = null
         overlayClockButton = null
-        overlayClockIcon = null
+        overlayClockIntro = null
         overlayClockText = null
         vol_initialized = false
         //If no activities active -> CLOSE APP:
@@ -456,7 +467,7 @@ class FloatingViewService : Service() {
         overlayButton!!.setBackgroundResource(R.drawable.rounded_button_dark)
         //overlayIcon!!.setImageResource(R.drawable.speak_icon_gray)
         overlayClockButton!!.visibility = View.INVISIBLE
-        overlayClockIcon!!.visibility = View.INVISIBLE
+        overlayClockIntro!!.visibility = View.INVISIBLE
         overlayClockText!!.visibility = View.INVISIBLE
     }
 
@@ -464,8 +475,13 @@ class FloatingViewService : Service() {
         overlayButton!!.setBackgroundResource(R.drawable.rounded_button_ready)
         //overlayIcon!!.setImageResource(R.drawable.speak_icon)
         overlayClockButton!!.visibility = View.VISIBLE
-        overlayClockIcon!!.visibility = View.VISIBLE
+        overlayClockIntro!!.visibility = View.VISIBLE
         overlayClockText!!.visibility = View.VISIBLE
+    }
+
+    fun updateMiniClock() {
+        now = LocalDateTime.now()
+        overlayClockText!!.text = now!!.format(miniClockFormat)
     }
 
 
@@ -474,8 +490,13 @@ class FloatingViewService : Service() {
 
         override fun onReceive(context: Context?, intent: Intent?) {
 
+            //Update clock (every minute):
+            if (intent!!.action == ACTION_TIME_TICK) {
+                updateMiniClock()
+            }
+
             //When Fake Lock Screen is opened:
-            if (intent!!.action == ACTION_CLOCK_OPENED) {
+            if (intent.action == ACTION_CLOCK_OPENED) {
                 Log.d(TAG, "OVERLAY: ACTION_CLOCK_OPENED.")
                 if (!voiceQueryOn) {
                     try {

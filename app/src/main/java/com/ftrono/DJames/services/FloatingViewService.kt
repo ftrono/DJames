@@ -459,7 +459,6 @@ class FloatingViewService : Service() {
         } else {
             setClockClosed()
         }
-
         return START_NOT_STICKY
     }
 
@@ -477,6 +476,8 @@ class FloatingViewService : Service() {
         overlayClockButton!!.visibility = View.VISIBLE
         overlayClockIntro!!.visibility = View.VISIBLE
         overlayClockText!!.visibility = View.VISIBLE
+        //Set current time:
+        updateMiniClock()
     }
 
     fun updateMiniClock() {

@@ -18,7 +18,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.0"
+val appVersion = "2.01"
 
 //Preferences:
 val silenceInitPatience = 3

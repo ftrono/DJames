@@ -257,6 +257,7 @@ class SpotifySearch() {
             //TODO: always update n_metrics below!
             if (artistName == "") {
                 var curToMatch = scoreJson.get("name").asString + " " + scoreJson.get("artists").asString
+                curToMatch = curToMatch.lowercase()
                 nameSet = FuzzySearch.tokenSetRatio(curToMatch, matchName)
                 namePartial = FuzzySearch.partialRatio(curToMatch, matchName)
                 nameFull = FuzzySearch.ratio(curToMatch, matchName)
@@ -264,12 +265,14 @@ class SpotifySearch() {
                 sumScore = listOf<Int>(nameSet, namePartial, nameFull).sum()
                 score = listOf<Int>(nameSet, namePartial, nameFull).average().roundToInt()
             } else {
-                nameSet = FuzzySearch.tokenSetRatio(scoreJson.get("name").asString, matchName)
-                namePartial = FuzzySearch.partialRatio(scoreJson.get("name").asString, matchName)
-                nameFull = FuzzySearch.ratio(scoreJson.get("name").asString, matchName)
-                artistSet = FuzzySearch.tokenSetRatio(scoreJson.get("artists").asString, artistName)
-                artistPartial = FuzzySearch.partialRatio(scoreJson.get("artists").asString, artistName)
-                // artistFull = FuzzySearch.ratio(scoreJson.get("artists").asString, artistName)
+                var temp_name = scoreJson.get("name").asString.lowercase()
+                var temp_artists = scoreJson.get("artists").asString.lowercase()
+                nameSet = FuzzySearch.tokenSetRatio(temp_name, matchName)
+                namePartial = FuzzySearch.partialRatio(temp_name, matchName)
+                nameFull = FuzzySearch.ratio(temp_name, matchName)
+                artistSet = FuzzySearch.tokenSetRatio(temp_artists, artistName)
+                artistPartial = FuzzySearch.partialRatio(temp_artists, artistName)
+                // artistFull = FuzzySearch.ratio(temp_artists, artistName)
                 sumScore = listOf<Int>(nameSet, namePartial, nameFull, artistSet, artistPartial).sum()
                 score = listOf<Int>(nameSet, namePartial, nameFull, artistSet, artistPartial).average().roundToInt()
             }

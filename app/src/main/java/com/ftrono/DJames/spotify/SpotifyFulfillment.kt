@@ -271,8 +271,8 @@ class SpotifyFulfillment (private var context: Context) {
             }
 
             //Read TTS:
-            var itemName = playInfo.get("match_name").asString
-            var artist = playInfo.get("artist_name").asString
+            var itemName = playInfo.get("match_name").asString.lowercase()
+            var artist = playInfo.get("artist_name").asString.lowercase()
             //TODO: eng only!
             var ttsToRead = "Playing the $playType $itemName, by $artist."
             var defaultLangCode = supportedLanguageCodes[prefs.queryLanguage.toInt()]
@@ -414,8 +414,8 @@ class SpotifyFulfillment (private var context: Context) {
             if (contextConfirmed != "") {
                 ttsToRead = "Playing your playlist ${contextConfirmed}!"
             } else {
-                var playlistName = playInfo.get("match_name").asString
-                var owner = playInfo.get("owner").asString
+                var playlistName = playInfo.get("match_name").asString.lowercase()
+                var owner = playInfo.get("owner").asString.lowercase()
                 ttsToRead = "Playing the playlist ${playlistName}, by ${owner}!"
             }
             var defaultLangCode = supportedLanguageCodes[prefs.queryLanguage.toInt()]

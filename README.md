@@ -12,6 +12,8 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
+**Version 2.01 (2024-09-17)** - Added clock to overlay, usability fixes.
+
 **Version 2.0 (2024-08-10)** - New NLP structure & engine, new modular code structure, first repo cleaning & streamlining. New Spotify Login/Logout management. UI refresh.
 
 **Version 1.16 (2024-08-04)** - Init preparation for v2: new "MyDJames" screen.

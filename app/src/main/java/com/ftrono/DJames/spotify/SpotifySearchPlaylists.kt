@@ -125,9 +125,10 @@ class SpotifySearchPlaylists() {
             //Artists name:
             var owner = currItem.get("owner").asJsonObject.get("id").asString   //if by Spotify, id is "spotify"
             //calculate similarity:
-            var nameSet = FuzzySearch.tokenSetRatio(scoreJson.get("name").asString, matchName)
-            var namePartial = FuzzySearch.partialRatio(scoreJson.get("name").asString, matchName)
-            var nameFull = FuzzySearch.ratio(scoreJson.get("name").asString, matchName)
+            var temp_name = scoreJson.get("name").asString.lowercase()
+            var nameSet = FuzzySearch.tokenSetRatio(temp_name, matchName)
+            var namePartial = FuzzySearch.partialRatio(temp_name, matchName)
+            var nameFull = FuzzySearch.ratio(temp_name, matchName)
             scoreJson.addProperty("nameSetSimilarity", nameSet)
             scoreJson.addProperty("namePartialSimilarity", namePartial)
             scoreJson.addProperty("nameFullSimilarity", nameFull)

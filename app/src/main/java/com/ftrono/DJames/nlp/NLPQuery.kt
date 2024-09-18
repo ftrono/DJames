@@ -18,7 +18,9 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.gson.JsonArray
 import com.google.protobuf.ByteString
+import java.io.BufferedReader
 import java.io.File
+import java.io.InputStreamReader
 
 
 class NLPQuery(context: Context) {
@@ -28,6 +30,11 @@ class NLPQuery(context: Context) {
 
     init {
         try {
+            //Get Google Project ID:
+            val nlpCredReader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.nlp_credentials)))
+            val credJson = JsonParser.parseReader(nlpCredReader).asJsonObject
+            val dialogflow_id = credJson.get("project_id").asString
+            //Build SessionsClient:
             val stream = context.resources.openRawResource(R.raw.nlp_credentials)
             val credentials = GoogleCredentials.fromStream(stream)
             val settingsBuilder = SessionsSettings.newBuilder()

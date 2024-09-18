@@ -210,7 +210,7 @@ class SpotifyFulfillment (private var context: Context) {
 
         //GET SPOTIFY PLAY INFO:
         //Search tracks + album:
-        var search = SpotifySearch()
+        var search = SpotifySearch(context)
         var playInfo = search.searchTrackOrAlbum(searchData=extractorInfo)
 
         //A) EMPTY QUERY RESULT:
@@ -373,7 +373,7 @@ class SpotifyFulfillment (private var context: Context) {
             //Search in Spotify:
             //PLAY -> Playlist not found: search in Spotify!
             //SEARCH PLAYLIST:
-            var search = SpotifySearchPlaylists()
+            var search = SpotifySearchPlaylists(context)
             playInfo = search.searchPlaylists(searchData = extractorInfo, bySpotify = bySpotify)
 
             if (!playInfo.isEmpty) {

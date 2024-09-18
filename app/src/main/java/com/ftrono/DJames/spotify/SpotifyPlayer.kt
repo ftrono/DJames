@@ -212,8 +212,8 @@ class SpotifyPlayer (private val context: Context) {
                         if (status == 401) {
                             //Calling Refresh:
                             Log.d(TAG, "Refreshing token...")
-                            var query = SpotifyQuery()
-                            query.refreshAuth()
+                            var query = SpotifyQuery(context)
+                            query.refreshAuth(context)
 
                             //SECOND PUT REQUEST:
                             headers = Headers.Builder()

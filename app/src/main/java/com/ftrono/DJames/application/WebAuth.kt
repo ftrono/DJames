@@ -12,7 +12,10 @@ import android.webkit.WebSettings
 import android.webkit.CookieManager
 import android.widget.Toast
 import com.ftrono.DJames.utilities.Utilities
+import com.google.gson.JsonParser
 import im.delight.android.webview.AdvancedWebView
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 
 class WebAuth : AppCompatActivity() {
@@ -30,6 +33,11 @@ class WebAuth : AppCompatActivity() {
         webView = findViewById<View>(R.id.webview) as AdvancedWebView
         webView!!.settings.javaScriptEnabled = true
         webView!!.settings.setCacheMode(WebSettings.LOAD_NO_CACHE)
+
+        //GET SPOTIFY DEV CREDENTIALS:
+        val reader = BufferedReader(InputStreamReader(applicationContext.resources.openRawResource(R.raw.spotify_credentials)))
+        val credJson = JsonParser.parseReader(reader).asJsonObject
+        val clientId = credJson.get("spotify_client").asString
 
         //Spotify Scopes:
         val scopes = arrayOf(

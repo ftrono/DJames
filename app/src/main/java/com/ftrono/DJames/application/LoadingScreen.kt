@@ -14,6 +14,8 @@ import com.ftrono.DJames.utilities.Utilities
 import kotlinx.coroutines.launch
 import com.google.gson.JsonParser
 import okhttp3.FormBody
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 
 class LoadingScreen: AppCompatActivity() {
@@ -26,7 +28,13 @@ class LoadingScreen: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.loading_screen)
 
-        //GET TOKENS
+        //GET SPOTIFY DEV CREDENTIALS:
+        val reader = BufferedReader(InputStreamReader(applicationContext.resources.openRawResource(R.raw.spotify_credentials)))
+        val credJson = JsonParser.parseReader(reader).asJsonObject
+        val clientId = credJson.get("spotify_client").asString
+        val clientSct = credJson.get("spotify_sct").asString
+
+        //GET TOKENS:
         var url = "https://accounts.spotify.com/api/token"
         val authStr = "${clientId}:${clientSct}"
         val encodedStr: String = Base64.getEncoder().encodeToString(authStr.toByteArray())

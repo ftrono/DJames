@@ -14,3 +14,4 @@
 .cxx
 local.properties
 app/src/main/res/raw/nlp_credentials.json
+app/src/main/res/raw/spotify_credentials.json

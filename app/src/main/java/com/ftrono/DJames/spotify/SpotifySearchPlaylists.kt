@@ -1,5 +1,6 @@
 package com.ftrono.DJames.spotify
 
+import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.deltaSimilarity
 import com.ftrono.DJames.application.ext_format
@@ -12,9 +13,9 @@ import me.xdrop.fuzzywuzzy.FuzzySearch
 import kotlin.math.roundToInt
 
 
-class SpotifySearchPlaylists() {
+class SpotifySearchPlaylists(private val context: Context) {
     private val TAG = SpotifySearchPlaylists::class.java.simpleName
-    private var query = SpotifyQuery()
+    private var query = SpotifyQuery(context)
 
     //SEARCH TRACKS OR ALBUMS:
     fun searchPlaylists(searchData: JsonObject, bySpotify: Boolean = false): JsonObject {

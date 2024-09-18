@@ -1,9 +1,9 @@
 package com.ftrono.DJames.spotify
 
+import android.content.Context
 import android.util.Log
+import com.ftrono.DJames.R
 import com.ftrono.DJames.application.client
-import com.ftrono.DJames.application.clientId
-import com.ftrono.DJames.application.clientSct
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonArray
@@ -14,16 +14,24 @@ import okhttp3.FormBody
 import okhttp3.Headers
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import java.util.Base64
 
 
-class SpotifyQuery() {
+class SpotifyQuery(private val context: Context) {
     private val TAG = SpotifyQuery::class.java.simpleName
     private var utils = Utilities()
 
     //REFRESHER:
-    fun refreshAuth() {
-        //GET TOKENS
+    fun refreshAuth(context: Context) {
+        //GET SPOTIFY DEV CREDENTIALS:
+        val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.spotify_credentials)))
+        val credJson = JsonParser.parseReader(reader).asJsonObject
+        val clientId = credJson.get("spotify_client").asString
+        val clientSct = credJson.get("spotify_sct").asString
+
+        //GET TOKENS:
         var url = "https://accounts.spotify.com/api/token"
         val authStr = "$clientId:$clientSct"
         val encodedStr: String = Base64.getEncoder().encodeToString(authStr.toByteArray())
@@ -162,7 +170,7 @@ class SpotifyQuery() {
                     if (status == 401) {
                         //Calling Refresh:
                         Log.d(TAG, "Refreshing token...")
-                        refreshAuth()
+                        refreshAuth(context)
 
                         //SECOND GET REQUEST:
                         var jsonHeads2 = jsonHeads
@@ -237,7 +245,7 @@ class SpotifyQuery() {
                     if (status == 401) {
                         //Calling Refresh:
                         Log.d(TAG, "Refreshing token...")
-                        refreshAuth()
+                        refreshAuth(context)
 
                         //SECOND GET REQUEST:
                         var jsonHeads2 = jsonHeads

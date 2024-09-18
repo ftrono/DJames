@@ -71,8 +71,7 @@ var artistName: String = ""
 var contextName: String = ""
 
 //HTTP:
-//DialogFlow & Spotify formats:
-val dialogflow_id = "djames-nlp"
+//Spotify formats:
 val uri_format = "spotify:track:"   ///spotify:<type>:<id>
 val ext_format = "http://open.spotify.com/"
 val playlistUrlIntro = "https://open.spotify.com/playlist/"
@@ -80,8 +79,6 @@ val likedSongsUri = "spotify:user:replaceUserId:collection"
 
 //Spotify:
 var grantToken = ""
-val clientId = "f525169dff664aa192ab51d2bbeb9767"
-val clientSct = "c7296c5536b8409297760a7eafa0448a"
 val redirectUriOrig ="http://localhost:8888/callback"
 val redirectUri = URLEncoder.encode(redirectUriOrig, "UTF-8")
 val client = OkHttpClient.Builder()

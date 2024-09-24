@@ -1,5 +1,5 @@
 # 🎧 DJames
-Repo for my *DJames* Android App & vocal assistant. 🤖 *NOTE: the app is currently intended for private use only, by a closed group of testers (close friends).*
+Repo for my *DJames* Android App & vocal assistant. 🤖 *NOTE: the app is currently intended to be used only by a closed group of authorized testers (close friends).*
 
 DJames is a vocal Spotify remote & smart driving assistant for Android. It makes use of *Google Dialogflow* for Speech-to-Text and basic NLP, *Spotify's Web API* and custom NLP extraction and matching algorithms. 
 
@@ -24,7 +24,7 @@ DJames is supported by **Android >= 10**.
 
 **Version 1.15 (2024-08-03)** - FuzzySearch & matching improvements. Minor usability improvements. Refactor repo.
 
-**Version 1.14 (2024-07-22)** - Add support for: album search & play, artist play ("This is <artist name>), playlist play outside vocabulary (all English only). Add TTS read (English only). Minor usability improvements.
+**Version 1.14 (2024-07-22)** - Add support for: album search & play, artist play ("This is <artist name>"), playlist play outside vocabulary (all English only). Add TTS read (English only). Minor usability improvements.
 
 **Version 1.13 (2024-07-14)** - Add support for directly playing liked songs & playlists from vocabulary (english only).
 

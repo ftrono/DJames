@@ -2,6 +2,7 @@ package com.ftrono.DJames.screen
 
 import android.content.Context
 import android.telephony.PhoneNumberUtils
+import android.util.Log
 import android.util.Patterns
 import android.webkit.URLUtil
 import android.widget.Toast
@@ -69,7 +70,7 @@ import com.google.gson.JsonParser
 @Composable
 fun DialogEditPreview() {
     val navController = rememberNavController()
-    VocabularyScreen(navController, "contacts", MyDJamesItem.Playlists, editPreview=true, preview=true)
+    VocabularyScreen(navController, "contact", MyDJamesItem.Playlists, editPreview=true, preview=true)
 }
 
 @Composable
@@ -123,7 +124,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
 
     //Recover info:
     if (key != "") {
-        val prevDetails = JsonParser.parseString(vocabulary.value).asJsonObject.get(key).asJsonObject
+        val prevDetails = JsonParser.parseString(vocabulary.value!!).asJsonObject.get(key).asJsonObject
         if (filter == "playlist") {
             initPlayUrl = prevDetails.get("playlist_URL").asString
         } else if (filter == "contact") {
@@ -252,7 +253,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                     },
                 )
 
-                if (filter == "playlists") {
+                if (filter == "playlist") {
                     //PLAYLIST: TEXT FIELD 2:
                     Text(
                         text = "Playlist URL",
@@ -296,7 +297,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                         },
                     )
 
-                } else if (filter == "contacts") {
+                } else if (filter == "contact") {
                     //CONTACTS: TEXT FIELD 2:
                     Text(
                         text = "Preferred messaging language",

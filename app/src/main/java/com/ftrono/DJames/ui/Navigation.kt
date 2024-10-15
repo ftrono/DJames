@@ -170,7 +170,7 @@ fun Navigation(navController: NavHostController) {
             curNavId = 2
             innerNavOpen.postValue(true)
             settingsOpen.postValue(false)
-            filter.postValue("artists")
+            filter.postValue("artist")
             VocabularyScreen(
                 navController = navController,
                 filter = filterState!!,
@@ -194,7 +194,7 @@ fun Navigation(navController: NavHostController) {
             curNavId = 2
             innerNavOpen.postValue(true)
             settingsOpen.postValue(false)
-            filter.postValue("playlists")
+            filter.postValue("playlist")
             VocabularyScreen(
                 navController = navController,
                 filter = filterState!!,
@@ -218,7 +218,7 @@ fun Navigation(navController: NavHostController) {
             curNavId = 2
             innerNavOpen.postValue(true)
             settingsOpen.postValue(false)
-            filter.postValue("contacts")
+            filter.postValue("contact")
             VocabularyScreen(
                 navController = navController,
                 filter = filterState!!,

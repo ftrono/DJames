@@ -1,12 +1,12 @@
 {
-  "artists": {
+  "artist": {
     "andreas moe": {},
     "deaf havana": {},
     "evanescence": {},
     "linkin park": {},
     "the script": {}
   },
-  "playlists": {
+  "playlist": {
     "80 ricky classics": {
       "playlist_URL": "https://open.spotify.com/playlist/6kLXlHdx6Mi0ZCz13zJIAm"
     },
@@ -14,7 +14,7 @@
       "playlist_URL": "https://open.spotify.com/playlist/7mhf8hSssPLlLfuDvBmhs6"
     }
   },
-  "contacts": {
+  "contact": {
     "mammut": {
       "prefix": "+39",
       "phone": "3321122332",
@@ -31,7 +31,7 @@
       "contact_language": "en"
     }
   },
-  "places": {},
+  "place": {},
   "parking": {},
   "news": {}
 }

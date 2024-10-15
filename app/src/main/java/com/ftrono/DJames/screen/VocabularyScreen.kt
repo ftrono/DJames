@@ -84,7 +84,7 @@ import java.io.InputStreamReader
 @Composable
 fun VocabularyScreenPreview() {
     val navController = rememberNavController()
-    VocabularyScreen(navController, "contacts", MyDJamesItem.Playlists, editPreview=false, preview=true)
+    VocabularyScreen(navController, "contact", MyDJamesItem.Playlists, editPreview=false, preview=true)
 }
 
 @Composable
@@ -93,10 +93,10 @@ fun VocabularyScreen(navController: NavController, filter: String, myDJamesItem:
     val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
 
     var textNoData = ""
-    if (filter == "contacts") {
+    if (filter == "contact") {
         textNoData =
             "Your contacts vocabulary is empty!\n\nLet DJames know your favourite contacts'\nnames and phone numbers by\nwriting them here.\n\n✏️"
-    } else if (filter == "playlists") {
+    } else if (filter == "playlist") {
         textNoData =
             "Your playlists vocabulary is empty!\n\nLet DJames know your playlists by\nwriting their names & links here.\n\n✏️"
     } else {
@@ -227,11 +227,11 @@ fun VocabularyScreen(navController: NavController, filter: String, myDJamesItem:
                             horizontalAlignment = Alignment.Start
                         ) {
                             Text(
-                                text = if (filter == "artists") {
+                                text = if (filter == "artist") {
                                     "Your hard-to-spell artists"
-                                } else if (filter == "playlists") {
+                                } else if (filter == "playlist") {
                                     "Your favourite playlists"
-                                } else if (filter == "contacts") {
+                                } else if (filter == "contact") {
                                     "Your favourite contacts"
                                 } else {
                                     ""
@@ -539,7 +539,7 @@ fun updateVocabulary(mContext: Context, filter: String, preview: Boolean = false
         //Real data:
         val utils = Utilities()
         val vocItems = utils.getVocabulary(filter=filter)
-        //Log.d("Vocabulary", vocItems.toString())
+        Log.d("Vocabulary", vocItems.toString())
         return vocItems.toString()
     }
 }

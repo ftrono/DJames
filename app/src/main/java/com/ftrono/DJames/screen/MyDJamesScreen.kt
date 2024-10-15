@@ -188,7 +188,7 @@ fun DJamesCardsRow(navController: NavController, items: List<MyDJamesItem>) {
                     containerColor = colorResource(id = R.color.dark_grey_background)
                 ),
                 onClick = {
-                    if (item.route in listOf("artists", "playlists", "contacts")) {
+                    if (item.route in listOf("artist", "playlist", "contact")) {
                         navigateTo(navController, item.route, inner=true)
                     } else {
                         Toast.makeText(mContext, "Not ready yet!", Toast.LENGTH_LONG).show()

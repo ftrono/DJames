@@ -54,6 +54,7 @@ import com.ftrono.DJames.application.historySize
 import com.ftrono.DJames.application.logDir
 import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.playThreshold
+import com.ftrono.DJames.application.vocabularySize
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
@@ -370,8 +371,7 @@ fun DialogDeleteHistory(mContext: Context, dialogOnState: MutableState<Boolean>,
                                 Log.d("HistoryScreen", "Deleted ALL logs.")
                                 toastText = "History deleted!"
                             }
-//                            historyLogs = updateHistory(mContext) //Refresh list
-//                            historySize.postValue(historyLogs.size)
+                            historySize.postValue(historySize.value!! - 1)   //Refresh list
                             Toast.makeText(mContext, toastText, Toast.LENGTH_LONG).show()
                         },
                     text = "Yes",

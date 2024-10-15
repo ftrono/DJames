@@ -57,6 +57,7 @@ import com.ftrono.DJames.application.messLangCaps
 import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.playlistUrlIntro
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.vocabularySize
 import com.ftrono.DJames.ui.theme.MyDJamesItem
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
@@ -421,7 +422,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                                     newDetails.addProperty("phone", textPhone.replace(" ", ""))
                                 }
                                 //Edit:
-                                requestDetailOn.value = editVocItemAndShow(mContext=mContext, prevText=initName, newText=textName, newDetails=newDetails, filter=filter, vocItems=vocItems)
+                                requestDetailOn.value = editVocItemAndShow(mContext=mContext, prevText=initName, newText=textName.lowercase(), newDetails=newDetails, filter=filter, vocItems=vocItems)
                                 if (!requestDetailOn.value) {
                                     //CLOSE THE DIALOG:
                                     dialogOnState.value = false
@@ -475,6 +476,10 @@ fun editVocItemAndShow(mContext: Context, prevText: String, newText: String, new
             var ret = utils.editVocFile(prevText=prevText, newText=newText, newDetails=newDetails)
             if (ret == 0) {
                 Toast.makeText(mContext, "Saved!", Toast.LENGTH_LONG).show()
+                vocabularySize.postValue(vocabularySize.value!! + 1)   //Refresh list
+                if (prevText != "") {
+                    vocabularySize.postValue(vocabularySize.value!! - 1)   //Refresh list
+                }
             } else {
                 Toast.makeText(mContext, "ERROR: Vocabulary not updated!", Toast.LENGTH_LONG).show()
             }

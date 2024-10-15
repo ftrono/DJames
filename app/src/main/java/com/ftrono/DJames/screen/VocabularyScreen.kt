@@ -404,7 +404,7 @@ fun VocabularyCard(key: String, filter: String, myDJamesItem: MyDJamesItem, vocI
                     Icon(
                         modifier = Modifier.size(27.dp),
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "Share log",
+                        contentDescription = "Edit item",
                         tint = colorResource(id = R.color.mid_grey)
                     )
                 }
@@ -419,7 +419,7 @@ fun VocabularyCard(key: String, filter: String, myDJamesItem: MyDJamesItem, vocI
                     Icon(
                         modifier = Modifier.size(27.dp),
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete log",
+                        contentDescription = "Delete item",
                         tint = colorResource(id = R.color.mid_grey)
                     )
                 }
@@ -470,26 +470,23 @@ fun DialogDeleteVocabulary(mContext: Context, dialogOnState: MutableState<Boolea
                 Text(
                     modifier = Modifier
                         .clickable {
-                            var toastText = ""
                             if (key != "") {
                                 //Delete current:
                                 var ret = utils.editVocFile(prevText=key)
                                 if (ret == 0) {
+                                    vocabularySize.postValue(vocabularySize.value!! - 1)   //Refresh list
                                     Toast.makeText(mContext, "Deleted!", Toast.LENGTH_LONG).show()
                                 } else {
                                     Toast.makeText(mContext, "ERROR: Vocabulary not updated!", Toast.LENGTH_LONG).show()
                                 }
-                                toastText = "Item deleted!"
                             } else {
                                 //Delete all:
                                 File(vocDir, "voc_${filter}s.json").delete()
                                 Log.d("VocabularyScreen", "Deleted ${filter}s vocabulary.")
-                                toastText = "${filter.replaceFirstChar { it.uppercase() }} vocabulary deleted!"
+                                vocabularySize.postValue(0)   //Refresh list
+                                Toast.makeText(mContext, "${filter.replaceFirstChar { it.uppercase() }} vocabulary deleted!", Toast.LENGTH_LONG).show()
                             }
                             dialogOnState.value = false
-                            Toast.makeText(mContext, toastText, Toast.LENGTH_LONG).show()
-                            // vocabulary.postValue(updateVocabulary(mContext, filter))   //Refresh list
-                            // vocItems = JsonParser.parseString(vocabulary.value).asJsonObject
                         },
                     text = "Yes",
                     fontSize = 14.sp,

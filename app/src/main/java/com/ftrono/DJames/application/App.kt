@@ -70,7 +70,6 @@ var vol_initialized: Boolean = false
 var voiceQueryOn: Boolean = false
 var recordingMode: Boolean = false
 var callMode: Boolean = false
-var overlay_active: Boolean = false
 var clock_active: Boolean = false
 var searchFail: Boolean = false
 var newsTalk = false

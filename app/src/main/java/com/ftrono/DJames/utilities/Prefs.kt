@@ -47,7 +47,7 @@ class Prefs (context: Context) {
     //Overlay position:
     var overlayPosition: String
         //0 -> Left; 1 -> Right
-        get() = sharedPrefs.getString(KEY_OVERLAY_POSITION, "1") as String
+        get() = sharedPrefs.getString(KEY_OVERLAY_POSITION, "Right") as String
         set(value) = sharedPrefs.edit().putString(KEY_OVERLAY_POSITION, value).apply()
 
     //Voice queries default language:
@@ -69,7 +69,7 @@ class Prefs (context: Context) {
     //Message default language:
     var messageLanguage: String
         //"en-US" -> English; "it" -> Italian
-        get() = sharedPrefs.getString(KEY_MESSAGE_LANGUAGE, "en") as String
+        get() = sharedPrefs.getString(KEY_MESSAGE_LANGUAGE, "it") as String
         set(value) = sharedPrefs.edit().putString(KEY_MESSAGE_LANGUAGE, value).apply()
 
     //Message timeout:

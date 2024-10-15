@@ -257,6 +257,7 @@ class ClockActivity: ComponentActivity() {
                                 .padding(start = 14.dp)
                                 .wrapContentWidth(),
                             text = currentArtistPlayingState!!,
+                            lineHeight = 14.sp,
                             color = colorResource(id = R.color.mid_grey),
                             fontSize = 14.sp
                         )
@@ -420,7 +421,7 @@ class ClockActivity: ComponentActivity() {
     }
 
     override fun onStart() {
-        if (!overlay_active) {
+        if (!overlayActive.value!!) {
             //Start Main:
             finish()
             val intent1 = Intent(applicationContext, MainActivity::class.java)
@@ -437,7 +438,7 @@ class ClockActivity: ComponentActivity() {
     }
 
     override fun onResume() {
-        if (!overlay_active) {
+        if (!overlayActive.value!!) {
             //Start Main:
             finish()
             val intent1 = Intent(applicationContext, MainActivity::class.java)

@@ -150,7 +150,7 @@ class MainActivity : ComponentActivity() {
             //delete older logs:
             utils.deleteOldLogs()
             //delete older recFiles in cache:
-            if (!overlay_active) {
+            if (!overlayActive.value!!) {
                 try {
                     File(cacheDir, "$recFileName.mp3").delete()
                     Log.d(TAG, "Recording mp3 deleted.")
@@ -582,7 +582,7 @@ class MainActivity : ComponentActivity() {
             //Refresh RecycleView:
             if (intent.action == ACTION_LOG_REFRESH) {
                 Log.d(TAG, "HISTORY: ACTION_LOG_REFRESH.")
-                updateHistory(context!!)
+                historySize.postValue(historySize.value!! + 1)   //Refresh list
             }
 
         }

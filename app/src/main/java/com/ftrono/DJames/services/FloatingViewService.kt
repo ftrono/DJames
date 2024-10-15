@@ -100,7 +100,7 @@ class FloatingViewService : Service() {
                 intent.setAction(ACTION_OVERLAY_ACTIVATED)
                 sendBroadcast(intent)
             }
-            overlay_active = true
+            overlayActive.postValue(true)
 
             //RECEIVER:
             //Lower volume if maximum (to enable Receiver):
@@ -150,7 +150,7 @@ class FloatingViewService : Service() {
             width = resources.displayMetrics.widthPixels
 
             //Preferred xpos:
-            if (prefs.overlayPosition.toInt() == 1) {
+            if (prefs.overlayPosition == "Right") {
                 //RIGHT:
                 xpos = width
             } else {
@@ -315,7 +315,7 @@ class FloatingViewService : Service() {
                 intent.setAction(ACTION_OVERLAY_DEACTIVATED)
                 sendBroadcast(intent)
             }
-            overlay_active = false
+            overlayActive.postValue(false)
             voiceQueryOn = false
             //Stop Voice Query service:
             if (isMyServiceRunning(VoiceQueryService::class.java)) {
@@ -356,7 +356,7 @@ class FloatingViewService : Service() {
         width = resources.displayMetrics.widthPixels
         height = resources.displayMetrics.heightPixels
         //Preferred xpos:
-        if (prefs.overlayPosition.toInt() == 1) {
+        if (prefs.overlayPosition == "Right") {
             //RIGHT:
             xpos = width
         } else {
@@ -378,19 +378,15 @@ class FloatingViewService : Service() {
         if (isMyServiceRunning(VoiceQueryService::class.java)) {
             stopService(Intent(applicationContext, VoiceQueryService::class.java))
         }
-        //Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_OVERLAY_DEACTIVATED)
-            sendBroadcast(intent)
-        }
+        overlayButton
 
-        //End Fake Lock Screen():
+        //End Clock Screen():
         //Send broadcast:
         Intent().also { intent ->
             intent.setAction(ACTION_FINISH_CLOCK)
             sendBroadcast(intent)
         }
-        overlay_active = false
+        overlayActive.postValue(false)
         //unregister receivers:
         unregisterReceiver(eventReceiver)
         unregisterReceiver(overlayReceiver)

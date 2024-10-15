@@ -406,7 +406,7 @@ class Utilities {
         try {
             //Log.d(TAG, newDetails.toString())
             //Pack JSON:
-            var vocFile = File(vocDir, "voc_${filter}s.json")
+            var vocFile = File(vocDir, "voc_${filter.value}s.json")
             var reader = FileReader(vocFile)
             var vocJson = JsonParser.parseReader(reader).asJsonObject
             //Remove previous version:
@@ -426,7 +426,7 @@ class Utilities {
             for (item in keyList) {
                 newJson.add(item, vocJson[item].asJsonObject)
             }
-            // Log.d(TAG, vocJson.toString())
+            //Log.d(TAG, newJson.toString())
 
             //Store:
             //Overwrite saved file:

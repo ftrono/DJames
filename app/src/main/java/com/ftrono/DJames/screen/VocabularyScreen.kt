@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -40,12 +39,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -65,10 +61,8 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.historySize
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.vocDir
-import com.ftrono.DJames.application.vocabulary
 import com.ftrono.DJames.application.vocabularySize
 import com.ftrono.DJames.ui.theme.MyDJamesItem
 import com.ftrono.DJames.utilities.Utilities
@@ -125,7 +119,7 @@ fun VocabularyScreen(navController: NavController, filter: String, myDJamesItem:
 
     val editVocOn = rememberSaveable { mutableStateOf(editPreview) }
     if (editVocOn.value || editPreview) {
-        DialogEditVocabulary(mContext, editVocOn, filter, key="", preview)
+        DialogEditVocabulary(mContext, editVocOn, filter, vocItems, key="", preview)
     } else {
         vocabulary = updateVocabulary(mContext, filter, preview)
         vocItems = JsonParser.parseString(vocabulary).asJsonObject
@@ -152,7 +146,6 @@ fun VocabularyScreen(navController: NavController, filter: String, myDJamesItem:
                             color = colorResource(id = R.color.light_grey),
                             fontSize = 16.sp
                         ) },
-                    expanded = listState.isScrollingUp(),
                     onClick = {
                         editVocOn.value = true
                     }
@@ -326,7 +319,7 @@ fun VocabularyScreen(navController: NavController, filter: String, myDJamesItem:
                             items
                         ) { index, item ->
                             //HISTORY CARD:
-                            VocabularyCard(item, filter, myDJamesItem, preview)
+                            VocabularyCard(item, filter, myDJamesItem, vocItems, preview)
                             if (index == items.lastIndex) Spacer(modifier = Modifier.padding(40.dp))
                         }
                     }
@@ -337,12 +330,12 @@ fun VocabularyScreen(navController: NavController, filter: String, myDJamesItem:
 }
 
 @Composable
-fun VocabularyCard(key: String, filter: String, myDJamesItem: MyDJamesItem, preview: Boolean = false) {
+fun VocabularyCard(key: String, filter: String, myDJamesItem: MyDJamesItem, vocItems: JsonObject, preview: Boolean = false) {
     val mContext = LocalContext.current
 
     val editVocOn = rememberSaveable { mutableStateOf(false) }
     if (editVocOn.value) {
-        DialogEditVocabulary(mContext, editVocOn, filter, key, preview)
+        DialogEditVocabulary(mContext, editVocOn, filter, vocItems, key, preview)
     }
 
     val deleteVocOn = rememberSaveable { mutableStateOf(false) }
@@ -455,7 +448,7 @@ fun DialogDeleteVocabulary(mContext: Context, dialogOnState: MutableState<Boolea
             text = {
                 Text(
                     text = if (key != "") {
-                        "Do you want to delete this ${filter.slice(0..<(filter.length-1))}?\n\n$key"
+                        "Do you want to delete this $filter?\n\n$key"
                     } else {
                         "Do you want to delete all $filter in vocabulary?"
                     },
@@ -505,26 +498,6 @@ fun DialogDeleteVocabulary(mContext: Context, dialogOnState: MutableState<Boolea
             }
         )
     }
-}
-
-
-// Returns whether the lazy list is currently scrolling up
-@Composable
-private fun LazyListState.isScrollingUp(): Boolean {
-    var previousIndex by remember(this) { mutableIntStateOf(firstVisibleItemIndex) }
-    var previousScrollOffset by remember(this) { mutableIntStateOf(firstVisibleItemScrollOffset) }
-    return remember(this) {
-        derivedStateOf {
-            if (previousIndex != firstVisibleItemIndex) {
-                previousIndex > firstVisibleItemIndex
-            } else {
-                previousScrollOffset >= firstVisibleItemScrollOffset
-            }.also {
-                previousIndex = firstVisibleItemIndex
-                previousScrollOffset = firstVisibleItemScrollOffset
-            }
-        }
-    }.value
 }
 
 

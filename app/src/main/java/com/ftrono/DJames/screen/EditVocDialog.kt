@@ -2,7 +2,6 @@ package com.ftrono.DJames.screen
 
 import android.content.Context
 import android.telephony.PhoneNumberUtils
-import android.util.Log
 import android.util.Patterns
 import android.webkit.URLUtil
 import android.widget.Toast
@@ -58,11 +57,9 @@ import com.ftrono.DJames.application.messLangCaps
 import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.playlistUrlIntro
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.vocabulary
 import com.ftrono.DJames.ui.theme.MyDJamesItem
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
-import com.google.gson.JsonParser
 
 
 @Preview
@@ -114,7 +111,7 @@ fun DialogRequestDetail(mContext: Context, dialogOnState: MutableState<Boolean>,
 
 
 @Composable
-fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>, filter: String, key: String = "", preview: Boolean = false) {
+fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>, filter: String, vocItems: JsonObject, key: String = "", preview: Boolean = false) {
     //Init:
     var initName = key
     var initPlayUrl = ""
@@ -124,7 +121,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
 
     //Recover info:
     if (key != "") {
-        val prevDetails = JsonParser.parseString(vocabulary.value!!).asJsonObject.get(key).asJsonObject
+        val prevDetails = vocItems.get(key).asJsonObject
         if (filter == "playlist") {
             initPlayUrl = prevDetails.get("playlist_URL").asString
         } else if (filter == "contact") {
@@ -203,7 +200,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
             ) {
                 //TITLE:
                 Text(
-                    text = "✏️  ${filter.slice(0..<(filter.length-1)).replaceFirstChar { it.uppercase() }}",
+                    text = "✏️  ${filter.replaceFirstChar { it.uppercase() }}",
                     modifier = Modifier.padding(8.dp),
                     color = colorResource(id = R.color.light_grey),
                     textAlign = TextAlign.Start,
@@ -424,7 +421,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                                     newDetails.addProperty("phone", textPhone.replace(" ", ""))
                                 }
                                 //Edit:
-                                requestDetailOn.value = editVocItemAndShow(mContext=mContext, prevText=initName, newText=textName, newDetails=newDetails, filter=filter)
+                                requestDetailOn.value = editVocItemAndShow(mContext=mContext, prevText=initName, newText=textName, newDetails=newDetails, filter=filter, vocItems=vocItems)
                                 if (!requestDetailOn.value) {
                                     //CLOSE THE DIALOG:
                                     dialogOnState.value = false
@@ -443,7 +440,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
 
 
 //Edit Voc item:
-fun editVocItemAndShow(mContext: Context, prevText: String, newText: String, newDetails: JsonObject, filter: String): Boolean {
+fun editVocItemAndShow(mContext: Context, prevText: String, newText: String, newDetails: JsonObject, filter: String, vocItems: JsonObject): Boolean {
     //Return true -> Show DialogRequestDetail;
     //Return false -> Don't show DialogRequestDetail.
     if (newText != "") {
@@ -460,6 +457,7 @@ fun editVocItemAndShow(mContext: Context, prevText: String, newText: String, new
         } else if (filter == "contact") {
             var newPrefix = newDetails.get("prefix").asString
             var newPhone = newDetails.get("phone").asString
+            var newLang = newDetails.get("contact_language").asString   //TODO
             var phoneTest = PhoneNumberUtils.isGlobalPhoneNumber(newPhone)
             //Request valid detail (i.e. no URL, no phone number, no international prefix in phone number):
             if (!phoneTest || (!newPrefix.contains("+") && newPrefix.length != 3) || (newPhone.length != 10 && newPhone.length != 11)) {
@@ -468,7 +466,6 @@ fun editVocItemAndShow(mContext: Context, prevText: String, newText: String, new
             }
         }
         var prevDetails = JsonObject()
-        var vocItems = JsonParser.parseString(vocabulary.value).asJsonObject
         if (vocItems.has(prevText)) {
             prevDetails = vocItems.get(prevText).asJsonObject
         }

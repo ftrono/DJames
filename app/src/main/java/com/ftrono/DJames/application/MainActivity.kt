@@ -357,7 +357,7 @@ class MainActivity : ComponentActivity() {
                         fontSize = 22.sp,
                         color = colorResource(id = R.color.light_grey),
                     )
-                    if (!spotifyLoggedInState)
+                    if (spotifyLoggedInState)
                         Text(
                             modifier = Modifier.offset(y = -(2.dp)),
                             text = mainSubtitleState!!,

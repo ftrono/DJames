@@ -9,7 +9,6 @@ import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.likedSongsUri
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.supportedLanguageCodes
 import com.ftrono.DJames.nlp.NLPExtractor
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
@@ -28,8 +27,7 @@ class SpotifyFulfillment (private var context: Context) {
         //Detect & process requested languages:
         var intentName = resultsNLP.get("intent_name").asString
         var detLanguage = resultsNLP.get("reqLanguage").asString
-        var defaultLangCode = supportedLanguageCodes[prefs.queryLanguage.toInt()]
-        var reqLangCode = utils.getLanguageCode(context, detLanguage, defaultLangCode)
+        var reqLangCode = utils.getLanguageCode(context, detLanguage, prefs.queryLanguage)
         var reqLangName = utils.getLanguageName(context, reqLangCode)
 
         //Prepare toast text:
@@ -52,14 +50,14 @@ class SpotifyFulfillment (private var context: Context) {
             playType = "playlist"
             contextType = "playlist"
             ttsToRead = "Tell me the name of the playlist in ${reqLangName}."
-            utils.ttsRead(context, defaultLangCode, ttsToRead, dimAudio=false)
+            utils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
 
         } else if (intentName == "PlayArtist") {
             //ARTIST:
             playType = "artist"
             contextType = "playlist"
             ttsToRead = "Tell me the name of the artist in ${reqLangName}."
-            utils.ttsRead(context, defaultLangCode, ttsToRead, dimAudio=false)
+            utils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
 
         } else if (intentName == "PlayAlbum") {
             //ALBUM:
@@ -70,7 +68,7 @@ class SpotifyFulfillment (private var context: Context) {
             } else {
                 ttsToRead = "Tell me in ${reqLangName} the name of the album and the name of the artist."
             }
-            utils.ttsRead(context, defaultLangCode, ttsToRead, dimAudio=false)
+            utils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
 
         } else {
             //TRACK:
@@ -98,7 +96,7 @@ class SpotifyFulfillment (private var context: Context) {
                     ttsToRead = "Tell me in ${reqLangName} the name of the song and the name of the artist."
                 }
             }
-            utils.ttsRead(context, defaultLangCode, ttsToRead, dimAudio=false)
+            utils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
         }
 
         //processStatus:
@@ -139,8 +137,7 @@ class SpotifyFulfillment (private var context: Context) {
 
         //TODO: eng only!
         var ttsToRead = "Playing your Liked Songs collection!"
-        var defaultLangCode = supportedLanguageCodes[prefs.queryLanguage.toInt()]
-        utils.ttsRead(context, defaultLangCode, ttsToRead, dimAudio=true)
+        utils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=true)
 
         //PLAY -> Liked Songs:
         var playInfo = JsonObject()
@@ -275,8 +272,7 @@ class SpotifyFulfillment (private var context: Context) {
             var artist = playInfo.get("artist_name").asString.lowercase()
             //TODO: eng only!
             var ttsToRead = "Playing the $playType $itemName, by $artist."
-            var defaultLangCode = supportedLanguageCodes[prefs.queryLanguage.toInt()]
-            utils.ttsRead(context, defaultLangCode, ttsToRead, dimAudio=true)
+            utils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=true)
 
             //Player info:
             last_log!!.add("nlp_extractor", extractorInfo)
@@ -418,8 +414,7 @@ class SpotifyFulfillment (private var context: Context) {
                 var owner = playInfo.get("owner").asString.lowercase()
                 ttsToRead = "Playing the playlist ${playlistName}, by ${owner}!"
             }
-            var defaultLangCode = supportedLanguageCodes[prefs.queryLanguage.toInt()]
-            utils.ttsRead(context, defaultLangCode, ttsToRead, dimAudio=true)
+            utils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=true)
 
             //Player info:
             last_log!!.add("nlp_extractor", extractorInfo)

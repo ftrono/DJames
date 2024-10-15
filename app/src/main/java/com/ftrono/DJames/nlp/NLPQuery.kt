@@ -81,9 +81,9 @@ class NLPQuery(context: Context) {
             if (reqLanguage != "") {
                 languageCode = reqLanguage
             } else if (messageMode) {
-                languageCode = supportedLanguageCodes[prefs.messageLanguage.toInt()]
+                languageCode = prefs.messageLanguage
             } else {
-                languageCode = supportedLanguageCodes[prefs.queryLanguage.toInt()]
+                languageCode = prefs.queryLanguage
             }
             val inputAudioConfig: InputAudioConfig = InputAudioConfig.newBuilder()
                 .setAudioEncoding(AudioEncoding.AUDIO_ENCODING_FLAC)

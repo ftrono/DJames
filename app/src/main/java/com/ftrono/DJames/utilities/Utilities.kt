@@ -1,5 +1,6 @@
 package com.ftrono.DJames.utilities
 
+import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.media.AudioFocusRequest
@@ -8,9 +9,11 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
 import com.google.gson.JsonArray
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import kotlinx.coroutines.runBlocking
@@ -52,6 +55,18 @@ class Utilities {
     }
 
 
+    //Check service running:
+    fun isMyServiceRunning(serviceClass: Class<*>, mContext: Context): Boolean {
+        val manager = mContext.getSystemService(AppCompatActivity.ACTIVITY_SERVICE) as ActivityManager
+        for (service in manager.getRunningServices(Int.MAX_VALUE)) {
+            if (serviceClass.name == service.service.className) {
+                return true
+            }
+        }
+        return false
+    }
+
+
     //ID creator:
     fun generateRandomString(length: Int, numOnly: Boolean = false): String {
         var source = ""
@@ -77,6 +92,15 @@ class Utilities {
         return textTrimmed
     }
 
+    fun updateItemsCount(filter: String, singularWord: String): String {
+        val size = getVocSize(filter)
+        if (size == 1) {
+            return "1 ${singularWord}"
+        } else {
+            return "$size ${singularWord}s"
+        }
+    }
+
 
     //From a detected language name, get the supported language code:
     fun getLanguageCode(context: Context, language: String, default: String): String {
@@ -93,7 +117,7 @@ class Utilities {
     //Get the corresponding language name in preferred language for the detected language code:
     fun getLanguageName(context: Context, languageCode: String): String {
         val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.language_names)))
-        val prefLanguage = supportedLanguageCodes[prefs.queryLanguage.toInt()]
+        val prefLanguage = prefs.queryLanguage
         val sourceJson = JsonParser.parseReader(reader).asJsonObject.get(prefLanguage).asJsonObject
         return sourceJson[languageCode].asString
     }
@@ -133,32 +157,6 @@ class Utilities {
         }
         //Log.d(TAG, "processStatus: $processStatus")
         return processStatus
-    }
-
-    //LOGOUT:
-    fun logoutCommons(context: Context) {
-        //Delete tokens & user details:
-        var utils = Utilities()
-        spotifyLoggedIn = false
-        prefs.spotifyToken = ""
-        prefs.refreshToken = ""
-        prefs.spotUserId = ""
-        prefs.spotUserName = ""
-        prefs.spotUserEMail = ""
-        prefs.spotUserImage = ""
-        prefs.spotCountry = ""
-        prefs.nlpUserId = utils.generateRandomString(12)
-        //utils.deleteUserCache()
-        Toast.makeText(context, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()
-    }
-
-    //Count number of occurrences in intersection:
-    fun countIntersection(toMatch: String, target: String): Int{
-        val a = toMatch.lowercase().split(" ")
-        val b = target.lowercase().split(" ")
-        val counter = a.intersect(b).map { x -> min(a.count {it == x}, b.count {it == x}) }.sum()
-        val result = (counter / b.size) * 100
-        return result
     }
 
 
@@ -263,7 +261,7 @@ class Utilities {
         var textReplaced = text
         var reader: BufferedReader? = null
         //Query language:
-        var messLanguage = supportedLanguageCodes[prefs.messageLanguage.toInt()]
+        var messLanguage = prefs.messageLanguage
         if (reqLanguage != "") {
             messLanguage = reqLanguage
         }
@@ -293,50 +291,26 @@ class Utilities {
 
     //LOG:
     //Get JsonArray out of all log files:
-    fun getLogArray(hideSuccessful: Boolean): JsonArray {
+    fun getLogArray(): List<JsonElement> {
         var logArray = JsonArray()
         var obj = JsonObject()
-        var score = 0
         if (logDir!!.exists()) {
             var logFiles = logDir!!.list()
             logFiles!!.sortDescending()   //Sort descending by date
             for (f in logFiles) {
                 var reader = FileReader(File(logDir, f))
-                //Delete invalid files:
                 try {
                     obj = JsonParser.parseReader(reader).asJsonObject
-                    if (!hideSuccessful) {
-                        //Add all:
-                        logArray.add(obj)
-                    } else {
-                        //Add doubtful only:
-                        try {
-                            if (obj.has("voc_score")) {
-                                //Call requests:
-                                score = obj.get("voc_score").asInt
-                                if (score <= midThreshold) {
-                                    logArray.add(obj)
-                                }
-                            } else {
-                                //Play requests:
-                                score = obj.get("best_score").asInt
-                                if (score <= playThreshold) {
-                                    logArray.add(obj)
-                                }
-                            }
-                        } catch (e: Exception) {
-                            //Generic requests:
-                            Log.w(TAG, "File $f: No score.")
-                        }
-                    }
+                    logArray.add(obj)
                 } catch (e: Exception) {
+                    //Delete invalid files:
                     File(logDir, f).delete()
                     Log.w(TAG, "Deleted file: $f")
                 }
             }
         }
         //Log.d(TAG, logArray.toString())
-        return logArray
+        return logArray.toList()
     }
 
     fun deleteOldLogs() {
@@ -364,7 +338,7 @@ class Utilities {
     //Prepare consolidated Log file:
     fun prepareLogCons(context: Context, hideSuccessful: Boolean): File {
         val logConsName = "requests_log.json"
-        val logArray = getLogArray(hideSuccessful=hideSuccessful)
+        val logArray = getLogArray()
         var consFile = File(context.cacheDir, logConsName)
         if (consFile.exists()) {
             consFile.delete()
@@ -466,43 +440,20 @@ class Utilities {
 
 
     //GUIDE:
-    //Get JsonArray out of Guide JSON:
+    //Read Guide:
     fun getGuideArray(context: Context): JsonArray {
         var guideArray = JsonArray()
-        var catJson = JsonObject()
-        var sents = JsonArray()
-        var obj = JsonObject()
-        var sentJson = JsonObject()
-        var category: String = ""
         var reader: BufferedReader? = null
         try {
             //Get default query language:
-            if (prefs.queryLanguage.toInt() == 1) {
-                reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.guide_ita)))   //"ita"
-            } else {
-                reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.guide_eng)))   //"eng"
-            }
+//            if (prefs.queryLanguage == "it") {
+//                reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.guide_ita)))   //"ita"
+//            } else {
+//                reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.guide_eng)))   //"eng"
+//            }
+            reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.guide_eng)))   //"eng"   //TODO: TEMP!
             //Load:
-            val categories = JsonParser.parseReader(reader).asJsonArray
-            for (catRaw in categories) {
-                catJson = catRaw.asJsonObject
-                //1) Parse header:
-                obj = JsonObject()
-                category = catJson.get("category").asString
-                obj.addProperty("header", catJson.get("header").asString)
-                guideArray.add(obj)
-                //2) Parse sentences:
-                sents = catJson.get("sentences").asJsonArray
-                for (sentRaw in sents) {
-                    sentJson = sentRaw.asJsonObject
-                    //For messages, take only the JSON with the default messageLanguage:
-                    obj = JsonObject()
-                    obj.addProperty("intro", sentJson.get("intro").asString)
-                    obj.addProperty("sentence", sentJson.get("sentence").asString)
-                    obj.addProperty("description", sentJson.get("description").asString)
-                    guideArray.add(obj)
-                }
-            }
+            guideArray = JsonParser.parseReader(reader).asJsonArray
         } catch (e: Exception) {
             Log.w(TAG, "GUIDE PARSING ERROR: ", e)
         }

@@ -7,7 +7,9 @@ import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.os.Environment
 import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.utilities.Prefs
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import okhttp3.OkHttpClient
 import java.net.URLEncoder
@@ -18,7 +20,25 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.01"
+val appVersion = "2.1"
+val copyrightYear = 2024
+
+//STATUS VARS:
+var curNavId = 0
+var lastNavRoute = "home"
+var spotifyLoggedIn = MutableLiveData<Boolean>(false)
+var mainSubtitle = MutableLiveData<String>("")
+var overlayActive = MutableLiveData<Boolean>(false)
+var volumeUpEnabled = MutableLiveData<Boolean>(true)
+var settingsOpen = MutableLiveData<Boolean>(false)
+var innerNavOpen = MutableLiveData<Boolean>(false)
+var filter = MutableLiveData<String>("artists")
+var currentSongPlaying = MutableLiveData<String>("Don't turn off the screen!")
+var currentArtistPlaying = MutableLiveData<String>("Keep this Clock Screen on\nto save battery")
+var currentAlbumPlaying = MutableLiveData<String>("(unless you're using Maps)")
+var historySize = MutableLiveData<Int>(0)
+var vocabulary = MutableLiveData<String>("{}")
+var vocabularySize = MutableLiveData<Int>(0)
 
 //Preferences:
 val silenceInitPatience = 3
@@ -27,15 +47,18 @@ val deltaSimilarity = 10   //5
 val playThreshold = 80
 val maxThreshold = 70
 val midThreshold = 55
-val matchDoubleThreshold = 160
 val recSamplingRate = 44100
 val queryTimeout = 5   //seconds
 val recFileName = "DJames_request"
 var enablePlayerInfo = false
-var supportedLanguageCodes = listOf<String>("en", "it")
-var supportedMessLangCodes = listOf<String>("en", "it", "de", "fr", "es")
-var supportedMessLangNames = listOf<String>("english", "italian", "german", "french", "spanish")
-val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+
+//Dropdowns:
+var overlayPosOptions = listOf<String>("Left", "Right")
+var queryLangCodes = listOf<String>("en", "it")
+val queryLangCaps = listOf<String>("English", "Italian")
+var messLangCodes = listOf<String>("en", "it", "fr", "de", "es")
+var messLangNames = listOf<String>("english", "italian", "french", "german", "spanish")
+val messLangCaps = listOf<String>("English", "Italian", "French", "German", "Spanish")
 
 //Modes:
 var density: Float = 0F
@@ -49,10 +72,8 @@ var voiceQueryOn: Boolean = false
 var recordingMode: Boolean = false
 var callMode: Boolean = false
 var overlay_active: Boolean = false
-var spotifyLoggedIn: Boolean = false
 var clock_active: Boolean = false
 var searchFail: Boolean = false
-var filter = "artist"
 var newsTalk = false
 
 //Audio Manager:
@@ -97,30 +118,9 @@ const val ACTION_TOASTER = "com.ftrono.DJames.eventReceiver.ACTION_TOASTER"
 //Main Act receiver:
 const val ACTION_MAIN_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_MAIN_LOGGED_IN"
 const val ACTION_FINISH_MAIN = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_MAIN"
-const val ACTION_SWITCH_FRAGMENT = "com.ftrono.DJames.eventReceiver.ACTION_SWITCH_FRAGMENT"
-
-//Home Fragment receiver:
-const val ACTION_HOME_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_HOME_LOGGED_IN"
-const val ACTION_HOME_LOGGED_OUT = "com.ftrono.DJames.eventReceiver.ACTION_HOME_LOGGED_OUT"
 const val ACTION_OVERLAY_ACTIVATED = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_ACTIVATED"
 const val ACTION_OVERLAY_DEACTIVATED = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_DEACTIVATED"
-const val ACTION_SETTINGS_VOL_UP = "com.ftrono.DJames.eventReceiver.ACTION_SETTINGS_VOL_UP"
-
-//Guide Fragment receiver:
-const val ACTION_GUIDE_POPUP = "com.ftrono.DJames.eventReceiver.ACTION_GUIDE_POPUP"
-const val ACTION_GUIDE_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_GUIDE_REFRESH"
-
-//Vocabulary Fragment receiver:
-const val ACTION_VOC_DELETE = "com.ftrono.DJames.eventReceiver.ACTION_VOC_DELETE"
-const val ACTION_VOC_EDIT = "com.ftrono.DJames.eventReceiver.ACTION_VOC_EDIT"
-
-//History Fragment receiver:
 const val ACTION_LOG_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_LOG_REFRESH"
-const val ACTION_LOG_DELETE = "com.ftrono.DJames.eventReceiver.ACTION_LOG_DELETE"
-
-//Settings Act receiver:
-const val ACTION_SETTINGS_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_SETTINGS_LOGGED_IN"
-const val ACTION_FINISH_SETTINGS = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_SETTINGS"
 
 //Clock Act receiver:
 const val ACTION_TIME_TICK = "android.intent.action.TIME_TICK"

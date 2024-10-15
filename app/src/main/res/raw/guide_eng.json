@@ -1,63 +1,63 @@
 [
   {
     "category": "calls",
-    "header": "\uD83D\uDCDE   Calls",
-    "sentences": [
+    "header": "\uD83D\uDCDE  Calls",
+    "requests": [
       {
-        "intro": "Call a contact*:",
-        "sentence": "\"Call <contact name>\"",
+        "intro": "Call a contact*",
+        "sentence": "\uD83D\uDDE3\uFE0F  \"Call <contact name>\"",
         "description": "Starts a phone call to a contact of yours*.\n\n*NOTE: the contact must be listed in DJames' Vocabulary, in the Contacts tab!"
       }
     ]
   },
   {
     "category": "messages",
-    "header":  "\uD83D\uDCAC   Messages",
-    "sentences": [
+    "header":  "\uD83D\uDCAC  Messages",
+    "requests": [
       {
-        "intro": "Send SMS to a contact*:",
-        "sentence": "\"Send a message to <contact name> in <language>\"",
+        "intro": "Send SMS to a contact*",
+        "sentence": "\uD83D\uDDE3\uFE0F  \"Send a message to <contact name> in <language>\"",
         "description": "Sends an SMS to a contact of yours*. Messaging language MUST be told if it's different from the contact's default.\n\n*NOTE: the contact must be listed in DJames' Vocabulary, in the Contacts tab! Set there also the default messaging language for each contact.\n\nTo use emojis, say:\n\n- \uD83C\uDDEC\uD83C\uDDE7: \"EMOJI\" + smile / happy / grin / kiss / sunglasses / heart / sad / worried.\n\n- \uD83C\uDDEE\uD83C\uDDF9: \"EMOJI\" + sorriso / felice / sorrisino / bacio / occhiali da sole / cuore / triste / preoccupato."
       }
     ]
   },
   {
     "category": "songs",
-    "header":  "🎧   Spotify Songs",
-    "sentences": [
+    "header":  "\uD83C\uDFA7  Spotify Songs",
+    "requests": [
       {
-        "intro": "Play song:",
-        "sentence": "\"Play a song in <language>\"",
+        "intro": "Play song",
+        "sentence": "\uD83D\uDDE3\uFE0F  \"Play a song in <language>\"",
         "description": "Plays a song in Spotify from its album. Language MUST be told if the name is not in English. Preference is given to your saved tracks and to albums over singles."
       },
       {
-        "intro": "Play song within a playlist*:",
-        "sentence": "\"Play a song in <language> from a playlist\"",
+        "intro": "Play song within a playlist*",
+        "sentence": "\uD83D\uDDE3\uFE0F  \"Play a song in <language> from a playlist\"",
         "description": "Plays a song in Spotify from a playlist of yours*. Language MUST be told if the name is not in English.\n\n*NOTE: the playlist must be listed in DJames' Vocabulary, in the Playlists tab!"
       },
       {
-        "intro": "Play song from Liked Songs* context:",
-        "sentence": "\"Play a song in <language> from my liked songs / saved tracks / collection\"",
+        "intro": "Play song from Liked Songs* context",
+        "sentence": "\uD83D\uDDE3\uFE0F  \"Play a song in <language> from my liked songs / saved tracks / collection\"",
         "description": "Plays a song in Spotify from your playlist Liked Songs*. Language MUST be told if the name is not in English.\n\n*NOTE: this will work only for your most recently saved tracks!"
       },
       {
-        "intro": "Play album:",
-        "sentence": "\"Play an album in <language>\"",
+        "intro": "Play album",
+        "sentence": "\uD83D\uDDE3\uFE0F  \"Play an album in <language>\"",
         "description": "Search & play an album in Spotify. Language MUST be told if the name is not in English."
       },
       {
-        "intro": "Play artist collection:",
-        "sentence": "\"Play an artist in <language>\"",
+        "intro": "Play artist collection",
+        "sentence": "\uD83D\uDDE3\uFE0F  \"Play an artist in <language>\"",
         "description": "Search & play the default playlist \"This is <artist>\" in Spotify, if it exists. Language MUST be told if the name is not in English.\n\nIf you add the word \"Mix\" after the artist name, DJames will search the Artist Mix playlist instead."
       },
       {
-        "intro": "Play playlist*:",
-        "sentence": "\"Play a playlist in <language>\"",
+        "intro": "Play playlist*",
+        "sentence": "\uD83D\uDDE3\uFE0F  \"Play a playlist in <language>\"",
         "description": "Plays any playlist* in Spotify. Language MUST be told if the name is not in English.\n\n*NOTE: list your favourite playlists in DJames' Vocabulary, in the Playlists tab! Otherwise, DJames will search for playlist with that name across your Spotify."
       },
       {
-        "intro": "Play Liked Songs collection:",
-        "sentence": "\"Play my liked songs / saved tracks / collection\"",
+        "intro": "Play Liked Songs collection",
+        "sentence": "\uD83D\uDDE3\uFE0F  \"Play my liked songs / saved tracks / collection\"",
         "description": "Plays your Liked Songs collection in Spotify."
       }
     ]

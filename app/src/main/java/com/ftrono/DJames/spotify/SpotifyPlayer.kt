@@ -6,7 +6,7 @@ import android.net.Uri
 import android.util.Log
 import com.ftrono.DJames.application.ACTION_LOG_REFRESH
 import com.ftrono.DJames.application.ACTION_TOASTER
-import com.ftrono.DJames.application.FakeLockScreen
+import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.client
 import com.ftrono.DJames.application.clock_active
 import com.ftrono.DJames.application.last_log
@@ -140,7 +140,7 @@ class SpotifyPlayer (private val context: Context) {
                         //Clock redirect:
                         Thread.sleep((prefs.clockTimeout.toLong() - 1) * 1000)   //default: 10000
                         //Launch Clock:
-                        val clockIntent = Intent(context, FakeLockScreen::class.java)
+                        val clockIntent = Intent(context, ClockActivity::class.java)
                         clockIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         clockIntent.putExtra("fromwhere", "ser")
                         context.startActivity(clockIntent)

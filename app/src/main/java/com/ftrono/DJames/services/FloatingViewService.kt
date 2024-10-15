@@ -210,7 +210,7 @@ class FloatingViewService : Service() {
 
                 if (!clock_active) {
                     //Start fake lock screen:
-                    val intent1 = Intent(this, FakeLockScreen::class.java)
+                    val intent1 = Intent(this, ClockActivity::class.java)
                     intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     intent1.putExtra("fromwhere", "ser")
                     startActivity(intent1)
@@ -219,13 +219,6 @@ class FloatingViewService : Service() {
                     //Send broadcast:
                     Intent().also { intent ->
                         intent.setAction(ACTION_FINISH_MAIN)
-                        sendBroadcast(intent)
-                    }
-
-                    //End Settings():
-                    //Send broadcast:
-                    Intent().also { intent ->
-                        intent.setAction(ACTION_FINISH_SETTINGS)
                         sendBroadcast(intent)
                     }
 
@@ -343,7 +336,7 @@ class FloatingViewService : Service() {
             }
             Toast.makeText(
                 applicationContext,
-                getString(R.string.str_enable_overlay),
+                "Please enable the 'Display over other apps' permission first!",
                 Toast.LENGTH_LONG
             ).show()
             //Show permissions page:

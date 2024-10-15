@@ -8,7 +8,6 @@ import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.maxThreshold
 import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.supportedLanguageCodes
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
@@ -131,7 +130,7 @@ class NLPExtractor (private val context: Context) {
             //Split artists extracted:
             var listExtracted: List<String>? = null
             //language:
-            var queryLanguage = supportedLanguageCodes[prefs.queryLanguage.toInt()]
+            var queryLanguage = prefs.queryLanguage
             if (reqLanguage != "") {
                 queryLanguage = reqLanguage
             }
@@ -261,7 +260,7 @@ class NLPExtractor (private val context: Context) {
             //Search items:
             var reader: BufferedReader? = null
             //Calls / message requests -> only use default query language:
-            if (prefs.queryLanguage.toInt() == 1) {
+            if (prefs.queryLanguage == "it") {
                 reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents_ita)))   //"ita"
             } else {
                 reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents_eng)))   //"eng"

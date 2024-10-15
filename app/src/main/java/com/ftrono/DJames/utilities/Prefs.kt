@@ -53,7 +53,7 @@ class Prefs (context: Context) {
     //Voice queries default language:
     var queryLanguage: String
         //"en-US" -> English; "it" -> Italian
-        get() = sharedPrefs.getString(KEY_QUERY_LANGUAGE, "0") as String
+        get() = sharedPrefs.getString(KEY_QUERY_LANGUAGE, "en") as String
         set(value) = sharedPrefs.edit().putString(KEY_QUERY_LANGUAGE, value).apply()
 
     //Rec timeout:
@@ -69,7 +69,7 @@ class Prefs (context: Context) {
     //Message default language:
     var messageLanguage: String
         //"en-US" -> English; "it" -> Italian
-        get() = sharedPrefs.getString(KEY_MESSAGE_LANGUAGE, "0") as String
+        get() = sharedPrefs.getString(KEY_MESSAGE_LANGUAGE, "en") as String
         set(value) = sharedPrefs.edit().putString(KEY_MESSAGE_LANGUAGE, value).apply()
 
     //Message timeout:
@@ -96,11 +96,6 @@ class Prefs (context: Context) {
     var volumeUpEnabled: Boolean
         get() = sharedPrefs.getBoolean(KEY_VOLUME_UP_ENABLED, true) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_VOLUME_UP_ENABLED, value).apply()
-
-    //Hide status bar in Clock:
-    var hideBars: Boolean
-        get() = sharedPrefs.getBoolean(KEY_HIDE_BARS, false) as Boolean
-        set(value) = sharedPrefs.edit().putBoolean(KEY_HIDE_BARS, value).apply()
 
     //User profile:
     //Spotify user ID:
@@ -160,7 +155,6 @@ class Prefs (context: Context) {
         const val KEY_CLOCK_REDIRECT_ENABLED = ".key.clock_redirect_enabled"
         const val KEY_CLOCK_TIMEOUT = ".key.clock_timeout"
         const val KEY_VOLUME_UP_ENABLED = ".key.volume_up_enabled"
-        const val KEY_HIDE_BARS = ".key.hide_bars"
         const val KEY_SPOTIFY_USER_ID = ".key.spotify_user_id"
         const val KEY_SPOTIFY_USER_NAME = ".key.spotify_user_name"
         const val KEY_SPOTIFY_USER_EMAIL = ".key.spotify_user_email"

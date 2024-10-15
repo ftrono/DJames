@@ -1,10 +1,7 @@
 package com.ftrono.DJames.application
 
-import android.annotation.SuppressLint
-import android.app.ActivityManager
 import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
@@ -12,102 +9,131 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
 import android.widget.Toast
-import androidx.appcompat.app.ActionBar
-import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.view.menu.MenuBuilder
-import androidx.appcompat.widget.Toolbar
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.updateLayoutParams
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentContainerView
+import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationRailItemDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
+import com.ftrono.DJames.screen.restartOverlay
+import com.ftrono.DJames.screen.updateHistory
 import com.ftrono.DJames.services.FloatingViewService
+import com.ftrono.DJames.ui.Navigation
+import com.ftrono.DJames.ui.navigateTo
+import com.ftrono.DJames.ui.theme.DJamesTheme
+import com.ftrono.DJames.ui.theme.NavigationItem
+import com.ftrono.DJames.ui.theme.windowBackground
 import com.ftrono.DJames.utilities.Utilities
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.navigationrail.NavigationRailView
 import java.io.File
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
 
     private val TAG: String = MainActivity::class.java.getSimpleName()
     private var utils = Utilities()
 
-    //Views:
-    private var toolbar: Toolbar? = null
-    private var mainActionBar: ActionBar? = null    //eventReceiver (login)
-    private var loginButton: MenuItem? = null    //eventReceiver (login)
-    private var navBar: BottomNavigationView? = null
-    private var navRail: NavigationRailView? = null
-    private var mainFrame: FragmentContainerView? = null
-    private var curFragment: Fragment? = null
-    private var curNavItemId = R.id.nav_home
-    private var curInd = 0
-    private var prevMdFragment: Fragment = MyDJamesFragment()
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
         acts_active.add(TAG)
 
-        //Load Main views:
-        toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        mainActionBar = supportActionBar
-        //toolbar!!.overflowIcon = AppCompatResources.getDrawable(this, R.drawable.user_icon)
+        //TODO: TEMP:
+        if (prefs.overlayPosition !in overlayPosOptions) {
+            prefs.overlayPosition = "Right"
+        } else if (prefs.queryLanguage !in queryLangCodes) {
+            prefs.queryLanguage = "en"
+        } else if (prefs.messageLanguage !in messLangCodes) {
+            prefs.messageLanguage = "en"
+        }
+
+        enableEdgeToEdge(
+            //For safe padding:
+            statusBarStyle = SystemBarStyle.auto(windowBackground.toArgb(), windowBackground.toArgb()),
+            navigationBarStyle = SystemBarStyle.auto(windowBackground.toArgb(), windowBackground.toArgb())
+        )
+        setContent {
+            DJamesTheme {
+                //Background:
+                Surface (
+                    modifier = Modifier.fillMaxSize(),
+                    color = windowBackground
+                ) {
+                    MainScreen()
+                }
+            }
+        }
 
         //Screen density:
         density = resources.displayMetrics.density
 
         //Check Login status:
         if (prefs.spotifyToken == "") {
-            spotifyLoggedIn = false
+            spotifyLoggedIn.postValue(false)
         } else {
-            spotifyLoggedIn = true
-            supportActionBar!!.subtitle = "for ${prefs.spotUserName}"
+            spotifyLoggedIn.postValue(true)
+            mainSubtitle.postValue("for ${prefs.spotUserName}")
         }
 
         //Start personal Receiver:
         val actFilter = IntentFilter()
         actFilter.addAction(ACTION_MAIN_LOGGED_IN)
         actFilter.addAction(ACTION_FINISH_MAIN)
-        actFilter.addAction(ACTION_SWITCH_FRAGMENT)
+        actFilter.addAction(ACTION_LOG_REFRESH)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
         registerReceiver(mainActReceiver, actFilter, RECEIVER_EXPORTED)
         Log.d(TAG, "MainActReceiver started.")
-
-        //Navigation bars:
-        navBar = findViewById<BottomNavigationView>(R.id.navbar)
-        navBar!!.setOnItemSelectedListener {
-            selectNavItem(it)
-            true
-        }
-        navRail = findViewById<NavigationRailView>(R.id.navrail)
-        navRail!!.setOnItemSelectedListener {
-            selectNavItem(it)
-            true
-        }
-
-        //Check initial orientation:
-        mainFrame = findViewById(R.id.main_frame)
-        var config = getResources().getConfiguration()
-        setOrientationLayout(config)
-
-        //Load Home fragment:
-        curFragment = HomeFragment()
-        curNavItemId = R.id.nav_home
-        supportFragmentManager
-            .beginTransaction()
-            .replace(R.id.main_frame, curFragment!!)
-            .commit()
 
         //CLEANING:
         if (!main_initialized) {
@@ -146,242 +172,392 @@ class MainActivity : AppCompatActivity() {
         }
 
         //AUTO START-UP:
-        if (prefs.autoStartup && !main_initialized && !isMyServiceRunning(FloatingViewService::class.java)) {
-            try {
-                var intentOS = Intent(applicationContext, FloatingViewService::class.java)
-                intentOS.putExtra("faded", false)
-                applicationContext.startService(intentOS)
-            } catch (e: Exception) {
-                Log.w(TAG, "Cannot auto-start Overlay Service. EXCEPTION: ", e)
-            }
-
-        }
+//        if (prefs.autoStartup && !main_initialized && !utils.isMyServiceRunning(FloatingViewService::class.java, this@MainActivity)) {
+//            try {
+//                var intentOS = Intent(this@MainActivity, FloatingViewService::class.java)
+//                intentOS.putExtra("faded", false)
+//                this@MainActivity.startService(intentOS)
+//            } catch (e: Exception) {
+//                Log.w(TAG, "Cannot auto-start Overlay Service. EXCEPTION: ", e)
+//            }
+//
+//        }
 
         //Done:
         main_initialized = true
+
     }
 
-
-    override fun onResume() {
-        super.onResume()
-        //ON RESUME() ONLY:
-        //Check Login status:
-        if (!spotifyLoggedIn) {
-            setViewLoggedOut()
-        }
-    }
+//    override fun onResume() {
+//        super.onResume()
+//        //ON RESUME() ONLY:
+//        //Check Login status:
+//        if (!spotifyLoggedIn.value!!) {
+//            setViewLoggedOut()
+//        }
+//    }
 
 
     override fun onDestroy() {
         super.onDestroy()
         //unregister receivers:
         unregisterReceiver(mainActReceiver)
-        //empty views:
-        mainActionBar = null
-        loginButton = null
         acts_active.remove(TAG)
     }
 
-    fun setOrientationLayout(config: Configuration){
-        if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            //HORIZONTAL:
-            navBar!!.visibility = View.GONE
-            navRail!!.visibility = View.VISIBLE
-            //Show NavRail:
-            navRail!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                if (prefs.overlayPosition == "1") {
-                    //Overlay to Right -> NavRail to Left:
-                    rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
-                    leftToRight = ConstraintLayout.LayoutParams.UNSET   //clear
-                    leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
-                    rightToLeft = R.id.main_frame
-                } else {
-                    //Overlay to Left -> NavRail to Right:
-                    leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
-                    rightToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
-                    rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
-                    leftToRight = R.id.main_frame
+
+    @Preview
+    @Preview(heightDp = 360, widthDp = 800)
+    @Composable
+    fun MainScreen() {
+        val navController = rememberNavController()
+        val navItems = listOf(
+            NavigationItem.Home,
+            NavigationItem.Guide,
+            NavigationItem.MyDJames,
+            NavigationItem.History
+        )
+
+        val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
+        val settingsOpenState by settingsOpen.observeAsState()
+        val innerNavOpenState by innerNavOpen.observeAsState()
+        val configuration = LocalConfiguration.current
+        val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
+        val customNavSuiteType = if (isLandscape) NavigationSuiteType.NavigationRail else NavigationSuiteType.NavigationBar
+
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStackEntry?.destination?.route
+
+        val myNavigationSuiteItemColors = NavigationSuiteDefaults.itemColors(
+            navigationBarItemColors = NavigationBarItemDefaults.colors(
+                indicatorColor = colorResource(id = R.color.transparent_green),
+                selectedIconColor = colorResource(id = R.color.colorAccentLight),
+                selectedTextColor = colorResource(id = R.color.colorAccentLight),
+                unselectedIconColor = colorResource(id = R.color.mid_grey),
+                unselectedTextColor = colorResource(id = R.color.mid_grey)
+            ),
+            navigationRailItemColors = NavigationRailItemDefaults.colors(
+                indicatorColor = colorResource(id = R.color.transparent_green),
+                selectedIconColor = colorResource(id = R.color.colorAccentLight),
+                selectedTextColor = colorResource(id = R.color.colorAccentLight),
+                unselectedIconColor = colorResource(id = R.color.mid_grey),
+                unselectedTextColor = colorResource(id = R.color.mid_grey)
+            )
+        )
+
+        //MAIN SCREEN: NAVIGATION:
+        NavigationSuiteScaffold(
+            modifier = Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+                .shadow(
+                    elevation = 4.dp,
+                    spotColor = colorResource(id = R.color.mid_grey)
+                ),
+            layoutType = customNavSuiteType,
+            navigationSuiteItems = {
+                navItems.forEach { navItem ->
+                    item(
+                        modifier = if (isLandscape) {
+                            Modifier
+                                .offset(y = 12.dp)
+                                .padding(4.dp)
+                        } else {
+                            Modifier
+                        },
+                        icon = {
+                            Icon(
+                                painterResource(id = navItem.icon),
+                                contentDescription = navItem.title
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = navItem.title
+                            )
+                        },
+                        colors = myNavigationSuiteItemColors,
+                        alwaysShowLabel = true,
+                        selected = currentRoute == navItem.route,
+                        onClick = {
+                            //Navigate:
+                            val curNavRoute = navItem.route
+                            if (curNavRoute == lastNavRoute && (settingsOpenState!! || innerNavOpenState!!)) {
+                                navController.popBackStack()
+                            } else {
+                                navigateTo(navController, curNavRoute)
+                            }
+                            lastNavRoute = curNavRoute
+                        }
+                    )
+                }
+            },
+            containerColor = colorResource(id = R.color.black),
+            contentColor = colorResource(id = R.color.mid_grey),
+            navigationSuiteColors = NavigationSuiteDefaults.colors(
+                navigationBarContainerColor = colorResource(id = R.color.windowBackground),
+                navigationBarContentColor = colorResource(id = R.color.mid_grey),
+                navigationRailContainerColor = colorResource(id = R.color.windowBackground),
+                navigationRailContentColor = colorResource(id = R.color.mid_grey),
+            )
+        ) {
+            //MAIN SCREEN: SCAFFOLD:
+            Scaffold(
+                topBar = { TopBar(navController, spotifyLoggedInState!!, settingsOpenState!!) },
+                // Set background color to avoid the white flashing when you switch between screens:
+                containerColor = colorResource(id = R.color.windowBackground)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(it)
+                ) {
+                    //SET CURRENT SCREEN FROM NAVIGATION HOST:
+                    Navigation(navController)
                 }
             }
-            //Fix MainFrame:
-            mainFrame!!.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                if (prefs.overlayPosition == "1") {
-                    //Overlay to Right -> NavRail to Left:
-                    leftToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
-                    rightToLeft = ConstraintLayout.LayoutParams.UNSET   //clear
-                    leftToRight = R.id.navrail
-                    rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
-                } else {
-                    //Overlay to Left -> NavRail to Right:
-                    rightToRight = ConstraintLayout.LayoutParams.UNSET   //clear
-                    leftToRight = ConstraintLayout.LayoutParams.UNSET   //clear
-                    rightToLeft = R.id.navrail
-                    leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
+        }
+    }
+
+
+    //TOP APP BAR:
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun TopBar(navController: NavController, spotifyLoggedInState: Boolean, settingsOpenState: Boolean) {
+        val mContext = LocalContext.current
+
+        // STATES:
+        var mDisplayMenu by rememberSaveable {
+            mutableStateOf(false)
+        }
+        val mainSubtitleState by mainSubtitle.observeAsState()
+
+        val logoutDialogOn = rememberSaveable { mutableStateOf(false) }
+        if (logoutDialogOn.value) {
+            DialogLogout(mContext, logoutDialogOn)
+        }
+
+        CenterAlignedTopAppBar(
+            modifier = Modifier
+                .fillMaxWidth()
+                .shadow(
+                    elevation = 4.dp,
+                    spotColor = colorResource(id = R.color.mid_grey)
+                ),
+            windowInsets = WindowInsets(
+                top = 0.dp,
+                bottom = 0.dp
+            ),
+            title = {
+                Column (
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+                    Text(
+                        modifier = Modifier.offset(y = (2.dp)),
+                        text = stringResource(id = R.string.app_title),
+                        fontSize = 22.sp,
+                        color = colorResource(id = R.color.light_grey),
+                    )
+                    if (!spotifyLoggedInState)
+                        Text(
+                            modifier = Modifier.offset(y = -(2.dp)),
+                            text = mainSubtitleState!!,
+                            fontSize = 16.sp,
+                            color = colorResource(id = R.color.mid_grey)
+                        )
+                }
+            },
+            colors = TopAppBarColors(
+                containerColor = colorResource(id = R.color.windowBackground),
+                scrolledContainerColor = colorResource(id = R.color.windowBackground),
+                navigationIconContentColor = colorResource(id = R.color.mid_grey),
+                titleContentColor = colorResource(id = R.color.light_grey),
+                actionIconContentColor = colorResource(id = R.color.mid_grey)
+            ),
+            scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
+            actions = {
+                //SETTINGS BUTTON:
+                IconButton(
+                    onClick = {
+                        //Navigate:
+                        val curNavRoute = NavigationItem.Settings.route
+                        if (curNavRoute == lastNavRoute && (settingsOpenState)) {
+                            navController.popBackStack()
+                        } else {
+                            navigateTo(navController, curNavRoute)
+                        }
+                        lastNavRoute = curNavRoute
+                    }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.item_settings),
+                        contentDescription = "",
+                        tint = if (settingsOpenState) {
+                            colorResource(id = R.color.colorAccentLight)
+                        } else {
+                            colorResource(id = R.color.light_grey)
+                        }
+                    )
+                }
+
+                //"MORE OPTIONS" BUTTON:
+                IconButton(onClick = { mDisplayMenu = !mDisplayMenu }) {
+                    Icon(
+                        Icons.Default.MoreVert,
+                        "",
+                        tint = colorResource(id = R.color.light_grey)
+                    )
+                }
+
+                //DROPDOWN MENU:
+                DropdownMenu(
+                    modifier = Modifier
+                        .background(colorResource(id = R.color.dark_grey_background)),
+                    expanded = mDisplayMenu,
+                    onDismissRequest = { mDisplayMenu = false }
+                ) {
+
+                    //1) Item: LOGIN/LOGOUT
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = if (!spotifyLoggedInState) "Login to Spotify" else "Logout from Spotify",
+                                color = colorResource(id = R.color.light_grey),
+                                fontSize = 16.sp
+                            )},
+                        leadingIcon = {
+                            Icon(
+                                painterResource(id = R.drawable.item_user),
+                                "",
+                                tint = colorResource(id = R.color.mid_grey)
+                            )
+                        },
+                        onClick = {
+                            if (!spotifyLoggedInState) {
+                                //Login user -> Open WebView:
+                                val intent1 = Intent(this@MainActivity, WebAuth::class.java)
+                                startActivity(intent1)
+                            } else {
+                                //LOG OUT:
+                                logoutDialogOn.value = true
+                            }
+                            mDisplayMenu = false
+                        })
+
+                    //2) Item: VOICE SETTINGS
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = "Voice settings",
+                                color = colorResource(id = R.color.light_grey),
+                                fontSize = 16.sp
+                            )},
+                        leadingIcon = {
+                            Icon(
+                                painterResource(id = R.drawable.speak_icon_gray),
+                                "",
+                                tint = colorResource(id = R.color.mid_grey)
+                            )
+                        },
+                        onClick = {
+                            //Set app preferences:
+                            val intent1 = Intent("com.android.settings.TTS_SETTINGS")
+                            startActivity(intent1)
+                            mDisplayMenu = false
+                        })
+
+                    //3) Item: PERMISSIONS
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = "Permissions",
+                                color = colorResource(id = R.color.light_grey),
+                                fontSize = 16.sp
+                            )},
+                        leadingIcon = {
+                            Icon(
+                                painterResource(id = R.drawable.item_permissions),
+                                "",
+                                tint = colorResource(id = R.color.mid_grey)
+                            )
+                        },
+                        onClick = {
+                            //Set app preferences:
+                            val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                            val uri = Uri.fromParts("package", packageName, null)
+                            intent1.setData(uri)
+                            startActivity(intent1)
+                            mDisplayMenu = false
+                        })
+
                 }
             }
-            var item = navRail!!.menu.findItem(curNavItemId)
-            item.isChecked = true
-        } else {
-            //VERTICAL:
-            navRail!!.visibility = View.GONE
-            navBar!!.visibility = View.VISIBLE
-            var item = navBar!!.menu.findItem(curNavItemId)
-            item.isChecked = true
-        }
+        )
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        setOrientationLayout(newConfig)
-    }
 
-    private fun selectNavItem(item: MenuItem) {
-        Log.d(TAG, "${item.itemId}")
-        if (item.itemId != curNavItemId) {
-            curFragment = when (item.itemId) {
-                R.id.nav_home -> HomeFragment()
-                R.id.nav_help -> GuideFragment()
-                R.id.nav_myDJames -> MyDJamesFragment()
-                R.id.nav_history -> HistoryFragment()
-                else -> HomeFragment()
-            }
-            var newInd = when (item.itemId) {
-                R.id.nav_home -> 0
-                R.id.nav_help -> 1
-                R.id.nav_myDJames -> 2
-                R.id.nav_history -> 3
-                else -> 0
-            }
-            var transaction = supportFragmentManager.beginTransaction()
-            if (newInd > curInd) {
-                transaction.setCustomAnimations(
-                    R.anim.slide_in_from_right, // enter
-                    R.anim.fade_out, // exit
-                    R.anim.fade_in, // popEnter
-                    R.anim.slide_out_from_right // popExit
-                )
-            } else {
-                transaction.setCustomAnimations(
-                    R.anim.slide_in_from_left, // enter
-                    R.anim.fade_out, // exit
-                    R.anim.fade_in, // popEnter
-                    R.anim.slide_out_from_left // popExit
-                )
-            }
-            //transaction.setReorderingAllowed(true)
-            //transaction.addToBackStack(null)
-            transaction.replace(R.id.main_frame, curFragment!!)
-            transaction.commit()
-
-            item.isChecked = true
-            curNavItemId = item.itemId
-            curInd = newInd
+    @Composable
+    fun DialogLogout(mContext: Context, dialogOnState: MutableState<Boolean>) {
+        //LOGOUT DIALOG:
+        if (dialogOnState.value) {
+            AlertDialog(
+                onDismissRequest = {
+                    //cancelable -> true
+                    dialogOnState.value = false
+                },
+                containerColor = colorResource(id = R.color.dark_grey),
+                title = {
+                    Text(
+                        text = "Logout",
+                        color = colorResource(id = R.color.light_grey)
+                    ) },
+                text = {
+                    Text(
+                        text = "You will need to login again to Spotify to use DJames.\n\nDo you want to log out?",   // and you'll lose your saved vocabulary & history
+                        color = colorResource(id = R.color.mid_grey)
+                    ) },
+                dismissButton = {
+                    Text(
+                        modifier = Modifier
+                            .padding(end = 20.dp)
+                            .clickable {
+                                dialogOnState.value = false
+                            },
+                        text = "No",
+                        fontSize = 14.sp,
+                        color = colorResource(id = R.color.colorAccentLight)
+                    )
+                },
+                confirmButton = {
+                    Text(
+                        modifier = Modifier
+                            .clickable {
+                                logout(mContext)
+                                dialogOnState.value = false
+                            },
+                        text = "Yes",
+                        fontSize = 14.sp,
+                        color = colorResource(id = R.color.colorAccentLight)
+                    )
+                }
+            )
         }
     }
 
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        @SuppressLint("RestrictedApi")
-        if (menu is MenuBuilder) {
-            menu.setOptionalIconsVisible(true)
-        }
-        loginButton = menu.findItem(R.id.action_login)
-        //Spotify login:
-        if (prefs.spotifyToken != "") {
-            loginButton!!.setTitle("Logout from Spotify")
-        } else {
-            loginButton!!.setTitle("Login to Spotify")
-        }
-        return true
-    }
-
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here
-        val id = item.itemId
-
-        if (id == R.id.action_login) {
-            //Login / logout:
-            if (!spotifyLoggedIn) {
-                //Login user -> Open WebView:
-                val intent1 = Intent(this@MainActivity, WebAuth::class.java)
-                startActivity(intent1)
-            } else {
-                logout(applicationContext)
-            }
-            return true
-
-        } else if (id == R.id.action_settings) {
-            //Settings:
-            val intent1 = Intent(this@MainActivity, SettingsActivity::class.java)
-            startActivity(intent1)
-            return true
-
-        } else if (id == R.id.action_permissions) {
-            //Set app preferences:
-            val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-            val uri = Uri.fromParts("package", packageName, null)
-            intent1.setData(uri)
-            startActivity(intent1)
-            return true
-
-        } else if (id == R.id.action_tts) {
-            //Set app preferences:
-            val intent1 = Intent("com.android.settings.TTS_SETTINGS")
-            startActivity(intent1)
-            return true
-
-        } else {
-            return super.onOptionsItemSelected(item)
-        }
-    }
-
-    fun isMyServiceRunning(serviceClass: Class<*>): Boolean {
-        val manager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
-        for (service in manager.getRunningServices(Int.MAX_VALUE)) {
-            if (serviceClass.name == service.service.className) {
-                return true
-            }
-        }
-        return false
-    }
-
-    //Logout user:
+    //LOGOUT:
     fun logout(context: Context) {
-        val alertDialog = MaterialAlertDialogBuilder(this)
-        //Save all:
-        alertDialog.setPositiveButton("Yes", object : DialogInterface.OnClickListener {
-            override fun onClick(dialog: DialogInterface?, which: Int) {
-                //LOG OUT:
-                utils.logoutCommons(context)
-                setViewLoggedOut()
-                //Send broadcasts:
-                Intent().also { intent ->
-                    intent.setAction(ACTION_HOME_LOGGED_OUT)
-                    sendBroadcast(intent)
-                }
-            }
-        })
-        //Exit without saving:
-        alertDialog.setNegativeButton("No", object : DialogInterface.OnClickListener {
-            override fun onClick(dialog: DialogInterface?, which: Int) {
-                spotifyLoggedIn = true
-            }
-        })
-        alertDialog.setTitle("Log out")
-        alertDialog.setMessage("You will need to login again to Spotify to use DJames and you'll lose your saved vocabulary & history.\n\nDo you want to log out?")
-        alertDialog.show()
-    }
-
-    fun setViewLoggedOut(): Boolean {
-        //Set NOT Logged-In UI:
-        if (loginButton != null) {
-            loginButton!!.setTitle("Login to Spotify")
-        }
-        supportActionBar!!.subtitle = ""
-        return false
+        //Delete tokens & user details:
+        var utils = Utilities()
+        spotifyLoggedIn.postValue(false)
+        prefs.spotifyToken = ""
+        prefs.refreshToken = ""
+        prefs.spotUserId = ""
+        prefs.spotUserName = ""
+        prefs.spotUserEMail = ""
+        prefs.spotUserImage = ""
+        prefs.spotCountry = ""
+        prefs.nlpUserId = utils.generateRandomString(12)
+        //utils.deleteUserCache()
+        Toast.makeText(context, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()
     }
 
 
@@ -390,26 +566,11 @@ class MainActivity : AppCompatActivity() {
 
         override fun onReceive(context: Context?, intent: Intent?) {
 
-            //When logged in:
+            //Success: logged in:
             if (intent!!.action == ACTION_MAIN_LOGGED_IN) {
                 Log.d(TAG, "MAIN: ACTION_MAIN_LOGGED_IN.")
-                spotifyLoggedIn = true
-                try {
-                    //Set Logged-In UI:
-                    if (loginButton != null) {
-                        loginButton!!.setTitle("Logout from Spotify")
-                    }
-                    mainActionBar!!.subtitle = "for ${prefs.spotUserName}"
-                } catch (e: Exception) {
-                    Log.d(TAG, "MAIN: ACTION_MAIN_LOGGED_IN: resources not available.")
-                }
-
-                //TOAST:
-                try {
-                    Toast.makeText(context, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
-                } catch (e: Exception) {
-                    Log.w(TAG, "MAIN: ACTION_MAIN_LOGGED_IN: cannot toast.")
-                }
+                spotifyLoggedIn.postValue(true)
+                Toast.makeText(context, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
             }
 
             //Finish activity:
@@ -418,65 +579,13 @@ class MainActivity : AppCompatActivity() {
                 finishAndRemoveTask()
             }
 
-            //Switch fragment:
-            if (intent.action == ACTION_SWITCH_FRAGMENT) {
-                val mdId = intent.getIntExtra("mdId", 0)
-                var mdFragment = when (mdId) {
-                    0 -> MyDJamesFragment()
-                    1 -> VocabularyFragment()
-                    //2 -> ForYouFragment()
-                    else -> MyDJamesFragment()
-                }
-
-                if (mdId > 0) {
-                    var transaction = supportFragmentManager.beginTransaction()
-                    transaction.setCustomAnimations(
-                        R.anim.fade_in, // enter
-                        R.anim.fade_out, // exit
-                        R.anim.fade_in, // popEnter
-                        R.anim.fade_out // popExit
-                    )
-                    transaction.replace(R.id.main_frame, mdFragment)
-                    transaction.addToBackStack("tag")
-                    transaction.commit()
-
-                } else {
-                    var transaction = supportFragmentManager.beginTransaction()
-                    transaction.setCustomAnimations(
-                        R.anim.fade_out, // enter
-                        R.anim.fade_in, // exit
-                        R.anim.fade_out, // popEnter
-                        R.anim.fade_in // popExit
-                    )
-                    transaction.replace(R.id.main_frame, mdFragment)
-                    transaction.addToBackStack(null)
-                    transaction.commit()
-                }
-
-                prevMdFragment = mdFragment
-
+            //Refresh RecycleView:
+            if (intent.action == ACTION_LOG_REFRESH) {
+                Log.d(TAG, "HISTORY: ACTION_LOG_REFRESH.")
+                updateHistory(context!!)
             }
+
         }
     }
-
-
-//    //Manage volume up keyEvent in Main Activity:
-//    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-//        val keyCode = event.keyCode
-//        val action = event.action
-//        val source = event.source
-//        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP && action == 0) {
-//            Log.d(
-//                TAG,
-//                "KEY BUTTON PRESSED, KEYCODE: ${keyCode}, ACTION: ${action}, SOURCE: ${source}"
-//            )
-//            Toast.makeText(
-//                applicationContext,
-//                "KEY BUTTON PRESSED, KEYCODE: ${keyCode}, ACTION: ${action}, SOURCE: ${source}",
-//                Toast.LENGTH_LONG
-//            ).show()
-//        }
-//        return super.dispatchKeyEvent(event)
-//    }
 
 }

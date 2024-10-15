@@ -12,6 +12,7 @@ import android.graphics.Color
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.ToneGenerator
+import android.os.Environment
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -27,7 +28,6 @@ import com.ftrono.DJames.application.audioManager
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recordingMode
 import com.ftrono.DJames.application.voiceQueryOn
-import com.ftrono.DJames.application.saveDir
 import com.ftrono.DJames.application.searchFail
 import com.ftrono.DJames.application.silenceInitPatience
 import com.ftrono.DJames.application.silencePatience
@@ -48,6 +48,7 @@ class VoiceQueryService: Service() {
     private val TAG = VoiceQueryService::class.java.simpleName
     private val utils = Utilities()
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
+    private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
     //Recorder:
     private var rec_time = 0

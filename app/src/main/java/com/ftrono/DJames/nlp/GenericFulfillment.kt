@@ -8,11 +8,11 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_MAKE_CALL
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.last_log
+import com.ftrono.DJames.application.messLangCaps
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.supportedLanguageCodes
-import com.ftrono.DJames.application.supportedMessLangCodes
-import com.ftrono.DJames.application.supportedMessLangNames
+import com.ftrono.DJames.application.messLangCodes
+import com.ftrono.DJames.application.messLangNames
 import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
@@ -61,8 +61,7 @@ class GenericFulfillment (private var context: Context) {
 
             //TODO: eng only!
             var ttsToRead = "Calling ${contact_name}..."
-            var defaultLangCode = supportedLanguageCodes[prefs.queryLanguage.toInt()]
-            utils.ttsRead(context, defaultLangCode, ttsToRead, dimAudio=false)
+            utils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
         }
 
         utils.releaseAudioFocus()
@@ -119,12 +118,12 @@ class GenericFulfillment (private var context: Context) {
             try {
                 //Contact preferences:
                 reqLangName = contact_extractor.get("contact_language").asString
-                reqLangCode = supportedMessLangCodes[supportedMessLangNames.indexOf(reqLangName)]
+                reqLangCode = messLangCodes[messLangNames.indexOf(reqLangName)]
                 Log.d(TAG, "PREFERRED CONTACT LANGUAGE: $reqLangCode")
             } catch (e: Exception) {
                 //Global preferences:
-                reqLangName = supportedMessLangNames[prefs.messageLanguage.toInt()]
-                reqLangCode = supportedMessLangCodes[prefs.messageLanguage.toInt()]
+                reqLangName = messLangCaps[messLangCodes.indexOf(prefs.messageLanguage)]
+                reqLangCode = prefs.messageLanguage
                 Log.d(TAG, "Messaging in default language: $reqLangCode")
             }
         }
@@ -149,8 +148,7 @@ class GenericFulfillment (private var context: Context) {
 
             //TODO: eng only!
             var ttsToRead = "Please, dictate the message for ${contact_name} in $reqLangName."
-            var defaultLangCode = supportedLanguageCodes[prefs.queryLanguage.toInt()]
-            utils.ttsRead(context, defaultLangCode, ttsToRead, dimAudio=false)
+            utils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
         }
 
         //processStatus:
@@ -194,8 +192,7 @@ class GenericFulfillment (private var context: Context) {
 
             //TODO: eng only!
             var ttsToRead = "Message sent to ${contact_name}!"
-            var defaultLangCode = supportedLanguageCodes[prefs.queryLanguage.toInt()]
-            utils.ttsRead(context, defaultLangCode, ttsToRead, dimAudio=false)
+            utils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
 
 
         } catch (e: Exception) {

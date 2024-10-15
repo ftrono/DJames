@@ -16,13 +16,14 @@
     <application
         android:name=".application.App"
         android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
-        android:usesCleartextTraffic="true"
-        tools:ignore="GoogleAppIndexingWarning">
+        android:theme="@style/Theme.DJames"
+        tools:targetApi="34">
         
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -36,9 +37,10 @@
 
         <activity
             android:name=".application.MainActivity"
-            android:configChanges="orientation|screenSize|keyboard|keyboardHidden|navigation"
-            android:theme="@style/AppTheme.NoActionBar"
+            android:theme="@style/Theme.DJames"
+            android:label="@string/app_name"
             android:exported="true"
+            android:windowSoftInputMode="adjustResize"
             android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -48,18 +50,9 @@
         </activity>
 
         <activity
-            android:name=".application.SettingsActivity"
-            android:configChanges="orientation|screenSize|keyboard|keyboardHidden|navigation"
-            android:label="Settings"
-            android:launchMode="singleInstance"
-            android:parentActivityName=".application.MainActivity">
-        </activity>
-
-        <activity
-            android:name=".application.FakeLockScreen"
-            android:configChanges="orientation|screenSize|keyboard|keyboardHidden|navigation"
-            android:label="FakeLockScreen"
-            android:theme="@style/AppTheme.FakeLockScreen"
+            android:name=".application.ClockActivity"
+            android:label="Clock"
+            android:theme="@style/Theme.DJames"
             android:launchMode="singleInstance"
             android:parentActivityName=".application.MainActivity">
         </activity>

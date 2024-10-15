@@ -1,6 +1,6 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.jetbrains.kotlin.android)
 }
 
 android {
@@ -15,6 +15,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary = true
+        }
     }
 
     buildTypes {
@@ -34,38 +37,70 @@ android {
         jvmTarget = "1.8"
     }
     buildFeatures {
+        compose = true
         viewBinding = true
         buildConfig = true
     }
-
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.1"
+    }
     packaging {
-        resources.excludes.add("META-INF/*")
-        resources.excludes.add("META-INF/kotlin-jupyter-libraries/libraries.json")
-        resources.excludes.add("draftv3/*")
-        resources.excludes.add("draftv4/*")
-        resources.excludes.add("arrow-git.*")
-        resources.excludes.add("protobuf-java")
-        resources.excludes.add("com.google.protobuf:protobuf-javalite:3.25.1")
-        resources.excludes.add("com.google.protobuf:protobuf-java:3.25.2")
+        resources {
+            excludes.add("META-INF/*")
+            excludes.add("META-INF/kotlin-jupyter-libraries/libraries.json")
+            excludes.add("draftv3/*")
+            excludes.add("draftv4/*")
+            excludes.add("arrow-git.*")
+            excludes.add("protobuf-java")
+            excludes.add("com.google.protobuf:protobuf-javalite:3.25.1")
+            excludes.add("com.google.protobuf:protobuf-java:3.25.2")
+        }
     }
 }
 
 dependencies {
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.11.0")
-    implementation("androidx.compose.material3:material3:1.1.2")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("androidx.activity:activity-compose:1.3.1")
-    implementation("androidx.navigation:navigation-fragment-ktx:2.6.0")
-    implementation("androidx.navigation:navigation-ui-ktx:2.6.0")
-    implementation("androidx.security:security-crypto:1.1.0-alpha03")
-    implementation("androidx.core:core:1.8.0")
-    implementation("androidx.media:media:1.6.0")
-    implementation("androidx.core:core:1.0.1")
+    //val nav_version = "2.7.7"
+    val compose_version = rootProject.extra.get("compose_version") as String
+
+    implementation(libs.androidx.core)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.material3)
+
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation("androidx.compose.ui:ui:$compose_version")
+    implementation("androidx.compose.material:material:$compose_version")
+    implementation("androidx.compose.ui:ui-tooling-preview:$compose_version")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:$compose_version")
+    debugImplementation("androidx.compose.ui:ui-tooling:$compose_version")
+
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.material3.adaptive.navigation.suite)
+    implementation(libs.androidx.material3.adaptive.navigation.suite.android)
+    implementation(libs.androidx.runtime.livedata)
+
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.security.crypto)
+    implementation(libs.androidx.media)
+    implementation(libs.material)
+    implementation(libs.material3)
+
+    //implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
+
     // OkHTTP: define a BOM and its version
     implementation(platform("com.squareup.okhttp3:okhttp-bom:4.12.0"))
     // OkHTTP: define any required OkHttp artifacts without version
@@ -103,8 +138,6 @@ dependencies {
     implementation("com.arthenica:ffmpeg-kit-full:6.0-2")
     //FuzzyWuzzy:
     implementation("me.xdrop:fuzzywuzzy:1.4.0")
-    //Swipe to refresh:
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
     //Advanced WebView:
     implementation("com.github.delight-im:Android-AdvancedWebView:v3.2.1")
 }

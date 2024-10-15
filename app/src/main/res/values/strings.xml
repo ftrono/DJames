@@ -1,38 +1,4 @@
 <resources>
     <string name="app_name">DJames</string>
     <string name="app_title">🎧 DJames</string>
-    <!-- Main: DJames view -->
-    <string name="str_main_start">Hi, Sir!\nTap on START to begin! 🚗</string>
-    <string name="str_main_stop">Hi, Sir!\nHow can I help you? 🚗</string>
-    <string name="str_use_main">You can ask me many things:\ngo have a look to the Guide!</string>
-    <string name="str_use_active">Use the FLOATING button, the VOLUME UP button,\nor a remote SHUTTER button to\nrecord a voice request!</string>
-    <string name="str_use_active_no_vol">Use the FLOATING button to\nrecord a voice request!</string>
-    <!-- Main: Login Status -->
-    <string name="str_status_logged">LOGGED IN</string>
-    <string name="str_status_not_logged">NOT LOGGED IN</string>
-    <!-- History: Match result status -->
-    <string name="result_good">🟢</string>
-    <string name="result_not_good">🟡</string>
-    <string name="result_question">❔</string>
-    <!-- Settings & various -->
-    <string name="str_enable_overlay">Please enable the \'Display over other apps\' permission first!</string>
-    <!-- Settings spinners -->
-    <string-array name="overlayPos">
-        <item>Left     </item>
-        <item>Right     </item>
-    </string-array>
-    <string-array name="languages">
-        <item>English     </item>
-        <item>Italiano     </item>
-    </string-array>
-    <string-array name="messLanguages">
-        <item>English     </item>
-        <item>Italian     </item>
-        <item>German     </item>
-        <item>French     </item>
-        <item>Spanish     </item>
-    </string-array>
-    <!-- Guide: Help descriptions -->
-    <string name="player_settings_str_1">"Open your Spotify app, then go to \"Settings &amp; Privacy\" -> \"Playback\" and ensure these 2 toggles are ON:"</string>
-    <string name="player_settings_str_2">"This will enable player info and ensure continuous playback."</string>
-    </resources>
+</resources>

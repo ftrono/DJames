@@ -1,0 +1,37 @@
+{
+  "artists": {
+    "andreas moe": {},
+    "deaf havana": {},
+    "evanescence": {},
+    "linkin park": {},
+    "the script": {}
+  },
+  "playlists": {
+    "80 ricky classics": {
+      "playlist_URL": "https://open.spotify.com/playlist/6kLXlHdx6Mi0ZCz13zJIAm"
+    },
+    "francis ford": {
+      "playlist_URL": "https://open.spotify.com/playlist/7mhf8hSssPLlLfuDvBmhs6"
+    }
+  },
+  "contacts": {
+    "mammut": {
+      "prefix": "+39",
+      "phone": "3321122332",
+      "contact_language": "it"
+    },
+    "myself": {
+      "prefix": "+39",
+      "phone": "3331122333",
+      "contact_language": "it"
+    },
+    "ricky": {
+      "prefix": "+39",
+      "phone": "3341122334",
+      "contact_language": "en"
+    }
+  },
+  "places": {},
+  "parking": {},
+  "news": {}
+}

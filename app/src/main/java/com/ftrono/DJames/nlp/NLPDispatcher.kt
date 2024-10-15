@@ -7,7 +7,6 @@ import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.newsTalk
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.supportedLanguageCodes
 import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.spotify.SpotifyFulfillment
 import com.ftrono.DJames.utilities.Utilities
@@ -37,7 +36,7 @@ class NLPDispatcher (private var context: Context) {
          */
 
         //Init:
-        var reqLanguage = supportedLanguageCodes[prefs.queryLanguage.toInt()]
+        var reqLanguage = prefs.queryLanguage
         var intentName = ""
 
         if (prevStatus.has("reqLanguage")) {
@@ -79,11 +78,11 @@ class NLPDispatcher (private var context: Context) {
                     when (intentName) {
                         "CallRequest" -> return fulfillment.makeCall(resultsNLP)
                         "MessageRequest" -> return fulfillment.sendMessage1(resultsNLP)
-                        "PlaySong" -> if (spotifyLoggedIn) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
-                        "PlayAlbum" -> if (spotifyLoggedIn) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
-                        "PlayArtist" -> if (spotifyLoggedIn) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
-                        "PlayPlaylist" -> if (spotifyLoggedIn) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
-                        "PlayCollection" -> if (spotifyLoggedIn) return spotify.playCollection(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
+                        "PlaySong" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
+                        "PlayAlbum" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
+                        "PlayArtist" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
+                        "PlayPlaylist" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
+                        "PlayCollection" -> if (spotifyLoggedIn.value!!) return spotify.playCollection(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
                         "Cancel" -> return utils.fallback()
                         else -> return utils.fallback("Sorry, I did not understand!")
                     }
@@ -147,10 +146,10 @@ class NLPDispatcher (private var context: Context) {
                             "Cancel" -> return utils.fallback()
                             else -> {
                                 when (prevIntent) {
-                                    "PlaySong" -> if (spotifyLoggedIn) return spotify.playSongAlbum2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
-                                    "PlayAlbum" -> if (spotifyLoggedIn) return spotify.playSongAlbum2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
-                                    "PlayArtist" -> if (spotifyLoggedIn) return spotify.playArtistPlaylist2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
-                                    "PlayPlaylist" -> if (spotifyLoggedIn) return spotify.playArtistPlaylist2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
+                                    "PlaySong" -> if (spotifyLoggedIn.value!!) return spotify.playSongAlbum2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
+                                    "PlayAlbum" -> if (spotifyLoggedIn.value!!) return spotify.playSongAlbum2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
+                                    "PlayArtist" -> if (spotifyLoggedIn.value!!) return spotify.playArtistPlaylist2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
+                                    "PlayPlaylist" -> if (spotifyLoggedIn.value!!) return spotify.playArtistPlaylist2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
                                 }
                             }
                         }

@@ -257,7 +257,7 @@ class ClockActivity: ComponentActivity() {
                                 .padding(start = 14.dp)
                                 .wrapContentWidth(),
                             text = currentArtistPlayingState!!,
-                            lineHeight = 14.sp,
+                            lineHeight = 16.sp,
                             color = colorResource(id = R.color.mid_grey),
                             fontSize = 14.sp
                         )

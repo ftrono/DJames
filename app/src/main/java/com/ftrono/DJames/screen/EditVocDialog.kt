@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -23,6 +24,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -139,6 +142,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
     var textPlayURL by rememberSaveable { mutableStateOf(initPlayUrl) }
     var textPrefix by rememberSaveable { mutableStateOf(initPrefix) }
     var textPhone by rememberSaveable { mutableStateOf(initPhone) }
+    var checkedLang by remember { mutableStateOf(false) }
     var textLanguageState = rememberSaveable { mutableStateOf(initLanguage) }
 
     val focusRequester = remember { FocusRequester() }
@@ -161,6 +165,12 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
             handleColor = colorResource(id = R.color.colorAccent),
             backgroundColor = colorResource(id = R.color.transparent_green)
         )
+    )
+
+    val checkBoxColors = CheckboxDefaults.colors(
+        checkedColor = colorResource(id = R.color.colorAccent),
+        uncheckedColor = colorResource(id = R.color.colorAccent),
+        checkmarkColor = colorResource(id = R.color.light_grey)
     )
 
     //EDIT DIALOG:
@@ -296,17 +306,8 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                     )
 
                 } else if (filter == "contact") {
-                    //CONTACTS: TEXT FIELD 2:
-                    Text(
-                        text = "Preferred messaging language",
-                        color = colorResource(id = R.color.colorAccentLight),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    DropdownSpinner(mContext, messLangCaps, init=initLanguage, state=textLanguageState)
 
-                    //CONTACTS: TEXT FIELD 3:
+                    //CONTACTS: TEXT FIELD 2:
                     Text(
                         text = "Main phone",
                         color = colorResource(id = R.color.colorAccentLight),
@@ -323,7 +324,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                         //PREFIX:
                         OutlinedTextField(
                             modifier = Modifier
-                                .padding(top = 8.dp, bottom = 20.dp)
+                                .padding(top = 8.dp, bottom = 10.dp)
                                 .width(60.dp)
                                 .wrapContentHeight(),
                             colors = textFieldColors,
@@ -352,7 +353,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                         //SUFFIX:
                         OutlinedTextField(
                             modifier = Modifier
-                                .padding(top = 8.dp, bottom = 20.dp)
+                                .padding(top = 8.dp, bottom = 10.dp)
                                 .fillMaxWidth()
                                 .wrapContentHeight()
                                 .focusRequester(focusRequester),
@@ -385,6 +386,37 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                             },
                         )
                     }
+
+                    //CONTACTS: CHECKBOX:
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Checkbox(
+                            modifier = Modifier
+                                .padding(bottom = if (checkedLang) 0.dp else 6.dp)
+                                .offset(x = -(12.dp)),
+                            checked = checkedLang,
+                            onCheckedChange = { checkedLang = it },
+                            colors = checkBoxColors
+                        )
+                        Text(
+                            modifier = Modifier
+                                .padding(bottom = if (checkedLang) 0.dp else 6.dp)
+                                .offset(x = -(12.dp)),
+                            text = if (checkedLang) {
+                                "Set custom messaging language"
+                            } else {
+                                "Set custom messaging language\n(default: ${initLanguage})"
+                            },
+                            fontSize = 14.sp,
+                            lineHeight = 16.sp,
+                            color = if (checkedLang) colorResource(id = R.color.light_grey) else colorResource(id = R.color.mid_grey)
+                        )
+                    }
+                    if (checkedLang) {
+                        //CONTACTS: DROPDOWN:
+                        DropdownSpinner(mContext, messLangCaps, init=initLanguage, state=textLanguageState)
+                    }
                 }
                 //BUTTONS ROW:
                 Row(
@@ -413,16 +445,29 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                                 var newDetails = JsonObject()
                                 //Get new info:
                                 if (filter == "playlist") {
-                                    newDetails.addProperty("playlist_URL", textPlayURL.replace(" ", ""))
+                                    newDetails.addProperty(
+                                        "playlist_URL",
+                                        textPlayURL.replace(" ", "")
+                                    )
                                 } else if (filter == "contact") {
                                     if (textLanguageState.value != initLanguage) {
-                                        newDetails.addProperty("contact_language", textLanguageState.value)
+                                        newDetails.addProperty(
+                                            "contact_language",
+                                            textLanguageState.value
+                                        )
                                     }
                                     newDetails.addProperty("prefix", textPrefix.replace(" ", ""))
                                     newDetails.addProperty("phone", textPhone.replace(" ", ""))
                                 }
                                 //Edit:
-                                requestDetailOn.value = editVocItemAndShow(mContext=mContext, prevText=initName, newText=textName.lowercase(), newDetails=newDetails, filter=filter, vocItems=vocItems)
+                                requestDetailOn.value = editVocItemAndShow(
+                                    mContext = mContext,
+                                    prevText = initName,
+                                    newText = textName.lowercase(),
+                                    newDetails = newDetails,
+                                    filter = filter,
+                                    vocItems = vocItems
+                                )
                                 if (!requestDetailOn.value) {
                                     //CLOSE THE DIALOG:
                                     dialogOnState.value = false

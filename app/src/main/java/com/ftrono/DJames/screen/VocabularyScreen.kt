@@ -98,13 +98,12 @@ fun VocabularyScreen(navController: NavController, filter: String, myDJamesItem:
             "Your ${filter}s vocabulary is empty!\n\nHelp DJames understand your\n lesser known or hard-to-spell $filter names\nby writing them here.\n\n✏️"
     }
 
-    var vocItems = JsonObject()
     var vocabulary by rememberSaveable {
         mutableStateOf(updateVocabulary(mContext, filter, preview))
     }
+    var vocItems = JsonParser.parseString(vocabulary).asJsonObject
+    var listItems = vocItems.keySet().toList()
     val vocabularySizeState by vocabularySize.observeAsState()
-    vocabulary = updateVocabulary(mContext, filter, preview)
-    vocItems = JsonParser.parseString(vocabulary).asJsonObject
     vocabularySize.postValue(vocItems.size())
 
     //ALL:
@@ -114,6 +113,7 @@ fun VocabularyScreen(navController: NavController, filter: String, myDJamesItem:
     } else {
         vocabulary = updateVocabulary(mContext, filter, preview)
         vocItems = JsonParser.parseString(vocabulary).asJsonObject
+        listItems = vocItems.keySet().toList()
         vocabularySize.postValue(vocItems.size())
     }
 
@@ -123,11 +123,9 @@ fun VocabularyScreen(navController: NavController, filter: String, myDJamesItem:
     } else {
         vocabulary = updateVocabulary(mContext, filter, preview)
         vocItems = JsonParser.parseString(vocabulary).asJsonObject
+        listItems = vocItems.keySet().toList()
         vocabularySize.postValue(vocItems.size())
     }
-
-    //List states:
-    val listState = rememberLazyListState()
 
     Scaffold(
         floatingActionButton = {
@@ -265,6 +263,7 @@ fun VocabularyScreen(navController: NavController, filter: String, myDJamesItem:
                             onClick = {
                                 vocabulary = updateVocabulary(mContext, filter)
                                 vocItems = JsonParser.parseString(vocabulary).asJsonObject
+                                listItems = vocItems.keySet().toList()
                                 vocabularySize.postValue(vocItems.size())
                                 Toast.makeText(mContext, "Vocabulary updated!", Toast.LENGTH_SHORT).show()
                             }
@@ -314,13 +313,12 @@ fun VocabularyScreen(navController: NavController, filter: String, myDJamesItem:
                         modifier = Modifier
                             .fillMaxSize()
                     ) {
-                        var items = JsonParser.parseString(vocabulary).asJsonObject.keySet().toList()
                         itemsIndexed(
-                            items
+                            listItems
                         ) { index, item ->
                             //HISTORY CARD:
                             VocabularyCard(item, filter, myDJamesItem, vocItems, preview)
-                            if (index == items.lastIndex) Spacer(modifier = Modifier.padding(40.dp))
+                            if (index == listItems.lastIndex) Spacer(modifier = Modifier.padding(40.dp))
                         }
                     }
                 }

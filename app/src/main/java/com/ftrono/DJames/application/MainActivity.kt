@@ -67,8 +67,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
-import com.ftrono.DJames.screen.restartOverlay
-import com.ftrono.DJames.screen.updateHistory
 import com.ftrono.DJames.services.FloatingViewService
 import com.ftrono.DJames.ui.Navigation
 import com.ftrono.DJames.ui.navigateTo
@@ -172,16 +170,16 @@ class MainActivity : ComponentActivity() {
         }
 
         //AUTO START-UP:
-//        if (prefs.autoStartup && !main_initialized && !utils.isMyServiceRunning(FloatingViewService::class.java, this@MainActivity)) {
-//            try {
-//                var intentOS = Intent(this@MainActivity, FloatingViewService::class.java)
-//                intentOS.putExtra("faded", false)
-//                this@MainActivity.startService(intentOS)
-//            } catch (e: Exception) {
-//                Log.w(TAG, "Cannot auto-start Overlay Service. EXCEPTION: ", e)
-//            }
-//
-//        }
+        if (prefs.autoStartup && !main_initialized && !utils.isMyServiceRunning(FloatingViewService::class.java, this@MainActivity)) {
+            try {
+                var intentOS = Intent(this@MainActivity, FloatingViewService::class.java)
+                intentOS.putExtra("faded", false)
+                this@MainActivity.startService(intentOS)
+            } catch (e: Exception) {
+                Log.w(TAG, "Cannot auto-start Overlay Service. EXCEPTION: ", e)
+            }
+
+        }
 
         //Done:
         main_initialized = true

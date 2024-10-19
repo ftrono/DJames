@@ -178,7 +178,7 @@ fun GuideScreen(navController: NavController) {
                                 first = iCat == 0 && iReq == 0   //expand first item only
                             ) {
                                 Card(
-                                    shape = RoundedCornerShape(8.dp),
+                                    shape = RoundedCornerShape(20.dp),
                                     modifier = Modifier
                                         .padding(start = 52.dp, end = 24.dp, bottom = 12.dp)
                                         .fillMaxWidth(),
@@ -319,9 +319,9 @@ fun ExpandableItemTitle(modifier: Modifier = Modifier, isExpanded: MutableState<
     //SECTION HEADER:
     Chip(
         modifier = modifier
-            .padding(start=42.dp),
+            .padding(start=50.dp),
         colors = ChipDefaults.chipColors(
-            backgroundColor = if (isExpanded.value) colorResource(id = R.color.windowBackground) else colorResource(id = R.color.dark_grey_background),
+            backgroundColor = if (isExpanded.value) colorResource(id = R.color.dark_grey) else colorResource(id = R.color.dark_grey_background),
             contentColor = colorResource(id = R.color.light_grey),
             leadingIconContentColor = colorResource(id = R.color.mid_grey)
         ),
@@ -342,7 +342,6 @@ fun ExpandableItemTitle(modifier: Modifier = Modifier, isExpanded: MutableState<
             text = title,
             fontSize = 14.sp,
             fontStyle = FontStyle.Italic,
-            fontWeight = if (isExpanded.value) FontWeight.Bold else null,
             color = colorResource(id = R.color.light_grey)
         )
     }

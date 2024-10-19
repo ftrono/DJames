@@ -84,6 +84,10 @@ fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
         mutableStateOf("")
     }
 
+    var lastCatExpanded = rememberSaveable {
+        mutableStateOf(-1)
+    }
+
     var iCat = 0
 
     Column (
@@ -156,11 +160,12 @@ fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
                 } else if (editVocOn.value) {
                     DialogEditVocabulary(mContext, editVocOn, vocabulary, keyState, head, preview)
                 }
+                if (preview  && iCat == 0) {
+                    lastCatExpanded.value = 0
+                }
                 var sectionIsExpanded = rememberSaveable {
                     mutableStateOf(
-                        if (preview) {
-                            if (iCat == 0) true else false
-                        } else false
+                        if (iCat == lastCatExpanded.value) true else false
                     )
                 }
                 if (sectionIsExpanded.value) {
@@ -171,9 +176,11 @@ fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
                     mContext = mContext,
                     vocabulary = vocabulary,
                     deleteVocOn = deleteVocOn,
+                    lastCatExpanded= lastCatExpanded,
                     modifier = Modifier
                         .fillMaxWidth(),
                     sectionIsExpanded = sectionIsExpanded,
+                    iCat = iCat,
                     head = head,
                     title = "My ${head.replaceFirstChar { it.uppercase() }}s",
                     subtitle = if (head == "artist") {
@@ -184,78 +191,77 @@ fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
                         "For calls and messages"
                     )
                 ) {
-                    ContextualFlowRow(
+                    FlowRow(
                         modifier = Modifier
                             .padding(start = 52.dp, end = 24.dp, bottom = 12.dp)
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.Start,
                         verticalArrangement = Arrangement.Center,
-                        itemCount = getVocKeys(mContext, head, preview).size
                     ) {
-                        index ->
-                        //VOC CHIPS:
-                        val key = vocabulary.value[index]
-                        Box(
-                            modifier = Modifier
-                                .padding(end = 6.dp)
-                                .wrapContentSize()
-                        ) {
-                            var mDisplayMenu = rememberSaveable {
-                                mutableStateOf(false)
-                            }
-
-                            Chip(
-                                colors = ChipDefaults.chipColors(
-                                    backgroundColor = if (key == "") {
-                                        colorResource(id = R.color.colorAccent)
-                                    } else if (mDisplayMenu.value) {
-                                        colorResource(id = R.color.colorPrimary)
-                                    } else {
-                                        colorResource(id = R.color.dark_grey_background)
-                                    },
-                                    contentColor = colorResource(id = R.color.light_grey),
-                                    leadingIconContentColor = colorResource(id = R.color.mid_grey)
-                                ),
-                                leadingIcon = {
-                                    if (key == "") {
-                                        //ADD NEW:
-                                        Icon(
-                                            modifier = Modifier
-                                                .padding(start = 2.dp)
-                                                .size(20.dp),
-                                            imageVector = Icons.Default.Add,
-                                            contentDescription = "ADD NEW",
-                                            tint = colorResource(id = R.color.light_grey)
-                                        )
-                                    } else {
-                                        //CHIP ICON:
-                                        VocIcon(
-                                            padding = 2,
-                                            size = 20,
-                                            filter = head
-                                        )
-                                    }
-                                },
-                                onClick = {
-                                    filter.postValue(head)
-                                    if (key == "") {
-                                        editVocOn.value = true
-                                    } else {
-                                        mDisplayMenu.value = !mDisplayMenu.value
-                                    }
-                                }
+                        for (key in vocabulary.value) { 
+                            //VOC CHIPS:
+                            Box(
+                                modifier = Modifier
+                                    .padding(end = 6.dp)
+                                    .wrapContentSize()
                             ) {
-                                Text(
-                                    modifier = Modifier
-                                        .wrapContentWidth()
-                                        .wrapContentHeight(),
-                                    color = if (mDisplayMenu.value) colorResource(id = R.color.colorAccentLight) else colorResource(id = R.color.light_grey),
-                                    fontSize = 14.sp,
-                                    fontStyle = if (key == "") null else FontStyle.Italic,
-                                    text = if (key == "") "ADD" else key
-                                )
+                                var mDisplayMenu = rememberSaveable {
+                                    mutableStateOf(false)
+                                }
+
+                                Chip(
+                                    colors = ChipDefaults.chipColors(
+                                        backgroundColor = if (key == "") {
+                                            colorResource(id = R.color.colorAccent)
+                                        } else if (mDisplayMenu.value) {
+                                            colorResource(id = R.color.dark_grey)
+                                        } else {
+                                            colorResource(id = R.color.dark_grey_background)
+                                        },
+                                        contentColor = colorResource(id = R.color.light_grey),
+                                        leadingIconContentColor = colorResource(id = R.color.mid_grey)
+                                    ),
+                                    leadingIcon = {
+                                        if (key == "") {
+                                            //ADD NEW:
+                                            Icon(
+                                                modifier = Modifier
+                                                    .padding(start = 2.dp)
+                                                    .size(20.dp),
+                                                imageVector = Icons.Default.Add,
+                                                contentDescription = "ADD NEW",
+                                                tint = colorResource(id = R.color.light_grey)
+                                            )
+                                        } else {
+                                            //CHIP ICON:
+                                            VocIcon(
+                                                padding = 2,
+                                                size = 20,
+                                                filter = head
+                                            )
+                                        }
+                                    },
+                                    onClick = {
+                                        filter.postValue(head)
+                                        if (key == "") {
+                                            editVocOn.value = true
+                                        } else {
+                                            mDisplayMenu.value = !mDisplayMenu.value
+                                        }
+                                    }
+                                ) {
+                                    Text(
+                                        modifier = Modifier
+                                            .wrapContentWidth()
+                                            .wrapContentHeight(),
+                                        color = colorResource(id = R.color.light_grey),
+                                        fontSize = 14.sp,
+                                        fontStyle = if (key == "") null else FontStyle.Italic,
+                                        text = if (key == "") "ADD" else key
+                                    )
+                                }
+                                ChipOptions(mDisplayMenu, deleteVocOn, editVocOn, keyState, key)
                             }
-                            ChipOptions(mDisplayMenu, deleteVocOn, editVocOn, keyState, key)
                         }
                     }
                 }
@@ -361,7 +367,9 @@ fun ExpandableVocSection(
     mContext: Context,
     vocabulary: MutableState<List<String>>,
     deleteVocOn: MutableState<Boolean>,
+    lastCatExpanded: MutableState<Int>,
     modifier: Modifier = Modifier,
+    iCat: Int,
     head: String,
     title: String,
     subtitle: String,
@@ -370,7 +378,14 @@ fun ExpandableVocSection(
 ) {
     Column(
         modifier = modifier
-            .clickable { sectionIsExpanded.value = !sectionIsExpanded.value }
+            .clickable {
+                sectionIsExpanded.value = !sectionIsExpanded.value
+                if (sectionIsExpanded.value) {
+                    lastCatExpanded.value = iCat
+                } else {
+                    lastCatExpanded.value = -1
+                }
+            }
             .fillMaxWidth()
     ) {
         //SECTION:
@@ -557,7 +572,6 @@ fun CatOptions(
         )
     }
 }
-
 
 
 @Composable

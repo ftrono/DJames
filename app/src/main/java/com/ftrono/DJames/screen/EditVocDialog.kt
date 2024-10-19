@@ -122,7 +122,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
     var initPlayUrl = ""
     var prevLangCode = ""
     var initLanguageCaps = if (preview) "Italian" else ""
-    var defaultLanguageCaps = messLangCaps[messLangCodes.indexOf(prefs.messageLanguage)]
+    var defaultLanguageCaps = if (preview) "Italian" else messLangCaps[messLangCodes.indexOf(prefs.messageLanguage)]
     var initPrefix = "+39"
     var initPhone = ""
 
@@ -325,7 +325,6 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                     )
 
                 } else if (filter == "contact") {
-
                     //CONTACTS: TEXT FIELD 2:
                     Text(
                         text = "Main phone",

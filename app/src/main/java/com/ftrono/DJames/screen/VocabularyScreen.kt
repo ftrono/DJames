@@ -35,6 +35,8 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -177,7 +179,7 @@ fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
                     subtitle = if (head == "artist") {
                         "Favourite or hard-to-spell names"
                     } else if (head == "playlist") {
-                        "For playing music within"
+                        "For playing songs within"
                     } else (
                         "For calls and messages"
                     )
@@ -402,72 +404,90 @@ fun ExpandableVocSectionTitle(
     isExpanded: Boolean,
     head: String,
     title: String,
-    subtitle: String,
-    preview: Boolean = false
+    subtitle: String
 ) {
     var mDisplayMenu = rememberSaveable {
         mutableStateOf(false)
     }
     val icon = if (isExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
-    //SECTION HEADER:
-    Row(
-        modifier = modifier
-            .padding(start=8.dp, end=8.dp, top=12.dp, bottom=8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        //CAT ICON:
-        VocIcon(
-            padding=8,
-            size=32,
-            filter=head
+    //CARD:
+    Card(
+        modifier = Modifier
+            .padding(
+                start=20.dp,
+                end=20.dp,
+                top=8.dp,
+                bottom=8.dp
+            )
+            .fillMaxWidth()
+            .wrapContentHeight(),
+        //border = BorderStroke(1.dp, colorResource(id = R.color.dark_grey)),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors (
+            containerColor = if (isExpanded) colorResource(id = R.color.windowBackground) else colorResource(id = R.color.dark_grey_background)
         )
-        //TITLE:
-        Column(
-            modifier = Modifier
-                .padding(start = 12.dp)
-                .weight(1f),
+    ) {
+        //SECTION HEADER:
+        Row(
+            modifier = modifier
+                .padding(start = 8.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            //Title:
-            Text(
-                text = title,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = colorResource(id = R.color.light_grey)
+            //CAT ICON:
+            VocIcon(
+                padding = 8,
+                size = 32,
+                filter = head
             )
-            //Subtitle:
-            Text(
-                text = subtitle,
-                fontSize = 14.sp,
-                color = colorResource(id = R.color.mid_grey)
-            )
-        }
-        //"MORE OPTIONS" BUTTON:
-        Box() {
+            //TITLE:
+            Column(
+                modifier = Modifier
+                    .padding(start = 12.dp)
+                    .weight(1f),
+            ) {
+                //Title:
+                Text(
+                    text = title,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colorResource(id = R.color.light_grey)
+                )
+                //Subtitle:
+                Text(
+                    text = subtitle,
+                    fontSize = 14.sp,
+                    color = colorResource(id = R.color.mid_grey)
+                )
+            }
+            //"MORE OPTIONS" BUTTON:
+            Box() {
+                Icon(
+                    modifier = Modifier
+                        .padding(end = 8.dp)
+                        .clickable { mDisplayMenu.value = !mDisplayMenu.value },
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "",
+                    tint = colorResource(id = R.color.light_grey)
+                )
+                CatOptions(
+                    mContext = mContext,
+                    vocabulary = vocabulary,
+                    mDisplayMenu = mDisplayMenu,
+                    deleteVocOn = deleteVocOn,
+                    head = head
+                )
+            }
+
+            //EXPAND/COLLAPSE:
             Icon(
                 modifier = Modifier
-                    .padding(end=8.dp)
-                    .clickable { mDisplayMenu.value = !mDisplayMenu.value },
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = "",
-                tint = colorResource(id = R.color.light_grey)
+                    .padding(end = 12.dp)
+                    .size(32.dp),
+                imageVector = icon,
+                tint = colorResource(id = R.color.light_grey),
+                contentDescription = "Expand / collapse"
             )
-            CatOptions(
-                mContext = mContext,
-                vocabulary = vocabulary,
-                mDisplayMenu = mDisplayMenu,
-                deleteVocOn = deleteVocOn,
-                head = head)
         }
-
-        //EXPAND/COLLAPSE:
-        Icon(
-            modifier = Modifier
-                .padding(end = 12.dp)
-                .size(32.dp),
-            imageVector = icon,
-            tint = colorResource(id = R.color.light_grey),
-            contentDescription = "Expand / collapse"
-        )
     }
 }
 
@@ -624,7 +644,7 @@ fun updateVocabulary(mContext: Context, filter: String, preview: Boolean = false
         //Real data:
         val utils = Utilities()
         val vocItems = utils.getVocabulary(filter=filter)
-        Log.d("Vocabulary", vocItems.toString())
+        //Log.d("Vocabulary", vocItems.toString())
         return vocItems
     }
 }

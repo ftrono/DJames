@@ -321,7 +321,7 @@ fun ExpandableItemTitle(modifier: Modifier = Modifier, isExpanded: MutableState<
         modifier = modifier
             .padding(start=42.dp),
         colors = ChipDefaults.chipColors(
-            backgroundColor = if (isExpanded.value) colorResource(id = R.color.colorPrimary) else colorResource(id = R.color.dark_grey_background),
+            backgroundColor = if (isExpanded.value) colorResource(id = R.color.windowBackground) else colorResource(id = R.color.dark_grey_background),
             contentColor = colorResource(id = R.color.light_grey),
             leadingIconContentColor = colorResource(id = R.color.mid_grey)
         ),
@@ -342,7 +342,8 @@ fun ExpandableItemTitle(modifier: Modifier = Modifier, isExpanded: MutableState<
             text = title,
             fontSize = 14.sp,
             fontStyle = FontStyle.Italic,
-            color = if (isExpanded.value) colorResource(id = R.color.colorAccentLight) else colorResource(id = R.color.light_grey)
+            fontWeight = if (isExpanded.value) FontWeight.Bold else null,
+            color = colorResource(id = R.color.light_grey)
         )
     }
 }

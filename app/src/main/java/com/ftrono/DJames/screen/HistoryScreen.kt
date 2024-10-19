@@ -298,6 +298,7 @@ fun HistoryCard(item: JsonObject) {
                     .wrapContentHeight(),
                 color = colorResource(id = R.color.light_grey),
                 fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
                 fontStyle = FontStyle.Italic,
                 lineHeight = 16.sp,
                 text = textMain

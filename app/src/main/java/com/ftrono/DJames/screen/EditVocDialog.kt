@@ -545,8 +545,8 @@ fun editVocItemAndShow(mContext: Context, vocabulary: MutableState<List<String>>
         if (vocItems.has(prevText)) {
             prevDetails = vocItems.get(prevText).asJsonObject
         }
-        Log.d("EditVoc", prevDetails.toString())
-        Log.d("EditVoc", newDetails.toString())
+//        Log.d("EditVoc", prevDetails.toString())
+//        Log.d("EditVoc", newDetails.toString())
         //Save to file:
         if (newText != prevText || newDetails != prevDetails) {
             val utils = Utilities()

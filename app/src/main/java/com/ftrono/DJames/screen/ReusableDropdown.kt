@@ -105,10 +105,12 @@ fun DropdownSpinner(mContext: Context, parentOptions: List<String>, init: String
                             restartOverlay(mContext)
                         } else if (prefName == "queryLanguage") {
                             prefs.queryLanguage = queryLangCodes[queryLangCaps.indexOf(selectionOption)]
-                            state.value = prefs.queryLanguage
+                            state.value = selectionOption
                         } else if (prefName == "messageLanguage") {
                             prefs.messageLanguage = messLangCodes[messLangCaps.indexOf(selectionOption)]
-                            state.value = prefs.messageLanguage
+                            state.value = selectionOption
+                        } else {
+                            state.value = selectionOption
                         }
                         isExpanded = false
                     },

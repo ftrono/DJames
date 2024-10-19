@@ -2,6 +2,7 @@ package com.ftrono.DJames.screen
 
 import android.content.Context
 import android.telephony.PhoneNumberUtils
+import android.util.Log
 import android.util.Patterns
 import android.webkit.URLUtil
 import android.widget.Toast
@@ -55,6 +56,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.filter
 import com.ftrono.DJames.application.headOrder
 import com.ftrono.DJames.application.messLangCaps
 import com.ftrono.DJames.application.messLangCodes
@@ -112,15 +114,19 @@ fun DialogRequestDetail(mContext: Context, dialogOnState: MutableState<Boolean>,
 
 
 @Composable
-fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>, vocabulary: MutableState<Map<String, List<String>>>, keyState: MutableState<String>, filter: String, preview: Boolean = false) {
+fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>, vocabulary: MutableState<List<String>>, keyState: MutableState<String>, filter: String, preview: Boolean = false) {
     //Init:
     var key = keyState.value
     var vocItems = updateVocabulary(mContext, filter, preview)
     var initName = key
     var initPlayUrl = ""
-    var initLanguage = if (preview) "it" else messLangCaps[messLangCodes.indexOf(prefs.messageLanguage)]
+    var prevLangCode = ""
+    var initLanguageCaps = if (preview) "Italian" else ""
+    var defaultLanguageCaps = messLangCaps[messLangCodes.indexOf(prefs.messageLanguage)]
     var initPrefix = "+39"
     var initPhone = ""
+
+    var checkedLang by remember { mutableStateOf(false) }
 
     //Recover info:
     if (key != "") {
@@ -129,7 +135,9 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
             initPlayUrl = prevDetails.get("playlist_URL").asString
         } else if (filter == "contact") {
             if (prevDetails.has("contact_language")) {
-                initLanguage = prevDetails.get("contact_language").asString.lowercase()
+                prevLangCode = prevDetails.get("contact_language").asString
+                initLanguageCaps = messLangCaps[messLangCodes.indexOf(prevLangCode)]
+                checkedLang = true
             }
             initPrefix = prevDetails.get("prefix").asString
             initPhone = prevDetails.get("phone").asString
@@ -141,8 +149,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
     var textPlayURL by rememberSaveable { mutableStateOf(initPlayUrl) }
     var textPrefix by rememberSaveable { mutableStateOf(initPrefix) }
     var textPhone by rememberSaveable { mutableStateOf(initPhone) }
-    var checkedLang by remember { mutableStateOf(false) }
-    var textLanguageState = rememberSaveable { mutableStateOf(initLanguage) }
+    var textLanguageState = rememberSaveable { mutableStateOf(initLanguageCaps) }
 
     val focusRequester = remember { FocusRequester() }
 
@@ -419,7 +426,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                             text = if (checkedLang) {
                                 "Set custom messaging language"
                             } else {
-                                "Set custom messaging language\n(default: ${initLanguage})"
+                                "Set custom messaging language\n(default: ${defaultLanguageCaps})"
                             },
                             fontSize = 14.sp,
                             lineHeight = 16.sp,
@@ -428,7 +435,11 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                     }
                     if (checkedLang) {
                         //CONTACTS: DROPDOWN:
-                        DropdownSpinner(mContext, messLangCaps, init=initLanguage, state=textLanguageState)
+                        val initCaps = if (prevLangCode == "") defaultLanguageCaps else messLangCaps[messLangCodes.indexOf(prevLangCode)]
+                        textLanguageState.value = initCaps
+                        DropdownSpinner(mContext, messLangCaps, init=initCaps, state=textLanguageState)
+                    } else {
+                        textLanguageState.value = ""
                     }
                 }
                 //BUTTONS ROW:
@@ -464,11 +475,9 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                                         textPlayURL.replace(" ", "")
                                     )
                                 } else if (filter == "contact") {
-                                    if (textLanguageState.value != initLanguage) {
-                                        newDetails.addProperty(
-                                            "contact_language",
-                                            textLanguageState.value
-                                        )
+                                    if (textLanguageState.value != "") {
+                                        val newLangCode = messLangCodes[messLangCaps.indexOf(textLanguageState.value)]
+                                        newDetails.addProperty("contact_language", newLangCode)
                                     }
                                     newDetails.addProperty("prefix", textPrefix.replace(" ", ""))
                                     newDetails.addProperty("phone", textPhone.replace(" ", ""))
@@ -502,7 +511,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
 
 
 //Edit Voc item:
-fun editVocItemAndShow(mContext: Context, vocabulary: MutableState<Map<String, List<String>>>, prevText: String, newText: String, newDetails: JsonObject, filter: String, vocItems: JsonObject): Boolean {
+fun editVocItemAndShow(mContext: Context, vocabulary: MutableState<List<String>>, prevText: String, newText: String, newDetails: JsonObject, filter: String, vocItems: JsonObject): Boolean {
     //Return true -> Show DialogRequestDetail;
     //Return false -> Don't show DialogRequestDetail.
     if (newText != "") {
@@ -519,7 +528,12 @@ fun editVocItemAndShow(mContext: Context, vocabulary: MutableState<Map<String, L
         } else if (filter == "contact") {
             var newPrefix = newDetails.get("prefix").asString
             var newPhone = newDetails.get("phone").asString
-            var newLang = newDetails.get("contact_language").asString   //TODO
+            var newLang = ""
+            try {
+                newLang = newDetails.get("contact_language").asString   //TODO
+            } catch (e: Exception) {
+                newLang = ""
+            }
             var phoneTest = PhoneNumberUtils.isGlobalPhoneNumber(newPhone)
             //Request valid detail (i.e. no URL, no phone number, no international prefix in phone number):
             if (!phoneTest || (!newPrefix.contains("+") && newPrefix.length != 3) || (newPhone.length != 10 && newPhone.length != 11)) {
@@ -531,6 +545,8 @@ fun editVocItemAndShow(mContext: Context, vocabulary: MutableState<Map<String, L
         if (vocItems.has(prevText)) {
             prevDetails = vocItems.get(prevText).asJsonObject
         }
+        Log.d("EditVoc", prevDetails.toString())
+        Log.d("EditVoc", newDetails.toString())
         //Save to file:
         if (newText != prevText || newDetails != prevDetails) {
             val utils = Utilities()
@@ -540,7 +556,7 @@ fun editVocItemAndShow(mContext: Context, vocabulary: MutableState<Map<String, L
             } else {
                 Toast.makeText(mContext, "ERROR: Vocabulary not updated!", Toast.LENGTH_LONG).show()
             }
-            vocabulary.value = getJoinedVoc(mContext, headOrder)   //Refresh list
+            vocabulary.value = getVocKeys(mContext, filter)   //Refresh list
         }
     }
     return false

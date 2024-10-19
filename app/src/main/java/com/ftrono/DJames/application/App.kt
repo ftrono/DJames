@@ -36,11 +36,9 @@ var filter = MutableLiveData<String>("artist")
 var currentSongPlaying = MutableLiveData<String>("Don't turn off the screen!")
 var currentArtistPlaying = MutableLiveData<String>("Keep this Clock Screen on\nto save battery")
 var currentAlbumPlaying = MutableLiveData<String>("(unless you're using Maps)")
-var historySize = MutableLiveData<Int>(0)
-
-//Vocabulary sections (must match in length):
 val headOrder = listOf("artist", "playlist", "contact")
-val headStates = listOf(true, false, false)
+var historySize = MutableLiveData<Int>(0)
+val vocEditPreview = "contact"
 
 //Preferences:
 val silenceInitPatience = 3

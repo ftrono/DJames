@@ -398,13 +398,14 @@ class MainActivity : ComponentActivity() {
                 }
 
                 //"MORE OPTIONS" BUTTON:
-                IconButton(onClick = { mDisplayMenu = !mDisplayMenu }) {
-                    Icon(
-                        Icons.Default.MoreVert,
-                        "",
-                        tint = colorResource(id = R.color.light_grey)
-                    )
-                }
+                Icon(
+                    modifier = Modifier
+                        .padding(end=8.dp)
+                        .clickable { mDisplayMenu = !mDisplayMenu },
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "",
+                    tint = colorResource(id = R.color.light_grey)
+                )
 
                 //DROPDOWN MENU:
                 DropdownMenu(

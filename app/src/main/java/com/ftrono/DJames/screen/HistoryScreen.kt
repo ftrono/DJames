@@ -22,11 +22,14 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -51,6 +54,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.filter
 import com.ftrono.DJames.application.historySize
 import com.ftrono.DJames.application.logDir
 import com.ftrono.DJames.application.midThreshold
@@ -221,6 +225,10 @@ fun HistoryCard(item: JsonObject) {
     val textMain = itemInfo.get("textMain").asString
     val textExtra = itemInfo.get("textExtra").asString
 
+    var mDisplayMenu = rememberSaveable {
+        mutableStateOf(false)
+    }
+
     val deleteLogOn = rememberSaveable { mutableStateOf(false) }
     if (deleteLogOn.value) {
         DialogDeleteHistory(mContext, deleteLogOn, filename)
@@ -230,91 +238,145 @@ fun HistoryCard(item: JsonObject) {
     Card(
         onClick = { openLog(mContext, filename) },
         modifier = Modifier
-            .padding(12.dp)
+            .padding(
+                start=20.dp,
+                end=20.dp,
+                top=8.dp,
+                bottom=8.dp
+            )
             .fillMaxWidth()
-            .wrapContentHeight()
-            .shadow(
-                elevation = 2.dp,
-                spotColor = colorResource(id = R.color.black),
-                shape = RoundedCornerShape(10.dp)
-            ),
+            .wrapContentHeight(),
         //border = BorderStroke(1.dp, colorResource(id = R.color.dark_grey)),
-        shape = RoundedCornerShape(10.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors (
-            containerColor = colorResource(id = R.color.windowBackground)
+            containerColor = colorResource(id = R.color.dark_grey_background)
         )
     ) {
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ){
-            //INTRO & DATETIME:
-            Text(
-                modifier = Modifier
-                    .padding(start = 12.dp)
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-                color = colorResource(id = R.color.mid_grey),
-                fontSize = 12.sp,
-                text = textIntro
-            )
+        Column (
+            modifier = Modifier
+                .padding(10.dp)
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
-            ){
-                //SEND BUTTON:
-                IconButton(
+            ) {
+                //INTRO & DATETIME:
+                Text(
                     modifier = Modifier
-                        .padding(end = 6.dp)
-                        .size(30.dp),
-                    onClick = { sendLog(mContext, filename) }) {
+                        .padding(start = 12.dp, top=2.dp)
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .weight(1f),
+                    color = colorResource(id = R.color.mid_grey),
+                    fontSize = 12.sp,
+                    text = textIntro
+                )
+                //"MORE OPTIONS" BUTTON:
+                Box() {
                     Icon(
-                        modifier = Modifier.size(27.dp),
-                        imageVector = Icons.Default.Share,
-                        contentDescription = "Share log",
-                        tint = colorResource(id = R.color.mid_grey)
+                        modifier = Modifier
+                            .padding(end=4.dp)
+                            .clickable { mDisplayMenu.value = !mDisplayMenu.value },
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "",
+                        tint = colorResource(id = R.color.light_grey)
                     )
-                }
-                //DELETE BUTTON:
-                IconButton(
-                    modifier = Modifier
-                        .padding(end = 12.dp)
-                        .size(30.dp),
-                    onClick = {
-                        deleteLogOn.value = true
-                    }) {
-                    Icon(
-                        modifier = Modifier.size(27.dp),
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete log",
-                        tint = colorResource(id = R.color.mid_grey)
-                    )
+                    HistoryOptions(
+                        mContext = mContext,
+                        mDisplayMenu = mDisplayMenu,
+                        deleteLogOn = deleteLogOn,
+                        filename = filename)
                 }
             }
+            //REQUEST TEXT:
+            Text(
+                modifier = Modifier
+                    .padding(start = 12.dp, top=4.dp, bottom = 10.dp)
+                    .wrapContentWidth()
+                    .wrapContentHeight(),
+                color = colorResource(id = R.color.light_grey),
+                fontSize = 14.sp,
+                fontStyle = FontStyle.Italic,
+                lineHeight = 16.sp,
+                text = textMain
+            )
+            //EXTRA INFO:
+            Text(
+                modifier = Modifier
+                    .padding(start = 12.dp, bottom = 8.dp)
+                    .wrapContentWidth()
+                    .wrapContentHeight(),
+                color = colorResource(id = R.color.colorAccentLight),
+                fontSize = 12.sp,
+                lineHeight = 14.sp,
+                text = textExtra
+            )
         }
-        //REQUEST TEXT:
-        Text(
-            modifier = Modifier
-                .padding(start = 12.dp, bottom = 8.dp)
-                .wrapContentWidth()
-                .wrapContentHeight(),
-            color = colorResource(id = R.color.light_grey),
-            fontSize = 14.sp,
-            fontStyle = FontStyle.Italic,
-            text = textMain
+    }
+}
+
+
+//DROPDOWN MENU:
+@Composable
+fun HistoryOptions(
+    mContext: Context,
+    mDisplayMenu: MutableState<Boolean>,
+    deleteLogOn: MutableState<Boolean>,
+    filename: String
+) {
+    //DROPDOWN MENU:
+    DropdownMenu(
+        modifier = Modifier
+            .background(colorResource(id = R.color.dark_grey)),
+        shape = RoundedCornerShape(20.dp),
+        expanded = mDisplayMenu.value,
+        onDismissRequest = {
+            mDisplayMenu.value = false
+        }
+    ) {
+
+        //1) Item: SHARE LOG
+        DropdownMenuItem(
+            text = {
+                Text(
+                    text = "Share",
+                    color = colorResource(id = R.color.light_grey),
+                    fontSize = 16.sp
+                )},
+            leadingIcon = {
+                Icon(
+                    Icons.Default.Share,
+                    "Share",
+                    tint = colorResource(id = R.color.mid_grey)
+                )
+            },
+            onClick = {
+                sendLog(mContext, filename)
+                mDisplayMenu.value = false
+            }
         )
-        //EXTRA INFO:
-        Text(
-            modifier = Modifier
-                .padding(start = 12.dp, bottom = 8.dp)
-                .wrapContentWidth()
-                .wrapContentHeight(),
-            color = colorResource(id = R.color.colorAccentLight),
-            fontSize = 12.sp,
-            lineHeight = 14.sp,
-            text = textExtra
+
+        //2) Item: DELETE LOG
+        DropdownMenuItem(
+            text = {
+                Text(
+                    text = "Delete log",
+                    color = colorResource(id = R.color.light_grey),
+                    fontSize = 16.sp
+                )},
+            leadingIcon = {
+                Icon(
+                    Icons.Default.Delete,
+                    "Delete log",
+                    tint = colorResource(id = R.color.mid_grey)
+                )
+            },
+            onClick = {
+                mDisplayMenu.value = false
+                deleteLogOn.value = true
+            }
         )
     }
 }

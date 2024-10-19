@@ -16,6 +16,9 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Chip
+import androidx.compose.material.ChipDefaults
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.Card
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
@@ -26,6 +29,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -257,10 +261,10 @@ fun ExpandableItem(
     first: Boolean,
     content: @Composable () -> Unit
 ) {
-    var itemIsExpanded by rememberSaveable { mutableStateOf(first) }
+    var itemIsExpanded = rememberSaveable { mutableStateOf(first) }
     Column(
         modifier = modifier
-            .clickable { itemIsExpanded = !itemIsExpanded }
+            .clickable { itemIsExpanded.value = !itemIsExpanded.value }
             .fillMaxWidth()
     ) {
         //SECTION:
@@ -271,7 +275,7 @@ fun ExpandableItem(
         AnimatedVisibility(
             modifier = Modifier
                 .fillMaxWidth(),
-            visible = itemIsExpanded
+            visible = itemIsExpanded.value
         ) {
             content()
         }
@@ -308,31 +312,37 @@ fun ExpandableSectionTitle(modifier: Modifier = Modifier, isExpanded: Boolean, t
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun ExpandableItemTitle(modifier: Modifier = Modifier, isExpanded: Boolean, title: String) {
-    val icon = if (isExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
+fun ExpandableItemTitle(modifier: Modifier = Modifier, isExpanded: MutableState<Boolean>, title: String) {
+    val icon = if (isExpanded.value) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
     //SECTION HEADER:
-    Row(
+    Chip(
         modifier = modifier
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(start=42.dp),
+        colors = ChipDefaults.chipColors(
+            backgroundColor = if (isExpanded.value) colorResource(id = R.color.colorPrimary) else colorResource(id = R.color.dark_grey_background),
+            contentColor = colorResource(id = R.color.light_grey),
+            leadingIconContentColor = colorResource(id = R.color.mid_grey)
+        ),
+        leadingIcon = {
+            Icon(
+                modifier = Modifier
+                    .size(24.dp),
+                imageVector = icon,
+                tint = colorResource(id = R.color.colorAccentLight),
+                contentDescription = "Expand / collapse"
+            )
+        },
+        onClick = {
+            isExpanded.value = !isExpanded.value
+        }
     ) {
-        Icon(
-            modifier = Modifier
-                .padding(start = 42.dp)
-                .size(24.dp),
-            imageVector = icon,
-            tint = colorResource(id = R.color.light_grey),
-            contentDescription = "Expand / collapse"
-        )
         Text(
-            modifier = Modifier
-                .padding(start = 12.dp)
-                .weight(1f),
             text = title,
-            fontSize = 16.sp,
+            fontSize = 14.sp,
             fontStyle = FontStyle.Italic,
-            color = colorResource(id = R.color.colorAccentLight)
+            color = if (isExpanded.value) colorResource(id = R.color.colorAccentLight) else colorResource(id = R.color.light_grey)
         )
     }
 }

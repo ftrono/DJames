@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ContextualFlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -37,15 +38,11 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -59,8 +56,8 @@ import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.filter
 import com.ftrono.DJames.application.headOrder
-import com.ftrono.DJames.application.headStates
 import com.ftrono.DJames.application.vocDir
+import com.ftrono.DJames.application.vocEditPreview
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -80,10 +77,6 @@ fun VocScreenPreview() {
 @Composable
 fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
     val mContext = LocalContext.current
-
-    var vocabulary = rememberSaveable {
-        mutableStateOf(getJoinedVoc(mContext, headOrder, preview))
-    }
 
     var keyState = rememberSaveable {
         mutableStateOf("")
@@ -145,17 +138,32 @@ fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
                 .verticalScroll(rememberScrollState())
         ) {
             //SECTIONS:
-            for (head in vocabulary.value.keys) {
+            for (head in headOrder) {
+                var vocabulary = rememberSaveable {
+                    mutableStateOf(listOf<String>(""))
+                }
+
                 val deleteVocOn = rememberSaveable { mutableStateOf(false) }
                 if (deleteVocOn.value) {
-                    DialogDeleteVocabulary(mContext, deleteVocOn, vocabulary, keyState, filter.value!!)
+                    DialogDeleteVocabulary(mContext, deleteVocOn, vocabulary, keyState, head)
                 }
 
                 val editVocOn = rememberSaveable { mutableStateOf(editPreview) }
-                if (editVocOn.value || editPreview) {
-                    DialogEditVocabulary(mContext, editVocOn, vocabulary, keyState, filter.value!!, preview)
+                if (editPreview) {
+                    DialogEditVocabulary(mContext, editVocOn, vocabulary, keyState, vocEditPreview, preview)   //TODO: change in App.kt
+                } else if (editVocOn.value) {
+                    DialogEditVocabulary(mContext, editVocOn, vocabulary, keyState, head, preview)
                 }
-                var sectionIsExpanded = rememberSaveable { mutableStateOf(if (iCat == 0) true else false) }
+                var sectionIsExpanded = rememberSaveable {
+                    mutableStateOf(
+                        if (preview) {
+                            if (iCat == 0) true else false
+                        } else false
+                    )
+                }
+                if (sectionIsExpanded.value) {
+                    vocabulary.value = getVocKeys(mContext, head, preview)
+                }
 
                 ExpandableVocSection(
                     mContext = mContext,
@@ -174,77 +182,78 @@ fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
                         "For calls and messages"
                     )
                 ) {
-                    FlowRow(
+                    ContextualFlowRow(
                         modifier = Modifier
                             .padding(start = 52.dp, end = 24.dp, bottom = 12.dp)
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.Start,
-                        verticalArrangement = Arrangement.Center
+                        verticalArrangement = Arrangement.Center,
+                        itemCount = getVocKeys(mContext, head, preview).size
                     ) {
+                        index ->
                         //VOC CHIPS:
-                        for (key in vocabulary.value[head]!!) {
-                            Box(
-                                modifier = Modifier
-                                    .padding(end = 6.dp)
-                                    .wrapContentSize()
-                            ) {
-                                var mDisplayMenu = rememberSaveable {
-                                    mutableStateOf(false)
-                                }
-
-                                Chip(
-                                    colors = ChipDefaults.chipColors(
-                                        backgroundColor = if (key == "") {
-                                            colorResource(id = R.color.colorAccent)
-                                        } else if (mDisplayMenu.value) {
-                                            colorResource(id = R.color.colorPrimary)
-                                        } else {
-                                            colorResource(id = R.color.dark_grey)
-                                        },
-                                        contentColor = colorResource(id = R.color.light_grey),
-                                        leadingIconContentColor = colorResource(id = R.color.mid_grey)
-                                    ),
-                                    leadingIcon = {
-                                        if (key == "") {
-                                            //ADD NEW:
-                                            Icon(
-                                                modifier = Modifier
-                                                    .padding(start = 2.dp)
-                                                    .size(20.dp),
-                                                imageVector = Icons.Default.Add,
-                                                contentDescription = "ADD NEW",
-                                                tint = colorResource(id = R.color.light_grey)
-                                            )
-                                        } else {
-                                            //CHIP ICON:
-                                            VocIcon(
-                                                padding = 2,
-                                                size = 20,
-                                                filter = head
-                                            )
-                                        }
-                                    },
-                                    onClick = {
-                                        filter.postValue(head)
-                                        if (key == "") {
-                                            editVocOn.value = true
-                                        } else {
-                                            mDisplayMenu.value = !mDisplayMenu.value
-                                        }
-                                    }
-                                ) {
-                                    Text(
-                                        modifier = Modifier
-                                            .wrapContentWidth()
-                                            .wrapContentHeight(),
-                                        color = colorResource(id = R.color.light_grey),
-                                        fontSize = 14.sp,
-                                        fontStyle = if (key == "") null else FontStyle.Italic,
-                                        text = if (key == "") "ADD" else key
-                                    )
-                                }
-                                ChipOptions(mDisplayMenu, deleteVocOn, editVocOn, keyState, key)
+                        val key = vocabulary.value[index]
+                        Box(
+                            modifier = Modifier
+                                .padding(end = 6.dp)
+                                .wrapContentSize()
+                        ) {
+                            var mDisplayMenu = rememberSaveable {
+                                mutableStateOf(false)
                             }
+
+                            Chip(
+                                colors = ChipDefaults.chipColors(
+                                    backgroundColor = if (key == "") {
+                                        colorResource(id = R.color.colorAccent)
+                                    } else if (mDisplayMenu.value) {
+                                        colorResource(id = R.color.colorPrimary)
+                                    } else {
+                                        colorResource(id = R.color.dark_grey_background)
+                                    },
+                                    contentColor = colorResource(id = R.color.light_grey),
+                                    leadingIconContentColor = colorResource(id = R.color.mid_grey)
+                                ),
+                                leadingIcon = {
+                                    if (key == "") {
+                                        //ADD NEW:
+                                        Icon(
+                                            modifier = Modifier
+                                                .padding(start = 2.dp)
+                                                .size(20.dp),
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = "ADD NEW",
+                                            tint = colorResource(id = R.color.light_grey)
+                                        )
+                                    } else {
+                                        //CHIP ICON:
+                                        VocIcon(
+                                            padding = 2,
+                                            size = 20,
+                                            filter = head
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    filter.postValue(head)
+                                    if (key == "") {
+                                        editVocOn.value = true
+                                    } else {
+                                        mDisplayMenu.value = !mDisplayMenu.value
+                                    }
+                                }
+                            ) {
+                                Text(
+                                    modifier = Modifier
+                                        .wrapContentWidth()
+                                        .wrapContentHeight(),
+                                    color = if (mDisplayMenu.value) colorResource(id = R.color.colorAccentLight) else colorResource(id = R.color.light_grey),
+                                    fontSize = 14.sp,
+                                    fontStyle = if (key == "") null else FontStyle.Italic,
+                                    text = if (key == "") "ADD" else key
+                                )
+                            }
+                            ChipOptions(mDisplayMenu, deleteVocOn, editVocOn, keyState, key)
                         }
                     }
                 }
@@ -289,7 +298,7 @@ fun ChipOptions(mDisplayMenu: MutableState<Boolean>, deleteVocOn: MutableState<B
     //DROPDOWN MENU:
     DropdownMenu(
         modifier = Modifier
-            .background(colorResource(id = R.color.dark_grey_background)),
+            .background(colorResource(id = R.color.dark_grey)),
         shape = RoundedCornerShape(20.dp),
         expanded = mDisplayMenu.value,
         onDismissRequest = {
@@ -348,7 +357,7 @@ fun ChipOptions(mDisplayMenu: MutableState<Boolean>, deleteVocOn: MutableState<B
 @Composable
 fun ExpandableVocSection(
     mContext: Context,
-    vocabulary: MutableState<Map<String, List<String>>>,
+    vocabulary: MutableState<List<String>>,
     deleteVocOn: MutableState<Boolean>,
     modifier: Modifier = Modifier,
     head: String,
@@ -387,7 +396,7 @@ fun ExpandableVocSection(
 @Composable
 fun ExpandableVocSectionTitle(
     mContext: Context,
-    vocabulary: MutableState<Map<String, List<String>>>,
+    vocabulary: MutableState<List<String>>,
     deleteVocOn: MutableState<Boolean>,
     modifier: Modifier = Modifier,
     isExpanded: Boolean,
@@ -434,17 +443,14 @@ fun ExpandableVocSectionTitle(
         }
         //"MORE OPTIONS" BUTTON:
         Box() {
-            IconButton(
-                onClick = {
-                    mDisplayMenu.value = !mDisplayMenu.value
-                }
-            ) {
-                Icon(
-                    Icons.Default.MoreVert,
-                    "",
-                    tint = colorResource(id = R.color.light_grey)
-                )
-            }
+            Icon(
+                modifier = Modifier
+                    .padding(end=8.dp)
+                    .clickable { mDisplayMenu.value = !mDisplayMenu.value },
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = "",
+                tint = colorResource(id = R.color.light_grey)
+            )
             CatOptions(
                 mContext = mContext,
                 vocabulary = vocabulary,
@@ -469,7 +475,7 @@ fun ExpandableVocSectionTitle(
 @Composable
 fun CatOptions(
     mContext: Context,
-    vocabulary: MutableState<Map<String, List<String>>>,
+    vocabulary: MutableState<List<String>>,
     mDisplayMenu: MutableState<Boolean>,
     deleteVocOn: MutableState<Boolean>,
     head: String
@@ -477,7 +483,7 @@ fun CatOptions(
     //DROPDOWN MENU:
     DropdownMenu(
         modifier = Modifier
-            .background(colorResource(id = R.color.dark_grey_background)),
+            .background(colorResource(id = R.color.dark_grey)),
         shape = RoundedCornerShape(20.dp),
         expanded = mDisplayMenu.value,
         onDismissRequest = {
@@ -503,7 +509,7 @@ fun CatOptions(
             onClick = {
                 filter.postValue(head)
                 mDisplayMenu.value = false
-                vocabulary.value = getJoinedVoc(mContext, headOrder)
+                vocabulary.value = getVocKeys(mContext, head)
                 Toast.makeText(mContext, "Vocabulary updated!", Toast.LENGTH_SHORT).show()
             }
         )
@@ -535,7 +541,7 @@ fun CatOptions(
 
 
 @Composable
-fun DialogDeleteVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>, vocabulary: MutableState<Map<String, List<String>>>, keyState: MutableState<String>, filter: String) {
+fun DialogDeleteVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>, vocabulary: MutableState<List<String>>, keyState: MutableState<String>, filter: String) {
     val utils = Utilities()
     val key = keyState.value
     //DELETE DIALOG:
@@ -582,7 +588,7 @@ fun DialogDeleteVocabulary(mContext: Context, dialogOnState: MutableState<Boolea
                                 //Delete current:
                                 var ret = utils.editVocFile(prevText=key)
                                 if (ret == 0) {
-                                    vocabulary.value = getJoinedVoc(mContext, headOrder)   //Refresh list
+                                    vocabulary.value = getVocKeys(mContext, filter)   //Refresh list
                                     Toast.makeText(mContext, "Deleted!", Toast.LENGTH_LONG).show()
                                 } else {
                                     Toast.makeText(mContext, "ERROR: Vocabulary not updated!", Toast.LENGTH_LONG).show()
@@ -591,7 +597,7 @@ fun DialogDeleteVocabulary(mContext: Context, dialogOnState: MutableState<Boolea
                                 //Delete all:
                                 File(vocDir, "voc_${filter}s.json").delete()
                                 Log.d("VocabularyScreen", "Deleted ${filter}s vocabulary.")
-                                vocabulary.value = getJoinedVoc(mContext, headOrder)   //Refresh list
+                                vocabulary.value = getVocKeys(mContext, filter)   //Refresh list
                                 Toast.makeText(mContext, "${filter.replaceFirstChar { it.uppercase() }} vocabulary deleted!", Toast.LENGTH_LONG).show()
                             }
                             dialogOnState.value = false
@@ -624,11 +630,8 @@ fun updateVocabulary(mContext: Context, filter: String, preview: Boolean = false
 }
 
 
-//Organized keyset:
-fun getJoinedVoc(mContext: Context, headOrder: List<String>, preview: Boolean = false): Map<String, List<String>> {
-    val joinedVoc = mutableMapOf<String, List<String>>()
-    for (head in headOrder) {
-        joinedVoc[head] = listOf("") + updateVocabulary(mContext, head, preview).keySet().toList()
-    }
-    return joinedVoc
+//Voc keyset:
+fun getVocKeys(mContext: Context, head: String, preview: Boolean = false): List<String> {
+    val vocKeys = listOf("") + updateVocabulary(mContext, head, preview).keySet().toList()
+    return vocKeys
 }

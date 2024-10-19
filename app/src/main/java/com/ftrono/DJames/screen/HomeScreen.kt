@@ -113,7 +113,7 @@ fun BaloonHome(isLandscape: Boolean, overlayActive: Boolean, volumeUpEnabled: Bo
             .width(320.dp)
             .height(140.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(colorResource(id = R.color.dark_grey))
+            .background(colorResource(id = R.color.dark_grey_background))
             .zIndex(1f)
     ) {
         Column (
@@ -175,7 +175,7 @@ fun BaloonArrowHome(isLandscape: Boolean) {
                 x = if (isLandscape) -(30.dp) else 0.dp
             )
             .rotate(45f)
-            .background(colorResource(id = R.color.dark_grey))
+            .background(colorResource(id = R.color.dark_grey_background))
     )
 }
 

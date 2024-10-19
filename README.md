@@ -15,7 +15,7 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
-**Version 2.1 (2024-10-15)** - Brand-new UI migrated, based on Jetpack Compose. New Prefs (DataStore).
+**Version 2.1 (2024-10-19)** - Brand-new UI migrated & refined, based on Jetpack Compose.
 
 **Version 2.01 (2024-09-17)** - Added clock to overlay, usability fixes.
 

@@ -54,14 +54,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.headOrder
 import com.ftrono.DJames.application.messLangCaps
 import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.playlistUrlIntro
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.vocabularySize
-import com.ftrono.DJames.ui.theme.MyDJamesItem
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
 
@@ -70,8 +68,7 @@ import com.google.gson.JsonObject
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
 fun DialogEditPreview() {
-    val navController = rememberNavController()
-    VocabularyScreen(navController, "contact", MyDJamesItem.Playlists, editPreview=true, preview=true)
+    VocabularyScreen(editPreview=true, preview=true)
 }
 
 @Composable
@@ -115,8 +112,10 @@ fun DialogRequestDetail(mContext: Context, dialogOnState: MutableState<Boolean>,
 
 
 @Composable
-fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>, filter: String, vocItems: JsonObject, key: String = "", preview: Boolean = false) {
+fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>, vocabulary: MutableState<Map<String, List<String>>>, keyState: MutableState<String>, filter: String, preview: Boolean = false) {
     //Init:
+    var key = keyState.value
+    var vocItems = updateVocabulary(mContext, filter, preview)
     var initName = key
     var initPlayUrl = ""
     var initLanguage = if (preview) "it" else messLangCaps[messLangCodes.indexOf(prefs.messageLanguage)]
@@ -178,6 +177,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
         onDismissRequest = {
             //cancelable -> true
             dialogOnState.value = false
+            keyState.value = ""
         },
         properties = DialogProperties(
             dismissOnBackPress = true,
@@ -210,13 +210,25 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                 horizontalAlignment = Alignment.Start,
             ) {
                 //TITLE:
-                Text(
-                    text = "✏️  ${filter.replaceFirstChar { it.uppercase() }}",
-                    modifier = Modifier.padding(8.dp),
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 22.sp
-                )
+                Row(
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    VocIcon(
+                        padding=0,
+                        size=36,
+                        filter=filter
+                    )
+                    Text(
+                        text = "${filter.replaceFirstChar { it.uppercase() }}",
+                        modifier = Modifier.padding(8.dp),
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 22.sp,
+                        fontStyle = FontStyle.Italic
+                    )
+                }
+
 
                 //COMMON: TEXT FIELD 1:
                 Text(
@@ -402,7 +414,8 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                         Text(
                             modifier = Modifier
                                 .padding(bottom = if (checkedLang) 0.dp else 6.dp)
-                                .offset(x = -(12.dp)),
+                                .offset(x = -(12.dp))
+                                .clickable { checkedLang = !checkedLang },
                             text = if (checkedLang) {
                                 "Set custom messaging language"
                             } else {
@@ -430,6 +443,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                             .padding(top = 8.dp, end = 20.dp)
                             .clickable {
                                 dialogOnState.value = false
+                                keyState.value = ""
                             },
                         color = colorResource(id = R.color.colorAccentLight),
                         text = "Cancel",
@@ -462,6 +476,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                                 //Edit:
                                 requestDetailOn.value = editVocItemAndShow(
                                     mContext = mContext,
+                                    vocabulary = vocabulary,
                                     prevText = initName,
                                     newText = textName.lowercase(),
                                     newDetails = newDetails,
@@ -471,6 +486,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                                 if (!requestDetailOn.value) {
                                     //CLOSE THE DIALOG:
                                     dialogOnState.value = false
+                                    keyState.value = ""
                                 }
                             },
                         color = colorResource(id = R.color.colorAccentLight),
@@ -486,7 +502,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
 
 
 //Edit Voc item:
-fun editVocItemAndShow(mContext: Context, prevText: String, newText: String, newDetails: JsonObject, filter: String, vocItems: JsonObject): Boolean {
+fun editVocItemAndShow(mContext: Context, vocabulary: MutableState<Map<String, List<String>>>, prevText: String, newText: String, newDetails: JsonObject, filter: String, vocItems: JsonObject): Boolean {
     //Return true -> Show DialogRequestDetail;
     //Return false -> Don't show DialogRequestDetail.
     if (newText != "") {
@@ -521,13 +537,10 @@ fun editVocItemAndShow(mContext: Context, prevText: String, newText: String, new
             var ret = utils.editVocFile(prevText=prevText, newText=newText, newDetails=newDetails)
             if (ret == 0) {
                 Toast.makeText(mContext, "Saved!", Toast.LENGTH_LONG).show()
-                vocabularySize.postValue(vocabularySize.value!! + 1)   //Refresh list
-                if (prevText != "") {
-                    vocabularySize.postValue(vocabularySize.value!! - 1)   //Refresh list
-                }
             } else {
                 Toast.makeText(mContext, "ERROR: Vocabulary not updated!", Toast.LENGTH_LONG).show()
             }
+            vocabulary.value = getJoinedVoc(mContext, headOrder)   //Refresh list
         }
     }
     return false

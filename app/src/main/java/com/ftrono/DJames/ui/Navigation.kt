@@ -26,10 +26,8 @@ import com.ftrono.DJames.application.settingsOpen
 import com.ftrono.DJames.screen.GuideScreen
 import com.ftrono.DJames.screen.HistoryScreen
 import com.ftrono.DJames.screen.HomeScreen
-import com.ftrono.DJames.screen.MyDJamesScreen
 import com.ftrono.DJames.screen.SettingsScreen
 import com.ftrono.DJames.screen.VocabularyScreen
-import com.ftrono.DJames.ui.theme.MyDJamesItem
 import com.ftrono.DJames.ui.theme.NavigationItem
 
 
@@ -90,9 +88,9 @@ fun Navigation(navController: NavHostController) {
             GuideScreen(navController)
         }
 
-        //2 -> MY DJAMES:
+        //2 -> VOCABULARY:
         composable(
-            NavigationItem.MyDJames.route,
+            NavigationItem.Vocabulary.route,
             enterTransition = {
                 fadeIn(
                     animationSpec = tween(
@@ -110,7 +108,7 @@ fun Navigation(navController: NavHostController) {
             curNavId = 2
             innerNavOpen.postValue(false)
             settingsOpen.postValue(false)
-            MyDJamesScreen(navController)
+            VocabularyScreen()
         }
 
         //3 -> HISTORY:
@@ -151,79 +149,6 @@ fun Navigation(navController: NavHostController) {
             innerNavOpen.postValue(false)
             settingsOpen.postValue(true)
             SettingsScreen(navController)
-        }
-
-        //MYDJAMES VOC:
-        //1 -> ARTISTS:
-        composable(
-            MyDJamesItem.Artists.route,
-            enterTransition = {
-                fadeIn(
-                    animationSpec = tween(
-                        300, easing = LinearEasing
-                    )
-                ) + slideIntoContainer(
-                    animationSpec = tween(300, easing = EaseIn),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Start
-                )
-            }) {
-            curNavId = 2
-            innerNavOpen.postValue(true)
-            settingsOpen.postValue(false)
-            filter.postValue("artist")
-            VocabularyScreen(
-                navController = navController,
-                filter = filterState!!,
-                myDJamesItem = MyDJamesItem.Artists
-            )
-        }
-
-        //2 -> PLAYLISTS:
-        composable(
-            MyDJamesItem.Playlists.route,
-            enterTransition = {
-                fadeIn(
-                    animationSpec = tween(
-                        300, easing = LinearEasing
-                    )
-                ) + slideIntoContainer(
-                    animationSpec = tween(300, easing = EaseIn),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Start
-                )
-            }) {
-            curNavId = 2
-            innerNavOpen.postValue(true)
-            settingsOpen.postValue(false)
-            filter.postValue("playlist")
-            VocabularyScreen(
-                navController = navController,
-                filter = filterState!!,
-                myDJamesItem = MyDJamesItem.Playlists
-            )
-        }
-
-        //3 -> CONTACTS:
-        composable(
-            MyDJamesItem.Contacts.route,
-            enterTransition = {
-                fadeIn(
-                    animationSpec = tween(
-                        300, easing = LinearEasing
-                    )
-                ) + slideIntoContainer(
-                    animationSpec = tween(300, easing = EaseIn),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Start
-                )
-            }) {
-            curNavId = 2
-            innerNavOpen.postValue(true)
-            settingsOpen.postValue(false)
-            filter.postValue("contact")
-            VocabularyScreen(
-                navController = navController,
-                filter = filterState!!,
-                myDJamesItem = MyDJamesItem.Contacts
-            )
         }
     }
 }

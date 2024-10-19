@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material.icons.Icons
@@ -212,7 +213,7 @@ class MainActivity : ComponentActivity() {
         val navItems = listOf(
             NavigationItem.Home,
             NavigationItem.Guide,
-            NavigationItem.MyDJames,
+            NavigationItem.Vocabulary,
             NavigationItem.History
         )
 
@@ -409,6 +410,7 @@ class MainActivity : ComponentActivity() {
                 DropdownMenu(
                     modifier = Modifier
                         .background(colorResource(id = R.color.dark_grey_background)),
+                    shape = RoundedCornerShape(20.dp),
                     expanded = mDisplayMenu,
                     onDismissRequest = { mDisplayMenu = false }
                 ) {

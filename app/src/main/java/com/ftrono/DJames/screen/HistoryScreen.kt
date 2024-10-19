@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -54,9 +55,7 @@ import com.ftrono.DJames.application.historySize
 import com.ftrono.DJames.application.logDir
 import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.playThreshold
-import com.ftrono.DJames.application.vocabularySize
 import com.ftrono.DJames.utilities.Utilities
-import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import java.io.BufferedReader
@@ -196,7 +195,8 @@ fun HistoryScreen(preview: Boolean = false) {
             //HISTORY LIST:
             LazyColumn (
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxSize(),
+                state = rememberLazyListState()
             ) {
                 itemsIndexed(
                     JsonParser.parseString(historyLogs).asJsonArray.toList()

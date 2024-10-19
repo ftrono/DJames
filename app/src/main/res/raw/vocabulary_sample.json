@@ -1,9 +1,14 @@
 {
   "artist": {
     "andreas moe": {},
+    "breaking benjamin": {},
     "deaf havana": {},
+    "dean lewis":  {},
     "evanescence": {},
+    "hands like houses": {},
+    "joel baker": {},
     "linkin park": {},
+    "the fray": {},
     "the script": {}
   },
   "playlist": {
@@ -32,6 +37,5 @@
     }
   },
   "place": {},
-  "parking": {},
-  "news": {}
+  "parking": {}
 }

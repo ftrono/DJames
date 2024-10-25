@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,8 +44,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -75,20 +78,16 @@ fun VocScreenPreview() {
     VocabularyScreen(editPreview=false, preview=true)
 }
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterialApi::class)
+
 @Composable
 fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
     val mContext = LocalContext.current
 
-    var keyState = rememberSaveable {
-        mutableStateOf("")
-    }
-
-    var lastCatExpanded = rememberSaveable {
-        mutableStateOf(-1)
-    }
-
-    var iCat = 0
+    //Statuses:
+    var keyState = rememberSaveable { mutableStateOf("") }
+    var artistsExpanded = rememberSaveable { mutableStateOf(false) }
+    var playlistsExpanded = rememberSaveable { mutableStateOf(false) }
+    var contactsExpanded = rememberSaveable { mutableStateOf(false) }
 
     Column (
         modifier = Modifier
@@ -144,129 +143,53 @@ fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
                 .verticalScroll(rememberScrollState())
         ) {
             //SECTIONS:
-            for (head in headOrder) {
-                var vocabulary = rememberSaveable {
-                    mutableStateOf(listOf<String>(""))
-                }
+            //1) ARTISTS:
+            ExpandableVocSection(
+                mContext = mContext,
+                modifier = Modifier
+                    .fillMaxWidth(),
+                keyState = keyState,
+                sectionIsExpanded = artistsExpanded,
+                otherIsExpanded1 = playlistsExpanded,
+                otherIsExpanded2 = contactsExpanded,
+                head = "artist",
+                title = "My Artists",
+                subtitle = "Favourite or hard-to-spell names",
+                preview = preview,
+                editPreview = editPreview
+            )
 
-                val deleteVocOn = rememberSaveable { mutableStateOf(false) }
-                if (deleteVocOn.value) {
-                    DialogDeleteVocabulary(mContext, deleteVocOn, vocabulary, keyState, head)
-                }
+            //2) PLAYLISTS:
+            ExpandableVocSection(
+                mContext = mContext,
+                modifier = Modifier
+                    .fillMaxWidth(),
+                keyState = keyState,
+                sectionIsExpanded = playlistsExpanded,
+                otherIsExpanded1 = artistsExpanded,
+                otherIsExpanded2 = contactsExpanded,
+                head = "playlist",
+                title = "My Playlists",
+                subtitle = "For playing songs within",
+                preview = preview,
+                editPreview = editPreview
+            )
 
-                val editVocOn = rememberSaveable { mutableStateOf(editPreview) }
-                if (editPreview) {
-                    DialogEditVocabulary(mContext, editVocOn, vocabulary, keyState, vocEditPreview, preview)   //TODO: change in App.kt
-                } else if (editVocOn.value) {
-                    DialogEditVocabulary(mContext, editVocOn, vocabulary, keyState, head, preview)
-                }
-                if (preview  && iCat == 0) {
-                    lastCatExpanded.value = 0
-                }
-                var sectionIsExpanded = rememberSaveable {
-                    mutableStateOf(
-                        if (iCat == lastCatExpanded.value) true else false
-                    )
-                }
-                if (sectionIsExpanded.value) {
-                    vocabulary.value = getVocKeys(mContext, head, preview)
-                }
-
-                ExpandableVocSection(
-                    mContext = mContext,
-                    vocabulary = vocabulary,
-                    deleteVocOn = deleteVocOn,
-                    lastCatExpanded= lastCatExpanded,
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    sectionIsExpanded = sectionIsExpanded,
-                    iCat = iCat,
-                    head = head,
-                    title = "My ${head.replaceFirstChar { it.uppercase() }}s",
-                    subtitle = if (head == "artist") {
-                        "Favourite or hard-to-spell names"
-                    } else if (head == "playlist") {
-                        "For playing songs within"
-                    } else (
-                        "For calls and messages"
-                    )
-                ) {
-                    FlowRow(
-                        modifier = Modifier
-                            .padding(start = 52.dp, end = 24.dp, bottom = 12.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        for (key in vocabulary.value) { 
-                            //VOC CHIPS:
-                            Box(
-                                modifier = Modifier
-                                    .padding(end = 6.dp)
-                                    .wrapContentSize()
-                            ) {
-                                var mDisplayMenu = rememberSaveable {
-                                    mutableStateOf(false)
-                                }
-
-                                Chip(
-                                    colors = ChipDefaults.chipColors(
-                                        backgroundColor = if (key == "") {
-                                            colorResource(id = R.color.colorAccent)
-                                        } else if (mDisplayMenu.value) {
-                                            colorResource(id = R.color.dark_grey)
-                                        } else {
-                                            colorResource(id = R.color.dark_grey_background)
-                                        },
-                                        contentColor = colorResource(id = R.color.light_grey),
-                                        leadingIconContentColor = colorResource(id = R.color.mid_grey)
-                                    ),
-                                    leadingIcon = {
-                                        if (key == "") {
-                                            //ADD NEW:
-                                            Icon(
-                                                modifier = Modifier
-                                                    .padding(start = 2.dp)
-                                                    .size(20.dp),
-                                                imageVector = Icons.Default.Add,
-                                                contentDescription = "ADD NEW",
-                                                tint = colorResource(id = R.color.light_grey)
-                                            )
-                                        } else {
-                                            //CHIP ICON:
-                                            VocIcon(
-                                                padding = 2,
-                                                size = 20,
-                                                filter = head
-                                            )
-                                        }
-                                    },
-                                    onClick = {
-                                        filter.postValue(head)
-                                        if (key == "") {
-                                            editVocOn.value = true
-                                        } else {
-                                            mDisplayMenu.value = !mDisplayMenu.value
-                                        }
-                                    }
-                                ) {
-                                    Text(
-                                        modifier = Modifier
-                                            .wrapContentWidth()
-                                            .wrapContentHeight(),
-                                        color = colorResource(id = R.color.light_grey),
-                                        fontSize = 14.sp,
-                                        fontStyle = if (key == "") null else FontStyle.Italic,
-                                        text = if (key == "") "ADD" else key
-                                    )
-                                }
-                                ChipOptions(mDisplayMenu, deleteVocOn, editVocOn, keyState, key)
-                            }
-                        }
-                    }
-                }
-                iCat ++
-            }
+            //3) CONTACTS:
+            ExpandableVocSection(
+                mContext = mContext,
+                modifier = Modifier
+                    .fillMaxWidth(),
+                keyState = keyState,
+                sectionIsExpanded = contactsExpanded,
+                otherIsExpanded1 = playlistsExpanded,
+                otherIsExpanded2 = artistsExpanded,
+                head = "contact",
+                title = "My Contacts",
+                subtitle = "For calls and messages",
+                preview = preview,
+                editPreview = editPreview
+            )
         }
     }
 
@@ -362,28 +285,53 @@ fun ChipOptions(mDisplayMenu: MutableState<Boolean>, deleteVocOn: MutableState<B
 }
 
 
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun ExpandableVocSection(
     mContext: Context,
-    vocabulary: MutableState<List<String>>,
-    deleteVocOn: MutableState<Boolean>,
-    lastCatExpanded: MutableState<Int>,
     modifier: Modifier = Modifier,
-    iCat: Int,
     head: String,
     title: String,
     subtitle: String,
     sectionIsExpanded: MutableState<Boolean>,
-    content: @Composable () -> Unit
+    otherIsExpanded1: MutableState<Boolean>,
+    otherIsExpanded2: MutableState<Boolean>,
+    keyState: MutableState<String>,
+    preview: Boolean = false,
+    editPreview: Boolean = false
 ) {
+    val vocabulary = rememberSaveable {
+        mutableStateOf(listOf(""))
+    }
+
+    val deleteVocOn = rememberSaveable { mutableStateOf(false) }
+    if (deleteVocOn.value) {
+        DialogDeleteVocabulary(mContext, deleteVocOn, vocabulary, keyState, head)
+    }
+
+    val editVocOn = rememberSaveable { mutableStateOf(editPreview) }
+    if (editPreview) {
+        DialogEditVocabulary(mContext, editVocOn, vocabulary, keyState, vocEditPreview, preview)   //TODO: change in App.kt
+    } else if (editVocOn.value) {
+        DialogEditVocabulary(mContext, editVocOn, vocabulary, keyState, head, preview)
+    }
+
+    if (sectionIsExpanded.value) {
+        otherIsExpanded1.value = false
+        otherIsExpanded2.value = false
+        vocabulary.value = getVocKeys(mContext, head, preview)
+    }
+
     Column(
         modifier = modifier
             .clickable {
                 sectionIsExpanded.value = !sectionIsExpanded.value
                 if (sectionIsExpanded.value) {
-                    lastCatExpanded.value = iCat
+                    otherIsExpanded1.value = false
+                    otherIsExpanded2.value = false
+                    vocabulary.value = getVocKeys(mContext, head, preview)
                 } else {
-                    lastCatExpanded.value = -1
+                    vocabulary.value = listOf()
                 }
             }
             .fillMaxWidth()
@@ -404,7 +352,79 @@ fun ExpandableVocSection(
 
             visible = sectionIsExpanded.value
         ) {
-            content()
+            FlowRow(
+                modifier = Modifier
+                    .padding(start = 52.dp, end = 24.dp, bottom = 12.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                for (key in vocabulary.value) {
+                    //VOC CHIPS:
+                    Box(
+                        modifier = Modifier
+                            .padding(end = 6.dp)
+                            .wrapContentSize()
+                    ) {
+                        var mDisplayMenu = rememberSaveable {
+                            mutableStateOf(false)
+                        }
+
+                        Chip(
+                            colors = ChipDefaults.chipColors(
+                                backgroundColor = if (key == "") {
+                                    colorResource(id = R.color.colorAccent)
+                                } else if (mDisplayMenu.value) {
+                                    colorResource(id = R.color.dark_grey)
+                                } else {
+                                    colorResource(id = R.color.dark_grey_background)
+                                },
+                                contentColor = colorResource(id = R.color.light_grey),
+                                leadingIconContentColor = colorResource(id = R.color.mid_grey)
+                            ),
+                            leadingIcon = {
+                                if (key == "") {
+                                    //ADD NEW:
+                                    Icon(
+                                        modifier = Modifier
+                                            .padding(start = 2.dp)
+                                            .size(20.dp),
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "ADD NEW",
+                                        tint = colorResource(id = R.color.light_grey)
+                                    )
+                                } else {
+                                    //CHIP ICON:
+                                    VocIcon(
+                                        padding = 2,
+                                        size = 20,
+                                        filter = head
+                                    )
+                                }
+                            },
+                            onClick = {
+                                filter.postValue(head)
+                                if (key == "") {
+                                    editVocOn.value = true
+                                } else {
+                                    mDisplayMenu.value = !mDisplayMenu.value
+                                }
+                            }
+                        ) {
+                            Text(
+                                modifier = Modifier
+                                    .wrapContentWidth()
+                                    .wrapContentHeight(),
+                                color = colorResource(id = R.color.light_grey),
+                                fontSize = 14.sp,
+                                fontStyle = if (key == "") null else FontStyle.Italic,
+                                text = if (key == "") "ADD" else key
+                            )
+                        }
+                        ChipOptions(mDisplayMenu, deleteVocOn, editVocOn, keyState, key)
+                    }
+                }
+            }
         }
     }
 }
@@ -429,10 +449,10 @@ fun ExpandableVocSectionTitle(
     Card(
         modifier = Modifier
             .padding(
-                start=20.dp,
-                end=20.dp,
-                top=8.dp,
-                bottom=8.dp
+                start = 20.dp,
+                end = 20.dp,
+                top = 8.dp,
+                bottom = 8.dp
             )
             .fillMaxWidth()
             .wrapContentHeight(),
@@ -545,7 +565,7 @@ fun CatOptions(
                 filter.postValue(head)
                 mDisplayMenu.value = false
                 vocabulary.value = getVocKeys(mContext, head)
-                Toast.makeText(mContext, "Vocabulary updated!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(mContext, "${head.replaceFirstChar { it.uppercase() }}s vocabulary updated!", Toast.LENGTH_SHORT).show()
             }
         )
 

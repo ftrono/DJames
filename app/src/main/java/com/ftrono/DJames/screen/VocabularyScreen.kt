@@ -16,11 +16,16 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -85,7 +90,7 @@ fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
 
     //Statuses:
     var keyState = rememberSaveable { mutableStateOf("") }
-    var artistsExpanded = rememberSaveable { mutableStateOf(false) }
+    var artistsExpanded = rememberSaveable { mutableStateOf(true) }
     var playlistsExpanded = rememberSaveable { mutableStateOf(false) }
     var contactsExpanded = rememberSaveable { mutableStateOf(false) }
 
@@ -97,6 +102,7 @@ fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
         //HEADER:
         Row(
             modifier = Modifier
+                .padding(bottom=6.dp)
                 .fillMaxWidth()
                 .wrapContentHeight()
                 .background(colorResource(id = R.color.windowBackground)),
@@ -170,7 +176,7 @@ fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
                 otherIsExpanded2 = contactsExpanded,
                 head = "playlist",
                 title = "My Playlists",
-                subtitle = "For playing songs within",
+                subtitle = "Play songs from this list",
                 preview = preview,
                 editPreview = editPreview
             )
@@ -186,7 +192,7 @@ fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
                 otherIsExpanded2 = artistsExpanded,
                 head = "contact",
                 title = "My Contacts",
-                subtitle = "For calls and messages",
+                subtitle = "For calls & messages",
                 preview = preview,
                 editPreview = editPreview
             )
@@ -300,8 +306,10 @@ fun ExpandableVocSection(
     preview: Boolean = false,
     editPreview: Boolean = false
 ) {
+    val utils = Utilities()
+
     val vocabulary = rememberSaveable {
-        mutableStateOf(listOf(""))
+        mutableStateOf(getVocKeys(mContext, head, preview))
     }
 
     val deleteVocOn = rememberSaveable { mutableStateOf(false) }
@@ -319,7 +327,6 @@ fun ExpandableVocSection(
     if (sectionIsExpanded.value) {
         otherIsExpanded1.value = false
         otherIsExpanded2.value = false
-        vocabulary.value = getVocKeys(mContext, head, preview)
     }
 
     Column(
@@ -329,9 +336,6 @@ fun ExpandableVocSection(
                 if (sectionIsExpanded.value) {
                     otherIsExpanded1.value = false
                     otherIsExpanded2.value = false
-                    vocabulary.value = getVocKeys(mContext, head, preview)
-                } else {
-                    vocabulary.value = listOf()
                 }
             }
             .fillMaxWidth()
@@ -352,25 +356,31 @@ fun ExpandableVocSection(
 
             visible = sectionIsExpanded.value
         ) {
-            FlowRow(
+            LazyHorizontalGrid(
                 modifier = Modifier
                     .padding(start = 52.dp, end = 24.dp, bottom = 12.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalArrangement = Arrangement.Center,
+                    .fillMaxWidth()
+                    .height(180.dp),
+                rows = GridCells.Fixed(3),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                for (key in vocabulary.value) {
+                itemsIndexed(vocabulary.value) { index, key ->
                     //VOC CHIPS:
                     Box(
                         modifier = Modifier
-                            .padding(end = 6.dp)
-                            .wrapContentSize()
+                            .width(150.dp)
+                            .height(50.dp)
                     ) {
                         var mDisplayMenu = rememberSaveable {
                             mutableStateOf(false)
                         }
 
                         Chip(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .fillMaxSize(),
+                            shape = RoundedCornerShape(14.dp),
                             colors = ChipDefaults.chipColors(
                                 backgroundColor = if (key == "") {
                                     colorResource(id = R.color.colorAccent)
@@ -396,7 +406,7 @@ fun ExpandableVocSection(
                                 } else {
                                     //CHIP ICON:
                                     VocIcon(
-                                        padding = 2,
+                                        padding = 4,
                                         size = 20,
                                         filter = head
                                     )
@@ -411,15 +421,40 @@ fun ExpandableVocSection(
                                 }
                             }
                         ) {
-                            Text(
-                                modifier = Modifier
-                                    .wrapContentWidth()
-                                    .wrapContentHeight(),
-                                color = colorResource(id = R.color.light_grey),
-                                fontSize = 14.sp,
-                                fontStyle = if (key == "") null else FontStyle.Italic,
-                                text = if (key == "") "ADD" else key
-                            )
+                            Column {
+                                //Item key:
+                                Text(
+                                    modifier = Modifier
+                                        .wrapContentWidth()
+                                        .wrapContentHeight(),
+                                    color = colorResource(id = R.color.light_grey),
+                                    fontSize = 14.sp,
+                                    lineHeight = 16.sp,
+                                    maxLines = if (head == "contact") 1 else 2,
+                                    fontStyle = if (key == "") null else FontStyle.Italic,
+                                    fontWeight = if (key == "") FontWeight.Bold else null,
+                                    text = if (key == "") "Add $head" else utils.trimString(key, 16)
+                                )
+                                //Item detail:
+                                if (head == "contact" && key != "") {
+                                    Text(
+                                        modifier = Modifier
+                                            .padding(top=2.dp)
+                                            .wrapContentWidth()
+                                            .wrapContentHeight(),
+                                        color = colorResource(id = R.color.mid_grey),
+                                        fontSize = 12.sp,
+                                        lineHeight = 14.sp,
+                                        maxLines = 1,
+                                        fontStyle = FontStyle.Italic,
+                                        text = if (preview) {
+                                            "3331122333"
+                                        } else {
+                                            updateVocabulary(mContext, head).get(key).asJsonObject.get("phone").asString
+                                        }
+                                    )
+                                }
+                            }
                         }
                         ChipOptions(mDisplayMenu, deleteVocOn, editVocOn, keyState, key)
                     }
@@ -445,6 +480,7 @@ fun ExpandableVocSectionTitle(
         mutableStateOf(false)
     }
     val icon = if (isExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
+    val vocSize = vocabulary.value.size - 1
     //CARD:
     Card(
         modifier = Modifier
@@ -491,7 +527,15 @@ fun ExpandableVocSectionTitle(
                 Text(
                     text = subtitle,
                     fontSize = 14.sp,
+                    fontStyle = FontStyle.Italic,
                     color = colorResource(id = R.color.mid_grey)
+                )
+                //Count:
+                Text(
+                    text = if (vocSize == 1) "1 item" else "$vocSize items",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colorResource(id = R.color.colorAccentLight)
                 )
             }
             //"MORE OPTIONS" BUTTON:

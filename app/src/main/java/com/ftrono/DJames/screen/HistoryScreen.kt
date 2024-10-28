@@ -106,6 +106,7 @@ fun HistoryScreen(preview: Boolean = false) {
         //HEADER:
         Row(
             modifier = Modifier
+                .padding(bottom=6.dp)
                 .fillMaxWidth()
                 .wrapContentHeight()
                 .background(colorResource(id = R.color.windowBackground)),

@@ -86,8 +86,8 @@ class Utilities {
     //Trim strings:
     fun trimString(textOrig: String, maxLength: Int = 30): String {
         var textTrimmed = textOrig
-        if (textOrig.length > maxLength) {
-            textTrimmed = textOrig.slice(0..maxLength) + "..."
+        if (textOrig.length > (maxLength+3)) {
+            textTrimmed = textOrig.slice(0..(maxLength)) + "..."
         }
         return textTrimmed
     }

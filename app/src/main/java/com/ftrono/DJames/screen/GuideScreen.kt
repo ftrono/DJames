@@ -78,6 +78,7 @@ fun GuideScreen(navController: NavController) {
         //HEADER:
         Row(
             modifier = Modifier
+                .padding(bottom=6.dp)
                 .fillMaxWidth()
                 .wrapContentHeight()
                 .background(colorResource(id = R.color.windowBackground)),
@@ -320,8 +321,9 @@ fun ExpandableItemTitle(modifier: Modifier = Modifier, isExpanded: MutableState<
     Chip(
         modifier = modifier
             .padding(start=50.dp),
+        shape = RoundedCornerShape(14.dp),
         colors = ChipDefaults.chipColors(
-            backgroundColor = if (isExpanded.value) colorResource(id = R.color.dark_grey) else colorResource(id = R.color.dark_grey_background),
+            backgroundColor = if (isExpanded.value) colorResource(id = R.color.windowBackground) else colorResource(id = R.color.dark_grey_background),
             contentColor = colorResource(id = R.color.light_grey),
             leadingIconContentColor = colorResource(id = R.color.mid_grey)
         ),

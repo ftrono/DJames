@@ -3,6 +3,7 @@ package com.ftrono.DJames.screen
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,8 +19,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.TextSelectionColors
@@ -27,6 +30,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -49,6 +54,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -147,14 +153,14 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(60.dp)
+                    .wrapContentHeight()
                     .background(colorResource(id = R.color.windowBackground)),
                 contentAlignment = Alignment.Center
             ) {
                 //HEADER CONTENT:
                 Row(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
                         .background(
                             //GRADIENT:
                             Brush.verticalGradient(
@@ -183,18 +189,43 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             tint = colorResource(id = R.color.colorAccentLight)
                         )
                     }
-                    //TEXT HEADER:
-                    Text(
-                        text = "Preferences",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = colorResource(id = R.color.light_grey),
+                    //Street sign:
+                    Card(
                         modifier = Modifier
-                            .padding(
-                                start = 6.dp
+                            .padding(10.dp)
+                            .wrapContentSize(align = Alignment.TopStart),
+                        shape = RoundedCornerShape(20.dp),
+                        border = BorderStroke(2.dp, colorResource(id = R.color.mid_grey)),
+                        colors = CardDefaults.cardColors(
+                            containerColor = colorResource(id = R.color.greenSign)
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            //Sign icon:
+                            Icon(
+                                modifier = Modifier
+                                    .size(50.dp),
+                                painter = painterResource(id = R.drawable.sign_preferences),
+                                contentDescription = "header",
+                                tint = colorResource(id = R.color.light_grey)
                             )
-                            .wrapContentWidth()
-                    )
+                            //Headers text:
+                            Text(
+                                text = "Preferences",
+                                fontSize = 26.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colorResource(id = R.color.light_grey),
+                                modifier = Modifier
+                                    .padding(start = 8.dp, end = 30.dp)
+                                    .wrapContentWidth()
+                            )
+                        }
+                    }
                     //OPTIONS BUTTONS:
                     Row(
                         modifier = Modifier

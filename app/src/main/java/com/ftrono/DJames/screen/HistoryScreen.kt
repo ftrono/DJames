@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +16,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -43,8 +47,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -98,122 +106,169 @@ fun HistoryScreen(preview: Boolean = false) {
         historySize.postValue(historyItems.size)
     }
 
-    Column (
+    Box (
         modifier = Modifier
             .fillMaxSize()
             .background(colorResource(id = R.color.windowBackground))
     ) {
-        //HEADER:
-        Row(
+        //BG LINE:
+        Canvas(
             modifier = Modifier
-                .padding(bottom=6.dp)
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .background(colorResource(id = R.color.windowBackground)),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(start=48.dp)
+                .matchParentSize()
+                .width(20.dp)
         ) {
-            //TEXT HEADERS:
-            Column(
+            drawLine(
+                color = Color.Gray,
+                start = Offset(0f, 0f),
+                end = Offset(0f, size.height),
+                strokeWidth = 20f,
+                pathEffect = PathEffect.dashPathEffect(floatArrayOf(160f, 80f), 0f)
+            )
+        }
+
+        //MAIN:
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            //HEADER:
+            Row(
                 modifier = Modifier
-                    .weight(1f),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.Start
+                    .padding(bottom = 6.dp)
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .background(colorResource(id = R.color.windowBackground)),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "🕑  History",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colorResource(id = R.color.light_grey),
+                //Street sign:
+                Card(
                     modifier = Modifier
-                        .padding(
-                            start = 10.dp,
-                            top = 14.dp
+                        .padding(10.dp)
+                        .weight(1f)
+                        .wrapContentSize(align = Alignment.TopStart),
+                    shape = RoundedCornerShape(20.dp),
+                    border = BorderStroke(2.dp, colorResource(id = R.color.mid_grey)),
+                    colors = CardDefaults.cardColors(
+                        containerColor = colorResource(id = R.color.greenSign)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        //Sign icon:
+                        Icon(
+                            modifier = Modifier
+                                .size(50.dp),
+                            painter = painterResource(id = R.drawable.sign_history),
+                            contentDescription = "header",
+                            tint = colorResource(id = R.color.light_grey)
                         )
-                        .wrapContentWidth()
-                )
+                        //Headers text:
+                        Column(
+                            modifier = Modifier
+                                .padding(start = 8.dp, end = 30.dp)
+                        ) {
+                            Text(
+                                text = "History",
+                                fontSize = 26.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colorResource(id = R.color.light_grey),
+                                modifier = Modifier
+                                    .wrapContentWidth()
+                            )
+                            Text(
+                                text = "Last 30 days",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colorResource(id = R.color.mid_grey),
+                                modifier = Modifier
+                                    .wrapContentWidth()
+                            )
+                        }
+                        //N items:
+                        Text(
+                            text = "$historySizeState",
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colorResource(id = R.color.light_grey),
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .wrapContentWidth()
+                        )
+                    }
+                }
+                //OPTIONS BUTTONS:
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    //REFRESH BUTTON:
+                    IconButton(
+                        onClick = {
+                            historyLogs = updateHistory(mContext)
+                            historyItems = JsonParser.parseString(historyLogs).asJsonArray.toList()
+                            historySize.postValue(historyItems.size)
+                            Toast.makeText(mContext, "History updated!", Toast.LENGTH_SHORT).show()
+                        }
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(35.dp),
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Refresh",
+                            tint = colorResource(id = R.color.colorAccentLight)
+                        )
+                    }
+                    //DELETE BUTTON:
+                    IconButton(
+                        modifier = Modifier
+                            .padding(end = 12.dp),
+                        onClick = {
+                            deleteAllOn.value = true
+                        }
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(35.dp),
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete All",
+                            tint = colorResource(id = R.color.colorAccentLight)
+                        )
+                    }
+                }
+            }
+            if (historySizeState == 0) {
+                //HISTORY EMPTY:
                 Text(
-                    text = if (historySizeState == 1) "1 request (last 30 days)" else "$historySizeState requests (last 30 days)",
-                    fontSize = 14.sp,
-                    fontStyle = FontStyle.Italic,
+                    text = "History is empty",
+                    textAlign = TextAlign.Center,
+                    fontSize = 18.sp,
                     color = colorResource(id = R.color.mid_grey),
                     modifier = Modifier
-                        .padding(
-                            start = 53.dp,
-                            bottom = 10.dp
-                        )
+                        .fillMaxSize()
+                        .wrapContentHeight()
                         .wrapContentWidth()
                 )
-            }
-            //OPTIONS BUTTONS:
-            Row(
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                //REFRESH BUTTON:
-                IconButton(
-                    onClick = {
-                        historyLogs = updateHistory(mContext)
-                        historyItems = JsonParser.parseString(historyLogs).asJsonArray.toList()
-                        historySize.postValue(historyItems.size)
-                        Toast.makeText(mContext, "History updated!", Toast.LENGTH_SHORT).show()
-                    }
-                ) {
-                    Icon(
-                        modifier = Modifier.size(35.dp),
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "Refresh",
-                        tint = colorResource(id = R.color.colorAccentLight)
-                    )
-                }
-                //DELETE BUTTON:
-                IconButton(
+            } else {
+                //HISTORY LIST:
+                LazyColumn(
                     modifier = Modifier
-                        .padding(end=12.dp),
-                    onClick = {
-                        deleteAllOn.value = true
-                    }
+                        .fillMaxSize(),
+                    state = rememberLazyListState()
                 ) {
-                    Icon(
-                        modifier = Modifier.size(35.dp),
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete All",
-                        tint = colorResource(id = R.color.colorAccentLight)
-                    )
+                    itemsIndexed(
+                        JsonParser.parseString(historyLogs).asJsonArray.toList()
+                    ) { index, item ->
+                        //HISTORY CARD:
+                        HistoryCard(item = item.asJsonObject)
+                    }
                 }
             }
         }
-        if (historySizeState == 0) {
-            //HISTORY EMPTY:
-            Text(
-                text = "History is empty!\n\n🕑",
-                textAlign = TextAlign.Center,
-                fontSize = 16.sp,
-                fontStyle = FontStyle.Italic,
-                color = colorResource(id = R.color.mid_grey),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .wrapContentHeight()
-                    .wrapContentWidth()
-            )
-        } else {
-            //HISTORY LIST:
-            LazyColumn (
-                modifier = Modifier
-                    .fillMaxSize(),
-                state = rememberLazyListState()
-            ) {
-                itemsIndexed(
-                    JsonParser.parseString(historyLogs).asJsonArray.toList()
-                ) { index, item ->
-                    //HISTORY CARD:
-                    HistoryCard(item = item.asJsonObject)
-                }
-            }
-        }
-
     }
-
 }
 
 @Composable
@@ -247,7 +302,7 @@ fun HistoryCard(item: JsonObject) {
             )
             .fillMaxWidth()
             .wrapContentHeight(),
-        //border = BorderStroke(1.dp, colorResource(id = R.color.dark_grey)),
+        border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors (
             containerColor = colorResource(id = R.color.dark_grey_background)

@@ -20,7 +20,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.1"
+val appVersion = "2.1.1"
 val copyrightYear = 2024
 
 //STATUS VARS:

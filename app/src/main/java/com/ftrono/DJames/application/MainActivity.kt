@@ -230,14 +230,14 @@ class MainActivity : ComponentActivity() {
         val myNavigationSuiteItemColors = NavigationSuiteDefaults.itemColors(
             navigationBarItemColors = NavigationBarItemDefaults.colors(
                 indicatorColor = colorResource(id = R.color.transparent_green),
-                selectedIconColor = colorResource(id = R.color.colorAccentLight),
+                selectedIconColor = colorResource(id = R.color.light_grey),
                 selectedTextColor = colorResource(id = R.color.colorAccentLight),
                 unselectedIconColor = colorResource(id = R.color.mid_grey),
                 unselectedTextColor = colorResource(id = R.color.mid_grey)
             ),
             navigationRailItemColors = NavigationRailItemDefaults.colors(
                 indicatorColor = colorResource(id = R.color.transparent_green),
-                selectedIconColor = colorResource(id = R.color.colorAccentLight),
+                selectedIconColor = colorResource(id = R.color.light_grey),
                 selectedTextColor = colorResource(id = R.color.colorAccentLight),
                 unselectedIconColor = colorResource(id = R.color.mid_grey),
                 unselectedTextColor = colorResource(id = R.color.mid_grey)

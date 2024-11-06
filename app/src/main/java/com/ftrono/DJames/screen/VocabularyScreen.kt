@@ -4,7 +4,10 @@ import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +17,7 @@ import androidx.compose.foundation.layout.ContextualFlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,6 +31,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Chip
@@ -55,6 +60,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -94,108 +103,145 @@ fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
     var playlistsExpanded = rememberSaveable { mutableStateOf(false) }
     var contactsExpanded = rememberSaveable { mutableStateOf(false) }
 
-    Column (
+    Box (
         modifier = Modifier
             .fillMaxSize()
             .background(colorResource(id = R.color.windowBackground))
     ) {
-        //HEADER:
-        Row(
+        Canvas(
             modifier = Modifier
-                .padding(bottom=6.dp)
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .background(colorResource(id = R.color.windowBackground)),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(start=48.dp)
+                .matchParentSize()
+                .width(20.dp)
         ) {
-            //TEXT HEADERS:
-            Column(
-                modifier = Modifier
-                    .weight(1f),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.Start
-            ) {
-                Text(
-                    text = "🎧  My Vocabulary",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colorResource(id = R.color.light_grey),
-                    modifier = Modifier
-                        .padding(
-                            start = 10.dp,
-                            top = 14.dp
-                        )
-                        .wrapContentWidth()
-                )
-                Text(
-                    text = "Help DJames understand you",
-                    fontSize = 14.sp,
-                    fontStyle = FontStyle.Italic,
-                    color = colorResource(id = R.color.mid_grey),
-                    modifier = Modifier
-                        .padding(
-                            start = 53.dp,
-                            bottom = 10.dp
-                        )
-                        .wrapContentWidth()
-                )
-            }
+            drawLine(
+                color = Color.Gray,
+                start = Offset(0f, 0f),
+                end = Offset(0f, size.height),
+                strokeWidth = 20f,
+                pathEffect = PathEffect.dashPathEffect(floatArrayOf(160f, 80f), 0f)
+            )
         }
-        Column (
+
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(colorResource(id = R.color.windowBackground))
-                .verticalScroll(rememberScrollState())
         ) {
-            //SECTIONS:
-            //1) ARTISTS:
-            ExpandableVocSection(
-                mContext = mContext,
+            //HEADER:
+            Row(
                 modifier = Modifier
-                    .fillMaxWidth(),
-                keyState = keyState,
-                sectionIsExpanded = artistsExpanded,
-                otherIsExpanded1 = playlistsExpanded,
-                otherIsExpanded2 = contactsExpanded,
-                head = "artist",
-                title = "My Artists",
-                subtitle = "Favourite or hard-to-spell names",
-                preview = preview,
-                editPreview = editPreview
-            )
+                    .padding(bottom = 4.dp)
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .background(colorResource(id = R.color.windowBackground)),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                //Street sign:
+                Card(
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .weight(1f)
+                        .wrapContentSize(align = Alignment.TopStart),
+                    shape = RoundedCornerShape(20.dp),
+                    border = BorderStroke(2.dp, colorResource(id = R.color.mid_grey)),
+                    colors = CardDefaults.cardColors(
+                        containerColor = colorResource(id = R.color.greenSign)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        //Sign icon:
+                        Icon(
+                            modifier = Modifier
+                                .size(50.dp),
+                            painter = painterResource(id = R.drawable.sign_fork),
+                            contentDescription = "header",
+                            tint = colorResource(id = R.color.light_grey)
+                        )
+                        //Headers text:
+                        Column(
+                            modifier = Modifier
+                                .padding(start = 8.dp, end = 30.dp)
+                        ) {
+                            Text(
+                                text = "My Vocabulary",
+                                fontSize = 26.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colorResource(id = R.color.light_grey),
+                                modifier = Modifier
+                                    .wrapContentWidth()
+                            )
+                            Text(
+                                text = "Help DJames understand you",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colorResource(id = R.color.mid_grey),
+                                modifier = Modifier
+                                    .wrapContentWidth()
+                            )
+                        }
+                    }
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                //SECTIONS:
+                //1) ARTISTS:
+                ExpandableVocSection(
+                    mContext = mContext,
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    keyState = keyState,
+                    sectionIsExpanded = artistsExpanded,
+                    otherIsExpanded1 = playlistsExpanded,
+                    otherIsExpanded2 = contactsExpanded,
+                    head = "artist",
+                    title = "My Artists",
+                    subtitle = "Favourites or hard-to-spell",
+                    preview = preview,
+                    editPreview = editPreview
+                )
 
-            //2) PLAYLISTS:
-            ExpandableVocSection(
-                mContext = mContext,
-                modifier = Modifier
-                    .fillMaxWidth(),
-                keyState = keyState,
-                sectionIsExpanded = playlistsExpanded,
-                otherIsExpanded1 = artistsExpanded,
-                otherIsExpanded2 = contactsExpanded,
-                head = "playlist",
-                title = "My Playlists",
-                subtitle = "Play songs from this list",
-                preview = preview,
-                editPreview = editPreview
-            )
+                //2) PLAYLISTS:
+                ExpandableVocSection(
+                    mContext = mContext,
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    keyState = keyState,
+                    sectionIsExpanded = playlistsExpanded,
+                    otherIsExpanded1 = artistsExpanded,
+                    otherIsExpanded2 = contactsExpanded,
+                    head = "playlist",
+                    title = "My Playlists",
+                    subtitle = "Play songs from this list",
+                    preview = preview,
+                    editPreview = editPreview
+                )
 
-            //3) CONTACTS:
-            ExpandableVocSection(
-                mContext = mContext,
-                modifier = Modifier
-                    .fillMaxWidth(),
-                keyState = keyState,
-                sectionIsExpanded = contactsExpanded,
-                otherIsExpanded1 = playlistsExpanded,
-                otherIsExpanded2 = artistsExpanded,
-                head = "contact",
-                title = "My Contacts",
-                subtitle = "For calls & messages",
-                preview = preview,
-                editPreview = editPreview
-            )
+                //3) CONTACTS:
+                ExpandableVocSection(
+                    mContext = mContext,
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    keyState = keyState,
+                    sectionIsExpanded = contactsExpanded,
+                    otherIsExpanded1 = playlistsExpanded,
+                    otherIsExpanded2 = artistsExpanded,
+                    head = "contact",
+                    title = "My Contacts",
+                    subtitle = "For calls & messages",
+                    preview = preview,
+                    editPreview = editPreview
+                )
+            }
         }
     }
 
@@ -206,7 +252,8 @@ fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
 fun VocIcon(
     filter: String,
     size: Int,
-    padding: Int
+    padding: Int,
+    bigger: Boolean = false
 ) {
     Icon(
         modifier = Modifier
@@ -214,17 +261,17 @@ fun VocIcon(
             .size(size.dp),
         painter = when (filter) {
             "artist" -> {
-                painterResource(id = R.drawable.chip_note)
+                painterResource(id = R.drawable.sign_note)
             }
             "playlist" -> {
-                painterResource(id = R.drawable.chip_headphones)
+                painterResource(id = R.drawable.sign_headphones)
             }
             else -> {
-                painterResource(id = R.drawable.chip_phone)
+                painterResource(id = R.drawable.sign_phone)
             }
         },
         contentDescription = filter,
-        tint = colorResource(id = R.color.colorAccentLight)
+        tint = if (bigger) colorResource(id = R.color.light_grey) else colorResource(id = R.color.colorAccentLight)
     )
 }
 
@@ -381,6 +428,7 @@ fun ExpandableVocSection(
                                 .padding(4.dp)
                                 .fillMaxSize(),
                             shape = RoundedCornerShape(14.dp),
+                            border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
                             colors = ChipDefaults.chipColors(
                                 backgroundColor = if (key == "") {
                                     colorResource(id = R.color.colorAccent)
@@ -439,7 +487,7 @@ fun ExpandableVocSection(
                                 if (head == "contact" && key != "") {
                                     Text(
                                         modifier = Modifier
-                                            .padding(top=2.dp)
+                                            .padding(top = 2.dp)
                                             .wrapContentWidth()
                                             .wrapContentHeight(),
                                         color = colorResource(id = R.color.mid_grey),
@@ -492,7 +540,7 @@ fun ExpandableVocSectionTitle(
             )
             .fillMaxWidth()
             .wrapContentHeight(),
-        //border = BorderStroke(1.dp, colorResource(id = R.color.dark_grey)),
+        border = if (isExpanded) null else BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors (
             containerColor = if (isExpanded) colorResource(id = R.color.windowBackground) else colorResource(id = R.color.dark_grey_background)
@@ -504,12 +552,32 @@ fun ExpandableVocSectionTitle(
                 .padding(start = 8.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            //CAT ICON:
-            VocIcon(
-                padding = 8,
-                size = 32,
-                filter = head
-            )
+            //ROUNDED SIGN:
+            Box (
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (head == "artist") {
+                            colorResource(id = R.color.blueSign)
+                        } else if (head == "playlist") {
+                            colorResource(id = R.color.yellowSign)
+                        } else {
+                            colorResource(id = R.color.greenSign)
+                        }
+                    )
+                    .border(2.dp, colorResource(id = R.color.light_grey), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                //CAT ICON:
+                VocIcon(
+                    padding = 0,
+                    size = 24,
+                    filter = head,
+                    bigger = true
+                )
+            }
+
             //TITLE:
             Column(
                 modifier = Modifier
@@ -527,7 +595,7 @@ fun ExpandableVocSectionTitle(
                 Text(
                     text = subtitle,
                     fontSize = 14.sp,
-                    fontStyle = FontStyle.Italic,
+                    fontWeight = FontWeight.Bold,
                     color = colorResource(id = R.color.mid_grey)
                 )
                 //Count:

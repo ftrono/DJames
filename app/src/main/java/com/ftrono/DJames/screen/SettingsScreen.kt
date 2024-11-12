@@ -197,7 +197,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         shape = RoundedCornerShape(20.dp),
                         border = BorderStroke(2.dp, colorResource(id = R.color.mid_grey)),
                         colors = CardDefaults.cardColors(
-                            containerColor = colorResource(id = R.color.greenSign)
+                            containerColor = colorResource(id = R.color.colorPrimary)
                         )
                     ) {
                         Row(
@@ -317,6 +317,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     parentOptions=overlayPosOptions,
                     init=textOverlayPosState.value,
                     state=textOverlayPosState,
+                    focusColor = colorResource(id = R.color.colorAccentLight),
                     prefName="overlayPosition",
                     width=200,
                     start=36
@@ -347,6 +348,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     parentOptions=queryLangCaps,
                     init=textQueryLangState.value,
                     state=textQueryLangState,
+                    focusColor = colorResource(id = R.color.colorAccentLight),
                     prefName="queryLanguage",
                     width=200,
                     start=36
@@ -466,6 +468,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     parentOptions=messLangCaps,
                     init=textMessLangState.value,
                     state=textMessLangState,
+                    focusColor = colorResource(id = R.color.colorAccentLight),
                     prefName="messageLanguage",
                     width=200,
                     start=36

@@ -36,7 +36,7 @@
         "description": "Plays a song in Spotify from a playlist of yours*. Language MUST be told if the name is not in English.\n\n*NOTE: the playlist must be listed in DJames' Vocabulary, in the Playlists tab!"
       },
       {
-        "intro": "Play song from Liked Songs* context",
+        "intro": "Play song within Liked Songs*",
         "sentence": "\uD83D\uDDE3\uFE0F  \"Play a song in <language> from my liked songs / saved tracks / collection\"",
         "description": "Plays a song in Spotify from your playlist Liked Songs*. Language MUST be told if the name is not in English.\n\n*NOTE: this will work only for your most recently saved tracks!"
       },

@@ -337,7 +337,8 @@ class ClockActivity: ComponentActivity() {
                         modifier = Modifier.padding(8.dp),
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
-                        fontSize = 22.sp
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
                     )
                     //TEXT 1:
                     Text(
@@ -375,9 +376,9 @@ class ClockActivity: ComponentActivity() {
                             modifier = Modifier
                                 .padding(top = 8.dp, end = 12.dp)
                                 .clickable { playerDialogOn.value = false },
-                            color = colorResource(id = R.color.colorAccentLight),
+                            color = colorResource(id = R.color.light_grey),
                             text = "Ok",
-                            fontSize = 14.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }

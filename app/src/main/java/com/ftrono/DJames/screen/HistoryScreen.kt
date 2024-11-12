@@ -151,7 +151,7 @@ fun HistoryScreen(preview: Boolean = false) {
                     shape = RoundedCornerShape(20.dp),
                     border = BorderStroke(2.dp, colorResource(id = R.color.mid_grey)),
                     colors = CardDefaults.cardColors(
-                        containerColor = colorResource(id = R.color.greenSign)
+                        containerColor = colorResource(id = R.color.colorPrimary)
                     )
                 ) {
                     Row(
@@ -448,11 +448,13 @@ fun DialogDeleteHistory(mContext: Context, dialogOnState: MutableState<Boolean>,
                 //cancelable -> true:
                 dialogOnState.value = false
             },
-            containerColor = colorResource(id = R.color.dark_grey),
+            containerColor = colorResource(id = R.color.colorPrimaryOld),
             title = {
                 Text(
                     text = if (filename != "") "Delete log" else "Delete history",
-                    color = colorResource(id = R.color.light_grey)
+                    color = colorResource(id = R.color.light_grey),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
                 ) },
             text = {
                 Text(
@@ -461,7 +463,7 @@ fun DialogDeleteHistory(mContext: Context, dialogOnState: MutableState<Boolean>,
                     } else {
                         "Do you want to delete all history logs?"
                     },
-                    color = colorResource(id = R.color.mid_grey)
+                    color = colorResource(id = R.color.light_grey)
                 ) },
             dismissButton = {
                 Text(
@@ -469,8 +471,8 @@ fun DialogDeleteHistory(mContext: Context, dialogOnState: MutableState<Boolean>,
                         .padding(end=20.dp)
                         .clickable { dialogOnState.value = false },
                     text = "No",
-                    fontSize = 14.sp,
-                    color = colorResource(id = R.color.colorAccentLight)
+                    fontSize = 16.sp,
+                    color = colorResource(id = R.color.light_grey)
                 )
             },
             confirmButton = {
@@ -494,8 +496,8 @@ fun DialogDeleteHistory(mContext: Context, dialogOnState: MutableState<Boolean>,
                             Toast.makeText(mContext, toastText, Toast.LENGTH_LONG).show()
                         },
                     text = "Yes",
-                    fontSize = 14.sp,
-                    color = colorResource(id = R.color.colorAccentLight)
+                    fontSize = 16.sp,
+                    color = colorResource(id = R.color.light_grey)
                 )
             }
         )

@@ -110,7 +110,7 @@ fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
     ) {
         Canvas(
             modifier = Modifier
-                .padding(start=48.dp)
+                .padding(start = 48.dp)
                 .matchParentSize()
                 .width(20.dp)
         ) {
@@ -146,7 +146,7 @@ fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
                     shape = RoundedCornerShape(20.dp),
                     border = BorderStroke(2.dp, colorResource(id = R.color.mid_grey)),
                     colors = CardDefaults.cardColors(
-                        containerColor = colorResource(id = R.color.greenSign)
+                        containerColor = colorResource(id = R.color.colorPrimary)
                     )
                 ) {
                     Row(
@@ -284,6 +284,7 @@ fun ChipOptions(mDisplayMenu: MutableState<Boolean>, deleteVocOn: MutableState<B
         modifier = Modifier
             .background(colorResource(id = R.color.dark_grey)),
         shape = RoundedCornerShape(20.dp),
+        //border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
         expanded = mDisplayMenu.value,
         onDismissRequest = {
             keyState.value = ""
@@ -563,7 +564,7 @@ fun ExpandableVocSectionTitle(
                         } else if (head == "playlist") {
                             colorResource(id = R.color.yellowSign)
                         } else {
-                            colorResource(id = R.color.greenSign)
+                            colorResource(id = R.color.colorPrimary)
                         }
                     )
                     .border(2.dp, colorResource(id = R.color.light_grey), CircleShape),
@@ -652,6 +653,7 @@ fun CatOptions(
         modifier = Modifier
             .background(colorResource(id = R.color.dark_grey)),
         shape = RoundedCornerShape(20.dp),
+        //border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
         expanded = mDisplayMenu.value,
         onDismissRequest = {
             mDisplayMenu.value = false
@@ -718,11 +720,13 @@ fun DialogDeleteVocabulary(mContext: Context, dialogOnState: MutableState<Boolea
                 dialogOnState.value = false
                 keyState.value = ""
             },
-            containerColor = colorResource(id = R.color.dark_grey),
+            containerColor = colorResource(id = R.color.colorPrimaryOld),
             title = {
                 Text(
                     text = if (key != "") "Delete $filter" else "Delete ${filter}s",
-                    color = colorResource(id = R.color.light_grey)
+                    color = colorResource(id = R.color.light_grey),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
                 ) },
             text = {
                 Text(
@@ -731,7 +735,7 @@ fun DialogDeleteVocabulary(mContext: Context, dialogOnState: MutableState<Boolea
                     } else {
                         "Do you want to delete all ${filter}s in vocabulary?"
                     },
-                    color = colorResource(id = R.color.mid_grey)
+                    color = colorResource(id = R.color.light_grey)
                 ) },
             dismissButton = {
                 Text(
@@ -742,8 +746,8 @@ fun DialogDeleteVocabulary(mContext: Context, dialogOnState: MutableState<Boolea
                             keyState.value = ""
                         },
                     text = "No",
-                    fontSize = 14.sp,
-                    color = colorResource(id = R.color.colorAccentLight)
+                    fontSize = 16.sp,
+                    color = colorResource(id = R.color.light_grey)
                 )
             },
             confirmButton = {
@@ -770,8 +774,8 @@ fun DialogDeleteVocabulary(mContext: Context, dialogOnState: MutableState<Boolea
                             keyState.value = ""
                         },
                     text = "Yes",
-                    fontSize = 14.sp,
-                    color = colorResource(id = R.color.colorAccentLight)
+                    fontSize = 16.sp,
+                    color = colorResource(id = R.color.light_grey)
                 )
             }
         )

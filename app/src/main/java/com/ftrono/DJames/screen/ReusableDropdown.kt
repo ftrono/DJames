@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -34,7 +35,7 @@ import com.ftrono.DJames.application.queryLangCodes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DropdownSpinner(mContext: Context, parentOptions: List<String>, init: String, state: MutableState<String>, prefName: String = "", width: Int = 0, start: Int = 0) {
+fun DropdownSpinner(mContext: Context, parentOptions: List<String>, init: String, state: MutableState<String>, focusColor: Color, prefName: String = "", width: Int = 0, start: Int = 0) {
     //"PREFNAME" ARG IS TO SELECT PREF TO OVERWRITE!!!
     var isExpanded by remember { mutableStateOf(false) }
     var selectedOptionText by remember { mutableStateOf(if (init != "0" && init != "1") init else "Italian") }
@@ -81,7 +82,7 @@ fun DropdownSpinner(mContext: Context, parentOptions: List<String>, init: String
                 unfocusedContainerColor = colorResource(id = R.color.transparent_full),
                 focusedTextColor = colorResource(id = R.color.light_grey),
                 unfocusedTextColor = colorResource(id = R.color.light_grey),
-                focusedIndicatorColor = colorResource(id = R.color.colorAccentLight),
+                focusedIndicatorColor = focusColor,
                 unfocusedIndicatorColor = colorResource(id = R.color.mid_grey),
             )
         )

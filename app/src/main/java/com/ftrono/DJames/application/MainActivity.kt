@@ -61,6 +61,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -504,16 +505,18 @@ class MainActivity : ComponentActivity() {
                     //cancelable -> true
                     dialogOnState.value = false
                 },
-                containerColor = colorResource(id = R.color.dark_grey),
+                containerColor = colorResource(id = R.color.colorPrimaryOld),
                 title = {
                     Text(
                         text = "Logout",
-                        color = colorResource(id = R.color.light_grey)
+                        color = colorResource(id = R.color.light_grey),
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
                     ) },
                 text = {
                     Text(
                         text = "You will need to login again to Spotify to use DJames.\n\nDo you want to log out?",   // and you'll lose your saved vocabulary & history
-                        color = colorResource(id = R.color.mid_grey)
+                        color = colorResource(id = R.color.light_grey)
                     ) },
                 dismissButton = {
                     Text(
@@ -523,8 +526,8 @@ class MainActivity : ComponentActivity() {
                                 dialogOnState.value = false
                             },
                         text = "No",
-                        fontSize = 14.sp,
-                        color = colorResource(id = R.color.colorAccentLight)
+                        fontSize = 16.sp,
+                        color = colorResource(id = R.color.light_grey)
                     )
                 },
                 confirmButton = {
@@ -535,8 +538,8 @@ class MainActivity : ComponentActivity() {
                                 dialogOnState.value = false
                             },
                         text = "Yes",
-                        fontSize = 14.sp,
-                        color = colorResource(id = R.color.colorAccentLight)
+                        fontSize = 16.sp,
+                        color = colorResource(id = R.color.light_grey)
                     )
                 }
             )

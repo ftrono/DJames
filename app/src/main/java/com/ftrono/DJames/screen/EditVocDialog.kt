@@ -82,11 +82,13 @@ fun DialogRequestDetail(mContext: Context, dialogOnState: MutableState<Boolean>,
                 //cancelable -> true
                 dialogOnState.value = false
             },
-            containerColor = colorResource(id = R.color.dark_grey),
+            containerColor = colorResource(id = R.color.colorPrimaryOld),
             title = {
                 Text(
                     text = if (filter == "contact") "Contact Phone Number" else "Playlist URL",
-                    color = colorResource(id = R.color.light_grey)
+                    color = colorResource(id = R.color.light_grey),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
                 ) },
             text = {
                 Text(
@@ -95,7 +97,7 @@ fun DialogRequestDetail(mContext: Context, dialogOnState: MutableState<Boolean>,
                     } else {
                         "Please enter a valid URL for the current Playlist!\n\nPlease copy it from Spotify -> your playlist -> Share -> Copy link."
                     },   // and you'll lose your saved vocabulary & history
-                    color = colorResource(id = R.color.mid_grey)
+                    color = colorResource(id = R.color.light_grey)
                 ) },
             confirmButton = {
                 Text(
@@ -104,8 +106,8 @@ fun DialogRequestDetail(mContext: Context, dialogOnState: MutableState<Boolean>,
                             dialogOnState.value = false
                         },
                     text = "Ok",
-                    fontSize = 14.sp,
-                    color = colorResource(id = R.color.colorAccentLight)
+                    fontSize = 16.sp,
+                    color = colorResource(id = R.color.light_grey)
                 )
             }
         )
@@ -160,23 +162,23 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
 
     //TextField colors:
     val textFieldColors = OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = colorResource(id = R.color.colorAccentLight),
+        focusedBorderColor = colorResource(id = R.color.light_grey),
         unfocusedBorderColor = colorResource(id = R.color.mid_grey),
         focusedTextColor = colorResource(id = R.color.light_grey),
         unfocusedTextColor = colorResource(id = R.color.light_grey),
         focusedPlaceholderColor = colorResource(id = R.color.mid_grey),
         unfocusedPlaceholderColor = colorResource(id = R.color.mid_grey),
-        cursorColor = colorResource(id = R.color.colorAccentLight),
+        cursorColor = colorResource(id = R.color.light_grey),
         selectionColors = TextSelectionColors(
-            handleColor = colorResource(id = R.color.colorAccent),
-            backgroundColor = colorResource(id = R.color.transparent_green)
+            handleColor = colorResource(id = R.color.light_grey),
+            backgroundColor = colorResource(id = R.color.transparent_grey)
         )
     )
 
     val checkBoxColors = CheckboxDefaults.colors(
-        checkedColor = colorResource(id = R.color.colorAccent),
-        uncheckedColor = colorResource(id = R.color.colorAccent),
-        checkmarkColor = colorResource(id = R.color.light_grey)
+        checkedColor = colorResource(id = R.color.light_grey),
+        uncheckedColor = colorResource(id = R.color.mid_grey),
+        checkmarkColor = colorResource(id = R.color.colorPrimary)
     )
 
     //EDIT DIALOG:
@@ -204,7 +206,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                 },
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors (
-                containerColor = colorResource(id = R.color.dark_grey)
+                containerColor = colorResource(id = R.color.colorPrimaryOld)
             )
         ) {
             Column(
@@ -224,15 +226,16 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                     VocIcon(
                         padding=0,
                         size=36,
-                        filter=filter
+                        filter=filter,
+                        bigger=true
                     )
                     Text(
                         text = "${filter.replaceFirstChar { it.uppercase() }}",
                         modifier = Modifier.padding(8.dp),
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
-                        fontSize = 22.sp,
-                        fontStyle = FontStyle.Italic
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
@@ -241,9 +244,9 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                 Text(
                     text = "Name",
                     modifier = Modifier.padding(top=12.dp),
-                    color = colorResource(id = R.color.colorAccentLight),
+                    color = colorResource(id = R.color.light_grey),
                     textAlign = TextAlign.Start,
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                 )
                 OutlinedTextField(
@@ -284,9 +287,9 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                     //PLAYLIST: TEXT FIELD 2:
                     Text(
                         text = "Playlist URL",
-                        color = colorResource(id = R.color.colorAccentLight),
+                        color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                     )
 
@@ -328,9 +331,9 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                     //CONTACTS: TEXT FIELD 2:
                     Text(
                         text = "Main phone",
-                        color = colorResource(id = R.color.colorAccentLight),
+                        color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                     )
                     Row(
@@ -436,7 +439,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                         //CONTACTS: DROPDOWN:
                         val initCaps = if (prevLangCode == "") defaultLanguageCaps else messLangCaps[messLangCodes.indexOf(prevLangCode)]
                         textLanguageState.value = initCaps
-                        DropdownSpinner(mContext, messLangCaps, init=initCaps, state=textLanguageState)
+                        DropdownSpinner(mContext, messLangCaps, init=initCaps, state=textLanguageState, focusColor = colorResource(id = R.color.light_grey))
                     } else {
                         textLanguageState.value = ""
                     }
@@ -449,19 +452,23 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                 ) {
                     //CANCEL:
                     Text(
+                        color = colorResource(id = R.color.light_grey),
+                        text = "Cancel",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .padding(top = 8.dp, end = 20.dp)
                             .clickable {
                                 dialogOnState.value = false
                                 keyState.value = ""
-                            },
-                        color = colorResource(id = R.color.colorAccentLight),
-                        text = "Cancel",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
+                            }
                     )
                     //SAVE:
                     Text(
+                        color = colorResource(id = R.color.light_grey),
+                        text = "Save",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .padding(top = 8.dp, end = 8.dp)
                             .clickable {
@@ -475,7 +482,8 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                                     )
                                 } else if (filter == "contact") {
                                     if (textLanguageState.value != "") {
-                                        val newLangCode = messLangCodes[messLangCaps.indexOf(textLanguageState.value)]
+                                        val newLangCode =
+                                            messLangCodes[messLangCaps.indexOf(textLanguageState.value)]
                                         newDetails.addProperty("contact_language", newLangCode)
                                     }
                                     newDetails.addProperty("prefix", textPrefix.replace(" ", ""))
@@ -496,11 +504,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                                     dialogOnState.value = false
                                     keyState.value = ""
                                 }
-                            },
-                        color = colorResource(id = R.color.colorAccentLight),
-                        text = "Save",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
+                            }
                     )
                 }
             }

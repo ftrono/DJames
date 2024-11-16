@@ -53,6 +53,7 @@ import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.volumeUpEnabled
 import com.ftrono.DJames.services.FloatingViewService
+import com.ftrono.DJames.ui.StreetLine
 import com.ftrono.DJames.utilities.Utilities
 
 
@@ -73,20 +74,13 @@ fun HomeScreen() {
             .fillMaxSize()
             .background(colorResource(id = R.color.windowBackground))
     ) {
-        Canvas(
+        //Street line canvas:
+        StreetLine(
             modifier = Modifier
                 .padding(start = 70.dp)
                 .matchParentSize()
                 .width(20.dp)
-        ) {
-            drawLine(
-                color = Color.Gray,
-                start = Offset(0f, 0f),
-                end = Offset(0f, size.height),
-                strokeWidth = 20f,
-                pathEffect = PathEffect.dashPathEffect(floatArrayOf(160f, 80f), 0f)
-            )
-        }
+        )
         //WRAPPER:
         Column(
             modifier = Modifier

@@ -76,6 +76,7 @@ import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryLangCaps
 import com.ftrono.DJames.application.queryLangCodes
 import com.ftrono.DJames.services.FloatingViewService
+import com.ftrono.DJames.ui.HeaderSign
 import com.ftrono.DJames.utilities.Utilities
 
 @Preview
@@ -136,6 +137,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     )
 
 
+    //CUSTOM BACKGROUND (NO STREET SIGN):
     Box(modifier = Modifier
         .fillMaxSize()
         .background(colorResource(id = R.color.windowBackground))
@@ -175,57 +177,25 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     //BACK:
-                    IconButton(
-                        onClick = {
-                            navController.popBackStack()
-                        }
-                    ) {
-                        Icon(
-                            modifier = Modifier
-                                .offset(x = (6.dp))
-                                .size(32.dp),
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = colorResource(id = R.color.colorAccentLight)
-                        )
-                    }
-                    //Street sign:
-                    Card(
+                    Icon(
                         modifier = Modifier
-                            .padding(10.dp)
-                            .wrapContentSize(align = Alignment.TopStart),
-                        shape = RoundedCornerShape(20.dp),
-                        border = BorderStroke(2.dp, colorResource(id = R.color.mid_grey)),
-                        colors = CardDefaults.cardColors(
-                            containerColor = colorResource(id = R.color.colorPrimary)
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            //Sign icon:
-                            Icon(
-                                modifier = Modifier
-                                    .size(50.dp),
-                                painter = painterResource(id = R.drawable.sign_preferences),
-                                contentDescription = "header",
-                                tint = colorResource(id = R.color.light_grey)
-                            )
-                            //Headers text:
-                            Text(
-                                text = "Preferences",
-                                fontSize = 26.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = colorResource(id = R.color.light_grey),
-                                modifier = Modifier
-                                    .padding(start = 8.dp, end = 30.dp)
-                                    .wrapContentWidth()
-                            )
-                        }
-                    }
+                            .padding(start=12.dp, end=4.dp)
+                            .size(32.dp)
+                            .clickable {
+                                navController.popBackStack()
+                            },
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = colorResource(id = R.color.colorAccentLight)
+                    )
+                    //MAIN HEADER SIGN:
+                    HeaderSign(
+                        modifier = Modifier
+                        .padding(10.dp)
+                        .wrapContentSize(align = Alignment.TopStart),
+                        iconRes = painterResource(id = R.drawable.sign_preferences),
+                        title = "Preferences"
+                    )
                     //OPTIONS BUTTONS:
                     Row(
                         modifier = Modifier
@@ -234,21 +204,18 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         verticalAlignment = Alignment.CenterVertically
                     ){
                         //SAVE BUTTON:
-                        IconButton(
+                        Icon(
                             modifier = Modifier
-                                .padding(end=12.dp),
-                            onClick = {
-                                saveSettings(mContext, newRecTimeout=recTimeout, newMessTimeout=messTimeout, newClockTimeout=clockTimeout)
-                                navController.popBackStack()
-                            }
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(35.dp),
-                                imageVector = Icons.Default.Check,
-                                contentDescription = "Save",
-                                tint = colorResource(id = R.color.colorAccentLight)
-                            )
-                        }
+                                .padding(end=18.dp)
+                                .size(35.dp)
+                                .clickable {
+                                    saveSettings(mContext, newRecTimeout=recTimeout, newMessTimeout=messTimeout, newClockTimeout=clockTimeout)
+                                    navController.popBackStack()
+                                },
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Save",
+                            tint = colorResource(id = R.color.colorAccentLight)
+                        )
                     }
                 }
             }

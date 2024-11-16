@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -376,32 +375,32 @@ class MainActivity : ComponentActivity() {
             scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
             actions = {
                 //SETTINGS BUTTON:
-                IconButton(
-                    onClick = {
-                        //Navigate:
-                        val curNavRoute = NavigationItem.Settings.route
-                        if (curNavRoute == lastNavRoute && (settingsOpenState)) {
-                            navController.popBackStack()
-                        } else {
-                            navigateTo(navController, curNavRoute)
-                        }
-                        lastNavRoute = curNavRoute
-                    }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.item_settings),
-                        contentDescription = "",
-                        tint = if (settingsOpenState) {
-                            colorResource(id = R.color.colorAccentLight)
-                        } else {
-                            colorResource(id = R.color.light_grey)
-                        }
-                    )
-                }
+                Icon(
+                    modifier = Modifier
+                        .padding(end=8.dp)
+                        .clickable {
+                            //Navigate:
+                            val curNavRoute = NavigationItem.Settings.route
+                            if (curNavRoute == lastNavRoute && (settingsOpenState)) {
+                                navController.popBackStack()
+                            } else {
+                                navigateTo(navController, curNavRoute)
+                            }
+                            lastNavRoute = curNavRoute
+                        },
+                    painter = painterResource(id = R.drawable.item_settings),
+                    contentDescription = "",
+                    tint = if (settingsOpenState) {
+                        colorResource(id = R.color.colorAccentLight)
+                    } else {
+                        colorResource(id = R.color.light_grey)
+                    }
+                )
 
                 //"MORE OPTIONS" BUTTON:
                 Icon(
                     modifier = Modifier
-                        .padding(end=8.dp)
+                        .padding(end=14.dp)
                         .clickable { mDisplayMenu = !mDisplayMenu },
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = "",

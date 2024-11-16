@@ -1,24 +1,16 @@
 package com.ftrono.DJames.screen
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -27,15 +19,11 @@ import androidx.compose.material.ChipDefaults
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.Card
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -46,9 +34,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -60,13 +45,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.historySize
 import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.settingsOpen
+import com.ftrono.DJames.ui.HeaderWithSign
+import com.ftrono.DJames.ui.StreetBackground
 import com.ftrono.DJames.ui.navigateTo
 import com.ftrono.DJames.ui.theme.NavigationItem
 import com.ftrono.DJames.utilities.Utilities
-import com.google.gson.JsonParser
 
 @Preview
 @Preview(heightDp = 360, widthDp = 800)
@@ -85,97 +70,22 @@ fun GuideScreen(navController: NavController) {
     var iCat = 0
     var iReq = 0
 
-    Box (
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorResource(id = R.color.windowBackground))
+    //BACKGROUND:
+    StreetBackground(
+        startDistance = 48
     ) {
-        //BG LINE:
-        Canvas(
-            modifier = Modifier
-                .padding(start = 48.dp)
-                .matchParentSize()
-                .width(20.dp)
+        //HEADER:
+        HeaderWithSign(
+            iconRes = painterResource(id = R.drawable.sign_info),
+            title = "Guide",
+            subtitle = "What you can ask"
         ) {
-            drawLine(
-                color = Color.Gray,
-                start = Offset(0f, 0f),
-                end = Offset(0f, size.height),
-                strokeWidth = 20f,
-                pathEffect = PathEffect.dashPathEffect(floatArrayOf(160f, 80f), 0f)
-            )
-        }
-
-        //MAIN:
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            //HEADER:
-            Row(
+            //LANGUAGE SETTINGS:
+            Icon(
                 modifier = Modifier
-                    .padding(bottom = 6.dp)
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .background(colorResource(id = R.color.windowBackground)),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                //Street sign:
-                Card(
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .weight(1f)
-                        .wrapContentSize(align = Alignment.TopStart),
-                    shape = RoundedCornerShape(20.dp),
-                    border = BorderStroke(2.dp, colorResource(id = R.color.mid_grey)),
-                    colors = CardDefaults.cardColors(
-                        containerColor = colorResource(id = R.color.colorPrimary)
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        //Sign icon:
-                        Icon(
-                            modifier = Modifier
-                                .size(50.dp),
-                            painter = painterResource(id = R.drawable.sign_info),
-                            contentDescription = "header",
-                            tint = colorResource(id = R.color.light_grey)
-                        )
-                        //Headers text:
-                        Column(
-                            modifier = Modifier
-                                .padding(start = 8.dp, end = 30.dp)
-                        ) {
-                            Text(
-                                text = "Guide",
-                                fontSize = 26.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = colorResource(id = R.color.light_grey),
-                                modifier = Modifier
-                                    .wrapContentWidth()
-                            )
-                            Text(
-                                text = "What you can ask",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = colorResource(id = R.color.mid_grey),
-                                modifier = Modifier
-                                    .wrapContentWidth()
-                            )
-                        }
-                    }
-                }
-                //LANGUAGE SETTINGS:
-                IconButton(
-                    modifier = Modifier
-                        .padding(end = 12.dp),
-                    onClick = {
+                    .padding(end = 18.dp)
+                    .size(35.dp)
+                    .clickable {
                         //Navigate:
                         val curNavRoute = NavigationItem.Settings.route
                         if (curNavRoute == lastNavRoute && (settingsOpenState!!)) {
@@ -184,90 +94,87 @@ fun GuideScreen(navController: NavController) {
                             navigateTo(navController, curNavRoute)
                         }
                         lastNavRoute = curNavRoute
-                    }
+                    },
+                imageVector = Icons.Default.Settings,
+                contentDescription = "Settings",
+                tint = colorResource(id = R.color.colorAccentLight)
+            )
+        }
+
+        //CONTENT:
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
+            //SECTIONS:
+            for (category in guideItems) {
+                var catItem = category.asJsonObject
+                ExpandableSection(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    title = catItem.get("header").asString
                 ) {
-                    Icon(
-                        modifier = Modifier.size(35.dp),
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "Settings",
-                        tint = colorResource(id = R.color.colorAccentLight)
-                    )
-                }
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                //SECTIONS:
-                for (category in guideItems) {
-                    var catItem = category.asJsonObject
-                    ExpandableSection(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth(),
-                        title = catItem.get("header").asString
+                        verticalArrangement = Arrangement.Top,
+                        horizontalAlignment = Alignment.Start
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            verticalArrangement = Arrangement.Top,
-                            horizontalAlignment = Alignment.Start
-                        ) {
-                            //ITEMS:
-                            for (request in catItem.get("requests").asJsonArray) {
-                                var reqItem = request.asJsonObject
-                                ExpandableItem(
+                        //ITEMS:
+                        for (request in catItem.get("requests").asJsonArray) {
+                            var reqItem = request.asJsonObject
+                            ExpandableItem(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                title = reqItem.get("intro").asString,
+                                first = iCat == 0 && iReq == 0   //expand first item only
+                            ) {
+                                Card(
+                                    shape = RoundedCornerShape(20.dp),
                                     modifier = Modifier
+                                        .padding(start = 52.dp, end = 24.dp, bottom = 12.dp)
                                         .fillMaxWidth(),
-                                    title = reqItem.get("intro").asString,
-                                    first = iCat == 0 && iReq == 0   //expand first item only
+                                    border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = colorResource(id = R.color.dark_grey_background)
+                                    )
                                 ) {
-                                    Card(
-                                        shape = RoundedCornerShape(20.dp),
+                                    Column(
                                         modifier = Modifier
-                                            .padding(start = 52.dp, end = 24.dp, bottom = 12.dp)
+                                            .padding(20.dp)
                                             .fillMaxWidth(),
-                                        border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = colorResource(id = R.color.dark_grey_background)
-                                        )
+                                        verticalArrangement = Arrangement.Top,
+                                        horizontalAlignment = Alignment.Start
                                     ) {
-                                        Column(
+                                        //SENTENCE:
+                                        Text(
                                             modifier = Modifier
-                                                .padding(20.dp)
                                                 .fillMaxWidth(),
-                                            verticalArrangement = Arrangement.Top,
-                                            horizontalAlignment = Alignment.Start
-                                        ) {
-                                            //SENTENCE:
-                                            Text(
-                                                modifier = Modifier
-                                                    .fillMaxWidth(),
-                                                text = reqItem.get("sentence").asString,
-                                                fontSize = 18.sp,
-                                                lineHeight = 22.sp,
-                                                fontStyle = FontStyle.Italic,
-                                                color = colorResource(id = R.color.light_grey)
-                                            )
-                                            //DESCR:
-                                            Text(
-                                                modifier = Modifier
-                                                    .padding(top = 12.dp)
-                                                    .fillMaxWidth(),
-                                                text = reqItem.get("description").asString,
-                                                fontSize = 14.sp,
-                                                lineHeight = 18.sp,
-                                                color = colorResource(id = R.color.mid_grey)
-                                            )
-                                        }
+                                            text = reqItem.get("sentence").asString,
+                                            fontSize = 18.sp,
+                                            lineHeight = 22.sp,
+                                            fontStyle = FontStyle.Italic,
+                                            color = colorResource(id = R.color.light_grey)
+                                        )
+                                        //DESCR:
+                                        Text(
+                                            modifier = Modifier
+                                                .padding(top = 12.dp)
+                                                .fillMaxWidth(),
+                                            text = reqItem.get("description").asString,
+                                            fontSize = 14.sp,
+                                            lineHeight = 18.sp,
+                                            color = colorResource(id = R.color.mid_grey)
+                                        )
                                     }
                                 }
-                                iReq++
                             }
+                            iReq++
                         }
                     }
-                    iCat++
                 }
+                iCat++
             }
         }
     }

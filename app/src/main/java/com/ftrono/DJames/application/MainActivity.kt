@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
@@ -68,8 +69,11 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
+import com.ftrono.DJames.screen.getVocKeys
 import com.ftrono.DJames.services.FloatingViewService
 import com.ftrono.DJames.ui.Navigation
+import com.ftrono.DJames.ui.OptionsItem
+import com.ftrono.DJames.ui.OptionsMenu
 import com.ftrono.DJames.ui.navigateTo
 import com.ftrono.DJames.ui.theme.DJamesTheme
 import com.ftrono.DJames.ui.theme.NavigationItem
@@ -325,7 +329,7 @@ class MainActivity : ComponentActivity() {
         val mContext = LocalContext.current
 
         // STATES:
-        var mDisplayMenu by rememberSaveable {
+        var mDisplayMenu = rememberSaveable {
             mutableStateOf(false)
         }
         val mainSubtitleState by mainSubtitle.observeAsState()
@@ -401,95 +405,59 @@ class MainActivity : ComponentActivity() {
                 Icon(
                     modifier = Modifier
                         .padding(end=14.dp)
-                        .clickable { mDisplayMenu = !mDisplayMenu },
+                        .clickable { mDisplayMenu.value = !mDisplayMenu.value },
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = "",
                     tint = colorResource(id = R.color.light_grey)
                 )
 
                 //DROPDOWN MENU:
-                DropdownMenu(
-                    modifier = Modifier
-                        .background(colorResource(id = R.color.dark_grey_background)),
-                    shape = RoundedCornerShape(20.dp),
-                    expanded = mDisplayMenu,
-                    onDismissRequest = { mDisplayMenu = false }
-                ) {
-
-                    //1) Item: LOGIN/LOGOUT
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = if (!spotifyLoggedInState) "Login to Spotify" else "Logout from Spotify",
-                                color = colorResource(id = R.color.light_grey),
-                                fontSize = 16.sp
-                            )},
-                        leadingIcon = {
-                            Icon(
-                                painterResource(id = R.drawable.item_user),
-                                "",
-                                tint = colorResource(id = R.color.mid_grey)
-                            )
-                        },
-                        onClick = {
-                            if (!spotifyLoggedInState) {
-                                //Login user -> Open WebView:
-                                val intent1 = Intent(this@MainActivity, WebAuth::class.java)
-                                startActivity(intent1)
-                            } else {
-                                //LOG OUT:
-                                logoutDialogOn.value = true
+                OptionsMenu(
+                    expandedState = mDisplayMenu,
+                    backgroundColor = colorResource(id = R.color.dark_grey_background),
+                    options = {
+                        //1) Item: LOGIN/LOGOUT
+                        OptionsItem(
+                            title = if (!spotifyLoggedInState) "Login to Spotify" else "Logout from Spotify",
+                            iconPainter = painterResource(id = R.drawable.item_user),
+                            onClick = {
+                                if (!spotifyLoggedInState) {
+                                    //Login user -> Open WebView:
+                                    val intent1 = Intent(this@MainActivity, WebAuth::class.java)
+                                    startActivity(intent1)
+                                } else {
+                                    //LOG OUT:
+                                    logoutDialogOn.value = true
+                                }
+                                mDisplayMenu.value = false
                             }
-                            mDisplayMenu = false
-                        })
-
-                    //2) Item: VOICE SETTINGS
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = "Voice settings",
-                                color = colorResource(id = R.color.light_grey),
-                                fontSize = 16.sp
-                            )},
-                        leadingIcon = {
-                            Icon(
-                                painterResource(id = R.drawable.speak_icon_gray),
-                                "",
-                                tint = colorResource(id = R.color.mid_grey)
-                            )
-                        },
-                        onClick = {
-                            //Set app preferences:
-                            val intent1 = Intent("com.android.settings.TTS_SETTINGS")
-                            startActivity(intent1)
-                            mDisplayMenu = false
-                        })
-
-                    //3) Item: PERMISSIONS
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = "Permissions",
-                                color = colorResource(id = R.color.light_grey),
-                                fontSize = 16.sp
-                            )},
-                        leadingIcon = {
-                            Icon(
-                                painterResource(id = R.drawable.item_permissions),
-                                "",
-                                tint = colorResource(id = R.color.mid_grey)
-                            )
-                        },
-                        onClick = {
-                            //Set app preferences:
-                            val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                            val uri = Uri.fromParts("package", packageName, null)
-                            intent1.setData(uri)
-                            startActivity(intent1)
-                            mDisplayMenu = false
-                        })
-
-                }
+                        )
+                        //2) Item: VOICE SETTINGS
+                        OptionsItem(
+                            title = "Voice settings",
+                            iconPainter = painterResource(id = R.drawable.speak_icon_gray),
+                            onClick = {
+                                //Set app preferences:
+                                val intent1 = Intent("com.android.settings.TTS_SETTINGS")
+                                startActivity(intent1)
+                                mDisplayMenu.value = false
+                            }
+                        )
+                        //3) Item: PERMISSIONS
+                        OptionsItem(
+                            title = "Permissions",
+                            iconPainter = painterResource(id = R.drawable.item_permissions),
+                            onClick = {
+                                //Set app preferences:
+                                val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                val uri = Uri.fromParts("package", packageName, null)
+                                intent1.setData(uri)
+                                startActivity(intent1)
+                                mDisplayMenu.value = false
+                            }
+                        )
+                    }
+                )
             }
         )
     }

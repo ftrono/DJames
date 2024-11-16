@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -59,6 +60,8 @@ import com.ftrono.DJames.application.logDir
 import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.playThreshold
 import com.ftrono.DJames.ui.HeaderWithSign
+import com.ftrono.DJames.ui.OptionsItem
+import com.ftrono.DJames.ui.OptionsMenu
 import com.ftrono.DJames.ui.StreetBackground
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
@@ -66,6 +69,7 @@ import com.google.gson.JsonParser
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
+import java.lang.StackWalker.Option
 import java.util.Locale
 
 
@@ -119,7 +123,9 @@ fun HistoryScreen(preview: Boolean = false) {
                         historyLogs = updateHistory(mContext)
                         historyItems = JsonParser.parseString(historyLogs).asJsonArray.toList()
                         historySize.postValue(historyItems.size)
-                        Toast.makeText(mContext, "History updated!", Toast.LENGTH_SHORT).show()
+                        Toast
+                            .makeText(mContext, "History updated!", Toast.LENGTH_SHORT)
+                            .show()
                     },
                 imageVector = Icons.Default.Refresh,
                 contentDescription = "Refresh",
@@ -194,10 +200,10 @@ fun HistoryCard(item: JsonObject) {
         onClick = { openLog(mContext, filename) },
         modifier = Modifier
             .padding(
-                start=20.dp,
-                end=20.dp,
-                top=8.dp,
-                bottom=8.dp
+                start = 20.dp,
+                end = 20.dp,
+                top = 8.dp,
+                bottom = 8.dp
             )
             .fillMaxWidth()
             .wrapContentHeight(),
@@ -220,7 +226,7 @@ fun HistoryCard(item: JsonObject) {
                 //INTRO & DATETIME:
                 Text(
                     modifier = Modifier
-                        .padding(start = 12.dp, top=2.dp)
+                        .padding(start = 12.dp, top = 2.dp)
                         .fillMaxWidth()
                         .wrapContentHeight()
                         .weight(1f),
@@ -232,7 +238,7 @@ fun HistoryCard(item: JsonObject) {
                 Box() {
                     Icon(
                         modifier = Modifier
-                            .padding(end=4.dp)
+                            .padding(end = 4.dp)
                             .clickable { mDisplayMenu.value = !mDisplayMenu.value },
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = "",
@@ -248,7 +254,7 @@ fun HistoryCard(item: JsonObject) {
             //REQUEST TEXT:
             Text(
                 modifier = Modifier
-                    .padding(start = 12.dp, top=4.dp, bottom = 10.dp)
+                    .padding(start = 12.dp, top = 4.dp, bottom = 10.dp)
                     .wrapContentWidth()
                     .wrapContentHeight(),
                 color = colorResource(id = R.color.light_grey),
@@ -283,58 +289,39 @@ fun HistoryOptions(
     filename: String
 ) {
     //DROPDOWN MENU:
-    DropdownMenu(
-        modifier = Modifier
-            .background(colorResource(id = R.color.dark_grey)),
-        shape = RoundedCornerShape(20.dp),
-        expanded = mDisplayMenu.value,
-        onDismissRequest = {
-            mDisplayMenu.value = false
+    OptionsMenu(
+        expandedState = mDisplayMenu,
+        backgroundColor = colorResource(id = R.color.dark_grey),
+        options = {
+            //1) Item: VIEW LOG
+            OptionsItem(
+                title = "View",
+                iconVector = Icons.Default.Search,
+                onClick = {
+                    openLog(mContext, filename)
+                    mDisplayMenu.value = false
+                }
+            )
+            //2) Item: SHARE LOG
+            OptionsItem(
+                title = "Share",
+                iconVector = Icons.Default.Share,
+                onClick = {
+                    sendLog(mContext, filename)
+                    mDisplayMenu.value = false
+                }
+            )
+            //3) Item: DELETE LOG
+            OptionsItem(
+                title = "Delete",
+                iconVector = Icons.Default.Delete,
+                onClick = {
+                    mDisplayMenu.value = false
+                    deleteLogOn.value = true
+                }
+            )
         }
-    ) {
-
-        //1) Item: SHARE LOG
-        DropdownMenuItem(
-            text = {
-                Text(
-                    text = "Share",
-                    color = colorResource(id = R.color.light_grey),
-                    fontSize = 16.sp
-                )},
-            leadingIcon = {
-                Icon(
-                    Icons.Default.Share,
-                    "Share",
-                    tint = colorResource(id = R.color.mid_grey)
-                )
-            },
-            onClick = {
-                sendLog(mContext, filename)
-                mDisplayMenu.value = false
-            }
-        )
-
-        //2) Item: DELETE LOG
-        DropdownMenuItem(
-            text = {
-                Text(
-                    text = "Delete log",
-                    color = colorResource(id = R.color.light_grey),
-                    fontSize = 16.sp
-                )},
-            leadingIcon = {
-                Icon(
-                    Icons.Default.Delete,
-                    "Delete log",
-                    tint = colorResource(id = R.color.mid_grey)
-                )
-            },
-            onClick = {
-                mDisplayMenu.value = false
-                deleteLogOn.value = true
-            }
-        )
-    }
+    )
 }
 
 
@@ -367,7 +354,7 @@ fun DialogDeleteHistory(mContext: Context, dialogOnState: MutableState<Boolean>,
             dismissButton = {
                 Text(
                     modifier = Modifier
-                        .padding(end=20.dp)
+                        .padding(end = 20.dp)
                         .clickable { dialogOnState.value = false },
                     text = "No",
                     fontSize = 16.sp,

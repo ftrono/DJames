@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
@@ -66,6 +67,8 @@ import com.ftrono.DJames.application.filter
 import com.ftrono.DJames.application.vocDir
 import com.ftrono.DJames.application.vocEditPreview
 import com.ftrono.DJames.ui.HeaderWithSign
+import com.ftrono.DJames.ui.OptionsItem
+import com.ftrono.DJames.ui.OptionsMenu
 import com.ftrono.DJames.ui.StreetBackground
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
@@ -192,64 +195,40 @@ fun VocIcon(
 
 //DROPDOWN MENU:
 @Composable
-fun ChipOptions(mDisplayMenu: MutableState<Boolean>, deleteVocOn: MutableState<Boolean>, editVocOn: MutableState<Boolean>, keyState: MutableState<String>, key: String) {
+fun ChipOptions(
+    mDisplayMenu: MutableState<Boolean>,
+    deleteVocOn: MutableState<Boolean>,
+    editVocOn: MutableState<Boolean>,
+    keyState: MutableState<String>,
+    key: String
+) {
     //DROPDOWN MENU:
-    DropdownMenu(
-        modifier = Modifier
-            .background(colorResource(id = R.color.dark_grey)),
-        shape = RoundedCornerShape(20.dp),
-        //border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
-        expanded = mDisplayMenu.value,
-        onDismissRequest = {
-            keyState.value = ""
-            mDisplayMenu.value = false
+    OptionsMenu(
+        expandedState = mDisplayMenu,
+        backgroundColor = colorResource(id = R.color.dark_grey),
+        options = {
+            //1) Item: EDIT VOC ITEM
+            OptionsItem(
+                title = "Edit",
+                iconVector = Icons.Default.Edit,
+                onClick = {
+                    keyState.value = key
+                    mDisplayMenu.value = false
+                    editVocOn.value = true
+                }
+            )
+            //2) Item: DELETE VOC ITEM
+            OptionsItem(
+                title = "Delete",
+                iconVector = Icons.Default.Delete,
+                onClick = {
+                    keyState.value = key
+                    mDisplayMenu.value = false
+                    deleteVocOn.value = true
+                }
+            )
         }
-    ) {
-
-        //1) Item: EDIT VOC ITEM
-        DropdownMenuItem(
-            text = {
-                Text(
-                    text = "Edit",
-                    color = colorResource(id = R.color.light_grey),
-                    fontSize = 16.sp
-                )},
-            leadingIcon = {
-                Icon(
-                    Icons.Default.Edit,
-                    "Edit item",
-                    tint = colorResource(id = R.color.mid_grey)
-                )
-            },
-            onClick = {
-                keyState.value = key
-                mDisplayMenu.value = false
-                editVocOn.value = true
-            }
-        )
-
-        //2) Item: DELETE VOC ITEM
-        DropdownMenuItem(
-            text = {
-                Text(
-                    text = "Delete",
-                    color = colorResource(id = R.color.light_grey),
-                    fontSize = 16.sp
-                )},
-            leadingIcon = {
-                Icon(
-                    Icons.Default.Delete,
-                    "Delete item",
-                    tint = colorResource(id = R.color.mid_grey)
-                )
-            },
-            onClick = {
-                keyState.value = key
-                mDisplayMenu.value = false
-                deleteVocOn.value = true
-            }
-        )
-    }
+    )
 }
 
 
@@ -564,67 +543,44 @@ fun CatOptions(
     head: String
 ) {
     //DROPDOWN MENU:
-    DropdownMenu(
-        modifier = Modifier
-            .background(colorResource(id = R.color.dark_grey)),
-        shape = RoundedCornerShape(20.dp),
-        //border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
-        expanded = mDisplayMenu.value,
-        onDismissRequest = {
-            mDisplayMenu.value = false
+    OptionsMenu(
+        expandedState = mDisplayMenu,
+        backgroundColor = colorResource(id = R.color.dark_grey),
+        options = {
+            //1) Item: REFRESH VOC CATEGORY
+            OptionsItem(
+                title = "Refresh",
+                iconVector = Icons.Default.Refresh,
+                onClick = {
+                    filter.postValue(head)
+                    mDisplayMenu.value = false
+                    vocabulary.value = getVocKeys(mContext, head)
+                    Toast.makeText(mContext, "${head.replaceFirstChar { it.uppercase() }}s vocabulary updated!", Toast.LENGTH_SHORT).show()
+                }
+            )
+            //2) Item: DELETE VOC CATEGORY
+            OptionsItem(
+                title = "Delete all",
+                iconVector = Icons.Default.Delete,
+                onClick = {
+                    filter.postValue(head)
+                    mDisplayMenu.value = false
+                    deleteVocOn.value = true
+                }
+            )
         }
-    ) {
-
-        //1) Item: REFRESH VOC CATEGORY
-        DropdownMenuItem(
-            text = {
-                Text(
-                    text = "Refresh",
-                    color = colorResource(id = R.color.light_grey),
-                    fontSize = 16.sp
-                )},
-            leadingIcon = {
-                Icon(
-                    Icons.Default.Refresh,
-                    "Refresh",
-                    tint = colorResource(id = R.color.mid_grey)
-                )
-            },
-            onClick = {
-                filter.postValue(head)
-                mDisplayMenu.value = false
-                vocabulary.value = getVocKeys(mContext, head)
-                Toast.makeText(mContext, "${head.replaceFirstChar { it.uppercase() }}s vocabulary updated!", Toast.LENGTH_SHORT).show()
-            }
-        )
-
-        //2) Item: DELETE VOC CATEGORY
-        DropdownMenuItem(
-            text = {
-                Text(
-                    text = "Delete all",
-                    color = colorResource(id = R.color.light_grey),
-                    fontSize = 16.sp
-                )},
-            leadingIcon = {
-                Icon(
-                    Icons.Default.Delete,
-                    "Delete all",
-                    tint = colorResource(id = R.color.mid_grey)
-                )
-            },
-            onClick = {
-                filter.postValue(head)
-                mDisplayMenu.value = false
-                deleteVocOn.value = true
-            }
-        )
-    }
+    )
 }
 
 
 @Composable
-fun DialogDeleteVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>, vocabulary: MutableState<List<String>>, keyState: MutableState<String>, filter: String) {
+fun DialogDeleteVocabulary(
+    mContext: Context,
+    dialogOnState: MutableState<Boolean>,
+    vocabulary: MutableState<List<String>>,
+    keyState: MutableState<String>,
+    filter: String
+) {
     val utils = Utilities()
     val key = keyState.value
     //DELETE DIALOG:

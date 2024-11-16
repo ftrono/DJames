@@ -1,5 +1,6 @@
 package com.ftrono.DJames.ui
 
+import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -18,23 +19,33 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
+import com.ftrono.DJames.screen.sendLog
 
+
+// STREET UI LANGUAGE COMPONENTS
 
 @Composable
 fun StreetBackground(
@@ -191,4 +202,63 @@ fun HeaderSign(
             }
         }
     }
+}
+
+
+//OPTIONS DROPDOWN MENU:
+@Composable
+fun OptionsMenu(
+    expandedState: MutableState<Boolean>,
+    backgroundColor: Color,
+    options:  @Composable() (ColumnScope.() -> Unit) = {}
+) {
+    //DROPDOWN MENU:
+    DropdownMenu(
+        modifier = Modifier
+            .background(backgroundColor),
+        shape = RoundedCornerShape(20.dp),
+        expanded = expandedState.value,
+        onDismissRequest = {
+            expandedState.value = false
+        }
+    ) {
+        options()
+    }
+}
+
+
+@Composable
+fun OptionsItem(
+    title: String,
+    iconVector: ImageVector? = null,
+    iconPainter: Painter? = null,
+    onClick: () -> Unit = {}
+) {
+    DropdownMenuItem(
+        text = {
+            Text(
+                text = title,
+                color = colorResource(id = R.color.light_grey),
+                fontSize = 16.sp
+            )},
+        leadingIcon = {
+            if (iconVector != null) {
+                Icon(
+                    imageVector = iconVector,
+                    contentDescription = title,
+                    tint = colorResource(id = R.color.mid_grey)
+                )
+            } else {
+                Icon(
+                    painter = iconPainter!!,
+                    contentDescription = title,
+                    tint = colorResource(id = R.color.mid_grey)
+                )
+            }
+
+        },
+        onClick = {
+            onClick()
+        }
+    )
 }

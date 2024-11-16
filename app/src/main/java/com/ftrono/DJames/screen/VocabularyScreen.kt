@@ -28,8 +28,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Chip
-import androidx.compose.material.ChipDefaults
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -40,6 +38,8 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -338,21 +338,21 @@ fun ExpandableVocSection(
                             mutableStateOf(false)
                         }
 
-                        Chip(
+                        AssistChip(
                             modifier = Modifier
                                 .padding(4.dp)
                                 .fillMaxSize(),
                             shape = RoundedCornerShape(14.dp),
                             border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
-                            colors = ChipDefaults.chipColors(
-                                backgroundColor = if (key == "") {
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = if (key == "") {
                                     colorResource(id = R.color.colorAccent)
                                 } else if (mDisplayMenu.value) {
                                     colorResource(id = R.color.dark_grey)
                                 } else {
                                     colorResource(id = R.color.dark_grey_background)
                                 },
-                                contentColor = colorResource(id = R.color.light_grey),
+                                labelColor = colorResource(id = R.color.light_grey),
                                 leadingIconContentColor = colorResource(id = R.color.mid_grey)
                             ),
                             leadingIcon = {
@@ -375,6 +375,42 @@ fun ExpandableVocSection(
                                     )
                                 }
                             },
+                            label = {
+                                Column {
+                                    //Item key:
+                                    Text(
+                                        modifier = Modifier
+                                            .wrapContentWidth()
+                                            .wrapContentHeight(),
+                                        color = colorResource(id = R.color.light_grey),
+                                        fontSize = 14.sp,
+                                        lineHeight = 16.sp,
+                                        maxLines = if (head == "contact") 1 else 2,
+                                        fontStyle = if (key == "") null else FontStyle.Italic,
+                                        fontWeight = if (key == "") FontWeight.Bold else null,
+                                        text = if (key == "") "Add $head" else utils.trimString(key, 16)
+                                    )
+                                    //Item detail:
+                                    if (head == "contact" && key != "") {
+                                        Text(
+                                            modifier = Modifier
+                                                .padding(top = 2.dp)
+                                                .wrapContentWidth()
+                                                .wrapContentHeight(),
+                                            color = colorResource(id = R.color.mid_grey),
+                                            fontSize = 12.sp,
+                                            lineHeight = 14.sp,
+                                            maxLines = 1,
+                                            fontStyle = FontStyle.Italic,
+                                            text = if (preview) {
+                                                "3331122333"
+                                            } else {
+                                                updateVocabulary(mContext, head).get(key).asJsonObject.get("phone").asString
+                                            }
+                                        )
+                                    }
+                                }
+                            },
                             onClick = {
                                 filter.postValue(head)
                                 if (key == "") {
@@ -383,42 +419,7 @@ fun ExpandableVocSection(
                                     mDisplayMenu.value = !mDisplayMenu.value
                                 }
                             }
-                        ) {
-                            Column {
-                                //Item key:
-                                Text(
-                                    modifier = Modifier
-                                        .wrapContentWidth()
-                                        .wrapContentHeight(),
-                                    color = colorResource(id = R.color.light_grey),
-                                    fontSize = 14.sp,
-                                    lineHeight = 16.sp,
-                                    maxLines = if (head == "contact") 1 else 2,
-                                    fontStyle = if (key == "") null else FontStyle.Italic,
-                                    fontWeight = if (key == "") FontWeight.Bold else null,
-                                    text = if (key == "") "Add $head" else utils.trimString(key, 16)
-                                )
-                                //Item detail:
-                                if (head == "contact" && key != "") {
-                                    Text(
-                                        modifier = Modifier
-                                            .padding(top = 2.dp)
-                                            .wrapContentWidth()
-                                            .wrapContentHeight(),
-                                        color = colorResource(id = R.color.mid_grey),
-                                        fontSize = 12.sp,
-                                        lineHeight = 14.sp,
-                                        maxLines = 1,
-                                        fontStyle = FontStyle.Italic,
-                                        text = if (preview) {
-                                            "3331122333"
-                                        } else {
-                                            updateVocabulary(mContext, head).get(key).asJsonObject.get("phone").asString
-                                        }
-                                    )
-                                }
-                            }
-                        }
+                        )
                         ChipOptions(mDisplayMenu, deleteVocOn, editVocOn, keyState, key)
                     }
                 }

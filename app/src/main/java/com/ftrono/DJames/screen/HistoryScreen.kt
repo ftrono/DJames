@@ -113,7 +113,7 @@ fun HistoryScreen(preview: Boolean = false) {
             //REFRESH BUTTON:
             Icon(
                 modifier = Modifier
-                    .padding(end = 8.dp)
+                    .padding(end = 12.dp)
                     .size(35.dp)
                     .clickable {
                         historyLogs = updateHistory(mContext)

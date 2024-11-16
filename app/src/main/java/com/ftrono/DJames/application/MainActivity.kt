@@ -377,7 +377,7 @@ class MainActivity : ComponentActivity() {
                 //SETTINGS BUTTON:
                 Icon(
                     modifier = Modifier
-                        .padding(end=8.dp)
+                        .padding(end=12.dp)
                         .clickable {
                             //Navigate:
                             val curNavRoute = NavigationItem.Settings.route

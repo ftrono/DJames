@@ -7,21 +7,23 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Chip
-import androidx.compose.material.ChipDefaults
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.Card
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -133,7 +135,7 @@ fun GuideScreen(navController: NavController) {
                                 Card(
                                     shape = RoundedCornerShape(20.dp),
                                     modifier = Modifier
-                                        .padding(start = 52.dp, end = 24.dp, bottom = 12.dp)
+                                        .padding(start = 52.dp, top = 4.dp, end = 24.dp, bottom = 12.dp)
                                         .fillMaxWidth(),
                                     border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
                                     colors = CardDefaults.cardColors(
@@ -224,6 +226,9 @@ fun ExpandableItem(
     ) {
         //SECTION:
         ExpandableItemTitle(
+            modifier = Modifier
+                .padding(top=6.dp, bottom=6.dp)
+                .height(42.dp),
             isExpanded = itemIsExpanded,
             title = title)
 
@@ -267,19 +272,21 @@ fun ExpandableSectionTitle(modifier: Modifier = Modifier, isExpanded: Boolean, t
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+
 @Composable
 fun ExpandableItemTitle(modifier: Modifier = Modifier, isExpanded: MutableState<Boolean>, title: String) {
     val icon = if (isExpanded.value) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
     //SECTION HEADER:
-    Chip(
+    AssistChip(
         modifier = modifier
-            .padding(start=50.dp),
+            .padding(start=50.dp)
+            .wrapContentWidth()
+            .fillMaxHeight(),
         shape = RoundedCornerShape(14.dp),
-        //border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
-        colors = ChipDefaults.chipColors(
-            backgroundColor = if (isExpanded.value) colorResource(id = R.color.windowBackground) else colorResource(id = R.color.windowBackground),
-            contentColor = colorResource(id = R.color.light_grey),
+        border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
+        colors = AssistChipDefaults.assistChipColors(
+            containerColor = if (isExpanded.value) colorResource(id = R.color.windowBackground) else colorResource(id = R.color.windowBackground),
+            labelColor = colorResource(id = R.color.light_grey),
             leadingIconContentColor = colorResource(id = R.color.mid_grey)
         ),
         leadingIcon = {
@@ -291,15 +298,16 @@ fun ExpandableItemTitle(modifier: Modifier = Modifier, isExpanded: MutableState<
                 contentDescription = "Expand / collapse"
             )
         },
+        label = {
+            Text(
+                text = title,
+                fontSize = 14.sp,
+                fontStyle = FontStyle.Italic,
+                color = if (isExpanded.value) colorResource(id = R.color.light_grey) else colorResource(id = R.color.mid_grey)
+            )
+        },
         onClick = {
             isExpanded.value = !isExpanded.value
         }
-    ) {
-        Text(
-            text = title,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = if (isExpanded.value) colorResource(id = R.color.light_grey) else colorResource(id = R.color.mid_grey)
-        )
-    }
+    )
 }

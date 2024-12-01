@@ -36,7 +36,7 @@ var filter = MutableLiveData<String>("artist")
 var currentSongPlaying = MutableLiveData<String>("Don't turn off the screen!")
 var currentArtistPlaying = MutableLiveData<String>("Keep this Clock Screen on\nto save battery")
 var currentAlbumPlaying = MutableLiveData<String>("(unless you're using Maps)")
-val headOrder = listOf("artist", "playlist", "contact")
+val vocHeads = listOf("artist", "playlist", "contact")
 var historySize = MutableLiveData<Int>(0)
 val vocEditPreview = "contact"
 

@@ -8,8 +8,8 @@ import android.media.AudioManager
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
 import com.google.gson.JsonArray
@@ -33,7 +33,6 @@ import java.util.Locale
 import java.util.Random
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import kotlin.math.min
 import kotlin.streams.asSequence
 
 
@@ -92,13 +91,15 @@ class Utilities {
         return textTrimmed
     }
 
-    fun updateItemsCount(filter: String, singularWord: String): String {
-        val size = getVocSize(filter)
-        if (size == 1) {
-            return "1 ${singularWord}"
-        } else {
-            return "$size ${singularWord}s"
+    fun updateStatesMap(statesMap: SnapshotStateMap<String, Boolean>, target: String): SnapshotStateMap<String, Boolean> {
+        for (k in statesMap.keys) {
+            if (k == target) {
+                statesMap[k] = true
+            } else {
+                statesMap[k] = false
+            }
         }
+        return statesMap
     }
 
 

@@ -35,7 +35,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
@@ -43,14 +42,15 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,6 +66,7 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.filter
 import com.ftrono.DJames.application.vocDir
 import com.ftrono.DJames.application.vocEditPreview
+import com.ftrono.DJames.application.vocHeads
 import com.ftrono.DJames.ui.HeaderWithSign
 import com.ftrono.DJames.ui.OptionsItem
 import com.ftrono.DJames.ui.OptionsMenu
@@ -89,12 +90,19 @@ fun VocScreenPreview() {
 @Composable
 fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
     val mContext = LocalContext.current
-
+    val utils = Utilities()
+    //Descriptions:
+    val subtitles = mapOf(
+        "artist" to "Favourites or hard-to-spell",
+        "playlist" to "Play songs from this list",
+        "contact" to "For calls & messages"
+    )
     //Statuses:
     var keyState = rememberSaveable { mutableStateOf("") }
-    var artistsExpanded = rememberSaveable { mutableStateOf(true) }
-    var playlistsExpanded = rememberSaveable { mutableStateOf(false) }
-    var contactsExpanded = rememberSaveable { mutableStateOf(false) }
+    var catState = rememberSaveable { mutableStateOf(vocHeads[0]) }
+    val expandedStates = remember {
+        mutableStateMapOf(*vocHeads.map { it to false }.toTypedArray())
+    }
 
     //BACKGROUND:
     StreetBackground(
@@ -112,54 +120,24 @@ fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
+            //Check expanded states:
+            utils.updateStatesMap(expandedStates, target=catState.value)
             //SECTIONS:
-            //1) ARTISTS:
-            ExpandableVocSection(
-                mContext = mContext,
-                modifier = Modifier
-                    .fillMaxWidth(),
-                keyState = keyState,
-                sectionIsExpanded = artistsExpanded,
-                otherIsExpanded1 = playlistsExpanded,
-                otherIsExpanded2 = contactsExpanded,
-                head = "artist",
-                title = "My Artists",
-                subtitle = "Favourites or hard-to-spell",
-                preview = preview,
-                editPreview = editPreview
-            )
-
-            //2) PLAYLISTS:
-            ExpandableVocSection(
-                mContext = mContext,
-                modifier = Modifier
-                    .fillMaxWidth(),
-                keyState = keyState,
-                sectionIsExpanded = playlistsExpanded,
-                otherIsExpanded1 = artistsExpanded,
-                otherIsExpanded2 = contactsExpanded,
-                head = "playlist",
-                title = "My Playlists",
-                subtitle = "Play songs from this list",
-                preview = preview,
-                editPreview = editPreview
-            )
-
-            //3) CONTACTS:
-            ExpandableVocSection(
-                mContext = mContext,
-                modifier = Modifier
-                    .fillMaxWidth(),
-                keyState = keyState,
-                sectionIsExpanded = contactsExpanded,
-                otherIsExpanded1 = playlistsExpanded,
-                otherIsExpanded2 = artistsExpanded,
-                head = "contact",
-                title = "My Contacts",
-                subtitle = "For calls & messages",
-                preview = preview,
-                editPreview = editPreview
-            )
+            for (vocHead in vocHeads) {
+                ExpandableVocSection(
+                    mContext = mContext,
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    keyState = keyState,
+                    catState = catState,
+                    expandedStates = expandedStates,
+                    head = vocHead,
+                    title = "My ${vocHead}s",
+                    subtitle = subtitles[vocHead]!!,
+                    preview = preview,
+                    editPreview = editPreview
+                )
+            }
         }
     }
 }
@@ -237,13 +215,12 @@ fun ChipOptions(
 fun ExpandableVocSection(
     mContext: Context,
     modifier: Modifier = Modifier,
+    keyState: MutableState<String>,
+    catState: MutableState<String>,
+    expandedStates: SnapshotStateMap<String, Boolean>,
     head: String,
     title: String,
     subtitle: String,
-    sectionIsExpanded: MutableState<Boolean>,
-    otherIsExpanded1: MutableState<Boolean>,
-    otherIsExpanded2: MutableState<Boolean>,
-    keyState: MutableState<String>,
     preview: Boolean = false,
     editPreview: Boolean = false
 ) {
@@ -265,19 +242,14 @@ fun ExpandableVocSection(
         DialogEditVocabulary(mContext, editVocOn, vocabulary, keyState, head, preview)
     }
 
-    if (sectionIsExpanded.value) {
-        otherIsExpanded1.value = false
-        otherIsExpanded2.value = false
-    }
+    utils.updateStatesMap(expandedStates, target=catState.value)
 
     Column(
         modifier = modifier
             .clickable {
-                sectionIsExpanded.value = !sectionIsExpanded.value
-                if (sectionIsExpanded.value) {
-                    otherIsExpanded1.value = false
-                    otherIsExpanded2.value = false
-                }
+                //Update global catState:
+                catState.value = head
+                utils.updateStatesMap(expandedStates, target=catState.value)
             }
             .fillMaxWidth()
     ) {
@@ -286,7 +258,7 @@ fun ExpandableVocSection(
             mContext = mContext,
             vocabulary = vocabulary,
             deleteVocOn = deleteVocOn,
-            isExpanded = sectionIsExpanded.value,
+            isExpanded = expandedStates[head]!!,
             head = head,
             title = title,
             subtitle = subtitle)
@@ -295,7 +267,7 @@ fun ExpandableVocSection(
             modifier = Modifier
                 .fillMaxWidth(),
 
-            visible = sectionIsExpanded.value
+            visible = expandedStates[head]!!
         ) {
             LazyHorizontalGrid(
                 modifier = Modifier

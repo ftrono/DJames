@@ -248,7 +248,11 @@ fun ExpandableVocSection(
         modifier = modifier
             .clickable {
                 //Update global catState:
-                catState.value = head
+                if (catState.value == head) {
+                    catState.value = ""
+                } else {
+                    catState.value = head
+                }
                 utils.updateStatesMap(expandedStates, target=catState.value)
             }
             .fillMaxWidth()

@@ -20,7 +20,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.1.1"
+val appVersion = "2.1.2"
 val copyrightYear = 2024
 
 //STATUS VARS:
@@ -38,7 +38,6 @@ var currentArtistPlaying = MutableLiveData<String>("Keep this Clock Screen on\nt
 var currentAlbumPlaying = MutableLiveData<String>("(unless you're using Maps)")
 val vocHeads = listOf("artist", "playlist", "contact")
 var historySize = MutableLiveData<Int>(0)
-val vocEditPreview = "contact"
 
 //Preferences:
 val silenceInitPatience = 3
@@ -46,7 +45,7 @@ val silencePatience = 2
 val deltaSimilarity = 10   //5
 val playThreshold = 80
 val maxThreshold = 70
-val midThreshold = 55
+val midThreshold = 60
 val recSamplingRate = 44100
 val queryTimeout = 5   //seconds
 val recFileName = "DJames_request"

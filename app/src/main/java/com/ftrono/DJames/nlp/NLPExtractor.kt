@@ -115,7 +115,7 @@ class NLPExtractor (private val context: Context) {
 
 
     //Double check artists between DF & NLP Extractor:
-    fun checkArtists(artistsNlp: JsonArray, artistExtracted: String, reqLanguage: String): String {
+    fun checkArtists(artistsNlp: JsonArray, artistExtracted: String, reqLanguage: String): JsonObject {
         var artistConfirmed = ""
 
         //1) CHECK NLP ENTITIES VS ORIGINAL TEXT EXTRACTION:
@@ -161,15 +161,22 @@ class NLPExtractor (private val context: Context) {
             }
         }
 
+        var artistJson = JsonObject()
+        artistJson.addProperty("text_confirmed", artistConfirmed)
+
         //2) Hand check artist evalued against user vocabulary:
         var vocArtists = utils.getVocabulary(filter="artist")
         var vocMatch = matchVocabulary(filter="artist", text=artistConfirmed, vocJson=vocArtists)
         if (!vocMatch.isEmpty) {
             //Replace:
             artistConfirmed = vocMatch.get("text_confirmed").asString
+            artistJson.addProperty("text_confirmed", artistConfirmed)
+            if (vocMatch.has("detail_confirmed")) {
+                artistJson.addProperty("detail_confirmed", vocMatch.get("detail_confirmed").asString)
+            }
         }
-        Log.d(TAG, "ARTIST CONFIRMED: $artistConfirmed")
-        return  artistConfirmed
+        Log.d(TAG, "ARTIST CONFIRMED: $artistJson")
+        return  artistJson
     }
 
 
@@ -188,13 +195,13 @@ class NLPExtractor (private val context: Context) {
             for (eval in listEvalued) {
                 for (current in vocArray) {
                     if (filter == "playlist") {
-                        var namePartial = FuzzySearch.partialRatio(current, eval)
-                        var nameFull = FuzzySearch.ratio(current, eval)
+                        var namePartial = FuzzySearch.partialRatio(current, eval.lowercase())
+                        var nameFull = FuzzySearch.ratio(current, eval.lowercase())
                         score = listOf<Int>(namePartial, nameFull).average().roundToInt()
                     } else {
-                        score = FuzzySearch.ratio(current, eval)
+                        score = FuzzySearch.ratio(current, eval.lowercase())
                     }
-                    Log.d(TAG, "VOC CONFIRMATION: COMPARING $current WITH $eval, MATCH: $score")
+                    Log.d(TAG, "VOC CONFIRMATION: COMPARING $current WITH ${eval.lowercase()}, MATCH: $score")
                     //Add only best matches:
                     if (!scoresMap.keys.contains(current) && score >= midThreshold) {
                         scoresMap[current] = score
@@ -220,7 +227,13 @@ class NLPExtractor (private val context: Context) {
                 var matchName = listConfirmed[0]
                 var itemDetails = JsonObject()
                 matchConfirmed.addProperty("text_confirmed", matchName)
-                if (filter == "playlist") {
+                Log.d(TAG, vocJson.toString())
+                if (filter == "artist" && matchName in vocArray) {
+                    itemDetails = vocJson.get(matchName).asJsonObject
+                    if (itemDetails.has("playlist_URL")) {
+                        matchConfirmed.addProperty("detail_confirmed", itemDetails.get("playlist_URL").asString)
+                    }
+                } else if (filter == "playlist") {
                     itemDetails = vocJson.get(matchName).asJsonObject
                     matchConfirmed.addProperty("detail_confirmed", itemDetails.get("playlist_URL").asString)
                 } else if(filter == "contact") {

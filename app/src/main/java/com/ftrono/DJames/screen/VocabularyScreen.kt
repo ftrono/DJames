@@ -65,8 +65,8 @@ import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.filter
 import com.ftrono.DJames.application.vocDir
-import com.ftrono.DJames.application.vocEditPreview
 import com.ftrono.DJames.application.vocHeads
+import com.ftrono.DJames.dialogs.DialogEditVocabulary
 import com.ftrono.DJames.ui.HeaderWithSign
 import com.ftrono.DJames.ui.OptionsItem
 import com.ftrono.DJames.ui.OptionsMenu
@@ -83,12 +83,12 @@ import java.io.InputStreamReader
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
 fun VocScreenPreview() {
-    VocabularyScreen(editPreview=false, preview=true)
+    VocabularyScreen(editPreview="", preview=true)
 }
 
 
 @Composable
-fun VocabularyScreen(editPreview: Boolean = false, preview: Boolean = false) {
+fun VocabularyScreen(editPreview: String = "", preview: Boolean = false) {
     val mContext = LocalContext.current
     val utils = Utilities()
     //Descriptions:
@@ -222,7 +222,7 @@ fun ExpandableVocSection(
     title: String,
     subtitle: String,
     preview: Boolean = false,
-    editPreview: Boolean = false
+    editPreview: String = ""
 ) {
     val utils = Utilities()
 
@@ -235,9 +235,9 @@ fun ExpandableVocSection(
         DialogDeleteVocabulary(mContext, deleteVocOn, vocabulary, keyState, head)
     }
 
-    val editVocOn = rememberSaveable { mutableStateOf(editPreview) }
-    if (editPreview) {
-        DialogEditVocabulary(mContext, editVocOn, vocabulary, keyState, vocEditPreview, preview)   //TODO: change in App.kt
+    val editVocOn = rememberSaveable { mutableStateOf(if (editPreview == "") false else true) }
+    if (editPreview != "") {
+        DialogEditVocabulary(mContext, editVocOn, vocabulary, keyState, editPreview, preview)
     } else if (editVocOn.value) {
         DialogEditVocabulary(mContext, editVocOn, vocabulary, keyState, head, preview)
     }

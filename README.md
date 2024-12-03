@@ -15,6 +15,8 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
+**Version 2.1.2 (2024-12-03)** - Update Artists BE & FE, following changes in Spotify Web API.
+
 **Version 2.1.1 (2024-11-06)** - New Street Sign based design language for UI.
 
 **Version 2.1 (2024-10-19)** - Brand-new UI migrated & refined, based on Jetpack Compose.

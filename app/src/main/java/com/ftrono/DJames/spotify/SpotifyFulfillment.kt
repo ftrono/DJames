@@ -194,13 +194,15 @@ class SpotifyFulfillment (private var context: Context) {
         contextType = extractorInfo.get("context_type").asString
         var artistExtracted = extractorInfo.get("artist_extracted").asString
         var artistConfirmed = ""
+        var artistJson = JsonObject()
         var contextExtracted = extractorInfo.get("context_extracted").asString
         var playlistMatch = JsonObject()
 
         if (artistExtracted != "") {
             //Confirm artists with vocabulary check:
             val artistsNlp = resultsNLP.get("artists").asJsonArray
-            artistConfirmed = nlpExtractor.checkArtists(artistsNlp, artistExtracted, reqLanguage=reqLangCode)
+            artistJson = nlpExtractor.checkArtists(artistsNlp, artistExtracted, reqLanguage=reqLangCode)
+            artistConfirmed = artistJson.get("text_confirmed").asString
             extractorInfo.addProperty("artist_confirmed", artistConfirmed)
             last_log!!.add("nlp_extractor", extractorInfo)
         }
@@ -317,7 +319,9 @@ class SpotifyFulfillment (private var context: Context) {
         //item:
         var matchName = nlp_queryText
         var artistConfirmed = ""
+        var artistJson = JsonObject()
         var contextConfirmed = ""
+        var artistPlaylist = ""
         var bySpotify = false
         var playlistMatch = JsonObject()
         var playInfo = JsonObject()
@@ -325,15 +329,38 @@ class SpotifyFulfillment (private var context: Context) {
         var extractorInfo = JsonObject()
         extractorInfo.addProperty("play_type", playType)
         extractorInfo.addProperty("match_extracted", nlp_queryText)
+        extractorInfo.addProperty("text_confirmed", nlp_queryText)
         extractorInfo.addProperty("context_type", "playlist")
 
         var nlpExtractor = NLPExtractor(context)
         if (playType == "artist") {
-            bySpotify = true
+            //bySpotify = true
             //Confirm artists with vocabulary check:
             val artistsNlp = resultsNLP.get("artists").asJsonArray
-            artistConfirmed = nlpExtractor.checkArtists(artistsNlp, matchName, reqLanguage=reqLangCode)
+            artistJson = nlpExtractor.checkArtists(artistsNlp, matchName, reqLanguage=reqLangCode)
+            artistConfirmed = artistJson.get("text_confirmed").asString
+            extractorInfo.addProperty("text_confirmed", artistConfirmed)
             extractorInfo.addProperty("artist_confirmed", artistConfirmed)
+
+            //Artist playlist:
+            if (artistJson.has("detail_confirmed")) {
+                Log.d(TAG, "PLAY -> Artist playlist in voc")
+                artistPlaylist = artistJson.get("detail_confirmed").asString
+                extractorInfo.addProperty("detail_confirmed", artistPlaylist)
+                contextConfirmed = "This is ${artistJson.get("text_confirmed").asString}"
+                extractorInfo.addProperty("context_confirmed", contextConfirmed)
+                var playlistId = artistPlaylist.split("/").last()
+
+                //PLAY -> Artist playlist:
+                playInfo.addProperty("play_type", "playlist")
+                playInfo.addProperty("context_type", "playlist")
+                playInfo.addProperty("match_name", contextConfirmed)
+                var uri = "spotify:playlist:${playlistId}"
+                playInfo.addProperty("uri", uri)
+                playInfo.addProperty("context_uri", uri)
+                playInfo.addProperty("context_name", contextConfirmed)
+                playInfo.addProperty("spotify_URL", "${ext_format}$playType/$playlistId")
+            }
 
         } else if (playType == "playlist") {
             //Check playlist in vocabulary:
@@ -341,9 +368,10 @@ class SpotifyFulfillment (private var context: Context) {
 
             if (playlistMatch.has("text_confirmed")) {
                 Log.d(TAG, "PLAY -> Playlist in voc")
-                contextConfirmed = playlistMatch.get("text_confirmed").asString
-                extractorInfo.addProperty("context_confirmed", contextConfirmed)
                 var playlistUrl = playlistMatch.get("detail_confirmed").asString
+                contextConfirmed = playlistMatch.get("text_confirmed").asString
+                extractorInfo.addProperty("text_confirmed", contextConfirmed)
+                extractorInfo.addProperty("context_confirmed", contextConfirmed)
                 var playlistId = playlistUrl.split("/").last()
 
                 //PLAY -> Playlist:
@@ -407,12 +435,18 @@ class SpotifyFulfillment (private var context: Context) {
             //Read TTS:
             //TODO: eng only!
             var ttsToRead = ""
-            if (contextConfirmed != "") {
+            if (contextConfirmed != "" && playType == "artist") {
+                ttsToRead = "Playing the playlist ${contextConfirmed}, by Spotify!"     //TODO: UPDATE DYNAMICALLY
+            } else if (contextConfirmed != "") {
                 ttsToRead = "Playing your playlist ${contextConfirmed}!"
             } else {
                 var playlistName = playInfo.get("match_name").asString.lowercase()
                 var owner = playInfo.get("owner").asString.lowercase()
-                ttsToRead = "Playing the playlist ${playlistName}, by ${owner}!"
+                if (owner == prefs.spotUserName) {
+                    ttsToRead = "Playing your playlist ${playlistName}!"
+                } else {
+                    ttsToRead = "Playing the playlist ${playlistName}, by ${owner}!"
+                }
             }
             utils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=true)
 

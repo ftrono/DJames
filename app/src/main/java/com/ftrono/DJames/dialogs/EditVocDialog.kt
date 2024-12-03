@@ -1,4 +1,4 @@
-package com.ftrono.DJames.screen
+package com.ftrono.DJames.dialogs
 
 import android.content.Context
 import android.telephony.PhoneNumberUtils
@@ -59,6 +59,10 @@ import com.ftrono.DJames.application.messLangCaps
 import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.playlistUrlIntro
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.screen.VocIcon
+import com.ftrono.DJames.screen.VocabularyScreen
+import com.ftrono.DJames.screen.getVocKeys
+import com.ftrono.DJames.screen.updateVocabulary
 import com.ftrono.DJames.ui.DropdownSpinner
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
@@ -68,7 +72,7 @@ import com.google.gson.JsonObject
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
 fun DialogEditPreview() {
-    VocabularyScreen(editPreview=true, preview=true)
+    VocabularyScreen(editPreview="artist", preview=true)
 }
 
 @Composable
@@ -114,7 +118,14 @@ fun DialogRequestDetail(mContext: Context, dialogOnState: MutableState<Boolean>,
 
 
 @Composable
-fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>, vocabulary: MutableState<List<String>>, keyState: MutableState<String>, filter: String, preview: Boolean = false) {
+fun DialogEditVocabulary(
+    mContext: Context,
+    dialogOnState: MutableState<Boolean>,
+    vocabulary: MutableState<List<String>>,
+    keyState: MutableState<String>,
+    filter: String,
+    preview: Boolean = false
+) {
     //Init:
     var key = keyState.value
     var vocItems = updateVocabulary(mContext, filter, preview)
@@ -131,7 +142,7 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
     //Recover info:
     if (key != "") {
         val prevDetails = vocItems.get(key).asJsonObject
-        if (filter == "playlist") {
+        if (prevDetails.has("playlist_URL")) {
             initPlayUrl = prevDetails.get("playlist_URL").asString
         } else if (filter == "contact") {
             if (prevDetails.has("contact_language")) {
@@ -145,10 +156,10 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
     }
 
     //States:
-    var textName by rememberSaveable { mutableStateOf(initName) }
-    var textPlayURL by rememberSaveable { mutableStateOf(initPlayUrl) }
-    var textPrefix by rememberSaveable { mutableStateOf(initPrefix) }
-    var textPhone by rememberSaveable { mutableStateOf(initPhone) }
+    var textName = rememberSaveable { mutableStateOf(initName) }
+    var textPlayURL = rememberSaveable { mutableStateOf(initPlayUrl) }
+    var textPrefix = rememberSaveable { mutableStateOf(initPrefix) }
+    var textPhone = rememberSaveable { mutableStateOf(initPhone) }
     var textLanguageState = rememberSaveable { mutableStateOf(initLanguageCaps) }
 
     val focusRequester = remember { FocusRequester() }
@@ -218,6 +229,8 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
             ) {
                 //TITLE:
                 Row(
+                    modifier = Modifier
+                        .padding(bottom=8.dp),
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -239,90 +252,26 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
 
 
                 //COMMON: TEXT FIELD 1:
-                Text(
-                    text = "Name",
-                    modifier = Modifier.padding(top=12.dp),
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-                OutlinedTextField(
-                    modifier = Modifier
-                        .padding(top = 8.dp, bottom = 20.dp)
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .focusRequester(focusRequester),
-                    colors = textFieldColors,
-                    value = textName,
-                    onValueChange = { newText ->
-                        textName = newText.trimStart { it == '0' }
-                    },
-                    textStyle = TextStyle(
-                        fontSize = 16.sp
-                    ),
-                    maxLines = 1,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            focusManager.clearFocus()
-                            keyboardController?.hide()
-                        }
-                    ),
-                    placeholder = {
-                        Text(
-                            text = "Write name here...",
-                            fontSize = 16.sp,
-                            fontStyle = FontStyle.Italic
-                        )
-                    },
+                EditVocTextField(
+                    focusRequester = focusRequester,
+                    focusManager = focusManager,
+                    keyboardController = keyboardController!!,
+                    textFieldColors = textFieldColors,
+                    title = "Name",
+                    placeholder = "Write $filter name...",
+                    textState = textName
                 )
 
-                if (filter == "playlist") {
-                    //PLAYLIST: TEXT FIELD 2:
-                    Text(
-                        text = "Playlist URL",
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-
-                    OutlinedTextField(
-                        modifier = Modifier
-                            .padding(top = 8.dp, bottom = 20.dp)
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .focusRequester(focusRequester),
-                        colors = textFieldColors,
-                        value = textPlayURL,
-                        onValueChange = { newText ->
-                            textPlayURL = newText.trimStart { it == '0' }
-                        },
-                        textStyle = TextStyle(
-                            fontSize = 16.sp
-                        ),
-                        singleLine = true,
-                        maxLines = 1,
-                        keyboardOptions = KeyboardOptions(
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                focusManager.clearFocus()
-                                keyboardController?.hide()
-                            }
-                        ),
-                        placeholder = {
-                            Text(
-                                text = "Paste here the Spotify link...",
-                                fontSize = 16.sp,
-                                fontStyle = FontStyle.Italic
-                            )
-                        },
+                if (filter == "artist" || filter == "playlist") {
+                    //ARTIST-PLAYLIST: TEXT FIELD 2:
+                    EditVocTextField(
+                        focusRequester = focusRequester,
+                        focusManager = focusManager,
+                        keyboardController = keyboardController,
+                        textFieldColors = textFieldColors,
+                        title = if (filter == "artist") "'This is' playlist URL" else "Playlist URL",
+                        placeholder = "Paste here the Spotify link...",
+                        textState = textPlayURL
                     )
 
                 } else if (filter == "contact") {
@@ -347,9 +296,9 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                                 .width(60.dp)
                                 .wrapContentHeight(),
                             colors = textFieldColors,
-                            value = textPrefix,
+                            value = textPrefix.value,
                             onValueChange = { newText ->
-                                textPrefix = newText.trimStart { it == '0' }
+                                textPrefix.value = newText.trimStart { it == '0' }
                             },
                             textStyle = TextStyle(
                                 fontSize = 16.sp,
@@ -377,9 +326,9 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                                 .wrapContentHeight()
                                 .focusRequester(focusRequester),
                             colors = textFieldColors,
-                            value = textPhone,
+                            value = textPhone.value,
                             onValueChange = { newText ->
-                                textPhone = newText.trimStart { it == '0' }
+                                textPhone.value = newText.trimStart { it == '0' }
                             },
                             textStyle = TextStyle(
                                 fontSize = 16.sp
@@ -473,10 +422,10 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                                 //CHECK & UPDATE:
                                 var newDetails = JsonObject()
                                 //Get new info:
-                                if (filter == "playlist") {
+                                if (filter == "playlist" || filter == "artist") {
                                     newDetails.addProperty(
                                         "playlist_URL",
-                                        textPlayURL.replace(" ", "")
+                                        textPlayURL.value.replace(" ", "")
                                     )
                                 } else if (filter == "contact") {
                                     if (textLanguageState.value != "") {
@@ -484,15 +433,15 @@ fun DialogEditVocabulary(mContext: Context, dialogOnState: MutableState<Boolean>
                                             messLangCodes[messLangCaps.indexOf(textLanguageState.value)]
                                         newDetails.addProperty("contact_language", newLangCode)
                                     }
-                                    newDetails.addProperty("prefix", textPrefix.replace(" ", ""))
-                                    newDetails.addProperty("phone", textPhone.replace(" ", ""))
+                                    newDetails.addProperty("prefix", textPrefix.value.replace(" ", ""))
+                                    newDetails.addProperty("phone", textPhone.value.replace(" ", ""))
                                 }
                                 //Edit:
                                 requestDetailOn.value = editVocItemAndShow(
                                     mContext = mContext,
                                     vocabulary = vocabulary,
                                     prevText = initName,
-                                    newText = textName.lowercase(),
+                                    newText = textName.value.lowercase(),
                                     newDetails = newDetails,
                                     filter = filter,
                                     vocItems = vocItems
@@ -516,7 +465,7 @@ fun editVocItemAndShow(mContext: Context, vocabulary: MutableState<List<String>>
     //Return true -> Show DialogRequestDetail;
     //Return false -> Don't show DialogRequestDetail.
     if (newText != "") {
-        if (filter == "playlist") {
+        if (filter == "playlist" || (filter == "artist" && newDetails.get("playlist_URL").asString != "")) {
             var newURL = newDetails.get("playlist_URL").asString
             var urlTest = URLUtil.isValidUrl(newURL) && Patterns.WEB_URL.matcher(newURL).matches()
             if (!urlTest || !newURL.contains(playlistUrlIntro)) {

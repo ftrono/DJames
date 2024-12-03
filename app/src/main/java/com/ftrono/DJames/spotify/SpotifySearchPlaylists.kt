@@ -20,7 +20,7 @@ class SpotifySearchPlaylists(private val context: Context) {
     //SEARCH TRACKS OR ALBUMS:
     fun searchPlaylists(searchData: JsonObject, bySpotify: Boolean = false): JsonObject {
         //vars:
-        var matchName = searchData.get("match_extracted").asString
+        var matchName = searchData.get("text_confirmed").asString
         var playType = searchData.get("play_type").asString
         if (playType == "artist") {
             matchName = "this is $matchName"
@@ -46,6 +46,7 @@ class SpotifySearchPlaylists(private val context: Context) {
         //Headers:
         var jsonHeads = JsonObject()
         jsonHeads.addProperty("Authorization", "Bearer ${prefs.spotifyToken}")
+        Log.d(TAG, "Bearer: ${prefs.spotifyToken}")
 
         //FIRST REQUEST:
         //Compose query:
@@ -66,7 +67,15 @@ class SpotifySearchPlaylists(private val context: Context) {
             Log.d(TAG, "ERROR: Spotify Search results not received!!")
         } else {
             //Analyse response & get index of best result:
-            items = respJSON.getAsJsonObject("playlists").getAsJsonArray("items")
+            var temp = respJSON.getAsJsonObject("playlists").getAsJsonArray("items")
+            var buf = JsonObject()
+            for (item in temp) {
+                try {
+                    buf = item.asJsonObject
+                    items.add(item)
+                } catch (_: Exception) { }
+            }
+
             n_items = items.size()
             logJSON.addProperty("n_items", n_items)
             //Get best score:

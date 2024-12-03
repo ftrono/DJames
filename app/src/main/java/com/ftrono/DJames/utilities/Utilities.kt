@@ -302,7 +302,17 @@ class Utilities {
                 var reader = FileReader(File(logDir, f))
                 try {
                     obj = JsonParser.parseReader(reader).asJsonObject
-                    logArray.add(obj)
+                    //Delete empty searches:
+                    if (obj.has("best_score")) {
+                        val best = obj.get("best_score").asInt
+                        if (best == 0) {
+                            //Delete invalid files:
+                            File(logDir, f).delete()
+                            Log.w(TAG, "Deleted file: $f")
+                        } else {
+                            logArray.add(obj)
+                        }
+                    }
                 } catch (e: Exception) {
                     //Delete invalid files:
                     File(logDir, f).delete()

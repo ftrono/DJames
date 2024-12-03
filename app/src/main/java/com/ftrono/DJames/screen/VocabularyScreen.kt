@@ -1,6 +1,7 @@
 package com.ftrono.DJames.screen
 
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
@@ -35,6 +36,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
@@ -62,6 +64,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
+import androidx.core.content.FileProvider
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.filter
 import com.ftrono.DJames.application.vocDir
@@ -534,7 +538,16 @@ fun CatOptions(
                     Toast.makeText(mContext, "${head.replaceFirstChar { it.uppercase() }}s vocabulary updated!", Toast.LENGTH_SHORT).show()
                 }
             )
-            //2) Item: DELETE VOC CATEGORY
+            //2) Item: SHARE VOC CATEGORY
+            OptionsItem(
+                title = "Share",
+                iconVector = Icons.Default.Share,
+                onClick = {
+                    sendVoc(mContext, head)
+                    mDisplayMenu.value = false
+                }
+            )
+            //3) Item: DELETE VOC CATEGORY
             OptionsItem(
                 title = "Delete all",
                 iconVector = Icons.Default.Delete,
@@ -644,6 +657,24 @@ fun updateVocabulary(mContext: Context, filter: String, preview: Boolean = false
         //Log.d("Vocabulary", vocItems.toString())
         return vocItems
     }
+}
+
+
+//VOC ACTIONS:
+//Send:
+fun sendVoc(mContext: Context, filter: String) {
+    //Send the current file:
+    val file = File(vocDir, "voc_${filter}s.json")
+    val uriToFile = FileProvider.getUriForFile(mContext, "com.ftrono.DJames.provider", file)
+    val sendIntent: Intent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(Intent.EXTRA_STREAM, uriToFile)
+        type = "image/jpeg"
+    }
+    var chooserIntent = Intent.createChooser(sendIntent, null)
+    chooserIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    chooserIntent.putExtra("fromwhere", "ser")
+    startActivity(mContext, chooserIntent, null)
 }
 
 

@@ -496,6 +496,7 @@ fun getHistoryItemInfo(item: JsonObject, context: Context): JsonObject {
 
         } else {
             //Track:
+            //Log.d("History", item.toString())
             var matchName = utils.trimString(item.get("spotify_play").asJsonObject.get("match_name").asString, trimLength)
             var artistName = utils.trimString(item.get("spotify_play").asJsonObject.get("artist_name").asString, trimLength)
 

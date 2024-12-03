@@ -422,7 +422,7 @@ class SpotifyFulfillment (private var context: Context) {
         //A) EMPTY QUERY RESULT:
         if (!playInfo.has("uri")) {
             //Close log:
-            utils.closeLog(context)
+            //utils.closeLog(context)
             return utils.fallback()
 
         } else {

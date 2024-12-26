@@ -5,7 +5,6 @@ import android.content.Intent
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,11 +26,8 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -59,6 +55,7 @@ import com.ftrono.DJames.application.historySize
 import com.ftrono.DJames.application.logDir
 import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.playThreshold
+import com.ftrono.DJames.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.HeaderWithSign
 import com.ftrono.DJames.ui.OptionsItem
 import com.ftrono.DJames.ui.OptionsMenu
@@ -69,7 +66,6 @@ import com.google.gson.JsonParser
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
-import java.lang.StackWalker.Option
 import java.util.Locale
 
 
@@ -328,66 +324,41 @@ fun HistoryOptions(
 @Composable
 fun DialogDeleteHistory(mContext: Context, dialogOnState: MutableState<Boolean>, filename: String = "") {
     //DELETE DIALOG:
-    if (dialogOnState.value) {
-        AlertDialog(
-            onDismissRequest = {
-                //cancelable -> true:
-                dialogOnState.value = false
-            },
-            containerColor = colorResource(id = R.color.colorPrimaryOld),
-            title = {
-                Text(
-                    text = if (filename != "") "Delete log" else "Delete history",
-                    color = colorResource(id = R.color.light_grey),
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                ) },
-            text = {
-                Text(
-                    text = if (filename != "") {
-                        "Do you want to delete this log item?\n\n$filename"
-                    } else {
-                        "Do you want to delete all history logs?"
-                    },
-                    color = colorResource(id = R.color.light_grey)
-                ) },
-            dismissButton = {
-                Text(
-                    modifier = Modifier
-                        .padding(end = 20.dp)
-                        .clickable { dialogOnState.value = false },
-                    text = "No",
-                    fontSize = 16.sp,
-                    color = colorResource(id = R.color.light_grey)
-                )
-            },
-            confirmButton = {
-                Text(
-                    modifier = Modifier
-                        .clickable {
-                            dialogOnState.value = false
-                            var toastText = ""
-                            if (filename != "") {
-                                //Delete current:
-                                File(logDir, filename).delete()
-                                Log.d("HistoryScreen", "Deleted file: $filename")
-                                toastText = "Log deleted!"
-                            } else {
-                                //Delete all:
-                                logDir!!.deleteRecursively()
-                                Log.d("HistoryScreen", "Deleted ALL logs.")
-                                toastText = "History deleted!"
-                            }
-                            historySize.postValue(historySize.value!! - 1)   //Refresh list
-                            Toast.makeText(mContext, toastText, Toast.LENGTH_LONG).show()
-                        },
-                    text = "Yes",
-                    fontSize = 16.sp,
-                    color = colorResource(id = R.color.light_grey)
-                )
+    GeneralDialog(
+        dialogOnState = dialogOnState,
+        backgroundColor = colorResource(id = R.color.colorPrimaryOld),
+        title = if (filename != "") "Delete log" else "Delete history",
+        content = {
+            Text(
+                text = if (filename != "") {
+                    "Do you want to delete this log item?\n\n$filename"
+                } else {
+                    "Do you want to delete all history logs?"
+                },
+                color = colorResource(id = R.color.light_grey),
+                fontSize = 14.sp
+            )
+        },
+        dismissText = "No",
+        confirmText = "Yes",
+        onConfirm = {
+            dialogOnState.value = false
+            var toastText = ""
+            if (filename != "") {
+                //Delete current:
+                File(logDir, filename).delete()
+                Log.d("HistoryScreen", "Deleted file: $filename")
+                toastText = "Log deleted!"
+            } else {
+                //Delete all:
+                logDir!!.deleteRecursively()
+                Log.d("HistoryScreen", "Deleted ALL logs.")
+                toastText = "History deleted!"
             }
-        )
-    }
+            historySize.postValue(historySize.value!! - 1)   //Refresh list
+            Toast.makeText(mContext, toastText, Toast.LENGTH_LONG).show()
+        }
+    )
 }
 
 

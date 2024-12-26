@@ -39,7 +39,6 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
@@ -71,6 +70,7 @@ import com.ftrono.DJames.application.filter
 import com.ftrono.DJames.application.vocDir
 import com.ftrono.DJames.application.vocHeads
 import com.ftrono.DJames.dialogs.DialogEditVocabulary
+import com.ftrono.DJames.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.HeaderWithSign
 import com.ftrono.DJames.ui.OptionsItem
 import com.ftrono.DJames.ui.OptionsMenu
@@ -573,73 +573,48 @@ fun DialogDeleteVocabulary(
     val utils = Utilities()
     val key = keyState.value
     //DELETE DIALOG:
-    if (dialogOnState.value) {
-        AlertDialog(
-            onDismissRequest = {
-                //cancelable -> true:
-                dialogOnState.value = false
-                keyState.value = ""
-            },
-            containerColor = colorResource(id = R.color.colorPrimaryOld),
-            title = {
-                Text(
-                    text = if (key != "") "Delete $filter" else "Delete ${filter}s",
-                    color = colorResource(id = R.color.light_grey),
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                ) },
-            text = {
-                Text(
-                    text = if (key != "") {
-                        "Do you want to delete this $filter?\n\n$key"
-                    } else {
-                        "Do you want to delete all ${filter}s in vocabulary?"
-                    },
-                    color = colorResource(id = R.color.light_grey)
-                ) },
-            dismissButton = {
-                Text(
-                    modifier = Modifier
-                        .padding(end = 20.dp)
-                        .clickable {
-                            dialogOnState.value = false
-                            keyState.value = ""
-                        },
-                    text = "No",
-                    fontSize = 16.sp,
-                    color = colorResource(id = R.color.light_grey)
-                )
-            },
-            confirmButton = {
-                Text(
-                    modifier = Modifier
-                        .clickable {
-                            if (key != "") {
-                                //Delete current:
-                                var ret = utils.editVocFile(prevText=key)
-                                if (ret == 0) {
-                                    vocabulary.value = getVocKeys(mContext, filter)   //Refresh list
-                                    Toast.makeText(mContext, "Deleted!", Toast.LENGTH_LONG).show()
-                                } else {
-                                    Toast.makeText(mContext, "ERROR: Vocabulary not updated!", Toast.LENGTH_LONG).show()
-                                }
-                            } else {
-                                //Delete all:
-                                File(vocDir, "voc_${filter}s.json").delete()
-                                Log.d("VocabularyScreen", "Deleted ${filter}s vocabulary.")
-                                vocabulary.value = getVocKeys(mContext, filter)   //Refresh list
-                                Toast.makeText(mContext, "${filter.replaceFirstChar { it.uppercase() }} vocabulary deleted!", Toast.LENGTH_LONG).show()
-                            }
-                            dialogOnState.value = false
-                            keyState.value = ""
-                        },
-                    text = "Yes",
-                    fontSize = 16.sp,
-                    color = colorResource(id = R.color.light_grey)
-                )
+    GeneralDialog(
+        dialogOnState = dialogOnState,
+        backgroundColor = colorResource(id = R.color.colorPrimaryOld),
+        title = if (key != "") "Delete $filter" else "Delete ${filter}s",
+        content = {
+            Text(
+                text = if (key != "") {
+                    "Do you want to delete this $filter?\n\n$key"
+                } else {
+                    "Do you want to delete all ${filter}s in vocabulary?"
+                },
+                color = colorResource(id = R.color.light_grey),
+                fontSize = 14.sp
+            )
+        },
+        dismissText = "No",
+        onDismiss = {
+            dialogOnState.value = false
+            keyState.value = ""
+        },
+        confirmText = "Yes",
+        onConfirm = {
+            if (key != "") {
+                //Delete current:
+                var ret = utils.editVocFile(prevText=key)
+                if (ret == 0) {
+                    vocabulary.value = getVocKeys(mContext, filter)   //Refresh list
+                    Toast.makeText(mContext, "Deleted!", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(mContext, "ERROR: Vocabulary not updated!", Toast.LENGTH_LONG).show()
+                }
+            } else {
+                //Delete all:
+                File(vocDir, "voc_${filter}s.json").delete()
+                Log.d("VocabularyScreen", "Deleted ${filter}s vocabulary.")
+                vocabulary.value = getVocKeys(mContext, filter)   //Refresh list
+                Toast.makeText(mContext, "${filter.replaceFirstChar { it.uppercase() }} vocabulary deleted!", Toast.LENGTH_LONG).show()
             }
-        )
-    }
+            dialogOnState.value = false
+            keyState.value = ""
+        }
+    )
 }
 
 

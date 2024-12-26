@@ -5,6 +5,7 @@ import android.telephony.PhoneNumberUtils
 import android.util.Patterns
 import android.webkit.URLUtil
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,7 +22,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -78,42 +80,23 @@ fun DialogEditPreview() {
 @Composable
 fun DialogRequestDetail(mContext: Context, dialogOnState: MutableState<Boolean>, filter: String) {
     //REQUEST DETAIL DIALOG:
-    if (dialogOnState.value) {
-        AlertDialog(
-            onDismissRequest = {
-                //cancelable -> true
-                dialogOnState.value = false
-            },
-            containerColor = colorResource(id = R.color.colorPrimaryOld),
-            title = {
-                Text(
-                    text = if (filter == "contact") "Contact Phone Number" else "Playlist URL",
-                    color = colorResource(id = R.color.light_grey),
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                ) },
-            text = {
-                Text(
-                    text = if (filter == "contact") {
-                        "Please enter a valid phone number for the current Contact!\n\nPlease include the international prefix at the beginning (i.e. \"+39\", \"+44\", ...)."
-                    } else {
-                        "Please enter a valid URL for the current Playlist!\n\nPlease copy it from Spotify -> your playlist -> Share -> Copy link."
-                    },   // and you'll lose your saved vocabulary & history
-                    color = colorResource(id = R.color.light_grey)
-                ) },
-            confirmButton = {
-                Text(
-                    modifier = Modifier
-                        .clickable {
-                            dialogOnState.value = false
-                        },
-                    text = "Ok",
-                    fontSize = 16.sp,
-                    color = colorResource(id = R.color.light_grey)
-                )
-            }
-        )
-    }
+    GeneralDialog(
+        dialogOnState = dialogOnState,
+        backgroundColor = colorResource(id = R.color.colorPrimaryOld),
+        title = if (filter == "contact") "Contact Phone Number" else "Playlist URL",
+        content = {
+            Text(
+                text = if (filter == "contact") {
+                    "Please enter a valid phone number for the current Contact!\n\nPlease include the international prefix at the beginning (i.e. \"+39\", \"+44\", ...)."
+                } else {
+                    "Please enter a valid URL for the current Playlist!\n\nPlease copy it from Spotify -> your playlist -> Share -> Copy link."
+                },   // and you'll lose your saved vocabulary & history
+                color = colorResource(id = R.color.light_grey),
+                fontSize = 14.sp
+            )
+        },
+        dismissText = "Ok"
+    )
 }
 
 
@@ -398,60 +381,72 @@ fun DialogEditVocabulary(
                     horizontalArrangement = Arrangement.End,
                 ) {
                     //CANCEL:
-                    Text(
-                        color = colorResource(id = R.color.light_grey),
-                        text = "Cancel",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .padding(top = 8.dp, end = 20.dp)
-                            .clickable {
+                    AssistChip(
+                        border = BorderStroke(1.dp, colorResource(id = R.color.colorPrimaryOld)),
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = colorResource(id = R.color.colorPrimaryOld)
+                        ),
+                        label = {
+                            Text(
+                                text = "Cancel",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colorResource(id = R.color.light_grey)
+                            )
+                        },
+                        onClick = {
+                            dialogOnState.value = false
+                            keyState.value = ""
+                        }
+                    )
+                    //SAVE:
+                    AssistChip(
+                        border = BorderStroke(1.dp, colorResource(id = R.color.colorPrimaryOld)),
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = colorResource(id = R.color.colorPrimaryOld)
+                        ),
+                        label = {
+                            Text(
+                                text = "Save",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colorResource(id = R.color.light_grey)
+                            )
+                        },
+                        onClick = {
+                            //CHECK & UPDATE:
+                            var newDetails = JsonObject()
+                            //Get new info:
+                            if (filter == "playlist" || filter == "artist") {
+                                newDetails.addProperty(
+                                    "playlist_URL",
+                                    textPlayURL.value.replace(" ", "")
+                                )
+                            } else if (filter == "contact") {
+                                if (textLanguageState.value != "") {
+                                    val newLangCode =
+                                        messLangCodes[messLangCaps.indexOf(textLanguageState.value)]
+                                    newDetails.addProperty("contact_language", newLangCode)
+                                }
+                                newDetails.addProperty("prefix", textPrefix.value.replace(" ", ""))
+                                newDetails.addProperty("phone", textPhone.value.replace(" ", ""))
+                            }
+                            //Edit:
+                            requestDetailOn.value = editVocItemAndShow(
+                                mContext = mContext,
+                                vocabulary = vocabulary,
+                                prevText = initName,
+                                newText = textName.value.lowercase(),
+                                newDetails = newDetails,
+                                filter = filter,
+                                vocItems = vocItems
+                            )
+                            if (!requestDetailOn.value) {
+                                //CLOSE THE DIALOG:
                                 dialogOnState.value = false
                                 keyState.value = ""
                             }
-                    )
-                    //SAVE:
-                    Text(
-                        color = colorResource(id = R.color.light_grey),
-                        text = "Save",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .padding(top = 8.dp, end = 8.dp)
-                            .clickable {
-                                //CHECK & UPDATE:
-                                var newDetails = JsonObject()
-                                //Get new info:
-                                if (filter == "playlist" || filter == "artist") {
-                                    newDetails.addProperty(
-                                        "playlist_URL",
-                                        textPlayURL.value.replace(" ", "")
-                                    )
-                                } else if (filter == "contact") {
-                                    if (textLanguageState.value != "") {
-                                        val newLangCode =
-                                            messLangCodes[messLangCaps.indexOf(textLanguageState.value)]
-                                        newDetails.addProperty("contact_language", newLangCode)
-                                    }
-                                    newDetails.addProperty("prefix", textPrefix.value.replace(" ", ""))
-                                    newDetails.addProperty("phone", textPhone.value.replace(" ", ""))
-                                }
-                                //Edit:
-                                requestDetailOn.value = editVocItemAndShow(
-                                    mContext = mContext,
-                                    vocabulary = vocabulary,
-                                    prevText = initName,
-                                    newText = textName.value.lowercase(),
-                                    newDetails = newDetails,
-                                    filter = filter,
-                                    vocItems = vocItems
-                                )
-                                if (!requestDetailOn.value) {
-                                    //CLOSE THE DIALOG:
-                                    dialogOnState.value = false
-                                    keyState.value = ""
-                                }
-                            }
+                        }
                     )
                 }
             }

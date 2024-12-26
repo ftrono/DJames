@@ -14,7 +14,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,10 +30,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ButtonDefaults
@@ -60,15 +57,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.R
+import com.ftrono.DJames.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.theme.ClockTheme
 import com.ftrono.DJames.ui.theme.black
 import com.ftrono.DJames.utilities.Utilities
@@ -310,81 +306,44 @@ class ClockActivity: ComponentActivity() {
 
 
     @Composable
-    fun PlayerDialog(context: Context, playerDialogOn: MutableState<Boolean>) {
-        Dialog(onDismissRequest = { playerDialogOn.value = false }) {
-            //CONTAINER:
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors (
-                    containerColor = colorResource(id = R.color.dark_grey)
+    fun PlayerDialog(
+        context: Context,
+        playerDialogOn: MutableState<Boolean>
+    ) {
+        GeneralDialog(
+            dialogOnState = playerDialogOn,
+            backgroundColor = colorResource(id = R.color.dark_grey),
+            title = "To get the best DJames experience",
+            content = {
+                //TEXT 1:
+                Text(
+                    text = "Open your Spotify app, then go to \"Settings & Privacy\" -> \"Playback\" and ensure these 2 toggles are ON:",
+                    modifier = Modifier.padding(bottom=8.dp),
+                    color = colorResource(id = R.color.light_grey),
+                    textAlign = TextAlign.Start,
+                    fontSize = 14.sp
                 )
-            ) {
-                Column(
+                //IMAGE:
+                Image(
+                    painter = painterResource(id = R.drawable.spotify_settings),
+                    contentDescription = "Spotify player settings",
+                    contentScale = ContentScale.Fit,
                     modifier = Modifier
-                        .padding(20.dp)
-                        .wrapContentWidth()
+                        .padding(top=8.dp, bottom=8.dp)
+                        .fillMaxWidth()
                         .wrapContentHeight()
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.Start,
-                ) {
-                    //TITLE:
-                    Text(
-                        text = "To get the best DJames experience",
-                        modifier = Modifier.padding(8.dp),
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    //TEXT 1:
-                    Text(
-                        text = "Open your Spotify app, then go to \"Settings & Privacy\" -> \"Playback\" and ensure these 2 toggles are ON:",
-                        modifier = Modifier.padding(8.dp),
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp
-                    )
-                    //IMAGE:
-                    Image(
-                        painter = painterResource(id = R.drawable.spotify_settings),
-                        contentDescription = "Spotify player settings",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                    )
-                    //TEXT 2:
-                    Text(
-                        text = "This will enable player info and ensure continuous playback.",
-                        modifier = Modifier.padding(8.dp),
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp
-                    )
-                    //BUTTONS ROW:
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                    ) {
-                        Text(
-                            modifier = Modifier
-                                .padding(top = 8.dp, end = 12.dp)
-                                .clickable { playerDialogOn.value = false },
-                            color = colorResource(id = R.color.light_grey),
-                            text = "Ok",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-        }
+                )
+                //TEXT 2:
+                Text(
+                    text = "This will enable player info and ensure continuous playback.",
+                    modifier = Modifier.padding(top=8.dp),
+                    color = colorResource(id = R.color.light_grey),
+                    textAlign = TextAlign.Start,
+                    fontSize = 14.sp
+                )
+            },
+            dismissText = "Ok"
+        )
     }
 
 

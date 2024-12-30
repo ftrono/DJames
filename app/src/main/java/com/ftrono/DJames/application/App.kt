@@ -26,7 +26,6 @@ val copyrightYear = 2024
 var curNavId = 0
 var lastNavRoute = "home"
 var spotifyLoggedIn = MutableLiveData<Boolean>(false)
-var mainSubtitle = MutableLiveData<String>("")
 var overlayActive = MutableLiveData<Boolean>(false)
 var volumeUpEnabled = MutableLiveData<Boolean>(true)
 var settingsOpen = MutableLiveData<Boolean>(false)

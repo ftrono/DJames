@@ -14,6 +14,8 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        manifestPlaceholders["appAuthRedirectScheme"] = "djames-oauth"
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -95,6 +97,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.security.crypto)
     implementation(libs.androidx.media)
+    implementation(libs.androidx.browser)
     implementation(libs.material)
     implementation(libs.material3)
 
@@ -138,6 +141,6 @@ dependencies {
     implementation("com.arthenica:ffmpeg-kit-full:6.0-2")
     //FuzzyWuzzy:
     implementation("me.xdrop:fuzzywuzzy:1.4.0")
-    //Advanced WebView:
-    implementation("com.github.delight-im:Android-AdvancedWebView:v3.2.1")
+    //AppAuth:
+    implementation("net.openid:appauth:0.11.1")
 }

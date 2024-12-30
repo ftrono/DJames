@@ -5,14 +5,13 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
-import android.os.Environment
 import android.util.Log
+import android.net.Uri
+import net.openid.appauth.AuthorizationServiceConfiguration
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.utilities.Prefs
-import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import okhttp3.OkHttpClient
-import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
 import java.io.File
 
@@ -20,7 +19,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.1.2"
+val appVersion = "2.1.3"
 val copyrightYear = 2024
 
 //STATUS VARS:
@@ -92,20 +91,26 @@ var contextName: String = ""
 //HTTP:
 //Spotify formats:
 val uri_format = "spotify:track:"   ///spotify:<type>:<id>
-val ext_format = "http://open.spotify.com/"
+val ext_format = "https://open.spotify.com/"
 val playlistUrlIntro = "https://open.spotify.com/playlist/"
 val likedSongsUri = "spotify:user:replaceUserId:collection"
 
 //Spotify:
-var grantToken = ""
-val redirectUriOrig ="http://localhost:8888/callback"
-val redirectUri = URLEncoder.encode(redirectUriOrig, "UTF-8")
+var spotTempToken = ""
+var refrTempToken = ""
+var showLoggingIn = MutableLiveData<Boolean>(false)
+val redirectUri = "djames-oauth://callback"   //URLEncoder.encode(redirectUriOrig, "UTF-8")
+val spotifyAuthConfig = AuthorizationServiceConfiguration(
+    Uri.parse("https://accounts.spotify.com/authorize"), // Authorization endpoint
+    Uri.parse("https://accounts.spotify.com/api/token")   // Token endpoint
+)
 val client = OkHttpClient.Builder()
     .connectTimeout(queryTimeout.toLong(), TimeUnit.SECONDS)
     .writeTimeout(queryTimeout.toLong(), TimeUnit.SECONDS)
     .readTimeout(queryTimeout.toLong(), TimeUnit.SECONDS)
     .callTimeout(queryTimeout.toLong(), TimeUnit.SECONDS)
     .build()
+val downloadSpotifyProfileImage = false
 
 //BROADCASTS:
 //Event receiver:
@@ -114,7 +119,6 @@ const val VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION"
 const val ACTION_TOASTER = "com.ftrono.DJames.eventReceiver.ACTION_TOASTER"
 
 //Main Act receiver:
-const val ACTION_MAIN_LOGGED_IN = "com.ftrono.DJames.eventReceiver.ACTION_MAIN_LOGGED_IN"
 const val ACTION_FINISH_MAIN = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_MAIN"
 const val ACTION_OVERLAY_ACTIVATED = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_ACTIVATED"
 const val ACTION_OVERLAY_DEACTIVATED = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_DEACTIVATED"

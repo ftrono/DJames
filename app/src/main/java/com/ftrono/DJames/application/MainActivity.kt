@@ -15,6 +15,7 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -23,9 +24,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -54,9 +60,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.coroutineScope
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -71,7 +82,11 @@ import com.ftrono.DJames.ui.theme.DJamesTheme
 import com.ftrono.DJames.ui.theme.NavigationItem
 import com.ftrono.DJames.ui.theme.windowBackground
 import com.ftrono.DJames.utilities.Utilities
+import com.google.gson.JsonParser
+import kotlinx.coroutines.launch
+import okhttp3.Request
 import java.io.File
+import java.lang.Thread.sleep
 
 
 class MainActivity : ComponentActivity() {
@@ -117,12 +132,10 @@ class MainActivity : ComponentActivity() {
             spotifyLoggedIn.postValue(false)
         } else {
             spotifyLoggedIn.postValue(true)
-            mainSubtitle.postValue("for ${prefs.spotUserName}")
         }
 
         //Start personal Receiver:
         val actFilter = IntentFilter()
-        actFilter.addAction(ACTION_MAIN_LOGGED_IN)
         actFilter.addAction(ACTION_FINISH_MAIN)
         actFilter.addAction(ACTION_LOG_REFRESH)
 
@@ -167,7 +180,7 @@ class MainActivity : ComponentActivity() {
         }
 
         //AUTO START-UP:
-        if (prefs.autoStartup && !main_initialized && !utils.isMyServiceRunning(FloatingViewService::class.java, this@MainActivity)) {
+        if (prefs.autoStartup && !main_initialized && prefs.spotifyToken != "" && !utils.isMyServiceRunning(FloatingViewService::class.java, this@MainActivity)) {
             try {
                 var intentOS = Intent(this@MainActivity, FloatingViewService::class.java)
                 intentOS.putExtra("faded", false)
@@ -182,6 +195,7 @@ class MainActivity : ComponentActivity() {
         main_initialized = true
 
     }
+
 
 //    override fun onResume() {
 //        super.onResume()
@@ -222,6 +236,13 @@ class MainActivity : ComponentActivity() {
 
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
+
+        val mContext = LocalContext.current
+        val dialogLoggingInOn by showLoggingIn.observeAsState()
+        if (dialogLoggingInOn!!) {
+            DialogLoggingIn(mContext = mContext)
+            getSpotifyUserData(mContext)
+        }
 
         val myNavigationSuiteItemColors = NavigationSuiteDefaults.itemColors(
             navigationBarItemColors = NavigationBarItemDefaults.colors(
@@ -324,7 +345,6 @@ class MainActivity : ComponentActivity() {
         var mDisplayMenu = rememberSaveable {
             mutableStateOf(false)
         }
-        val mainSubtitleState by mainSubtitle.observeAsState()
 
         val logoutDialogOn = rememberSaveable { mutableStateOf(false) }
         if (logoutDialogOn.value) {
@@ -355,7 +375,7 @@ class MainActivity : ComponentActivity() {
                     if (spotifyLoggedInState)
                         Text(
                             modifier = Modifier.offset(y = -(2.dp)),
-                            text = mainSubtitleState!!,
+                            text = "for ${prefs.spotUserName}",
                             fontSize = 16.sp,
                             color = colorResource(id = R.color.mid_grey)
                         )
@@ -373,7 +393,7 @@ class MainActivity : ComponentActivity() {
                 //SETTINGS BUTTON:
                 Icon(
                     modifier = Modifier
-                        .padding(end=12.dp)
+                        .padding(end = 12.dp)
                         .clickable {
                             //Navigate:
                             val curNavRoute = NavigationItem.Settings.route
@@ -396,7 +416,7 @@ class MainActivity : ComponentActivity() {
                 //"MORE OPTIONS" BUTTON:
                 Icon(
                     modifier = Modifier
-                        .padding(end=14.dp)
+                        .padding(end = 14.dp)
                         .clickable { mDisplayMenu.value = !mDisplayMenu.value },
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = "",
@@ -415,7 +435,7 @@ class MainActivity : ComponentActivity() {
                             onClick = {
                                 if (!spotifyLoggedInState) {
                                     //Login user -> Open WebView:
-                                    val intent1 = Intent(this@MainActivity, WebAuth::class.java)
+                                    val intent1 = Intent(this@MainActivity, AuthActivity::class.java)
                                     startActivity(intent1)
                                 } else {
                                     //LOG OUT:
@@ -478,6 +498,114 @@ class MainActivity : ComponentActivity() {
     }
 
 
+    @Composable
+    fun DialogLoggingIn(mContext: Context) {
+        val dialogOnState by showLoggingIn.observeAsState()
+        if (dialogOnState!!) {
+            Dialog(
+                properties = DialogProperties(
+                    dismissOnBackPress = false, dismissOnClickOutside = false
+                ),
+                onDismissRequest = {
+                    showLoggingIn.postValue(false)
+                }
+            ) {
+                //CONTAINER:
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = colorResource(id = R.color.dark_grey_background)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(20.dp)
+                            .wrapContentWidth()
+                            .wrapContentHeight(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        //MESSAGE:
+                        Text(
+                            text = "Logging in to Spotify...",
+                            color = colorResource(id = R.color.light_grey),
+                            textAlign = TextAlign.Start,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+
+    fun getSpotifyUserData(mContext: Context) {
+        //Get user profile data:
+        //BUILD GET REQUEST:
+        val url = "https://api.spotify.com/v1/me"
+        val request = Request.Builder()
+            .url(url)
+            .header("Authorization", "Bearer $spotTempToken")
+            .build()
+
+        //GET:
+        lifecycle.coroutineScope.launch {
+            Log.d(TAG, "Performing Spotify.me request...")
+            val meResponse = utils.makeRequest(client, request)
+            if (meResponse != "") {
+                Log.d(TAG, "Spotify.me: answer received!")
+                try {
+                    //RESPONSE RECEIVED -> USER'S PROFILE DATA:
+                    val respJSON = JsonParser.parseString(meResponse).asJsonObject
+                    var product = respJSON.get("product").asString
+                    //User must be PREMIUM:
+                    if (product == "premium" || product == "duo" || product == "family") {
+                        //Log.d(TAG, response)
+                        //SUCCESS!
+                        prefs.spotifyToken = spotTempToken
+                        prefs.refreshToken = refrTempToken
+                        prefs.spotUserName = respJSON.get("display_name").asString
+                        prefs.spotUserId = respJSON.get("id").asString
+                        prefs.spotUserEMail = respJSON.get("email").asString
+                        prefs.spotCountry = respJSON.get("country").asString
+                        if (downloadSpotifyProfileImage) {
+                            //Spotify profile image:
+                            try {
+                                val images = respJSON.getAsJsonArray("images")
+                                val firstImage = images.get(0).asJsonObject
+                                prefs.spotUserImage = firstImage.get("url").asString
+                            } catch (e: Exception) {
+                                Log.w(TAG, "Unable to retrieve user image: ", e)
+                                prefs.spotUserImage = ""
+                            }
+                        }
+                        //Generate NLP user ID:
+                        prefs.nlpUserId = utils.generateRandomString(30, numOnly = true)
+
+                        sleep(1000)
+                        Log.d(TAG, "Spotify.me: success! User is enabled.")
+                        Toast.makeText(mContext, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
+                        spotifyLoggedIn.postValue(true)
+                    } else {
+                        Log.w(TAG, "Spotify.me: PROBLEM -> user not enabled! USER TYPE: $product")
+                        Toast.makeText(mContext, "ERROR: to use DJames, you need to be a Spotify Premium user! :(", Toast.LENGTH_LONG).show()
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Profile parsing error: ", e)
+                    Toast.makeText(mContext, "Authentication ERROR: not logged in.", Toast.LENGTH_LONG).show()
+                }
+            }
+            spotTempToken = ""
+            refrTempToken = ""
+            showLoggingIn.postValue(false)
+        }
+    }
+
+
     //LOGOUT:
     fun logout(context: Context) {
         //Delete tokens & user details:
@@ -501,15 +629,8 @@ class MainActivity : ComponentActivity() {
 
         override fun onReceive(context: Context?, intent: Intent?) {
 
-            //Success: logged in:
-            if (intent!!.action == ACTION_MAIN_LOGGED_IN) {
-                Log.d(TAG, "MAIN: ACTION_MAIN_LOGGED_IN.")
-                spotifyLoggedIn.postValue(true)
-                Toast.makeText(context, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
-            }
-
             //Finish activity:
-            if (intent.action == ACTION_FINISH_MAIN) {
+            if (intent!!.action == ACTION_FINISH_MAIN) {
                 Log.d(TAG, "MAIN: ACTION_FINISH_MAIN.")
                 finishAndRemoveTask()
             }

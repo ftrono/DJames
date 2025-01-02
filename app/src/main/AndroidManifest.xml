@@ -81,7 +81,7 @@
         </activity>
 
         <service
-            android:name=".services.FloatingViewService"
+            android:name=".services.OverlayService"
             android:label="Overlay Service"
             android:enabled="true"
             android:exported="false"

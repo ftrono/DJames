@@ -110,12 +110,7 @@ class ClockActivity: ComponentActivity() {
             }
         }
 
-        clock_active = true
-        //Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_CLOCK_OPENED)
-            sendBroadcast(intent)
-        }
+        clockActive.postValue(true)
 
         //Start personal Receiver:
         val actFilter = IntentFilter()
@@ -348,12 +343,7 @@ class ClockActivity: ComponentActivity() {
 
 
     override fun onDestroy() {
-        clock_active = false
-        //Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_CLOCK_CLOSED)
-            sendBroadcast(intent)
-        }
+        clockActive.postValue(false)
         //unregister receivers:
         unregisterReceiver(clockActReceiver)
         acts_active.remove(TAG)
@@ -361,22 +351,12 @@ class ClockActivity: ComponentActivity() {
     }
 
     override fun onPause() {
-        clock_active = false
-        //Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_CLOCK_CLOSED)
-            sendBroadcast(intent)
-        }
+        clockActive.postValue(false)
         super.onPause()
     }
 
     override fun onStop() {
-        clock_active = false
-        //Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_CLOCK_CLOSED)
-            sendBroadcast(intent)
-        }
+        clockActive.postValue(false)
         super.onStop()
     }
 
@@ -387,12 +367,7 @@ class ClockActivity: ComponentActivity() {
             val intent1 = Intent(applicationContext, MainActivity::class.java)
             startActivity(intent1)
         } else {
-            clock_active = true
-            //Send broadcast:
-            Intent().also { intent ->
-                intent.setAction(ACTION_CLOCK_OPENED)
-                sendBroadcast(intent)
-            }
+            clockActive.postValue(true)
         }
         super.onStart()
     }
@@ -404,12 +379,7 @@ class ClockActivity: ComponentActivity() {
             val intent1 = Intent(applicationContext, MainActivity::class.java)
             startActivity(intent1)
         } else {
-            clock_active = true
-            //Send broadcast:
-            Intent().also { intent ->
-                intent.setAction(ACTION_CLOCK_OPENED)
-                sendBroadcast(intent)
-            }
+            clockActive.postValue(true)
         }
         super.onResume()
     }
@@ -491,7 +461,7 @@ class ClockActivity: ComponentActivity() {
             if (intent.action == ACTION_FINISH_CLOCK) {
                 Log.d(TAG, "CLOCK: ACTION_FINISH_CLOCK.")
                 finish()
-                if (clock_active) {
+                if (clockActive.value!!) {
                     //Start Main:
                     val intent1 = Intent(applicationContext, MainActivity::class.java)
                     startActivity(intent1)

@@ -68,7 +68,7 @@ import com.ftrono.DJames.application.overlayPosOptions
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryLangCaps
 import com.ftrono.DJames.application.queryLangCodes
-import com.ftrono.DJames.services.FloatingViewService
+import com.ftrono.DJames.services.OverlayService
 import com.ftrono.DJames.ui.DropdownSpinner
 import com.ftrono.DJames.ui.HeaderSign
 import com.ftrono.DJames.utilities.Utilities
@@ -93,7 +93,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     var recTimeout by rememberSaveable { mutableStateOf(if (preview) "5" else prefs.recTimeout) }
     var messTimeout by rememberSaveable { mutableStateOf(if (preview) "5" else prefs.messageTimeout) }
     var clockTimeout by rememberSaveable { mutableStateOf(if (preview) "5" else prefs.clockTimeout) }
-    var textOverlayPosState = rememberSaveable { mutableStateOf(if (preview) "Right" else prefs.overlayPosition) }
     var textQueryLangState = rememberSaveable { mutableStateOf(if (preview) "English" else queryLangCaps[queryLangCodes.indexOf(prefs.queryLanguage)]) }
     var textMessLangState = rememberSaveable { mutableStateOf(if (preview) "English" else messLangCaps[messLangCodes.indexOf(prefs.messageLanguage)]) }
 
@@ -263,26 +262,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         }
                     )
                 }
-
-                //Overlay position:
-                Text(
-                    modifier = Modifier
-                        .padding(bottom = 4.dp, start=36.dp),
-                    text = "Overlay button position",
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 14.sp,
-                )
-                DropdownSpinner(
-                    mContext,
-                    parentOptions=overlayPosOptions,
-                    init=textOverlayPosState.value,
-                    state=textOverlayPosState,
-                    focusColor = colorResource(id = R.color.colorAccentLight),
-                    prefName="overlayPosition",
-                    width=200,
-                    start=36
-                )
 
 
                 //SECTION: VOICE QUERIES:
@@ -760,11 +739,10 @@ fun saveSettings(mContext: Context, newRecTimeout: String, newMessTimeout: Strin
 fun restartOverlay(mContext: Context) {
     val utils = Utilities()
     //Restart overlay service:
-    if (utils.isMyServiceRunning(FloatingViewService::class.java, mContext)) {
-        mContext.stopService(Intent(mContext, FloatingViewService::class.java))
-        if (!utils.isMyServiceRunning(FloatingViewService::class.java, mContext)) {
-            var intentOS = Intent(mContext, FloatingViewService::class.java)
-            intentOS.putExtra("faded", false)
+    if (utils.isMyServiceRunning(OverlayService::class.java, mContext)) {
+        mContext.stopService(Intent(mContext, OverlayService::class.java))
+        if (!utils.isMyServiceRunning(OverlayService::class.java, mContext)) {
+            var intentOS = Intent(mContext, OverlayService::class.java)
             mContext.startService(intentOS)
         }
     }

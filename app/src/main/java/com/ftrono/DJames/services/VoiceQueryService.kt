@@ -16,15 +16,13 @@ import android.os.Environment
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.ftrono.DJames.application.ACTION_OVERLAY_BUSY
-import com.ftrono.DJames.application.ACTION_OVERLAY_PROCESSING
-import com.ftrono.DJames.application.ACTION_OVERLAY_READY
 import com.ftrono.DJames.application.ACTION_REC_STOP
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.audioAttributes
 import com.ftrono.DJames.application.audioFocusChangeListener
 import com.ftrono.DJames.application.audioFocusRequest
 import com.ftrono.DJames.application.audioManager
+import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recordingMode
 import com.ftrono.DJames.application.voiceQueryOn
@@ -90,6 +88,7 @@ class VoiceQueryService: Service() {
 
         } catch (e: Exception) {
             Log.e(TAG, "Exception: ", e)
+            overlayStatus.postValue("ready")
             stopSelf()
         }
     }
@@ -144,11 +143,8 @@ class VoiceQueryService: Service() {
         sourceIsVolume = false
         processing = false
         processStatus = JsonObject()
-        //Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_OVERLAY_READY)
-            sendBroadcast(intent)
-        }
+        //Set overlay READY color:
+        overlayStatus.postValue("ready")
         Log.d(TAG, "VOICE QUERY SERVICE TERMINATED.")
     }
 
@@ -184,10 +180,7 @@ class VoiceQueryService: Service() {
         Log.d(TAG, "RECORDING STARTED.")
 
         //Set overlay BUSY color:
-        Intent().also { intent ->
-            intent.setAction(ACTION_OVERLAY_BUSY)
-            sendBroadcast(intent)
-        }
+        overlayStatus.postValue("busy")
 
         if (followUp || messageMode) {
             //Play FOLLOW UP tone:
@@ -280,10 +273,7 @@ class VoiceQueryService: Service() {
                 if (voiceQueryOn) {
                     processing = true
                     //Set overlay PROCESSING color & icon:
-                    Intent().also { intent ->
-                        intent.setAction(ACTION_OVERLAY_PROCESSING)
-                        sendBroadcast(intent)
-                    }
+                    overlayStatus.postValue("processing")
 
                     //PROCESS REQUEST:
                     var processThread = Thread {

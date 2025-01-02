@@ -19,7 +19,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.1.3"
+val appVersion = "2.1.4"
 val copyrightYear = 2024
 
 //STATUS VARS:
@@ -27,6 +27,8 @@ var curNavId = 0
 var lastNavRoute = "home"
 var spotifyLoggedIn = MutableLiveData<Boolean>(false)
 var overlayActive = MutableLiveData<Boolean>(false)
+var overlayStatus = MutableLiveData<String>("ready")
+var clockActive = MutableLiveData<Boolean>(false)
 var volumeUpEnabled = MutableLiveData<Boolean>(true)
 var settingsOpen = MutableLiveData<Boolean>(false)
 var innerNavOpen = MutableLiveData<Boolean>(false)
@@ -68,7 +70,6 @@ var vol_initialized: Boolean = false
 var voiceQueryOn: Boolean = false
 var recordingMode: Boolean = false
 var callMode: Boolean = false
-var clock_active: Boolean = false
 var searchFail: Boolean = false
 var newsTalk = false
 
@@ -119,8 +120,6 @@ const val ACTION_TOASTER = "com.ftrono.DJames.eventReceiver.ACTION_TOASTER"
 
 //Main Act receiver:
 const val ACTION_FINISH_MAIN = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_MAIN"
-const val ACTION_OVERLAY_ACTIVATED = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_ACTIVATED"
-const val ACTION_OVERLAY_DEACTIVATED = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_DEACTIVATED"
 const val ACTION_LOG_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_LOG_REFRESH"
 
 //Clock Act receiver:
@@ -129,11 +128,6 @@ const val SPOTIFY_METADATA_CHANGED = "com.spotify.music.metadatachanged"
 const val ACTION_FINISH_CLOCK = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_CLOCK"
 
 //Overlay receiver:
-const val ACTION_CLOCK_OPENED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_OPENED"
-const val ACTION_CLOCK_CLOSED = "com.ftrono.DJames.eventReceiver.ACTION_CLOCK_CLOSED"
-const val ACTION_OVERLAY_READY = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_READY"
-const val ACTION_OVERLAY_BUSY = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_BUSY"
-const val ACTION_OVERLAY_PROCESSING = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_PROCESSING"
 const val ACTION_MAKE_CALL = "com.ftrono.DJames.eventReceiver.ACTION_MAKE_CALL"
 const val PHONE_STATE_ACTION = "android.intent.action.PHONE_STATE"
 

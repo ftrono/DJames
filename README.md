@@ -15,6 +15,8 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
+**Version 2.1.4 (2025-01-02)** - New Overlay Bubble Service UI, based on Jetpack Compose.
+
 **Version 2.1.3 (2024-12-30)** - New Spotify Login Auth window & process.
 
 **Version 2.1.2 (2024-12-03)** - Update Artists BE & FE, following changes in Spotify Web API.

@@ -73,7 +73,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.dialogs.GeneralDialog
-import com.ftrono.DJames.services.FloatingViewService
+import com.ftrono.DJames.services.OverlayService
 import com.ftrono.DJames.ui.Navigation
 import com.ftrono.DJames.ui.OptionsItem
 import com.ftrono.DJames.ui.OptionsMenu
@@ -180,10 +180,9 @@ class MainActivity : ComponentActivity() {
         }
 
         //AUTO START-UP:
-        if (prefs.autoStartup && !main_initialized && prefs.spotifyToken != "" && !utils.isMyServiceRunning(FloatingViewService::class.java, this@MainActivity)) {
+        if (prefs.autoStartup && !main_initialized && prefs.spotifyToken != "" && !utils.isMyServiceRunning(OverlayService::class.java, this@MainActivity)) {
             try {
-                var intentOS = Intent(this@MainActivity, FloatingViewService::class.java)
-                intentOS.putExtra("faded", false)
+                var intentOS = Intent(this@MainActivity, OverlayService::class.java)
                 this@MainActivity.startService(intentOS)
             } catch (e: Exception) {
                 Log.w(TAG, "Cannot auto-start Overlay Service. EXCEPTION: ", e)
@@ -447,7 +446,7 @@ class MainActivity : ComponentActivity() {
                         //2) Item: VOICE SETTINGS
                         OptionsItem(
                             title = "Voice settings",
-                            iconPainter = painterResource(id = R.drawable.speak_icon_gray),
+                            iconPainter = painterResource(id = R.drawable.speak_icon),
                             onClick = {
                                 //Set app preferences:
                                 val intent1 = Intent("com.android.settings.TTS_SETTINGS")

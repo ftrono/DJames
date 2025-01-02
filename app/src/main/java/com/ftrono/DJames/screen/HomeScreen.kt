@@ -52,7 +52,7 @@ import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.volumeUpEnabled
-import com.ftrono.DJames.services.FloatingViewService
+import com.ftrono.DJames.services.OverlayService
 import com.ftrono.DJames.ui.StreetLine
 import com.ftrono.DJames.utilities.Utilities
 
@@ -237,11 +237,8 @@ fun StartButton(overlayActiveState: Boolean) {
                 //START:
                 overlayActive.postValue(true)
                 //Overlay service:
-                if (!utils.isMyServiceRunning(FloatingViewService::class.java, mContext)) {
-                    var intentOS = Intent(mContext, FloatingViewService::class.java)
-                    if (prefs.autoClock) {
-                        intentOS.putExtra("faded", true)
-                    }
+                if (!utils.isMyServiceRunning(OverlayService::class.java, mContext)) {
+                    var intentOS = Intent(mContext, OverlayService::class.java)
                     mContext.startService(intentOS)
                     if (prefs.volumeUpEnabled) {
                         Toast.makeText(mContext, "Use the OVERLAY or VOLUME UP / SHUTTER button to speak!", Toast.LENGTH_LONG).show()
@@ -257,8 +254,8 @@ fun StartButton(overlayActiveState: Boolean) {
             } else {
                 //STOP:
                 overlayActive.postValue(false)
-                if (utils.isMyServiceRunning(FloatingViewService::class.java, mContext)) {
-                    mContext.stopService(Intent(mContext, FloatingViewService::class.java))
+                if (utils.isMyServiceRunning(OverlayService::class.java, mContext)) {
+                    mContext.stopService(Intent(mContext, OverlayService::class.java))
                 }
             }
         }

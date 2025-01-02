@@ -8,7 +8,7 @@ import com.ftrono.DJames.application.ACTION_LOG_REFRESH
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.client
-import com.ftrono.DJames.application.clock_active
+import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.utilities.Utilities
@@ -33,7 +33,7 @@ class SpotifyPlayer (private val context: Context) {
         var playType = playInfo.get("play_type").asString
         //TRIAL 1:
         //Try requested context:
-        val clockWasActive = clock_active
+        val clockWasActive = clockActive.value!!
         var sessionState = playInternally(playInfo, useAlbum=false)
         Log.d(TAG, "(FIRST) SESSION STATE: ${sessionState}")
 

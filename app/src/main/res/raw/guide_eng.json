@@ -1,7 +1,7 @@
 [
   {
     "category": "calls",
-    "header": "\uD83D\uDCDE  Calls",
+    "header": "Calls",
     "requests": [
       {
         "intro": "Call a contact*",
@@ -12,7 +12,7 @@
   },
   {
     "category": "messages",
-    "header":  "\uD83D\uDCAC  Messages",
+    "header":  "Messages",
     "requests": [
       {
         "intro": "Send SMS to a contact*",
@@ -23,7 +23,7 @@
   },
   {
     "category": "songs",
-    "header":  "\uD83C\uDFA7  Spotify Songs",
+    "header":  "Spotify Songs",
     "requests": [
       {
         "intro": "Play song",

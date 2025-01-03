@@ -3,18 +3,19 @@ package com.ftrono.DJames.screen
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
@@ -22,9 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,6 +36,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -109,67 +110,56 @@ fun GuideScreen(navController: NavController) {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            //SECTIONS:
+            //SECTIONS LIST:
             for (category in guideItems) {
                 var catItem = category.asJsonObject
+
                 ExpandableSection(
                     modifier = Modifier
                         .fillMaxWidth(),
+                    cat = catItem.get("category").asString,
                     title = catItem.get("header").asString
                 ) {
+
                     Column(
                         modifier = Modifier
                             .fillMaxWidth(),
                         verticalArrangement = Arrangement.Top,
                         horizontalAlignment = Alignment.Start
                     ) {
+
                         //ITEMS:
                         for (request in catItem.get("requests").asJsonArray) {
                             var reqItem = request.asJsonObject
-                            ExpandableItem(
+                            //REQUEST CARD:
+                            Card(
+                                shape = RoundedCornerShape(16.dp),
                                 modifier = Modifier
+                                    .padding(start = 58.dp, top = 4.dp, end = 24.dp, bottom = 12.dp)
                                     .fillMaxWidth(),
-                                title = reqItem.get("intro").asString,
-                                first = iCat == 0 && iReq == 0   //expand first item only
+                                border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = colorResource(id = R.color.dark_grey_background)
+                                )
                             ) {
-                                Card(
-                                    shape = RoundedCornerShape(20.dp),
+
+                                //CARD CONTENT:
+                                Column(
                                     modifier = Modifier
-                                        .padding(start = 52.dp, top = 4.dp, end = 24.dp, bottom = 12.dp)
                                         .fillMaxWidth(),
-                                    border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = colorResource(id = R.color.dark_grey_background)
-                                    )
+                                    verticalArrangement = Arrangement.Top,
+                                    horizontalAlignment = Alignment.Start
                                 ) {
-                                    Column(
+
+                                    //REQUEST INTRO & CONTENT:
+                                    ExpandableItem(
                                         modifier = Modifier
-                                            .padding(20.dp)
                                             .fillMaxWidth(),
-                                        verticalArrangement = Arrangement.Top,
-                                        horizontalAlignment = Alignment.Start
-                                    ) {
-                                        //SENTENCE:
-                                        Text(
-                                            modifier = Modifier
-                                                .fillMaxWidth(),
-                                            text = reqItem.get("sentence").asString,
-                                            fontSize = 18.sp,
-                                            lineHeight = 22.sp,
-                                            fontStyle = FontStyle.Italic,
-                                            color = colorResource(id = R.color.light_grey)
-                                        )
-                                        //DESCR:
-                                        Text(
-                                            modifier = Modifier
-                                                .padding(top = 12.dp)
-                                                .fillMaxWidth(),
-                                            text = reqItem.get("description").asString,
-                                            fontSize = 14.sp,
-                                            lineHeight = 18.sp,
-                                            color = colorResource(id = R.color.mid_grey)
-                                        )
-                                    }
+                                        requestIntro = reqItem.get("intro").asString,
+                                        requestSentence = reqItem.get("sentence").asString,
+                                        requestDescr = reqItem.get("description").asString,
+                                        first = iCat == 0 && iReq == 0   //expand first item only
+                                    )
                                 }
                             }
                             iReq++
@@ -182,9 +172,38 @@ fun GuideScreen(navController: NavController) {
     }
 }
 
+
+@Composable
+fun GuideIcon(
+    cat: String,
+    size: Int,
+    padding: Int
+) {
+    Icon(
+        modifier = Modifier
+            .padding(start = padding.dp)
+            .size(size.dp),
+        painter = when (cat) {
+            "calls" -> {
+                painterResource(id = R.drawable.sign_phone)
+            }
+            "messages" -> {
+                painterResource(id = R.drawable.sign_message)
+            }
+            else -> {
+                painterResource(id = R.drawable.sign_headphones)
+            }
+        },
+        contentDescription = cat,
+        tint = colorResource(id = R.color.light_grey)
+    )
+}
+
+
 @Composable
 fun ExpandableSection(
     modifier: Modifier = Modifier,
+    cat: String,
     title: String,
     content: @Composable () -> Unit
 ) {
@@ -192,14 +211,15 @@ fun ExpandableSection(
     Column(
         modifier = modifier
             .clickable { sectionIsExpanded = !sectionIsExpanded }
-            .background(colorResource(id = R.color.windowBackground))
             .fillMaxWidth()
     ) {
         //SECTION:
         ExpandableSectionTitle(
             isExpanded = sectionIsExpanded,
+            cat = cat,
             title = title)
 
+        //ON EXPANSION:
         AnimatedVisibility(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -212,102 +232,186 @@ fun ExpandableSection(
 
 
 @Composable
+fun ExpandableSectionTitle(
+    modifier: Modifier = Modifier,
+    isExpanded: Boolean,
+    cat: String,
+    title: String
+) {
+    val icon = if (isExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
+    //CARD:
+    Card(
+        modifier = Modifier
+            .padding(
+                start = 20.dp,
+                end = 20.dp,
+                top = 8.dp,
+                bottom = 8.dp
+            )
+            .fillMaxWidth()
+            .wrapContentHeight(),
+        border = if (isExpanded) null else BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors (
+            containerColor = if (isExpanded) colorResource(id = R.color.windowBackground) else colorResource(id = R.color.dark_grey_background)
+        )
+    ) {
+        //SECTION HEADER:
+        Row(
+            modifier = modifier
+                .padding(start=8.dp, end=8.dp, top=12.dp, bottom=12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            //ROUNDED SIGN:
+            Box (
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (cat == "calls") {
+                            colorResource(id = R.color.colorPrimary)
+                        } else if (cat == "messages") {
+                            colorResource(id = R.color.blueSign)
+                        } else {
+                            colorResource(id = R.color.yellowSign)
+                        }
+                    )
+                    .border(2.dp, colorResource(id = R.color.light_grey), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                //CAT ICON:
+                GuideIcon(
+                    padding = 0,
+                    size = 24,
+                    cat = cat
+                )
+            }
+            //CAT TITLE:
+            Text(
+                modifier = Modifier
+                    .padding(start = 12.dp)
+                    .weight(1f),
+                text = title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = colorResource(id = R.color.light_grey)
+            )
+            //EXPAND/COLLAPSE:
+            Icon(
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .size(32.dp),
+                imageVector = icon,
+                tint = colorResource(id = R.color.light_grey),
+                contentDescription = "Expand / collapse"
+            )
+        }
+    }
+}
+
+
+@Composable
 fun ExpandableItem(
     modifier: Modifier = Modifier,
-    title: String,
-    first: Boolean,
-    content: @Composable () -> Unit
+    requestIntro: String,
+    requestSentence: String,
+    requestDescr: String,
+    first: Boolean
 ) {
     var itemIsExpanded = rememberSaveable { mutableStateOf(first) }
+
     Column(
         modifier = modifier
             .clickable { itemIsExpanded.value = !itemIsExpanded.value }
             .fillMaxWidth()
     ) {
-        //SECTION:
-        ExpandableItemTitle(
-            modifier = Modifier
-                .padding(top=6.dp, bottom=6.dp)
-                .height(42.dp),
-            isExpanded = itemIsExpanded,
-            title = title)
 
+        //REQUEST INTRO:
+        ExpandableItemTitle(
+            isExpanded = itemIsExpanded,
+            title = requestIntro)
+
+        //ON EXPANSION:
         AnimatedVisibility(
             modifier = Modifier
                 .fillMaxWidth(),
             visible = itemIsExpanded.value
         ) {
-            content()
+
+            //EXPANDED -> REQUEST DETAILS:
+            Column(
+                modifier = Modifier
+                    .padding(start = 24.dp, end = 24.dp, bottom = 20.dp)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.Start
+            ) {
+
+                //DIVIDER:
+                HorizontalDivider(
+                    modifier = Modifier
+                        .padding(bottom=4.dp),
+                    color = colorResource(id = R.color.faded_grey)
+                )
+                //SENTENCE:
+                Text(
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .fillMaxWidth(),
+                    text = requestSentence,
+                    fontSize = 18.sp,
+                    lineHeight = 22.sp,
+                    fontStyle = FontStyle.Italic,
+                    color = colorResource(id = R.color.light_grey)
+                )
+                //DESCR:
+                Text(
+                    modifier = Modifier
+                        .padding(top = 12.dp)
+                        .fillMaxWidth(),
+                    text = requestDescr,
+                    fontSize = 14.sp,
+                    lineHeight = 18.sp,
+                    color = colorResource(id = R.color.mid_grey)
+                )
+            }
         }
     }
 }
 
 
 @Composable
-fun ExpandableSectionTitle(modifier: Modifier = Modifier, isExpanded: Boolean, title: String) {
-    val icon = if (isExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
+fun ExpandableItemTitle(
+    isExpanded: MutableState<Boolean>,
+    title: String
+) {
+    val icon = if (isExpanded.value) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
     //SECTION HEADER:
     Row(
-        modifier = modifier
-            .padding(start=8.dp, end=8.dp, top=12.dp, bottom=8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier
+            .padding(start=10.dp, end = 20.dp, top=10.dp, bottom=8.dp)
+            .clickable { isExpanded.value = !isExpanded.value },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
     ) {
+        //REQUEST INTRO:
         Text(
             modifier = Modifier
-                .padding(start = 12.dp)
+                .padding(start=16.dp)
                 .weight(1f),
             text = title,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+            fontWeight = if (isExpanded.value) FontWeight.Bold else null,
             color = colorResource(id = R.color.light_grey)
         )
+        //EXPAND/COLLAPSE:
         Icon(
             modifier = Modifier
-                .padding(end = 12.dp)
-                .size(32.dp),
+                .padding(start=4.dp)
+                .size(24.dp),
             imageVector = icon,
             tint = colorResource(id = R.color.light_grey),
             contentDescription = "Expand / collapse"
         )
     }
-}
-
-
-@Composable
-fun ExpandableItemTitle(modifier: Modifier = Modifier, isExpanded: MutableState<Boolean>, title: String) {
-    val icon = if (isExpanded.value) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
-    //SECTION HEADER:
-    AssistChip(
-        modifier = modifier
-            .padding(start=50.dp)
-            .wrapContentWidth()
-            .fillMaxHeight(),
-        shape = RoundedCornerShape(14.dp),
-        border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
-        colors = AssistChipDefaults.assistChipColors(
-            containerColor = if (isExpanded.value) colorResource(id = R.color.windowBackground) else colorResource(id = R.color.windowBackground),
-            labelColor = colorResource(id = R.color.light_grey),
-            leadingIconContentColor = colorResource(id = R.color.mid_grey)
-        ),
-        leadingIcon = {
-            Icon(
-                modifier = Modifier
-                    .size(24.dp),
-                imageVector = icon,
-                tint = colorResource(id = R.color.colorAccentLight),
-                contentDescription = "Expand / collapse"
-            )
-        },
-        label = {
-            Text(
-                text = title,
-                fontSize = 14.sp,
-                fontStyle = FontStyle.Italic,
-                color = if (isExpanded.value) colorResource(id = R.color.light_grey) else colorResource(id = R.color.mid_grey)
-            )
-        },
-        onClick = {
-            isExpanded.value = !isExpanded.value
-        }
-    )
 }

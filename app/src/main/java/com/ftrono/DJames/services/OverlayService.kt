@@ -15,6 +15,7 @@ import android.graphics.PixelFormat
 import android.media.AudioManager
 import android.net.Uri
 import android.os.IBinder
+import android.provider.Settings
 import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.Gravity
@@ -22,6 +23,7 @@ import android.view.View
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams
 import android.view.animation.DecelerateInterpolator
+import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -254,6 +256,19 @@ class OverlayService : Service() {
         } catch (e: Exception) {
             Log.w(TAG, "Overlay Service ERROR: ", e)
             stopSelf()
+            //Redirect to App Permissions:
+            Toast.makeText(
+                applicationContext,
+                "Please enable the 'Display over other apps' permission first!",
+                Toast.LENGTH_LONG
+            ).show()
+            //Show Permissions page:
+            val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            val uri = Uri.fromParts("package", packageName, null)
+            intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intent1.putExtra("fromwhere", "ser")
+            intent1.setData(uri)
+            startActivity(intent1)
         }
     }
 
@@ -346,7 +361,7 @@ class OverlayService : Service() {
                     bubbleSize = bubbleSize,
                     currentTime = currentTime,
                     onTap = {
-                        //Start fake lock screen:
+                        //Start Clock screen:
                         val intent1 = Intent(mContext, ClockActivity::class.java)
                         intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         intent1.putExtra("fromwhere", "ser")
@@ -491,11 +506,18 @@ class OverlayService : Service() {
         }
         vol_initialized = false
         //unregister receivers:
-        unregisterReceiver(eventReceiver)
-        unregisterReceiver(overlayReceiver)
+        try {
+            unregisterReceiver(eventReceiver)
+        } catch (e: Exception) {
+            Log.w(TAG, "eventReceiver: cannot unregister. ", e)
+        }
+        try {
+            unregisterReceiver(overlayReceiver)
+        } catch (e: Exception) {
+            Log.w(TAG, "overlayReceiver: cannot unregister. ", e)
+        }
         Log.d(TAG, "Receivers stopped.")
-        //End Fake Lock Screen():
-        //Send broadcast:
+        //End Clock Screen():
         Intent().also { intent ->
             intent.setAction(ACTION_FINISH_CLOCK)
             sendBroadcast(intent)

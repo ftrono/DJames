@@ -98,15 +98,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         acts_active.add(TAG)
 
-        //TODO: TEMP:
-        if (prefs.overlayPosition !in overlayPosOptions) {
-            prefs.overlayPosition = "Right"
-        } else if (prefs.queryLanguage !in queryLangCodes) {
-            prefs.queryLanguage = "en"
-        } else if (prefs.messageLanguage !in messLangCodes) {
-            prefs.messageLanguage = "en"
-        }
-
         enableEdgeToEdge(
             //For safe padding:
             statusBarStyle = SystemBarStyle.auto(windowBackground.toArgb(), windowBackground.toArgb()),
@@ -191,6 +182,7 @@ class MainActivity : ComponentActivity() {
         }
 
         //Done:
+        overlayPos.postValue(prefs.overlayPosition)
         main_initialized = true
 
     }

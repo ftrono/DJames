@@ -59,6 +59,7 @@ import com.ftrono.DJames.application.audioManager
 import com.ftrono.DJames.application.callMode
 import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.overlayActive
+import com.ftrono.DJames.application.overlayPos
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recordingMode
@@ -158,7 +159,7 @@ class OverlayService : Service() {
                 PixelFormat.TRANSLUCENT
             ).apply {
                 gravity = Gravity.TOP or Gravity.START
-                x = if (prefs.overlayPosition == "Right") screenWidth else -screenWidth
+                x = if (prefs.overlayPosition == "Right") screenWidth else 0
                 y = round(screenHeight.toDouble()/3).toInt()
             }
 
@@ -263,7 +264,7 @@ class OverlayService : Service() {
         screenWidth = resources.displayMetrics.widthPixels
         screenHeight = resources.displayMetrics.heightPixels
         //Preferred xpos:
-        bubbleParams.x = if (prefs.overlayPosition == "Right") screenWidth else -screenWidth
+        bubbleParams.x = if (prefs.overlayPosition == "Right") screenWidth else 0
         bubbleParams.y = round(screenHeight.toDouble()/3).toInt()
         windowManager.updateViewLayout(bubbleView, bubbleParams)
     }
@@ -314,10 +315,12 @@ class OverlayService : Service() {
                                 if (animatable_X.value > screenWidth / 2f - bubbleSize.dp.toPx() / 2) {
                                     //RIGHT:
                                     targetX = (screenWidth - bubbleSize.dp.toPx())
+                                    overlayPos.postValue("Right")
                                     prefs.overlayPosition = "Right"
                                 } else {
                                     //LEFT:
                                     targetX = 0f
+                                    overlayPos.postValue("Left")
                                     prefs.overlayPosition = "Left"
                                 }
                                 //Move:

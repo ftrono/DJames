@@ -64,7 +64,6 @@ import com.ftrono.DJames.application.appVersion
 import com.ftrono.DJames.application.copyrightYear
 import com.ftrono.DJames.application.messLangCaps
 import com.ftrono.DJames.application.messLangCodes
-import com.ftrono.DJames.application.overlayPosOptions
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryLangCaps
 import com.ftrono.DJames.application.queryLangCodes

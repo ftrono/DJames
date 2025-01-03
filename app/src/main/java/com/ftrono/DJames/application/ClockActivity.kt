@@ -134,18 +134,10 @@ class ClockActivity: ComponentActivity() {
         //States:
         val configuration = LocalConfiguration.current
         val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
+        val overlayPosState by overlayPos.observeAsState()
         val currentDateState by currentDate.observeAsState()
         val currentHourState by currentHour.observeAsState()
         val currentMinsState by currentMins.observeAsState()
-        val currentSongPlayingState by currentSongPlaying.observeAsState()
-        val currentArtistPlayingState by currentArtistPlaying.observeAsState()
-        val currentAlbumPlayingState by currentAlbumPlaying.observeAsState()
-
-        val mContext = LocalContext.current
-        val playerDialogOn = rememberSaveable { mutableStateOf(false) }
-        if (playerDialogOn.value) {
-            PlayerDialog(mContext, playerDialogOn)
-        }
 
         Column(
             modifier = Modifier
@@ -165,110 +157,60 @@ class ClockActivity: ComponentActivity() {
                 textAlign = TextAlign.Center,
                 fontSize = 22.sp
             )
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth(),
-                contentAlignment = Alignment.CenterStart
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                //CLOSE BUTTON (HORIZONTAL):
+                //CLOSE BUTTON (HORIZONTAL - OVERLAY ON THE RIGHT):
                 if (isLandscape) {
-                    CloseButton(true)
-                }
-                //MAXI CLOCK:
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .zIndex(0f),
-                    text = if (!isLandscape) {
-                        "${currentHourState!!}\n${currentMinsState!!}"
-                    } else {
-                        "${currentHourState!!}:${currentMinsState!!}"
-                    },
-                    color = colorResource(id = R.color.faded_grey),
-                    textAlign = TextAlign.Center,
-                    fontSize = if (!isLandscape) 150.sp else 140.sp,
-                    lineHeight = 150.sp
-                )
-            }
-
-            //PLAYER INFO:
-            Card(
-                onClick = { playerDialogOn.value = true },
-                modifier = Modifier
-                    .padding(
-                        top = if (!isLandscape) 20.dp else 10.dp,
-                        bottom = if (!isLandscape) 40.dp else 0.dp
-                    )
-                    .wrapContentSize(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors (
-                    containerColor = colorResource(id = R.color.dark_grey_background)
-                )
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(
-                            top=10.dp,
-                            bottom=10.dp,
-                            start=24.dp,
-                            end=24.dp
-                        ),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    //ARTWORK ICON:
-                    Image(
+                    Row(
                         modifier = Modifier
-                            .width(50.dp)
-                            .height(50.dp)
-                            .zIndex(1f),
-                        painter = painterResource(id = R.drawable.artwork_clock),
-                        contentDescription = "Album art"
-                    )
-                    Column(
-                        modifier = Modifier
-                            .wrapContentWidth()
-                            .wrapContentHeight(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.Start
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        //SONG NAME:
-                        Text(
-                            modifier = Modifier
-                                .padding(start = 14.dp)
-                                .wrapContentWidth(),
-                            text = currentSongPlayingState!!,
-                            color = colorResource(id = R.color.mid_grey),
-                            fontSize = 18.sp,
-                            fontStyle = FontStyle.Italic
-                        )
-                        //ARTIST NAME:
-                        Text(
-                            modifier = Modifier
-                                .padding(start = 14.dp)
-                                .wrapContentWidth(),
-                            text = currentArtistPlayingState!!,
-                            lineHeight = 16.sp,
-                            color = colorResource(id = R.color.mid_grey),
-                            fontSize = 14.sp
-                        )
-                        //ALBUM NAME:
-                        Text(
-                            modifier = Modifier
-                                .padding(start = 14.dp)
-                                .offset(y = -(2.dp))
-                                .wrapContentWidth(),
-                            text = currentAlbumPlayingState!!,
-                            color = colorResource(id = R.color.mid_grey),
-                            fontSize = 12.sp,
-                            fontStyle = FontStyle.Italic
-                        )
+                        if (overlayPosState!! == "Right") {
+                            CloseButton()
+                            MaxiClock(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                isLandscape = isLandscape,
+                                currentHourState = currentHourState!!,
+                                currentMinsState = currentMinsState!!
+                            )
+                            ClosePlaceholder()
+                        } else {
+                            ClosePlaceholder()
+                            MaxiClock(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                isLandscape = isLandscape,
+                                currentHourState = currentHourState!!,
+                                currentMinsState = currentMinsState!!
+                            )
+                            CloseButton()
+                        }
                     }
+                } else {
+                    MaxiClock(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        isLandscape = isLandscape,
+                        currentHourState = currentHourState!!,
+                        currentMinsState = currentMinsState!!
+                    )
                 }
             }
+            //PLAYER INFO:
+            PlayerInfo(isLandscape)
+
             //CLOSE BUTTON (VERTICAL):
             if (!isLandscape) {
-                CloseButton(false)
+                CloseButton()
             }
         }
 
@@ -276,12 +218,124 @@ class ClockActivity: ComponentActivity() {
 
 
     @Composable
-    fun CloseButton(isLandscape: Boolean) {
+    fun MaxiClock(
+        modifier: Modifier,
+        isLandscape: Boolean,
+        currentHourState: String,
+        currentMinsState: String
+    ) {
+        //MAXI CLOCK:
+        Text(
+            modifier = modifier,
+            text = if (!isLandscape) {
+                "${currentHourState}\n${currentMinsState}"
+            } else {
+                "${currentHourState}:${currentMinsState}"
+            },
+            color = colorResource(id = R.color.faded_grey),
+            textAlign = TextAlign.Center,
+            fontSize = if (!isLandscape) 150.sp else 140.sp,
+            lineHeight = 150.sp
+        )
+    }
+
+
+    @Composable
+    fun PlayerInfo(isLandscape: Boolean) {
+        //PLAYER INFO:
+        val currentSongPlayingState by currentSongPlaying.observeAsState()
+        val currentArtistPlayingState by currentArtistPlaying.observeAsState()
+        val currentAlbumPlayingState by currentAlbumPlaying.observeAsState()
+
+        val mContext = LocalContext.current
+        val playerDialogOn = rememberSaveable { mutableStateOf(false) }
+        if (playerDialogOn.value) {
+            PlayerDialog(mContext, playerDialogOn)
+        }
+
+        Card(
+            onClick = { playerDialogOn.value = true },
+            modifier = Modifier
+                .padding(
+                    top = if (!isLandscape) 20.dp else 10.dp,
+                    bottom = if (!isLandscape) 40.dp else 0.dp
+                )
+                .wrapContentSize(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors (
+                containerColor = colorResource(id = R.color.dark_grey_background)
+            )
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(
+                        top=10.dp,
+                        bottom=10.dp,
+                        start=24.dp,
+                        end=24.dp
+                    ),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                //ARTWORK ICON:
+                Image(
+                    modifier = Modifier
+                        .width(50.dp)
+                        .height(50.dp)
+                        .zIndex(1f),
+                    painter = painterResource(id = R.drawable.artwork_clock),
+                    contentDescription = "Album art"
+                )
+                Column(
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .wrapContentHeight(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    //SONG NAME:
+                    Text(
+                        modifier = Modifier
+                            .padding(start = 14.dp)
+                            .wrapContentWidth(),
+                        text = currentSongPlayingState!!,
+                        color = colorResource(id = R.color.mid_grey),
+                        fontSize = 18.sp,
+                        fontStyle = FontStyle.Italic
+                    )
+                    //ARTIST NAME:
+                    Text(
+                        modifier = Modifier
+                            .padding(start = 14.dp)
+                            .wrapContentWidth(),
+                        text = currentArtistPlayingState!!,
+                        lineHeight = 16.sp,
+                        color = colorResource(id = R.color.mid_grey),
+                        fontSize = 14.sp
+                    )
+                    //ALBUM NAME:
+                    Text(
+                        modifier = Modifier
+                            .padding(start = 14.dp)
+                            .offset(y = -(2.dp))
+                            .wrapContentWidth(),
+                        text = currentAlbumPlayingState!!,
+                        color = colorResource(id = R.color.mid_grey),
+                        fontSize = 12.sp,
+                        fontStyle = FontStyle.Italic
+                    )
+                }
+            }
+        }
+    }
+
+
+    @Composable
+    fun CloseButton() {
         OutlinedButton(
             modifier= Modifier
-                .padding(start = if (isLandscape) 20.dp else 0.dp)
-                .size(50.dp)
-                .zIndex(1f),  //avoid the oval shape
+                .padding(start = 20.dp, end = 20.dp)
+                .size(50.dp),
             shape = CircleShape,
             border= BorderStroke(2.dp, colorResource(id = R.color.faded_grey)),
             contentPadding = PaddingValues(0.dp),  //avoid the little icon
@@ -297,6 +351,17 @@ class ClockActivity: ComponentActivity() {
                 Icons.Default.Close,
                 contentDescription = "content description")
         }
+    }
+
+
+    @Composable
+    fun ClosePlaceholder() {
+        Box(
+            modifier= Modifier
+                .padding(start = 20.dp, end = 20.dp)
+                .size(50.dp)
+                .background(colorResource(id = R.color.black))
+        )
     }
 
 
@@ -324,7 +389,7 @@ class ClockActivity: ComponentActivity() {
                     contentDescription = "Spotify player settings",
                     contentScale = ContentScale.Fit,
                     modifier = Modifier
-                        .padding(top=8.dp, bottom=8.dp)
+                        .padding(top = 8.dp, bottom = 8.dp)
                         .fillMaxWidth()
                         .wrapContentHeight()
                 )

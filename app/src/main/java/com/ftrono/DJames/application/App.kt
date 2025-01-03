@@ -29,6 +29,7 @@ var spotifyLoggedIn = MutableLiveData<Boolean>(false)
 var overlayActive = MutableLiveData<Boolean>(false)
 var overlayStatus = MutableLiveData<String>("ready")
 var clockActive = MutableLiveData<Boolean>(false)
+var overlayPos = MutableLiveData<String>("Right")
 var volumeUpEnabled = MutableLiveData<Boolean>(true)
 var settingsOpen = MutableLiveData<Boolean>(false)
 var innerNavOpen = MutableLiveData<Boolean>(false)
@@ -52,7 +53,7 @@ val recFileName = "DJames_request"
 var enablePlayerInfo = false
 
 //Dropdowns:
-var overlayPosOptions = listOf<String>("Left", "Right")
+//var overlayPosOptions = listOf<String>("Left", "Right")
 var queryLangCodes = listOf<String>("en", "it")
 val queryLangCaps = listOf<String>("English", "Italian")
 var messLangCodes = listOf<String>("en", "it", "fr", "de", "es")

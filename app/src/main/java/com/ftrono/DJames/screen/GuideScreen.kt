@@ -31,9 +31,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,6 +59,7 @@ import com.ftrono.DJames.ui.navigateTo
 import com.ftrono.DJames.ui.theme.NavigationItem
 import com.ftrono.DJames.utilities.Utilities
 
+
 @Preview
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
@@ -70,8 +74,11 @@ fun GuideScreen(navController: NavController) {
     val settingsOpenState by settingsOpen.observeAsState()
     val utils = Utilities()
     var guideItems = utils.getGuideArray(mContext)
-    var iCat = 0
-    var iReq = 0
+    var guideStateItems = utils.getGuideStateItems(guideItems)
+    val expandedStates = remember {
+        mutableStateMapOf(*guideStateItems.map { it to false }.toTypedArray())
+    }
+    val currentExpanded = rememberSaveable { mutableStateOf(guideStateItems[0]) }
 
     //BACKGROUND:
     StreetBackground(
@@ -110,17 +117,21 @@ fun GuideScreen(navController: NavController) {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
+
             //SECTIONS LIST:
             for (category in guideItems) {
                 var catItem = category.asJsonObject
+                var cat = catItem.get("category").asString
 
-                ExpandableSection(
+                //CATEGORY SECTION:
+                ExpandableGuideSection(
                     modifier = Modifier
                         .fillMaxWidth(),
-                    cat = catItem.get("category").asString,
+                    cat = cat,
                     title = catItem.get("header").asString
                 ) {
 
+                    //REQUESTS:
                     Column(
                         modifier = Modifier
                             .fillMaxWidth(),
@@ -128,45 +139,20 @@ fun GuideScreen(navController: NavController) {
                         horizontalAlignment = Alignment.Start
                     ) {
 
-                        //ITEMS:
                         for (request in catItem.get("requests").asJsonArray) {
                             var reqItem = request.asJsonObject
                             //REQUEST CARD:
-                            Card(
-                                shape = RoundedCornerShape(16.dp),
-                                modifier = Modifier
-                                    .padding(start = 58.dp, top = 4.dp, end = 24.dp, bottom = 12.dp)
-                                    .fillMaxWidth(),
-                                border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = colorResource(id = R.color.dark_grey_background)
-                                )
-                            ) {
-
-                                //CARD CONTENT:
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth(),
-                                    verticalArrangement = Arrangement.Top,
-                                    horizontalAlignment = Alignment.Start
-                                ) {
-
-                                    //REQUEST INTRO & CONTENT:
-                                    ExpandableItem(
-                                        modifier = Modifier
-                                            .fillMaxWidth(),
-                                        requestIntro = reqItem.get("intro").asString,
-                                        requestSentence = reqItem.get("sentence").asString,
-                                        requestDescr = reqItem.get("description").asString,
-                                        first = iCat == 0 && iReq == 0   //expand first item only
-                                    )
-                                }
-                            }
-                            iReq++
+                            ExpandableGuideItem(
+                                cat = cat,
+                                requestIntro = reqItem.get("intro").asString,
+                                requestSentence = reqItem.get("sentence").asString,
+                                requestDescr = reqItem.get("description").asString,
+                                expandedStates = expandedStates,
+                                currentExpanded = currentExpanded
+                            )
                         }
                     }
                 }
-                iCat++
             }
         }
     }
@@ -201,7 +187,7 @@ fun GuideIcon(
 
 
 @Composable
-fun ExpandableSection(
+fun ExpandableGuideSection(
     modifier: Modifier = Modifier,
     cat: String,
     title: String,
@@ -214,7 +200,7 @@ fun ExpandableSection(
             .fillMaxWidth()
     ) {
         //SECTION:
-        ExpandableSectionTitle(
+        ExpandableGuideSectionTitle(
             isExpanded = sectionIsExpanded,
             cat = cat,
             title = title)
@@ -232,13 +218,14 @@ fun ExpandableSection(
 
 
 @Composable
-fun ExpandableSectionTitle(
+fun ExpandableGuideSectionTitle(
     modifier: Modifier = Modifier,
     isExpanded: Boolean,
     cat: String,
     title: String
 ) {
     val icon = if (isExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
+
     //CARD:
     Card(
         modifier = Modifier
@@ -311,69 +298,97 @@ fun ExpandableSectionTitle(
 
 
 @Composable
-fun ExpandableItem(
-    modifier: Modifier = Modifier,
+fun ExpandableGuideItem(
+    cat: String,
     requestIntro: String,
     requestSentence: String,
     requestDescr: String,
-    first: Boolean
+    expandedStates: SnapshotStateMap<String, Boolean>,
+    currentExpanded: MutableState<String>
 ) {
-    var itemIsExpanded = rememberSaveable { mutableStateOf(first) }
+    val utils = Utilities()
+    utils.updateStatesMap(expandedStates, target=currentExpanded.value)
+    val itemStateName = "$cat - $requestIntro"
 
-    Column(
-        modifier = modifier
-            .clickable { itemIsExpanded.value = !itemIsExpanded.value }
+    //CARD:
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier
+            .padding(start = 58.dp, top = 4.dp, end = 24.dp, bottom = 12.dp)
             .fillMaxWidth()
+            .clickable {
+                //Update global catState:
+                if (currentExpanded.value == itemStateName) {
+                    currentExpanded.value = ""
+                } else {
+                    currentExpanded.value = itemStateName
+                }
+                utils.updateStatesMap(expandedStates, target=currentExpanded.value)
+            },
+        border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
+        colors = CardDefaults.cardColors(
+            containerColor = colorResource(id = R.color.dark_grey_background)
+        )
     ) {
 
-        //REQUEST INTRO:
-        ExpandableItemTitle(
-            isExpanded = itemIsExpanded,
-            title = requestIntro)
-
-        //ON EXPANSION:
-        AnimatedVisibility(
+        //CARD CONTENT:
+        Column(
             modifier = Modifier
                 .fillMaxWidth(),
-            visible = itemIsExpanded.value
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start
         ) {
 
-            //EXPANDED -> REQUEST DETAILS:
-            Column(
+            //REQUEST INTRO:
+            ExpandableGuideItemTitle(
+                isExpanded = expandedStates[itemStateName]!!,
+                title = requestIntro
+            )
+
+            //ON EXPANSION:
+            AnimatedVisibility(
                 modifier = Modifier
-                    .padding(start = 24.dp, end = 24.dp, bottom = 20.dp)
                     .fillMaxWidth(),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.Start
+                visible = expandedStates[itemStateName]!!
             ) {
 
-                //DIVIDER:
-                HorizontalDivider(
+                //EXPANDED -> REQUEST DETAILS:
+                Column(
                     modifier = Modifier
-                        .padding(bottom=4.dp),
-                    color = colorResource(id = R.color.faded_grey)
-                )
-                //SENTENCE:
-                Text(
-                    modifier = Modifier
-                        .padding(top = 8.dp)
+                        .padding(start = 24.dp, end = 24.dp, bottom = 20.dp)
                         .fillMaxWidth(),
-                    text = requestSentence,
-                    fontSize = 18.sp,
-                    lineHeight = 22.sp,
-                    fontStyle = FontStyle.Italic,
-                    color = colorResource(id = R.color.light_grey)
-                )
-                //DESCR:
-                Text(
-                    modifier = Modifier
-                        .padding(top = 12.dp)
-                        .fillMaxWidth(),
-                    text = requestDescr,
-                    fontSize = 14.sp,
-                    lineHeight = 18.sp,
-                    color = colorResource(id = R.color.mid_grey)
-                )
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.Start
+                ) {
+
+                    //DIVIDER:
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .padding(bottom = 4.dp),
+                        color = colorResource(id = R.color.faded_grey)
+                    )
+                    //SENTENCE:
+                    Text(
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .fillMaxWidth(),
+                        text = requestSentence,
+                        fontSize = 18.sp,
+                        lineHeight = 22.sp,
+                        fontStyle = FontStyle.Italic,
+                        color = colorResource(id = R.color.light_grey)
+                    )
+                    //DESCR:
+                    Text(
+                        modifier = Modifier
+                            .padding(top = 12.dp)
+                            .fillMaxWidth(),
+                        text = requestDescr,
+                        fontSize = 14.sp,
+                        lineHeight = 18.sp,
+                        color = colorResource(id = R.color.mid_grey)
+                    )
+                }
             }
         }
     }
@@ -381,16 +396,16 @@ fun ExpandableItem(
 
 
 @Composable
-fun ExpandableItemTitle(
-    isExpanded: MutableState<Boolean>,
+fun ExpandableGuideItemTitle(
+    isExpanded: Boolean,
     title: String
 ) {
-    val icon = if (isExpanded.value) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
+    val icon = if (isExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
+
     //SECTION HEADER:
     Row(
         modifier = Modifier
-            .padding(start=10.dp, end = 20.dp, top=10.dp, bottom=8.dp)
-            .clickable { isExpanded.value = !isExpanded.value },
+            .padding(start=10.dp, end = 20.dp, top=10.dp, bottom=8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
     ) {
@@ -401,7 +416,7 @@ fun ExpandableItemTitle(
                 .weight(1f),
             text = title,
             fontSize = 14.sp,
-            fontWeight = if (isExpanded.value) FontWeight.Bold else null,
+            fontWeight = if (isExpanded) FontWeight.Bold else null,
             color = colorResource(id = R.color.light_grey)
         )
         //EXPAND/COLLAPSE:

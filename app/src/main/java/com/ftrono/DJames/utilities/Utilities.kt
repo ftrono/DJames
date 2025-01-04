@@ -473,6 +473,23 @@ class Utilities {
     }
 
 
+    //Get list of Guide items for state:
+    fun getGuideStateItems(guideArray: JsonArray): List<String> {
+        var guideItems = mutableListOf<String>()
+        for (item in guideArray) {
+            var itemJson = item.asJsonObject
+            var cat = itemJson.get("category").asString
+            var requests = itemJson.get("requests").asJsonArray
+            for (req in requests) {
+                var reqJson = req.asJsonObject
+                var intro = reqJson.get("intro").asString
+                guideItems.add("$cat - $intro")
+            }
+        }
+        return guideItems
+    }
+
+
     //On Logout: delete user cache files:
     fun deleteUserCache() {
         try {

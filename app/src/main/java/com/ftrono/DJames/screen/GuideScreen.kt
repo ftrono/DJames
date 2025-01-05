@@ -55,6 +55,7 @@ import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.settingsOpen
 import com.ftrono.DJames.ui.HeaderWithSign
 import com.ftrono.DJames.ui.StreetBackground
+import com.ftrono.DJames.ui.guideIconSelector
 import com.ftrono.DJames.ui.navigateTo
 import com.ftrono.DJames.ui.theme.NavigationItem
 import com.ftrono.DJames.utilities.Utilities
@@ -160,33 +161,6 @@ fun GuideScreen(navController: NavController) {
 
 
 @Composable
-fun GuideIcon(
-    cat: String,
-    size: Int,
-    padding: Int
-) {
-    Icon(
-        modifier = Modifier
-            .padding(start = padding.dp)
-            .size(size.dp),
-        painter = when (cat) {
-            "calls" -> {
-                painterResource(id = R.drawable.sign_phone)
-            }
-            "messages" -> {
-                painterResource(id = R.drawable.sign_message)
-            }
-            else -> {
-                painterResource(id = R.drawable.sign_headphones)
-            }
-        },
-        contentDescription = cat,
-        tint = colorResource(id = R.color.light_grey)
-    )
-}
-
-
-@Composable
 fun ExpandableGuideSection(
     modifier: Modifier = Modifier,
     cat: String,
@@ -267,10 +241,12 @@ fun ExpandableGuideSectionTitle(
                 contentAlignment = Alignment.Center
             ) {
                 //CAT ICON:
-                GuideIcon(
-                    padding = 0,
-                    size = 24,
-                    cat = cat
+                Icon(
+                    modifier = Modifier
+                        .size(24.dp),
+                    painter = guideIconSelector(cat = cat),
+                    contentDescription = cat,
+                    tint = colorResource(id = R.color.light_grey)
                 )
             }
             //CAT TITLE:
@@ -317,15 +293,15 @@ fun ExpandableGuideItem(
             .padding(start = 58.dp, top = 4.dp, end = 24.dp, bottom = 12.dp)
             .fillMaxWidth()
             .clickable {
-                //Update global catState:
+                //Update global currentExpanded:
                 if (currentExpanded.value == itemStateName) {
                     currentExpanded.value = ""
                 } else {
                     currentExpanded.value = itemStateName
                 }
-                utils.updateStatesMap(expandedStates, target=currentExpanded.value)
+                utils.updateStatesMap(expandedStates, target = currentExpanded.value)
             },
-        border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
+        border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
         colors = CardDefaults.cardColors(
             containerColor = colorResource(id = R.color.dark_grey_background)
         )
@@ -412,7 +388,7 @@ fun ExpandableGuideItemTitle(
         //REQUEST INTRO:
         Text(
             modifier = Modifier
-                .padding(start=16.dp)
+                .padding(start = 16.dp)
                 .weight(1f),
             text = title,
             fontSize = 14.sp,
@@ -422,7 +398,7 @@ fun ExpandableGuideItemTitle(
         //EXPAND/COLLAPSE:
         Icon(
             modifier = Modifier
-                .padding(start=4.dp)
+                .padding(start = 4.dp)
                 .size(24.dp),
             imageVector = icon,
             tint = colorResource(id = R.color.light_grey),

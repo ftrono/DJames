@@ -470,7 +470,7 @@ class MainActivity : ComponentActivity() {
     fun DialogLogout(mContext: Context, dialogOnState: MutableState<Boolean>) {
         GeneralDialog(
             dialogOnState = dialogOnState,
-            backgroundColor = colorResource(id = R.color.colorPrimaryOld),
+            backgroundColor = colorResource(id = R.color.colorPrimaryDark),
             title = "Logout",
             content = {
                 Text(

@@ -60,6 +60,8 @@ import com.ftrono.DJames.ui.HeaderWithSign
 import com.ftrono.DJames.ui.OptionsItem
 import com.ftrono.DJames.ui.OptionsMenu
 import com.ftrono.DJames.ui.StreetBackground
+import com.ftrono.DJames.ui.historyColorSelectorLight
+import com.ftrono.DJames.ui.historyIconSelector
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -191,6 +193,13 @@ fun HistoryCard(item: JsonObject) {
         DialogDeleteHistory(mContext, deleteLogOn, filename)
     }
 
+    //Intent name:
+    val intentName = if (item.has("intent_name")) {
+        item.get("intent_name").asString
+    } else {
+        "Unknown"
+    }
+
     //CARD:
     Card(
         onClick = { openLog(mContext, filename) },
@@ -203,7 +212,7 @@ fun HistoryCard(item: JsonObject) {
             )
             .fillMaxWidth()
             .wrapContentHeight(),
-        border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
+        border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors (
             containerColor = colorResource(id = R.color.dark_grey_background)
@@ -219,12 +228,28 @@ fun HistoryCard(item: JsonObject) {
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                //CAT ICON:
+                Icon(
+                    modifier = Modifier
+                        .padding(start = 12.dp, top = 2.dp)
+                        .size(16.dp),
+                    painter = historyIconSelector(cat = intentName),
+                    contentDescription = intentName,
+                    tint = historyColorSelectorLight(cat = intentName)
+                )
+                //CAT NAME:
+                Text(
+                    modifier = Modifier
+                        .padding(start = 4.dp, top = 2.dp),
+                    color = historyColorSelectorLight(cat = intentName),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    text = "${intentName}  •  "
+                )
                 //INTRO & DATETIME:
                 Text(
                     modifier = Modifier
-                        .padding(start = 12.dp, top = 2.dp)
-                        .fillMaxWidth()
-                        .wrapContentHeight()
+                        .padding(top = 2.dp)
                         .weight(1f),
                     color = colorResource(id = R.color.mid_grey),
                     fontSize = 12.sp,
@@ -266,7 +291,7 @@ fun HistoryCard(item: JsonObject) {
                     .padding(start = 12.dp, bottom = 8.dp)
                     .wrapContentWidth()
                     .wrapContentHeight(),
-                color = colorResource(id = R.color.colorAccentLight),
+                color = colorResource(id = R.color.mid_grey),
                 fontSize = 12.sp,
                 lineHeight = 14.sp,
                 text = textExtra
@@ -326,7 +351,7 @@ fun DialogDeleteHistory(mContext: Context, dialogOnState: MutableState<Boolean>,
     //DELETE DIALOG:
     GeneralDialog(
         dialogOnState = dialogOnState,
-        backgroundColor = colorResource(id = R.color.colorPrimaryOld),
+        backgroundColor = colorResource(id = R.color.colorPrimaryDark),
         title = if (filename != "") "Delete log" else "Delete history",
         content = {
             Text(
@@ -377,17 +402,6 @@ fun getHistoryItemInfo(item: JsonObject, context: Context): JsonObject {
         "Unknown"
     }
 
-    //Intent icon:
-    val intentIcon = if (intentName == "CallRequest") {
-        "📞"
-    } else if (intentName == "MessageRequest") {
-        "💬"
-    } else if (intentName.contains("Play")) {
-        "🎧"
-    } else {
-        "❔"
-    }
-
     //Album type:
     var albumType = try {
         item.get("spotify_play").asJsonObject.get("album_type").asString.replaceFirstChar { it.uppercase() }
@@ -407,16 +421,16 @@ fun getHistoryItemInfo(item: JsonObject, context: Context): JsonObject {
     try {
         itemScore = if (item.has("voc_score")) {
             if (item.get("voc_score").asInt > midThreshold) {
-                    "🟢"
-                } else {
-                    "🟡"
-                }
+                "🟢"
             } else {
-                if (!context_error && item.get("best_score").asInt >= playThreshold) {
-                    "🟢"
-                } else {
-                    "🟡"
-                }
+                "🟡"
+            }
+        } else {
+            if (!context_error && item.get("best_score").asInt >= playThreshold) {
+                "🟢"
+            } else {
+                "🟡"
+            }
         }
     } catch (e: Exception) {
         Log.d("HistoryScreen", "No score info in log item: $datetime")
@@ -424,7 +438,7 @@ fun getHistoryItemInfo(item: JsonObject, context: Context): JsonObject {
 
     //Build info:
     val queryText = item.get("nlp").asJsonObject.get("query_text").asString
-    val textIntro = "$intentIcon  $itemScore  $datetime  •  $intentName"
+    val textIntro = "$datetime  $itemScore"
     val textMain = if (intentName.contains("Play") && !queryText.contains("play ")) {
         "play: $queryText"
     } else {
@@ -442,10 +456,10 @@ fun getHistoryItemInfo(item: JsonObject, context: Context): JsonObject {
     } else if (intentName.contains("Play")) {
         //Play requests:
         var playType = try {
-                item.get("spotify_play").asJsonObject.get("play_type").asString
-            } catch (e: Exception) {
-                ""
-            }
+            item.get("spotify_play").asJsonObject.get("play_type").asString
+        } catch (e: Exception) {
+            ""
+        }
 
         var utils = Utilities()
         if (playType == "playlist") {
@@ -473,10 +487,10 @@ fun getHistoryItemInfo(item: JsonObject, context: Context): JsonObject {
 
             //Context:
             var play_externally = try {
-                    item.get("play_externally").asBoolean
-                } catch (e: Exception) {
-                    false
-                }
+                item.get("play_externally").asBoolean
+            } catch (e: Exception) {
+                false
+            }
             var contextType = item.get("spotify_play").asJsonObject.get("context_type").asString.replaceFirstChar { it.uppercase() }
             var contextName = ""
             if (contextType == "Playlist" && !context_error && !play_externally) {

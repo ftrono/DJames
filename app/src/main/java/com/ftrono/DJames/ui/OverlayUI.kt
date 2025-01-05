@@ -72,7 +72,7 @@ fun ClockButtonPreview() {
 fun DJamesButtonPreview() {
     DJamesButton(
         bubbleSize = 100,
-        overlayStatus = MutableLiveData<String>("processing"),
+        overlayStatus = MutableLiveData<String>("ready"),
         onTap = {offset -> }
     )
 }

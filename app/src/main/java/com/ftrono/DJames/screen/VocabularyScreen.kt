@@ -2,34 +2,28 @@ package com.ftrono.DJames.screen
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -37,24 +31,22 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material.icons.rounded.KeyboardArrowUp
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -69,12 +61,16 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.filter
 import com.ftrono.DJames.application.vocDir
 import com.ftrono.DJames.application.vocHeads
+import com.ftrono.DJames.application.vocSectionIdentifier
 import com.ftrono.DJames.dialogs.DialogEditVocabulary
 import com.ftrono.DJames.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.HeaderWithSign
 import com.ftrono.DJames.ui.OptionsItem
 import com.ftrono.DJames.ui.OptionsMenu
+import com.ftrono.DJames.ui.SplitterSign
 import com.ftrono.DJames.ui.StreetBackground
+import com.ftrono.DJames.ui.vocColorSelectorLight
+import com.ftrono.DJames.ui.vocIconSelector
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -92,86 +88,184 @@ fun VocScreenPreview() {
 
 
 @Composable
-fun VocabularyScreen(editPreview: String = "", preview: Boolean = false) {
+fun VocabularyScreen(
+    editPreview: String = "",
+    preview: Boolean = false
+) {
+    val configuration = LocalConfiguration.current
+    val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
     val mContext = LocalContext.current
-    val utils = Utilities()
     //Descriptions:
     val subtitles = mapOf(
-        "artist" to "Favourites or hard-to-spell",
-        "playlist" to "Play songs from this list",
-        "contact" to "For calls & messages"
+        "artist" to "Save your favourite artists & links",
+        "playlist" to "Play songs from these playlists",
+        "contact" to "People to call or message"
     )
     //Statuses:
-    var keyState = rememberSaveable { mutableStateOf("") }
-    var catState = rememberSaveable { mutableStateOf(vocHeads[0]) }
-    val expandedStates = remember {
-        mutableStateMapOf(*vocHeads.map { it to false }.toTypedArray())
+    val keyState = rememberSaveable { mutableStateOf("") }
+    val currentCatState = rememberSaveable { mutableStateOf(vocHeads[0]) }
+    val vocabulary = rememberSaveable {
+        mutableStateOf(getVocKeys(mContext, currentCatState.value, preview))
+    }
+    val deleteVocOn = rememberSaveable { mutableStateOf(false) }
+    if (deleteVocOn.value) {
+        DialogDeleteVocabulary(mContext, deleteVocOn, vocabulary, keyState, currentCatState.value)
+    }
+    val editVocOn = rememberSaveable { mutableStateOf(if (editPreview == "") false else true) }
+    if (editPreview != "") {
+        DialogEditVocabulary(mContext, editVocOn, vocabulary, keyState, editPreview, preview)
+    } else if (editVocOn.value) {
+        DialogEditVocabulary(mContext, editVocOn, vocabulary, keyState, currentCatState.value, preview)
+    }
+    var mDisplayMainMenu = rememberSaveable {
+        mutableStateOf(false)
     }
 
-    //BACKGROUND:
-    StreetBackground(
-        startDistance = 48
-    ) {
-        //HEADER:
-        HeaderWithSign(
-            iconRes = painterResource(id = R.drawable.sign_fork),
-            title = "My Vocabulary",
-            subtitle = "Help DJames understand you")
 
-        //CONTENT:
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-        ) {
-            //Check expanded states:
-            utils.updateStatesMap(expandedStates, target=catState.value)
-            //SECTIONS:
-            for (vocHead in vocHeads) {
-                ExpandableVocSection(
-                    mContext = mContext,
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    keyState = keyState,
-                    catState = catState,
-                    expandedStates = expandedStates,
-                    head = vocHead,
-                    title = "My ${vocHead}s",
-                    subtitle = subtitles[vocHead]!!,
-                    preview = preview,
-                    editPreview = editPreview
+    //SCAFFOLD FOR FAB:
+    Scaffold(
+        floatingActionButton = {
+            Column (
+                horizontalAlignment = Alignment.End
+            ) {
+                Box() {
+                    //1) CAT OPTIONS:
+                    FloatingActionButton(
+                        containerColor = colorResource(id = R.color.dark_grey),
+                        onClick = {
+                            mDisplayMainMenu.value = !mDisplayMainMenu.value
+                        }
+                    ) {
+                        Icon(
+                            Icons.Default.MoreVert,
+                            "Add vocabulary item",
+                            tint = colorResource(id = R.color.light_grey)
+                        )
+                    }
+                    CatOptions(
+                        mContext = mContext,
+                        vocabulary = vocabulary,
+                        mDisplayMenu = mDisplayMainMenu,
+                        deleteVocOn = deleteVocOn,
+                        head = currentCatState.value
+                    )
+                }
+                //2) ADD NEW ITEM:
+                ExtendedFloatingActionButton(
+                    containerColor = colorResource(id = R.color.colorAccent),
+                    icon = {
+                        Icon(
+                            Icons.Default.Add,
+                            "Add vocabulary item",
+                            tint = colorResource(id = R.color.light_grey)
+                        )
+                    },
+                    text = {
+                        Text(
+                            text = "Add",
+                            color = colorResource(id = R.color.light_grey),
+                            fontSize = 16.sp
+                        )
+                    },
+                    onClick = {
+                        keyState.value = ""
+                        editVocOn.value = true
+                    }
                 )
             }
         }
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(it)
+        ) {
+
+            //BACKGROUND:
+            StreetBackground(
+                startDistance = 20
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .background(colorResource(id = R.color.windowBackground))
+                ) {
+                    //HEADER:
+                    Column(
+                        modifier = Modifier
+                            .padding(top = if (isLandscape) 8.dp else 0.dp, bottom = 8.dp)
+                            .fillMaxWidth()
+                        //                .verticalScroll(rememberScrollState())
+                    ) {
+                        if (!isLandscape) {
+                            HeaderWithSign(
+                                iconRes = painterResource(id = R.drawable.sign_fork),
+                                title = "My Vocabulary",
+                                subtitle = "Help DJames understand you"
+                            )
+                        }
+
+                        SplitterSign(
+                            currentCatState = currentCatState,
+                            vocabulary = vocabulary,
+                            preview = preview
+                        )
+                    }
+                }
+
+                //CONTENT:
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+
+                    //SECTION HEADER:
+                    Row(
+                        modifier = Modifier
+                            .background(colorResource(id = R.color.windowBackground))
+                            .fillMaxWidth()
+                            .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        //N items:
+                        Text(
+                            modifier = Modifier
+                                .padding(start=6.dp),
+                            text = if (vocabulary.value.size == 1) "1 item" else "${vocabulary.value.size} items" + "  •  ",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            //textAlign = TextAlign.Center,
+                            color = vocColorSelectorLight(cat = currentCatState.value)
+                        )
+                        //Description:
+                        Text(
+                            modifier = Modifier
+                                .padding(end=6.dp),
+                            text = "${subtitles[currentCatState.value]!!}",
+                            fontSize = 14.sp,
+                            //fontWeight = FontWeight.Bold,
+                            //textAlign = TextAlign.Center,
+                            color = colorResource(id = R.color.mid_grey)
+                        )
+                    }
+
+                    //CONTENT:
+                    VocSectionContent(
+                        mContext = mContext,
+                        vocabulary = vocabulary,
+                        currentCatState = currentCatState,
+                        keyState = keyState,
+                        editVocOn = editVocOn,
+                        deleteVocOn = deleteVocOn,
+                        isLandscape = isLandscape,
+                        preview = preview,
+                        editPreview = editPreview
+                    )
+                }
+            }
+        }
     }
-}
-
-
-@Composable
-fun VocIcon(
-    filter: String,
-    size: Int,
-    padding: Int,
-    bigger: Boolean = false
-) {
-    Icon(
-        modifier = Modifier
-            .padding(start = padding.dp)
-            .size(size.dp),
-        painter = when (filter) {
-            "artist" -> {
-                painterResource(id = R.drawable.sign_note)
-            }
-            "playlist" -> {
-                painterResource(id = R.drawable.sign_headphones)
-            }
-            else -> {
-                painterResource(id = R.drawable.sign_phone)
-            }
-        },
-        contentDescription = filter,
-        tint = if (bigger) colorResource(id = R.color.light_grey) else colorResource(id = R.color.colorAccentLight)
-    )
 }
 
 
@@ -214,304 +308,191 @@ fun ChipOptions(
 }
 
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterialApi::class)
 @Composable
-fun ExpandableVocSection(
+fun VocSectionContent(
     mContext: Context,
-    modifier: Modifier = Modifier,
+    vocabulary: MutableState<List<String>>,
+    currentCatState: MutableState<String>,
     keyState: MutableState<String>,
-    catState: MutableState<String>,
-    expandedStates: SnapshotStateMap<String, Boolean>,
+    editVocOn: MutableState<Boolean>,
+    deleteVocOn: MutableState<Boolean>,
+    isLandscape: Boolean,
+    preview: Boolean = false,
+    editPreview: String = ""
+) {
+
+    LazyVerticalGrid(
+        modifier = Modifier
+            .padding(start = 32.dp, end = 24.dp, bottom = 12.dp)
+            .fillMaxSize(),
+        columns = GridCells.Fixed(if (isLandscape) 3 else 2),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        //ITEMS:
+        vocabulary.value.forEach { key ->
+            if (key.contains(vocSectionIdentifier)) {
+                //HEADER:
+                item(
+                    span = { GridItemSpan(maxLineSpan) }
+                ) {
+                    VocLetter(
+                        letter = key.replace(vocSectionIdentifier, "")
+                    )
+                }
+            } else {
+                //ITEM:
+                item {
+                    VocItem(
+                        mContext = mContext,
+                        currentCatState = currentCatState,
+                        keyState = keyState,
+                        head = currentCatState.value,
+                        key = key,
+                        editVocOn = editVocOn,
+                        deleteVocOn = deleteVocOn,
+                        preview = preview,
+                        editPreview = editPreview
+                    )
+                }
+
+            }
+        }
+    }
+}
+
+
+@Composable
+fun VocLetter(
+    letter: String
+) {
+    //TEXT LABEL:
+    Column (
+        modifier = Modifier
+            .padding(top=4.dp, bottom=4.dp)
+    ) {
+        //Item key:
+        Text(
+            modifier = Modifier
+                .padding(start = 2.dp, bottom = 2.dp)
+                .wrapContentWidth()
+                .wrapContentHeight(),
+            color = colorResource(id = R.color.light_grey),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            text = letter.uppercase()
+        )
+        HorizontalDivider(
+            modifier = Modifier
+                .fillMaxWidth(),
+            color = colorResource(id = R.color.faded_grey)
+        )
+    }
+}
+
+
+@Composable
+fun VocItem(
+    mContext: Context,
+    currentCatState: MutableState<String>,
+    keyState: MutableState<String>,
     head: String,
-    title: String,
-    subtitle: String,
+    key: String,
+    editVocOn: MutableState<Boolean>,
+    deleteVocOn: MutableState<Boolean>,
     preview: Boolean = false,
     editPreview: String = ""
 ) {
     val utils = Utilities()
 
-    val vocabulary = rememberSaveable {
-        mutableStateOf(getVocKeys(mContext, head, preview))
-    }
-
-    val deleteVocOn = rememberSaveable { mutableStateOf(false) }
-    if (deleteVocOn.value) {
-        DialogDeleteVocabulary(mContext, deleteVocOn, vocabulary, keyState, head)
-    }
-
-    val editVocOn = rememberSaveable { mutableStateOf(if (editPreview == "") false else true) }
-    if (editPreview != "") {
-        DialogEditVocabulary(mContext, editVocOn, vocabulary, keyState, editPreview, preview)
-    } else if (editVocOn.value) {
-        DialogEditVocabulary(mContext, editVocOn, vocabulary, keyState, head, preview)
-    }
-
-    utils.updateStatesMap(expandedStates, target=catState.value)
-
-    Column(
-        modifier = modifier
-            .clickable {
-                //Update global catState:
-                if (catState.value == head) {
-                    catState.value = ""
-                } else {
-                    catState.value = head
-                }
-                utils.updateStatesMap(expandedStates, target=catState.value)
-            }
-            .fillMaxWidth()
+    //VOC CHIPS:
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
     ) {
-        //SECTION:
-        ExpandableVocSectionTitle(
-            mContext = mContext,
-            vocabulary = vocabulary,
-            deleteVocOn = deleteVocOn,
-            isExpanded = expandedStates[head]!!,
-            head = head,
-            title = title,
-            subtitle = subtitle)
-
-        AnimatedVisibility(
+        var mDisplayMenu = rememberSaveable {
+            mutableStateOf(false)
+        }
+        Card(
             modifier = Modifier
-                .fillMaxWidth(),
-
-            visible = expandedStates[head]!!
+                .wrapContentSize()
+                .clickable {
+                    mDisplayMenu.value = !mDisplayMenu.value
+                },
+            shape = RoundedCornerShape(14.dp),
+            border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
+            colors = CardDefaults.cardColors(
+                containerColor = if (mDisplayMenu.value) {
+                    colorResource(id = R.color.dark_grey)
+                } else {
+                    colorResource(id = R.color.dark_grey_background)
+                }
+            )
         ) {
-            LazyHorizontalGrid(
+            Row (
                 modifier = Modifier
-                    .padding(start = 52.dp, end = 24.dp, bottom = 12.dp)
-                    .fillMaxWidth()
-                    .height(180.dp),
-                rows = GridCells.Fixed(3),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                itemsIndexed(vocabulary.value) { index, key ->
-                    //VOC CHIPS:
-                    Box(
+                    .padding(start = 8.dp, end = 8.dp, top = 12.dp, bottom = 12.dp)
+                    .fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ){
+                //CHIP ICON:
+                Icon(
+                    modifier = Modifier
+                        .padding(start = 4.dp, end = 4.dp)
+                        .size(24.dp),
+                    painter = vocIconSelector(cat = head),
+                    contentDescription = head,
+                    tint = vocColorSelectorLight(cat = currentCatState.value)
+                )
+                //TEXT LABEL:
+                Column(
+                    modifier = Modifier
+                        .padding(start = 4.dp, end = 4.dp)
+                        .fillMaxSize(),
+                ) {
+                    //Item key:
+                    Text(
                         modifier = Modifier
-                            .width(150.dp)
-                            .height(50.dp)
-                    ) {
-                        var mDisplayMenu = rememberSaveable {
-                            mutableStateOf(false)
-                        }
-
-                        AssistChip(
+                            .wrapContentWidth()
+                            .wrapContentHeight(),
+                        color = colorResource(id = R.color.light_grey),
+                        fontSize = 14.sp,
+                        lineHeight = 16.sp,
+                        maxLines = if (head == "contact") 1 else 2,
+                        //fontStyle = if (key == "") null else FontStyle.Italic,
+                        fontWeight = FontWeight.Bold,
+                        text = if (key == "") "Add $head" else utils.trimString(key, 16)
+                    )
+                    //Item detail:
+                    if (head == "contact" && key != "") {
+                        Text(
                             modifier = Modifier
-                                .padding(4.dp)
-                                .fillMaxSize(),
-                            shape = RoundedCornerShape(14.dp),
-                            border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
-                            colors = AssistChipDefaults.assistChipColors(
-                                containerColor = if (key == "") {
-                                    colorResource(id = R.color.colorAccent)
-                                } else if (mDisplayMenu.value) {
-                                    colorResource(id = R.color.dark_grey)
-                                } else {
-                                    colorResource(id = R.color.dark_grey_background)
-                                },
-                                labelColor = colorResource(id = R.color.light_grey),
-                                leadingIconContentColor = colorResource(id = R.color.mid_grey)
-                            ),
-                            leadingIcon = {
-                                if (key == "") {
-                                    //ADD NEW:
-                                    Icon(
-                                        modifier = Modifier
-                                            .padding(start = 2.dp)
-                                            .size(20.dp),
-                                        imageVector = Icons.Default.Add,
-                                        contentDescription = "ADD NEW",
-                                        tint = colorResource(id = R.color.light_grey)
-                                    )
-                                } else {
-                                    //CHIP ICON:
-                                    VocIcon(
-                                        padding = 4,
-                                        size = 20,
-                                        filter = head
-                                    )
-                                }
-                            },
-                            label = {
-                                Column {
-                                    //Item key:
-                                    Text(
-                                        modifier = Modifier
-                                            .wrapContentWidth()
-                                            .wrapContentHeight(),
-                                        color = colorResource(id = R.color.light_grey),
-                                        fontSize = 14.sp,
-                                        lineHeight = 16.sp,
-                                        maxLines = if (head == "contact") 1 else 2,
-                                        fontStyle = if (key == "") null else FontStyle.Italic,
-                                        fontWeight = if (key == "") FontWeight.Bold else null,
-                                        text = if (key == "") "Add $head" else utils.trimString(key, 16)
-                                    )
-                                    //Item detail:
-                                    if (head == "contact" && key != "") {
-                                        Text(
-                                            modifier = Modifier
-                                                .padding(top = 2.dp)
-                                                .wrapContentWidth()
-                                                .wrapContentHeight(),
-                                            color = colorResource(id = R.color.mid_grey),
-                                            fontSize = 12.sp,
-                                            lineHeight = 14.sp,
-                                            maxLines = 1,
-                                            fontStyle = FontStyle.Italic,
-                                            text = if (preview) {
-                                                "3331122333"
-                                            } else {
-                                                updateVocabulary(mContext, head).get(key).asJsonObject.get("phone").asString
-                                            }
-                                        )
-                                    }
-                                }
-                            },
-                            onClick = {
-                                filter.postValue(head)
-                                if (key == "") {
-                                    editVocOn.value = true
-                                } else {
-                                    mDisplayMenu.value = !mDisplayMenu.value
-                                }
+                                .padding(top = 2.dp)
+                                .wrapContentWidth()
+                                .wrapContentHeight(),
+                            color = colorResource(id = R.color.mid_grey),
+                            fontSize = 12.sp,
+                            lineHeight = 14.sp,
+                            maxLines = 1,
+                            fontStyle = FontStyle.Italic,
+                            text = if (preview) {
+                                "3331122333"
+                            } else {
+                                updateVocabulary(
+                                    mContext,
+                                    head
+                                ).get(key).asJsonObject.get("phone").asString
                             }
                         )
-                        ChipOptions(mDisplayMenu, deleteVocOn, editVocOn, keyState, key)
                     }
                 }
             }
         }
+        ChipOptions(mDisplayMenu, deleteVocOn, editVocOn, keyState, key)
     }
 }
 
-
-@Composable
-fun ExpandableVocSectionTitle(
-    mContext: Context,
-    vocabulary: MutableState<List<String>>,
-    deleteVocOn: MutableState<Boolean>,
-    modifier: Modifier = Modifier,
-    isExpanded: Boolean,
-    head: String,
-    title: String,
-    subtitle: String
-) {
-    var mDisplayMenu = rememberSaveable {
-        mutableStateOf(false)
-    }
-    val icon = if (isExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
-    val vocSize = vocabulary.value.size - 1
-    //CARD:
-    Card(
-        modifier = Modifier
-            .padding(
-                start = 20.dp,
-                end = 20.dp,
-                top = 8.dp,
-                bottom = 8.dp
-            )
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        border = if (isExpanded) null else BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors (
-            containerColor = if (isExpanded) colorResource(id = R.color.windowBackground) else colorResource(id = R.color.dark_grey_background)
-        )
-    ) {
-        //SECTION HEADER:
-        Row(
-            modifier = modifier
-                .padding(start = 8.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            //ROUNDED SIGN:
-            Box (
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(
-                        if (head == "artist") {
-                            colorResource(id = R.color.blueSign)
-                        } else if (head == "playlist") {
-                            colorResource(id = R.color.yellowSign)
-                        } else {
-                            colorResource(id = R.color.colorPrimary)
-                        }
-                    )
-                    .border(2.dp, colorResource(id = R.color.light_grey), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                //CAT ICON:
-                VocIcon(
-                    padding = 0,
-                    size = 24,
-                    filter = head,
-                    bigger = true
-                )
-            }
-
-            //TITLE:
-            Column(
-                modifier = Modifier
-                    .padding(start = 12.dp)
-                    .weight(1f),
-            ) {
-                //Title:
-                Text(
-                    text = title,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colorResource(id = R.color.light_grey)
-                )
-                //Subtitle:
-                Text(
-                    text = subtitle,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colorResource(id = R.color.mid_grey)
-                )
-                //Count:
-                Text(
-                    text = if (vocSize == 1) "1 item" else "$vocSize items",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colorResource(id = R.color.colorAccentLight)
-                )
-            }
-            //"MORE OPTIONS" BUTTON:
-            Box() {
-                Icon(
-                    modifier = Modifier
-                        .padding(end = 8.dp)
-                        .clickable { mDisplayMenu.value = !mDisplayMenu.value },
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "",
-                    tint = colorResource(id = R.color.light_grey)
-                )
-                CatOptions(
-                    mContext = mContext,
-                    vocabulary = vocabulary,
-                    mDisplayMenu = mDisplayMenu,
-                    deleteVocOn = deleteVocOn,
-                    head = head
-                )
-            }
-
-            //EXPAND/COLLAPSE:
-            Icon(
-                modifier = Modifier
-                    .padding(end = 12.dp)
-                    .size(32.dp),
-                imageVector = icon,
-                tint = colorResource(id = R.color.light_grey),
-                contentDescription = "Expand / collapse"
-            )
-        }
-    }
-}
 
 //DROPDOWN MENU:
 @Composable
@@ -575,7 +556,7 @@ fun DialogDeleteVocabulary(
     //DELETE DIALOG:
     GeneralDialog(
         dialogOnState = dialogOnState,
-        backgroundColor = colorResource(id = R.color.colorPrimaryOld),
+        backgroundColor = colorResource(id = R.color.colorPrimaryDark),
         title = if (key != "") "Delete $filter" else "Delete ${filter}s",
         content = {
             Text(
@@ -655,6 +636,21 @@ fun sendVoc(mContext: Context, filter: String) {
 
 //Voc keyset:
 fun getVocKeys(mContext: Context, head: String, preview: Boolean = false): List<String> {
-    val vocKeys = listOf("") + updateVocabulary(mContext, head, preview).keySet().toList()
-    return vocKeys
+    val utils = Utilities()
+    val vocKeys = updateVocabulary(mContext, head, preview).keySet().toList()
+    val vocKeysWithHeaders = mutableListOf<String>()
+    var letter = ""
+    for (key in vocKeys) {
+        val cur = key.first().toString()
+        if (cur != letter) {
+            if (utils.isLetters(cur)) {
+                letter = cur
+            } else {
+                letter = "#"
+            }
+            vocKeysWithHeaders.add("$vocSectionIdentifier$letter")
+        }
+        vocKeysWithHeaders.add(key)
+    }
+    return vocKeysWithHeaders
 }

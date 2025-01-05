@@ -82,6 +82,12 @@ class Utilities {
     }
 
 
+    //Check if string is made of alphabetic characters:
+    fun isLetters(string: String): Boolean {
+        return string.all { it.isLetter() }
+    }
+
+
     //Trim strings:
     fun trimString(textOrig: String, maxLength: Int = 30): String {
         var textTrimmed = textOrig

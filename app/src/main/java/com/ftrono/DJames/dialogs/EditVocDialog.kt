@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -28,6 +29,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -45,6 +47,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -61,7 +64,6 @@ import com.ftrono.DJames.application.messLangCaps
 import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.playlistUrlIntro
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.screen.VocIcon
 import com.ftrono.DJames.screen.VocabularyScreen
 import com.ftrono.DJames.screen.getVocKeys
 import com.ftrono.DJames.screen.updateVocabulary
@@ -82,7 +84,7 @@ fun DialogRequestDetail(mContext: Context, dialogOnState: MutableState<Boolean>,
     //REQUEST DETAIL DIALOG:
     GeneralDialog(
         dialogOnState = dialogOnState,
-        backgroundColor = colorResource(id = R.color.colorPrimaryOld),
+        backgroundColor = colorResource(id = R.color.colorPrimaryDark),
         title = if (filter == "contact") "Contact Phone Number" else "Playlist URL",
         content = {
             Text(
@@ -198,7 +200,7 @@ fun DialogEditVocabulary(
                 },
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors (
-                containerColor = colorResource(id = R.color.colorPrimaryOld)
+                containerColor = colorResource(id = R.color.colorPrimaryDark)
             )
         ) {
             Column(
@@ -217,11 +219,23 @@ fun DialogEditVocabulary(
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    VocIcon(
-                        padding=0,
-                        size=36,
-                        filter=filter,
-                        bigger=true
+                    //CHIP ICON:
+                    Icon(
+                        modifier = Modifier
+                            .size(36.dp),
+                        painter = when (filter) {
+                            "artist" -> {
+                                painterResource(id = R.drawable.sign_note)
+                            }
+                            "playlist" -> {
+                                painterResource(id = R.drawable.sign_headphones)
+                            }
+                            else -> {
+                                painterResource(id = R.drawable.sign_phone)
+                            }
+                        },
+                        contentDescription = filter,
+                        tint = colorResource(id = R.color.light_grey)
                     )
                     Text(
                         text = "${filter.replaceFirstChar { it.uppercase() }}",
@@ -382,9 +396,9 @@ fun DialogEditVocabulary(
                 ) {
                     //CANCEL:
                     AssistChip(
-                        border = BorderStroke(1.dp, colorResource(id = R.color.colorPrimaryOld)),
+                        border = BorderStroke(1.dp, colorResource(id = R.color.colorPrimaryDark)),
                         colors = AssistChipDefaults.assistChipColors(
-                            containerColor = colorResource(id = R.color.colorPrimaryOld)
+                            containerColor = colorResource(id = R.color.colorPrimaryDark)
                         ),
                         label = {
                             Text(
@@ -401,9 +415,9 @@ fun DialogEditVocabulary(
                     )
                     //SAVE:
                     AssistChip(
-                        border = BorderStroke(1.dp, colorResource(id = R.color.colorPrimaryOld)),
+                        border = BorderStroke(1.dp, colorResource(id = R.color.colorPrimaryDark)),
                         colors = AssistChipDefaults.assistChipColors(
-                            containerColor = colorResource(id = R.color.colorPrimaryOld)
+                            containerColor = colorResource(id = R.color.colorPrimaryDark)
                         ),
                         label = {
                             Text(

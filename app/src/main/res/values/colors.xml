@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <color name="colorPrimary">#004C38</color>
-  <color name="colorPrimaryOld">#002A1F</color>
-  <color name="colorPrimaryDark">#00100C</color>
+  <color name="colorPrimaryDark">#002A1F</color>
   <color name="windowBackground">#00100C</color>
   <color name="colorAccent">#00684D</color>
   <color name="colorAccentLight">#84BAA2</color>
@@ -10,9 +9,12 @@
   <color name="colorBusy">#ED7D31</color>
   <color name="colorBusyDark">#8A3F0C</color>
   <color name="colorStop">#7E0000</color>
-  <color name="blueSign">#243872</color>
-  <color name="brownSign">#702D20</color>
+  <color name="blueSign">#1C497A</color>
+  <color name="blueSignLight">#639CDB</color>
+  <color name="greenSign">#004C38</color>
+  <color name="greenSignLight">#00D69E</color>
   <color name="yellowSign">#BF9000</color>
+  <color name="yellowSignLight">#FFD243</color>
   <color name="white">#ffffff</color>
   <color name="light_grey">#dddddd</color>
   <color name="mid_grey">#9c9c9c</color>

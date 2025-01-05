@@ -3,6 +3,7 @@ package com.ftrono.DJames.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -24,8 +26,11 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -33,11 +38,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.vocHeads
+import com.ftrono.DJames.screen.getVocKeys
 
 
 // STREET UI LANGUAGE COMPONENTS
@@ -86,6 +96,18 @@ fun StreetLine(
             pathEffect = PathEffect.dashPathEffect(floatArrayOf(160f, 80f), 0f)
         )
     }
+}
+
+
+@Preview
+@Composable
+fun HeaderPreview() {
+    HeaderWithSign(
+        iconRes = painterResource(id = R.drawable.sign_fork),
+        title = "Section Title",
+        subtitle = "Section subtitle",
+        num = 1
+    )
 }
 
 
@@ -154,7 +176,7 @@ fun HeaderSign(
             //Sign icon:
             Icon(
                 modifier = Modifier
-                    .size(50.dp),
+                    .size(40.dp),
                 painter = iconRes,
                 contentDescription = "header",
                 tint = colorResource(id = R.color.light_grey)
@@ -166,7 +188,7 @@ fun HeaderSign(
             ) {
                 Text(
                     text = title,
-                    fontSize = 26.sp,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = colorResource(id = R.color.light_grey),
                     modifier = Modifier
@@ -175,7 +197,7 @@ fun HeaderSign(
                 if (subtitle != null) {
                     Text(
                         text = subtitle,
-                        fontSize = 16.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = colorResource(id = R.color.mid_grey),
                         modifier = Modifier
@@ -187,12 +209,137 @@ fun HeaderSign(
                 //N items:
                 Text(
                     text = "$num",
-                    fontSize = 26.sp,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = colorResource(id = R.color.light_grey),
                     modifier = Modifier
                         .padding(end = 8.dp)
                         .wrapContentWidth()
+                )
+            }
+        }
+    }
+}
+
+
+@Preview
+@Composable
+fun SplitterPreview() {
+    val mContext = LocalContext.current
+    val currentCatState = rememberSaveable { mutableStateOf(vocHeads[0]) }
+    val vocabulary = rememberSaveable {
+        mutableStateOf(getVocKeys(mContext, currentCatState.value, true))
+    }
+    SplitterSign(
+        currentCatState = currentCatState,
+        vocabulary = vocabulary,
+        preview = true
+    )
+}
+
+
+@Composable
+fun SplitterSign(
+    currentCatState: MutableState<String>,
+    vocabulary: MutableState<List<String>>,
+    preview: Boolean = false
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        //ITEM 1:
+        for (head in vocHeads) {
+            SplitterCat(
+                modifier = Modifier
+                    .weight(0.3f),
+                currentCatState = currentCatState,
+                vocabulary = vocabulary,
+                head = head,
+                title = "${head.replaceFirstChar { it.uppercase() }}s",
+                selected = currentCatState.value == head,
+                preview = preview
+            )
+            if (head != vocHeads.last()) {
+                VerticalDivider(
+                    modifier = Modifier
+                        .padding(start = 4.dp, end = 4.dp)
+                        .height(30.dp)
+                        .wrapContentWidth(),
+                    thickness = 2.dp,
+                    color = colorResource(id = R.color.faded_grey)
+                )
+            }
+
+        }
+
+    }
+}
+
+
+@Composable
+fun SplitterCat(
+    modifier: Modifier,
+    currentCatState: MutableState<String>,
+    vocabulary: MutableState<List<String>>,
+    head: String,
+    title: String,
+    selected: Boolean,
+    preview: Boolean = false
+){
+    val mContext = LocalContext.current
+    Card(
+        modifier = modifier
+            .padding(start=6.dp, end=6.dp)
+            .fillMaxWidth()
+            .clickable {
+                currentCatState.value = head
+                vocabulary.value = getVocKeys(mContext, currentCatState.value, preview)
+            },
+        shape = RoundedCornerShape(14.dp),
+        border = if (selected) BorderStroke(1.5.dp, colorResource(id = R.color.mid_grey)) else null,
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) {
+                vocColorSelector(cat = currentCatState.value)
+            } else {
+                colorResource(id = R.color.transparent_full)
+            }
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(8.dp)
+                .wrapContentSize(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            //Sign icon:
+            Icon(
+                modifier = Modifier
+                    .padding(start = 4.dp)
+                    .size(20.dp),
+                painter = vocIconSelector(head),
+                contentDescription = "category",
+                tint = colorResource(id = R.color.light_grey)
+            )
+            //Category text:
+            Column(
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .wrapContentSize()
+            ) {
+                //Title:
+                Text(
+                    modifier = Modifier
+                        .wrapContentWidth(),
+                    text = title,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colorResource(id = R.color.light_grey),
+                    maxLines = 1
                 )
             }
         }
@@ -250,7 +397,6 @@ fun OptionsItem(
                     tint = colorResource(id = R.color.mid_grey)
                 )
             }
-
         },
         onClick = {
             onClick()

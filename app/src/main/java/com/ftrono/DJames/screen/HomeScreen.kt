@@ -233,6 +233,8 @@ fun StartButton(overlayActiveState: Boolean) {
             .padding(top = 20.dp)
             .width(150.dp)
             .height(50.dp),
+        shape = RoundedCornerShape(20.dp),
+        border = BorderStroke(2.dp, colorResource(id = R.color.mid_grey)),
         colors = ButtonDefaults.buttonColors(
             containerColor = if (overlayActiveState) {
                 colorResource(id = R.color.colorStop)

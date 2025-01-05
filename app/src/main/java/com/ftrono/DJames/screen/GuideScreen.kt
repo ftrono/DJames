@@ -238,7 +238,7 @@ fun ExpandableGuideSectionTitle(
                             colorResource(id = R.color.yellowSign)
                         }
                     )
-                    .border(2.dp, colorResource(id = R.color.light_grey), CircleShape),
+                    .border(2.dp, colorResource(id = R.color.mid_grey), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 //CAT ICON:
@@ -333,7 +333,7 @@ fun ExpandableGuideItem(
                 //EXPANDED -> REQUEST DETAILS:
                 Column(
                     modifier = Modifier
-                        .padding(start = 24.dp, end = 24.dp, bottom = 20.dp)
+                        .padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
                         .fillMaxWidth(),
                     verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.Start
@@ -391,7 +391,7 @@ fun ExpandableGuideItemTitle(
         //CAT ICON:
         Icon(
             modifier = Modifier
-                .padding(start = 16.dp)
+                .padding(start = 10.dp)
                 .size(16.dp),
             painter = guideIconSelector(cat = cat),
             contentDescription = cat,

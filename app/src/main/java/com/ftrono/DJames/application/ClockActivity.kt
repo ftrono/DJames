@@ -286,7 +286,7 @@ class ClockActivity: ComponentActivity() {
                         .size(50.dp)
                         .clip(CircleShape)
                         .background(colorResource(id = R.color.black))
-                        .border(2.dp, colorResource(id = R.color.faded_grey), CircleShape)
+                        .border(2.dp, colorResource(id = R.color.midfaded_grey), CircleShape)
                         .zIndex(1f),
                     contentAlignment = Alignment.Center
                 ) {
@@ -295,7 +295,7 @@ class ClockActivity: ComponentActivity() {
                             .size(30.dp),
                         painter = painterResource(id = R.drawable.sign_note),
                         contentDescription = "Album art",
-                        tint = colorResource(id = R.color.faded_grey)
+                        tint = colorResource(id = R.color.midfaded_grey)
                     )
                 }
                 Column(

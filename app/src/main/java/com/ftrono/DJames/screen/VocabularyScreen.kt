@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -52,6 +53,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -128,35 +130,39 @@ fun VocabularyScreen(
             Column (
                 horizontalAlignment = Alignment.End
             ) {
-                Box() {
-                    //1) CAT OPTIONS:
-                    FloatingActionButton(
-                        containerColor = colorResource(id = R.color.dark_grey),
-                        onClick = {
-                            mDisplayMainMenu.value = !mDisplayMainMenu.value
+
+                //1) CAT OPTIONS:
+                if (isLandscape) {
+                    Box() {
+                        FloatingActionButton(
+                            containerColor = colorResource(id = R.color.dark_grey_background),
+                            onClick = {
+                                mDisplayMainMenu.value = !mDisplayMainMenu.value
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "Add vocabulary item",
+                                tint = colorResource(id = R.color.colorAccentLight)
+                            )
                         }
-                    ) {
-                        Icon(
-                            Icons.Default.MoreVert,
-                            "Add vocabulary item",
-                            tint = colorResource(id = R.color.light_grey)
+                        CatOptions(
+                            mContext = mContext,
+                            vocabulary = vocabulary,
+                            mDisplayMenu = mDisplayMainMenu,
+                            deleteVocOn = deleteVocOn,
+                            head = currentCatState.value
                         )
                     }
-                    CatOptions(
-                        mContext = mContext,
-                        vocabulary = vocabulary,
-                        mDisplayMenu = mDisplayMainMenu,
-                        deleteVocOn = deleteVocOn,
-                        head = currentCatState.value
-                    )
                 }
+
                 //2) ADD NEW ITEM:
                 ExtendedFloatingActionButton(
                     containerColor = colorResource(id = R.color.colorAccent),
                     icon = {
                         Icon(
-                            Icons.Default.Add,
-                            "Add vocabulary item",
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add vocabulary item",
                             tint = colorResource(id = R.color.light_grey)
                         )
                     },
@@ -175,6 +181,7 @@ fun VocabularyScreen(
             }
         }
     ) {
+
         Box(
             modifier = Modifier
                 .padding(it)
@@ -200,9 +207,31 @@ fun VocabularyScreen(
                         if (!isLandscape) {
                             HeaderWithSign(
                                 iconRes = painterResource(id = R.drawable.sign_fork),
-                                title = "My Vocabulary",
+                                title = "Vocabulary",
                                 subtitle = "Help DJames understand you"
-                            )
+                            ){
+                                Box() {
+                                    //1) CAT OPTIONS:
+                                    Icon(
+                                        modifier = Modifier
+                                            .padding(end = 18.dp)
+                                            .size(35.dp)
+                                            .clickable {
+                                                mDisplayMainMenu.value = !mDisplayMainMenu.value
+                                            },
+                                        imageVector = Icons.Default.MoreVert,
+                                        contentDescription = "Add vocabulary item",
+                                        tint = colorResource(id = R.color.colorAccentLight)
+                                    )
+                                    CatOptions(
+                                        mContext = mContext,
+                                        vocabulary = vocabulary,
+                                        mDisplayMenu = mDisplayMainMenu,
+                                        deleteVocOn = deleteVocOn,
+                                        head = currentCatState.value
+                                    )
+                                }
+                            }
                         }
 
                         SplitterSign(
@@ -228,6 +257,7 @@ fun VocabularyScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Start
                     ) {
+
                         //N items:
                         Text(
                             modifier = Modifier
@@ -321,41 +351,57 @@ fun VocSectionContent(
     editPreview: String = ""
 ) {
 
-    LazyVerticalGrid(
-        modifier = Modifier
-            .padding(start = 32.dp, end = 24.dp, bottom = 12.dp)
-            .fillMaxSize(),
-        columns = GridCells.Fixed(if (isLandscape) 3 else 2),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        //ITEMS:
-        vocabulary.value.forEach { key ->
-            if (key.contains(vocSectionIdentifier)) {
-                //HEADER:
-                item(
-                    span = { GridItemSpan(maxLineSpan) }
-                ) {
-                    VocLetter(
-                        letter = key.replace(vocSectionIdentifier, "")
-                    )
+    //CONTENT:
+    if (vocabulary.value.isEmpty()) {
+        //VOCABULARY EMPTY:
+        Text(
+            text = "${currentCatState.value.replaceFirstChar { it.uppercase() }}s vocabulary\nis empty",
+            textAlign = TextAlign.Center,
+            fontSize = 18.sp,
+            color = colorResource(id = R.color.mid_grey),
+            modifier = Modifier
+                .fillMaxSize()
+                .wrapContentHeight()
+                .wrapContentWidth()
+        )
+    } else {
+        //VOCABULARY LIST:
+        LazyVerticalGrid(
+            modifier = Modifier
+                .padding(start = 32.dp, end = 24.dp, bottom = 12.dp)
+                .fillMaxSize(),
+            columns = GridCells.Fixed(if (isLandscape) 3 else 2),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            //ITEMS:
+            vocabulary.value.forEach { key ->
+                if (key.contains(vocSectionIdentifier)) {
+                    //HEADER:
+                    item(
+                        span = { GridItemSpan(maxLineSpan) }
+                    ) {
+                        VocLetter(
+                            letter = key.replace(vocSectionIdentifier, "")
+                        )
+                    }
+                } else {
+                    //ITEM:
+                    item {
+                        VocItem(
+                            mContext = mContext,
+                            currentCatState = currentCatState,
+                            keyState = keyState,
+                            head = currentCatState.value,
+                            key = key,
+                            editVocOn = editVocOn,
+                            deleteVocOn = deleteVocOn,
+                            preview = preview,
+                            editPreview = editPreview
+                        )
+                        if (key == vocabulary.value.last()) Spacer(modifier = Modifier.padding(60.dp))
+                    }
                 }
-            } else {
-                //ITEM:
-                item {
-                    VocItem(
-                        mContext = mContext,
-                        currentCatState = currentCatState,
-                        keyState = keyState,
-                        head = currentCatState.value,
-                        key = key,
-                        editVocOn = editVocOn,
-                        deleteVocOn = deleteVocOn,
-                        preview = preview,
-                        editPreview = editPreview
-                    )
-                }
-
             }
         }
     }
@@ -604,6 +650,7 @@ fun updateVocabulary(mContext: Context, filter: String, preview: Boolean = false
     if (preview) {
         //Mock data:
         val reader = BufferedReader(InputStreamReader(mContext.resources.openRawResource(R.raw.vocabulary_sample)))
+        //val vocItems = JsonObject()   //EMPTY TEST
         val vocItems = JsonParser.parseReader(reader).asJsonObject.get(filter).asJsonObject
         return vocItems
     } else {

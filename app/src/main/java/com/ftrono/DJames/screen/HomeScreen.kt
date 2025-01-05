@@ -19,7 +19,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -100,12 +102,28 @@ fun HomeScreen() {
                     horizontalArrangement = Arrangement.Center
                 ) {
                     BaloonHome(true, overlayActiveState!!, volumeUpEnabledState!!)
+                    VerticalDivider(
+                        modifier = Modifier
+                            .offset(x=(-4).dp)
+                            .height(54.dp)
+                            .zIndex(1f),
+                        color = colorResource(id = R.color.dark_grey_background),
+                        thickness = 4.dp
+                    )
                     BaloonArrowHome(true)
                     LogoHome()
                 }
             } else {
                 //DISPLAY VERTICALLY:
                 BaloonHome(false, overlayActiveState!!, volumeUpEnabledState!!)
+                HorizontalDivider(
+                    modifier = Modifier
+                        .offset(y=(-4).dp)
+                        .width(54.dp)
+                        .zIndex(1f),
+                    color = colorResource(id = R.color.dark_grey_background),
+                    thickness = 4.dp
+                )
                 BaloonArrowHome(false)
                 LogoHome()
             }
@@ -135,7 +153,7 @@ fun BaloonHome(isLandscape: Boolean, overlayActive: Boolean, volumeUpEnabled: Bo
             .width(320.dp)
             .height(140.dp)
             .zIndex(1f),
-        //border = BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
+        border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors (
             containerColor = colorResource(id = R.color.dark_grey_background)
@@ -200,6 +218,7 @@ fun BaloonArrowHome(isLandscape: Boolean) {
                 x = if (isLandscape) -(30.dp) else 0.dp
             )
             .rotate(45f)
+            .border(BorderStroke(1.dp, colorResource(id = R.color.faded_grey)))
             .background(colorResource(id = R.color.dark_grey_background))
     )
 }

@@ -15,13 +15,15 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
+**Version 2.1.5 (2025-01-05)** - Finalized UI alignment using StreetSign Design.
+
 **Version 2.1.4 (2025-01-02)** - New Overlay Bubble Service UI, based on Jetpack Compose.
 
 **Version 2.1.3 (2024-12-30)** - New Spotify Login Auth window & process.
 
 **Version 2.1.2 (2024-12-03)** - Update Artists BE & FE, following changes in Spotify Web API.
 
-**Version 2.1.1 (2024-11-06)** - New Street Sign based design language for UI.
+**Version 2.1.1 (2024-11-06)** - New StreetSign Design language for UI.
 
 **Version 2.1 (2024-10-19)** - Brand-new UI migrated & refined, based on Jetpack Compose.
 

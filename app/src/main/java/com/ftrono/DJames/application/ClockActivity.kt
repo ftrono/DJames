@@ -14,6 +14,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +51,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -65,6 +67,7 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.R
 import com.ftrono.DJames.dialogs.GeneralDialog
+import com.ftrono.DJames.ui.guideIconSelector
 import com.ftrono.DJames.ui.theme.ClockTheme
 import com.ftrono.DJames.ui.theme.black
 import com.ftrono.DJames.utilities.Utilities
@@ -278,14 +281,23 @@ class ClockActivity: ComponentActivity() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 //ARTWORK ICON:
-                Image(
+                Box (
                     modifier = Modifier
-                        .width(50.dp)
-                        .height(50.dp)
+                        .size(50.dp)
+                        .clip(CircleShape)
+                        .background(colorResource(id = R.color.black))
+                        .border(2.dp, colorResource(id = R.color.faded_grey), CircleShape)
                         .zIndex(1f),
-                    painter = painterResource(id = R.drawable.artwork_clock),
-                    contentDescription = "Album art"
-                )
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        modifier = Modifier
+                            .size(30.dp),
+                        painter = painterResource(id = R.drawable.sign_note),
+                        contentDescription = "Album art",
+                        tint = colorResource(id = R.color.faded_grey)
+                    )
+                }
                 Column(
                     modifier = Modifier
                         .wrapContentWidth()

@@ -55,6 +55,7 @@ import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.settingsOpen
 import com.ftrono.DJames.ui.HeaderWithSign
 import com.ftrono.DJames.ui.StreetBackground
+import com.ftrono.DJames.ui.guideColorSelectorLight
 import com.ftrono.DJames.ui.guideIconSelector
 import com.ftrono.DJames.ui.navigateTo
 import com.ftrono.DJames.ui.theme.NavigationItem
@@ -211,22 +212,22 @@ fun ExpandableGuideSectionTitle(
             )
             .fillMaxWidth()
             .wrapContentHeight(),
-        border = if (isExpanded) null else BorderStroke(1.dp, colorResource(id = R.color.mid_grey)),
+        border = if (isExpanded) null else BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors (
-            containerColor = if (isExpanded) colorResource(id = R.color.windowBackground) else colorResource(id = R.color.dark_grey_background)
+            containerColor = if (isExpanded) colorResource(id = R.color.transparent_bg) else colorResource(id = R.color.dark_grey_background)
         )
     ) {
         //SECTION HEADER:
         Row(
             modifier = modifier
-                .padding(start=8.dp, end=8.dp, top=12.dp, bottom=12.dp),
+                .padding(start=6.dp, end=8.dp, top=12.dp, bottom=12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             //ROUNDED SIGN:
             Box (
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(40.dp)
                     .clip(CircleShape)
                     .background(
                         if (cat == "calls") {
@@ -243,7 +244,7 @@ fun ExpandableGuideSectionTitle(
                 //CAT ICON:
                 Icon(
                     modifier = Modifier
-                        .size(24.dp),
+                        .size(20.dp),
                     painter = guideIconSelector(cat = cat),
                     contentDescription = cat,
                     tint = colorResource(id = R.color.light_grey)
@@ -265,7 +266,7 @@ fun ExpandableGuideSectionTitle(
                     .padding(end = 8.dp)
                     .size(32.dp),
                 imageVector = icon,
-                tint = colorResource(id = R.color.light_grey),
+                tint = guideColorSelectorLight(cat = cat),
                 contentDescription = "Expand / collapse"
             )
         }
@@ -318,6 +319,7 @@ fun ExpandableGuideItem(
             //REQUEST INTRO:
             ExpandableGuideItemTitle(
                 isExpanded = expandedStates[itemStateName]!!,
+                cat = cat,
                 title = requestIntro
             )
 
@@ -341,7 +343,7 @@ fun ExpandableGuideItem(
                     HorizontalDivider(
                         modifier = Modifier
                             .padding(bottom = 4.dp),
-                        color = colorResource(id = R.color.faded_grey)
+                        color = colorResource(id = R.color.dark_grey)
                     )
                     //SENTENCE:
                     Text(
@@ -374,6 +376,7 @@ fun ExpandableGuideItem(
 @Composable
 fun ExpandableGuideItemTitle(
     isExpanded: Boolean,
+    cat: String,
     title: String
 ) {
     val icon = if (isExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
@@ -385,15 +388,24 @@ fun ExpandableGuideItemTitle(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
     ) {
+        //CAT ICON:
+        Icon(
+            modifier = Modifier
+                .padding(start = 16.dp)
+                .size(16.dp),
+            painter = guideIconSelector(cat = cat),
+            contentDescription = cat,
+            tint = guideColorSelectorLight(cat = cat)
+        )
         //REQUEST INTRO:
         Text(
             modifier = Modifier
-                .padding(start = 16.dp)
+                .padding(start = 8.dp)
                 .weight(1f),
             text = title,
             fontSize = 14.sp,
-            fontWeight = if (isExpanded) FontWeight.Bold else null,
-            color = colorResource(id = R.color.light_grey)
+            fontWeight = FontWeight.Bold,
+            color = if (isExpanded) guideColorSelectorLight(cat = cat) else colorResource(id = R.color.light_grey)
         )
         //EXPAND/COLLAPSE:
         Icon(
@@ -401,7 +413,7 @@ fun ExpandableGuideItemTitle(
                 .padding(start = 4.dp)
                 .size(24.dp),
             imageVector = icon,
-            tint = colorResource(id = R.color.light_grey),
+            tint = guideColorSelectorLight(cat = cat),
             contentDescription = "Expand / collapse"
         )
     }

@@ -35,7 +35,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -293,7 +295,7 @@ fun SplitterCat(
     val mContext = LocalContext.current
     Card(
         modifier = modifier
-            .padding(start=6.dp, end=6.dp)
+            .padding(start = 6.dp, end = 6.dp)
             .fillMaxWidth()
             .clickable {
                 currentCatState.value = head

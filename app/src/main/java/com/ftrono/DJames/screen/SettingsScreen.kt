@@ -70,6 +70,10 @@ import com.ftrono.DJames.application.queryLangCodes
 import com.ftrono.DJames.services.OverlayService
 import com.ftrono.DJames.ui.DropdownSpinner
 import com.ftrono.DJames.ui.HeaderSign
+import com.ftrono.DJames.ui.SectionTitle
+import com.ftrono.DJames.ui.SettingsHeader
+import com.ftrono.DJames.ui.SettingsSection
+import com.ftrono.DJames.ui.StreetBackground
 import com.ftrono.DJames.utilities.Utilities
 
 @Preview
@@ -130,442 +134,139 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
 
 
     //CUSTOM BACKGROUND (NO STREET SIGN):
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(colorResource(id = R.color.windowBackground))
-        .clickable {
-            focusManager.clearFocus()
-        },
+    StreetBackground(
+        modifier = Modifier
+            .clickable {
+                focusManager.clearFocus()
+            },
+        startDistance = 20
     ) {
+
         Column(
             modifier = Modifier
                 .fillMaxSize(),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
         ) {
+
             //HEADER:
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .background(colorResource(id = R.color.windowBackground)),
-                contentAlignment = Alignment.Center
-            ) {
-                //HEADER CONTENT:
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            //GRADIENT:
-                            Brush.verticalGradient(
-                                colorStops = arrayOf(
-                                    0.0f to colorResource(id = R.color.transparent_full),
-                                    0.3f to colorResource(id = R.color.transparent_full),
-                                    1f to colorResource(id = R.color.windowBackground)
-                                )
-                            )
-                        ),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    //BACK:
+            SettingsHeader(
+                backClickable = {
+                    navController.popBackStack()
+                },
+                options = {
+                    //SAVE BUTTON:
                     Icon(
                         modifier = Modifier
-                            .padding(start=12.dp, end=4.dp)
-                            .size(32.dp)
+                            .padding(end = 18.dp)
+                            .size(35.dp)
                             .clickable {
+                                saveSettings(
+                                    mContext,
+                                    newRecTimeout = recTimeout,
+                                    newMessTimeout = messTimeout,
+                                    newClockTimeout = clockTimeout
+                                )
                                 navController.popBackStack()
                             },
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Save",
                         tint = colorResource(id = R.color.colorAccentLight)
                     )
-                    //MAIN HEADER SIGN:
-                    HeaderSign(
-                        modifier = Modifier
-                        .padding(10.dp)
-                        .wrapContentSize(align = Alignment.TopStart),
-                        iconRes = painterResource(id = R.drawable.sign_preferences),
-                        title = "Preferences"
-                    )
-                    //OPTIONS BUTTONS:
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
-                    ){
-                        //SAVE BUTTON:
-                        Icon(
-                            modifier = Modifier
-                                .padding(end=18.dp)
-                                .size(35.dp)
-                                .clickable {
-                                    saveSettings(mContext, newRecTimeout=recTimeout, newMessTimeout=messTimeout, newClockTimeout=clockTimeout)
-                                    navController.popBackStack()
-                                },
-                            imageVector = Icons.Default.Check,
-                            contentDescription = "Save",
-                            tint = colorResource(id = R.color.colorAccentLight)
-                        )
-                    }
                 }
-            }
+            )
 
             //SETTINGS LIST:
             Column(
                 modifier = Modifier
-                    .padding(top = 10.dp, start = 20.dp, end = 20.dp, bottom = 20.dp)
+                    .padding(top = 10.dp, start = 36.dp, end = 20.dp, bottom = 20.dp)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.Start,
             ) {
+
                 //SECTION: OVERLAY BUTTON:
-                Text(
-                    text = "🔘  Overlay button",
+                SettingsSection(
                     modifier = Modifier
-                        .padding(top = 12.dp, bottom = 12.dp),
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-
-                //Auto Startup:
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp, start = 36.dp),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(end=8.dp, bottom=4.dp),
+                    title = "Overlay button",
+                    signColor = colorResource(id = R.color.greenSign),
+                    iconPainter = painterResource(id = R.drawable.sign_touch)
                 ) {
-                    Text(
+
+                    //Auto Startup:
+                    Row(
                         modifier = Modifier
-                            .offset(y = -(8.dp)),
-                        text = "Start Overlay when app is opened",
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
-                    )
-                    Spacer(Modifier.weight(1f))
-                    Switch(
-                        modifier = Modifier
-                            .offset(y = -(8.dp)),
-                        checked = checkedStartup,
-                        colors = switchColors,
-                        onCheckedChange = {
-                            //UPDATE:
-                            checkedStartup = it
-                            prefs.autoStartup = it
-                        }
-                    )
-                }
-
-
-                //SECTION: VOICE QUERIES:
-                Text(
-                    text = "🗣️  Voice queries",
-                    modifier = Modifier.padding(top = 30.dp),
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-
-                //Req language:
-                Text(
-                    modifier = Modifier
-                        .padding(top=20.dp, bottom = 4.dp, start=36.dp),
-                    text = "Voice queries: default language",
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 14.sp,
-                )
-                DropdownSpinner(
-                    mContext,
-                    parentOptions=queryLangCaps,
-                    init=textQueryLangState.value,
-                    state=textQueryLangState,
-                    focusColor = colorResource(id = R.color.colorAccentLight),
-                    prefName="queryLanguage",
-                    width=200,
-                    start=36
-                )
-
-                //Req timeout:
-                Text(
-                    modifier = Modifier
-                        .padding(top=4.dp, bottom = 4.dp, start=36.dp),
-                    text = "Voice queries: timeout recording after",
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 14.sp,
-                )
-                OutlinedTextField(
-                    modifier = Modifier
-                        .padding(top = 8.dp, bottom = 20.dp, start = 36.dp)
-                        .width(250.dp)
-                        .wrapContentHeight()
-                        .focusRequester(focusRequester),
-                    colors = textFieldColors,
-                    value = recTimeout,
-                    textStyle = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    maxLines = 1,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            focusManager.clearFocus()
-                            keyboardController?.hide()
-                            saveSettings(mContext, newRecTimeout=recTimeout, newMessTimeout=messTimeout, newClockTimeout=clockTimeout)
-                        }
-                    ),
-                    suffix = {
-                        Text(
-                            text = "seconds",
-                            fontSize = 16.sp,
-                            fontStyle = FontStyle.Italic
-                        )
-                    },
-                    supportingText = {
-                        Text(
-                            text = "(keep between 5 and 15)"
-                        )
-                    },
-                    placeholder = {
-                        Text(
-                            text = "Write here...",
-                            fontSize = 16.sp,
-                            fontStyle = FontStyle.Italic
-                        )
-                    },
-                    onValueChange = { newText ->
-                        recTimeout = newText.trimStart { it == '0' }
-                        //TODO
-                    }
-                )
-
-                //Silence detection:
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 36.dp),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        modifier = Modifier
-                            .offset(y = -(8.dp)),
-                        text = "Stop recording when silence\nis detected",
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
-                        lineHeight = 18.sp
-                    )
-                    Spacer(Modifier.weight(1f))
-                    Switch(
-                        modifier = Modifier
-                            .offset(y = -(8.dp)),
-                        checked = checkedSilence,
-                        colors = switchColors,
-                        onCheckedChange = {
-                            checkedSilence = it
-                            prefs.silenceEnabled = it
-                        }
-                    )
-                }
-
-
-                //SECTION: MESSAGING:
-                Text(
-                    text = "💬  Messaging",
-                    modifier = Modifier.padding(top = 30.dp),
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-
-                //Mess language:
-                Text(
-                    modifier = Modifier
-                        .padding(top=20.dp, bottom = 4.dp, start=36.dp),
-                    text = "Messages: default language",
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 14.sp,
-                )
-                DropdownSpinner(
-                    mContext,
-                    parentOptions=messLangCaps,
-                    init=textMessLangState.value,
-                    state=textMessLangState,
-                    focusColor = colorResource(id = R.color.colorAccentLight),
-                    prefName="messageLanguage",
-                    width=200,
-                    start=36
-                )
-
-                //Mess timeout:
-                Text(
-                    modifier = Modifier
-                        .padding(top=8.dp, bottom = 4.dp, start=36.dp),
-                    text = "Messages: timeout recording after",
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 14.sp,
-                )
-                OutlinedTextField(
-                    modifier = Modifier
-                        .padding(top = 8.dp, bottom = 20.dp, start = 36.dp)
-                        .width(250.dp)
-                        .wrapContentHeight()
-                        .focusRequester(focusRequester),
-                    colors = textFieldColors,
-                    value = messTimeout,
-                    textStyle = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    maxLines = 1,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            focusManager.clearFocus()
-                            keyboardController?.hide()
-                            saveSettings(mContext, newRecTimeout=recTimeout, newMessTimeout=messTimeout, newClockTimeout=clockTimeout)
-                        }
-                    ),
-                    suffix = {
-                        Text(
-                            text = "seconds",
-                            fontSize = 16.sp,
-                            fontStyle = FontStyle.Italic
-                        )
-                    },
-                    supportingText = {
-                        Text(
-                            text = "(keep between 5 and 20)"
-                        )
-                    },
-                    placeholder = {
-                        Text(
-                            text = "Write here...",
-                            fontSize = 16.sp,
-                            fontStyle = FontStyle.Italic
-                        )
-                    },
-                    onValueChange = { newText ->
-                        messTimeout = newText.trimStart { it == '0' }
-                        //TODO
-                    }
-                )
-
-
-                //SECTION: CLOCK SCREEN:
-                Text(
-                    text = "🕑  Clock screen",
-                    modifier = Modifier
-                        .padding(top = 30.dp, bottom = 12.dp),
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-
-                //Auto Clock:
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp, start = 36.dp),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        modifier = Modifier
-                            .offset(y = -(8.dp)),
-                        text = "Show Clock screen when Overlay\nis started",
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
-                        lineHeight = 18.sp
-                    )
-                    Spacer(Modifier.weight(1f))
-                    Switch(
-                        modifier = Modifier
-                            .offset(y = -(8.dp)),
-                        checked = checkedAutoClock,
-                        colors = switchColors,
-                        onCheckedChange = {
-                            checkedAutoClock = it
-                            prefs.autoClock = it
-                        }
-                    )
-                }
-
-                //Clock redirect:
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp, start = 36.dp),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(top = 12.dp)
-                            .offset(y = -(16.dp)),
-                        verticalArrangement = Arrangement.Top,
-                        horizontalAlignment = Alignment.Start
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Go back automatically to Clock screen",
+                            text = "Start Overlay when app is opened",
                             color = colorResource(id = R.color.light_grey),
                             textAlign = TextAlign.Start,
                             fontSize = 14.sp,
                         )
-                        Text(
-                            text = "(Only when Spotify is launched\nfor the first time)",
-                            color = colorResource(id = R.color.mid_grey),
-                            textAlign = TextAlign.Start,
-                            fontSize = 12.sp,
-                            lineHeight = 16.sp
+                        Spacer(Modifier.weight(1f))
+                        Switch(
+                            checked = checkedStartup,
+                            colors = switchColors,
+                            onCheckedChange = {
+                                //UPDATE:
+                                checkedStartup = it
+                                prefs.autoStartup = it
+                            }
                         )
                     }
-                    Spacer(Modifier.weight(1f))
-                    Switch(
-                        modifier = Modifier
-                            .offset(y = -(8.dp)),
-                        checked = checkedClockRedirect,
-                        colors = switchColors,
-                        onCheckedChange = {
-                            checkedClockRedirect = it
-                            prefs.clockRedirectEnabled = it
-                        }
-                    )
                 }
 
-                if (checkedClockRedirect) {
-                    //After (timeout):
+
+                //SECTION: VOICE QUERIES:
+                SettingsSection(
+                    modifier = Modifier
+                        .padding(end=8.dp, top=16.dp, bottom=4.dp),
+                    title = "Voice queries",
+                    signColor = colorResource(id = R.color.yellowSign),
+                    iconPainter = painterResource(id = R.drawable.icon_speak)
+                ) {
+
+                    //Req language:
+                    Text(
+                        modifier = Modifier
+                            .padding(bottom = 4.dp),
+                        text = "Voice queries: default language",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                    )
+                    DropdownSpinner(
+                        mContext,
+                        parentOptions=queryLangCaps,
+                        init=textQueryLangState.value,
+                        state=textQueryLangState,
+                        focusColor = colorResource(id = R.color.colorAccentLight),
+                        prefName="queryLanguage",
+                        width=200
+                    )
+
+                    //Req timeout:
+                    Text(
+                        modifier = Modifier
+                            .padding(top=8.dp, bottom = 4.dp),
+                        text = "Voice queries: timeout recording after",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                    )
                     OutlinedTextField(
                         modifier = Modifier
-                            .padding(bottom = 20.dp, start = 36.dp)
+                            .padding(top = 8.dp, bottom = 20.dp)
                             .width(250.dp)
                             .wrapContentHeight()
                             .focusRequester(focusRequester),
                         colors = textFieldColors,
-                        value = clockTimeout,
+                        value = recTimeout,
                         textStyle = TextStyle(
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
@@ -583,13 +284,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                                 saveSettings(mContext, newRecTimeout=recTimeout, newMessTimeout=messTimeout, newClockTimeout=clockTimeout)
                             }
                         ),
-                        prefix = {
-                            Text(
-                                text = "after     ",
-                                fontSize = 16.sp,
-                                fontStyle = FontStyle.Italic
-                            )
-                        },
                         suffix = {
                             Text(
                                 text = "seconds",
@@ -599,7 +293,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         },
                         supportingText = {
                             Text(
-                                text = "(keep between 5 and 30)"
+                                text = "(keep between 5 and 15)"
                             )
                         },
                         placeholder = {
@@ -610,67 +304,319 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             )
                         },
                         onValueChange = { newText ->
-                            clockTimeout = newText.trimStart { it == '0' }
+                            recTimeout = newText.trimStart { it == '0' }
+                            //TODO
+                        }
+                    )
+
+                    //Silence detection:
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Stop recording when silence\nis detected",
+                            color = colorResource(id = R.color.light_grey),
+                            textAlign = TextAlign.Start,
+                            fontSize = 14.sp,
+                            lineHeight = 18.sp
+                        )
+                        Spacer(Modifier.weight(1f))
+                        Switch(
+                            checked = checkedSilence,
+                            colors = switchColors,
+                            onCheckedChange = {
+                                checkedSilence = it
+                                prefs.silenceEnabled = it
+                            }
+                        )
+                    }
+                }
+
+
+                //SECTION: MESSAGING:
+                SettingsSection(
+                    modifier = Modifier
+                        .padding(end=8.dp, top=16.dp, bottom=4.dp),
+                    title = "Messaging",
+                    signColor = colorResource(id = R.color.blueSign),
+                    iconPainter = painterResource(id = R.drawable.sign_message)
+                ) {
+
+                    //Mess language:
+                    Text(
+                        modifier = Modifier
+                            .padding(bottom = 4.dp),
+                        text = "Messages: default language",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                    )
+                    DropdownSpinner(
+                        mContext,
+                        parentOptions = messLangCaps,
+                        init = textMessLangState.value,
+                        state = textMessLangState,
+                        focusColor = colorResource(id = R.color.colorAccentLight),
+                        prefName = "messageLanguage",
+                        width = 200
+                    )
+
+                    //Mess timeout:
+                    Text(
+                        modifier = Modifier
+                            .padding(top = 8.dp, bottom = 4.dp),
+                        text = "Messages: timeout recording after",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                    )
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .width(250.dp)
+                            .wrapContentHeight()
+                            .focusRequester(focusRequester),
+                        colors = textFieldColors,
+                        value = messTimeout,
+                        textStyle = TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        maxLines = 1,
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                focusManager.clearFocus()
+                                keyboardController?.hide()
+                                saveSettings(
+                                    mContext,
+                                    newRecTimeout = recTimeout,
+                                    newMessTimeout = messTimeout,
+                                    newClockTimeout = clockTimeout
+                                )
+                            }
+                        ),
+                        suffix = {
+                            Text(
+                                text = "seconds",
+                                fontSize = 16.sp,
+                                fontStyle = FontStyle.Italic
+                            )
+                        },
+                        supportingText = {
+                            Text(
+                                text = "(keep between 5 and 20)"
+                            )
+                        },
+                        placeholder = {
+                            Text(
+                                text = "Write here...",
+                                fontSize = 16.sp,
+                                fontStyle = FontStyle.Italic
+                            )
+                        },
+                        onValueChange = { newText ->
+                            messTimeout = newText.trimStart { it == '0' }
                             //TODO
                         }
                     )
                 }
 
 
-                //SECTION: ADVANCED:
-                Text(
-                    text = "⚠️  Advanced",
+                //SECTION: CLOCK SCREEN:
+                SettingsSection(
                     modifier = Modifier
-                        .padding(top = 30.dp, bottom = 12.dp),
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-
-                //VolumeUp enabled:
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp, start = 36.dp),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(end=8.dp, top=16.dp, bottom=4.dp),
+                    title = "Clock screen",
+                    signColor = colorResource(id = R.color.dark_grey),
+                    iconPainter = painterResource(id = R.drawable.icon_clock)
                 ) {
-                    Column(
+
+                    //Auto Clock:
+                    Row(
                         modifier = Modifier
-                            .padding(top = 12.dp)
-                            .offset(y = -(16.dp)),
-                        verticalArrangement = Arrangement.Top,
-                        horizontalAlignment = Alignment.Start
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "VOLUME-UP key starts recording",
+                            text = "Show Clock screen when Overlay\nis started",
                             color = colorResource(id = R.color.light_grey),
                             textAlign = TextAlign.Start,
                             fontSize = 14.sp,
+                            lineHeight = 18.sp
                         )
-                        Text(
-                            text = "Keep this enabled if you use\nBluetooth remotes!",
-                            color = colorResource(id = R.color.mid_grey),
-                            textAlign = TextAlign.Start,
-                            fontSize = 12.sp,
-                            lineHeight = 16.sp
+                        Spacer(Modifier.weight(1f))
+                        Switch(
+                            checked = checkedAutoClock,
+                            colors = switchColors,
+                            onCheckedChange = {
+                                checkedAutoClock = it
+                                prefs.autoClock = it
+                            }
                         )
                     }
-                    Spacer(Modifier.weight(1f))
-                    Switch(
+
+                    //Clock redirect:
+                    Row(
                         modifier = Modifier
-                            .offset(y = -(8.dp)),
-                        checked = checkedVolumeEnabled,
-                        colors = switchColors,
-                        onCheckedChange = {
-                            checkedVolumeEnabled = it
-                            prefs.volumeUpEnabled = it
-                            restartOverlay(mContext)
+                            .fillMaxWidth()
+                            .padding(top = 12.dp),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .padding(top = 12.dp)
+                                .offset(y = -(8.dp)),
+                            verticalArrangement = Arrangement.Top,
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            Text(
+                                text = "Go back automatically to Clock screen",
+                                color = colorResource(id = R.color.light_grey),
+                                textAlign = TextAlign.Start,
+                                fontSize = 14.sp,
+                            )
+                            Text(
+                                text = "(Only when Spotify is launched\nfor the first time)",
+                                color = colorResource(id = R.color.mid_grey),
+                                textAlign = TextAlign.Start,
+                                fontSize = 12.sp,
+                                lineHeight = 16.sp
+                            )
                         }
-                    )
+                        Spacer(Modifier.weight(1f))
+                        Switch(
+                            checked = checkedClockRedirect,
+                            colors = switchColors,
+                            onCheckedChange = {
+                                checkedClockRedirect = it
+                                prefs.clockRedirectEnabled = it
+                            }
+                        )
+                    }
+
+                    if (checkedClockRedirect) {
+                        //After (timeout):
+                        OutlinedTextField(
+                            modifier = Modifier
+                                .width(250.dp)
+                                .wrapContentHeight()
+                                .focusRequester(focusRequester),
+                            colors = textFieldColors,
+                            value = clockTimeout,
+                            textStyle = TextStyle(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            maxLines = 1,
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Number,
+                                imeAction = ImeAction.Done
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onDone = {
+                                    focusManager.clearFocus()
+                                    keyboardController?.hide()
+                                    saveSettings(mContext, newRecTimeout=recTimeout, newMessTimeout=messTimeout, newClockTimeout=clockTimeout)
+                                }
+                            ),
+                            prefix = {
+                                Text(
+                                    text = "after     ",
+                                    fontSize = 16.sp,
+                                    fontStyle = FontStyle.Italic
+                                )
+                            },
+                            suffix = {
+                                Text(
+                                    text = "seconds",
+                                    fontSize = 16.sp,
+                                    fontStyle = FontStyle.Italic
+                                )
+                            },
+                            supportingText = {
+                                Text(
+                                    text = "(keep between 5 and 30)"
+                                )
+                            },
+                            placeholder = {
+                                Text(
+                                    text = "Write here...",
+                                    fontSize = 16.sp,
+                                    fontStyle = FontStyle.Italic
+                                )
+                            },
+                            onValueChange = { newText ->
+                                clockTimeout = newText.trimStart { it == '0' }
+                                //TODO
+                            }
+                        )
+                    }
                 }
 
+
+                //SECTION: ADVANCED:
+                SettingsSection(
+                    modifier = Modifier
+                        .padding(end=8.dp, top=16.dp, bottom=4.dp),
+                    title = "Advanced",
+                    signColor = colorResource(id = R.color.colorStop),
+                    iconPainter = painterResource(id = R.drawable.sign_warning)
+                ) {
+
+                    //VolumeUp enabled:
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .padding(top = 12.dp)
+                                .offset(y = -(8.dp)),
+                            verticalArrangement = Arrangement.Top,
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            Text(
+                                text = "VOLUME-UP key starts recording",
+                                color = colorResource(id = R.color.light_grey),
+                                textAlign = TextAlign.Start,
+                                fontSize = 14.sp,
+                            )
+                            Text(
+                                text = "Keep this enabled if you use\nBluetooth remotes!",
+                                color = colorResource(id = R.color.mid_grey),
+                                textAlign = TextAlign.Start,
+                                fontSize = 12.sp,
+                                lineHeight = 16.sp
+                            )
+                        }
+                        Spacer(Modifier.weight(1f))
+                        Switch(
+                            checked = checkedVolumeEnabled,
+                            colors = switchColors,
+                            onCheckedChange = {
+                                checkedVolumeEnabled = it
+                                prefs.volumeUpEnabled = it
+                                restartOverlay(mContext)
+                            }
+                        )
+                    }
+                }
+
+
+                //FINAL INFO:
                 //App version:
                 Text(
                     modifier = Modifier

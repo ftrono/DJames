@@ -55,18 +55,20 @@ import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.vocHeads
 import com.ftrono.DJames.screen.getVocKeys
+import kotlin.math.exp
 
 
 // STREET UI LANGUAGE COMPONENTS
 
 @Composable
 fun StreetBackground(
+    modifier: Modifier = Modifier,
     startDistance: Int,
-    pageContent:  @Composable() (ColumnScope.() -> Unit) = {}
+    pageContent:  @Composable() (ColumnScope.() -> Unit) = {},
 ) {
     //Page container:
     Box (
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(colorResource(id = R.color.windowBackground))
     ) {
@@ -382,9 +384,10 @@ fun RoundedSign(
 @Composable
 fun GeneralSectionClosedPreview() {
     GeneralSectionHeader(
-        modifier = Modifier,
-        cat = "title",
         title = "Title",
+        signColor = guideColorSelector(cat = "songs"),
+        iconPainter = guideIconSelector(cat = "songs"),
+        arrowColor = guideColorSelectorLight(cat = "songs"),
         expandable = true,
         isExpanded = false
     )
@@ -395,9 +398,10 @@ fun GeneralSectionClosedPreview() {
 @Composable
 fun GeneralSectionOpenPreview() {
     GeneralSectionHeader(
-        modifier = Modifier,
-        cat = "title",
         title = "Title",
+        signColor = guideColorSelector(cat = "songs"),
+        iconPainter = guideIconSelector(cat = "songs"),
+        arrowColor = guideColorSelectorLight(cat = "songs"),
         expandable = true,
         isExpanded = true
     )
@@ -407,22 +411,17 @@ fun GeneralSectionOpenPreview() {
 @Composable
 fun GeneralSectionHeader(
     modifier: Modifier = Modifier,
-    cat: String,
     title: String,
+    signColor: Color,
+    iconPainter: Painter,
+    arrowColor: Color = colorResource(id = R.color.light_grey),
     expandable: Boolean = false,
     isExpanded: Boolean = true
 ) {
-    val icon = if (isExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
 
     //CARD:
     Card(
-        modifier = Modifier
-            .padding(
-                start = 26.dp,
-                end = 20.dp,
-                top = 8.dp,
-                bottom = 8.dp
-            )
+        modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight(),
         border = if (isExpanded) null else BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
@@ -431,42 +430,66 @@ fun GeneralSectionHeader(
             containerColor = if (isExpanded) colorResource(id = R.color.transparent_bg) else colorResource(id = R.color.dark_grey_background)
         )
     ) {
-        //SECTION HEADER:
-        Row(
-            modifier = modifier
+        SectionTitle(
+            modifier = Modifier
                 .padding(start=6.dp, end=8.dp, top=12.dp, bottom=12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            //ROUNDED SIGN:
-            RoundedSign(
-                signSize = 40.dp,
-                iconSize = 20.dp,
-                backgroundColor = guideColorSelector(cat = cat),
-                borderColor = colorResource(id = R.color.mid_grey),
-                iconColor = colorResource(id = R.color.light_grey),
-                iconPainter = guideIconSelector(cat = cat)
-            )
-            //CAT TITLE:
-            Text(
+            title=title,
+            signColor = signColor,
+            iconPainter = iconPainter,
+            arrowColor = arrowColor,
+            expandable = expandable,
+            isExpanded = isExpanded
+        )
+    }
+}
+
+
+@Composable
+fun SectionTitle(
+    modifier: Modifier = Modifier,
+    title: String,
+    signColor: Color,
+    iconPainter: Painter,
+    arrowColor: Color = colorResource(id = R.color.light_grey),
+    expandable: Boolean = false,
+    isExpanded: Boolean = true
+) {
+    val icon = if (isExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
+
+    //SECTION HEADER:
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        //ROUNDED SIGN:
+        RoundedSign(
+            signSize = 40.dp,
+            iconSize = 20.dp,
+            backgroundColor = signColor,
+            borderColor = colorResource(id = R.color.mid_grey),
+            iconColor = colorResource(id = R.color.light_grey),
+            iconPainter = iconPainter
+        )
+        //CAT TITLE:
+        Text(
+            modifier = Modifier
+                .padding(start = 12.dp)
+                .weight(1f),
+            text = title,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = colorResource(id = R.color.light_grey)
+        )
+        //EXPAND/COLLAPSE:
+        if (expandable) {
+            Icon(
                 modifier = Modifier
-                    .padding(start = 12.dp)
-                    .weight(1f),
-                text = title,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = colorResource(id = R.color.light_grey)
+                    .padding(end = 8.dp)
+                    .size(32.dp),
+                imageVector = icon,
+                tint = arrowColor,
+                contentDescription = "Expand / collapse"
             )
-            //EXPAND/COLLAPSE:
-            if (expandable) {
-                Icon(
-                    modifier = Modifier
-                        .padding(end = 8.dp)
-                        .size(32.dp),
-                    imageVector = icon,
-                    tint = guideColorSelectorLight(cat = cat),
-                    contentDescription = "Expand / collapse"
-                )
-            }
         }
     }
 }

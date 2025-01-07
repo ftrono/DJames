@@ -438,7 +438,7 @@ class MainActivity : ComponentActivity() {
                         //2) Item: VOICE SETTINGS
                         OptionsItem(
                             title = "Voice settings",
-                            iconPainter = painterResource(id = R.drawable.speak_icon),
+                            iconPainter = painterResource(id = R.drawable.icon_speak),
                             onClick = {
                                 //Set app preferences:
                                 val intent1 = Intent("com.android.settings.TTS_SETTINGS")

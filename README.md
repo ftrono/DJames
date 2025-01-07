@@ -15,7 +15,7 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
-**Version 2.1.5 (2025-01-05)** - Finalized UI alignment using StreetSign Design.
+**Version 2.1.5 (2025-01-07)** - Finalized UI alignment using StreetSign Design.
 
 **Version 2.1.4 (2025-01-02)** - New Overlay Bubble Service UI, based on Jetpack Compose.
 

@@ -50,6 +50,7 @@ import com.ftrono.DJames.application.settingsOpen
 import com.ftrono.DJames.ui.GeneralSectionHeader
 import com.ftrono.DJames.ui.HeaderWithSign
 import com.ftrono.DJames.ui.StreetBackground
+import com.ftrono.DJames.ui.guideColorSelector
 import com.ftrono.DJames.ui.guideColorSelectorLight
 import com.ftrono.DJames.ui.guideIconSelector
 import com.ftrono.DJames.ui.navigateTo
@@ -179,8 +180,17 @@ fun ExpandableGuideSection(
     ) {
         //SECTION:
         GeneralSectionHeader(
-            cat = cat,
+            modifier = Modifier
+                .padding(
+                    start = 26.dp,
+                    end = 20.dp,
+                    top = 8.dp,
+                    bottom = 8.dp
+                ),
             title = title,
+            signColor = guideColorSelector(cat = cat),
+            iconPainter = guideIconSelector(cat = cat),
+            arrowColor = guideColorSelectorLight(cat = cat),
             expandable = true,
             isExpanded = sectionIsExpanded
         )

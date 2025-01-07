@@ -2,20 +2,15 @@ package com.ftrono.DJames.screen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
@@ -39,7 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -53,6 +47,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.settingsOpen
+import com.ftrono.DJames.ui.GeneralSectionHeader
 import com.ftrono.DJames.ui.HeaderWithSign
 import com.ftrono.DJames.ui.StreetBackground
 import com.ftrono.DJames.ui.guideColorSelectorLight
@@ -84,7 +79,7 @@ fun GuideScreen(navController: NavController) {
 
     //BACKGROUND:
     StreetBackground(
-        startDistance = 48
+        startDistance = 20
     ) {
         //HEADER:
         HeaderWithSign(
@@ -141,6 +136,14 @@ fun GuideScreen(navController: NavController) {
                         horizontalAlignment = Alignment.Start
                     ) {
 
+//                        HorizontalDivider(
+//                            modifier = Modifier
+//                                .offset(y=(-8).dp)
+//                                .padding(start=32.dp, end=26.dp)
+//                                .fillMaxWidth(),
+//                            color = colorResource(id = R.color.faded_grey)
+//                        )
+
                         for (request in catItem.get("requests").asJsonArray) {
                             var reqItem = request.asJsonObject
                             //REQUEST CARD:
@@ -175,10 +178,12 @@ fun ExpandableGuideSection(
             .fillMaxWidth()
     ) {
         //SECTION:
-        ExpandableGuideSectionTitle(
-            isExpanded = sectionIsExpanded,
+        GeneralSectionHeader(
             cat = cat,
-            title = title)
+            title = title,
+            expandable = true,
+            isExpanded = sectionIsExpanded
+        )
 
         //ON EXPANSION:
         AnimatedVisibility(
@@ -187,88 +192,6 @@ fun ExpandableGuideSection(
             visible = sectionIsExpanded
         ) {
             content()
-        }
-    }
-}
-
-
-@Composable
-fun ExpandableGuideSectionTitle(
-    modifier: Modifier = Modifier,
-    isExpanded: Boolean,
-    cat: String,
-    title: String
-) {
-    val icon = if (isExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
-
-    //CARD:
-    Card(
-        modifier = Modifier
-            .padding(
-                start = 20.dp,
-                end = 20.dp,
-                top = 8.dp,
-                bottom = 8.dp
-            )
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        border = if (isExpanded) null else BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors (
-            containerColor = if (isExpanded) colorResource(id = R.color.transparent_bg) else colorResource(id = R.color.dark_grey_background)
-        )
-    ) {
-        //SECTION HEADER:
-        Row(
-            modifier = modifier
-                .padding(start=6.dp, end=8.dp, top=12.dp, bottom=12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            //ROUNDED SIGN:
-            Box (
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(
-                        if (cat == "calls") {
-                            colorResource(id = R.color.colorPrimary)
-                        } else if (cat == "messages") {
-                            colorResource(id = R.color.blueSign)
-                        } else {
-                            colorResource(id = R.color.yellowSign)
-                        }
-                    )
-                    .border(2.dp, colorResource(id = R.color.mid_grey), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                //CAT ICON:
-                Icon(
-                    modifier = Modifier
-                        .size(20.dp),
-                    painter = guideIconSelector(cat = cat),
-                    contentDescription = cat,
-                    tint = colorResource(id = R.color.light_grey)
-                )
-            }
-            //CAT TITLE:
-            Text(
-                modifier = Modifier
-                    .padding(start = 12.dp)
-                    .weight(1f),
-                text = title,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = colorResource(id = R.color.light_grey)
-            )
-            //EXPAND/COLLAPSE:
-            Icon(
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .size(32.dp),
-                imageVector = icon,
-                tint = guideColorSelectorLight(cat = cat),
-                contentDescription = "Expand / collapse"
-            )
         }
     }
 }
@@ -291,7 +214,7 @@ fun ExpandableGuideItem(
     Card(
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
-            .padding(start = 58.dp, top = 4.dp, end = 24.dp, bottom = 12.dp)
+            .padding(start = 32.dp, top = 4.dp, end = 24.dp, bottom = 12.dp)
             .fillMaxWidth()
             .clickable {
                 //Update global currentExpanded:
@@ -400,7 +323,7 @@ fun ExpandableGuideItemTitle(
         //REQUEST INTRO:
         Text(
             modifier = Modifier
-                .padding(start = 8.dp)
+                .padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 2.dp)
                 .weight(1f),
             text = title,
             fontSize = 14.sp,

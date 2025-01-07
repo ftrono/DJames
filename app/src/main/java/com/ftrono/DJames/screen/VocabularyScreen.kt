@@ -15,10 +15,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -461,7 +461,8 @@ fun VocItem(
         }
         Card(
             modifier = Modifier
-                .wrapContentSize()
+                .wrapContentWidth()
+                .height(56.dp)
                 .clickable {
                     mDisplayMenu.value = !mDisplayMenu.value
                 },
@@ -494,8 +495,10 @@ fun VocItem(
                 //TEXT LABEL:
                 Column(
                     modifier = Modifier
-                        .padding(start = 4.dp, end = 4.dp)
+                        .padding(start = 4.dp, end = 6.dp)
                         .fillMaxSize(),
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Center
                 ) {
                     //Item key:
                     Text(
@@ -508,7 +511,7 @@ fun VocItem(
                         maxLines = if (head == "contact") 1 else 2,
                         //fontStyle = if (key == "") null else FontStyle.Italic,
                         fontWeight = FontWeight.Bold,
-                        text = if (key == "") "Add $head" else utils.trimString(key, 16)
+                        text = if (key == "") "Add $head" else utils.trimString(key, 24)
                     )
                     //Item detail:
                     if (head == "contact" && key != "") {

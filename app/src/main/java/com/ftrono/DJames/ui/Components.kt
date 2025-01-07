@@ -3,6 +3,7 @@ package com.ftrono.DJames.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +20,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -33,11 +38,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -45,6 +49,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
@@ -314,34 +319,152 @@ fun SplitterCat(
         Row(
             modifier = Modifier
                 .padding(8.dp)
-                .wrapContentSize(),
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
             //Sign icon:
             Icon(
                 modifier = Modifier
-                    .padding(start = 4.dp)
+                    .padding(start = 4.dp, end = 4.dp)
                     .size(20.dp),
                 painter = vocIconSelector(head),
                 contentDescription = "category",
                 tint = colorResource(id = R.color.light_grey)
             )
-            //Category text:
-            Column(
+            //Title:
+            Text(
                 modifier = Modifier
-                    .padding(start = 8.dp)
-                    .wrapContentSize()
-            ) {
-                //Title:
-                Text(
+                    .padding(end = 4.dp)
+                    .wrapContentWidth(),
+                text = title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = colorResource(id = R.color.light_grey),
+                maxLines = 1
+            )
+        }
+    }
+}
+
+
+@Composable
+fun RoundedSign(
+    signSize: Dp,
+    iconSize: Dp,
+    backgroundColor: Color,
+    borderColor: Color,
+    iconColor: Color,
+    iconPainter: Painter
+) {
+    //ROUNDED SIGN:
+    Box (
+        modifier = Modifier
+            .size(signSize)
+            .clip(CircleShape)
+            .background(backgroundColor)
+            .border(1.5.dp, borderColor, CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        //CAT ICON:
+        Icon(
+            modifier = Modifier
+                .size(iconSize),
+            painter = iconPainter,
+            contentDescription = "Category",
+            tint = iconColor
+        )
+    }
+}
+
+
+@Preview
+@Composable
+fun GeneralSectionClosedPreview() {
+    GeneralSectionHeader(
+        modifier = Modifier,
+        cat = "title",
+        title = "Title",
+        expandable = true,
+        isExpanded = false
+    )
+}
+
+
+@Preview
+@Composable
+fun GeneralSectionOpenPreview() {
+    GeneralSectionHeader(
+        modifier = Modifier,
+        cat = "title",
+        title = "Title",
+        expandable = true,
+        isExpanded = true
+    )
+}
+
+
+@Composable
+fun GeneralSectionHeader(
+    modifier: Modifier = Modifier,
+    cat: String,
+    title: String,
+    expandable: Boolean = false,
+    isExpanded: Boolean = true
+) {
+    val icon = if (isExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
+
+    //CARD:
+    Card(
+        modifier = Modifier
+            .padding(
+                start = 26.dp,
+                end = 20.dp,
+                top = 8.dp,
+                bottom = 8.dp
+            )
+            .fillMaxWidth()
+            .wrapContentHeight(),
+        border = if (isExpanded) null else BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors (
+            containerColor = if (isExpanded) colorResource(id = R.color.transparent_bg) else colorResource(id = R.color.dark_grey_background)
+        )
+    ) {
+        //SECTION HEADER:
+        Row(
+            modifier = modifier
+                .padding(start=6.dp, end=8.dp, top=12.dp, bottom=12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            //ROUNDED SIGN:
+            RoundedSign(
+                signSize = 40.dp,
+                iconSize = 20.dp,
+                backgroundColor = guideColorSelector(cat = cat),
+                borderColor = colorResource(id = R.color.mid_grey),
+                iconColor = colorResource(id = R.color.light_grey),
+                iconPainter = guideIconSelector(cat = cat)
+            )
+            //CAT TITLE:
+            Text(
+                modifier = Modifier
+                    .padding(start = 12.dp)
+                    .weight(1f),
+                text = title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = colorResource(id = R.color.light_grey)
+            )
+            //EXPAND/COLLAPSE:
+            if (expandable) {
+                Icon(
                     modifier = Modifier
-                        .wrapContentWidth(),
-                    text = title,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colorResource(id = R.color.light_grey),
-                    maxLines = 1
+                        .padding(end = 8.dp)
+                        .size(32.dp),
+                    imageVector = icon,
+                    tint = guideColorSelectorLight(cat = cat),
+                    contentDescription = "Expand / collapse"
                 )
             }
         }

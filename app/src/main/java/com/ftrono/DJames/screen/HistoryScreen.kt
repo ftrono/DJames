@@ -103,7 +103,7 @@ fun HistoryScreen(preview: Boolean = false) {
 
     //BACKGROUND:
     StreetBackground(
-        startDistance = 48
+        startDistance = 20
     ) {
         //HEADER:
         HeaderWithSign(
@@ -205,7 +205,7 @@ fun HistoryCard(item: JsonObject) {
         onClick = { openLog(mContext, filename) },
         modifier = Modifier
             .padding(
-                start = 20.dp,
+                start = 32.dp,
                 end = 20.dp,
                 top = 8.dp,
                 bottom = 8.dp
@@ -275,7 +275,7 @@ fun HistoryCard(item: JsonObject) {
             //REQUEST TEXT:
             Text(
                 modifier = Modifier
-                    .padding(start = 12.dp, top = 4.dp, bottom = 10.dp)
+                    .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 10.dp)
                     .wrapContentWidth()
                     .wrapContentHeight(),
                 color = colorResource(id = R.color.light_grey),
@@ -438,7 +438,7 @@ fun getHistoryItemInfo(item: JsonObject, context: Context): JsonObject {
 
     //Build info:
     val queryText = item.get("nlp").asJsonObject.get("query_text").asString
-    val textIntro = "$datetime  $itemScore"
+    val textIntro = "${datetime.slice(0..< (datetime.length-3))}  $itemScore"
     val textMain = if (intentName.contains("Play") && !queryText.contains("play ")) {
         "play: $queryText"
     } else {

@@ -3,10 +3,8 @@ package com.ftrono.DJames.screen
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,14 +15,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -42,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -69,8 +64,6 @@ import com.ftrono.DJames.application.queryLangCaps
 import com.ftrono.DJames.application.queryLangCodes
 import com.ftrono.DJames.services.OverlayService
 import com.ftrono.DJames.ui.DropdownSpinner
-import com.ftrono.DJames.ui.HeaderSign
-import com.ftrono.DJames.ui.SectionTitle
 import com.ftrono.DJames.ui.SettingsHeader
 import com.ftrono.DJames.ui.SettingsSection
 import com.ftrono.DJames.ui.StreetBackground
@@ -154,6 +147,8 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 backClickable = {
                     navController.popBackStack()
                 },
+                iconRes = painterResource(id = R.drawable.sign_preferences),
+                title = "Preferences",
                 options = {
                     //SAVE BUTTON:
                     Icon(
@@ -179,7 +174,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
             //SETTINGS LIST:
             Column(
                 modifier = Modifier
-                    .padding(top = 10.dp, start = 36.dp, end = 20.dp, bottom = 20.dp)
+                    .padding(top = 10.dp, start = 32.dp, end = 24.dp, bottom = 20.dp)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.Top,

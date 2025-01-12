@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
@@ -30,6 +31,7 @@ fun EditVocTextField(
     focusRequester: FocusRequester,
     focusManager: FocusManager,
     keyboardController: SoftwareKeyboardController,
+    textHeaderColor: Color = colorResource(id = R.color.light_grey),
     textFieldColors: TextFieldColors,
     title: String,
     placeholder: String,
@@ -37,7 +39,7 @@ fun EditVocTextField(
 ) {
     Text(
         text = title,
-        color = colorResource(id = R.color.light_grey),
+        color = textHeaderColor,
         textAlign = TextAlign.Start,
         fontSize = 16.sp,
         fontWeight = FontWeight.Bold,

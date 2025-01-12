@@ -1,19 +1,20 @@
 package com.ftrono.DJames.dialogs
 
 import android.content.Context
+import android.content.res.Configuration
 import android.telephony.PhoneNumberUtils
 import android.util.Patterns
 import android.webkit.URLUtil
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -23,13 +24,10 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -44,10 +42,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -68,6 +66,9 @@ import com.ftrono.DJames.screen.VocabularyScreen
 import com.ftrono.DJames.screen.getVocKeys
 import com.ftrono.DJames.screen.updateVocabulary
 import com.ftrono.DJames.ui.DropdownSpinner
+import com.ftrono.DJames.ui.EditVocHeader
+import com.ftrono.DJames.ui.vocColorSelector
+import com.ftrono.DJames.ui.vocColorSelectorLight
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
 
@@ -111,6 +112,9 @@ fun DialogEditVocabulary(
     filter: String,
     preview: Boolean = false
 ) {
+    val configuration = LocalConfiguration.current
+    val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
+
     //Init:
     var key = keyState.value
     var vocItems = updateVocabulary(mContext, filter, preview)
@@ -156,23 +160,23 @@ fun DialogEditVocabulary(
 
     //TextField colors:
     val textFieldColors = OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = colorResource(id = R.color.light_grey),
+        focusedBorderColor = vocColorSelectorLight(cat = filter),
         unfocusedBorderColor = colorResource(id = R.color.mid_grey),
         focusedTextColor = colorResource(id = R.color.light_grey),
         unfocusedTextColor = colorResource(id = R.color.light_grey),
         focusedPlaceholderColor = colorResource(id = R.color.mid_grey),
         unfocusedPlaceholderColor = colorResource(id = R.color.mid_grey),
-        cursorColor = colorResource(id = R.color.light_grey),
+        cursorColor = vocColorSelectorLight(cat = filter),
         selectionColors = TextSelectionColors(
-            handleColor = colorResource(id = R.color.light_grey),
-            backgroundColor = colorResource(id = R.color.transparent_grey)
+            handleColor = vocColorSelectorLight(cat = filter),
+            backgroundColor = vocColorSelector(cat = filter)
         )
     )
 
     val checkBoxColors = CheckboxDefaults.colors(
-        checkedColor = colorResource(id = R.color.light_grey),
+        checkedColor = vocColorSelectorLight(cat = filter),
         uncheckedColor = colorResource(id = R.color.mid_grey),
-        checkmarkColor = colorResource(id = R.color.colorPrimary)
+        checkmarkColor = colorResource(id = R.color.dark_grey_background)
     )
 
     //EDIT DIALOG:
@@ -184,7 +188,8 @@ fun DialogEditVocabulary(
         },
         properties = DialogProperties(
             dismissOnBackPress = true,
-            dismissOnClickOutside = false
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false
         )
     ) {
         val focusManager = LocalFocusManager.current
@@ -193,274 +198,242 @@ fun DialogEditVocabulary(
         //CONTAINER:
         Card(
             modifier = Modifier
+                .padding(
+                    top = 30.dp,
+                    bottom = 30.dp,
+                    start = if (isLandscape) 80.dp else 40.dp,
+                    end = if (isLandscape) 80.dp else 40.dp
+                )
                 .fillMaxWidth()
                 .wrapContentHeight()
                 .clickable {
                     focusManager.clearFocus()
                 },
             shape = RoundedCornerShape(20.dp),
+            //border = BorderStroke(2.dp, colorResource(id = R.color.faded_grey)),
             colors = CardDefaults.cardColors (
-                containerColor = colorResource(id = R.color.colorPrimaryDark)
+                containerColor = colorResource(id = R.color.dark_grey_background)
             )
         ) {
             Column(
                 modifier = Modifier
                     .padding(20.dp)
                     .wrapContentWidth()
-                    .wrapContentHeight()
-                    .verticalScroll(rememberScrollState()),
+                    .wrapContentHeight(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start,
             ) {
                 //TITLE:
-                Row(
-                    modifier = Modifier
-                        .padding(bottom=8.dp),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    //CHIP ICON:
-                    Icon(
-                        modifier = Modifier
-                            .size(36.dp),
-                        painter = when (filter) {
-                            "artist" -> {
-                                painterResource(id = R.drawable.sign_note)
-                            }
-                            "playlist" -> {
-                                painterResource(id = R.drawable.sign_headphones)
-                            }
-                            else -> {
-                                painterResource(id = R.drawable.sign_phone)
-                            }
-                        },
-                        contentDescription = filter,
-                        tint = colorResource(id = R.color.light_grey)
-                    )
-                    Text(
-                        text = "${filter.replaceFirstChar { it.uppercase() }}",
-                        modifier = Modifier.padding(8.dp),
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-
-                //COMMON: TEXT FIELD 1:
-                EditVocTextField(
-                    focusRequester = focusRequester,
-                    focusManager = focusManager,
-                    keyboardController = keyboardController!!,
-                    textFieldColors = textFieldColors,
-                    title = "Name",
-                    placeholder = "Write $filter name...",
-                    textState = textName
-                )
-
-                if (filter == "artist" || filter == "playlist") {
-                    //ARTIST-PLAYLIST: TEXT FIELD 2:
-                    EditVocTextField(
-                        focusRequester = focusRequester,
-                        focusManager = focusManager,
-                        keyboardController = keyboardController,
-                        textFieldColors = textFieldColors,
-                        title = if (filter == "artist") "'This is' playlist URL" else "Playlist URL",
-                        placeholder = "Paste here the Spotify link...",
-                        textState = textPlayURL
-                    )
-
-                } else if (filter == "contact") {
-                    //CONTACTS: TEXT FIELD 2:
-                    Text(
-                        text = "Main phone",
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        //PREFIX:
-                        OutlinedTextField(
-                            modifier = Modifier
-                                .padding(top = 8.dp, bottom = 10.dp)
-                                .width(60.dp)
-                                .wrapContentHeight(),
-                            colors = textFieldColors,
-                            value = textPrefix.value,
-                            onValueChange = { newText ->
-                                textPrefix.value = newText.trimStart { it == '0' }
-                            },
-                            textStyle = TextStyle(
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
-                            ),
-                            singleLine = true,
-                            maxLines = 1,
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Phone,
-                                imeAction = ImeAction.Next
-                            ),
-                            placeholder = {
-                                Text(
-                                    text = "+39",
-                                    fontSize = 16.sp,
-                                    fontStyle = FontStyle.Italic
-                                )
-                            },
-                        )
-                        //SUFFIX:
-                        OutlinedTextField(
-                            modifier = Modifier
-                                .padding(top = 8.dp, bottom = 10.dp)
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .focusRequester(focusRequester),
-                            colors = textFieldColors,
-                            value = textPhone.value,
-                            onValueChange = { newText ->
-                                textPhone.value = newText.trimStart { it == '0' }
-                            },
-                            textStyle = TextStyle(
-                                fontSize = 16.sp
-                            ),
-                            singleLine = true,
-                            maxLines = 1,
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Number,
-                                imeAction = ImeAction.Done
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onDone = {
-                                    focusManager.clearFocus()
-                                    keyboardController?.hide()
-                                }
-                            ),
-                            placeholder = {
-                                Text(
-                                    text = "Phone number...",
-                                    fontSize = 16.sp,
-                                    fontStyle = FontStyle.Italic
-                                )
-                            },
-                        )
-                    }
-
-                    //CONTACTS: CHECKBOX:
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Checkbox(
-                            modifier = Modifier
-                                .padding(bottom = if (checkedLang) 0.dp else 6.dp)
-                                .offset(x = -(12.dp)),
-                            checked = checkedLang,
-                            onCheckedChange = { checkedLang = it },
-                            colors = checkBoxColors
-                        )
-                        Text(
-                            modifier = Modifier
-                                .padding(bottom = if (checkedLang) 0.dp else 6.dp)
-                                .offset(x = -(12.dp))
-                                .clickable { checkedLang = !checkedLang },
-                            text = if (checkedLang) {
-                                "Set custom messaging language"
-                            } else {
-                                "Set custom messaging language\n(default: ${defaultLanguageCaps})"
-                            },
-                            fontSize = 14.sp,
-                            lineHeight = 16.sp,
-                            color = if (checkedLang) colorResource(id = R.color.light_grey) else colorResource(id = R.color.mid_grey)
-                        )
-                    }
-                    if (checkedLang) {
-                        //CONTACTS: DROPDOWN:
-                        val initCaps = if (prevLangCode == "") defaultLanguageCaps else messLangCaps[messLangCodes.indexOf(prevLangCode)]
-                        textLanguageState.value = initCaps
-                        DropdownSpinner(mContext, messLangCaps, init=initCaps, state=textLanguageState, focusColor = colorResource(id = R.color.light_grey))
-                    } else {
-                        textLanguageState.value = ""
-                    }
-                }
-                //BUTTONS ROW:
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    //CANCEL:
-                    AssistChip(
-                        border = BorderStroke(1.dp, colorResource(id = R.color.colorPrimaryDark)),
-                        colors = AssistChipDefaults.assistChipColors(
-                            containerColor = colorResource(id = R.color.colorPrimaryDark)
-                        ),
-                        label = {
-                            Text(
-                                text = "Cancel",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = colorResource(id = R.color.light_grey)
+                EditVocHeader(
+                    filter = filter,
+                    onCancel = {
+                        dialogOnState.value = false
+                        keyState.value = ""
+                    },
+                    onSave = {
+                        //CHECK & UPDATE:
+                        var newDetails = JsonObject()
+                        //Get new info:
+                        if (filter == "playlist" || filter == "artist") {
+                            newDetails.addProperty(
+                                "playlist_URL",
+                                textPlayURL.value.replace(" ", "")
                             )
-                        },
-                        onClick = {
+                        } else if (filter == "contact") {
+                            if (textLanguageState.value != "") {
+                                val newLangCode =
+                                    messLangCodes[messLangCaps.indexOf(textLanguageState.value)]
+                                newDetails.addProperty("contact_language", newLangCode)
+                            }
+                            newDetails.addProperty("prefix", textPrefix.value.replace(" ", ""))
+                            newDetails.addProperty("phone", textPhone.value.replace(" ", ""))
+                        }
+                        //Edit:
+                        requestDetailOn.value = editVocItemAndShow(
+                            mContext = mContext,
+                            vocabulary = vocabulary,
+                            prevText = initName,
+                            newText = textName.value.lowercase(),
+                            newDetails = newDetails,
+                            filter = filter,
+                            vocItems = vocItems
+                        )
+                        if (!requestDetailOn.value) {
+                            //CLOSE THE DIALOG:
                             dialogOnState.value = false
                             keyState.value = ""
                         }
+                    }
+                )
+
+                Column(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .wrapContentWidth()
+                        .wrapContentHeight()
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.Start,
+                ) {
+
+                    //COMMON: TEXT FIELD 1:
+                    EditVocTextField(
+                        focusRequester = focusRequester,
+                        focusManager = focusManager,
+                        keyboardController = keyboardController!!,
+                        textHeaderColor = vocColorSelectorLight(cat = filter),
+                        textFieldColors = textFieldColors,
+                        title = "Name",
+                        placeholder = "Write $filter name...",
+                        textState = textName
                     )
-                    //SAVE:
-                    AssistChip(
-                        border = BorderStroke(1.dp, colorResource(id = R.color.colorPrimaryDark)),
-                        colors = AssistChipDefaults.assistChipColors(
-                            containerColor = colorResource(id = R.color.colorPrimaryDark)
-                        ),
-                        label = {
-                            Text(
-                                text = "Save",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = colorResource(id = R.color.light_grey)
+
+                    if (filter == "artist" || filter == "playlist") {
+                        //ARTIST-PLAYLIST: TEXT FIELD 2:
+                        EditVocTextField(
+                            focusRequester = focusRequester,
+                            focusManager = focusManager,
+                            keyboardController = keyboardController,
+                            textHeaderColor = vocColorSelectorLight(cat = filter),
+                            textFieldColors = textFieldColors,
+                            title = if (filter == "artist") "'This is' playlist URL" else "Playlist URL",
+                            placeholder = "Paste here the Spotify link...",
+                            textState = textPlayURL
+                        )
+
+                    } else if (filter == "contact") {
+                        //CONTACTS: TEXT FIELD 2:
+                        Text(
+                            text = "Main phone",
+                            color = vocColorSelectorLight(cat = filter),
+                            textAlign = TextAlign.Start,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            //PREFIX:
+                            OutlinedTextField(
+                                modifier = Modifier
+                                    .padding(top = 8.dp, bottom = 10.dp)
+                                    .width(60.dp)
+                                    .wrapContentHeight(),
+                                colors = textFieldColors,
+                                value = textPrefix.value,
+                                onValueChange = { newText ->
+                                    textPrefix.value = newText.trimStart { it == '0' }
+                                },
+                                textStyle = TextStyle(
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                singleLine = true,
+                                maxLines = 1,
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Phone,
+                                    imeAction = ImeAction.Next
+                                ),
+                                placeholder = {
+                                    Text(
+                                        text = "+39",
+                                        fontSize = 16.sp,
+                                        fontStyle = FontStyle.Italic
+                                    )
+                                },
                             )
-                        },
-                        onClick = {
-                            //CHECK & UPDATE:
-                            var newDetails = JsonObject()
-                            //Get new info:
-                            if (filter == "playlist" || filter == "artist") {
-                                newDetails.addProperty(
-                                    "playlist_URL",
-                                    textPlayURL.value.replace(" ", "")
-                                )
-                            } else if (filter == "contact") {
-                                if (textLanguageState.value != "") {
-                                    val newLangCode =
-                                        messLangCodes[messLangCaps.indexOf(textLanguageState.value)]
-                                    newDetails.addProperty("contact_language", newLangCode)
-                                }
-                                newDetails.addProperty("prefix", textPrefix.value.replace(" ", ""))
-                                newDetails.addProperty("phone", textPhone.value.replace(" ", ""))
-                            }
-                            //Edit:
-                            requestDetailOn.value = editVocItemAndShow(
-                                mContext = mContext,
-                                vocabulary = vocabulary,
-                                prevText = initName,
-                                newText = textName.value.lowercase(),
-                                newDetails = newDetails,
-                                filter = filter,
-                                vocItems = vocItems
+                            //SUFFIX:
+                            OutlinedTextField(
+                                modifier = Modifier
+                                    .padding(top = 8.dp, bottom = 10.dp)
+                                    .fillMaxWidth()
+                                    .wrapContentHeight()
+                                    .focusRequester(focusRequester),
+                                colors = textFieldColors,
+                                value = textPhone.value,
+                                onValueChange = { newText ->
+                                    textPhone.value = newText.trimStart { it == '0' }
+                                },
+                                textStyle = TextStyle(
+                                    fontSize = 16.sp
+                                ),
+                                singleLine = true,
+                                maxLines = 1,
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Number,
+                                    imeAction = ImeAction.Done
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onDone = {
+                                        focusManager.clearFocus()
+                                        keyboardController?.hide()
+                                    }
+                                ),
+                                placeholder = {
+                                    Text(
+                                        text = "Phone number...",
+                                        fontSize = 16.sp,
+                                        fontStyle = FontStyle.Italic
+                                    )
+                                },
                             )
-                            if (!requestDetailOn.value) {
-                                //CLOSE THE DIALOG:
-                                dialogOnState.value = false
-                                keyState.value = ""
-                            }
                         }
+
+                        //CONTACTS: CHECKBOX:
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Checkbox(
+                                modifier = Modifier
+                                    .padding(bottom = if (checkedLang) 0.dp else 6.dp)
+                                    .offset(x = -(12.dp)),
+                                checked = checkedLang,
+                                onCheckedChange = { checkedLang = it },
+                                colors = checkBoxColors
+                            )
+                            Text(
+                                modifier = Modifier
+                                    .padding(bottom = if (checkedLang) 0.dp else 6.dp)
+                                    .offset(x = -(12.dp))
+                                    .clickable { checkedLang = !checkedLang },
+                                text = if (checkedLang) {
+                                    "Set custom messaging language"
+                                } else {
+                                    "Set custom messaging language\n(default: ${defaultLanguageCaps})"
+                                },
+                                fontSize = 14.sp,
+                                lineHeight = 16.sp,
+                                color = if (checkedLang) colorResource(id = R.color.light_grey) else colorResource(
+                                    id = R.color.mid_grey
+                                )
+                            )
+                        }
+                        if (checkedLang) {
+                            //CONTACTS: DROPDOWN:
+                            val initCaps =
+                                if (prevLangCode == "") defaultLanguageCaps else messLangCaps[messLangCodes.indexOf(
+                                    prevLangCode
+                                )]
+                            textLanguageState.value = initCaps
+                            DropdownSpinner(
+                                mContext,
+                                messLangCaps,
+                                init = initCaps,
+                                state = textLanguageState,
+                                focusColor = colorResource(id = R.color.light_grey)
+                            )
+                        } else {
+                            textLanguageState.value = ""
+                        }
+                    }
+
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
                     )
                 }
             }

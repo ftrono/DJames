@@ -206,7 +206,7 @@ fun HistoryCard(item: JsonObject) {
         modifier = Modifier
             .padding(
                 start = 32.dp,
-                end = 20.dp,
+                end = 24.dp,
                 top = 8.dp,
                 bottom = 8.dp
             )

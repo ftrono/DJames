@@ -94,7 +94,7 @@ fun DropdownSpinner(mContext: Context, parentOptions: List<String>, init: String
                 isExpanded = false
             },
             scrollState = rememberScrollState(),
-            containerColor = colorResource(id = R.color.dark_grey_background)
+            containerColor = colorResource(id = R.color.windowBackground)
         ) {
             parentOptions.forEach { selectionOption ->
                 DropdownMenuItem(

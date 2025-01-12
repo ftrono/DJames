@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -29,14 +28,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -290,7 +284,26 @@ fun SpotifyLoginStatus(spotifyLoggedInState: Boolean, mContext: Context) {
     Row (
         modifier = Modifier
             .padding(bottom = 20.dp)
-            .fillMaxWidth(),
+            .wrapContentWidth()
+            .clickable {
+                if (!spotifyLoggedInState) {
+                    Toast
+                        .makeText(
+                            mContext,
+                            "Log in from Settings to unlock music functions!",
+                            Toast.LENGTH_LONG
+                        )
+                        .show()
+                } else {
+                    Toast
+                        .makeText(
+                            mContext,
+                            "Logged in to Spotify as: ${prefs.spotUserName}!",
+                            Toast.LENGTH_LONG
+                        )
+                        .show()
+                }
+            },
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -298,26 +311,7 @@ fun SpotifyLoginStatus(spotifyLoggedInState: Boolean, mContext: Context) {
         Image(
             modifier = Modifier
                 .width(30.dp)
-                .height(30.dp)
-                .clickable {
-                    if (!spotifyLoggedInState) {
-                        Toast
-                            .makeText(
-                                mContext,
-                                "Log in from Settings to unlock music functions!",
-                                Toast.LENGTH_LONG
-                            )
-                            .show()
-                    } else {
-                        Toast
-                            .makeText(
-                                mContext,
-                                "Logged in to Spotify as: ${prefs.spotUserName}!",
-                                Toast.LENGTH_LONG
-                            )
-                            .show()
-                    }
-                },
+                .height(30.dp),
             painter = painterResource(id = R.drawable.logo_spotify),
             contentDescription = "Spotify logo",
             colorFilter = if (!spotifyLoggedInState) {

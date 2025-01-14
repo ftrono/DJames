@@ -318,8 +318,18 @@ class Utilities {
                         } else {
                             logArray.add(obj)
                         }
+                    } else if (obj.has("voc_score")) {
+                        val best = obj.get("voc_score").asInt
+                        if (best == 0) {
+                            //Delete invalid files:
+                            File(logDir, f).delete()
+                            Log.w(TAG, "Deleted file: $f")
+                        } else {
+                            logArray.add(obj)
+                        }
                     }
                 } catch (e: Exception) {
+                    Log.w(TAG, "ERROR: Cannot open file $f: ", e)
                     //Delete invalid files:
                     File(logDir, f).delete()
                     Log.w(TAG, "Deleted file: $f")

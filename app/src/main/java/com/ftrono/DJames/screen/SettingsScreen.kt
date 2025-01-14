@@ -202,6 +202,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             color = colorResource(id = R.color.light_grey),
                             textAlign = TextAlign.Start,
                             fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.weight(1f))
                         Switch(
@@ -234,6 +235,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
                     )
                     DropdownSpinner(
                         mContext,
@@ -253,6 +255,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
                     )
                     OutlinedTextField(
                         modifier = Modifier
@@ -316,7 +319,8 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             color = colorResource(id = R.color.light_grey),
                             textAlign = TextAlign.Start,
                             fontSize = 14.sp,
-                            lineHeight = 18.sp
+                            lineHeight = 18.sp,
+                            fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.weight(1f))
                         Switch(
@@ -348,6 +352,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
                     )
                     DropdownSpinner(
                         mContext,
@@ -367,6 +372,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
                     )
                     OutlinedTextField(
                         modifier = Modifier
@@ -446,7 +452,8 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             color = colorResource(id = R.color.light_grey),
                             textAlign = TextAlign.Start,
                             fontSize = 14.sp,
-                            lineHeight = 18.sp
+                            lineHeight = 18.sp,
+                            fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.weight(1f))
                         Switch(
@@ -479,6 +486,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                                 color = colorResource(id = R.color.light_grey),
                                 textAlign = TextAlign.Start,
                                 fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
                             )
                             Text(
                                 text = "(Only when Spotify is launched\nfor the first time)",
@@ -588,6 +596,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                                 color = colorResource(id = R.color.light_grey),
                                 textAlign = TextAlign.Start,
                                 fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
                             )
                             Text(
                                 text = "Keep this enabled if you use\nBluetooth remotes!",

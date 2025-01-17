@@ -63,6 +63,7 @@ import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryLangCaps
 import com.ftrono.DJames.application.queryLangCodes
 import com.ftrono.DJames.services.OverlayService
+import com.ftrono.DJames.ui.ColorSwitch
 import com.ftrono.DJames.ui.DropdownSpinner
 import com.ftrono.DJames.ui.SettingsHeader
 import com.ftrono.DJames.ui.SettingsSection
@@ -81,11 +82,11 @@ fun SettingsScreenPreview() {
 fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val mContext = LocalContext.current
     //TODO: STATUSES:
-    var checkedStartup by remember { mutableStateOf(if (preview) true else prefs.autoStartup) }
-    var checkedSilence by remember { mutableStateOf(if (preview) true else prefs.silenceEnabled) }
-    var checkedAutoClock by remember { mutableStateOf(if (preview) true else prefs.autoClock) }
-    var checkedClockRedirect by remember { mutableStateOf(if (preview) true else prefs.clockRedirectEnabled) }
-    var checkedVolumeEnabled by remember { mutableStateOf(if (preview) true else prefs.volumeUpEnabled) }
+    var checkedStartup = remember { mutableStateOf(if (preview) true else prefs.autoStartup) }
+    var checkedSilence = remember { mutableStateOf(if (preview) true else prefs.silenceEnabled) }
+    var checkedAutoClock = remember { mutableStateOf(if (preview) true else prefs.autoClock) }
+    var checkedClockRedirect = remember { mutableStateOf(if (preview) true else prefs.clockRedirectEnabled) }
+    var checkedVolumeEnabled = remember { mutableStateOf(if (preview) true else prefs.volumeUpEnabled) }
     var recTimeout by rememberSaveable { mutableStateOf(if (preview) "5" else prefs.recTimeout) }
     var messTimeout by rememberSaveable { mutableStateOf(if (preview) "5" else prefs.messageTimeout) }
     var clockTimeout by rememberSaveable { mutableStateOf(if (preview) "5" else prefs.clockTimeout) }
@@ -95,14 +96,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-
-    //Switch colors:
-    val switchColors = SwitchDefaults.colors(
-        checkedThumbColor = colorResource(id = R.color.light_grey),
-        checkedTrackColor = colorResource(id = R.color.colorAccent),
-        uncheckedThumbColor = colorResource(id = R.color.mid_grey),
-        uncheckedTrackColor = colorResource(id = R.color.faded_grey),
-    )
 
     //TextField colors:
     val textFieldColors = OutlinedTextFieldDefaults.colors(
@@ -205,12 +198,12 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.weight(1f))
-                        Switch(
+                        ColorSwitch(
                             checked = checkedStartup,
-                            colors = switchColors,
+                            color = colorResource(id = R.color.greenSign),
                             onCheckedChange = {
                                 //UPDATE:
-                                checkedStartup = it
+                                checkedStartup.value = it
                                 prefs.autoStartup = it
                             }
                         )
@@ -324,11 +317,11 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.weight(1f))
-                        Switch(
+                        ColorSwitch(
                             checked = checkedSilence,
-                            colors = switchColors,
+                            color = colorResource(id = R.color.yellowSign),
                             onCheckedChange = {
-                                checkedSilence = it
+                                checkedSilence.value = it
                                 prefs.silenceEnabled = it
                             }
                         )
@@ -437,7 +430,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     modifier = Modifier
                         .padding(end=8.dp, top=16.dp, bottom=4.dp),
                     title = "Clock screen",
-                    signColor = colorResource(id = R.color.dark_grey),
+                    signColor = colorResource(id = R.color.faded_grey),
                     iconPainter = painterResource(id = R.drawable.icon_clock)
                 ) {
 
@@ -457,11 +450,11 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.weight(1f))
-                        Switch(
+                        ColorSwitch(
                             checked = checkedAutoClock,
-                            colors = switchColors,
+                            color = colorResource(id = R.color.faded_grey),
                             onCheckedChange = {
-                                checkedAutoClock = it
+                                checkedAutoClock.value = it
                                 prefs.autoClock = it
                             }
                         )
@@ -498,17 +491,17 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             )
                         }
                         Spacer(Modifier.weight(1f))
-                        Switch(
+                        ColorSwitch(
                             checked = checkedClockRedirect,
-                            colors = switchColors,
+                            color = colorResource(id = R.color.faded_grey),
                             onCheckedChange = {
-                                checkedClockRedirect = it
+                                checkedClockRedirect.value = it
                                 prefs.clockRedirectEnabled = it
                             }
                         )
                     }
 
-                    if (checkedClockRedirect) {
+                    if (checkedClockRedirect.value) {
                         //After (timeout):
                         OutlinedTextField(
                             modifier = Modifier
@@ -608,11 +601,11 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             )
                         }
                         Spacer(Modifier.weight(1f))
-                        Switch(
+                        ColorSwitch(
                             checked = checkedVolumeEnabled,
-                            colors = switchColors,
+                            color = colorResource(id = R.color.colorStop),
                             onCheckedChange = {
-                                checkedVolumeEnabled = it
+                                checkedVolumeEnabled.value = it
                                 prefs.volumeUpEnabled = it
                                 restartOverlay(mContext)
                             }

@@ -73,6 +73,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.dialogs.GeneralDialog
+import com.ftrono.DJames.screen.updateHistory
 import com.ftrono.DJames.services.OverlayService
 import com.ftrono.DJames.ui.Navigation
 import com.ftrono.DJames.ui.OptionsItem
@@ -141,6 +142,7 @@ class MainActivity : ComponentActivity() {
             if (!logDir!!.exists()) {
                 logDir!!.mkdir()
             }
+            historyKeys.postValue(updateHistory(this@MainActivity))
             //Init vocabulary directory:
             vocDir = File(cacheDir, "vocabulary")
             if (!vocDir!!.exists()) {
@@ -626,10 +628,10 @@ class MainActivity : ComponentActivity() {
                 finishAndRemoveTask()
             }
 
-            //Refresh RecycleView:
+            //Refresh History list:
             if (intent.action == ACTION_LOG_REFRESH) {
                 Log.d(TAG, "HISTORY: ACTION_LOG_REFRESH.")
-                historySize.postValue(historySize.value!! + 1)   //Refresh list
+                historyKeys.postValue(updateHistory(context!!))   //Refresh list
             }
 
         }

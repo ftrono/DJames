@@ -19,7 +19,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.1.5"
+val appVersion = "2.1.6"
 val copyrightYear = 2024
 
 //STATUS VARS:
@@ -39,7 +39,7 @@ var currentArtistPlaying = MutableLiveData<String>("Keep this Clock Screen on\nt
 var currentAlbumPlaying = MutableLiveData<String>("(unless you're using Maps)")
 val vocHeads = listOf("artist", "playlist", "contact")
 val vocSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
-var historySize = MutableLiveData<Int>(0)
+var historyKeys = MutableLiveData<List<String>>(listOf("2024-08-05 18:28:53.json"))
 
 //Preferences:
 val silenceInitPatience = 3

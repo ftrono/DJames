@@ -228,29 +228,30 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 ) {
 
                     //Req language:
-                    Text(
-                        modifier = Modifier
-                            .padding(bottom = 4.dp),
-                        text = "Voice queries: default language",
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    DropdownSpinner(
-                        mContext,
-                        parentOptions=queryLangCaps,
-                        init=textQueryLangState.value,
-                        state=textQueryLangState,
-                        focusColor = colorResource(id = R.color.colorAccentLight),
-                        prefName="queryLanguage",
-                        width=200
-                    )
+//                    Text(
+//                        modifier = Modifier
+//                            .padding(bottom = 4.dp),
+//                        text = "Voice queries: default language",
+//                        color = colorResource(id = R.color.light_grey),
+//                        textAlign = TextAlign.Start,
+//                        fontSize = 14.sp,
+//                        fontWeight = FontWeight.Bold
+//                    )
+//                    DropdownSpinner(
+//                        mContext,
+//                        parentOptions=queryLangCaps,
+//                        init=textQueryLangState.value,
+//                        state=textQueryLangState,
+//                        focusColor = colorResource(id = R.color.colorAccentLight),
+//                        prefName="queryLanguage",
+//                        width=200
+//                    )
 
                     //Req timeout:
                     Text(
                         modifier = Modifier
-                            .padding(top=8.dp, bottom = 4.dp),
+                            .padding(bottom = 4.dp),
+                            //.padding(top=8.dp, bottom = 4.dp),
                         text = "Voice queries: timeout recording after",
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,

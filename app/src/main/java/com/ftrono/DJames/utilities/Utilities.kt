@@ -297,9 +297,9 @@ class Utilities {
 
 
     //LOG:
-    //Get JsonArray out of all log files:
-    fun getLogArray(): List<JsonElement> {
-        var logArray = JsonArray()
+    //Get List of all log files:
+    fun getLogKeys(): List<String> {
+        var logKeys = mutableListOf<String>()
         var obj = JsonObject()
         if (logDir!!.exists()) {
             var logFiles = logDir!!.list()
@@ -309,23 +309,15 @@ class Utilities {
                 try {
                     obj = JsonParser.parseReader(reader).asJsonObject
                     //Delete empty searches:
-                    if (obj.has("best_score")) {
-                        val best = obj.get("best_score").asInt
+                    if (obj.has("best_score") || obj.has("voc_score")) {
+                        val best = if (obj.has("best_score")) obj.get("best_score").asInt else obj.get("voc_score").asInt
                         if (best == 0) {
                             //Delete invalid files:
                             File(logDir, f).delete()
                             Log.w(TAG, "Deleted file: $f")
                         } else {
-                            logArray.add(obj)
-                        }
-                    } else if (obj.has("voc_score")) {
-                        val best = obj.get("voc_score").asInt
-                        if (best == 0) {
-                            //Delete invalid files:
-                            File(logDir, f).delete()
-                            Log.w(TAG, "Deleted file: $f")
-                        } else {
-                            logArray.add(obj)
+                            //Add:
+                            logKeys.add(f)
                         }
                     }
                 } catch (e: Exception) {
@@ -336,10 +328,27 @@ class Utilities {
                 }
             }
         }
-        //Log.d(TAG, logArray.toString())
-        return logArray.toList()
+        //Log.d(TAG, logKeys.toString())
+        return logKeys
     }
 
+
+    //Get single log item:
+    fun getLogItem(f: String): JsonObject {
+        val logItem = JsonObject()
+        try {
+            var reader = FileReader(File(logDir, f))
+            val obj = JsonParser.parseReader(reader).asJsonObject
+            //Log.d(TAG, "ITEM: $obj")
+            return obj
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: Cannot open file $f: ", e)
+            return logItem
+        }
+    }
+
+
+    //History cleaning:
     fun deleteOldLogs() {
         if (logDir!!.exists()) {
             val thresholdDate = LocalDateTime.now().minusDays(30)
@@ -360,19 +369,6 @@ class Utilities {
             }
             Log.d(TAG, "Removed $c older logs.")
         }
-    }
-
-    //Prepare consolidated Log file:
-    fun prepareLogCons(context: Context, hideSuccessful: Boolean): File {
-        val logConsName = "requests_log.json"
-        val logArray = getLogArray()
-        var consFile = File(context.cacheDir, logConsName)
-        if (consFile.exists()) {
-            consFile.delete()
-        }
-        consFile.createNewFile()
-        consFile.writeText(logArray.toString())
-        return consFile
     }
 
     //VOCABULARY:

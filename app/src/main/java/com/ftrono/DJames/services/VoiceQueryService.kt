@@ -36,9 +36,7 @@ import com.ftrono.DJames.recorder.AndroidAudioRecorder
 import com.ftrono.DJames.recorder.AudioRecorder
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
-import org.jetbrains.kotlinx.dataframe.math.std
 import java.io.File
-import kotlin.math.roundToInt
 
 
 class VoiceQueryService: Service() {
@@ -388,7 +386,7 @@ class VoiceQueryService: Service() {
                     try {
                         min = amplitudes.filter { it > 0 }.min()
                         max = amplitudes.max()
-                        std = amplitudes.filter { it > 0 }.std().roundToInt()
+                        std = utils.getStDev(amplitudes.filter { it > 0 })
                     } catch (e: Exception) {
                         Log.w(TAG, "No min/max.")
                     }

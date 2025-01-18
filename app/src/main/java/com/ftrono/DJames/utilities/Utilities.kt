@@ -13,7 +13,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
 import com.google.gson.JsonArray
-import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import kotlinx.coroutines.runBlocking
@@ -33,6 +32,9 @@ import java.util.Locale
 import java.util.Random
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.math.pow
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
 import kotlin.streams.asSequence
 
 
@@ -96,6 +98,14 @@ class Utilities {
         }
         return textTrimmed
     }
+
+    //Get stdev:
+    fun getStDev(numbers: List<Int>): Int {
+        val mean = numbers.average()
+        val variance = numbers.map { (it - mean).pow(2) }.average()
+        return sqrt(variance).roundToInt()
+    }
+
 
     fun updateStatesMap(statesMap: SnapshotStateMap<String, Boolean>, target: String): SnapshotStateMap<String, Boolean> {
         for (k in statesMap.keys) {

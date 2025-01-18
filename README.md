@@ -15,7 +15,7 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
-**Version 2.1.6 (2025-01-17)** - Reworked History update status.
+**Version 2.1.6 (2025-01-17)** - Reworked History update status, add Splash Screen.
 
 **Version 2.1.5 (2025-01-07)** - Finalized UI alignment using StreetSign Design.
 

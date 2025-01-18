@@ -92,6 +92,7 @@ dependencies {
     implementation(libs.androidx.material3.adaptive.navigation.suite)
     implementation(libs.androidx.material3.adaptive.navigation.suite.android)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.androidx.core.splashscreen)
 
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
@@ -111,14 +112,6 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor")
     // GSON:
     implementation("com.google.code.gson:gson:2.10.1")
-    //Picasso:
-    implementation ("com.squareup.picasso:picasso:2.8")
-    implementation("jp.wasabeef:picasso-transformations:2.4.0")
-    //Kotlin DataFrames:
-    implementation("org.jetbrains.kotlinx:dataframe:0.12.1") {
-        exclude("org.apache.commons")
-        exclude("commons-logging")
-    }
     //DialogFlow:
     implementation("com.google.cloud:google-cloud-dialogflow:4.40.0") {
         exclude("org.apache.commons")

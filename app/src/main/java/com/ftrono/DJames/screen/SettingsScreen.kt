@@ -18,15 +18,12 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -63,11 +60,12 @@ import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryLangCaps
 import com.ftrono.DJames.application.queryLangCodes
 import com.ftrono.DJames.services.OverlayService
-import com.ftrono.DJames.ui.ColorSwitch
 import com.ftrono.DJames.ui.DropdownSpinner
 import com.ftrono.DJames.ui.SettingsHeader
 import com.ftrono.DJames.ui.SettingsSection
 import com.ftrono.DJames.ui.StreetBackground
+import com.ftrono.DJames.ui.getSwitchColors
+import com.ftrono.DJames.ui.getTextFieldColors
 import com.ftrono.DJames.utilities.Utilities
 
 @Preview
@@ -96,27 +94,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-
-    //TextField colors:
-    val textFieldColors = OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = colorResource(id = R.color.colorAccentLight),
-        unfocusedBorderColor = colorResource(id = R.color.mid_grey),
-        focusedTextColor = colorResource(id = R.color.light_grey),
-        unfocusedTextColor = colorResource(id = R.color.light_grey),
-        focusedPlaceholderColor = colorResource(id = R.color.mid_grey),
-        unfocusedPlaceholderColor = colorResource(id = R.color.mid_grey),
-        focusedPrefixColor = colorResource(id = R.color.mid_grey),
-        unfocusedPrefixColor = colorResource(id = R.color.mid_grey),
-        focusedSuffixColor = colorResource(id = R.color.mid_grey),
-        unfocusedSuffixColor = colorResource(id = R.color.mid_grey),
-        focusedSupportingTextColor = colorResource(id = R.color.colorAccentLight),
-        unfocusedSupportingTextColor = colorResource(id = R.color.mid_grey),
-        cursorColor = colorResource(id = R.color.colorAccentLight),
-        selectionColors = TextSelectionColors(
-            handleColor = colorResource(id = R.color.colorAccent),
-            backgroundColor = colorResource(id = R.color.transparent_green)
-        )
-    )
 
 
     //CUSTOM BACKGROUND (NO STREET SIGN):
@@ -198,9 +175,11 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.weight(1f))
-                        ColorSwitch(
-                            checked = checkedStartup,
-                            color = colorResource(id = R.color.greenSign),
+                        Switch(
+                            checked = checkedStartup.value,
+                            colors = getSwitchColors(
+                                color = colorResource(id = R.color.greenSign)
+                            ),
                             onCheckedChange = {
                                 //UPDATE:
                                 checkedStartup.value = it
@@ -257,7 +236,10 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             .width(250.dp)
                             .wrapContentHeight()
                             .focusRequester(focusRequester),
-                        colors = textFieldColors,
+                        colors = getTextFieldColors(
+                            colorLight = colorResource(id = R.color.yellowSignLight),
+                            colorDark = colorResource(id = R.color.yellowSign)
+                        ),
                         value = recTimeout,
                         textStyle = TextStyle(
                             fontSize = 16.sp,
@@ -317,9 +299,11 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.weight(1f))
-                        ColorSwitch(
-                            checked = checkedSilence,
-                            color = colorResource(id = R.color.yellowSign),
+                        Switch(
+                            checked = checkedSilence.value,
+                            colors = getSwitchColors(
+                                color = colorResource(id = R.color.yellowSign)
+                            ),
                             onCheckedChange = {
                                 checkedSilence.value = it
                                 prefs.silenceEnabled = it
@@ -349,11 +333,12 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         fontWeight = FontWeight.Bold
                     )
                     DropdownSpinner(
-                        mContext,
+                        mContext = mContext,
                         parentOptions = messLangCaps,
                         init = textMessLangState.value,
                         state = textMessLangState,
-                        focusColor = colorResource(id = R.color.colorAccentLight),
+                        focusColorLight = colorResource(id = R.color.blueSignLight),
+                        focusColorDark = colorResource(id = R.color.blueSign),
                         prefName = "messageLanguage",
                         width = 200
                     )
@@ -374,7 +359,10 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             .width(250.dp)
                             .wrapContentHeight()
                             .focusRequester(focusRequester),
-                        colors = textFieldColors,
+                        colors = getTextFieldColors(
+                            colorLight = colorResource(id = R.color.blueSignLight),
+                            colorDark = colorResource(id = R.color.blueSign)
+                        ),
                         value = messTimeout,
                         textStyle = TextStyle(
                             fontSize = 16.sp,
@@ -430,7 +418,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     modifier = Modifier
                         .padding(end=8.dp, top=16.dp, bottom=4.dp),
                     title = "Clock screen",
-                    signColor = colorResource(id = R.color.faded_grey),
+                    signColor = colorResource(id = R.color.dark_grey),
                     iconPainter = painterResource(id = R.drawable.icon_clock)
                 ) {
 
@@ -450,9 +438,11 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.weight(1f))
-                        ColorSwitch(
-                            checked = checkedAutoClock,
-                            color = colorResource(id = R.color.faded_grey),
+                        Switch(
+                            checked = checkedAutoClock.value,
+                            colors = getSwitchColors(
+                                color = colorResource(id = R.color.faded_grey)
+                            ),
                             onCheckedChange = {
                                 checkedAutoClock.value = it
                                 prefs.autoClock = it
@@ -491,9 +481,11 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             )
                         }
                         Spacer(Modifier.weight(1f))
-                        ColorSwitch(
-                            checked = checkedClockRedirect,
-                            color = colorResource(id = R.color.faded_grey),
+                        Switch(
+                            checked = checkedClockRedirect.value,
+                            colors = getSwitchColors(
+                                color = colorResource(id = R.color.faded_grey)
+                            ),
                             onCheckedChange = {
                                 checkedClockRedirect.value = it
                                 prefs.clockRedirectEnabled = it
@@ -508,7 +500,10 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                                 .width(250.dp)
                                 .wrapContentHeight()
                                 .focusRequester(focusRequester),
-                            colors = textFieldColors,
+                            colors = getTextFieldColors(
+                                colorLight = colorResource(id = R.color.mid_grey),
+                                colorDark = colorResource(id = R.color.faded_grey)
+                            ),
                             value = clockTimeout,
                             textStyle = TextStyle(
                                 fontSize = 16.sp,
@@ -601,9 +596,11 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             )
                         }
                         Spacer(Modifier.weight(1f))
-                        ColorSwitch(
-                            checked = checkedVolumeEnabled,
-                            color = colorResource(id = R.color.colorStop),
+                        Switch(
+                            checked = checkedVolumeEnabled.value,
+                            colors = getSwitchColors(
+                                color = colorResource(id = R.color.colorStop)
+                            ),
                             onCheckedChange = {
                                 checkedVolumeEnabled.value = it
                                 prefs.volumeUpEnabled = it

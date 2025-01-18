@@ -67,6 +67,7 @@ import com.ftrono.DJames.screen.getVocKeys
 import com.ftrono.DJames.screen.updateVocabulary
 import com.ftrono.DJames.ui.DropdownSpinner
 import com.ftrono.DJames.ui.EditVocHeader
+import com.ftrono.DJames.ui.getTextFieldColors
 import com.ftrono.DJames.ui.vocColorSelector
 import com.ftrono.DJames.ui.vocColorSelectorLight
 import com.ftrono.DJames.utilities.Utilities
@@ -157,21 +158,6 @@ fun DialogEditVocabulary(
     if (requestDetailOn.value) {
         DialogRequestDetail(mContext, requestDetailOn, filter)
     }
-
-    //TextField colors:
-    val textFieldColors = OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = vocColorSelectorLight(cat = filter),
-        unfocusedBorderColor = colorResource(id = R.color.mid_grey),
-        focusedTextColor = colorResource(id = R.color.light_grey),
-        unfocusedTextColor = colorResource(id = R.color.light_grey),
-        focusedPlaceholderColor = colorResource(id = R.color.mid_grey),
-        unfocusedPlaceholderColor = colorResource(id = R.color.mid_grey),
-        cursorColor = vocColorSelectorLight(cat = filter),
-        selectionColors = TextSelectionColors(
-            handleColor = vocColorSelectorLight(cat = filter),
-            backgroundColor = vocColorSelector(cat = filter)
-        )
-    )
 
     val checkBoxColors = CheckboxDefaults.colors(
         checkedColor = vocColorSelectorLight(cat = filter),
@@ -282,7 +268,10 @@ fun DialogEditVocabulary(
                         focusManager = focusManager,
                         keyboardController = keyboardController!!,
                         textHeaderColor = vocColorSelectorLight(cat = filter),
-                        textFieldColors = textFieldColors,
+                        textFieldColors = getTextFieldColors(
+                            colorLight = vocColorSelectorLight(cat = filter),
+                            colorDark = vocColorSelector(cat = filter)
+                        ),
                         title = "Name",
                         placeholder = "Write $filter name...",
                         textState = textName
@@ -295,7 +284,10 @@ fun DialogEditVocabulary(
                             focusManager = focusManager,
                             keyboardController = keyboardController,
                             textHeaderColor = vocColorSelectorLight(cat = filter),
-                            textFieldColors = textFieldColors,
+                            textFieldColors = getTextFieldColors(
+                                colorLight = vocColorSelectorLight(cat = filter),
+                                colorDark = vocColorSelector(cat = filter)
+                            ),
                             title = if (filter == "artist") "'This is' playlist URL" else "Playlist URL",
                             placeholder = "Paste here the Spotify link...",
                             textState = textPlayURL
@@ -322,7 +314,10 @@ fun DialogEditVocabulary(
                                     .padding(top = 8.dp, bottom = 10.dp)
                                     .width(60.dp)
                                     .wrapContentHeight(),
-                                colors = textFieldColors,
+                                colors = getTextFieldColors(
+                                    colorLight = vocColorSelectorLight(cat = filter),
+                                    colorDark = vocColorSelector(cat = filter)
+                                ),
                                 value = textPrefix.value,
                                 onValueChange = { newText ->
                                     textPrefix.value = newText.trimStart { it == '0' }
@@ -352,7 +347,10 @@ fun DialogEditVocabulary(
                                     .fillMaxWidth()
                                     .wrapContentHeight()
                                     .focusRequester(focusRequester),
-                                colors = textFieldColors,
+                                colors = getTextFieldColors(
+                                    colorLight = vocColorSelectorLight(cat = filter),
+                                    colorDark = vocColorSelector(cat = filter)
+                                ),
                                 value = textPhone.value,
                                 onValueChange = { newText ->
                                     textPhone.value = newText.trimStart { it == '0' }
@@ -419,11 +417,12 @@ fun DialogEditVocabulary(
                                 )]
                             textLanguageState.value = initCaps
                             DropdownSpinner(
-                                mContext,
-                                messLangCaps,
+                                mContext = mContext,
+                                parentOptions = messLangCaps,
                                 init = initCaps,
                                 state = textLanguageState,
-                                focusColor = colorResource(id = R.color.light_grey)
+                                focusColorLight = vocColorSelectorLight(cat = filter),
+                                focusColorDark = vocColorSelector(cat = filter)
                             )
                         } else {
                             textLanguageState.value = ""

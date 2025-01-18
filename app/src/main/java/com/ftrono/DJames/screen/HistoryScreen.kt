@@ -213,8 +213,10 @@ fun HistoryCard(
             modifier = Modifier
                 .padding(10.dp)
         ) {
+            //INTRO ROW:
             Row(
                 modifier = Modifier
+                    .padding(top = 2.dp)
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
@@ -222,7 +224,7 @@ fun HistoryCard(
                 //CAT ICON:
                 Icon(
                     modifier = Modifier
-                        .padding(start = 12.dp, top = 2.dp)
+                        .padding(start = 12.dp)
                         .size(16.dp),
                     painter = historyIconSelector(cat = intentName),
                     contentDescription = intentName,
@@ -231,7 +233,7 @@ fun HistoryCard(
                 //CAT NAME:
                 Text(
                     modifier = Modifier
-                        .padding(start = 4.dp, top = 2.dp),
+                        .padding(start = 4.dp),
                     color = historyColorSelectorLight(cat = intentName),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -240,7 +242,6 @@ fun HistoryCard(
                 //INTRO & DATETIME:
                 Text(
                     modifier = Modifier
-                        .padding(top = 2.dp)
                         .weight(1f),
                     color = colorResource(id = R.color.mid_grey),
                     fontSize = 12.sp,

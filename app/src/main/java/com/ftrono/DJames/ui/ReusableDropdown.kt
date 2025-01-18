@@ -36,7 +36,17 @@ import com.ftrono.DJames.screen.restartOverlay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DropdownSpinner(mContext: Context, parentOptions: List<String>, init: String, state: MutableState<String>, focusColor: Color, prefName: String = "", width: Int = 0, start: Int = 0) {
+fun DropdownSpinner(
+    mContext: Context,
+    parentOptions: List<String>,
+    init: String,
+    state: MutableState<String>,
+    focusColorLight: Color,
+    focusColorDark: Color,
+    prefName: String = "",
+    width: Int = 0,
+    start: Int = 0
+) {
     //"PREFNAME" ARG IS TO SELECT PREF TO OVERWRITE!!!
     var isExpanded by remember { mutableStateOf(false) }
     var selectedOptionText by remember { mutableStateOf(if (init != "0" && init != "1") init else "Italian") }
@@ -49,11 +59,11 @@ fun DropdownSpinner(mContext: Context, parentOptions: List<String>, init: String
     ExposedDropdownMenuBox(
         modifier = if (width > 0) {
             Modifier
-                .padding(top = 8.dp, bottom = 20.dp, start=start.dp)
+                .padding(top = 8.dp, bottom = 20.dp, start = start.dp)
                 .width(width.dp)
         } else {
             Modifier
-                .padding(top = 8.dp, bottom = 20.dp, start=start.dp)
+                .padding(top = 8.dp, bottom = 20.dp, start = start.dp)
                 .fillMaxWidth()
         },
         expanded = isExpanded,
@@ -78,14 +88,18 @@ fun DropdownSpinner(mContext: Context, parentOptions: List<String>, init: String
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Normal
             ),
-            colors = ExposedDropdownMenuDefaults.textFieldColors(
-                focusedContainerColor = colorResource(id = R.color.dark_grey_background),
-                unfocusedContainerColor = colorResource(id = R.color.transparent_full),
-                focusedTextColor = colorResource(id = R.color.light_grey),
-                unfocusedTextColor = colorResource(id = R.color.light_grey),
-                focusedIndicatorColor = focusColor,
-                unfocusedIndicatorColor = colorResource(id = R.color.mid_grey),
+            colors = getTextFieldColors(
+                colorLight = focusColorLight,
+                colorDark = focusColorDark
             )
+//            colors = ExposedDropdownMenuDefaults.textFieldColors(
+//                focusedContainerColor = colorResource(id = R.color.dark_grey_background),
+//                unfocusedContainerColor = colorResource(id = R.color.transparent_full),
+//                focusedTextColor = colorResource(id = R.color.light_grey),
+//                unfocusedTextColor = colorResource(id = R.color.light_grey),
+//                focusedIndicatorColor = focusColorLight,
+//                unfocusedIndicatorColor = colorResource(id = R.color.mid_grey),
+//            )
         )
         //Dropdown:
         ExposedDropdownMenu(

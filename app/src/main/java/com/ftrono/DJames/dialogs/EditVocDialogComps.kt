@@ -46,7 +46,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.ftrono.DJames.R
 import com.ftrono.DJames.ui.vocColorSelectorLight
 import com.ftrono.DJames.ui.vocIconSelector
@@ -92,7 +91,11 @@ fun DialogRequestDetail(
 @Preview
 @Composable
 fun DialogEditVocPreview() {
-    EditVocDialog(filter = "artist")
+    Dialog (
+        onDismissRequest = {}
+    ) {
+        EditVocDialog(filter = "artist")
+    }
 }
 
 
@@ -108,72 +111,59 @@ fun EditVocDialog(
     val configuration = LocalConfiguration.current
     val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
 
-    //EDIT DIALOG:
-    Dialog(
-        onDismissRequest = {
-            onDismiss()
-        },
-        properties = DialogProperties(
-            dismissOnBackPress = true,
-            dismissOnClickOutside = false,
-            usePlatformDefaultWidth = false
+    //EDIT DIALOG CONTAINER:
+    Card(
+        modifier = modifier
+            .padding(
+                top = 30.dp,
+                bottom = 30.dp,
+                start = if (isLandscape) 80.dp else 40.dp,
+                end = if (isLandscape) 80.dp else 40.dp
+            )
+            .fillMaxWidth()
+            .wrapContentHeight(),
+        shape = RoundedCornerShape(20.dp),
+        //border = BorderStroke(2.dp, colorResource(id = R.color.faded_grey)),
+        colors = CardDefaults.cardColors (
+            containerColor = colorResource(id = R.color.dark_grey_background)
         )
     ) {
 
-        //CONTAINER:
-        Card(
-            modifier = modifier
-                .padding(
-                    top = 30.dp,
-                    bottom = 30.dp,
-                    start = if (isLandscape) 80.dp else 40.dp,
-                    end = if (isLandscape) 80.dp else 40.dp
-                )
-                .fillMaxWidth()
+        Column(
+            modifier = Modifier
+                .padding(20.dp)
+                .wrapContentWidth()
                 .wrapContentHeight(),
-            shape = RoundedCornerShape(20.dp),
-            //border = BorderStroke(2.dp, colorResource(id = R.color.faded_grey)),
-            colors = CardDefaults.cardColors (
-                containerColor = colorResource(id = R.color.dark_grey_background)
-            )
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.Start,
         ) {
 
+            //TITLE:
+            EditVocHeader(
+                filter = filter,
+                onCancel = { onDismiss() },
+                onSave = { onSave() }
+            )
+
+            //CONTENT:
             Column(
                 modifier = Modifier
-                    .padding(20.dp)
+                    .padding(8.dp)
                     .wrapContentWidth()
-                    .wrapContentHeight(),
+                    .wrapContentHeight()
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start,
             ) {
 
-                //TITLE:
-                EditVocHeader(
-                    filter = filter,
-                    onCancel = { onDismiss() },
-                    onSave = { onSave() }
-                )
+                content()
 
-                //CONTENT:
-                Column(
+                //END PADDING:
+                Spacer(
                     modifier = Modifier
-                        .padding(8.dp)
-                        .wrapContentWidth()
-                        .wrapContentHeight()
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.Start,
-                ) {
-
-                    content()
-
-                    //END PADDING:
-                    Spacer(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(8.dp)
-                    )
-                }
+                        .fillMaxWidth()
+                        .height(8.dp)
+                )
             }
         }
     }

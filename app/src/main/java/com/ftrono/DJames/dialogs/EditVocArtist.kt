@@ -16,6 +16,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.ftrono.DJames.application.playlistUrlIntro
 import com.ftrono.DJames.screen.VocabularyScreen
 import com.ftrono.DJames.screen.getVocKeys
@@ -45,8 +47,6 @@ fun EditVocArtist(
     preview: Boolean = false
 ) {
     val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
 
     //Init:
     var key = keyState.value
@@ -76,80 +76,96 @@ fun EditVocArtist(
     }
 
     //EDIT DIALOG:
-    EditVocDialog(
-        modifier = Modifier
-            .clickable {
-                focusManager.clearFocus()
-            },
-        filter = filter,
-        onDismiss = {
+    Dialog(
+        onDismissRequest = {
             //cancelable -> true
             dialogOnState.value = false
             keyState.value = ""
         },
-        onSave = {
-            //CHECK & UPDATE:
-            var newDetails = JsonObject()
-            //Get new info:
-            newDetails.addProperty(
-                "playlist_URL",
-                textPlayURL.value.replace(" ", "")
-            )
-            //Edit:
-            requestDetailOn.value = validateEditArtist(
-                mContext = mContext,
-                vocabulary = vocabulary,
-                prevText = initName,
-                newText = textName.value.lowercase(),
-                newDetails = newDetails,
-                filter = filter,
-                vocItems = vocItems
-            )
-            if (!requestDetailOn.value) {
-                //CLOSE THE DIALOG:
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false
+        )
+    ) {
+        val focusManager = LocalFocusManager.current
+        val keyboardController = LocalSoftwareKeyboardController.current
+
+        //MAIN:
+        EditVocDialog(
+            modifier = Modifier
+                .clickable {
+                    focusManager.clearFocus()
+                },
+            filter = filter,
+            onDismiss = {
+                //cancelable -> true
                 dialogOnState.value = false
                 keyState.value = ""
+            },
+            onSave = {
+                //CHECK & UPDATE:
+                var newDetails = JsonObject()
+                //Get new info:
+                newDetails.addProperty(
+                    "playlist_URL",
+                    textPlayURL.value.replace(" ", "")
+                )
+                //Edit:
+                requestDetailOn.value = validateEditArtist(
+                    mContext = mContext,
+                    vocabulary = vocabulary,
+                    prevText = initName,
+                    newText = textName.value.lowercase(),
+                    newDetails = newDetails,
+                    filter = filter,
+                    vocItems = vocItems
+                )
+                if (!requestDetailOn.value) {
+                    //CLOSE THE DIALOG:
+                    dialogOnState.value = false
+                    keyState.value = ""
+                }
             }
+        ) {
+            //ARTIST NAME:
+            EditVocTextField(
+                modifier = Modifier
+                    .focusRequester(focusRequester),
+                onKeyboardDone = {
+                    focusManager.clearFocus()
+                    keyboardController!!.hide()
+                },
+                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textFieldColors = getTextFieldColors(
+                    colorLight = vocColorSelectorLight(cat = filter),
+                    colorDark = vocColorSelector(cat = filter)
+                ),
+                title = "Name",
+                placeholder = "Write $filter name...",
+                textState = textName
+            )
+
+            //PLAYLIST URL:
+            EditVocTextField(
+                modifier = Modifier
+                    .focusRequester(focusRequester),
+                onKeyboardDone = {
+                    focusManager.clearFocus()
+                    keyboardController!!.hide()
+                },
+                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textFieldColors = getTextFieldColors(
+                    colorLight = vocColorSelectorLight(cat = filter),
+                    colorDark = vocColorSelector(cat = filter)
+                ),
+                title = if (filter == "artist") "'This is' playlist URL" else "Playlist URL",
+                placeholder = "Paste here the Spotify link...",
+                textState = textPlayURL
+            )
+
         }
-    ) {
-        //ARTIST NAME:
-        EditVocTextField(
-            modifier = Modifier
-                .focusRequester(focusRequester),
-            onKeyboardDone = {
-                focusManager.clearFocus()
-                keyboardController!!.hide()
-            },
-            textHeaderColor = vocColorSelectorLight(cat = filter),
-            textFieldColors = getTextFieldColors(
-                colorLight = vocColorSelectorLight(cat = filter),
-                colorDark = vocColorSelector(cat = filter)
-            ),
-            title = "Name",
-            placeholder = "Write $filter name...",
-            textState = textName
-        )
-
-        //PLAYLIST URL:
-        EditVocTextField(
-            modifier = Modifier
-                .focusRequester(focusRequester),
-            onKeyboardDone = {
-                focusManager.clearFocus()
-                keyboardController!!.hide()
-            },
-            textHeaderColor = vocColorSelectorLight(cat = filter),
-            textFieldColors = getTextFieldColors(
-                colorLight = vocColorSelectorLight(cat = filter),
-                colorDark = vocColorSelector(cat = filter)
-            ),
-            title = if (filter == "artist") "'This is' playlist URL" else "Playlist URL",
-            placeholder = "Paste here the Spotify link...",
-            textState = textPlayURL
-        )
-
     }
-
 }
 
 

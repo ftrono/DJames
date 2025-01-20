@@ -40,6 +40,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.messLangCaps
 import com.ftrono.DJames.application.messLangCodes
@@ -73,8 +75,6 @@ fun EditVocContact(
     preview: Boolean = false
 ) {
     val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
 
     //Init:
     var key = keyState.value
@@ -122,197 +122,214 @@ fun EditVocContact(
     )
 
     //EDIT DIALOG:
-    EditVocDialog(
-        modifier = Modifier
-            .clickable {
-                focusManager.clearFocus()
-            },
-        filter = filter,
-        onDismiss = {
+    Dialog(
+        onDismissRequest = {
             //cancelable -> true
             dialogOnState.value = false
             keyState.value = ""
         },
-        onSave = {
-            //CHECK & UPDATE:
-            var newDetails = JsonObject()
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false
+        )
+    ) {
+        val focusManager = LocalFocusManager.current
+        val keyboardController = LocalSoftwareKeyboardController.current
 
-            //Get new info:
-            if (textLanguageState.value != "") {
-                val newLangCode =
-                    messLangCodes[messLangCaps.indexOf(textLanguageState.value)]
-                newDetails.addProperty("contact_language", newLangCode)
-            }
-            newDetails.addProperty("prefix", textPrefix.value.replace(" ", ""))
-            newDetails.addProperty("phone", textPhone.value.replace(" ", ""))
-
-            //Edit:
-            requestDetailOn.value = validateEditContact(
-                mContext = mContext,
-                vocabulary = vocabulary,
-                prevText = initName,
-                newText = textName.value.lowercase(),
-                newDetails = newDetails,
-                filter = filter,
-                vocItems = vocItems
-            )
-            if (!requestDetailOn.value) {
-                //CLOSE THE DIALOG:
+        //MAIN:
+        EditVocDialog(
+            modifier = Modifier
+                .clickable {
+                    focusManager.clearFocus()
+                },
+            filter = filter,
+            onDismiss = {
+                //cancelable -> true
                 dialogOnState.value = false
                 keyState.value = ""
-            }
-        }
-    ) {
-        //CONTACT NAME:
-        EditVocTextField(
-            modifier = Modifier
-                .focusRequester(focusRequester),
-            onKeyboardDone = {
-                focusManager.clearFocus()
-                keyboardController!!.hide()
             },
-            textHeaderColor = vocColorSelectorLight(cat = filter),
-            textFieldColors = getTextFieldColors(
-                colorLight = vocColorSelectorLight(cat = filter),
-                colorDark = vocColorSelector(cat = filter)
-            ),
-            title = "Name",
-            placeholder = "Write $filter name...",
-            textState = textName
-        )
+            onSave = {
+                //CHECK & UPDATE:
+                var newDetails = JsonObject()
 
-        //CONTACTS: TEXT FIELD 2:
-        Text(
-            text = "Main phone",
-            color = vocColorSelectorLight(cat = filter),
-            textAlign = TextAlign.Start,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            //PREFIX:
-            OutlinedTextField(
-                modifier = Modifier
-                    .padding(top = 8.dp, bottom = 10.dp)
-                    .width(60.dp)
-                    .wrapContentHeight(),
-                colors = getTextFieldColors(
-                    colorLight = vocColorSelectorLight(cat = filter),
-                    colorDark = vocColorSelector(cat = filter)
-                ),
-                value = textPrefix.value,
-                onValueChange = { newText ->
-                    textPrefix.value = newText.trimStart { it == '0' }
-                },
-                textStyle = TextStyle(
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                ),
-                singleLine = true,
-                maxLines = 1,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Phone,
-                    imeAction = ImeAction.Next
-                ),
-                placeholder = {
-                    Text(
-                        text = "+39",
-                        fontSize = 16.sp,
-                        fontStyle = FontStyle.Italic
-                    )
-                },
-            )
-            //SUFFIX:
-            OutlinedTextField(
-                modifier = Modifier
-                    .padding(top = 8.dp, bottom = 10.dp)
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .focusRequester(focusRequester),
-                colors = getTextFieldColors(
-                    colorLight = vocColorSelectorLight(cat = filter),
-                    colorDark = vocColorSelector(cat = filter)
-                ),
-                value = textPhone.value,
-                onValueChange = { newText ->
-                    textPhone.value = newText.trimStart { it == '0' }
-                },
-                textStyle = TextStyle(
-                    fontSize = 16.sp
-                ),
-                singleLine = true,
-                maxLines = 1,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        focusManager.clearFocus()
-                        keyboardController?.hide()
-                    }
-                ),
-                placeholder = {
-                    Text(
-                        text = "Phone number...",
-                        fontSize = 16.sp,
-                        fontStyle = FontStyle.Italic
-                    )
-                },
-            )
-        }
+                //Get new info:
+                if (textLanguageState.value != "") {
+                    val newLangCode =
+                        messLangCodes[messLangCaps.indexOf(textLanguageState.value)]
+                    newDetails.addProperty("contact_language", newLangCode)
+                }
+                newDetails.addProperty("prefix", textPrefix.value.replace(" ", ""))
+                newDetails.addProperty("phone", textPhone.value.replace(" ", ""))
 
-        //CONTACTS: CHECKBOX:
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Checkbox(
-                modifier = Modifier
-                    .padding(bottom = if (checkedLang) 0.dp else 6.dp)
-                    .offset(x = -(12.dp)),
-                checked = checkedLang,
-                onCheckedChange = { checkedLang = it },
-                colors = checkBoxColors
-            )
-            Text(
-                modifier = Modifier
-                    .padding(bottom = if (checkedLang) 0.dp else 6.dp)
-                    .offset(x = -(12.dp))
-                    .clickable { checkedLang = !checkedLang },
-                text = if (checkedLang) {
-                    "Set custom messaging language"
-                } else {
-                    "Set custom messaging language\n(default: ${defaultLanguageCaps})"
-                },
-                fontSize = 14.sp,
-                lineHeight = 16.sp,
-                color = if (checkedLang) colorResource(id = R.color.light_grey) else colorResource(
-                    id = R.color.mid_grey
+                //Edit:
+                requestDetailOn.value = validateEditContact(
+                    mContext = mContext,
+                    vocabulary = vocabulary,
+                    prevText = initName,
+                    newText = textName.value.lowercase(),
+                    newDetails = newDetails,
+                    filter = filter,
+                    vocItems = vocItems
                 )
+                if (!requestDetailOn.value) {
+                    //CLOSE THE DIALOG:
+                    dialogOnState.value = false
+                    keyState.value = ""
+                }
+            }
+        ) {
+            //CONTACT NAME:
+            EditVocTextField(
+                modifier = Modifier
+                    .focusRequester(focusRequester),
+                onKeyboardDone = {
+                    focusManager.clearFocus()
+                    keyboardController!!.hide()
+                },
+                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textFieldColors = getTextFieldColors(
+                    colorLight = vocColorSelectorLight(cat = filter),
+                    colorDark = vocColorSelector(cat = filter)
+                ),
+                title = "Name",
+                placeholder = "Write $filter name...",
+                textState = textName
             )
-        }
-        if (checkedLang) {
-            //CONTACTS: DROPDOWN:
-            val initCaps =
-                if (prevLangCode == "") defaultLanguageCaps else messLangCaps[messLangCodes.indexOf(
-                    prevLangCode
-                )]
-            textLanguageState.value = initCaps
-            DropdownSpinner(
-                mContext = mContext,
-                parentOptions = messLangCaps,
-                init = initCaps,
-                state = textLanguageState,
-                focusColorLight = vocColorSelectorLight(cat = filter),
-                focusColorDark = vocColorSelector(cat = filter)
+
+            //CONTACTS: TEXT FIELD 2:
+            Text(
+                text = "Main phone",
+                color = vocColorSelectorLight(cat = filter),
+                textAlign = TextAlign.Start,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
             )
-        } else {
-            textLanguageState.value = ""
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                //PREFIX:
+                OutlinedTextField(
+                    modifier = Modifier
+                        .padding(top = 8.dp, bottom = 10.dp)
+                        .width(60.dp)
+                        .wrapContentHeight(),
+                    colors = getTextFieldColors(
+                        colorLight = vocColorSelectorLight(cat = filter),
+                        colorDark = vocColorSelector(cat = filter)
+                    ),
+                    value = textPrefix.value,
+                    onValueChange = { newText ->
+                        textPrefix.value = newText.trimStart { it == '0' }
+                    },
+                    textStyle = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    singleLine = true,
+                    maxLines = 1,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Phone,
+                        imeAction = ImeAction.Next
+                    ),
+                    placeholder = {
+                        Text(
+                            text = "+39",
+                            fontSize = 16.sp,
+                            fontStyle = FontStyle.Italic
+                        )
+                    },
+                )
+                //SUFFIX:
+                OutlinedTextField(
+                    modifier = Modifier
+                        .padding(top = 8.dp, bottom = 10.dp)
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .focusRequester(focusRequester),
+                    colors = getTextFieldColors(
+                        colorLight = vocColorSelectorLight(cat = filter),
+                        colorDark = vocColorSelector(cat = filter)
+                    ),
+                    value = textPhone.value,
+                    onValueChange = { newText ->
+                        textPhone.value = newText.trimStart { it == '0' }
+                    },
+                    textStyle = TextStyle(
+                        fontSize = 16.sp
+                    ),
+                    singleLine = true,
+                    maxLines = 1,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            focusManager.clearFocus()
+                            keyboardController?.hide()
+                        }
+                    ),
+                    placeholder = {
+                        Text(
+                            text = "Phone number...",
+                            fontSize = 16.sp,
+                            fontStyle = FontStyle.Italic
+                        )
+                    },
+                )
+            }
+
+            //CONTACTS: CHECKBOX:
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(
+                    modifier = Modifier
+                        .padding(bottom = if (checkedLang) 0.dp else 6.dp)
+                        .offset(x = -(12.dp)),
+                    checked = checkedLang,
+                    onCheckedChange = { checkedLang = it },
+                    colors = checkBoxColors
+                )
+                Text(
+                    modifier = Modifier
+                        .padding(bottom = if (checkedLang) 0.dp else 6.dp)
+                        .offset(x = -(12.dp))
+                        .clickable { checkedLang = !checkedLang },
+                    text = if (checkedLang) {
+                        "Set custom messaging language"
+                    } else {
+                        "Set custom messaging language\n(default: ${defaultLanguageCaps})"
+                    },
+                    fontSize = 14.sp,
+                    lineHeight = 16.sp,
+                    color = if (checkedLang) colorResource(id = R.color.light_grey) else colorResource(
+                        id = R.color.mid_grey
+                    )
+                )
+            }
+            if (checkedLang) {
+                //CONTACTS: DROPDOWN:
+                val initCaps =
+                    if (prevLangCode == "") defaultLanguageCaps else messLangCaps[messLangCodes.indexOf(
+                        prevLangCode
+                    )]
+                textLanguageState.value = initCaps
+                DropdownSpinner(
+                    mContext = mContext,
+                    parentOptions = messLangCaps,
+                    init = initCaps,
+                    state = textLanguageState,
+                    focusColorLight = vocColorSelectorLight(cat = filter),
+                    focusColorDark = vocColorSelector(cat = filter)
+                )
+            } else {
+                textLanguageState.value = ""
+            }
         }
     }
 }

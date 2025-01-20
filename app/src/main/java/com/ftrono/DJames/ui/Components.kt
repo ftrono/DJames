@@ -23,8 +23,6 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.Card
@@ -50,7 +48,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -492,86 +489,6 @@ fun SectionTitle(
                 imageVector = icon,
                 tint = arrowColor,
                 contentDescription = "Expand / collapse"
-            )
-        }
-    }
-}
-
-
-@Preview
-@Composable
-fun EditVocHeaderPreview() {
-    EditVocHeader(
-        filter = "artist",
-        onCancel = {},
-        onSave = {}
-    )
-}
-
-
-@Composable
-fun EditVocHeader(
-    filter: String,
-    onCancel: () -> Unit,
-    onSave: () -> Unit
-) {
-    //HEADER:
-    Box(
-        modifier = Modifier
-            .padding(bottom = 12.dp)
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        contentAlignment = Alignment.Center
-    ) {
-        //HEADER CONTENT:
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            //ICON:
-            Icon(
-                modifier = Modifier
-                    .padding(end=4.dp)
-                    .size(36.dp),
-                painter = vocIconSelector(cat = filter),
-                contentDescription = filter,
-                tint = vocColorSelectorLight(cat = filter)
-            )
-            //TITLE:
-            Text(
-                text = "${filter.replaceFirstChar { it.uppercase() }}",
-                modifier = Modifier
-                    .padding(8.dp)
-                    .weight(1f),
-                color = colorResource(id = R.color.light_grey),
-                textAlign = TextAlign.Start,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
-            )
-            //BACK BUTTON:
-            Icon(
-                modifier = Modifier
-                    .padding(end = 12.dp)
-                    .size(35.dp)
-                    .clickable {
-                        onCancel()
-                    },
-                imageVector = Icons.Filled.Close,
-                contentDescription = "Cancel",
-                tint = vocColorSelectorLight(cat = filter)
-            )
-            //SAVE BUTTON:
-            Icon(
-                modifier = Modifier
-                    .size(35.dp)
-                    .clickable {
-                        onSave()
-                    },
-                imageVector = Icons.Default.Check,
-                contentDescription = "Save",
-                tint = vocColorSelectorLight(cat = filter)
             )
         }
     }

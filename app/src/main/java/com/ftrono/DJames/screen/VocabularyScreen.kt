@@ -64,7 +64,9 @@ import com.ftrono.DJames.application.filter
 import com.ftrono.DJames.application.vocDir
 import com.ftrono.DJames.application.vocHeads
 import com.ftrono.DJames.application.vocSectionIdentifier
-import com.ftrono.DJames.dialogs.DialogEditVocabulary
+import com.ftrono.DJames.dialogs.EditVocArtist
+import com.ftrono.DJames.dialogs.EditVocContact
+import com.ftrono.DJames.dialogs.EditVocPlaylist
 import com.ftrono.DJames.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.HeaderWithSign
 import com.ftrono.DJames.ui.OptionsItem
@@ -113,12 +115,24 @@ fun VocabularyScreen(
     if (deleteVocOn.value) {
         DialogDeleteVocabulary(mContext, deleteVocOn, vocabulary, keyState, currentCatState.value)
     }
+
     val editVocOn = rememberSaveable { mutableStateOf(if (editPreview == "") false else true) }
+
+    var editKey = ""
     if (editPreview != "") {
-        DialogEditVocabulary(mContext, editVocOn, vocabulary, keyState, editPreview, preview)
+        editKey = editPreview
     } else if (editVocOn.value) {
-        DialogEditVocabulary(mContext, editVocOn, vocabulary, keyState, currentCatState.value, preview)
+        editKey = currentCatState.value
     }
+
+    if (editVocOn.value) {
+        when (editKey) {
+            "artist" -> EditVocArtist(mContext, editVocOn, vocabulary, keyState, filter=editKey, preview)
+            "playlist" -> EditVocPlaylist(mContext, editVocOn, vocabulary, keyState, filter=editKey, preview)
+            "contact" -> EditVocContact(mContext, editVocOn, vocabulary, keyState, filter=editKey, preview)
+        }
+    }
+
     var mDisplayMainMenu = rememberSaveable {
         mutableStateOf(false)
     }

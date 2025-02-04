@@ -17,13 +17,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -38,6 +38,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -69,7 +70,7 @@ import com.ftrono.DJames.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.HeaderWithSign
 import com.ftrono.DJames.ui.OptionsItem
 import com.ftrono.DJames.ui.OptionsMenu
-import com.ftrono.DJames.ui.SplitterSign
+import com.ftrono.DJames.ui.SplitterCat
 import com.ftrono.DJames.ui.StreetBackground
 import com.ftrono.DJames.ui.vocColorSelectorLight
 import com.ftrono.DJames.ui.vocIconSelector
@@ -98,9 +99,9 @@ fun VocabularyScreen(
     val mContext = LocalContext.current
     //Descriptions:
     val subtitles = mapOf(
-        "artist" to "Save your favourite artists & links",
-        "playlist" to "Play songs from these playlists",
-        "contact" to "People to call or message"
+        "artist" to "My artists to play",
+        "playlist" to "Play songs from...",
+        "contact" to "Call or message..."
     )
     //Statuses:
     val keyState = rememberSaveable { mutableStateOf("") }
@@ -138,58 +139,28 @@ fun VocabularyScreen(
     //SCAFFOLD FOR FAB:
     Scaffold(
         floatingActionButton = {
-            Column (
-                horizontalAlignment = Alignment.End
-            ) {
-
-                //1) CAT OPTIONS:
-                if (isLandscape) {
-                    Box() {
-                        FloatingActionButton(
-                            containerColor = colorResource(id = R.color.dark_grey_background),
-                            onClick = {
-                                mDisplayMainMenu.value = !mDisplayMainMenu.value
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = "Add vocKeys item",
-                                tint = colorResource(id = R.color.colorAccentLight)
-                            )
-                        }
-                        CatOptions(
-                            mContext = mContext,
-                            vocKeys = vocKeys,
-                            mDisplayMenu = mDisplayMainMenu,
-                            deleteVocOn = deleteVocOn,
-                            head = currentCatState.value
-                        )
-                    }
+            //FAB -> ADD NEW ITEM:
+            ExtendedFloatingActionButton(
+                containerColor = colorResource(id = R.color.colorAccent),
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add library item",
+                        tint = colorResource(id = R.color.light_grey)
+                    )
+                },
+                text = {
+                    Text(
+                        text = "Add",
+                        color = colorResource(id = R.color.light_grey),
+                        fontSize = 16.sp
+                    )
+                },
+                onClick = {
+                    keyState.value = ""
+                    editVocOn.value = true
                 }
-
-                //2) ADD NEW ITEM:
-                ExtendedFloatingActionButton(
-                    containerColor = colorResource(id = R.color.colorAccent),
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add vocabulary item",
-                            tint = colorResource(id = R.color.light_grey)
-                        )
-                    },
-                    text = {
-                        Text(
-                            text = "Add",
-                            color = colorResource(id = R.color.light_grey),
-                            fontSize = 16.sp
-                        )
-                    },
-                    onClick = {
-                        keyState.value = ""
-                        editVocOn.value = true
-                    }
-                )
-            }
+            )
         }
     ) {
 
@@ -218,8 +189,9 @@ fun VocabularyScreen(
                         if (!isLandscape) {
                             HeaderWithSign(
                                 iconRes = painterResource(id = R.drawable.sign_fork),
-                                title = "Vocabulary",
-                                subtitle = "Help DJames understand you"
+                                title = "Library",
+                                subtitle = subtitles[currentCatState.value]!!,
+                                num = vocKeys.value.size
                             ){
                                 Box() {
                                     //1) CAT OPTIONS:
@@ -231,7 +203,7 @@ fun VocabularyScreen(
                                                 mDisplayMainMenu.value = !mDisplayMainMenu.value
                                             },
                                         imageVector = Icons.Default.MoreVert,
-                                        contentDescription = "Add vocabulary item",
+                                        contentDescription = "Add library item",
                                         tint = colorResource(id = R.color.colorAccentLight)
                                     )
                                     CatOptions(
@@ -245,11 +217,69 @@ fun VocabularyScreen(
                             }
                         }
 
-                        SplitterSign(
-                            currentCatState = currentCatState,
-                            vocabulary = vocKeys,
-                            preview = preview
-                        )
+                        //CAT SELECTORS:
+                        Row (
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Row (
+                                modifier = Modifier
+                                    .weight(1f),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                //BUTTONS:
+                                for (head in vocHeads) {
+                                    SplitterCat(
+                                        currentCatState = currentCatState,
+                                        vocabulary = vocKeys,
+                                        head = head,
+                                        title = "${head.replaceFirstChar { it.uppercase() }}s",
+                                        selected = currentCatState.value == head,
+                                        num = if (isLandscape && currentCatState.value == head) vocKeys.value.size else null,
+                                        preview = preview
+                                    )
+                                    //DIVIDERS:
+//                                    if (head != vocHeads.last()) {
+//                                        VerticalDivider(
+//                                            modifier = Modifier
+//                                                .padding(start = 4.dp, end = 4.dp)
+//                                                .height(30.dp)
+//                                                .wrapContentWidth(),
+//                                            thickness = 2.dp,
+//                                            color = colorResource(id = R.color.faded_grey)
+//                                        )
+//                                    }
+                                }
+                            }
+                            //CAT OPTIONS:
+                            if (isLandscape) {
+                                Box() {
+                                    Icon(
+                                        modifier = Modifier
+                                            .padding(end = 18.dp)
+                                            .size(30.dp)
+                                            .clickable {
+                                                mDisplayMainMenu.value = !mDisplayMainMenu.value
+                                            },
+                                        imageVector = Icons.Default.MoreVert,
+                                        contentDescription = "Library options",
+                                        tint = colorResource(id = R.color.colorAccentLight)
+                                    )
+
+                                    CatOptions(
+                                        mContext = mContext,
+                                        vocKeys = vocKeys,
+                                        mDisplayMenu = mDisplayMainMenu,
+                                        deleteVocOn = deleteVocOn,
+                                        head = currentCatState.value
+                                    )
+                                }
+                            }
+                        }
+
                     }
                 }
 
@@ -258,38 +288,6 @@ fun VocabularyScreen(
                     modifier = Modifier
                         .fillMaxSize()
                 ) {
-
-                    //SECTION HEADER:
-                    Row(
-                        modifier = Modifier
-                            .background(colorResource(id = R.color.windowBackground))
-                            .fillMaxWidth()
-                            .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-
-                        //N items:
-                        Text(
-                            modifier = Modifier
-                                .padding(start=6.dp),
-                            text = if (vocKeys.value.size == 1) "1 item" else "${vocKeys.value.size} items" + "  •  ",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            //textAlign = TextAlign.Center,
-                            color = vocColorSelectorLight(cat = currentCatState.value)
-                        )
-                        //Description:
-                        Text(
-                            modifier = Modifier
-                                .padding(end=6.dp),
-                            text = "${subtitles[currentCatState.value]!!}",
-                            fontSize = 14.sp,
-                            //fontWeight = FontWeight.Bold,
-                            //textAlign = TextAlign.Center,
-                            color = colorResource(id = R.color.mid_grey)
-                        )
-                    }
 
                     //CONTENT:
                     VocSectionContent(

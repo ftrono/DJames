@@ -235,75 +235,39 @@ fun HeaderSign(
 @Composable
 fun SplitterPreview() {
     val mContext = LocalContext.current
-    val currentCatState = rememberSaveable { mutableStateOf(vocHeads[0]) }
+    val cur = vocHeads[2]
+    val currentCatState = rememberSaveable { mutableStateOf(cur) }
     val vocabulary = rememberSaveable {
         mutableStateOf(getVocKeys(mContext, currentCatState.value, true))
     }
-    SplitterSign(
+
+    SplitterCat(
         currentCatState = currentCatState,
         vocabulary = vocabulary,
+        head = cur,
+        title = "${cur.replaceFirstChar { it.uppercase() }}s",
+        selected = currentCatState.value == cur,
+        num = vocabulary.value.size,
         preview = true
     )
 }
 
 
 @Composable
-fun SplitterSign(
-    currentCatState: MutableState<String>,
-    vocabulary: MutableState<List<String>>,
-    preview: Boolean = false
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        //ITEM 1:
-        for (head in vocHeads) {
-            SplitterCat(
-                modifier = Modifier
-                    .weight(0.3f),
-                currentCatState = currentCatState,
-                vocabulary = vocabulary,
-                head = head,
-                title = "${head.replaceFirstChar { it.uppercase() }}s",
-                selected = currentCatState.value == head,
-                preview = preview
-            )
-            if (head != vocHeads.last()) {
-                VerticalDivider(
-                    modifier = Modifier
-                        .padding(start = 4.dp, end = 4.dp)
-                        .height(30.dp)
-                        .wrapContentWidth(),
-                    thickness = 2.dp,
-                    color = colorResource(id = R.color.faded_grey)
-                )
-            }
-
-        }
-
-    }
-}
-
-
-@Composable
 fun SplitterCat(
-    modifier: Modifier,
     currentCatState: MutableState<String>,
     vocabulary: MutableState<List<String>>,
     head: String,
     title: String,
     selected: Boolean,
+    num: Int? = null,
     preview: Boolean = false
 ){
     val mContext = LocalContext.current
     Card(
-        modifier = modifier
+        modifier = Modifier
             .padding(start = 6.dp, end = 6.dp)
-            .fillMaxWidth()
+            .wrapContentWidth()
             .clickable {
                 currentCatState.value = head
                 vocabulary.value = getVocKeys(mContext, currentCatState.value, preview)
@@ -321,7 +285,7 @@ fun SplitterCat(
         Row(
             modifier = Modifier
                 .padding(8.dp)
-                .fillMaxWidth(),
+                .wrapContentWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
@@ -329,7 +293,7 @@ fun SplitterCat(
             Icon(
                 modifier = Modifier
                     .padding(start = 4.dp, end = 4.dp)
-                    .size(20.dp),
+                    .size(18.dp),
                 painter = vocIconSelector(head),
                 contentDescription = "category",
                 tint = colorResource(id = R.color.light_grey)
@@ -337,14 +301,26 @@ fun SplitterCat(
             //Title:
             Text(
                 modifier = Modifier
-                    .padding(end = 4.dp)
-                    .wrapContentWidth(),
+                    .padding(end = 6.dp),
                 text = title,
-                fontSize = 16.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorResource(id = R.color.light_grey),
                 maxLines = 1
             )
+            if (selected && num != null) {
+                //Title:
+                Text(
+                    modifier = Modifier
+                        .padding(start = 4.dp, end = 4.dp)
+                        .wrapContentWidth(),
+                    text = num.toString(),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colorResource(id = R.color.light_grey),
+                    maxLines = 1
+                )
+            }
         }
     }
 }

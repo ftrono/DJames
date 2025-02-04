@@ -9,14 +9,13 @@ import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.likedSongsUri
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.nlp.NLPExtractor
-import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
 
 
 class SpotifyFulfillment (private var context: Context) {
     private val TAG = SpotifyFulfillment::class.java.simpleName
-    private val utils = Utilities()
 
 
     //Play a song (with custom context), an album, an artist or a playlist: PART 1:
@@ -196,7 +195,7 @@ class SpotifyFulfillment (private var context: Context) {
         var artistConfirmed = ""
         var artistJson = JsonObject()
         var contextExtracted = extractorInfo.get("context_extracted").asString
-        var playlistMatch = JsonObject()
+        var playlistMatch = ""
 
         if (artistExtracted != "") {
             //Confirm artists with vocabulary check:
@@ -241,20 +240,20 @@ class SpotifyFulfillment (private var context: Context) {
 
             } else if (playType == "track") {
                 //Confirm context playlist with vocabulary check:
-                playlistMatch = nlpExtractor.matchVocabulary("playlist", contextExtracted, utils.getVocabulary("playlist"))
+                playlistMatch = nlpExtractor.matchVocabulary("playlist", contextExtracted)
 
-                if (playlistMatch.has("text_confirmed")) {
+                if (playlistMatch != "") {
                     Log.d(TAG, "Context -> Playlist in voc")
-                    var contextConfirmed = playlistMatch.get("text_confirmed").asString
-                    var playlistUrl = playlistMatch.get("detail_confirmed").asString
-                    var playlistId = playlistUrl.split("/").last()
-                    extractorInfo.addProperty("context_confirmed", contextConfirmed)
+                    //Get playlist URL:
+                    val playlistUrl = utils.getPlayUrl("playlist", playlistMatch)
+                    val playlistId = playlistUrl.split("/").last()
+                    extractorInfo.addProperty("context_confirmed", playlistMatch)
 
                     //Context -> Playlist:
-                    var uri = "spotify:playlist:${playlistId}"
+                    val uri = "spotify:playlist:${playlistId}"
                     playInfo.addProperty("context_type", "playlist")
                     playInfo.addProperty("context_uri", uri)
-                    playInfo.addProperty("context_name", contextConfirmed)
+                    playInfo.addProperty("context_name", playlistMatch)
                 } else {
                     //Playlist not found:
                     contextAlbum = true
@@ -323,7 +322,7 @@ class SpotifyFulfillment (private var context: Context) {
         var contextConfirmed = ""
         var artistPlaylist = ""
         var bySpotify = false
-        var playlistMatch = JsonObject()
+        var playlistMatch = ""
         var playInfo = JsonObject()
 
         var extractorInfo = JsonObject()
@@ -336,8 +335,9 @@ class SpotifyFulfillment (private var context: Context) {
         if (playType == "artist") {
             //bySpotify = true
             //Confirm artists with vocabulary check:
+            //TODO: Extract name of artist playlist to play
             val artistsNlp = resultsNLP.get("artists").asJsonArray
-            artistJson = nlpExtractor.checkArtists(artistsNlp, matchName, reqLanguage=reqLangCode)
+            artistJson = nlpExtractor.checkArtists(artistsNlp, matchName, reqLanguage=reqLangCode)   //TODO: add playlistName to extract
             artistConfirmed = artistJson.get("text_confirmed").asString
             extractorInfo.addProperty("text_confirmed", artistConfirmed)
             extractorInfo.addProperty("artist_confirmed", artistConfirmed)
@@ -364,21 +364,22 @@ class SpotifyFulfillment (private var context: Context) {
 
         } else if (playType == "playlist") {
             //Check playlist in vocabulary:
-            playlistMatch = nlpExtractor.matchVocabulary("playlist", matchName, utils.getVocabulary("playlist"))
+            playlistMatch = nlpExtractor.matchVocabulary(playType, matchName)
 
-            if (playlistMatch.has("text_confirmed")) {
+            if (playlistMatch != "") {
                 Log.d(TAG, "PLAY -> Playlist in voc")
-                var playlistUrl = playlistMatch.get("detail_confirmed").asString
-                contextConfirmed = playlistMatch.get("text_confirmed").asString
+                //Get playlist URL:
+                val playlistUrl = utils.getPlayUrl(playType, playlistMatch)
+                contextConfirmed = playlistMatch
                 extractorInfo.addProperty("text_confirmed", contextConfirmed)
                 extractorInfo.addProperty("context_confirmed", contextConfirmed)
-                var playlistId = playlistUrl.split("/").last()
+                val playlistId = playlistUrl.split("/").last()
 
                 //PLAY -> Playlist:
-                playInfo.addProperty("play_type", "playlist")
-                playInfo.addProperty("context_type", "playlist")
+                playInfo.addProperty("play_type", playType)
+                playInfo.addProperty("context_type", playType)
                 playInfo.addProperty("match_name", contextConfirmed)
-                var uri = "spotify:playlist:${playlistId}"
+                val uri = "spotify:playlist:${playlistId}"
                 playInfo.addProperty("uri", uri)
                 playInfo.addProperty("context_uri", uri)
                 playInfo.addProperty("context_name", contextConfirmed)
@@ -456,7 +457,7 @@ class SpotifyFulfillment (private var context: Context) {
 
             //PLAY:
             val spotifyPlayer = SpotifyPlayer(context)
-            var ret = spotifyPlayer.spotifyPlay(playInfo)
+            spotifyPlayer.spotifyPlay(playInfo)
         }
 
         //Build return

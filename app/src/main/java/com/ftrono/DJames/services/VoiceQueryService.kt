@@ -31,10 +31,10 @@ import com.ftrono.DJames.application.silenceInitPatience
 import com.ftrono.DJames.application.silencePatience
 import com.ftrono.DJames.application.sourceIsVolume
 import com.ftrono.DJames.application.streamMaxVolume
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.nlp.NLPDispatcher
 import com.ftrono.DJames.recorder.AndroidAudioRecorder
 import com.ftrono.DJames.recorder.AudioRecorder
-import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
 import java.io.File
 
@@ -42,7 +42,6 @@ import java.io.File
 class VoiceQueryService: Service() {
     //Main:
     private val TAG = VoiceQueryService::class.java.simpleName
-    private val utils = Utilities()
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
     private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 

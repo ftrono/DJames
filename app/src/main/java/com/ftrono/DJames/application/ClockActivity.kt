@@ -65,7 +65,6 @@ import com.ftrono.DJames.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.RoundedSign
 import com.ftrono.DJames.ui.theme.ClockTheme
 import com.ftrono.DJames.ui.theme.black
-import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -74,7 +73,6 @@ import java.time.format.DateTimeFormatter
 class ClockActivity: ComponentActivity() {
 
     private val TAG: String = ClockActivity::class.java.getSimpleName()
-    private val utils = Utilities()
 
     //Parameters:
     private val dateFormat = DateTimeFormatter.ofPattern("E, dd MMM")

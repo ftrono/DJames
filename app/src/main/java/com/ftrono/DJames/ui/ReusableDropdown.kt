@@ -26,10 +26,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.messLangCaps
+import com.ftrono.DJames.application.messLangFull
 import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.queryLangCaps
+import com.ftrono.DJames.application.queryLangFull
 import com.ftrono.DJames.application.queryLangCodes
 import com.ftrono.DJames.screen.restartOverlay
 
@@ -49,7 +49,7 @@ fun DropdownSpinner(
 ) {
     //"PREFNAME" ARG IS TO SELECT PREF TO OVERWRITE!!!
     var isExpanded by remember { mutableStateOf(false) }
-    var selectedOptionText by remember { mutableStateOf(if (init != "0" && init != "1") init else "Italian") }
+    var selectedOptionText by remember { mutableStateOf(init) }
     //TODO: TEMP:
     if (init == "0" || init == "1") {
         state.value = "it"
@@ -120,10 +120,10 @@ fun DropdownSpinner(
                             state.value = selectionOption
                             restartOverlay(mContext)
                         } else if (prefName == "queryLanguage") {
-                            prefs.queryLanguage = queryLangCodes[queryLangCaps.indexOf(selectionOption)]
+                            prefs.queryLanguage = queryLangCodes[queryLangFull.indexOf(selectionOption)]
                             state.value = selectionOption
                         } else if (prefName == "messageLanguage") {
-                            prefs.messageLanguage = messLangCodes[messLangCaps.indexOf(selectionOption)]
+                            prefs.messageLanguage = messLangCodes[messLangFull.indexOf(selectionOption)]
                             state.value = selectionOption
                         } else {
                             state.value = selectionOption

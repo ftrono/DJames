@@ -74,6 +74,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.dialogs.GeneralDialog
+import com.ftrono.DJames.screen.getVocKeys
 import com.ftrono.DJames.screen.updateHistory
 import com.ftrono.DJames.services.OverlayService
 import com.ftrono.DJames.ui.Navigation
@@ -83,7 +84,6 @@ import com.ftrono.DJames.ui.navigateTo
 import com.ftrono.DJames.ui.theme.DJamesTheme
 import com.ftrono.DJames.ui.theme.NavigationItem
 import com.ftrono.DJames.ui.theme.windowBackground
-import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonParser
 import kotlinx.coroutines.launch
 import okhttp3.Request
@@ -94,7 +94,6 @@ import java.lang.Thread.sleep
 class MainActivity : ComponentActivity() {
 
     private val TAG: String = MainActivity::class.java.getSimpleName()
-    private var utils = Utilities()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -132,6 +131,7 @@ class MainActivity : ComponentActivity() {
         val actFilter = IntentFilter()
         actFilter.addAction(ACTION_FINISH_MAIN)
         actFilter.addAction(ACTION_LOG_REFRESH)
+        actFilter.addAction(ACTION_LIBRARY_REFRESH)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
         registerReceiver(mainActReceiver, actFilter, RECEIVER_EXPORTED)
@@ -145,27 +145,22 @@ class MainActivity : ComponentActivity() {
                 logDir!!.mkdir()
             }
             historyKeys.postValue(updateHistory(this@MainActivity))
-            //Init vocabulary directory:
-            vocDir = File(cacheDir, "vocabulary")
-            if (!vocDir!!.exists()) {
-                vocDir!!.mkdir()
+            //Init library directories:
+            libraryDir = File(cacheDir, "library")
+            if (!libraryDir!!.exists()) {
+                libraryDir!!.mkdir()
             }
+            //LOAD KEYS:
+            artistsKeys.postValue(getVocKeys(this@MainActivity, "artist"))
+            playlistsKeys.postValue(getVocKeys(this@MainActivity, "playlist"))
+            contactsKeys.postValue(getVocKeys(this@MainActivity, "contact"))
             //delete older logs:
             utils.deleteOldLogs()
+            //delete older cached Library files:
+            utils.cleanLibraryCache(this@MainActivity)
             //delete older recFiles in cache:
             if (!overlayActive.value!!) {
-                try {
-                    File(cacheDir, "$recFileName.mp3").delete()
-                    Log.d(TAG, "Recording mp3 deleted.")
-                } catch (e: Exception) {
-                    Log.w(TAG, "Recording mp3 not deleted.")
-                }
-                try {
-                    File(cacheDir, "$recFileName.flac").delete()
-                    Log.d(TAG, "Recording flac deleted.")
-                } catch (e: Exception) {
-                    Log.w(TAG, "Recording flac not deleted.")
-                }
+                utils.cleanOlderRecs(this@MainActivity)
             }
         }
 
@@ -604,7 +599,6 @@ class MainActivity : ComponentActivity() {
     //LOGOUT:
     fun logout(context: Context) {
         //Delete tokens & user details:
-        var utils = Utilities()
         spotifyLoggedIn.postValue(false)
         prefs.spotifyToken = ""
         prefs.refreshToken = ""
@@ -634,6 +628,15 @@ class MainActivity : ComponentActivity() {
             if (intent.action == ACTION_LOG_REFRESH) {
                 Log.d(TAG, "HISTORY: ACTION_LOG_REFRESH.")
                 historyKeys.postValue(updateHistory(context!!))   //Refresh list
+            }
+
+            //Refresh Library list:
+            if (intent.action == ACTION_LIBRARY_REFRESH) {
+                Log.d(TAG, "HISTORY: ACTION_LIBRARY_REFRESH.")
+                //REFRESH KEYS:
+                artistsKeys.postValue(getVocKeys(this@MainActivity, "artist"))
+                playlistsKeys.postValue(getVocKeys(this@MainActivity, "playlist"))
+                contactsKeys.postValue(getVocKeys(this@MainActivity, "contact"))
             }
 
         }

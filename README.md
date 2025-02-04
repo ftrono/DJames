@@ -15,6 +15,8 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
+**Version 2.2.1 (2025-02-04)** - Migrated Vocabulary to new Library structure (using JSON files).
+
 **Version 2.2.0 (2025-01-18)** - StreetSign-UI FE completed and fully consistent, add Splash Screen, libs cleaning.
 
 **Version 2.1.6 (2025-01-17)** - Reworked History update status.

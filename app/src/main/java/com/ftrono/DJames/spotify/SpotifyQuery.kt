@@ -5,7 +5,7 @@ import android.util.Log
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.client
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.utilities.Utilities
+import com.ftrono.DJames.application.utils
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -21,7 +21,6 @@ import java.util.Base64
 
 class SpotifyQuery(private val context: Context) {
     private val TAG = SpotifyQuery::class.java.simpleName
-    private var utils = Utilities()
 
     //REFRESHER:
     fun refreshAuth(context: Context) {

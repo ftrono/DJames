@@ -8,7 +8,7 @@ import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.maxThreshold
 import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.utilities.Utilities
+import com.ftrono.DJames.application.utils
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
 import me.xdrop.fuzzywuzzy.FuzzySearch
@@ -19,7 +19,6 @@ import kotlin.math.roundToInt
 
 class NLPExtractor (private val context: Context) {
     private val TAG = NLPExtractor::class.java.simpleName
-    private val utils = Utilities()
 
     //SONGS + ALBUM: Extract play info:
     fun extractPlayInfo(queryText: String, reqLanguage: String, playType: String, contextType: String): JsonObject {
@@ -115,7 +114,8 @@ class NLPExtractor (private val context: Context) {
 
 
     //Double check artists between DF & NLP Extractor:
-    fun checkArtists(artistsNlp: JsonArray, artistExtracted: String, reqLanguage: String): JsonObject {
+    fun checkArtists(artistsNlp: JsonArray, artistExtracted: String, reqLanguage: String, playlistName: String = "default"): JsonObject {
+        val filter = "artist"
         var artistConfirmed = ""
 
         //1) CHECK NLP ENTITIES VS ORIGINAL TEXT EXTRACTION:
@@ -165,15 +165,12 @@ class NLPExtractor (private val context: Context) {
         artistJson.addProperty("text_confirmed", artistConfirmed)
 
         //2) Hand check artist evalued against user vocabulary:
-        var vocArtists = utils.getVocabulary(filter="artist")
-        var vocMatch = matchVocabulary(filter="artist", text=artistConfirmed, vocJson=vocArtists)
-        if (!vocMatch.isEmpty) {
+        val vocMatch = matchVocabulary(filter, text=artistConfirmed)
+        if (vocMatch != "") {
             //Replace:
-            artistConfirmed = vocMatch.get("text_confirmed").asString
+            artistConfirmed = vocMatch
             artistJson.addProperty("text_confirmed", artistConfirmed)
-            if (vocMatch.has("detail_confirmed")) {
-                artistJson.addProperty("detail_confirmed", vocMatch.get("detail_confirmed").asString)
-            }
+            artistJson.addProperty("detail_confirmed", utils.getPlayUrl(filter, artistConfirmed, playlistName))
         }
         Log.d(TAG, "ARTIST CONFIRMED: $artistJson")
         return  artistJson
@@ -181,9 +178,9 @@ class NLPExtractor (private val context: Context) {
 
 
     //Match item from user query against user vocabulary:
-    fun matchVocabulary(filter: String, text: String, vocJson: JsonObject): JsonObject {
-        var matchConfirmed = JsonObject()
-        val vocArray = vocJson.keySet().toList()
+    fun matchVocabulary(filter: String, text: String): String {
+        var matchName = ""
+        val vocArray = utils.getLibraryKeys(filter)
         if (text != "" && vocArray.isNotEmpty()) {
             //Init:
             var score = 0
@@ -220,56 +217,31 @@ class NLPExtractor (private val context: Context) {
                     }
                 }
             }
-
+            //Final:
             if (listConfirmed.isNotEmpty()) {
-                //Final:
                 Log.d(TAG, "listConfirmed: $listConfirmed")
-                var matchName = listConfirmed[0]
-                var itemDetails = JsonObject()
-                matchConfirmed.addProperty("text_confirmed", matchName)
-                Log.d(TAG, vocJson.toString())
-                if (filter == "artist" && matchName in vocArray) {
-                    itemDetails = vocJson.get(matchName).asJsonObject
-                    if (itemDetails.has("playlist_URL")) {
-                        matchConfirmed.addProperty("detail_confirmed", itemDetails.get("playlist_URL").asString)
-                    }
-                } else if (filter == "playlist") {
-                    itemDetails = vocJson.get(matchName).asJsonObject
-                    matchConfirmed.addProperty("detail_confirmed", itemDetails.get("playlist_URL").asString)
-                } else if(filter == "contact") {
-                    itemDetails = vocJson.get(matchName).asJsonObject
-                    var prefix = itemDetails.get("prefix").asString
-                    var phone = itemDetails.get("phone").asString
-                    matchConfirmed.addProperty("detail_confirmed", "${prefix}${phone}")
-                    if (itemDetails.has("contact_language")) {
-                        var language = itemDetails.get("contact_language").asString
-                        matchConfirmed.addProperty("contact_language", "$language")
-                    }
-                }
-                Log.d(TAG, "VOCABULARY MATCH: ${matchConfirmed.get("text_confirmed")}")
+                matchName = listConfirmed[0]
+                Log.d(TAG, "VOCABULARY MATCH: $matchName")
             }
         }
-
-        return matchConfirmed
+        return matchName
     }
 
 
     //Match contact from user query against user vocabulary:
     fun extractContact(queryText: String, fullLanguage: String = ""): JsonObject {
-        var phone = ""
+        val filter = "contact"
         var queryClean = queryText
         //Init log:
-        var contactExtractor = JsonObject()
-        contactExtractor.addProperty("contact_extracted", "")
-        contactExtractor.addProperty("contact_confirmed", "")
-        contactExtractor.addProperty("contact_phone", "")
-        contactExtractor.addProperty("contact_language", "")
+        var contactConfirmed = JsonObject()
+        contactConfirmed.addProperty("contact_extracted", "")
+        contactConfirmed.addProperty("contact_confirmed", "")
+        contactConfirmed.addProperty("contact_phone", "")
+        contactConfirmed.addProperty("contact_language", "")
 
         //Get user vocabulary:
-        var vocContacts = utils.getVocabulary(filter="contact")
-        if (vocContacts.isEmpty()) {
-            return contactExtractor
-        } else {
+        var vocContacts = utils.getLibraryKeys(filter)
+        if (vocContacts.isNotEmpty()) {
             //Search items:
             var reader: BufferedReader? = null
             //Calls / message requests -> only use default query language:
@@ -312,24 +284,25 @@ class NLPExtractor (private val context: Context) {
                 //slice:
                 Log.d(TAG, "TO_STR: $toStr")
                 var contactExtracted = queryClean.slice((toInd + toStr.length)..queryClean.lastIndex).strip()
-                contactExtractor.addProperty("contact_extracted", contactExtracted)
+                contactConfirmed.addProperty("contact_extracted", contactExtracted)
                 Log.d(TAG, "CONTACT EXTRACTED: $contactExtracted")
                 //2) Match extracted contact name with user vocabulary:
-                var vocMatch = matchVocabulary(filter="contact", text=contactExtracted, vocJson=vocContacts)
-                if (!vocMatch.isEmpty) {
+                val vocMatch = matchVocabulary(filter, text=contactExtracted)
+                if (vocMatch != "") {
+                    val contactObj = utils.getLibraryItem(filter, vocMatch)
+                    val mainObj = contactObj.get("main").asJsonObject
+                    val prefix = mainObj.get("prefix").asString
+                    val phone = mainObj.get("phone").asString
                     //Replace:
-                    phone = vocMatch.get("detail_confirmed").asString
-                    contactExtractor.addProperty("contact_confirmed", vocMatch.get("text_confirmed").asString)
-                    contactExtractor.addProperty("contact_phone", phone)
-                    if (vocMatch.has("contact_language")) {
-                        contactExtractor.addProperty("contact_language", vocMatch.get("contact_language").asString)
-                    }
+                    contactConfirmed.addProperty("contact_confirmed", vocMatch)
+                    contactConfirmed.addProperty("contact_phone", "${prefix}${phone}")
+                    contactConfirmed.addProperty("contact_language", contactObj.get("language").asString)
                 }
-                Log.d(TAG, "CONTACT CONFIRMED: $contactExtractor")
+                Log.d(TAG, "CONTACT CONFIRMED: $contactConfirmed")
             }
         }
-        last_log!!.add("contact_extractor", contactExtractor)
-        return contactExtractor
+        last_log!!.add("contact_extractor", contactConfirmed)
+        return contactConfirmed
     }
 
 }

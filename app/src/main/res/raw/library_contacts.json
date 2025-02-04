@@ -1,0 +1,55 @@
+{
+    "amal": {
+        "name": "Amal",
+        "alias": "amal",
+        "language": "",
+        "main": {
+            "prefix": "+39",
+            "phone": "3331122333"
+        }
+    },
+    "giorgio": {
+        "prefix": "+39",
+        "phone": "3320123456"
+    },
+    "granny": {
+        "prefix": "+39",
+        "phone": "3340123567"
+    },
+    "mammood": {
+        "prefix": "+39",
+        "phone": "3320011234"
+    },
+    "mario": {
+        "prefix": "+39",
+        "phone": "3312345678"
+    },
+    "mom work": {
+        "prefix": "+39",
+        "phone": "3356789012"
+    },
+    "myself": {
+        "prefix": "+39",
+        "phone": "3421234567"
+    },
+    "paolo": {
+        "prefix": "+39",
+        "phone": "3561234567"
+    },
+    "papooth": {
+        "prefix": "+39",
+        "phone": "3301234567"
+    },
+    "pier": {
+        "prefix": "+39",
+        "phone": "3356789234"
+    },
+    "ricky": {
+        "prefix": "+39",
+        "phone": "3325678912"
+    },
+    "simon": {
+        "prefix": "+39",
+        "phone": "3378901234"
+    }
+}

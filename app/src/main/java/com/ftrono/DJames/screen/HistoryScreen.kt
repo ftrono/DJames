@@ -54,6 +54,7 @@ import com.ftrono.DJames.application.historyKeys
 import com.ftrono.DJames.application.logDir
 import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.playThreshold
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.HeaderWithSign
 import com.ftrono.DJames.ui.OptionsItem
@@ -61,7 +62,6 @@ import com.ftrono.DJames.ui.OptionsMenu
 import com.ftrono.DJames.ui.StreetBackground
 import com.ftrono.DJames.ui.historyColorSelectorLight
 import com.ftrono.DJames.ui.historyIconSelector
-import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import java.io.BufferedReader
@@ -458,7 +458,6 @@ fun getHistoryItemInfo(item: JsonObject, context: Context): JsonObject {
             ""
         }
 
-        var utils = Utilities()
         if (playType == "playlist") {
             //Playlist / artist / collection:
             var matchName = item.get("spotify_play").asJsonObject.get("context_name").asString.split(" ").map { it.lowercase().capitalize(
@@ -572,7 +571,6 @@ fun updateHistory(mContext: Context, preview: Boolean = false): List<String> {
         return logKeys
     } else {
         //Real data:
-        val utils = Utilities()
         val logKeys = utils.getLogKeys()
         //Log.d("Items", logKeys.toString())
         return logKeys
@@ -589,10 +587,9 @@ fun getHistoryItem(mContext: Context, key: String, preview: Boolean = false): Js
         return logItem
     } else {
         //Real data:
-        val utils = Utilities()
-        val logKeys = utils.getLogItem(key)
-        //Log.d("Items", logKeys.toString())
-        return logKeys
+        val logItem = utils.getLogItem(key)
+        //Log.d("Item", logItem.toString())
+        return logItem
     }
 }
 

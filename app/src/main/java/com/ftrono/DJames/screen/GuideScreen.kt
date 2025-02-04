@@ -47,6 +47,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.settingsOpen
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.GeneralSectionHeader
 import com.ftrono.DJames.ui.HeaderWithSign
 import com.ftrono.DJames.ui.StreetBackground
@@ -55,7 +56,6 @@ import com.ftrono.DJames.ui.guideColorSelectorLight
 import com.ftrono.DJames.ui.guideIconSelector
 import com.ftrono.DJames.ui.navigateTo
 import com.ftrono.DJames.ui.theme.NavigationItem
-import com.ftrono.DJames.utilities.Utilities
 
 
 @Preview
@@ -70,7 +70,6 @@ fun GuideScreenPreview() {
 fun GuideScreen(navController: NavController) {
     val mContext = LocalContext.current
     val settingsOpenState by settingsOpen.observeAsState()
-    val utils = Utilities()
     var guideItems = utils.getGuideArray(mContext)
     var guideStateItems = utils.getGuideStateItems(guideItems)
     val expandedStates = remember {
@@ -216,7 +215,6 @@ fun ExpandableGuideItem(
     expandedStates: SnapshotStateMap<String, Boolean>,
     currentExpanded: MutableState<String>
 ) {
-    val utils = Utilities()
     utils.updateStatesMap(expandedStates, target=currentExpanded.value)
     val itemStateName = "$cat - $requestIntro"
 

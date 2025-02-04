@@ -47,10 +47,10 @@ import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.spotifyLoggedIn
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.volumeUpEnabled
 import com.ftrono.DJames.services.OverlayService
 import com.ftrono.DJames.ui.StreetLine
-import com.ftrono.DJames.utilities.Utilities
 
 
 @Preview
@@ -221,7 +221,6 @@ fun BaloonArrowHome(isLandscape: Boolean) {
 @Composable
 fun StartButton(overlayActiveState: Boolean) {
     val mContext = LocalContext.current
-    val utils = Utilities()
     Button(
         modifier = Modifier
             .padding(top = 20.dp)

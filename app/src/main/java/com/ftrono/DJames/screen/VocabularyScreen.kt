@@ -3,7 +3,6 @@ package com.ftrono.DJames.screen
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -60,8 +59,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.filter
-import com.ftrono.DJames.application.vocDir
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.vocHeads
 import com.ftrono.DJames.application.vocSectionIdentifier
 import com.ftrono.DJames.dialogs.EditVocArtist
@@ -75,7 +73,6 @@ import com.ftrono.DJames.ui.SplitterSign
 import com.ftrono.DJames.ui.StreetBackground
 import com.ftrono.DJames.ui.vocColorSelectorLight
 import com.ftrono.DJames.ui.vocIconSelector
-import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import java.io.BufferedReader
@@ -108,12 +105,12 @@ fun VocabularyScreen(
     //Statuses:
     val keyState = rememberSaveable { mutableStateOf("") }
     val currentCatState = rememberSaveable { mutableStateOf(vocHeads[0]) }
-    val vocabulary = rememberSaveable {
+    val vocKeys = rememberSaveable {
         mutableStateOf(getVocKeys(mContext, currentCatState.value, preview))
     }
     val deleteVocOn = rememberSaveable { mutableStateOf(false) }
     if (deleteVocOn.value) {
-        DialogDeleteVocabulary(mContext, deleteVocOn, vocabulary, keyState, currentCatState.value)
+        DialogDeleteVocabulary(mContext, deleteVocOn, vocKeys, keyState, currentCatState.value)
     }
 
     val editVocOn = rememberSaveable { mutableStateOf(if (editPreview == "") false else true) }
@@ -127,9 +124,9 @@ fun VocabularyScreen(
 
     if (editVocOn.value) {
         when (editKey) {
-            "artist" -> EditVocArtist(mContext, editVocOn, vocabulary, keyState, filter=editKey, preview)
-            "playlist" -> EditVocPlaylist(mContext, editVocOn, vocabulary, keyState, filter=editKey, preview)
-            "contact" -> EditVocContact(mContext, editVocOn, vocabulary, keyState, filter=editKey, preview)
+            "artist" -> EditVocArtist(mContext, editVocOn, vocKeys, keyState, filter=editKey, preview)
+            "playlist" -> EditVocPlaylist(mContext, editVocOn, vocKeys, keyState, filter=editKey, preview)
+            "contact" -> EditVocContact(mContext, editVocOn, vocKeys, keyState, filter=editKey, preview)
         }
     }
 
@@ -156,13 +153,13 @@ fun VocabularyScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
-                                contentDescription = "Add vocabulary item",
+                                contentDescription = "Add vocKeys item",
                                 tint = colorResource(id = R.color.colorAccentLight)
                             )
                         }
                         CatOptions(
                             mContext = mContext,
-                            vocabulary = vocabulary,
+                            vocKeys = vocKeys,
                             mDisplayMenu = mDisplayMainMenu,
                             deleteVocOn = deleteVocOn,
                             head = currentCatState.value
@@ -239,7 +236,7 @@ fun VocabularyScreen(
                                     )
                                     CatOptions(
                                         mContext = mContext,
-                                        vocabulary = vocabulary,
+                                        vocKeys = vocKeys,
                                         mDisplayMenu = mDisplayMainMenu,
                                         deleteVocOn = deleteVocOn,
                                         head = currentCatState.value
@@ -250,7 +247,7 @@ fun VocabularyScreen(
 
                         SplitterSign(
                             currentCatState = currentCatState,
-                            vocabulary = vocabulary,
+                            vocabulary = vocKeys,
                             preview = preview
                         )
                     }
@@ -276,7 +273,7 @@ fun VocabularyScreen(
                         Text(
                             modifier = Modifier
                                 .padding(start=6.dp),
-                            text = if (vocabulary.value.size == 1) "1 item" else "${vocabulary.value.size} items" + "  •  ",
+                            text = if (vocKeys.value.size == 1) "1 item" else "${vocKeys.value.size} items" + "  •  ",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             //textAlign = TextAlign.Center,
@@ -297,7 +294,7 @@ fun VocabularyScreen(
                     //CONTENT:
                     VocSectionContent(
                         mContext = mContext,
-                        vocabulary = vocabulary,
+                        vocKeys = vocKeys,
                         currentCatState = currentCatState,
                         keyState = keyState,
                         editVocOn = editVocOn,
@@ -355,7 +352,7 @@ fun ChipOptions(
 @Composable
 fun VocSectionContent(
     mContext: Context,
-    vocabulary: MutableState<List<String>>,
+    vocKeys: MutableState<List<String>>,
     currentCatState: MutableState<String>,
     keyState: MutableState<String>,
     editVocOn: MutableState<Boolean>,
@@ -366,7 +363,7 @@ fun VocSectionContent(
 ) {
 
     //CONTENT:
-    if (vocabulary.value.isEmpty()) {
+    if (vocKeys.value.isEmpty()) {
         //VOCABULARY EMPTY:
         Text(
             text = "${currentCatState.value.replaceFirstChar { it.uppercase() }}s vocabulary\nis empty",
@@ -389,7 +386,7 @@ fun VocSectionContent(
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             //ITEMS:
-            vocabulary.value.forEach { key ->
+            vocKeys.value.forEach { key ->
                 if (key.contains(vocSectionIdentifier)) {
                     //HEADER:
                     item(
@@ -413,7 +410,7 @@ fun VocSectionContent(
                             preview = preview,
                             editPreview = editPreview
                         )
-                        if (key == vocabulary.value.last()) Spacer(modifier = Modifier.padding(60.dp))
+                        if (key == vocKeys.value.last()) Spacer(modifier = Modifier.padding(60.dp))
                     }
                 }
             }
@@ -463,7 +460,8 @@ fun VocItem(
     preview: Boolean = false,
     editPreview: String = ""
 ) {
-    val utils = Utilities()
+    //TODO: extract useful data:
+    val curItem = getVocItem(mContext, currentCatState.value, key, preview)
 
     //VOC CHIPS:
     Box(
@@ -523,12 +521,12 @@ fun VocItem(
                         fontSize = 14.sp,
                         lineHeight = 16.sp,
                         maxLines = if (head == "contact") 1 else 2,
-                        //fontStyle = if (key == "") null else FontStyle.Italic,
-                        fontWeight = FontWeight.Bold,
-                        text = if (key == "") "Add $head" else utils.trimString(key, 24)
+                        text = utils.trimString(key, 24)
+                        //fontWeight = FontWeight.Bold,
+                        //fontStyle = FontStyle.Italic,
                     )
                     //Item detail:
-                    if (head == "contact" && key != "") {
+                    if (head == "contact") {
                         Text(
                             modifier = Modifier
                                 .padding(top = 2.dp)
@@ -542,10 +540,11 @@ fun VocItem(
                             text = if (preview) {
                                 "3331122333"
                             } else {
-                                updateVocabulary(
-                                    mContext,
-                                    head
-                                ).get(key).asJsonObject.get("phone").asString
+                                try {
+                                    curItem.get("main").asJsonObject.get("phone").asString
+                                } catch (e: Exception) {
+                                    ""
+                                }
                             }
                         )
                     }
@@ -561,7 +560,7 @@ fun VocItem(
 @Composable
 fun CatOptions(
     mContext: Context,
-    vocabulary: MutableState<List<String>>,
+    vocKeys: MutableState<List<String>>,
     mDisplayMenu: MutableState<Boolean>,
     deleteVocOn: MutableState<Boolean>,
     head: String
@@ -576,9 +575,8 @@ fun CatOptions(
                 title = "Refresh",
                 iconVector = Icons.Default.Refresh,
                 onClick = {
-                    filter.postValue(head)
                     mDisplayMenu.value = false
-                    vocabulary.value = getVocKeys(mContext, head)
+                    vocKeys.value = getVocKeys(mContext, head)
                     Toast.makeText(mContext, "${head.replaceFirstChar { it.uppercase() }}s vocabulary updated!", Toast.LENGTH_SHORT).show()
                 }
             )
@@ -596,7 +594,6 @@ fun CatOptions(
                 title = "Delete all",
                 iconVector = Icons.Default.Delete,
                 onClick = {
-                    filter.postValue(head)
                     mDisplayMenu.value = false
                     deleteVocOn.value = true
                 }
@@ -610,11 +607,10 @@ fun CatOptions(
 fun DialogDeleteVocabulary(
     mContext: Context,
     dialogOnState: MutableState<Boolean>,
-    vocabulary: MutableState<List<String>>,
+    vocKeys: MutableState<List<String>>,
     keyState: MutableState<String>,
     filter: String
 ) {
-    val utils = Utilities()
     val key = keyState.value
     //DELETE DIALOG:
     GeneralDialog(
@@ -640,21 +636,12 @@ fun DialogDeleteVocabulary(
         confirmText = "Yes",
         onConfirm = {
             if (key != "") {
-                //Delete current:
-                var ret = utils.editVocFile(prevText=key)
-                if (ret == 0) {
-                    vocabulary.value = getVocKeys(mContext, filter)   //Refresh list
-                    Toast.makeText(mContext, "Deleted!", Toast.LENGTH_LONG).show()
-                } else {
-                    Toast.makeText(mContext, "ERROR: Vocabulary not updated!", Toast.LENGTH_LONG).show()
-                }
+                utils.deleteLibraryItem(mContext, filter, key)
             } else {
                 //Delete all:
-                File(vocDir, "voc_${filter}s.json").delete()
-                Log.d("VocabularyScreen", "Deleted ${filter}s vocabulary.")
-                vocabulary.value = getVocKeys(mContext, filter)   //Refresh list
-                Toast.makeText(mContext, "${filter.replaceFirstChar { it.uppercase() }} vocabulary deleted!", Toast.LENGTH_LONG).show()
+                utils.deleteLibrary(mContext, filter)
             }
+            vocKeys.value = getVocKeys(mContext, filter)   //Refresh list
             dialogOnState.value = false
             keyState.value = ""
         }
@@ -662,59 +649,95 @@ fun DialogDeleteVocabulary(
 }
 
 
-//REFRESH:
-fun updateVocabulary(mContext: Context, filter: String, preview: Boolean = false): JsonObject {
-    if (preview) {
-        //Mock data:
-        val reader = BufferedReader(InputStreamReader(mContext.resources.openRawResource(R.raw.vocabulary_sample)))
-        //val vocItems = JsonObject()   //EMPTY TEST
-        val vocItems = JsonParser.parseReader(reader).asJsonObject.get(filter).asJsonObject
-        return vocItems
-    } else {
-        //Real data:
-        val utils = Utilities()
-        val vocItems = utils.getVocabulary(filter=filter)
-        //Log.d("Vocabulary", vocItems.toString())
-        return vocItems
-    }
-}
-
-
 //VOC ACTIONS:
 //Send:
 fun sendVoc(mContext: Context, filter: String) {
-    //Send the current file:
-    val file = File(vocDir, "voc_${filter}s.json")
-    val uriToFile = FileProvider.getUriForFile(mContext, "com.ftrono.DJames.provider", file)
-    val sendIntent: Intent = Intent().apply {
-        action = Intent.ACTION_SEND
-        putExtra(Intent.EXTRA_STREAM, uriToFile)
-        type = "image/jpeg"
-    }
-    var chooserIntent = Intent.createChooser(sendIntent, null)
-    chooserIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    chooserIntent.putExtra("fromwhere", "ser")
-    startActivity(mContext, chooserIntent, null)
+    //Build cached file:
+    val fileName = utils.buildLibraryToSend(mContext, filter)
+    if (fileName != "") {
+        //Get cached file:
+        val file = File(mContext.cacheDir, fileName)
+        val uriToFile = FileProvider.getUriForFile(mContext, "com.ftrono.DJames.provider", file)
+        val sendIntent: Intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_STREAM, uriToFile)
+            type = "image/jpeg"
+        }
+        var chooserIntent = Intent.createChooser(sendIntent, null)
+        chooserIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        chooserIntent.putExtra("fromwhere", "ser")
+        startActivity(mContext, chooserIntent, null)
+    } else (
+        Toast.makeText(mContext, "ERROR: cannot prepare consolidated Library file for ${filter}s to send!", Toast.LENGTH_LONG).show()
+    )
 }
 
 
 //Voc keyset:
-fun getVocKeys(mContext: Context, head: String, preview: Boolean = false): List<String> {
-    val utils = Utilities()
-    val vocKeys = updateVocabulary(mContext, head, preview).keySet().toList()
-    val vocKeysWithHeaders = mutableListOf<String>()
-    var letter = ""
-    for (key in vocKeys) {
-        val cur = key.first().toString()
-        if (cur != letter) {
-            if (utils.isLetters(cur)) {
-                letter = cur
-            } else {
-                letter = "#"
-            }
-            vocKeysWithHeaders.add("$vocSectionIdentifier$letter")
+fun getVocKeys(mContext: Context, filter: String, preview: Boolean = false, addHeaders: Boolean = true): List<String> {
+    var vocKeys = listOf<String>()
+
+    //1) Load library:
+    if (preview) {
+        var reader: BufferedReader? = null
+        //Mock data:
+        if (filter == "artist") {
+            reader = BufferedReader(InputStreamReader(mContext.resources.openRawResource(R.raw.library_artists)))
+        } else if (filter == "playlist") {
+            reader = BufferedReader(InputStreamReader(mContext.resources.openRawResource(R.raw.library_playlists)))
+        } else {
+            reader = BufferedReader(InputStreamReader(mContext.resources.openRawResource(R.raw.library_contacts)))
         }
-        vocKeysWithHeaders.add(key)
+        //val vocItems = listOf<String>()   //EMPTY TEST
+        vocKeys = JsonParser.parseReader(reader).asJsonObject.keySet().toList()
+    } else {
+        //Real data:
+        vocKeys = utils.getLibraryKeys(filter=filter)
+        //Log.d("Library", vocKeys.toString())
     }
-    return vocKeysWithHeaders
+
+    //2) Add letters headers:
+    if (addHeaders) {
+        val vocKeysWithHeaders = mutableListOf<String>()
+        var letter = ""
+        for (key in vocKeys) {
+            val cur = key.first().toString()
+            if (cur != letter) {
+                if (utils.isLetters(cur)) {
+                    letter = cur
+                } else {
+                    letter = "#"
+                }
+                vocKeysWithHeaders.add("$vocSectionIdentifier$letter")
+            }
+            vocKeysWithHeaders.add(key)
+        }
+        return vocKeysWithHeaders
+    } else {
+        return vocKeys
+    }
+}
+
+
+//GET:
+fun getVocItem(mContext: Context, filter: String, key: String, preview: Boolean = false): JsonObject {
+    if (preview) {
+        var reader: BufferedReader? = null
+        //Mock data:
+        if (filter == "artist") {
+            reader = BufferedReader(InputStreamReader(mContext.resources.openRawResource(R.raw.library_artists)))
+        } else if (filter == "playlist") {
+            reader = BufferedReader(InputStreamReader(mContext.resources.openRawResource(R.raw.library_playlists)))
+        } else {
+            reader = BufferedReader(InputStreamReader(mContext.resources.openRawResource(R.raw.library_contacts)))
+        }
+        //Mock data:
+        val vocItem = JsonParser.parseReader(reader).asJsonObject.get(key).asJsonObject
+        return vocItem
+    } else {
+        //Real data:
+        val vocItem = utils.getLibraryItem(filter, key)
+        //Log.d("Items", vocItem.toString())
+        return vocItem
+    }
 }

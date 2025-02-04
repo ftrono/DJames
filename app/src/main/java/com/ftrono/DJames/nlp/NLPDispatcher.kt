@@ -7,9 +7,9 @@ import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.newsTalk
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.spotify.SpotifyFulfillment
-import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
 import java.io.File
 
@@ -17,7 +17,6 @@ import java.io.File
 class NLPDispatcher (private var context: Context) {
 
     private val TAG = NLPDispatcher::class.java.simpleName
-    private val utils = Utilities()
 
     fun dispatch(recFile: File, prevStatus: JsonObject = JsonObject(), followUp: Boolean = false, messageMode: Boolean = false) : JsonObject {
         /*

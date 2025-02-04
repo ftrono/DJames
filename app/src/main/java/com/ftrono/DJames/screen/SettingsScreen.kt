@@ -54,11 +54,12 @@ import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.appVersion
 import com.ftrono.DJames.application.copyrightYear
-import com.ftrono.DJames.application.messLangCaps
+import com.ftrono.DJames.application.messLangFull
 import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.queryLangCaps
+import com.ftrono.DJames.application.queryLangFull
 import com.ftrono.DJames.application.queryLangCodes
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.services.OverlayService
 import com.ftrono.DJames.ui.DropdownSpinner
 import com.ftrono.DJames.ui.SettingsHeader
@@ -66,7 +67,6 @@ import com.ftrono.DJames.ui.SettingsSection
 import com.ftrono.DJames.ui.StreetBackground
 import com.ftrono.DJames.ui.getSwitchColors
 import com.ftrono.DJames.ui.getTextFieldColors
-import com.ftrono.DJames.utilities.Utilities
 
 @Preview
 @Preview(heightDp = 360, widthDp = 800)
@@ -88,8 +88,8 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     var recTimeout by rememberSaveable { mutableStateOf(if (preview) "5" else prefs.recTimeout) }
     var messTimeout by rememberSaveable { mutableStateOf(if (preview) "5" else prefs.messageTimeout) }
     var clockTimeout by rememberSaveable { mutableStateOf(if (preview) "5" else prefs.clockTimeout) }
-    var textQueryLangState = rememberSaveable { mutableStateOf(if (preview) "English" else queryLangCaps[queryLangCodes.indexOf(prefs.queryLanguage)]) }
-    var textMessLangState = rememberSaveable { mutableStateOf(if (preview) "English" else messLangCaps[messLangCodes.indexOf(prefs.messageLanguage)]) }
+    //var textQueryLangState = rememberSaveable { mutableStateOf(if (preview) "English" else queryLangFull[queryLangCodes.indexOf(prefs.queryLanguage)]) }
+    var textMessLangState = rememberSaveable { mutableStateOf(if (preview) "English" else messLangFull[messLangCodes.indexOf(prefs.messageLanguage)]) }
 
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -211,7 +211,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
 //                    )
 //                    DropdownSpinner(
 //                        mContext,
-//                        parentOptions=queryLangCaps,
+//                        parentOptions=queryLangFull,
 //                        init=textQueryLangState.value,
 //                        state=textQueryLangState,
 //                        focusColor = colorResource(id = R.color.colorAccentLight),
@@ -334,7 +334,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     )
                     DropdownSpinner(
                         mContext = mContext,
-                        parentOptions = messLangCaps,
+                        parentOptions = messLangFull,
                         init = textMessLangState.value,
                         state = textMessLangState,
                         focusColorLight = colorResource(id = R.color.blueSignLight),
@@ -677,7 +677,6 @@ fun saveSettings(mContext: Context, newRecTimeout: String, newMessTimeout: Strin
 
 //Restart Overlay:
 fun restartOverlay(mContext: Context) {
-    val utils = Utilities()
     //Restart overlay service:
     if (utils.isMyServiceRunning(OverlayService::class.java, mContext)) {
         mContext.stopService(Intent(mContext, OverlayService::class.java))

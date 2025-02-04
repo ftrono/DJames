@@ -1,8 +1,6 @@
 package com.ftrono.DJames.dialogs
 
 import android.content.Context
-import android.telephony.PhoneNumberUtils
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -19,11 +17,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -43,17 +39,17 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.messLangCaps
+import com.ftrono.DJames.application.messLangFull
 import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.screen.VocabularyScreen
+import com.ftrono.DJames.screen.getVocItem
 import com.ftrono.DJames.screen.getVocKeys
-import com.ftrono.DJames.screen.updateVocabulary
 import com.ftrono.DJames.ui.DropdownSpinner
 import com.ftrono.DJames.ui.getTextFieldColors
 import com.ftrono.DJames.ui.vocColorSelector
 import com.ftrono.DJames.ui.vocColorSelectorLight
-import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
 
 
@@ -69,42 +65,49 @@ fun DialogEditContactPreview() {
 fun EditVocContact(
     mContext: Context,
     dialogOnState: MutableState<Boolean>,
-    vocabulary: MutableState<List<String>>,
+    vocKeys: MutableState<List<String>>,
     keyState: MutableState<String>,
     filter: String,
     preview: Boolean = false
 ) {
     val focusRequester = remember { FocusRequester() }
 
+    //Prev:
+    val prevKey = keyState.value
+    var prevItem = JsonObject()
+
     //Init:
     var key = keyState.value
-    var vocItems = updateVocabulary(mContext, filter, preview)
     var initName = key
-    var prevLangCode = ""
-    var initLanguageCaps = if (preview) "Italian" else ""
-    var defaultLanguageCaps = if (preview) "Italian" else messLangCaps[messLangCodes.indexOf(prefs.messageLanguage)]
+    var initLanguage = if (preview) "it" else prefs.messageLanguage
+    var initMain = JsonObject()
     var initPrefix = "+39"
     var initPhone = ""
-
-    var checkedLang by remember { mutableStateOf(false) }
+    var checkedLang = remember { mutableStateOf(false) }
 
     //Recover info:
     if (key != "") {
-        val prevDetails = vocItems.get(key).asJsonObject
-        if (prevDetails.has("contact_language")) {
-            prevLangCode = prevDetails.get("contact_language").asString
-            initLanguageCaps = messLangCaps[messLangCodes.indexOf(prevLangCode)]
-            checkedLang = true
+        //TODO: extract useful data:
+        prevItem = getVocItem(mContext, filter, keyState.value, preview)
+        initName = prevItem.get("name").asString
+        initLanguage = prevItem.get("language").asString
+        if (initLanguage == "") {
+            //No custom language:
+            initLanguage = if (preview) "it" else prefs.messageLanguage
+        } else {
+            //There is a custom language:
+            checkedLang.value = true
         }
-        initPrefix = prevDetails.get("prefix").asString
-        initPhone = prevDetails.get("phone").asString
+        initMain = prevItem.get("main").asJsonObject
+        initPrefix = initMain.get("prefix").asString
+        initPhone = initMain.get("phone").asString
     }
 
     //States:
     var textName = rememberSaveable { mutableStateOf(initName) }
     var textPrefix = rememberSaveable { mutableStateOf(initPrefix) }
     var textPhone = rememberSaveable { mutableStateOf(initPhone) }
-    var textLanguageState = rememberSaveable { mutableStateOf(initLanguageCaps) }
+    var textLanguage = rememberSaveable { mutableStateOf(messLangFull[messLangCodes.indexOf(initLanguage)]) }
 
     val requestDetailOn = rememberSaveable { mutableStateOf(false) }
     if (requestDetailOn.value) {
@@ -150,30 +153,40 @@ fun EditVocContact(
                 keyState.value = ""
             },
             onSave = {
-                //CHECK & UPDATE:
-                var newDetails = JsonObject()
+                //CHECK & BUILD:
+                //1) Validate Prefix:
+                requestDetailOn.value = !utils.isGlobalPhone(prefix = textPrefix.value, phone = textPhone.value)
 
-                //Get new info:
-                if (textLanguageState.value != "") {
-                    val newLangCode =
-                        messLangCodes[messLangCaps.indexOf(textLanguageState.value)]
-                    newDetails.addProperty("contact_language", newLangCode)
-                }
-                newDetails.addProperty("prefix", textPrefix.value.replace(" ", ""))
-                newDetails.addProperty("phone", textPhone.value.replace(" ", ""))
-
-                //Edit:
-                requestDetailOn.value = validateEditContact(
-                    mContext = mContext,
-                    vocabulary = vocabulary,
-                    prevText = initName,
-                    newText = textName.value.lowercase(),
-                    newDetails = newDetails,
-                    filter = filter,
-                    vocItems = vocItems
-                )
                 if (!requestDetailOn.value) {
-                    //CLOSE THE DIALOG:
+                    //2) Build object:
+                    var newItem = JsonObject()
+                    newItem.addProperty("name", textName.value)
+                    //Language:
+                    if (checkedLang.value) {
+                        newItem.addProperty("language", messLangCodes[messLangFull.indexOf(textLanguage.value)])
+                    } else {
+                        newItem.addProperty("language", "")
+                    }
+                    //Main:
+                    val main = JsonObject()
+                    main.addProperty("prefix", textPrefix.value)
+                    main.addProperty("phone", textPhone.value)
+                    //Container:
+                    newItem.add("main", main)
+
+                    //3) Store:
+                    if (newItem != prevItem) {
+                        utils.writeLibraryItem(
+                            context = mContext,
+                            filter = filter,
+                            key = textName.value,
+                            item = newItem,
+                            prevKey = prevKey
+                        )
+                    }
+
+                    //4) End & close:
+                    vocKeys.value = getVocKeys(mContext, filter)   //Refresh list
                     dialogOnState.value = false
                     keyState.value = ""
                 }
@@ -289,99 +302,42 @@ fun EditVocContact(
             ) {
                 Checkbox(
                     modifier = Modifier
-                        .padding(bottom = if (checkedLang) 0.dp else 6.dp)
+                        .padding(bottom = if (checkedLang.value) 0.dp else 6.dp)
                         .offset(x = -(12.dp)),
-                    checked = checkedLang,
-                    onCheckedChange = { checkedLang = it },
+                    checked = checkedLang.value,
+                    onCheckedChange = { checkedLang.value = it },
                     colors = checkBoxColors
                 )
                 Text(
                     modifier = Modifier
-                        .padding(bottom = if (checkedLang) 0.dp else 6.dp)
+                        .padding(bottom = if (checkedLang.value) 0.dp else 6.dp)
                         .offset(x = -(12.dp))
-                        .clickable { checkedLang = !checkedLang },
-                    text = if (checkedLang) {
+                        .clickable { checkedLang.value = !checkedLang.value },
+                    text = if (checkedLang.value) {
                         "Set custom messaging language"
                     } else {
-                        "Set custom messaging language\n(default: ${defaultLanguageCaps})"
+                        "Set custom messaging language\n(default: ${messLangFull[messLangCodes.indexOf(initLanguage)]})"
                     },
                     fontSize = 14.sp,
                     lineHeight = 16.sp,
-                    color = if (checkedLang) colorResource(id = R.color.light_grey) else colorResource(
+                    color = if (checkedLang.value) colorResource(id = R.color.light_grey) else colorResource(
                         id = R.color.mid_grey
                     )
                 )
             }
-            if (checkedLang) {
+            if (checkedLang.value) {
                 //CONTACTS: DROPDOWN:
-                val initCaps =
-                    if (prevLangCode == "") defaultLanguageCaps else messLangCaps[messLangCodes.indexOf(
-                        prevLangCode
-                    )]
-                textLanguageState.value = initCaps
                 DropdownSpinner(
                     mContext = mContext,
-                    parentOptions = messLangCaps,
-                    init = initCaps,
-                    state = textLanguageState,
+                    parentOptions = messLangFull,
+                    init = messLangFull[messLangCodes.indexOf(initLanguage)],
+                    state = textLanguage,
                     focusColorLight = vocColorSelectorLight(cat = filter),
                     focusColorDark = vocColorSelector(cat = filter)
                 )
             } else {
-                textLanguageState.value = ""
+                textLanguage.value = ""
             }
         }
     }
-}
-
-
-//Validate Edit Contact:
-fun validateEditContact(
-    mContext: Context,
-    vocabulary: MutableState<List<String>>,
-    prevText: String,
-    newText: String,
-    newDetails: JsonObject,
-    filter: String,
-    vocItems: JsonObject
-): Boolean {
-    //Return true -> Show DialogRequestDetail;
-    //Return false -> Don't show DialogRequestDetail.
-
-    if (newText != "") {
-        var newPrefix = newDetails.get("prefix").asString
-        var newPhone = newDetails.get("phone").asString
-        var newLang = ""
-        try {
-            newLang = newDetails.get("contact_language").asString   //TODO
-        } catch (e: Exception) {
-            newLang = ""
-        }
-        var phoneTest = PhoneNumberUtils.isGlobalPhoneNumber(newPhone)
-        //Request valid detail (i.e. no URL, no phone number, no international prefix in phone number):
-        if (!phoneTest || (!newPrefix.contains("+") && newPrefix.length != 3) || (newPhone.length != 10 && newPhone.length != 11)) {
-            //(Phone numbers length is 10 digits (Italy) or 11 digits (UK), + international prefix (3 digits))
-            return true
-        }
-
-        var prevDetails = JsonObject()
-        if (vocItems.has(prevText)) {
-            prevDetails = vocItems.get(prevText).asJsonObject
-        }
-//        Log.d("EditVoc", prevDetails.toString())
-//        Log.d("EditVoc", newDetails.toString())
-
-        //Save to file:
-        if (newText != prevText || newDetails != prevDetails) {
-            val utils = Utilities()
-            var ret = utils.editVocFile(prevText=prevText, newText=newText, newDetails=newDetails)
-            if (ret == 0) {
-                Toast.makeText(mContext, "Saved!", Toast.LENGTH_LONG).show()
-            } else {
-                Toast.makeText(mContext, "ERROR: Vocabulary not updated!", Toast.LENGTH_LONG).show()
-            }
-            vocabulary.value = getVocKeys(mContext, filter)   //Refresh list
-        }
-    }
-    return false
 }

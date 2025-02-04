@@ -10,6 +10,7 @@ import android.net.Uri
 import net.openid.appauth.AuthorizationServiceConfiguration
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.utilities.Prefs
+import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
@@ -19,7 +20,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.2.0"
+val appVersion = "2.2.1"
 val copyrightYear = 2024
 
 //STATUS VARS:
@@ -33,13 +34,15 @@ var overlayPos = MutableLiveData<String>("Right")
 var volumeUpEnabled = MutableLiveData<Boolean>(true)
 var settingsOpen = MutableLiveData<Boolean>(false)
 var innerNavOpen = MutableLiveData<Boolean>(false)
-var filter = MutableLiveData<String>("artist")
 var currentSongPlaying = MutableLiveData<String>("Don't turn off the screen!")
 var currentArtistPlaying = MutableLiveData<String>("Keep this Clock Screen on\nto save battery")
 var currentAlbumPlaying = MutableLiveData<String>("(unless you're using Maps)")
 val vocHeads = listOf("artist", "playlist", "contact")
 val vocSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
 var historyKeys = MutableLiveData<List<String>>(listOf("2024-08-05 18:28:53.json"))
+var artistsKeys = MutableLiveData<List<String>>(listOf("aimer.json"))
+var playlistsKeys = MutableLiveData<List<String>>(listOf("amal.json"))
+var contactsKeys = MutableLiveData<List<String>>(listOf("80 ricky classics.json"))
 
 //Preferences:
 val silenceInitPatience = 3
@@ -56,10 +59,10 @@ var enablePlayerInfo = false
 //Dropdowns:
 //var overlayPosOptions = listOf<String>("Left", "Right")
 var queryLangCodes = listOf<String>("en", "it")
-val queryLangCaps = listOf<String>("English", "Italian")
+val queryLangFull = listOf<String>("English", "Italian")
 var messLangCodes = listOf<String>("en", "it", "fr", "de", "es")
-var messLangNames = listOf<String>("english", "italian", "french", "german", "spanish")
-val messLangCaps = listOf<String>("English", "Italian", "French", "German", "Spanish")
+val messLangFull = listOf<String>("English", "Italian", "French", "German", "Spanish")
+var messLangLower = listOf<String>("english", "italian", "french", "german", "spanish")
 
 //Modes:
 var density: Float = 0F
@@ -75,6 +78,9 @@ var callMode: Boolean = false
 var searchFail: Boolean = false
 var newsTalk = false
 
+//Utils:
+val utils = Utilities()
+
 //Audio Manager:
 var audioManager: AudioManager? = null
 
@@ -82,7 +88,7 @@ var audioManager: AudioManager? = null
 var currently_playing: JsonObject? = null
 var last_log: JsonObject? = null
 var logDir: File? = null
-var vocDir: File? = null
+var libraryDir: File? = null
 
 //Player info:
 var nlp_queryText = ""
@@ -123,6 +129,7 @@ const val ACTION_TOASTER = "com.ftrono.DJames.eventReceiver.ACTION_TOASTER"
 //Main Act receiver:
 const val ACTION_FINISH_MAIN = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_MAIN"
 const val ACTION_LOG_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_LOG_REFRESH"
+const val ACTION_LIBRARY_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_LIBRARY_REFRESH"
 
 //Clock Act receiver:
 const val ACTION_TIME_TICK = "android.intent.action.TIME_TICK"

@@ -11,8 +11,6 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
@@ -20,7 +18,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.ftrono.DJames.application.curNavId
-import com.ftrono.DJames.application.filter
 import com.ftrono.DJames.application.innerNavOpen
 import com.ftrono.DJames.application.settingsOpen
 import com.ftrono.DJames.screen.GuideScreen
@@ -34,7 +31,6 @@ import com.ftrono.DJames.ui.theme.NavigationItem
 //NAV HOST:
 @Composable
 fun Navigation(navController: NavHostController) {
-    val filterState by filter.observeAsState()
     NavHost(
         modifier = Modifier
             .fillMaxSize(),

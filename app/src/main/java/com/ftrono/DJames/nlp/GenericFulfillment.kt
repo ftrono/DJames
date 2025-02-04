@@ -8,13 +8,13 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_MAKE_CALL
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.last_log
-import com.ftrono.DJames.application.messLangCaps
+import com.ftrono.DJames.application.messLangFull
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.messLangCodes
-import com.ftrono.DJames.application.messLangNames
+import com.ftrono.DJames.application.messLangLower
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.voiceQueryOn
-import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import java.io.BufferedReader
@@ -23,7 +23,6 @@ import java.io.InputStreamReader
 
 class GenericFulfillment (private var context: Context) {
     private val TAG = GenericFulfillment::class.java.simpleName
-    private val utils = Utilities()
 
 
     //Make a call:
@@ -117,13 +116,13 @@ class GenericFulfillment (private var context: Context) {
         if (reqLangCode == "") {
             try {
                 //Contact preferences:
-                reqLangName = contact_extractor.get("contact_language").asString
-                reqLangCode = messLangCodes[messLangNames.indexOf(reqLangName)]
+                reqLangCode = contact_extractor.get("contact_language").asString
+                reqLangName = messLangLower[messLangCodes.indexOf(reqLangCode)]
                 Log.d(TAG, "PREFERRED CONTACT LANGUAGE: $reqLangCode")
             } catch (e: Exception) {
                 //Global preferences:
-                reqLangName = messLangCaps[messLangCodes.indexOf(prefs.messageLanguage)]
                 reqLangCode = prefs.messageLanguage
+                reqLangName = messLangFull[messLangCodes.indexOf(prefs.messageLanguage)]
                 Log.d(TAG, "Messaging in default language: $reqLangCode")
             }
         }

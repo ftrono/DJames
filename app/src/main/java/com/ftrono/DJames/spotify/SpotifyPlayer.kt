@@ -11,7 +11,7 @@ import com.ftrono.DJames.application.client
 import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.utilities.Utilities
+import com.ftrono.DJames.application.utils
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import kotlinx.coroutines.runBlocking
@@ -158,7 +158,6 @@ class SpotifyPlayer (private val context: Context) {
     //PLAY INTERNALLY:
     fun playInternally(resultJSON: JsonObject, useAlbum: Boolean = false): Int {
         var ret = -1
-        var utils = Utilities()
         //BUILD PUT REQUEST:
         var url = "https://api.spotify.com/v1/me/player/play"
         var playType = resultJSON.get("play_type").asString
@@ -262,7 +261,6 @@ class SpotifyPlayer (private val context: Context) {
     
     //GET PLAYBACK STATE:
     fun getPlaybackState(): Int {
-        var utils = Utilities()
         var ret = -1
         //BUILD GET REQUEST:
         var url = "https://api.spotify.com/v1/me/player"

@@ -477,11 +477,6 @@ class Utilities {
             var vocFile = File(vocCatDir, "$key.json")
             vocFile.writeText(item.toString())
             Toast.makeText(context, "Saved!", Toast.LENGTH_LONG).show()
-            //Send broadcast:
-            Intent().also { intent ->
-                intent.setAction(ACTION_LIBRARY_REFRESH)
-                context.sendBroadcast(intent)
-            }
         } catch (e: Exception) {
             Log.w(TAG, "ERROR: Library item $key not saved!", e)
             Toast.makeText(context, "ERROR: Vocabulary not updated!", Toast.LENGTH_LONG).show()

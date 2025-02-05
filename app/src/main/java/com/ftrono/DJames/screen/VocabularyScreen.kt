@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -42,6 +41,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -60,6 +60,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.curLibrarySize
+import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.vocHeads
 import com.ftrono.DJames.application.vocSectionIdentifier
@@ -109,6 +111,7 @@ fun VocabularyScreen(
     val vocKeys = rememberSaveable {
         mutableStateOf(getVocKeys(mContext, currentCatState.value, preview))
     }
+    val curLibrarySizeState by curLibrarySize.observeAsState()
     val deleteVocOn = rememberSaveable { mutableStateOf(false) }
     if (deleteVocOn.value) {
         DialogDeleteVocabulary(mContext, deleteVocOn, vocKeys, keyState, currentCatState.value)
@@ -191,7 +194,7 @@ fun VocabularyScreen(
                                 iconRes = painterResource(id = R.drawable.sign_fork),
                                 title = "Library",
                                 subtitle = subtitles[currentCatState.value]!!,
-                                num = vocKeys.value.size
+                                num = curLibrarySizeState
                             ){
                                 Box() {
                                     //1) CAT OPTIONS:
@@ -236,22 +239,22 @@ fun VocabularyScreen(
                                         currentCatState = currentCatState,
                                         vocabulary = vocKeys,
                                         head = head,
-                                        title = "${head.replaceFirstChar { it.uppercase() }}s",
+                                        title = if (!isLandscape && head == "artist") "Artists  " else "${head.replaceFirstChar { it.uppercase() }}s",
                                         selected = currentCatState.value == head,
-                                        num = if (isLandscape && currentCatState.value == head) vocKeys.value.size else null,
+                                        num = if (isLandscape && currentCatState.value == head) curLibrarySizeState else null,
                                         preview = preview
                                     )
                                     //DIVIDERS:
-//                                    if (head != vocHeads.last()) {
-//                                        VerticalDivider(
-//                                            modifier = Modifier
-//                                                .padding(start = 4.dp, end = 4.dp)
-//                                                .height(30.dp)
-//                                                .wrapContentWidth(),
-//                                            thickness = 2.dp,
-//                                            color = colorResource(id = R.color.faded_grey)
-//                                        )
-//                                    }
+                                    if (head != vocHeads.last()) {
+                                        VerticalDivider(
+                                            modifier = Modifier
+                                                .padding(start = 4.dp, end = 4.dp)
+                                                .height(30.dp)
+                                                .wrapContentWidth(),
+                                            thickness = 2.dp,
+                                            color = colorResource(id = R.color.faded_grey)
+                                        )
+                                    }
                                 }
                             }
                             //CAT OPTIONS:
@@ -693,6 +696,8 @@ fun getVocKeys(mContext: Context, filter: String, preview: Boolean = false, addH
         vocKeys = utils.getLibraryKeys(filter=filter)
         //Log.d("Library", vocKeys.toString())
     }
+    //Update Library size:
+    curLibrarySize.postValue(vocKeys.size)
 
     //2) Add letters headers:
     if (addHeaders) {

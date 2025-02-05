@@ -37,12 +37,10 @@ var innerNavOpen = MutableLiveData<Boolean>(false)
 var currentSongPlaying = MutableLiveData<String>("Don't turn off the screen!")
 var currentArtistPlaying = MutableLiveData<String>("Keep this Clock Screen on\nto save battery")
 var currentAlbumPlaying = MutableLiveData<String>("(unless you're using Maps)")
+var curLibrarySize = MutableLiveData<Int>(0)
 val vocHeads = listOf("artist", "playlist", "contact")
 val vocSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
 var historyKeys = MutableLiveData<List<String>>(listOf("2024-08-05 18:28:53.json"))
-var artistsKeys = MutableLiveData<List<String>>(listOf("aimer.json"))
-var playlistsKeys = MutableLiveData<List<String>>(listOf("amal.json"))
-var contactsKeys = MutableLiveData<List<String>>(listOf("80 ricky classics.json"))
 
 //Preferences:
 val silenceInitPatience = 3
@@ -57,7 +55,6 @@ val recFileName = "DJames_request"
 var enablePlayerInfo = false
 
 //Dropdowns:
-//var overlayPosOptions = listOf<String>("Left", "Right")
 var queryLangCodes = listOf<String>("en", "it")
 val queryLangFull = listOf<String>("English", "Italian")
 var messLangCodes = listOf<String>("en", "it", "fr", "de", "es")
@@ -129,7 +126,6 @@ const val ACTION_TOASTER = "com.ftrono.DJames.eventReceiver.ACTION_TOASTER"
 //Main Act receiver:
 const val ACTION_FINISH_MAIN = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_MAIN"
 const val ACTION_LOG_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_LOG_REFRESH"
-const val ACTION_LIBRARY_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_LIBRARY_REFRESH"
 
 //Clock Act receiver:
 const val ACTION_TIME_TICK = "android.intent.action.TIME_TICK"

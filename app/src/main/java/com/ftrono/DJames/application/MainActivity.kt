@@ -74,7 +74,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.dialogs.GeneralDialog
-import com.ftrono.DJames.screen.getVocKeys
 import com.ftrono.DJames.screen.updateHistory
 import com.ftrono.DJames.services.OverlayService
 import com.ftrono.DJames.ui.Navigation
@@ -131,7 +130,6 @@ class MainActivity : ComponentActivity() {
         val actFilter = IntentFilter()
         actFilter.addAction(ACTION_FINISH_MAIN)
         actFilter.addAction(ACTION_LOG_REFRESH)
-        actFilter.addAction(ACTION_LIBRARY_REFRESH)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
         registerReceiver(mainActReceiver, actFilter, RECEIVER_EXPORTED)
@@ -150,10 +148,6 @@ class MainActivity : ComponentActivity() {
             if (!libraryDir!!.exists()) {
                 libraryDir!!.mkdir()
             }
-            //LOAD KEYS:
-            artistsKeys.postValue(getVocKeys(this@MainActivity, "artist"))
-            playlistsKeys.postValue(getVocKeys(this@MainActivity, "playlist"))
-            contactsKeys.postValue(getVocKeys(this@MainActivity, "contact"))
             //delete older logs:
             utils.deleteOldLogs()
             //delete older cached Library files:
@@ -629,17 +623,6 @@ class MainActivity : ComponentActivity() {
                 Log.d(TAG, "HISTORY: ACTION_LOG_REFRESH.")
                 historyKeys.postValue(updateHistory(context!!))   //Refresh list
             }
-
-            //Refresh Library list:
-            if (intent.action == ACTION_LIBRARY_REFRESH) {
-                Log.d(TAG, "HISTORY: ACTION_LIBRARY_REFRESH.")
-                //REFRESH KEYS:
-                artistsKeys.postValue(getVocKeys(this@MainActivity, "artist"))
-                playlistsKeys.postValue(getVocKeys(this@MainActivity, "playlist"))
-                contactsKeys.postValue(getVocKeys(this@MainActivity, "contact"))
-            }
-
         }
     }
-
 }

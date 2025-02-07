@@ -210,11 +210,6 @@ class NLPExtractor (private val context: Context) {
                     Log.d(TAG, "SORTED MAP FOR $eval: $sortedScores")
                     listConfirmed.add(sortedScores.keys.toList()[0])
                     last_log!!.addProperty("voc_score", sortedScores.values.toList()[0])
-                } else {
-                    if (filter == "artist") {
-                        //Keep original eval:
-                        listConfirmed.add(eval)
-                    }
                 }
             }
             //Final:

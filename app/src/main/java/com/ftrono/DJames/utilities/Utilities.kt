@@ -528,7 +528,7 @@ class Utilities {
                 libArray.add(getLibraryItem(filter, key))
             }
             //Store to cached file:
-            fileName = "library_$filter.json"
+            fileName = "library_${filter}s.json"
             val cachedFile = File(context.cacheDir, fileName)
             cachedFile.writeText(libArray.toString())
             Log.d(TAG, "Successfully prepared and cached consolidated Library for ${filter}s.")
@@ -543,7 +543,7 @@ class Utilities {
     fun cleanLibraryCache(context: Context) {
         for (head in vocHeads) {
             try {
-                File(context.cacheDir, "library_$head.json").delete()
+                File(context.cacheDir, "library_${head}s.json").delete()
             } catch (e: Exception) {
                 Log.w(TAG, "No cached library_$head.json file to delete!")
             }

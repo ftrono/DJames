@@ -470,14 +470,14 @@ class Utilities {
 
 
     //On Logout: delete user cache files:
-    fun deleteUserCache() {
+    fun deleteUserCache(context: Context) {
         try {
             logDir!!.deleteRecursively()
             Log.d(TAG, "Deleted ALL logs.")
-            File(libraryDir, "artists").deleteRecursively()
-            File(libraryDir, "playlists").deleteRecursively()
-            File(libraryDir, "contacts").deleteRecursively()
-            Log.d(TAG, "User vocabulary deleted.")
+            libUtils.deleteLibrary(context, "artists")
+            libUtils.deleteLibrary(context, "playlists")
+            libUtils.deleteLibrary(context, "contacts")
+            Log.d(TAG, "User library deleted.")
         } catch (e: Exception) {
             Log.w(TAG, "User cache not completely deleted.")
         }

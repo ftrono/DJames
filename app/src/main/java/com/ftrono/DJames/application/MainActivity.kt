@@ -143,11 +143,6 @@ class MainActivity : ComponentActivity() {
                 logDir!!.mkdir()
             }
             historyKeys.postValue(updateHistory(this@MainActivity))
-            //Init library directories:
-            libraryDir = File(cacheDir, "library")
-            if (!libraryDir!!.exists()) {
-                libraryDir!!.mkdir()
-            }
             //delete older logs:
             utils.deleteOldLogs()
             //delete older cached Library files:
@@ -156,11 +151,6 @@ class MainActivity : ComponentActivity() {
             if (!overlayActive.value!!) {
                 utils.cleanOlderRecs(this@MainActivity)
             }
-
-            //TODO: TEMP:
-//            libUtils.migrateArtists(this@MainActivity)
-//            libUtils.migratePlaylists(this@MainActivity)
-//            libUtils.migrateContacts(this@MainActivity)
         }
 
         //NLP USER ID:

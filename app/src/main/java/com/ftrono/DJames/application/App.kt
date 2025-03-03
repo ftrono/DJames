@@ -98,7 +98,6 @@ var audioManager: AudioManager? = null
 var currently_playing: JsonObject? = null
 var last_log: JsonObject? = null
 var logDir: File? = null
-var libraryDir: File? = null
 
 //Player info:
 var nlp_queryText = ""

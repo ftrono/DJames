@@ -1,13 +1,10 @@
 package com.ftrono.DJames.database
 
 import android.content.Context
-import android.provider.ContactsContract.CommonDataKinds.Phone
 import android.util.Log
 import android.widget.Toast
 import com.ftrono.DJames.application.artistBox
 import com.ftrono.DJames.application.contactBox
-import com.ftrono.DJames.application.libUtils
-import com.ftrono.DJames.application.libraryDir
 import com.ftrono.DJames.application.playlistBox
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.vocHeads
@@ -15,12 +12,10 @@ import com.ftrono.DJames.application.vocSectionIdentifier
 import com.ftrono.DJames.test_objects.testArtists
 import com.ftrono.DJames.test_objects.testContacts
 import com.ftrono.DJames.test_objects.testPlaylists
-import com.google.gson.JsonParser
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import java.io.File
-import java.io.FileReader
 
 
 class LibraryUtils {

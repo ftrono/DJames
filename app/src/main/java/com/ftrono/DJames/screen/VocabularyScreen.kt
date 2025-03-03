@@ -64,13 +64,11 @@ import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.vocHeads
 import com.ftrono.DJames.application.vocSectionIdentifier
+import com.ftrono.DJames.database.ItemInfoView
 import com.ftrono.DJames.dialogs.EditVocArtist
 import com.ftrono.DJames.dialogs.EditVocContact
 import com.ftrono.DJames.dialogs.EditVocPlaylist
 import com.ftrono.DJames.dialogs.GeneralDialog
-import com.ftrono.DJames.test_objects.testArtists
-import com.ftrono.DJames.test_objects.testContacts
-import com.ftrono.DJames.test_objects.testPlaylists
 import com.ftrono.DJames.ui.HeaderWithSign
 import com.ftrono.DJames.ui.OptionsItem
 import com.ftrono.DJames.ui.OptionsMenu
@@ -80,7 +78,6 @@ import com.ftrono.DJames.ui.SplitterCat
 import com.ftrono.DJames.ui.StreetBackground
 import com.ftrono.DJames.ui.vocColorSelector
 import com.ftrono.DJames.ui.vocIconSelector
-import okhttp3.internal.toImmutableMap
 import java.io.File
 
 
@@ -109,13 +106,13 @@ fun VocabularyScreen(
     //Statuses:
     val keyState = rememberSaveable { mutableStateOf("") }
     val currentCatState = rememberSaveable { mutableStateOf(vocHeads[0]) }
-    val vocKeys = rememberSaveable {
-        mutableStateOf(getLibraryKeys(currentCatState.value, preview))
+    val libraryMap = rememberSaveable {
+        mutableStateOf(libUtils.refreshLibrary(currentCatState.value, preview))
     }
     val curLibrarySizeState by curLibrarySize.observeAsState()
     val deleteVocOn = rememberSaveable { mutableStateOf(false) }
     if (deleteVocOn.value) {
-        DialogDeleteVocabulary(mContext, deleteVocOn, vocKeys, keyState, currentCatState.value)
+        DialogDeleteVocabulary(mContext, deleteVocOn, libraryMap, keyState, currentCatState.value)
     }
 
     val editVocOn = rememberSaveable { mutableStateOf(if (editPreview == "") false else true) }
@@ -129,9 +126,9 @@ fun VocabularyScreen(
 
     if (editVocOn.value) {
         when (editKey) {
-            "artist" -> EditVocArtist(mContext, editVocOn, vocKeys, keyState, filter=editKey, preview)
-            "playlist" -> EditVocPlaylist(mContext, editVocOn, vocKeys, keyState, filter=editKey, preview)
-            "contact" -> EditVocContact(mContext, editVocOn, vocKeys, keyState, filter=editKey, preview)
+            "artist" -> EditVocArtist(mContext, editVocOn, libraryMap, keyState, filter=editKey, preview)
+            "playlist" -> EditVocPlaylist(mContext, editVocOn, libraryMap, keyState, filter=editKey, preview)
+            "contact" -> EditVocContact(mContext, editVocOn, libraryMap, keyState, filter=editKey, preview)
         }
     }
 
@@ -213,7 +210,7 @@ fun VocabularyScreen(
                                     )
                                     CatOptions(
                                         mContext = mContext,
-                                        vocKeys = vocKeys,
+                                        libraryMap = libraryMap,
                                         mDisplayMenu = mDisplayMainMenu,
                                         deleteVocOn = deleteVocOn,
                                         head = currentCatState.value
@@ -239,7 +236,7 @@ fun VocabularyScreen(
                                 for (head in vocHeads) {
                                     SplitterCat(
                                         currentCatState = currentCatState,
-                                        vocabulary = vocKeys,
+                                        libraryMap = libraryMap,
                                         head = head,
                                         title = if (!isLandscape && head == "artist") "Artists  " else "${head.replaceFirstChar { it.uppercase() }}s",
                                         selected = currentCatState.value == head,
@@ -276,7 +273,7 @@ fun VocabularyScreen(
 
                                     CatOptions(
                                         mContext = mContext,
-                                        vocKeys = vocKeys,
+                                        libraryMap = libraryMap,
                                         mDisplayMenu = mDisplayMainMenu,
                                         deleteVocOn = deleteVocOn,
                                         head = currentCatState.value
@@ -296,7 +293,7 @@ fun VocabularyScreen(
 
                     //CONTENT:
                     VocSectionContent(
-                        vocKeys = vocKeys,
+                        libraryMap = libraryMap,
                         currentCatState = currentCatState,
                         keyState = keyState,
                         editVocOn = editVocOn,
@@ -352,7 +349,7 @@ fun ChipOptions(
 
 @Composable
 fun VocSectionContent(
-    vocKeys: MutableState<List<String>>,
+    libraryMap: MutableState<Map<String, ItemInfoView>>,
     currentCatState: MutableState<String>,
     keyState: MutableState<String>,
     editVocOn: MutableState<Boolean>,
@@ -362,7 +359,7 @@ fun VocSectionContent(
 ) {
 
     //CONTENT:
-    if (vocKeys.value.isEmpty()) {
+    if (libraryMap.value.isEmpty()) {
         //VOCABULARY EMPTY:
         Text(
             text = "${currentCatState.value.replaceFirstChar { it.uppercase() }}s library\nis empty",
@@ -385,14 +382,14 @@ fun VocSectionContent(
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             //ITEMS:
-            vocKeys.value.forEach { key ->
-                if (key.contains(vocSectionIdentifier)) {
+            libraryMap.value.forEach { map ->
+                if (map.key.contains(vocSectionIdentifier)) {
                     //HEADER:
                     item(
                         span = { GridItemSpan(maxLineSpan) }
                     ) {
                         VocLetter(
-                            letter = key.replace(vocSectionIdentifier, "")
+                            letter = map.key.replace(vocSectionIdentifier, "")
                         )
                     }
                 } else {
@@ -402,12 +399,13 @@ fun VocSectionContent(
                             currentCatState = currentCatState,
                             keyState = keyState,
                             head = currentCatState.value,
-                            key = key,
+                            key = map.key,
+                            itemInfo = map.value,
                             editVocOn = editVocOn,
                             deleteVocOn = deleteVocOn,
                             preview = preview
                         )
-                        if (key == vocKeys.value.last()) Spacer(modifier = Modifier.padding(60.dp))
+                        if (map.key == libraryMap.value.keys.last()) Spacer(modifier = Modifier.padding(60.dp))
                     }
                 }
             }
@@ -449,12 +447,11 @@ fun VocItem(
     keyState: MutableState<String>,
     head: String,
     key: String,
+    itemInfo: ItemInfoView,
     editVocOn: MutableState<Boolean>,
     deleteVocOn: MutableState<Boolean>,
     preview: Boolean = false
 ) {
-    //TODO: extract useful data:
-    val itemInfo = libUtils.getItemInfoView(currentCatState.value, key, preview)
     //Init aliases:
     val itemName = itemInfo.name
     val itemAliases = itemInfo.aliases.toMutableList()
@@ -537,7 +534,7 @@ fun VocItem(
                             lineHeight = 14.sp,
                             maxLines = 1,
                             fontStyle = FontStyle.Italic,
-                            text = "\"" + itemAliases.joinToString("\", \"") + "\""
+                            text = utils.trimString("\"" + itemAliases.joinToString("\", \"") + "\"", 16)
                         )
                     } else if (itemInfo.phone != "") {
                         Text(
@@ -550,7 +547,7 @@ fun VocItem(
                             lineHeight = 14.sp,
                             maxLines = 1,
                             fontStyle = FontStyle.Italic,
-                            text = itemInfo.phone
+                            text = utils.trimString(itemInfo.phone, 16)
                         )
                     }
                 }
@@ -565,7 +562,7 @@ fun VocItem(
 @Composable
 fun CatOptions(
     mContext: Context,
-    vocKeys: MutableState<List<String>>,
+    libraryMap: MutableState<Map<String, ItemInfoView>>,
     mDisplayMenu: MutableState<Boolean>,
     deleteVocOn: MutableState<Boolean>,
     head: String
@@ -581,7 +578,7 @@ fun CatOptions(
                 iconVector = Icons.Default.Refresh,
                 onClick = {
                     mDisplayMenu.value = false
-                    vocKeys.value = getLibraryKeys(head)
+                    libraryMap.value = libUtils.refreshLibrary(head)
                     Toast.makeText(mContext, "${head.replaceFirstChar { it.uppercase() }}s vocabulary updated!", Toast.LENGTH_SHORT).show()
                 }
             )
@@ -612,7 +609,7 @@ fun CatOptions(
 fun DialogDeleteVocabulary(
     mContext: Context,
     dialogOnState: MutableState<Boolean>,
-    vocKeys: MutableState<List<String>>,
+    libraryMap: MutableState<Map<String, ItemInfoView>>,
     keyState: MutableState<String>,
     filter: String
 ) {
@@ -646,7 +643,7 @@ fun DialogDeleteVocabulary(
                 //Delete all:
                 libUtils.deleteLibrary(mContext, filter)
             }
-            vocKeys.value = getLibraryKeys(filter)   //Refresh list
+            libraryMap.value = libUtils.refreshLibrary(filter)   //Refresh list
             dialogOnState.value = false
             keyState.value = ""
         }
@@ -677,48 +674,3 @@ fun sendVoc(mContext: Context, filter: String) {
     )
 }
 
-
-//Library keyset:
-fun getLibraryKeys(filter: String, preview: Boolean = false, addHeaders: Boolean = true, testEmpty: Boolean = false): List<String> {
-    var vocMap = mapOf<String, List<String>>()
-    var vocKeys = listOf<String>()
-
-    //1) Load library:
-    if (!testEmpty) {
-        if (preview) {
-            val tempMap = mutableMapOf<String, List<String>>()
-            //Mock data:
-            when (filter) {
-                "artist" -> {
-                    for (artist in testArtists) {
-                        tempMap[artist.id.toString()] = (artist.aliases ?: emptyList())
-                    }
-                }
-                "playlist" -> {
-                    for (playlist in testPlaylists) {
-                        tempMap[playlist.id.toString()] = (playlist.aliases ?: emptyList())
-                    }
-                }
-                "contact" -> {
-                    for (contact in testContacts) {
-                        tempMap[contact.id.toString()] = (contact.aliases ?: emptyList())
-                    }
-                }
-            }
-            vocMap = tempMap.toImmutableMap()
-        } else {
-            //Real data:
-            vocMap = libUtils.getLibraryMap(filter)
-        }
-    }
-
-    //2) Update Library size:
-    curLibrarySize.postValue(vocMap.size)
-    //3) Add headers:
-    vocKeys = if (addHeaders) {
-        libUtils.addLetterHeaders(vocMap)
-    } else {
-        vocMap.keys.toList()
-    }
-    return vocKeys
-}

@@ -53,7 +53,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.vocHeads
-import com.ftrono.DJames.screen.getLibraryKeys
+import com.ftrono.DJames.database.ItemInfoView
+import com.ftrono.DJames.application.libUtils
 
 
 // STREET UI LANGUAGE COMPONENTS
@@ -238,17 +239,17 @@ fun SplitterPreview() {
     val mContext = LocalContext.current
     val cur = vocHeads[2]
     val currentCatState = rememberSaveable { mutableStateOf(cur) }
-    val vocabulary = rememberSaveable {
-        mutableStateOf(getLibraryKeys(currentCatState.value, true))
+    val libraryMap = rememberSaveable {
+        mutableStateOf(libUtils.refreshLibrary(currentCatState.value, true))
     }
 
     SplitterCat(
         currentCatState = currentCatState,
-        vocabulary = vocabulary,
+        libraryMap = libraryMap,
         head = cur,
         title = "${cur.replaceFirstChar { it.uppercase() }}s",
         selected = currentCatState.value == cur,
-        num = vocabulary.value.size,
+        num = libraryMap.value.size,
         preview = true
     )
 }
@@ -257,7 +258,7 @@ fun SplitterPreview() {
 @Composable
 fun SplitterCat(
     currentCatState: MutableState<String>,
-    vocabulary: MutableState<List<String>>,
+    libraryMap: MutableState<Map<String, ItemInfoView>>,
     head: String,
     title: String,
     selected: Boolean,
@@ -271,7 +272,7 @@ fun SplitterCat(
             .wrapContentWidth()
             .clickable {
                 currentCatState.value = head
-                vocabulary.value = getLibraryKeys(currentCatState.value, preview)
+                libraryMap.value = libUtils.refreshLibrary(currentCatState.value, preview)
             },
         shape = RoundedCornerShape(14.dp),
         border = if (selected) BorderStroke(1.5.dp, colorResource(id = R.color.midfaded_grey)) else null,

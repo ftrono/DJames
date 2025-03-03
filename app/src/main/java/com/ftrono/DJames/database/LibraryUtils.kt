@@ -5,6 +5,7 @@ import android.util.Log
 import android.widget.Toast
 import com.ftrono.DJames.application.artistBox
 import com.ftrono.DJames.application.contactBox
+import com.ftrono.DJames.application.curLibrarySize
 import com.ftrono.DJames.application.playlistBox
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.vocHeads
@@ -15,6 +16,7 @@ import com.ftrono.DJames.test_objects.testPlaylists
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
+import okhttp3.internal.toImmutableMap
 import java.io.File
 
 
@@ -22,8 +24,86 @@ class LibraryUtils {
     private val TAG = LibraryUtils::class.java.simpleName
 
     //GET ALL:
-    //Get Map in format {"id": ["aliases", ...]}:
-    fun getLibraryMap(filter: String): Map<String, List<String>> {
+    //Get Library View Map in format {"id": ItemInfoView(...)}:
+    fun refreshLibrary(filter: String, preview: Boolean = false, addHeaders: Boolean = true): Map<String, ItemInfoView> {
+        //1) Load library:
+        var vocMap = mapOf<String, ItemInfoView>()
+        when (filter) {
+            "artist" -> {
+                vocMap = if (preview) {
+                    testArtists
+                } else {
+                    artistBox!!.query().order(Artist_.name).build().find()
+                }.associate { item ->
+                    item.id.toString() to ItemInfoView(
+                        name = item.name,
+                        aliases = item.aliases
+                    )
+                }
+            }
+
+            "playlist" -> {
+                vocMap = if (preview) {
+                    testPlaylists
+                } else {
+                    playlistBox!!.query().order(Playlist_.name).build().find()
+                }.associate { item ->
+                    item.id.toString() to ItemInfoView(
+                        name = item.name,
+                        aliases = item.aliases
+                    )
+                }
+            }
+
+            "contact" -> {
+                vocMap = if (preview) {
+                    testContacts
+                } else {
+                    contactBox!!.query().order(Contact_.name).build().find()
+                }.associate { item ->
+                    item.id.toString() to ItemInfoView(
+                        name = item.name,
+                        aliases = item.aliases,
+                        phone = item.phoneSets["personal"]!!.phone
+                    )
+                }
+            }
+        }
+
+        //2) Update Library size (IMPORTANT - for signs):
+        curLibrarySize.postValue(vocMap.size)
+
+        //3) Build library map & add headers:
+        if (addHeaders) {
+            return addLetterHeaders(vocMap)
+        } else {
+            return vocMap
+        }
+    }
+
+
+    //Get key List with headers:
+    fun addLetterHeaders(vocMap: Map<String, ItemInfoView>): Map<String, ItemInfoView> {
+        val mapWithHeaders = mutableMapOf<String, ItemInfoView>()
+        //Cast ids to string and add Letter headers:
+        var letter = ""
+        for (id in vocMap.keys) {
+            //get first alias:
+            val item = vocMap[id]!!
+            val curFirst = item.name.first().toString()
+            //extend List with letter header:
+            if (curFirst != letter) {
+                letter = if (utils.isLetters(curFirst)) curFirst else "#"
+                mapWithHeaders["$vocSectionIdentifier$letter"] = ItemInfoView()
+            }
+            mapWithHeaders[id] = item
+        }
+        return mapWithHeaders.toImmutableMap()
+    }
+
+
+    //Get aliases Map in format {"id": ["aliases", ...]}:
+    fun getAliasesMap(filter: String): Map<String, List<String>> {
         var vocMap = mapOf<String, List<String>>()
         when (filter) {
             "artist" -> {
@@ -162,26 +242,6 @@ class LibraryUtils {
                 name = ""
             )
         }
-    }
-
-
-    //Get key List with headers:
-    fun addLetterHeaders(vocMap: Map<String, List<String>>): List<String> {
-        val vocKeysWithHeaders = mutableListOf<String>()
-        //Cast ids to string and add Letter headers:
-        var letter = ""
-        for (id in vocMap.keys) {
-            //get first alias:
-            val aliases = vocMap[id]
-            val cur = aliases!![0].first().toString()
-            //extend List with letter header:
-            if (cur != letter) {
-                letter = if (utils.isLetters(cur)) cur else "#"
-                vocKeysWithHeaders.add("$vocSectionIdentifier$letter")
-            }
-            vocKeysWithHeaders.add(id)
-        }
-        return vocKeysWithHeaders
     }
 
 

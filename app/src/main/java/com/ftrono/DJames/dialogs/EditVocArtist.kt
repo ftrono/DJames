@@ -24,7 +24,7 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.database.Artist
 import com.ftrono.DJames.database.PlayLink
 import com.ftrono.DJames.screen.VocabularyScreen
-import com.ftrono.DJames.screen.getLibraryKeys
+import com.ftrono.DJames.database.ItemInfoView
 import com.ftrono.DJames.test_objects.testArtists
 import com.ftrono.DJames.ui.DropdownSpinner
 import com.ftrono.DJames.ui.getTextFieldColors
@@ -44,7 +44,7 @@ fun DialogEditArtistPreview() {
 fun EditVocArtist(
     mContext: Context,
     dialogOnState: MutableState<Boolean>,
-    vocKeys: MutableState<List<String>>,
+    libraryMap: MutableState<Map<String, ItemInfoView>>,
     keyState: MutableState<String>,
     filter: String,
     preview: Boolean = false
@@ -157,7 +157,7 @@ fun EditVocArtist(
                     }
                     itemArtist.name = textName.value
                     itemArtist.aliases = aliasesList
-                    itemArtist.spotifyUrl = textArtistUrl.value
+                    itemArtist.spotifyUrl = textArtistUrl.value.replace(" ", "").split("?")[0]
                     itemArtist.defaultPlay = playOptionsValToKeys[textDefaultPlay.value]!!
                     playLinks[thisIsName] = PlayLink(
                         name = thisIsName,
@@ -170,7 +170,7 @@ fun EditVocArtist(
                     libUtils.storeArtist(mContext, itemArtist)
 
                     //4) End & close:
-                    vocKeys.value = getLibraryKeys(filter)   //Refresh list
+                    libraryMap.value = libUtils.refreshLibrary(filter)   //Refresh list
                     dialogOnState.value = false
                     keyState.value = ""
                 }

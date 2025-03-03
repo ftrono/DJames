@@ -45,9 +45,9 @@ import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.database.Contact
+import com.ftrono.DJames.database.ItemInfoView
 import com.ftrono.DJames.database.PhoneSet
 import com.ftrono.DJames.screen.VocabularyScreen
-import com.ftrono.DJames.screen.getLibraryKeys
 import com.ftrono.DJames.test_objects.testContacts
 import com.ftrono.DJames.ui.DropdownSpinner
 import com.ftrono.DJames.ui.getTextFieldColors
@@ -67,7 +67,7 @@ fun DialogEditContactPreview() {
 fun EditVocContact(
     mContext: Context,
     dialogOnState: MutableState<Boolean>,
-    vocKeys: MutableState<List<String>>,
+    libraryMap: MutableState<Map<String, ItemInfoView>>,
     keyState: MutableState<String>,
     filter: String,
     preview: Boolean = false
@@ -192,7 +192,7 @@ fun EditVocContact(
                     libUtils.storeContact(mContext, itemContact)
 
                     //4) End & close:
-                    vocKeys.value = getLibraryKeys(filter)   //Refresh list
+                    libraryMap.value = libUtils.refreshLibrary(filter)   //Refresh list
                     dialogOnState.value = false
                     keyState.value = ""
                 }

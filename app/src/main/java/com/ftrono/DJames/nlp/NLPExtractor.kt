@@ -195,7 +195,7 @@ class NLPExtractor (private val context: Context) {
     //Match item from user query against user vocabulary:
     fun matchVocabulary(filter: String, text: String): String {
         var matchId = ""
-        val vocMap = libUtils.getLibraryMap(filter)
+        val vocMap = libUtils.getAliasesMap(filter)
         if (text != "" && vocMap.isNotEmpty()) {
             //Init:
             var score = 0

@@ -17,9 +17,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.database.ItemInfoView
 import com.ftrono.DJames.database.Playlist
 import com.ftrono.DJames.screen.VocabularyScreen
-import com.ftrono.DJames.screen.getLibraryKeys
 import com.ftrono.DJames.test_objects.testPlaylists
 import com.ftrono.DJames.ui.getTextFieldColors
 import com.ftrono.DJames.ui.vocColorSelector
@@ -38,7 +38,7 @@ fun DialogEditPlaylistPreview() {
 fun EditVocPlaylist(
     mContext: Context,
     dialogOnState: MutableState<Boolean>,
-    vocKeys: MutableState<List<String>>,
+    libraryMap: MutableState<Map<String, ItemInfoView>>,
     keyState: MutableState<String>,
     filter: String,
     preview: Boolean = false
@@ -128,7 +128,7 @@ fun EditVocPlaylist(
                     libUtils.storePlaylist(mContext, itemPlaylist)
 
                     //4) End & close:
-                    vocKeys.value = getLibraryKeys(filter)   //Refresh list
+                    libraryMap.value = libUtils.refreshLibrary(filter)   //Refresh list
                     dialogOnState.value = false
                     keyState.value = ""
                 }

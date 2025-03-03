@@ -27,8 +27,8 @@ data class PhoneSet(
 //ITEM INFO:
 @Serializable
 data class ItemInfoView(
-    var name: String,
-    var aliases: MutableList<String>,
+    var name: String = "",
+    var aliases: MutableList<String> = mutableListOf(),
     var phone: String = ""
 )
 

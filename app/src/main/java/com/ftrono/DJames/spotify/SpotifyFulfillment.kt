@@ -428,7 +428,7 @@ class SpotifyFulfillment (private var context: Context) {
                 playInfo.addProperty("context_uri", uri)
                 val playlistName = playInfo.get("match_name").asString
                 playInfo.addProperty("context_name", playlistName)
-                playInfo.addProperty("spotify_URL", "${ext_format}playlist/$spotifyId")
+                playInfo.addProperty("spotify_URL", "${ext_format}$playType/$spotifyId")
 
             } else {
                 //PLAY -> Artist / Playlist not found:

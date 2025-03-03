@@ -22,8 +22,8 @@ class SpotifySearch(private val context: Context) {
     fun searchTrackOrAlbum(searchData: JsonObject): JsonObject {
         //vars:
         var type = searchData.get("play_type").asString
-        var matchName = searchData.get("match_extracted").asString
-        var artistName = searchData.get("artist_confirmed").asString
+        var matchName = searchData.get("match_extracted").asString.lowercase()
+        var artistName = searchData.get("artist_confirmed").asString.lowercase()
 
         //BUILD GET REQUEST:
         var baseURL = "https://api.spotify.com/v1/search"

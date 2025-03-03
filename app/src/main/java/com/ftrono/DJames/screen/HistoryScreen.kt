@@ -478,10 +478,16 @@ fun getHistoryItemInfo(item: JsonObject, context: Context): JsonObject {
         }
 
         if (playType == "playlist") {
-            //Playlist / artist / collection:
+            //Playlist / artist playlist / collection:
             var matchName = item.get("spotify_play").asJsonObject.get("context_name").asString.split(" ").map { it.lowercase().capitalize(
                 Locale.getDefault()) }.joinToString(" ")
             textExtra = "Playlist:  $matchName"
+
+        } else if (playType == "artist") {
+            //Artist:
+            var matchName = item.get("spotify_play").asJsonObject.get("context_name").asString.split(" ").map { it.lowercase().capitalize(
+                Locale.getDefault()) }.joinToString(" ")
+            textExtra = "Artist:  $matchName"
 
 
         } else if (playType == "album") {

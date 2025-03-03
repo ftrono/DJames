@@ -29,8 +29,8 @@ class SpotifyPlayer (private val context: Context) {
 
     //PLAY INTERNALLY OR EXTERNALLY:
     fun spotifyPlay(playInfo: JsonObject): Int {
-        var spotifyUrl = playInfo.get("spotify_URL").asString
-        var playType = playInfo.get("play_type").asString
+        val spotifyUrl = playInfo.get("spotify_URL").asString
+        val playType = playInfo.get("play_type").asString
         //TRIAL 1:
         //Try requested context:
         val clockWasActive = clockActive.value!!
@@ -165,7 +165,7 @@ class SpotifyPlayer (private val context: Context) {
         if (playType == "track") {
             //Start playing from the song:
             offset.addProperty("uri", resultJSON.get("uri").asString)
-        } else {
+        } else if (playType != "artist") {
             //Start playing from the beginning:
             offset.addProperty("position", 0)
         }
@@ -178,7 +178,9 @@ class SpotifyPlayer (private val context: Context) {
             //Use requested context:
             jsonBody.addProperty("context_uri", resultJSON.get("context_uri").asString)
         }
-        jsonBody.add("offset", offset)
+        if (playType != "artist") {
+            jsonBody.add("offset", offset)
+        }
         jsonBody.addProperty("position_ms", 0)
 
         var body = jsonBody.toString().toRequestBody()

@@ -13,18 +13,14 @@ import me.xdrop.fuzzywuzzy.FuzzySearch
 import kotlin.math.roundToInt
 
 
-class SpotifySearchPlaylists(private val context: Context) {
-    private val TAG = SpotifySearchPlaylists::class.java.simpleName
+class SpotifySearchArtistsPlaylists(context: Context) {
+    private val TAG = SpotifySearchArtistsPlaylists::class.java.simpleName
     private var query = SpotifyQuery(context)
 
     //SEARCH TRACKS OR ALBUMS:
-    fun searchPlaylists(searchData: JsonObject): JsonObject {
+    fun searchArtistsPlaylists(searchData: JsonObject, playType: String): JsonObject {
         //vars:
-        var matchName = searchData.get("text_confirmed").asString
-        var playType = searchData.get("play_type").asString
-        if (playType == "artist") {
-            matchName = "this is $matchName"
-        }
+        val matchName = searchData.get("text_confirmed").asString.lowercase()
 
         //BUILD GET REQUEST:
         var baseURL = "https://api.spotify.com/v1/search"
@@ -50,7 +46,7 @@ class SpotifySearchPlaylists(private val context: Context) {
 
         //FIRST REQUEST:
         //Compose query:
-        url += "?q=${encodedMatchName}&type=playlist&limit=10&market=${prefs.spotCountry}"
+        url += "?q=${encodedMatchName}&type=${playType}&limit=10&market=${prefs.spotCountry}"
         Log.d(TAG, url)
 
         //QUERY:
@@ -67,7 +63,7 @@ class SpotifySearchPlaylists(private val context: Context) {
             Log.d(TAG, "ERROR: Spotify Search results not received!!")
         } else {
             //Analyse response & get index of best result:
-            var temp = respJSON.getAsJsonObject("playlists").getAsJsonArray("items")
+            var temp = respJSON.getAsJsonObject("${playType}s").getAsJsonArray("items")
             var buf = JsonObject()
             for (item in temp) {
                 try {
@@ -80,7 +76,7 @@ class SpotifySearchPlaylists(private val context: Context) {
             logJSON.addProperty("n_items", n_items)
             //Get best score:
             if (n_items > 0) {
-                bestMatches = getBestMatchingPlaylist(items, matchName)
+                bestMatches = getBestMatchingArtistPlaylist(items, matchName, playType)
                 logJSON.add("spotify_matches", bestMatches)
                 //Best:
                 bestInd = bestMatches[0].asJsonObject.get("pos").asInt
@@ -96,27 +92,30 @@ class SpotifySearchPlaylists(private val context: Context) {
         //EXTRACT INFO:
         if (!bestResult.isEmpty) {
             Log.d(TAG, "BEST RESULT: INDEX $bestInd, ITEM: $bestResult")
-            returnJSON.addProperty("play_type", "playlist")
+            returnJSON.addProperty("play_type", playType)
 
             //ID & uri:
-            var id = bestResult.get("id").asString
+            val id = bestResult.get("id").asString
             returnJSON.addProperty("id", id)
-            returnJSON.addProperty("uri", "spotify:playlist:$id")
-            returnJSON.addProperty("spotify_URL", "${ext_format}playlist/$id")
-            var owner = bestResult.get("owner").asJsonObject.get("display_name").asString   //display_name!
+            returnJSON.addProperty("uri", "spotify:$playType:$id")
+            returnJSON.addProperty("spotify_URL", "${ext_format}${playType}/$id")
+            var owner = ""
+            if (playType == "playlist") {
+                owner = bestResult.get("owner").asJsonObject.get("display_name").asString   //display_name!
+            }
             returnJSON.addProperty("owner", owner)
 
             //Match name:
             returnJSON.add("match_name", bestResult.get("name"))
 
-            Log.d(TAG, "Spotify Playlist Search results successfully processed!")
+            Log.d(TAG, "Spotify $playType search results successfully processed!")
             Log.d(TAG, "returnJSON: ${returnJSON}")
         }
         return returnJSON
     }
 
     //Spotify: get Best Result:
-    fun getBestMatchingPlaylist(items: JsonArray, matchName: String): JsonArray {
+    fun getBestMatchingArtistPlaylist(items: JsonArray, matchName: String, playType: String): JsonArray {
         //Analyse Spotify query result:
         //GET BEST RESULT:
         var c = 0

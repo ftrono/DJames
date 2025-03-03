@@ -15,6 +15,8 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
+**Version 2.3.1 (2025-03-03)** - New Library UI states management. Added search & play top tracks for Artists.
+
 **Version 2.3.0 (2025-03-03)** - Migrated Library to new ObjectBox DB, add aliases & save artists URLs. UI visual refinements.
 
 **Version 2.2.1 (2025-02-04)** - Migrated Vocabulary to new Library structure (using JSON files); renamed Vocabulary to Library.

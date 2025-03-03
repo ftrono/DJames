@@ -112,7 +112,9 @@ fun EditVocPlaylist(
                 if (!requestDetailOn.value) {
                     //2) Update object:
                     val aliasesList = mutableListOf(textName.value.lowercase())
-                    aliasesList.addAll(textAliases.value.split(","))
+                    if (textAliases.value != "") {
+                        aliasesList.addAll(textAliases.value.lowercase().split(","))
+                    }
                     itemPlaylist.name = textName.value
                     itemPlaylist.aliases = aliasesList
                     itemPlaylist.spotifyUrl = textPlayUrl.value

@@ -166,7 +166,12 @@ fun EditVocContact(
                     //2) Update object:
                     val aliasesList = mutableListOf(textName.value.lowercase())
                     if (textAliases.value != "") {
-                        aliasesList.addAll(textAliases.value.lowercase().split(","))
+                        for (alias in textAliases.value.split(",")) {
+                            val temp = alias.lowercase().strip()
+                            if (temp != "") {
+                                aliasesList.add(alias.lowercase().strip())
+                            }
+                        }
                     }
                     itemContact.name = textName.value
                     itemContact.aliases = aliasesList

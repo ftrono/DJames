@@ -148,7 +148,12 @@ fun EditVocArtist(
                     val thisIsName = "this is ${textName.value}"
                     val aliasesList = mutableListOf(textName.value.lowercase())
                     if (textAliases.value != "") {
-                        aliasesList.addAll(textAliases.value.lowercase().split(","))
+                        for (alias in textAliases.value.split(",")) {
+                            val temp = alias.lowercase().strip()
+                            if (temp != "") {
+                                aliasesList.add(alias.lowercase().strip())
+                            }
+                        }
                     }
                     itemArtist.name = textName.value
                     itemArtist.aliases = aliasesList

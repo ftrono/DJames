@@ -228,15 +228,15 @@ class MainActivity : ComponentActivity() {
                 indicatorColor = colorResource(id = R.color.transparent_green),
                 selectedIconColor = colorResource(id = R.color.light_grey),
                 selectedTextColor = colorResource(id = R.color.colorAccentLight),
-                unselectedIconColor = colorResource(id = R.color.mid_grey),
-                unselectedTextColor = colorResource(id = R.color.mid_grey)
+                unselectedIconColor = colorResource(id = R.color.light_grey),
+                unselectedTextColor = colorResource(id = R.color.light_grey)
             ),
             navigationRailItemColors = NavigationRailItemDefaults.colors(
                 indicatorColor = colorResource(id = R.color.transparent_green),
                 selectedIconColor = colorResource(id = R.color.light_grey),
                 selectedTextColor = colorResource(id = R.color.colorAccentLight),
-                unselectedIconColor = colorResource(id = R.color.mid_grey),
-                unselectedTextColor = colorResource(id = R.color.mid_grey)
+                unselectedIconColor = colorResource(id = R.color.light_grey),
+                unselectedTextColor = colorResource(id = R.color.light_grey)
             )
         )
 
@@ -263,14 +263,12 @@ class MainActivity : ComponentActivity() {
                         icon = {
                             Icon(
                                 painter = painterResource(id = navItem.icon),
-                                contentDescription = navItem.title,
-                                tint = colorResource(id = R.color.light_grey)
+                                contentDescription = navItem.title
                             )
                         },
                         label = {
                             Text(
-                                text = navItem.title,
-                                color = colorResource(id = R.color.light_grey)
+                                text = navItem.title
                             )
                         },
                         colors = myNavigationSuiteItemColors,

@@ -15,7 +15,9 @@ import com.ftrono.DJames.test_objects.testContacts
 import com.ftrono.DJames.test_objects.testPlaylists
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
 import okhttp3.internal.toImmutableMap
 import java.io.File
 
@@ -25,9 +27,9 @@ class LibraryUtils {
 
     //GET ALL:
     //Get Library View Map in format {"id": ItemInfoView(...)}:
-    fun refreshLibrary(filter: String, preview: Boolean = false, addHeaders: Boolean = true): Map<String, ItemInfoView> {
+    fun refreshLibrary(filter: String, preview: Boolean = false, addHeaders: Boolean = true): Map<String, String> {
         //1) Load library:
-        var vocMap = mapOf<String, ItemInfoView>()
+        var vocMap = mapOf<String, String>()
         when (filter) {
             "artist" -> {
                 vocMap = if (preview) {
@@ -35,9 +37,11 @@ class LibraryUtils {
                 } else {
                     artistBox!!.query().order(Artist_.name).build().find()
                 }.associate { item ->
-                    item.id.toString() to ItemInfoView(
-                        name = item.name,
-                        aliases = item.aliases
+                    item.id.toString() to Json.encodeToString(
+                        ItemInfoView(
+                            name = item.name,
+                            aliases = item.aliases
+                        )
                     )
                 }
             }
@@ -48,9 +52,11 @@ class LibraryUtils {
                 } else {
                     playlistBox!!.query().order(Playlist_.name).build().find()
                 }.associate { item ->
-                    item.id.toString() to ItemInfoView(
-                        name = item.name,
-                        aliases = item.aliases
+                    item.id.toString() to Json.encodeToString(
+                        ItemInfoView(
+                            name = item.name,
+                            aliases = item.aliases
+                        )
                     )
                 }
             }
@@ -61,10 +67,12 @@ class LibraryUtils {
                 } else {
                     contactBox!!.query().order(Contact_.name).build().find()
                 }.associate { item ->
-                    item.id.toString() to ItemInfoView(
-                        name = item.name,
-                        aliases = item.aliases,
-                        phone = item.phoneSets["personal"]!!.phone
+                    item.id.toString() to Json.encodeToString(
+                        ItemInfoView(
+                            name = item.name,
+                            aliases = item.aliases,
+                            phone = item.phoneSets["personal"]!!.phone
+                        )
                     )
                 }
             }
@@ -83,20 +91,20 @@ class LibraryUtils {
 
 
     //Get key List with headers:
-    fun addLetterHeaders(vocMap: Map<String, ItemInfoView>): Map<String, ItemInfoView> {
-        val mapWithHeaders = mutableMapOf<String, ItemInfoView>()
+    fun addLetterHeaders(vocMap: Map<String, String>): Map<String, String> {
+        val mapWithHeaders = mutableMapOf<String, String>()
         //Cast ids to string and add Letter headers:
         var letter = ""
         for (id in vocMap.keys) {
             //get first alias:
-            val item = vocMap[id]!!
-            val curFirst = item.name.first().toString()
+            val item = Json.decodeFromString<ItemInfoView>(vocMap[id]!!)
+            val curFirst = item.name.lowercase().first().toString()
             //extend List with letter header:
             if (curFirst != letter) {
-                letter = if (utils.isLetters(curFirst)) curFirst else "#"
-                mapWithHeaders["$vocSectionIdentifier$letter"] = ItemInfoView()
+                letter = if (utils.isLetters(curFirst)) curFirst.uppercase() else "#"
+                mapWithHeaders["$vocSectionIdentifier$letter"] = Json.encodeToString(ItemInfoView())
             }
-            mapWithHeaders[id] = item
+            mapWithHeaders[id] = vocMap[id]!!
         }
         return mapWithHeaders.toImmutableMap()
     }
@@ -169,40 +177,6 @@ class LibraryUtils {
                     .findString()
             }
             else -> return ""
-        }
-    }
-
-    //Get Map in format {"id": {"key": "...", "aliases": "...", "phone": "..."}}:
-    fun getItemInfoView(filter: String, id: String, preview: Boolean = false): ItemInfoView {
-        when (filter) {
-            "artist" -> {
-                val item = if (preview) testArtists[id.toInt()] else artistBox!!.get(id.toLong())
-                return ItemInfoView(
-                    name = item.name,
-                    aliases = item.aliases
-                )
-            }
-
-            "playlist" -> {
-                val item = if (preview) testPlaylists[id.toInt()] else playlistBox!!.get(id.toLong())
-                return ItemInfoView(
-                    name = item.name,
-                    aliases = item.aliases
-                )
-            }
-
-            "contact" -> {
-                val item = if (preview) testContacts[id.toInt()] else contactBox!!.get(id.toLong())
-                return ItemInfoView(
-                    name = item.name,
-                    aliases = item.aliases,
-                    phone = item.phoneSets["personal"]!!.phone
-                )
-            }
-            else -> return ItemInfoView(
-                name = "",
-                aliases = mutableListOf<String>()
-            )
         }
     }
 

@@ -38,7 +38,7 @@ fun DialogEditPlaylistPreview() {
 fun EditVocPlaylist(
     mContext: Context,
     dialogOnState: MutableState<Boolean>,
-    libraryMap: MutableState<Map<String, ItemInfoView>>,
+    libraryMap: MutableState<Map<String, String>>,
     keyState: MutableState<String>,
     filter: String,
     preview: Boolean = false
@@ -109,18 +109,18 @@ fun EditVocPlaylist(
                 //1) Validate Playlist URL:
                 requestDetailOn.value = !utils.isPlaylistUrl(textPlayUrl.value.replace(" ", ""))
 
-                if (!requestDetailOn.value) {
+                if (!requestDetailOn.value && textName.value != "") {
                     //2) Update object:
                     val aliasesList = mutableListOf(textName.value.lowercase())
                     if (textAliases.value != "") {
                         for (alias in textAliases.value.split(",")) {
                             val temp = alias.lowercase().strip()
-                            if (temp != "") {
-                                aliasesList.add(alias.lowercase().strip())
+                            if (temp != "" && !aliasesList.contains(temp)) {
+                                aliasesList.add(temp)
                             }
                         }
                     }
-                    itemPlaylist.name = textName.value
+                    itemPlaylist.name = utils.capitalizeWords(textName.value)
                     itemPlaylist.aliases = aliasesList
                     itemPlaylist.spotifyUrl = textPlayUrl.value
 

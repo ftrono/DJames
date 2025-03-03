@@ -258,7 +258,7 @@ fun SplitterPreview() {
 @Composable
 fun SplitterCat(
     currentCatState: MutableState<String>,
-    libraryMap: MutableState<Map<String, ItemInfoView>>,
+    libraryMap: MutableState<Map<String, String>>,
     head: String,
     title: String,
     selected: Boolean,

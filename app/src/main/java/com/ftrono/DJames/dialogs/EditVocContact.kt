@@ -67,7 +67,7 @@ fun DialogEditContactPreview() {
 fun EditVocContact(
     mContext: Context,
     dialogOnState: MutableState<Boolean>,
-    libraryMap: MutableState<Map<String, ItemInfoView>>,
+    libraryMap: MutableState<Map<String, String>>,
     keyState: MutableState<String>,
     filter: String,
     preview: Boolean = false
@@ -162,18 +162,18 @@ fun EditVocContact(
                 //1) Validate Prefix:
                 requestDetailOn.value = !utils.isGlobalPhone(prefix = textPrefix.value, phone = textPhone.value)
 
-                if (!requestDetailOn.value) {
+                if (!requestDetailOn.value && textName.value != "") {
                     //2) Update object:
                     val aliasesList = mutableListOf(textName.value.lowercase())
                     if (textAliases.value != "") {
                         for (alias in textAliases.value.split(",")) {
                             val temp = alias.lowercase().strip()
-                            if (temp != "") {
-                                aliasesList.add(alias.lowercase().strip())
+                            if (temp != "" && !aliasesList.contains(temp)) {
+                                aliasesList.add(temp)
                             }
                         }
                     }
-                    itemContact.name = textName.value
+                    itemContact.name = utils.capitalizeWords(textName.value)
                     itemContact.aliases = aliasesList
                     //Language:
                     if (checkedLang.value) {

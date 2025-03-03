@@ -1,5 +1,6 @@
 package com.ftrono.DJames.screen
 
+import android.content.ClipData.Item
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -79,6 +80,11 @@ import com.ftrono.DJames.ui.StreetBackground
 import com.ftrono.DJames.ui.vocColorSelector
 import com.ftrono.DJames.ui.vocIconSelector
 import java.io.File
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
 
 
 @Preview
@@ -349,7 +355,7 @@ fun ChipOptions(
 
 @Composable
 fun VocSectionContent(
-    libraryMap: MutableState<Map<String, ItemInfoView>>,
+    libraryMap: MutableState<Map<String, String>>,
     currentCatState: MutableState<String>,
     keyState: MutableState<String>,
     editVocOn: MutableState<Boolean>,
@@ -400,7 +406,7 @@ fun VocSectionContent(
                             keyState = keyState,
                             head = currentCatState.value,
                             key = map.key,
-                            itemInfo = map.value,
+                            itemJson = map.value,
                             editVocOn = editVocOn,
                             deleteVocOn = deleteVocOn,
                             preview = preview
@@ -432,11 +438,6 @@ fun VocLetter(
             borderColor = colorResource(id = R.color.dark_grey),
             fontColor = colorResource(id = R.color.light_grey)
         )
-//        HorizontalDivider(
-//            modifier = Modifier
-//                .fillMaxWidth(),
-//            color = colorResource(id = R.color.faded_grey)
-//        )
     }
 }
 
@@ -447,15 +448,17 @@ fun VocItem(
     keyState: MutableState<String>,
     head: String,
     key: String,
-    itemInfo: ItemInfoView,
+    itemJson: String,
     editVocOn: MutableState<Boolean>,
     deleteVocOn: MutableState<Boolean>,
     preview: Boolean = false
 ) {
+    val itemInfo = Json.decodeFromString<ItemInfoView>(itemJson)
     //Init aliases:
     val itemName = itemInfo.name
     val itemAliases = itemInfo.aliases.toMutableList()
     itemAliases.removeAt(0)
+    val isMultiline = rememberSaveable { mutableStateOf(false) }
 
     //VOC CHIPS:
     Box(
@@ -468,7 +471,7 @@ fun VocItem(
         Card(
             modifier = Modifier
                 .wrapContentWidth()
-                .height(56.dp)
+                .height(60.dp)
                 .clickable {
                     mDisplayMenu.value = !mDisplayMenu.value
                 },
@@ -493,7 +496,7 @@ fun VocItem(
                 RoundedSign(
                     modifier = Modifier
                         .padding(end = 4.dp),
-                    signSize = 30.dp,
+                    signSize = 34.dp,
                     iconSize = 20.dp,
                     backgroundColor = vocColorSelector(cat = currentCatState.value),
                     borderColor = colorResource(id = R.color.midfaded_grey),
@@ -518,12 +521,15 @@ fun VocItem(
                         fontSize = 14.sp,
                         lineHeight = 16.sp,
                         maxLines = if (head == "contact") 1 else 2,
-                        text = utils.trimString(itemName, 24),
+                        text = utils.trimString(itemName, if (head == "contact") 12 else 24),
                         fontWeight = FontWeight.Bold,
                         //fontStyle = FontStyle.Italic,
+                        onTextLayout = { textLayoutResult ->
+                            isMultiline.value = textLayoutResult.lineCount > 1
+                        }
                     )
                     //Item detail:
-                    if (itemAliases.isNotEmpty()) {
+                    if (itemAliases.isNotEmpty() && !isMultiline.value) {
                         Text(
                             modifier = Modifier
                                 .padding(top = 2.dp)
@@ -562,7 +568,7 @@ fun VocItem(
 @Composable
 fun CatOptions(
     mContext: Context,
-    libraryMap: MutableState<Map<String, ItemInfoView>>,
+    libraryMap: MutableState<Map<String, String>>,
     mDisplayMenu: MutableState<Boolean>,
     deleteVocOn: MutableState<Boolean>,
     head: String
@@ -609,7 +615,7 @@ fun CatOptions(
 fun DialogDeleteVocabulary(
     mContext: Context,
     dialogOnState: MutableState<Boolean>,
-    libraryMap: MutableState<Map<String, ItemInfoView>>,
+    libraryMap: MutableState<Map<String, String>>,
     keyState: MutableState<String>,
     filter: String
 ) {

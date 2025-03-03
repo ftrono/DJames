@@ -1,6 +1,7 @@
 package com.ftrono.DJames.dialogs
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,7 +45,7 @@ fun DialogEditArtistPreview() {
 fun EditVocArtist(
     mContext: Context,
     dialogOnState: MutableState<Boolean>,
-    libraryMap: MutableState<Map<String, ItemInfoView>>,
+    libraryMap: MutableState<Map<String, String>>,
     keyState: MutableState<String>,
     filter: String,
     preview: Boolean = false
@@ -143,23 +144,24 @@ fun EditVocArtist(
                     requestDetailPlaylistOn.value = !utils.isPlaylistUrl(textPlayThisIsUrl.value.replace(" ", ""))
                 }
 
-                if (!requestDetailArtistOn.value && !requestDetailPlaylistOn.value) {
+                if (!requestDetailArtistOn.value && !requestDetailPlaylistOn.value && textName.value != "") {
                     //2) Update object:
                     val thisIsName = "this is ${textName.value}"
                     val aliasesList = mutableListOf(textName.value.lowercase())
                     if (textAliases.value != "") {
                         for (alias in textAliases.value.split(",")) {
                             val temp = alias.lowercase().strip()
-                            if (temp != "") {
-                                aliasesList.add(alias.lowercase().strip())
+                            if (temp != "" && !aliasesList.contains(temp)) {
+                                aliasesList.add(temp)
                             }
                         }
                     }
-                    itemArtist.name = textName.value
+                    itemArtist.name = utils.capitalizeWords(textName.value)
                     itemArtist.aliases = aliasesList
                     itemArtist.spotifyUrl = textArtistUrl.value.replace(" ", "").split("?")[0]
-                    itemArtist.defaultPlay = playOptionsValToKeys[textDefaultPlay.value]!!
-                    playLinks[thisIsName] = PlayLink(
+                    itemArtist.defaultPlay = if (textPlayThisIsUrl.value == "") "artist" else playOptionsValToKeys[textDefaultPlay.value]!!
+                    //TODO: add more playlists:
+                    playLinks["spotify_this_is"] = PlayLink(
                         name = thisIsName,
                         owner = "Spotify",
                         spotifyUrl = textPlayThisIsUrl.value.replace(" ", "").split("?")[0]

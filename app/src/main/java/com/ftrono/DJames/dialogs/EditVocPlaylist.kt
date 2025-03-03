@@ -15,14 +15,15 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.database.Playlist
 import com.ftrono.DJames.screen.VocabularyScreen
-import com.ftrono.DJames.screen.getVocItem
-import com.ftrono.DJames.screen.getVocKeys
+import com.ftrono.DJames.screen.getLibraryKeys
+import com.ftrono.DJames.test_objects.testPlaylists
 import com.ftrono.DJames.ui.getTextFieldColors
 import com.ftrono.DJames.ui.vocColorSelector
 import com.ftrono.DJames.ui.vocColorSelectorLight
-import com.google.gson.JsonObject
 
 
 @Preview
@@ -44,26 +45,27 @@ fun EditVocPlaylist(
 ) {
     val focusRequester = remember { FocusRequester() }
 
-    //Prev:
-    val prevKey = keyState.value
-    var prevItem = JsonObject()
-
     //Init:
-    var key = keyState.value
-    var initName = key
-    var initPlayUrl = ""
+    var itemPlaylist = Playlist()
+    val key = keyState.value
 
     //Recover info:
     if (key != "") {
-        //TODO: extract useful data:
-        prevItem = getVocItem(mContext, filter, keyState.value, preview)
-        initName = prevItem.get("name").asString
-        initPlayUrl = prevItem.get("playlist_URL").asString
+        itemPlaylist = if (preview) {
+            testPlaylists[0]
+        } else {
+            libUtils.getPlaylist(keyState.value)
+        }
     }
 
+    //Init aliases:
+    val initAliases = itemPlaylist.aliases.toMutableList()
+    initAliases.removeAt(0)
+
     //States:
-    var textName = rememberSaveable { mutableStateOf(initName) }
-    var textPlayUrl = rememberSaveable { mutableStateOf(initPlayUrl) }
+    val textName = rememberSaveable { mutableStateOf(itemPlaylist.name) }
+    val textAliases = rememberSaveable { mutableStateOf(initAliases.joinToString(", ")) }
+    val textPlayUrl = rememberSaveable { mutableStateOf(itemPlaylist.spotifyUrl) }
 
     val requestDetailOn = rememberSaveable { mutableStateOf(false) }
     if (requestDetailOn.value) {
@@ -108,24 +110,18 @@ fun EditVocPlaylist(
                 requestDetailOn.value = !utils.isPlaylistUrl(textPlayUrl.value.replace(" ", ""))
 
                 if (!requestDetailOn.value) {
-                    //2) Build object:
-                    var newItem = JsonObject()
-                    newItem.addProperty("name", textName.value)
-                    newItem.addProperty("playlist_URL", textPlayUrl.value.replace(" ", "").split("?")[0])
+                    //2) Update object:
+                    val aliasesList = mutableListOf(textName.value.lowercase())
+                    aliasesList.addAll(textAliases.value.split(","))
+                    itemPlaylist.name = textName.value
+                    itemPlaylist.aliases = aliasesList
+                    itemPlaylist.spotifyUrl = textPlayUrl.value
 
-                    //3) Store:
-                    if (newItem != prevItem) {
-                        utils.writeLibraryItem(
-                            context = mContext,
-                            filter = filter,
-                            key = textName.value,
-                            item = newItem,
-                            prevKey = prevKey
-                        )
-                    }
+                    //3) Update / store to DB:
+                    libUtils.storePlaylist(mContext, itemPlaylist)
 
                     //4) End & close:
-                    vocKeys.value = getVocKeys(mContext, filter)   //Refresh list
+                    vocKeys.value = getLibraryKeys(filter)   //Refresh list
                     dialogOnState.value = false
                     keyState.value = ""
                 }
@@ -150,7 +146,7 @@ fun EditVocPlaylist(
                 textState = textName
             )
 
-            //ARTIST: PLAYLIST URL:
+            //PLAYLIST ALIASES:
             EditVocTextField(
                 modifier = Modifier
                     .focusRequester(focusRequester),
@@ -163,7 +159,25 @@ fun EditVocPlaylist(
                     colorLight = vocColorSelectorLight(cat = filter),
                     colorDark = vocColorSelector(cat = filter)
                 ),
-                title = if (filter == "artist") "'This is' playlist URL" else "Playlist URL",
+                title = "Aliases (separate with commas)",
+                placeholder = "Write $filter name...",
+                textState = textAliases
+            )
+
+            //PLAYLIST URL:
+            EditVocTextField(
+                modifier = Modifier
+                    .focusRequester(focusRequester),
+                onKeyboardDone = {
+                    focusManager.clearFocus()
+                    keyboardController!!.hide()
+                },
+                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textFieldColors = getTextFieldColors(
+                    colorLight = vocColorSelectorLight(cat = filter),
+                    colorDark = vocColorSelector(cat = filter)
+                ),
+                title = "Spotify: Playlist URL",
                 placeholder = "Paste here the Spotify link...",
                 textState = textPlayUrl
             )

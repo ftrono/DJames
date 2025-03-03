@@ -11,7 +11,6 @@ import android.telephony.PhoneNumberUtils
 import android.util.Log
 import android.util.Patterns
 import android.webkit.URLUtil
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.ftrono.DJames.R
@@ -97,6 +96,14 @@ class Utilities {
     //Check if string is made of alphabetic characters:
     fun isLetters(string: String): Boolean {
         return string.all { it.isLetter() }
+    }
+
+
+    //Validate artist URL:
+    fun isArtistUrl(playUrl: String): Boolean {
+        val urlTest = URLUtil.isValidUrl(playUrl) && Patterns.WEB_URL.matcher(playUrl).matches()
+        //True if conditions are met:
+        return (urlTest && playUrl.contains(artistUrlIntro))
     }
 
 
@@ -405,181 +412,6 @@ class Utilities {
                 }
             }
             Log.d(TAG, "Removed $c older logs.")
-        }
-    }
-
-    //VOCABULARY:
-    //Get List of all library files:
-    fun getLibraryKeys(filter: String): List<String> {
-        var vocKeys = mutableListOf<String>()
-        val vocCatDir = File(libraryDir, "${filter}s")
-        if (!vocCatDir.exists()) {
-            //create dir and return empty list:
-            vocCatDir.mkdir()
-            //TODO: MIGRATE
-            return vocKeys   //empty list
-        } else {
-            //populate:
-            val vocFiles = vocCatDir.list()
-            vocFiles!!.sort()   //Sort ascending by name
-            for (f in vocFiles) {
-                var reader = FileReader(File(vocCatDir, f))
-                try {
-                    //Try to parse:
-                    val obj = JsonParser.parseReader(reader).asJsonObject
-                    //Add:
-                    vocKeys.add(removeJsonSuffix(f))
-                } catch (e: Exception) {
-                    Log.w(TAG, "ERROR: Cannot open file $f: ", e)
-                    //Delete invalid files:
-                    File(vocCatDir, f).delete()
-                    Log.w(TAG, "Deleted file: $f")
-                }
-            }
-        }
-        //Log.d(TAG, vocKeys.toString())
-        return vocKeys
-    }
-
-
-    //Get single library item:
-    fun getLibraryItem(filter: String, key: String): JsonObject {
-        val vocCatDir = File(libraryDir, "${filter}s")
-        val vocItem = JsonObject()
-        try {
-            var reader = FileReader(File(vocCatDir, "$key.json"))
-            val obj = JsonParser.parseReader(reader).asJsonObject
-            //Log.d(TAG, "ITEM: $obj")
-            return obj
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Cannot open file $key: ", e)
-            return vocItem
-        }
-    }
-
-
-    //Close last open log:
-    fun writeLibraryItem(context: Context, filter: String, key: String, item: JsonObject, prevKey: String = "") {
-        //NOTE: both key and prevKey end with ".json"
-        val vocCatDir = File(libraryDir, "${filter}s")
-        if (prevKey != "") {
-            try {
-                //Delete previous version (if any):
-                File(vocCatDir, "$prevKey.json").delete()
-                Log.w(TAG, "Deleted file: $prevKey")
-            } catch (e: Exception) {
-                Log.w(TAG, "ERROR: Cannot delete old version: $prevKey!", e)
-                Toast.makeText(context, "ERROR: Cannot delete old version: $prevKey!", Toast.LENGTH_LONG).show()
-            }
-        }
-        try {
-            //Write new item:
-            var vocFile = File(vocCatDir, "$key.json")
-            vocFile.writeText(item.toString())
-            Toast.makeText(context, "Saved!", Toast.LENGTH_LONG).show()
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Library item $key not saved!", e)
-            Toast.makeText(context, "ERROR: Vocabulary not updated!", Toast.LENGTH_LONG).show()
-        }
-    }
-
-
-    //Library cleaning:
-    fun deleteLibrary(context: Context, filter: String) {
-        val vocCatDir = File(libraryDir, "${filter}s")
-        try {
-            val vocFiles = vocCatDir.list()
-            //Log.d(TAG, vocFiles.toList().toString())
-            for (f in vocFiles!!) {
-                File(vocCatDir, f).delete()
-            }
-            Log.d(TAG, "Library deleted for cat: ${filter}s")
-            Toast.makeText(context, "${filter.replaceFirstChar { it.uppercase() }} vocabulary deleted!", Toast.LENGTH_LONG).show()
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Cannot delete $filter library. ", e)
-            Toast.makeText(context, "ERROR in deleting ${filter.replaceFirstChar { it.uppercase() }} vocabulary!", Toast.LENGTH_LONG).show()
-        }
-    }
-
-
-    //Delete single library item:
-    fun deleteLibraryItem(context: Context, filter: String, key: String) {
-        try {
-            //Delete current:
-            val vocCatDir = File(libraryDir, "${filter}s")
-            File(vocCatDir, "$key.json").delete()
-            Toast.makeText(context, "Deleted!", Toast.LENGTH_LONG).show()
-            Log.d("VocabularyScreen", "Deleted $filter: $key. ")
-        } catch (e: Exception) {
-            Toast.makeText(context, "ERROR in deleting $filter: $key}!", Toast.LENGTH_LONG).show()
-            Log.w("VocabularyScreen", "ERROR in deleting $filter: $key. ", e)
-        }
-    }
-
-
-    //Prepare and send cached Library file:
-    fun buildLibraryToSend(context: Context, filter: String): String {
-        var fileName = ""
-        try {
-            //Populate cached array:
-            var libArray = JsonArray()
-            val keys = getLibraryKeys(filter)
-            for (key in keys) {
-                libArray.add(getLibraryItem(filter, key))
-            }
-            //Store to cached file:
-            fileName = "library_${filter}s.json"
-            val cachedFile = File(context.cacheDir, fileName)
-            cachedFile.writeText(libArray.toString())
-            Log.d(TAG, "Successfully prepared and cached consolidated Library for ${filter}s.")
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Cannot prepare or cache consolidated Library for ${filter}s!")
-        }
-        return fileName
-    }
-
-
-    //Clean consolidated cache:
-    fun cleanLibraryCache(context: Context) {
-        for (head in vocHeads) {
-            try {
-                File(context.cacheDir, "library_${head}s.json").delete()
-            } catch (e: Exception) {
-                Log.w(TAG, "No cached library_$head.json file to delete!")
-            }
-        }
-    }
-
-
-    //Remove suffix ".json" from key name:
-    fun removeJsonSuffix(key: String): String {
-        val cleanKey = key.slice(0..(key.length-6))
-        return cleanKey
-    }
-
-
-    //get playable URL for the current Library item:
-    fun getPlayUrl(filter: String, key: String, name: String = "default"): String {
-        var playUrl = ""
-        if (filter == "artist") {
-            //ARTIST:
-            val artistObj = getLibraryItem(filter, key)
-            val linksObj = artistObj.get("links").asJsonObject
-            if (linksObj.has(name)) {
-                //Get requested link:
-                val selObj = linksObj.get(name).asJsonObject
-                playUrl = selObj.get("playlist_URL").asString
-                return playUrl
-            } else {
-                //Empty string:
-                return playUrl
-            }
-        } else {
-            //PLAYLIST:
-            //Get requested link:
-            val playlistObj = getLibraryItem(filter, key)
-            playUrl = playlistObj.get("playlist_URL").asString
-            return playUrl
         }
     }
 

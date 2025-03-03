@@ -2,6 +2,7 @@ package com.ftrono.DJames.dialogs
 
 import android.content.Context
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -12,17 +13,23 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.database.Artist
+import com.ftrono.DJames.database.PlayLink
 import com.ftrono.DJames.screen.VocabularyScreen
-import com.ftrono.DJames.screen.getVocItem
-import com.ftrono.DJames.screen.getVocKeys
+import com.ftrono.DJames.screen.getLibraryKeys
+import com.ftrono.DJames.test_objects.testArtists
+import com.ftrono.DJames.ui.DropdownSpinner
 import com.ftrono.DJames.ui.getTextFieldColors
 import com.ftrono.DJames.ui.vocColorSelector
 import com.ftrono.DJames.ui.vocColorSelectorLight
-import com.google.gson.JsonObject
 
 
 @Preview
@@ -44,40 +51,59 @@ fun EditVocArtist(
 ) {
     val focusRequester = remember { FocusRequester() }
 
-    //Prev:
-    val prevKey = keyState.value
-    var prevItem = JsonObject()
-
     //Init:
-    var key = keyState.value
-    var initName = key
-    var initLinks = JsonObject()
-    var initPlayThisIs = JsonObject()
-    var initPlayThisIsUrl = ""
+    var itemArtist = Artist()
+    val key = keyState.value
 
     //Recover info:
     if (key != "") {
-        //TODO: extract useful data:
-        prevItem = getVocItem(mContext, filter, keyState.value, preview)
-        initName = prevItem.get("name").asString
-        initLinks = prevItem.get("links").asJsonObject
-        //Spotify This Is:
-        if (initLinks.has("spotify_this_is")) {
-            initPlayThisIs = initLinks.get("spotify_this_is").asJsonObject
-            initPlayThisIsUrl = initPlayThisIs.get("playlist_URL").asString
+        itemArtist = if (preview) {
+            testArtists[0]
+        } else {
+            libUtils.getArtist(keyState.value)
         }
     }
 
-    //States:
-    var textName = rememberSaveable { mutableStateOf(initName) }
-    var textPlayThisIsUrl = rememberSaveable { mutableStateOf(initPlayThisIsUrl) }
+    //Init aliases:
+    val initAliases = itemArtist.aliases.toMutableList()
+    initAliases.removeAt(0)
+    val playLinks = itemArtist.playLinks
+    val initPlayThisIsUrl = if (playLinks["spotify_this_is"] == null) "" else playLinks["spotify_this_is"]!!.spotifyUrl   //TODO: TEMP
 
-    val requestDetailOn = rememberSaveable { mutableStateOf(false) }
-    if (requestDetailOn.value) {
+    //TODO: EXTEND!
+    var playOptionsKeysToVal = mutableMapOf<String, String>(
+        "artist" to "Artist Top Tracks",
+        "spotify_this_is" to "Spotify \"This Is\" Playlist"
+    )
+    var playOptionsValToKeys = mutableMapOf<String, String>(
+        "Artist Top Tracks" to "artist",
+        "Spotify \"This Is\" Playlist" to "spotify_this_is"
+    )
+    val initDefaultPlay = playOptionsKeysToVal[itemArtist.defaultPlay]!!
+
+    //States:
+    val textName = rememberSaveable { mutableStateOf(itemArtist.name) }
+    val textAliases = rememberSaveable { mutableStateOf(initAliases.joinToString(", ")) }
+    val textDefaultPlay = rememberSaveable { mutableStateOf(initDefaultPlay) }
+    val textArtistUrl = rememberSaveable { mutableStateOf(itemArtist.spotifyUrl) }
+    val textPlayThisIsUrl = rememberSaveable { mutableStateOf(initPlayThisIsUrl) }
+
+    val requestDetailArtistOn = rememberSaveable { mutableStateOf(false) }
+    val requestDetailPlaylistOn = rememberSaveable { mutableStateOf(false) }
+
+    if (requestDetailArtistOn.value) {
         DialogRequestDetail(
-            dialogOnState = requestDetailOn,
+            dialogOnState = requestDetailArtistOn,
+            title = "Artist URL",
+            message = "Please enter a valid URL for the current Artist!\n\nPlease copy it from Spotify -> artist profile -> Share -> Copy link."
+        )
+    }
+
+    if (requestDetailPlaylistOn.value) {
+        DialogRequestDetail(
+            dialogOnState = requestDetailPlaylistOn,
             title = "Playlist URL",
-            message = "Please enter a valid URL for the current Playlist!\n\nPlease copy it from Spotify -> your playlist -> Share -> Copy link."
+            message = "Please enter a valid URL for the current Playlist!\n\nPlease copy it from Spotify -> playlist page -> Share -> Copy link."
         )
     }
 
@@ -111,38 +137,33 @@ fun EditVocArtist(
             },
             onSave = {
                 //CHECK & BUILD:
-                //1) Validate Playlist URL:
-                requestDetailOn.value = !utils.isPlaylistUrl(textPlayThisIsUrl.value.replace(" ", ""))
+                //1) Validate Artist URL & Playlist URL:
+                requestDetailArtistOn.value = !utils.isArtistUrl(textArtistUrl.value.replace(" ", ""))
+                if (textPlayThisIsUrl.value != "") {
+                    requestDetailPlaylistOn.value = !utils.isPlaylistUrl(textPlayThisIsUrl.value.replace(" ", ""))
+                }
 
-                if (!requestDetailOn.value) {
-                    //2) Build object:
-                    var newItem = JsonObject()
-                    newItem.addProperty("name", textName.value)
-                    //Links:
-                    val links = JsonObject()
-                    val thisIsObj = JsonObject()
-                    thisIsObj.addProperty("name", "this is ${textName.value}")
-                    thisIsObj.addProperty("owner", "spotify")
-                    thisIsObj.addProperty("playlist_URL", textPlayThisIsUrl.value.replace(" ", "").split("?")[0])
-                    links.add("spotify_this_is", thisIsObj)
-                    //Default:
-                    links.add("default", thisIsObj)
-                    //Container:
-                    newItem.add("links", links)
+                if (!requestDetailArtistOn.value && !requestDetailPlaylistOn.value) {
+                    //2) Update object:
+                    val thisIsName = "this is ${textName.value}"
+                    val aliasesList = mutableListOf(textName.value.lowercase())
+                    aliasesList.addAll(textAliases.value.split(","))
+                    itemArtist.name = textName.value
+                    itemArtist.aliases = aliasesList
+                    itemArtist.spotifyUrl = textArtistUrl.value
+                    itemArtist.defaultPlay = playOptionsValToKeys[textDefaultPlay.value]!!
+                    playLinks[thisIsName] = PlayLink(
+                        name = thisIsName,
+                        owner = "Spotify",
+                        spotifyUrl = textPlayThisIsUrl.value.replace(" ", "").split("?")[0]
+                    )
+                    itemArtist.playLinks = playLinks
 
-                    //3) Store:
-                    if (newItem != prevItem) {
-                        utils.writeLibraryItem(
-                            context = mContext,
-                            filter = filter,
-                            key = textName.value,
-                            item = newItem,
-                            prevKey = prevKey
-                        )
-                    }
+                    //3) Update / store to DB:
+                    libUtils.storeArtist(mContext, itemArtist)
 
                     //4) End & close:
-                    vocKeys.value = getVocKeys(mContext, filter)   //Refresh list
+                    vocKeys.value = getLibraryKeys(filter)   //Refresh list
                     dialogOnState.value = false
                     keyState.value = ""
                 }
@@ -167,6 +188,42 @@ fun EditVocArtist(
                 textState = textName
             )
 
+            //ARTIST ALIASES:
+            EditVocTextField(
+                modifier = Modifier
+                    .focusRequester(focusRequester),
+                onKeyboardDone = {
+                    focusManager.clearFocus()
+                    keyboardController!!.hide()
+                },
+                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textFieldColors = getTextFieldColors(
+                    colorLight = vocColorSelectorLight(cat = filter),
+                    colorDark = vocColorSelector(cat = filter)
+                ),
+                title = "Aliases (separate with commas)",
+                placeholder = "Write $filter name...",
+                textState = textAliases
+            )
+
+            //ARTIST URL:
+            EditVocTextField(
+                modifier = Modifier
+                    .focusRequester(focusRequester),
+                onKeyboardDone = {
+                    focusManager.clearFocus()
+                    keyboardController!!.hide()
+                },
+                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textFieldColors = getTextFieldColors(
+                    colorLight = vocColorSelectorLight(cat = filter),
+                    colorDark = vocColorSelector(cat = filter)
+                ),
+                title = "Spotify: Artist URL",
+                placeholder = "Paste here the Spotify link...",
+                textState = textArtistUrl
+            )
+
             //PLAYLIST URL:
             EditVocTextField(
                 modifier = Modifier
@@ -180,9 +237,26 @@ fun EditVocArtist(
                     colorLight = vocColorSelectorLight(cat = filter),
                     colorDark = vocColorSelector(cat = filter)
                 ),
-                title = if (filter == "artist") "'This is' playlist URL" else "Playlist URL",
+                title = "Spotify: 'This is' playlist URL",
                 placeholder = "Paste here the Spotify link...",
                 textState = textPlayThisIsUrl
+            )
+
+            //DEFAULT PLAY: DROPDOWN:
+            Text(
+                text = "Play by default",
+                color = vocColorSelectorLight(cat = filter),
+                textAlign = TextAlign.Start,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            DropdownSpinner(
+                mContext = mContext,
+                parentOptions = playOptionsValToKeys.keys.toList(),
+                init = initDefaultPlay,
+                state = textDefaultPlay,
+                focusColorLight = vocColorSelectorLight(cat = filter),
+                focusColorDark = vocColorSelector(cat = filter)
             )
 
         }

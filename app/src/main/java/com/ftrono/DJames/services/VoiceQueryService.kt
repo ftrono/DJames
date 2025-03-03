@@ -84,7 +84,7 @@ class VoiceQueryService: Service() {
 
 
         } catch (e: Exception) {
-            Log.e(TAG, "Exception: ", e)
+            Log.w(TAG, "Exception: ", e)
             overlayStatus.postValue("ready")
             stopSelf()
         }
@@ -173,31 +173,36 @@ class VoiceQueryService: Service() {
     //FUNCTIONS:
     //Helper:
     private fun record() {
-        //START VOICE RECORDER:
-        Log.d(TAG, "RECORDING STARTED.")
+        try {
+            //START VOICE RECORDER:
+            Log.d(TAG, "RECORDING STARTED.")
 
-        //Set overlay BUSY color:
-        overlayStatus.postValue("busy")
+            //Set overlay BUSY color:
+            overlayStatus.postValue("busy")
 
-        if (followUp || messageMode) {
-            //Play FOLLOW UP tone:
-            toneGen.startTone(ToneGenerator.TONE_CDMA_ONE_MIN_BEEP)   //FOLLOW UP
-        } else {
-            //Play START tone:
-            toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
+            if (followUp || messageMode) {
+                //Play FOLLOW UP tone:
+                toneGen.startTone(ToneGenerator.TONE_CDMA_ONE_MIN_BEEP)   //FOLLOW UP
+            } else {
+                //Play START tone:
+                toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
+            }
+
+            //Start recording (default: cacheDir, alternative: saveDir):
+            recordingMode = true
+            rec_time = 0
+            MyRecorder.start(saveDir)
+
+            //Start rec Thread:
+            var recThread = Thread {
+                whileRecording(MyRecorder, messageMode=messageMode)
+            }
+            recThread.start()
+            allThreads.add(recThread)
+        } catch (e: Exception) {
+            Log.w(TAG, "VQSERVICE: EXCEPTION: ", e)
+            fail("Sorry, there was a problem!")
         }
-
-        //Start recording (default: cacheDir, alternative: saveDir):
-        recordingMode = true
-        rec_time = 0
-        MyRecorder.start(saveDir)
-
-        //Start rec Thread:
-        var recThread = Thread {
-            whileRecording(MyRecorder, messageMode=messageMode)
-        }
-        recThread.start()
-        allThreads.add(recThread)
     }
 
 
@@ -238,7 +243,7 @@ class VoiceQueryService: Service() {
             }
         } catch (e: Exception) {
             Log.w(TAG, "VQSERVICE: EXCEPTION: ", e)
-            fail()
+            fail("Sorry, there was a problem!")
         }
     }
 
@@ -285,54 +290,59 @@ class VoiceQueryService: Service() {
 
         } catch (e: Exception) {
             Log.w(TAG, "VQSERVICE: EXCEPTION: ", e)
-            fail()
+            fail("Sorry, there was a problem!")
         }
     }
 
 
     private fun processResults(recFile: File) {
-        //CALL NLP DISPATCHER:
-        var nlpDispatcher = NLPDispatcher(applicationContext)
-        processStatus = nlpDispatcher.dispatch(recFile, processStatus, followUp, messageMode)
-        processing = false
+        try {
+            //CALL NLP DISPATCHER:
+            var nlpDispatcher = NLPDispatcher(applicationContext)
+            processStatus = nlpDispatcher.dispatch(recFile, processStatus, followUp, messageMode)
+            processing = false
 
-        if (processStatus.isEmpty || processStatus.has("fail")) {
-            var toastText = ""
-            if (processStatus.has("toastText")) {
-                toastText = processStatus.get("toastText").asString
-            }
-            fail(toastText)
+            if (processStatus.isEmpty || processStatus.has("fail")) {
+                var toastText = ""
+                if (processStatus.has("toastText")) {
+                    toastText = processStatus.get("toastText").asString
+                }
+                fail(toastText)
 
-        } else if (processStatus.has("stopService")) {
-            if (processStatus.has("stopSound")) {
-                //SUCCESS -> Play ACKNOWLEDGE tone:
-                toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
-            }
-            //Gracefully stop the service:
-            stopSelf()
+            } else if (processStatus.has("stopService")) {
+                if (processStatus.has("stopSound")) {
+                    //SUCCESS -> Play ACKNOWLEDGE tone:
+                    toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                }
+                //Gracefully stop the service:
+                stopSelf()
 
-        } else if (processStatus.has("messageMode")) {
-            messageMode = processStatus.get("messageMode").asBoolean
-            //SUPPOSED TO BE TRUE:
-            try {
-                startRecording()
-            } catch (e: Exception) {
-                Log.w(TAG, "VQRECEIVER: recording not started. ", e)
-                fail()
-            }
+            } else if (processStatus.has("messageMode")) {
+                messageMode = processStatus.get("messageMode").asBoolean
+                //SUPPOSED TO BE TRUE:
+                try {
+                    startRecording()
+                } catch (e: Exception) {
+                    Log.w(TAG, "VQRECEIVER: recording not started. ", e)
+                    fail()
+                }
 
-        } else if (processStatus.has("followUp")) {
-            followUp = processStatus.get("followUp").asBoolean
-            //SUPPOSED TO BE TRUE:
-            try {
-                startRecording()
-            } catch (e: Exception) {
-                Log.w(TAG, "VQRECEIVER: recording not started. ", e)
-                fail()
+            } else if (processStatus.has("followUp")) {
+                followUp = processStatus.get("followUp").asBoolean
+                //SUPPOSED TO BE TRUE:
+                try {
+                    startRecording()
+                } catch (e: Exception) {
+                    Log.w(TAG, "VQRECEIVER: recording not started. ", e)
+                    fail()
+                }
+            } else {
+                //TEMP:
+                stopSelf()
             }
-        } else {
-            //TEMP:
-            stopSelf()
+        } catch (e: Exception) {
+            Log.e(TAG, "VQSERVICE: EXCEPTION: ", e)
+            fail("Sorry, there was a problem!")
         }
     }
 

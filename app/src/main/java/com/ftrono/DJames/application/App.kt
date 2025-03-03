@@ -9,9 +9,17 @@ import android.util.Log
 import android.net.Uri
 import net.openid.appauth.AuthorizationServiceConfiguration
 import androidx.lifecycle.MutableLiveData
+import com.ftrono.DJames.application.App.ObjectBox.store
+import com.ftrono.DJames.database.Artist
+import com.ftrono.DJames.database.Contact
+import com.ftrono.DJames.database.LibraryUtils
+import com.ftrono.DJames.database.MyObjectBox
+import com.ftrono.DJames.database.Playlist
 import com.ftrono.DJames.utilities.Prefs
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
+import io.objectbox.Box
+import io.objectbox.BoxStore
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 import java.io.File
@@ -20,8 +28,17 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.2.1"
+val appVersion = "2.3.0"
 val copyrightYear = 2024
+
+//DB:
+var artistBox: Box<Artist>? = null
+var playlistBox: Box<Playlist>? = null
+var contactBox: Box<Contact>? = null
+
+//UTILS:
+val utils = Utilities()
+val libUtils = LibraryUtils()
 
 //STATUS VARS:
 var curNavId = 0
@@ -35,8 +52,7 @@ var volumeUpEnabled = MutableLiveData<Boolean>(true)
 var settingsOpen = MutableLiveData<Boolean>(false)
 var innerNavOpen = MutableLiveData<Boolean>(false)
 var currentSongPlaying = MutableLiveData<String>("Don't turn off the screen!")
-var currentArtistPlaying = MutableLiveData<String>("Keep this Clock Screen on\nto save battery")
-var currentAlbumPlaying = MutableLiveData<String>("(unless you're using Maps)")
+var currentArtistPlaying = MutableLiveData<String>("You can keep this Clock\nScreen on to save battery")
 var curLibrarySize = MutableLiveData<Int>(0)
 val vocHeads = listOf("artist", "playlist", "contact")
 val vocSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
@@ -75,9 +91,6 @@ var callMode: Boolean = false
 var searchFail: Boolean = false
 var newsTalk = false
 
-//Utils:
-val utils = Utilities()
-
 //Audio Manager:
 var audioManager: AudioManager? = null
 
@@ -97,6 +110,7 @@ var contextName: String = ""
 //Spotify formats:
 val uri_format = "spotify:track:"   ///spotify:<type>:<id>
 val ext_format = "https://open.spotify.com/"
+val artistUrlIntro = "https://open.spotify.com/artist/"
 val playlistUrlIntro = "https://open.spotify.com/playlist/"
 val likedSongsUri = "spotify:user:replaceUserId:collection"
 
@@ -201,6 +215,17 @@ class App: Application()
             private set
     }
 
+    object ObjectBox {
+        lateinit var store: BoxStore
+            private set
+
+        fun init(context: Context) {
+            store = MyObjectBox.builder()
+                .androidContext(context)
+                .build()
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
 
@@ -209,5 +234,10 @@ class App: Application()
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         streamMaxVolume = audioManager!!.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
 
+        //DB:
+        ObjectBox.init(this)
+        artistBox = store.boxFor(Artist::class.java)
+        playlistBox = store.boxFor(Playlist::class.java)
+        contactBox = store.boxFor(Contact::class.java)
     }
 }

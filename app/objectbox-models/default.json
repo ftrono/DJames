@@ -1,0 +1,162 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "2:7968964268771068093",
+      "lastPropertyId": "11:6711541609762686594",
+      "name": "Artist",
+      "properties": [
+        {
+          "id": "1:4764942459196964830",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5521703513870315512",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:5653834374665632968",
+          "name": "aliases",
+          "type": 30
+        },
+        {
+          "id": "4:6227927811288057158",
+          "name": "spotifyUrl",
+          "type": 9
+        },
+        {
+          "id": "5:9059552519235226658",
+          "name": "country",
+          "type": 9
+        },
+        {
+          "id": "6:4391156091472839583",
+          "name": "genres",
+          "type": 30
+        },
+        {
+          "id": "7:8263656927358020778",
+          "name": "imageUrl",
+          "type": 9
+        },
+        {
+          "id": "8:183047983980454073",
+          "name": "defaultPlay",
+          "type": 9
+        },
+        {
+          "id": "10:1536846997011185205",
+          "name": "playLinksJson",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "3:8609231695273258643",
+      "lastPropertyId": "9:3536447629798291220",
+      "name": "Contact",
+      "properties": [
+        {
+          "id": "1:6694745930910362214",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3087762969864672825",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:8171501140664253250",
+          "name": "aliases",
+          "type": 30
+        },
+        {
+          "id": "4:4055124383755770699",
+          "name": "language",
+          "type": 9
+        },
+        {
+          "id": "6:8910608785274586",
+          "name": "defaultPhone",
+          "type": 9
+        },
+        {
+          "id": "8:8666729158491479553",
+          "name": "phoneSetsJson",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "4:3119027032574447244",
+      "lastPropertyId": "7:8335508126361015910",
+      "name": "Playlist",
+      "properties": [
+        {
+          "id": "1:3577522659893589361",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3140896673854634658",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:6076400086037327276",
+          "name": "aliases",
+          "type": 30
+        },
+        {
+          "id": "4:3557346242060721670",
+          "name": "owner",
+          "type": 9
+        },
+        {
+          "id": "5:3981375622103809008",
+          "name": "imageUrl",
+          "type": 9
+        },
+        {
+          "id": "7:8335508126361015910",
+          "name": "spotifyUrl",
+          "type": 9
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "4:3119027032574447244",
+  "lastIndexId": "0:0",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [
+    793339651987581398
+  ],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [
+    3073054952592741448,
+    374505610408479187,
+    1596367397743659140,
+    4469444297772277425,
+    6010329134253747642,
+    6406509852556470651,
+    8603371825086251985,
+    6711541609762686594,
+    3536447629798291220
+  ],
+  "retiredRelationUids": [],
+  "version": 1
+}

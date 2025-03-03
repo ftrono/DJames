@@ -132,8 +132,7 @@
       "play_type": "playlist",
       "match_extracted": "francis ford",
       "context_type": "playlist",
-      "context_confirmed": "francis ford",
-      "by_spotify": false
+      "context_confirmed": "francis ford"
     },
     "spotify_play": {
       "play_type": "playlist",

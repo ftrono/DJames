@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
@@ -85,6 +84,10 @@ fun HistoryScreen(preview: Boolean = false) {
     val historyKeysState by historyKeys.observeAsState()
     historyKeys.postValue(updateHistory(mContext, preview))
 
+    val mDisplayMainMenu = rememberSaveable {
+        mutableStateOf(false)
+    }
+
     val deleteAllOn = rememberSaveable { mutableStateOf(false) }
     if (deleteAllOn.value) {
         DialogDeleteHistory(mContext, deleteAllOn)
@@ -101,33 +104,24 @@ fun HistoryScreen(preview: Boolean = false) {
             subtitle = "Last 30 days",
             num = historyKeysState!!.size
         ) {
-            //REFRESH BUTTON:
-            Icon(
-                modifier = Modifier
-                    .padding(end = 12.dp)
-                    .size(35.dp)
-                    .clickable {
-                        historyKeys.postValue(updateHistory(mContext))   //Refresh list
-                        Toast
-                            .makeText(mContext, "History updated!", Toast.LENGTH_SHORT)
-                            .show()
-                    },
-                imageVector = Icons.Default.Refresh,
-                contentDescription = "Refresh",
-                tint = colorResource(id = R.color.colorAccentLight)
-            )
-            //DELETE BUTTON:
-            Icon(
-                modifier = Modifier
-                    .padding(end = 18.dp)
-                    .size(35.dp)
-                    .clickable {
-                        deleteAllOn.value = true
-                    },
-                imageVector = Icons.Default.Delete,
-                contentDescription = "Delete All",
-                tint = colorResource(id = R.color.colorAccentLight)
-            )
+            Box() {
+                //1) CAT OPTIONS:
+                Icon(
+                    modifier = Modifier
+                        .padding(end = 18.dp)
+                        .size(35.dp)
+                        .clickable {
+                            mDisplayMainMenu.value = !mDisplayMainMenu.value
+                        },
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "Add library item",
+                    tint = colorResource(id = R.color.colorAccentLight)
+                )
+                HistoryOptions(
+                    mDisplayMenu = mDisplayMainMenu,
+                    deleteAllOn = deleteAllOn,
+                )
+            }
         }
 
         //CONTENT:
@@ -257,7 +251,7 @@ fun HistoryCard(
                         contentDescription = "",
                         tint = colorResource(id = R.color.light_grey)
                     )
-                    HistoryOptions(
+                    HistoryItemOptions(
                         mContext = mContext,
                         mDisplayMenu = mDisplayMenu,
                         deleteLogOn = deleteLogOn,
@@ -296,6 +290,31 @@ fun HistoryCard(
 //DROPDOWN MENU:
 @Composable
 fun HistoryOptions(
+    mDisplayMenu: MutableState<Boolean>,
+    deleteAllOn: MutableState<Boolean>
+) {
+    //DROPDOWN MENU:
+    OptionsMenu(
+        expandedState = mDisplayMenu,
+        backgroundColor = colorResource(id = R.color.dark_grey),
+        options = {
+            //1) Item: DELETE HISTORY
+            OptionsItem(
+                title = "Delete history",
+                iconVector = Icons.Default.Delete,
+                onClick = {
+                    mDisplayMenu.value = false
+                    deleteAllOn.value = true
+                }
+            )
+        }
+    )
+}
+
+
+//DROPDOWN MENU:
+@Composable
+fun HistoryItemOptions(
     mContext: Context,
     mDisplayMenu: MutableState<Boolean>,
     deleteLogOn: MutableState<Boolean>,

@@ -55,6 +55,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -241,7 +242,6 @@ class ClockActivity: ComponentActivity() {
         //PLAYER INFO:
         val currentSongPlayingState by currentSongPlaying.observeAsState()
         val currentArtistPlayingState by currentArtistPlaying.observeAsState()
-        val currentAlbumPlayingState by currentAlbumPlaying.observeAsState()
 
         val mContext = LocalContext.current
         val playerDialogOn = rememberSaveable { mutableStateOf(false) }
@@ -307,18 +307,8 @@ class ClockActivity: ComponentActivity() {
                         text = currentArtistPlayingState!!,
                         lineHeight = 16.sp,
                         color = colorResource(id = R.color.mid_grey),
-                        fontSize = 14.sp
-                    )
-                    //ALBUM NAME:
-                    Text(
-                        modifier = Modifier
-                            .padding(start = 14.dp)
-                            .offset(y = -(2.dp))
-                            .wrapContentWidth(),
-                        text = currentAlbumPlayingState!!,
-                        color = colorResource(id = R.color.mid_grey),
-                        fontSize = 12.sp,
-                        fontStyle = FontStyle.Italic
+                        fontSize = 16.sp,
+                        //fontWeight = FontWeight.Bold
                     )
                 }
             }
@@ -463,7 +453,7 @@ class ClockActivity: ComponentActivity() {
         //Populate player info:
         currentSongPlaying.postValue(utils.trimString(songName))
         currentArtistPlaying.postValue(utils.trimString(artistName))
-        currentAlbumPlaying.postValue(utils.trimString(contextName))
+        //currentAlbumPlaying.postValue(utils.trimString(contextName))
     }
 
 

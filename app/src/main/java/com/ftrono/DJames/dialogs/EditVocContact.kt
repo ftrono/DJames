@@ -39,18 +39,20 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.messLangFull
 import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.database.Contact
+import com.ftrono.DJames.database.PhoneSet
 import com.ftrono.DJames.screen.VocabularyScreen
-import com.ftrono.DJames.screen.getVocItem
-import com.ftrono.DJames.screen.getVocKeys
+import com.ftrono.DJames.screen.getLibraryKeys
+import com.ftrono.DJames.test_objects.testContacts
 import com.ftrono.DJames.ui.DropdownSpinner
 import com.ftrono.DJames.ui.getTextFieldColors
 import com.ftrono.DJames.ui.vocColorSelector
 import com.ftrono.DJames.ui.vocColorSelectorLight
-import com.google.gson.JsonObject
 
 
 @Preview
@@ -72,42 +74,45 @@ fun EditVocContact(
 ) {
     val focusRequester = remember { FocusRequester() }
 
-    //Prev:
-    val prevKey = keyState.value
-    var prevItem = JsonObject()
-
     //Init:
-    var key = keyState.value
-    var initName = key
-    var initLanguage = if (preview) "it" else prefs.messageLanguage
-    var initMain = JsonObject()
-    var initPrefix = "+39"
-    var initPhone = ""
-    var checkedLang = remember { mutableStateOf(false) }
+    var itemContact = Contact()
+    val key = keyState.value
+    val checkedLang = remember { mutableStateOf(false) }
 
     //Recover info:
     if (key != "") {
-        //TODO: extract useful data:
-        prevItem = getVocItem(mContext, filter, keyState.value, preview)
-        initName = prevItem.get("name").asString
-        initLanguage = prevItem.get("language").asString
-        if (initLanguage == "") {
-            //No custom language:
-            initLanguage = if (preview) "it" else prefs.messageLanguage
+        itemContact = if (preview) {
+            testContacts[0]
         } else {
-            //There is a custom language:
-            checkedLang.value = true
+            libUtils.getContact(keyState.value)
         }
-        initMain = prevItem.get("main").asJsonObject
-        initPrefix = initMain.get("prefix").asString
-        initPhone = initMain.get("phone").asString
     }
 
+    //Init aliases:
+    val initAliases = itemContact.aliases.toMutableList()
+    initAliases.removeAt(0)
+
+    //Init default language:
+    var initLanguage = itemContact.language
+    if (initLanguage == "") {
+        //No custom language:
+        initLanguage = if (preview) "it" else prefs.messageLanguage
+    } else {
+        //There is a custom language:
+        checkedLang.value = true
+    }
+
+    val phoneSets = itemContact.phoneSets
+    val initPersPrefix = if (phoneSets["personal"] == null) "" else phoneSets["personal"]!!.prefix   //TODO: TEMP
+    val initPersPhone = if (phoneSets["personal"] == null) "" else phoneSets["personal"]!!.phone   //TODO: TEMP
+
     //States:
-    var textName = rememberSaveable { mutableStateOf(initName) }
-    var textPrefix = rememberSaveable { mutableStateOf(initPrefix) }
-    var textPhone = rememberSaveable { mutableStateOf(initPhone) }
-    var textLanguage = rememberSaveable { mutableStateOf(messLangFull[messLangCodes.indexOf(initLanguage)]) }
+    val textName = rememberSaveable { mutableStateOf(itemContact.name) }
+    val textAliases = rememberSaveable { mutableStateOf(initAliases.joinToString(", ")) }
+    val textLanguage = rememberSaveable { mutableStateOf(messLangFull[messLangCodes.indexOf(initLanguage)]) }
+    val textDefaultPhone = rememberSaveable { mutableStateOf(itemContact.defaultPhone) }   //TODO
+    val textPrefix = rememberSaveable { mutableStateOf(initPersPrefix) }
+    val textPhone = rememberSaveable { mutableStateOf(initPersPhone) }
 
     val requestDetailOn = rememberSaveable { mutableStateOf(false) }
     if (requestDetailOn.value) {
@@ -158,35 +163,29 @@ fun EditVocContact(
                 requestDetailOn.value = !utils.isGlobalPhone(prefix = textPrefix.value, phone = textPhone.value)
 
                 if (!requestDetailOn.value) {
-                    //2) Build object:
-                    var newItem = JsonObject()
-                    newItem.addProperty("name", textName.value)
+                    //2) Update object:
+                    val aliasesList = mutableListOf(textName.value.lowercase())
+                    aliasesList.addAll(textAliases.value.split(","))
+                    itemContact.name = textName.value
+                    itemContact.aliases = aliasesList
                     //Language:
                     if (checkedLang.value) {
-                        newItem.addProperty("language", messLangCodes[messLangFull.indexOf(textLanguage.value)])
+                        itemContact.language = messLangCodes[messLangFull.indexOf(textLanguage.value)]
                     } else {
-                        newItem.addProperty("language", "")
+                        itemContact.language =  ""
                     }
-                    //Main:
-                    val main = JsonObject()
-                    main.addProperty("prefix", textPrefix.value)
-                    main.addProperty("phone", textPhone.value)
-                    //Container:
-                    newItem.add("main", main)
+                    itemContact.defaultPhone = "personal"
+                    phoneSets["personal"] = PhoneSet(
+                        prefix = textPrefix.value,
+                        phone = textPhone.value
+                    )
+                    itemContact.phoneSets = phoneSets
 
-                    //3) Store:
-                    if (newItem != prevItem) {
-                        utils.writeLibraryItem(
-                            context = mContext,
-                            filter = filter,
-                            key = textName.value,
-                            item = newItem,
-                            prevKey = prevKey
-                        )
-                    }
+                    //3) Update / store to DB:
+                    libUtils.storeContact(mContext, itemContact)
 
                     //4) End & close:
-                    vocKeys.value = getVocKeys(mContext, filter)   //Refresh list
+                    vocKeys.value = getLibraryKeys(filter)   //Refresh list
                     dialogOnState.value = false
                     keyState.value = ""
                 }
@@ -210,7 +209,25 @@ fun EditVocContact(
                 textState = textName
             )
 
-            //CONTACTS: TEXT FIELD 2:
+            //CONTACT ALIASES:
+            EditVocTextField(
+                modifier = Modifier
+                    .focusRequester(focusRequester),
+                onKeyboardDone = {
+                    focusManager.clearFocus()
+                    keyboardController!!.hide()
+                },
+                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textFieldColors = getTextFieldColors(
+                    colorLight = vocColorSelectorLight(cat = filter),
+                    colorDark = vocColorSelector(cat = filter)
+                ),
+                title = "Aliases (separate with commas)",
+                placeholder = "Write $filter name...",
+                textState = textAliases
+            )
+
+            //CONTACT PHONE:
             Text(
                 text = "Main phone",
                 color = vocColorSelectorLight(cat = filter),

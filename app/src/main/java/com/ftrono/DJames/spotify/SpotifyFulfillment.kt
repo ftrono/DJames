@@ -6,6 +6,7 @@ import android.util.Log
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.ext_format
 import com.ftrono.DJames.application.last_log
+import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.likedSongsUri
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
@@ -195,12 +196,12 @@ class SpotifyFulfillment (private var context: Context) {
         var artistConfirmed = ""
         var artistJson = JsonObject()
         var contextExtracted = extractorInfo.get("context_extracted").asString
-        var playlistMatch = ""
+        var playlistMatchId = ""
 
         if (artistExtracted != "") {
             //Confirm artists with vocabulary check:
             val artistsNlp = resultsNLP.get("artists").asJsonArray
-            artistJson = nlpExtractor.checkArtists(artistsNlp, artistExtracted, reqLanguage=reqLangCode)
+            artistJson = nlpExtractor.checkArtists(artistsNlp, artistExtracted, reqLangCode, getDetails=false)
             artistConfirmed = artistJson.get("text_confirmed").asString
             extractorInfo.addProperty("artist_confirmed", artistConfirmed)
             last_log!!.add("nlp_extractor", extractorInfo)
@@ -240,20 +241,22 @@ class SpotifyFulfillment (private var context: Context) {
 
             } else if (playType == "track") {
                 //Confirm context playlist with vocabulary check:
-                playlistMatch = nlpExtractor.matchVocabulary("playlist", contextExtracted)
+                playlistMatchId = nlpExtractor.matchVocabulary("playlist", contextExtracted)
 
-                if (playlistMatch != "") {
+                if (playlistMatchId != "") {
                     Log.d(TAG, "Context -> Playlist in voc")
                     //Get playlist URL:
-                    val playlistUrl = utils.getPlayUrl("playlist", playlistMatch)
+                    val itemInfo = libUtils.getItemInfoUse("playlist", playlistMatchId)
+                    val playlistUrl = itemInfo.spotifyUrl
                     val playlistId = playlistUrl.split("/").last()
-                    extractorInfo.addProperty("context_confirmed", playlistMatch)
+                    extractorInfo.addProperty("context_confirmed", playlistMatchId)
 
                     //Context -> Playlist:
                     val uri = "spotify:playlist:${playlistId}"
                     playInfo.addProperty("context_type", "playlist")
                     playInfo.addProperty("context_uri", uri)
-                    playInfo.addProperty("context_name", playlistMatch)
+                    playInfo.addProperty("context_name", itemInfo.name)
+                    playInfo.addProperty("context_owner", itemInfo.owner)
                 } else {
                     //Playlist not found:
                     contextAlbum = true
@@ -321,8 +324,8 @@ class SpotifyFulfillment (private var context: Context) {
         var artistJson = JsonObject()
         var contextConfirmed = ""
         var artistPlaylist = ""
-        var bySpotify = false
-        var playlistMatch = ""
+        var ownerConfirmed = ""
+        var playlistMatchId = ""
         var playInfo = JsonObject()
 
         var extractorInfo = JsonObject()
@@ -333,22 +336,31 @@ class SpotifyFulfillment (private var context: Context) {
 
         var nlpExtractor = NLPExtractor(context)
         if (playType == "artist") {
-            //bySpotify = true
             //Confirm artists with vocabulary check:
+            //TODO: Play Artist vs Default Playlist
             //TODO: Extract name of artist playlist to play
             val artistsNlp = resultsNLP.get("artists").asJsonArray
-            artistJson = nlpExtractor.checkArtists(artistsNlp, matchName, reqLanguage=reqLangCode)   //TODO: add playlistName to extract
+            artistJson = nlpExtractor.checkArtists(artistsNlp, matchName, reqLangCode, getDetails=true, playName="spotify_this_is")   //TODO: TEMP! + add playlistName to extract
             artistConfirmed = artistJson.get("text_confirmed").asString
             extractorInfo.addProperty("text_confirmed", artistConfirmed)
             extractorInfo.addProperty("artist_confirmed", artistConfirmed)
 
             //Artist playlist:
-            if (artistJson.has("detail_confirmed")) {
+            if (artistJson.has("play_URL")) {
+                //TODO: ADD PLAYNAME & PLAY ARTIST TOP TRACKS!
                 Log.d(TAG, "PLAY -> Artist playlist in voc")
-                artistPlaylist = artistJson.get("detail_confirmed").asString
-                extractorInfo.addProperty("detail_confirmed", artistPlaylist)
-                contextConfirmed = "This is ${artistJson.get("text_confirmed").asString}"
+                artistPlaylist = artistJson.get("play_URL").asString
+                extractorInfo.addProperty("play_URL", artistPlaylist)
+                if (artistJson.has("play_name")) {
+                    contextConfirmed = artistJson.get("play_name").asString
+                    ownerConfirmed = artistJson.get("play_owner").asString
+                } else {
+                    contextConfirmed = "Top Tracks for $artistConfirmed"
+                }
                 extractorInfo.addProperty("context_confirmed", contextConfirmed)
+                extractorInfo.addProperty("owner_confirmed", ownerConfirmed)
+
+                //TODO: add artist management!
                 var playlistId = artistPlaylist.split("/").last()
 
                 //PLAY -> Artist playlist:
@@ -359,20 +371,24 @@ class SpotifyFulfillment (private var context: Context) {
                 playInfo.addProperty("uri", uri)
                 playInfo.addProperty("context_uri", uri)
                 playInfo.addProperty("context_name", contextConfirmed)
+                playInfo.addProperty("context_owner", ownerConfirmed)
                 playInfo.addProperty("spotify_URL", "${ext_format}$playType/$playlistId")
             }
 
         } else if (playType == "playlist") {
             //Check playlist in vocabulary:
-            playlistMatch = nlpExtractor.matchVocabulary(playType, matchName)
+            playlistMatchId = nlpExtractor.matchVocabulary(playType, matchName)
 
-            if (playlistMatch != "") {
+            if (playlistMatchId != "") {
                 Log.d(TAG, "PLAY -> Playlist in voc")
                 //Get playlist URL:
-                val playlistUrl = utils.getPlayUrl(playType, playlistMatch)
-                contextConfirmed = playlistMatch
+                val itemInfo = libUtils.getItemInfoUse(playType, playlistMatchId)
+                val playlistUrl = itemInfo.spotifyUrl
+                contextConfirmed = itemInfo.name
+                ownerConfirmed = itemInfo.owner
                 extractorInfo.addProperty("text_confirmed", contextConfirmed)
                 extractorInfo.addProperty("context_confirmed", contextConfirmed)
+                extractorInfo.addProperty("owner_confirmed", ownerConfirmed)
                 val playlistId = playlistUrl.split("/").last()
 
                 //PLAY -> Playlist:
@@ -383,27 +399,24 @@ class SpotifyFulfillment (private var context: Context) {
                 playInfo.addProperty("uri", uri)
                 playInfo.addProperty("context_uri", uri)
                 playInfo.addProperty("context_name", contextConfirmed)
+                playInfo.addProperty("context_owner", ownerConfirmed)
                 playInfo.addProperty("spotify_URL", "${ext_format}$playType/$playlistId")
 
-            } else {
-                //Check if playlist by spotify:
-                if (matchName.contains("spotify")) {
-                    bySpotify = true
-                }
             }
         }
-        extractorInfo.addProperty("by_spotify", bySpotify)
 
         if (contextConfirmed == "") {
             //Search in Spotify:
             //PLAY -> Playlist not found: search in Spotify!
+            //TODO: SEARCH ARTIST!
             //SEARCH PLAYLIST:
             var search = SpotifySearchPlaylists(context)
-            playInfo = search.searchPlaylists(searchData = extractorInfo, bySpotify = bySpotify)
+            playInfo = search.searchPlaylists(searchData = extractorInfo)
 
             if (!playInfo.isEmpty) {
                 Log.d(TAG, "PLAY -> Playlist found")
                 //PLAY -> Playlist:
+                ownerConfirmed = playInfo.get("owner").asString
                 playInfo.addProperty("context_type", "playlist")
                 var id = playInfo.get("id").asString
                 var uri = "spotify:playlist:${id}"
@@ -436,17 +449,15 @@ class SpotifyFulfillment (private var context: Context) {
             //Read TTS:
             //TODO: eng only!
             var ttsToRead = ""
-            if (contextConfirmed != "" && playType == "artist") {
-                ttsToRead = "Playing the playlist ${contextConfirmed}, by Spotify!"     //TODO: UPDATE DYNAMICALLY
-            } else if (contextConfirmed != "") {
-                ttsToRead = "Playing your playlist ${contextConfirmed}!"
+            val ownerString = if (ownerConfirmed == "") "" else ", by $ownerConfirmed"
+            if (playType == "artist") {
+                ttsToRead = "Playing the playlist ${contextConfirmed}${ownerString}!"
             } else {
-                var playlistName = playInfo.get("match_name").asString.lowercase()
-                var owner = playInfo.get("owner").asString.lowercase()
-                if (owner == prefs.spotUserName) {
+                val playlistName = playInfo.get("match_name").asString.lowercase()
+                if (ownerConfirmed == prefs.spotUserName) {
                     ttsToRead = "Playing your playlist ${playlistName}!"
                 } else {
-                    ttsToRead = "Playing the playlist ${playlistName}, by ${owner}!"
+                    ttsToRead = "Playing the playlist ${playlistName}${ownerString}!"
                 }
             }
             utils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=true)

@@ -1,6 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    id("kotlin-kapt") // Only for Kotlin projects
+    id("io.objectbox") // Apply last
+    kotlin("plugin.serialization") version "1.5.0"
 }
 
 android {
@@ -12,7 +15,7 @@ android {
         minSdk = 29
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        versionName = "2.3.0"
 
         manifestPlaceholders["appAuthRedirectScheme"] = "djames-oauth"
 
@@ -112,6 +115,8 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor")
     // GSON:
     implementation("com.google.code.gson:gson:2.10.1")
+    //KotlinX-Serialization:
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
     //DialogFlow:
     implementation("com.google.cloud:google-cloud-dialogflow:4.40.0") {
         exclude("org.apache.commons")

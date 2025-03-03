@@ -33,7 +33,6 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -61,7 +60,7 @@ import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.curLibrarySize
-import com.ftrono.DJames.application.spotifyLoggedIn
+import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.vocHeads
 import com.ftrono.DJames.application.vocSectionIdentifier
@@ -69,18 +68,20 @@ import com.ftrono.DJames.dialogs.EditVocArtist
 import com.ftrono.DJames.dialogs.EditVocContact
 import com.ftrono.DJames.dialogs.EditVocPlaylist
 import com.ftrono.DJames.dialogs.GeneralDialog
+import com.ftrono.DJames.test_objects.testArtists
+import com.ftrono.DJames.test_objects.testContacts
+import com.ftrono.DJames.test_objects.testPlaylists
 import com.ftrono.DJames.ui.HeaderWithSign
 import com.ftrono.DJames.ui.OptionsItem
 import com.ftrono.DJames.ui.OptionsMenu
+import com.ftrono.DJames.ui.RoundedLetter
+import com.ftrono.DJames.ui.RoundedSign
 import com.ftrono.DJames.ui.SplitterCat
 import com.ftrono.DJames.ui.StreetBackground
-import com.ftrono.DJames.ui.vocColorSelectorLight
+import com.ftrono.DJames.ui.vocColorSelector
 import com.ftrono.DJames.ui.vocIconSelector
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
-import java.io.BufferedReader
+import okhttp3.internal.toImmutableMap
 import java.io.File
-import java.io.InputStreamReader
 
 
 @Preview
@@ -109,7 +110,7 @@ fun VocabularyScreen(
     val keyState = rememberSaveable { mutableStateOf("") }
     val currentCatState = rememberSaveable { mutableStateOf(vocHeads[0]) }
     val vocKeys = rememberSaveable {
-        mutableStateOf(getVocKeys(mContext, currentCatState.value, preview))
+        mutableStateOf(getLibraryKeys(currentCatState.value, preview))
     }
     val curLibrarySizeState by curLibrarySize.observeAsState()
     val deleteVocOn = rememberSaveable { mutableStateOf(false) }
@@ -194,7 +195,8 @@ fun VocabularyScreen(
                                 iconRes = painterResource(id = R.drawable.sign_fork),
                                 title = "Library",
                                 subtitle = subtitles[currentCatState.value]!!,
-                                num = curLibrarySizeState
+                                num = curLibrarySizeState,
+                                // signColor = vocColorSelector(cat = currentCatState.value)
                             ){
                                 Box() {
                                     //1) CAT OPTIONS:
@@ -294,15 +296,13 @@ fun VocabularyScreen(
 
                     //CONTENT:
                     VocSectionContent(
-                        mContext = mContext,
                         vocKeys = vocKeys,
                         currentCatState = currentCatState,
                         keyState = keyState,
                         editVocOn = editVocOn,
                         deleteVocOn = deleteVocOn,
                         isLandscape = isLandscape,
-                        preview = preview,
-                        editPreview = editPreview
+                        preview = preview
                     )
                 }
             }
@@ -352,22 +352,20 @@ fun ChipOptions(
 
 @Composable
 fun VocSectionContent(
-    mContext: Context,
     vocKeys: MutableState<List<String>>,
     currentCatState: MutableState<String>,
     keyState: MutableState<String>,
     editVocOn: MutableState<Boolean>,
     deleteVocOn: MutableState<Boolean>,
     isLandscape: Boolean,
-    preview: Boolean = false,
-    editPreview: String = ""
+    preview: Boolean = false
 ) {
 
     //CONTENT:
     if (vocKeys.value.isEmpty()) {
         //VOCABULARY EMPTY:
         Text(
-            text = "${currentCatState.value.replaceFirstChar { it.uppercase() }}s vocabulary\nis empty",
+            text = "${currentCatState.value.replaceFirstChar { it.uppercase() }}s library\nis empty",
             textAlign = TextAlign.Center,
             fontSize = 18.sp,
             color = colorResource(id = R.color.mid_grey),
@@ -401,15 +399,13 @@ fun VocSectionContent(
                     //ITEM:
                     item {
                         VocItem(
-                            mContext = mContext,
                             currentCatState = currentCatState,
                             keyState = keyState,
                             head = currentCatState.value,
                             key = key,
                             editVocOn = editVocOn,
                             deleteVocOn = deleteVocOn,
-                            preview = preview,
-                            editPreview = editPreview
+                            preview = preview
                         )
                         if (key == vocKeys.value.last()) Spacer(modifier = Modifier.padding(60.dp))
                     }
@@ -427,42 +423,42 @@ fun VocLetter(
     //TEXT LABEL:
     Column (
         modifier = Modifier
-            .padding(top=4.dp, bottom=4.dp)
+            .padding(top=4.dp)
     ) {
         //Item key:
-        Text(
-            modifier = Modifier
-                .padding(start = 2.dp, bottom = 2.dp)
-                .wrapContentWidth()
-                .wrapContentHeight(),
-            color = colorResource(id = R.color.light_grey),
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            text = letter.uppercase()
+        RoundedLetter(
+            text = letter.uppercase(),
+            signSize = 32.dp,
+            fontSize = 16.sp,
+            backgroundColor = colorResource(id = R.color.windowBackground),
+            borderColor = colorResource(id = R.color.dark_grey),
+            fontColor = colorResource(id = R.color.light_grey)
         )
-        HorizontalDivider(
-            modifier = Modifier
-                .fillMaxWidth(),
-            color = colorResource(id = R.color.faded_grey)
-        )
+//        HorizontalDivider(
+//            modifier = Modifier
+//                .fillMaxWidth(),
+//            color = colorResource(id = R.color.faded_grey)
+//        )
     }
 }
 
 
 @Composable
 fun VocItem(
-    mContext: Context,
     currentCatState: MutableState<String>,
     keyState: MutableState<String>,
     head: String,
     key: String,
     editVocOn: MutableState<Boolean>,
     deleteVocOn: MutableState<Boolean>,
-    preview: Boolean = false,
-    editPreview: String = ""
+    preview: Boolean = false
 ) {
     //TODO: extract useful data:
-    val curItem = getVocItem(mContext, currentCatState.value, key, preview)
+    val itemInfo = libUtils.getItemInfoView(currentCatState.value, key, preview)
+    //Init aliases:
+    val itemName = itemInfo.name
+    val itemAliases = itemInfo.aliases.toMutableList()
+    itemAliases.removeAt(0)
 
     //VOC CHIPS:
     Box(
@@ -497,13 +493,16 @@ fun VocItem(
                 horizontalArrangement = Arrangement.Start
             ){
                 //CHIP ICON:
-                Icon(
+                RoundedSign(
                     modifier = Modifier
-                        .padding(start = 4.dp, end = 4.dp)
-                        .size(24.dp),
-                    painter = vocIconSelector(cat = head),
-                    contentDescription = head,
-                    tint = vocColorSelectorLight(cat = currentCatState.value)
+                        .padding(end = 4.dp),
+                    signSize = 30.dp,
+                    iconSize = 20.dp,
+                    backgroundColor = vocColorSelector(cat = currentCatState.value),
+                    borderColor = colorResource(id = R.color.midfaded_grey),
+                    iconColor = colorResource(id = R.color.light_grey),
+                    iconPainter = vocIconSelector(cat = head),
+                    circle = currentCatState.value != "playlist"
                 )
                 //TEXT LABEL:
                 Column(
@@ -522,12 +521,12 @@ fun VocItem(
                         fontSize = 14.sp,
                         lineHeight = 16.sp,
                         maxLines = if (head == "contact") 1 else 2,
-                        text = utils.trimString(key, 24)
-                        //fontWeight = FontWeight.Bold,
+                        text = utils.trimString(itemName, 24),
+                        fontWeight = FontWeight.Bold,
                         //fontStyle = FontStyle.Italic,
                     )
                     //Item detail:
-                    if (head == "contact") {
+                    if (itemAliases.isNotEmpty()) {
                         Text(
                             modifier = Modifier
                                 .padding(top = 2.dp)
@@ -538,15 +537,20 @@ fun VocItem(
                             lineHeight = 14.sp,
                             maxLines = 1,
                             fontStyle = FontStyle.Italic,
-                            text = if (preview) {
-                                "3331122333"
-                            } else {
-                                try {
-                                    curItem.get("main").asJsonObject.get("phone").asString
-                                } catch (e: Exception) {
-                                    ""
-                                }
-                            }
+                            text = "\"" + itemAliases.joinToString("\", \"") + "\""
+                        )
+                    } else if (itemInfo.phone != "") {
+                        Text(
+                            modifier = Modifier
+                                .padding(top = 2.dp)
+                                .wrapContentWidth()
+                                .wrapContentHeight(),
+                            color = colorResource(id = R.color.mid_grey),
+                            fontSize = 12.sp,
+                            lineHeight = 14.sp,
+                            maxLines = 1,
+                            fontStyle = FontStyle.Italic,
+                            text = itemInfo.phone
                         )
                     }
                 }
@@ -577,7 +581,7 @@ fun CatOptions(
                 iconVector = Icons.Default.Refresh,
                 onClick = {
                     mDisplayMenu.value = false
-                    vocKeys.value = getVocKeys(mContext, head)
+                    vocKeys.value = getLibraryKeys(head)
                     Toast.makeText(mContext, "${head.replaceFirstChar { it.uppercase() }}s vocabulary updated!", Toast.LENGTH_SHORT).show()
                 }
             )
@@ -637,12 +641,12 @@ fun DialogDeleteVocabulary(
         confirmText = "Yes",
         onConfirm = {
             if (key != "") {
-                utils.deleteLibraryItem(mContext, filter, key)
+                libUtils.deleteLibraryItem(mContext, filter, key)
             } else {
                 //Delete all:
-                utils.deleteLibrary(mContext, filter)
+                libUtils.deleteLibrary(mContext, filter)
             }
-            vocKeys.value = getVocKeys(mContext, filter)   //Refresh list
+            vocKeys.value = getLibraryKeys(filter)   //Refresh list
             dialogOnState.value = false
             keyState.value = ""
         }
@@ -654,7 +658,7 @@ fun DialogDeleteVocabulary(
 //Send:
 fun sendVoc(mContext: Context, filter: String) {
     //Build cached file:
-    val fileName = utils.buildLibraryToSend(mContext, filter)
+    val fileName = libUtils.buildLibraryToSend(mContext, filter)
     if (fileName != "") {
         //Get cached file:
         val file = File(mContext.cacheDir, fileName)
@@ -674,73 +678,47 @@ fun sendVoc(mContext: Context, filter: String) {
 }
 
 
-//Voc keyset:
-fun getVocKeys(mContext: Context, filter: String, preview: Boolean = false, addHeaders: Boolean = true): List<String> {
+//Library keyset:
+fun getLibraryKeys(filter: String, preview: Boolean = false, addHeaders: Boolean = true, testEmpty: Boolean = false): List<String> {
+    var vocMap = mapOf<String, List<String>>()
     var vocKeys = listOf<String>()
 
     //1) Load library:
-    if (preview) {
-        var reader: BufferedReader? = null
-        //Mock data:
-        if (filter == "artist") {
-            reader = BufferedReader(InputStreamReader(mContext.resources.openRawResource(R.raw.library_artists)))
-        } else if (filter == "playlist") {
-            reader = BufferedReader(InputStreamReader(mContext.resources.openRawResource(R.raw.library_playlists)))
-        } else {
-            reader = BufferedReader(InputStreamReader(mContext.resources.openRawResource(R.raw.library_contacts)))
-        }
-        //val vocItems = listOf<String>()   //EMPTY TEST
-        vocKeys = JsonParser.parseReader(reader).asJsonObject.keySet().toList()
-    } else {
-        //Real data:
-        vocKeys = utils.getLibraryKeys(filter=filter)
-        //Log.d("Library", vocKeys.toString())
-    }
-    //Update Library size:
-    curLibrarySize.postValue(vocKeys.size)
-
-    //2) Add letters headers:
-    if (addHeaders) {
-        val vocKeysWithHeaders = mutableListOf<String>()
-        var letter = ""
-        for (key in vocKeys) {
-            val cur = key.first().toString()
-            if (cur != letter) {
-                if (utils.isLetters(cur)) {
-                    letter = cur
-                } else {
-                    letter = "#"
+    if (!testEmpty) {
+        if (preview) {
+            val tempMap = mutableMapOf<String, List<String>>()
+            //Mock data:
+            when (filter) {
+                "artist" -> {
+                    for (artist in testArtists) {
+                        tempMap[artist.id.toString()] = (artist.aliases ?: emptyList())
+                    }
                 }
-                vocKeysWithHeaders.add("$vocSectionIdentifier$letter")
+                "playlist" -> {
+                    for (playlist in testPlaylists) {
+                        tempMap[playlist.id.toString()] = (playlist.aliases ?: emptyList())
+                    }
+                }
+                "contact" -> {
+                    for (contact in testContacts) {
+                        tempMap[contact.id.toString()] = (contact.aliases ?: emptyList())
+                    }
+                }
             }
-            vocKeysWithHeaders.add(key)
-        }
-        return vocKeysWithHeaders
-    } else {
-        return vocKeys
-    }
-}
-
-
-//GET:
-fun getVocItem(mContext: Context, filter: String, key: String, preview: Boolean = false): JsonObject {
-    if (preview) {
-        var reader: BufferedReader? = null
-        //Mock data:
-        if (filter == "artist") {
-            reader = BufferedReader(InputStreamReader(mContext.resources.openRawResource(R.raw.library_artists)))
-        } else if (filter == "playlist") {
-            reader = BufferedReader(InputStreamReader(mContext.resources.openRawResource(R.raw.library_playlists)))
+            vocMap = tempMap.toImmutableMap()
         } else {
-            reader = BufferedReader(InputStreamReader(mContext.resources.openRawResource(R.raw.library_contacts)))
+            //Real data:
+            vocMap = libUtils.getLibraryMap(filter)
         }
-        //Mock data:
-        val vocItem = JsonParser.parseReader(reader).asJsonObject.get(key).asJsonObject
-        return vocItem
-    } else {
-        //Real data:
-        val vocItem = utils.getLibraryItem(filter, key)
-        //Log.d("Items", vocItem.toString())
-        return vocItem
     }
+
+    //2) Update Library size:
+    curLibrarySize.postValue(vocMap.size)
+    //3) Add headers:
+    vocKeys = if (addHeaders) {
+        libUtils.addLetterHeaders(vocMap)
+    } else {
+        vocMap.keys.toList()
+    }
+    return vocKeys
 }

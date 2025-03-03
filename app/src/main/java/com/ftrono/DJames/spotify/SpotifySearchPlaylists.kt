@@ -18,7 +18,7 @@ class SpotifySearchPlaylists(private val context: Context) {
     private var query = SpotifyQuery(context)
 
     //SEARCH TRACKS OR ALBUMS:
-    fun searchPlaylists(searchData: JsonObject, bySpotify: Boolean = false): JsonObject {
+    fun searchPlaylists(searchData: JsonObject): JsonObject {
         //vars:
         var matchName = searchData.get("text_confirmed").asString
         var playType = searchData.get("play_type").asString
@@ -80,7 +80,7 @@ class SpotifySearchPlaylists(private val context: Context) {
             logJSON.addProperty("n_items", n_items)
             //Get best score:
             if (n_items > 0) {
-                bestMatches = getBestMatchingPlaylist(items, matchName, bySpotify)
+                bestMatches = getBestMatchingPlaylist(items, matchName)
                 logJSON.add("spotify_matches", bestMatches)
                 //Best:
                 bestInd = bestMatches[0].asJsonObject.get("pos").asInt
@@ -116,7 +116,7 @@ class SpotifySearchPlaylists(private val context: Context) {
     }
 
     //Spotify: get Best Result:
-    fun getBestMatchingPlaylist(items: JsonArray, matchName: String, bySpotify: Boolean): JsonArray {
+    fun getBestMatchingPlaylist(items: JsonArray, matchName: String): JsonArray {
         //Analyse Spotify query result:
         //GET BEST RESULT:
         var c = 0
@@ -133,7 +133,6 @@ class SpotifySearchPlaylists(private val context: Context) {
             scoreJson.addProperty("name", name)
             ids.add(currItem.get("id").asString)
             //Artists name:
-            var owner = currItem.get("owner").asJsonObject.get("id").asString   //if by Spotify, id is "spotify"
             //calculate similarity:
             var temp_name = scoreJson.get("name").asString.lowercase()
             var nameSet = FuzzySearch.tokenSetRatio(temp_name, matchName)
@@ -143,10 +142,7 @@ class SpotifySearchPlaylists(private val context: Context) {
             scoreJson.addProperty("namePartialSimilarity", namePartial)
             scoreJson.addProperty("nameFullSimilarity", nameFull)
             var score = listOf<Int>(nameSet, namePartial, nameFull).average().roundToInt()
-            //Check if bySpotify:
-            if (bySpotify && owner == "spotify") {
-                score += 100
-            }
+
             //Store:
             scoreJson.addProperty("score", score)
             scoresMap[c] = score

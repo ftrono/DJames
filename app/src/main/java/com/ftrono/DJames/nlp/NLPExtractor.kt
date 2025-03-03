@@ -5,10 +5,10 @@ import com.ftrono.DJames.R
 import com.google.gson.JsonObject
 import android.content.Context
 import com.ftrono.DJames.application.last_log
+import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.maxThreshold
 import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.utils
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
 import me.xdrop.fuzzywuzzy.FuzzySearch
@@ -114,7 +114,7 @@ class NLPExtractor (private val context: Context) {
 
 
     //Double check artists between DF & NLP Extractor:
-    fun checkArtists(artistsNlp: JsonArray, artistExtracted: String, reqLanguage: String, playlistName: String = "default"): JsonObject {
+    fun checkArtists(artistsNlp: JsonArray, artistExtracted: String, reqLanguage: String, getDetails: Boolean, playName: String = ""): JsonObject {
         val filter = "artist"
         var artistConfirmed = ""
 
@@ -165,12 +165,27 @@ class NLPExtractor (private val context: Context) {
         artistJson.addProperty("text_confirmed", artistConfirmed)
 
         //2) Hand check artist evalued against user vocabulary:
-        val vocMatch = matchVocabulary(filter, text=artistConfirmed)
-        if (vocMatch != "") {
-            //Replace:
-            artistConfirmed = vocMatch
-            artistJson.addProperty("text_confirmed", artistConfirmed)
-            artistJson.addProperty("detail_confirmed", utils.getPlayUrl(filter, artistConfirmed, playlistName))
+        val vocMatchId = matchVocabulary(filter, text=artistConfirmed)
+        if (vocMatchId != "") {
+            //Replace artist name:
+            if (!getDetails) {
+                //Get only artist name:
+                artistJson.addProperty("text_confirmed", libUtils.getItemName(filter, vocMatchId))
+            } else {
+                //Get artist useful details:
+                val itemInfo = libUtils.getItemInfoUse(filter, vocMatchId)
+                artistConfirmed = itemInfo.name
+                artistJson.addProperty("text_confirmed", artistConfirmed)
+                val defaultPlay = if (playName != "") playName else itemInfo.defaultKey
+                if (defaultPlay == "artist") {
+                    artistJson.addProperty("play_URL", itemInfo.spotifyUrl)
+                } else {
+                    val playLink = itemInfo.playLinks[defaultPlay]!!
+                    artistJson.addProperty("play_name", playLink.name)
+                    artistJson.addProperty("play_owner", playLink.owner)
+                    artistJson.addProperty("play_URL", playLink.spotifyUrl)
+                }
+            }
         }
         Log.d(TAG, "ARTIST CONFIRMED: $artistJson")
         return  artistJson
@@ -179,29 +194,36 @@ class NLPExtractor (private val context: Context) {
 
     //Match item from user query against user vocabulary:
     fun matchVocabulary(filter: String, text: String): String {
-        var matchName = ""
-        val vocArray = utils.getLibraryKeys(filter)
-        if (text != "" && vocArray.isNotEmpty()) {
+        var matchId = ""
+        val vocMap = libUtils.getLibraryMap(filter)
+        if (text != "" && vocMap.isNotEmpty()) {
             //Init:
             var score = 0
-            var listEvalued = text.split(", ")
-            var listConfirmed = ArrayList<String>()
-            var scoresMap = mutableMapOf<String, Int>()
+            val listEvalued = text.split(", ")
+            val listConfirmed = ArrayList<String>()
+            val scoresMap = mutableMapOf<String, Int>()
 
             //Check each evaluated item:
             for (eval in listEvalued) {
-                for (current in vocArray) {
-                    if (filter == "playlist") {
-                        var namePartial = FuzzySearch.partialRatio(current, eval.lowercase())
-                        var nameFull = FuzzySearch.ratio(current, eval.lowercase())
-                        score = listOf<Int>(namePartial, nameFull).average().roundToInt()
-                    } else {
-                        score = FuzzySearch.ratio(current, eval.lowercase())
+                //Check each artist id:
+                for (curId in vocMap.keys) {
+                    val aliasScores = mutableListOf<Int>()
+                    //Check each alias:
+                    for (curAlias in vocMap[curId]!!) {
+                        if (filter == "playlist") {
+                            val namePartial = FuzzySearch.partialRatio(curAlias, eval.lowercase())
+                            val nameFull = FuzzySearch.ratio(curAlias, eval.lowercase())
+                            score = listOf<Int>(namePartial, nameFull).average().roundToInt()
+                        } else {
+                            score = FuzzySearch.ratio(curAlias, eval.lowercase())
+                        }
+                        Log.d(TAG, "VOC CONFIRMATION: COMPARING $curAlias WITH ${eval.lowercase()}, MATCH: $score")
+                        aliasScores.add(score)
                     }
-                    Log.d(TAG, "VOC CONFIRMATION: COMPARING $current WITH ${eval.lowercase()}, MATCH: $score")
-                    //Add only best matches:
-                    if (!scoresMap.keys.contains(current) && score >= midThreshold) {
-                        scoresMap[current] = score
+                    //Get Max alias score and add globally only if high enough:
+                    val maxScore = aliasScores.max()
+                    if (!scoresMap.keys.contains(curId) && maxScore >= midThreshold) {
+                        scoresMap[curId] = maxScore
                     }
                 }
                 if (scoresMap.isNotEmpty()) {
@@ -215,11 +237,11 @@ class NLPExtractor (private val context: Context) {
             //Final:
             if (listConfirmed.isNotEmpty()) {
                 Log.d(TAG, "listConfirmed: $listConfirmed")
-                matchName = listConfirmed[0]
-                Log.d(TAG, "VOCABULARY MATCH: $matchName")
+                matchId = listConfirmed[0]
+                Log.d(TAG, "VOCABULARY MATCH ID: $matchId, ALIASES: ${vocMap[matchId]!!}")
             }
         }
-        return matchName
+        return matchId
     }
 
 
@@ -234,9 +256,7 @@ class NLPExtractor (private val context: Context) {
         contactConfirmed.addProperty("contact_phone", "")
         contactConfirmed.addProperty("contact_language", "")
 
-        //Get user vocabulary:
-        var vocContacts = utils.getLibraryKeys(filter)
-        if (vocContacts.isNotEmpty()) {
+        if (libUtils.getCollectionSize(filter) > 0) {
             //Search items:
             var reader: BufferedReader? = null
             //Calls / message requests -> only use default query language:
@@ -278,20 +298,21 @@ class NLPExtractor (private val context: Context) {
             if (toInd > -1) {
                 //slice:
                 Log.d(TAG, "TO_STR: $toStr")
-                var contactExtracted = queryClean.slice((toInd + toStr.length)..queryClean.lastIndex).strip()
+                val contactExtracted = queryClean.slice((toInd + toStr.length)..queryClean.lastIndex).strip()
                 contactConfirmed.addProperty("contact_extracted", contactExtracted)
                 Log.d(TAG, "CONTACT EXTRACTED: $contactExtracted")
+
                 //2) Match extracted contact name with user vocabulary:
-                val vocMatch = matchVocabulary(filter, text=contactExtracted)
-                if (vocMatch != "") {
-                    val contactObj = utils.getLibraryItem(filter, vocMatch)
-                    val mainObj = contactObj.get("main").asJsonObject
-                    val prefix = mainObj.get("prefix").asString
-                    val phone = mainObj.get("phone").asString
+                val vocMatchId = matchVocabulary(filter, text=contactExtracted)
+                if (vocMatchId != "") {
+                    val itemInfo = libUtils.getItemInfoUse(filter, vocMatchId)
+                    val defaultPhoneSet = itemInfo.phoneSets[itemInfo.defaultKey]!!   //TODO
+                    val prefix = defaultPhoneSet.prefix
+                    val phone = defaultPhoneSet.phone
                     //Replace:
-                    contactConfirmed.addProperty("contact_confirmed", vocMatch)
+                    contactConfirmed.addProperty("contact_confirmed", itemInfo.name)
                     contactConfirmed.addProperty("contact_phone", "${prefix}${phone}")
-                    contactConfirmed.addProperty("contact_language", contactObj.get("language").asString)
+                    contactConfirmed.addProperty("contact_language", itemInfo.language)
                 }
                 Log.d(TAG, "CONTACT CONFIRMED: $contactConfirmed")
             }

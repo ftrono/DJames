@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -31,7 +30,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -50,11 +48,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.vocHeads
-import com.ftrono.DJames.screen.getVocKeys
+import com.ftrono.DJames.screen.getLibraryKeys
 
 
 // STREET UI LANGUAGE COMPONENTS
@@ -125,6 +124,7 @@ fun HeaderWithSign(
     title: String,
     subtitle: String? = null,
     num: Int? = null,
+    signColor: Color = colorResource(id = R.color.colorPrimary),
     optionButtons: @Composable() (RowScope.() -> Unit) = {}
 ) {
     //HEADER:
@@ -146,7 +146,8 @@ fun HeaderWithSign(
             iconRes = iconRes,
             title = title,
             subtitle = subtitle,
-            num = num
+            num = num,
+            signColor = signColor
         )
         //OPTIONS BUTTONS:
         Row(
@@ -208,7 +209,7 @@ fun HeaderSign(
                         text = subtitle,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = colorResource(id = R.color.mid_grey),
+                        color = colorResource(id = R.color.light_grey),
                         modifier = Modifier
                             .wrapContentWidth()
                     )
@@ -238,7 +239,7 @@ fun SplitterPreview() {
     val cur = vocHeads[2]
     val currentCatState = rememberSaveable { mutableStateOf(cur) }
     val vocabulary = rememberSaveable {
-        mutableStateOf(getVocKeys(mContext, currentCatState.value, true))
+        mutableStateOf(getLibraryKeys(currentCatState.value, true))
     }
 
     SplitterCat(
@@ -270,10 +271,10 @@ fun SplitterCat(
             .wrapContentWidth()
             .clickable {
                 currentCatState.value = head
-                vocabulary.value = getVocKeys(mContext, currentCatState.value, preview)
+                vocabulary.value = getLibraryKeys(currentCatState.value, preview)
             },
         shape = RoundedCornerShape(14.dp),
-        border = if (selected) BorderStroke(1.5.dp, colorResource(id = R.color.mid_grey)) else null,
+        border = if (selected) BorderStroke(1.5.dp, colorResource(id = R.color.midfaded_grey)) else null,
         colors = CardDefaults.cardColors(
             containerColor = if (selected) {
                 vocColorSelector(cat = currentCatState.value)
@@ -328,12 +329,43 @@ fun SplitterCat(
 
 @Composable
 fun RoundedSign(
+    modifier: Modifier = Modifier,
     signSize: Dp,
     iconSize: Dp,
     backgroundColor: Color,
     borderColor: Color,
     iconColor: Color,
-    iconPainter: Painter
+    iconPainter: Painter,
+    circle: Boolean = true
+) {
+    //ROUNDED SIGN:
+    Box (
+        modifier = modifier
+            .size(signSize)
+            .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
+            .background(backgroundColor)
+            .border(1.5.dp, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        //CAT ICON:
+        Icon(
+            modifier = Modifier
+                .size(iconSize),
+            painter = iconPainter,
+            contentDescription = "Category",
+            tint = iconColor
+        )
+    }
+}
+
+@Composable
+fun RoundedLetter(
+    text: String,
+    signSize: Dp,
+    fontSize: TextUnit,
+    backgroundColor: Color,
+    borderColor: Color,
+    fontColor: Color,
 ) {
     //ROUNDED SIGN:
     Box (
@@ -344,13 +376,12 @@ fun RoundedSign(
             .border(1.5.dp, borderColor, CircleShape),
         contentAlignment = Alignment.Center
     ) {
-        //CAT ICON:
-        Icon(
-            modifier = Modifier
-                .size(iconSize),
-            painter = iconPainter,
-            contentDescription = "Category",
-            tint = iconColor
+        //LETTER:
+        Text(
+            text = text,
+            color = fontColor,
+            fontSize = fontSize,
+            fontWeight = FontWeight.Bold
         )
     }
 }

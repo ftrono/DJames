@@ -15,7 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.CardDefaults
@@ -45,7 +44,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.settingsOpen
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.GeneralSectionHeader
@@ -54,8 +52,6 @@ import com.ftrono.DJames.ui.StreetBackground
 import com.ftrono.DJames.ui.guideColorSelector
 import com.ftrono.DJames.ui.guideColorSelectorLight
 import com.ftrono.DJames.ui.guideIconSelector
-import com.ftrono.DJames.ui.navigateTo
-import com.ftrono.DJames.ui.theme.NavigationItem
 
 
 @Preview
@@ -86,27 +82,7 @@ fun GuideScreen(navController: NavController) {
             iconRes = painterResource(id = R.drawable.sign_info),
             title = "Guide",
             subtitle = "What you can ask"
-        ) {
-            //LANGUAGE SETTINGS:
-            Icon(
-                modifier = Modifier
-                    .padding(end = 18.dp)
-                    .size(35.dp)
-                    .clickable {
-                        //Navigate:
-                        val curNavRoute = NavigationItem.Settings.route
-                        if (curNavRoute == lastNavRoute && (settingsOpenState!!)) {
-                            navController.popBackStack()
-                        } else {
-                            navigateTo(navController, curNavRoute)
-                        }
-                        lastNavRoute = curNavRoute
-                    },
-                imageVector = Icons.Default.Settings,
-                contentDescription = "Settings",
-                tint = colorResource(id = R.color.colorAccentLight)
-            )
-        }
+        )
 
         //CONTENT:
         Column(

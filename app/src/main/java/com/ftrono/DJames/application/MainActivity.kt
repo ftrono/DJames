@@ -151,11 +151,16 @@ class MainActivity : ComponentActivity() {
             //delete older logs:
             utils.deleteOldLogs()
             //delete older cached Library files:
-            utils.cleanLibraryCache(this@MainActivity)
+            libUtils.cleanLibraryCache(this@MainActivity)
             //delete older recFiles in cache:
             if (!overlayActive.value!!) {
                 utils.cleanOlderRecs(this@MainActivity)
             }
+
+            //TODO: TEMP:
+//            libUtils.migrateArtists(this@MainActivity)
+//            libUtils.migratePlaylists(this@MainActivity)
+//            libUtils.migrateContacts(this@MainActivity)
         }
 
         //NLP USER ID:
@@ -267,13 +272,15 @@ class MainActivity : ComponentActivity() {
                         },
                         icon = {
                             Icon(
-                                painterResource(id = navItem.icon),
-                                contentDescription = navItem.title
+                                painter = painterResource(id = navItem.icon),
+                                contentDescription = navItem.title,
+                                tint = colorResource(id = R.color.light_grey)
                             )
                         },
                         label = {
                             Text(
-                                text = navItem.title
+                                text = navItem.title,
+                                color = colorResource(id = R.color.light_grey)
                             )
                         },
                         colors = myNavigationSuiteItemColors,
@@ -355,13 +362,14 @@ class MainActivity : ComponentActivity() {
                         text = stringResource(id = R.string.app_title),
                         fontSize = 22.sp,
                         color = colorResource(id = R.color.light_grey),
+                        fontWeight = FontWeight.Bold
                     )
                     if (spotifyLoggedInState)
                         Text(
                             modifier = Modifier.offset(y = -(2.dp)),
                             text = "for ${prefs.spotUserName}",
                             fontSize = 16.sp,
-                            color = colorResource(id = R.color.mid_grey)
+                            color = colorResource(id = R.color.light_grey)
                         )
                 }
             },

@@ -199,9 +199,13 @@ fun EditVocContact(
             }
         ) {
             //CONTACT NAME:
-            EditVocTextField(
+            EditVocMutableText(
                 modifier = Modifier
                     .focusRequester(focusRequester),
+                onClicked = {
+                    focusRequester.requestFocus()
+                    keyboardController!!.show()
+                },
                 onKeyboardDone = {
                     focusManager.clearFocus()
                     keyboardController!!.hide()
@@ -213,13 +217,18 @@ fun EditVocContact(
                 ),
                 title = "Name",
                 placeholder = "Write $filter name...",
-                textState = textName
+                textState = textName,
+                disabledText = if (textName.value == "") "Write here..." else textName.value
             )
 
             //CONTACT ALIASES:
-            EditVocTextField(
+            EditVocMutableText(
                 modifier = Modifier
                     .focusRequester(focusRequester),
+                onClicked = {
+                    focusRequester.requestFocus()
+                    keyboardController!!.show()
+                },
                 onKeyboardDone = {
                     focusManager.clearFocus()
                     keyboardController!!.hide()
@@ -230,95 +239,33 @@ fun EditVocContact(
                     colorDark = vocColorSelector(cat = filter)
                 ),
                 title = "Aliases (separate with commas)",
-                placeholder = "Write $filter name...",
-                textState = textAliases
+                placeholder = "Write aliases here...",
+                textState = textAliases,
+                disabledText = if (textAliases.value == "") "Write here..." else textAliases.value
             )
 
             //CONTACT PHONE:
-            Text(
-                text = "Main phone",
-                color = vocColorSelectorLight(cat = filter),
-                textAlign = TextAlign.Start,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            Row(
+            EditPhoneMutableText(
                 modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                //PREFIX:
-                OutlinedTextField(
-                    modifier = Modifier
-                        .padding(top = 8.dp, bottom = 10.dp)
-                        .width(60.dp)
-                        .wrapContentHeight(),
-                    colors = getTextFieldColors(
-                        colorLight = vocColorSelectorLight(cat = filter),
-                        colorDark = vocColorSelector(cat = filter)
-                    ),
-                    value = textPrefix.value,
-                    onValueChange = { newText ->
-                        textPrefix.value = newText.trimStart { it == '0' }
-                    },
-                    textStyle = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    singleLine = true,
-                    maxLines = 1,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Phone,
-                        imeAction = ImeAction.Next
-                    ),
-                    placeholder = {
-                        Text(
-                            text = "+39",
-                            fontSize = 16.sp,
-                            fontStyle = FontStyle.Italic
-                        )
-                    },
-                )
-                //SUFFIX:
-                OutlinedTextField(
-                    modifier = Modifier
-                        .padding(top = 8.dp, bottom = 10.dp)
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .focusRequester(focusRequester),
-                    colors = getTextFieldColors(
-                        colorLight = vocColorSelectorLight(cat = filter),
-                        colorDark = vocColorSelector(cat = filter)
-                    ),
-                    value = textPhone.value,
-                    onValueChange = { newText ->
-                        textPhone.value = newText.trimStart { it == '0' }
-                    },
-                    textStyle = TextStyle(
-                        fontSize = 16.sp
-                    ),
-                    singleLine = true,
-                    maxLines = 1,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            focusManager.clearFocus()
-                            keyboardController?.hide()
-                        }
-                    ),
-                    placeholder = {
-                        Text(
-                            text = "Phone number...",
-                            fontSize = 16.sp,
-                            fontStyle = FontStyle.Italic
-                        )
-                    },
-                )
-            }
+                    .focusRequester(focusRequester),
+                onClicked = {
+                    focusRequester.requestFocus()
+                    keyboardController!!.show()
+                },
+                onKeyboardDone = {
+                    focusManager.clearFocus()
+                    keyboardController!!.hide()
+                },
+                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textFieldColors = getTextFieldColors(
+                    colorLight = vocColorSelectorLight(cat = filter),
+                    colorDark = vocColorSelector(cat = filter)
+                ),
+                title = "Main phone",
+                textPrefix = textPrefix,
+                textPhone = textPhone,
+                disabledText = if (textPhone.value == "") "Write phone here..." else "${textPrefix.value} ${textPhone.value}"
+            )
 
             //CONTACTS: CHECKBOX:
             Row(

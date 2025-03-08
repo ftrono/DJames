@@ -180,9 +180,13 @@ fun EditVocArtist(
         ) {
             //CONTENT:
             //ARTIST NAME:
-            EditVocTextField(
+            EditVocMutableText(
                 modifier = Modifier
                     .focusRequester(focusRequester),
+                onClicked = {
+                    focusRequester.requestFocus()
+                    keyboardController!!.show()
+                },
                 onKeyboardDone = {
                     focusManager.clearFocus()
                     keyboardController!!.hide()
@@ -194,13 +198,18 @@ fun EditVocArtist(
                 ),
                 title = "Name",
                 placeholder = "Write $filter name...",
-                textState = textName
+                textState = textName,
+                disabledText = if (textName.value == "") "Write here..." else textName.value
             )
 
             //ARTIST ALIASES:
-            EditVocTextField(
+            EditVocMutableText(
                 modifier = Modifier
                     .focusRequester(focusRequester),
+                onClicked = {
+                    focusRequester.requestFocus()
+                    keyboardController!!.show()
+                },
                 onKeyboardDone = {
                     focusManager.clearFocus()
                     keyboardController!!.hide()
@@ -211,14 +220,19 @@ fun EditVocArtist(
                     colorDark = vocColorSelector(cat = filter)
                 ),
                 title = "Aliases (separate with commas)",
-                placeholder = "Write $filter name...",
-                textState = textAliases
+                placeholder = "Write aliases here...",
+                textState = textAliases,
+                disabledText = if (textAliases.value == "") "Write here..." else textAliases.value
             )
 
             //ARTIST URL:
-            EditVocTextField(
+            EditVocMutableText(
                 modifier = Modifier
                     .focusRequester(focusRequester),
+                onClicked = {
+                    focusRequester.requestFocus()
+                    keyboardController!!.show()
+                },
                 onKeyboardDone = {
                     focusManager.clearFocus()
                     keyboardController!!.hide()
@@ -230,13 +244,20 @@ fun EditVocArtist(
                 ),
                 title = "Spotify: Artist URL",
                 placeholder = "Paste here the Spotify link...",
-                textState = textArtistUrl
+                textState = textArtistUrl,
+                disabledText = if (textArtistUrl.value == "") "Write here..." else ".../${
+                    textArtistUrl.value.split("/").last()
+                }"
             )
 
             //PLAYLIST URL:
-            EditVocTextField(
+            EditVocMutableText(
                 modifier = Modifier
                     .focusRequester(focusRequester),
+                onClicked = {
+                    focusRequester.requestFocus()
+                    keyboardController!!.show()
+                },
                 onKeyboardDone = {
                     focusManager.clearFocus()
                     keyboardController!!.hide()
@@ -248,7 +269,10 @@ fun EditVocArtist(
                 ),
                 title = "Spotify: 'This is' playlist URL",
                 placeholder = "Paste here the Spotify link...",
-                textState = textPlayThisIsUrl
+                textState = textPlayThisIsUrl,
+                disabledText = if (textPlayThisIsUrl.value == "") "Write here..." else ".../${
+                    textPlayThisIsUrl.value.split("/").last()
+                }"
             )
 
             //DEFAULT PLAY: DROPDOWN:

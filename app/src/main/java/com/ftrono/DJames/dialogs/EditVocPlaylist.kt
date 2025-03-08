@@ -136,9 +136,13 @@ fun EditVocPlaylist(
         ) {
             //CONTENT:
             //PLAYLIST NAME:
-            EditVocTextField(
+            EditVocMutableText(
                 modifier = Modifier
                     .focusRequester(focusRequester),
+                onClicked = {
+                    focusRequester.requestFocus()
+                    keyboardController!!.show()
+                },
                 onKeyboardDone = {
                     focusManager.clearFocus()
                     keyboardController!!.hide()
@@ -150,13 +154,18 @@ fun EditVocPlaylist(
                 ),
                 title = "Name",
                 placeholder = "Write $filter name...",
-                textState = textName
+                textState = textName,
+                disabledText = if (textName.value == "") "Write here..." else textName.value
             )
 
             //PLAYLIST ALIASES:
-            EditVocTextField(
+            EditVocMutableText(
                 modifier = Modifier
                     .focusRequester(focusRequester),
+                onClicked = {
+                    focusRequester.requestFocus()
+                    keyboardController!!.show()
+                },
                 onKeyboardDone = {
                     focusManager.clearFocus()
                     keyboardController!!.hide()
@@ -167,14 +176,19 @@ fun EditVocPlaylist(
                     colorDark = vocColorSelector(cat = filter)
                 ),
                 title = "Aliases (separate with commas)",
-                placeholder = "Write $filter name...",
-                textState = textAliases
+                placeholder = "Write aliases here...",
+                textState = textAliases,
+                disabledText = if (textAliases.value == "") "Write here..." else textAliases.value
             )
 
             //PLAYLIST URL:
-            EditVocTextField(
+            EditVocMutableText(
                 modifier = Modifier
                     .focusRequester(focusRequester),
+                onClicked = {
+                    focusRequester.requestFocus()
+                    keyboardController!!.show()
+                },
                 onKeyboardDone = {
                     focusManager.clearFocus()
                     keyboardController!!.hide()
@@ -186,7 +200,10 @@ fun EditVocPlaylist(
                 ),
                 title = "Spotify: Playlist URL",
                 placeholder = "Paste here the Spotify link...",
-                textState = textPlayUrl
+                textState = textPlayUrl,
+                disabledText = if (textPlayUrl.value == "") "Write here..." else ".../${
+                    textPlayUrl.value.split("/").last()
+                }"
             )
         }
     }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
@@ -21,6 +22,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -32,21 +35,28 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.ftrono.DJames.R
+import com.ftrono.DJames.ui.RoundedSign
+import com.ftrono.DJames.ui.getTextFieldColors
+import com.ftrono.DJames.ui.vocColorSelector
 import com.ftrono.DJames.ui.vocColorSelectorLight
 import com.ftrono.DJames.ui.vocIconSelector
 
@@ -260,6 +270,7 @@ fun EditVocTextField(
     title: String,
     placeholder: String,
     textState: MutableState<String>,
+    showButton: Boolean = false,
     onKeyboardDone: () -> Unit = {}
 ) {
     Column (
@@ -279,39 +290,334 @@ fun EditVocTextField(
             fontWeight = FontWeight.Bold,
         )
 
-        //Text Field:
-        OutlinedTextField(
-            modifier = modifier
-                .padding(top = 8.dp, bottom = 20.dp)
+        Row (
+            modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentHeight(),
-            colors = textFieldColors,
-            value = textState.value,
-            onValueChange = { newText ->
-                textState.value = newText.trimStart { it == '0' }
-            },
-            textStyle = TextStyle(
-                fontSize = 16.sp
-            ),
-            maxLines = 1,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    onKeyboardDone()
+                .wrapContentHeight()
+                .padding(top = 8.dp, bottom = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            //Text Field:
+            OutlinedTextField(
+                modifier = modifier
+                    .weight(1f),
+                colors = textFieldColors,
+                value = textState.value,
+                onValueChange = { newText ->
+                    textState.value = newText.trimStart { it == '0' }
+                },
+                textStyle = TextStyle(
+                    fontSize = 16.sp
+                ),
+//                maxLines = 1,
+//                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        onKeyboardDone()
+                    }
+                ),
+                placeholder = {
+                    Text(
+                        text = placeholder,
+                        fontSize = 16.sp,
+                        fontStyle = FontStyle.Italic
+                    )
                 }
-            ),
-            placeholder = {
-                Text(
-                    text = placeholder,
-                    fontSize = 16.sp,
-                    fontStyle = FontStyle.Italic
+            )
+
+            //Button:
+            if (showButton) {
+                RoundedSign(
+                    modifier = modifier
+                        .padding(start = 8.dp)
+                        .clickable { onKeyboardDone() },
+                    signSize = 40.dp,
+                    iconSize = 20.dp,
+                    backgroundColor = textHeaderColor,
+                    borderColor = textHeaderColor,
+                    iconColor = colorResource(id = R.color.light_grey),
+                    iconVector = Icons.Default.Done
                 )
             }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun EditVocMutableTextPreview() {
+    val textName = rememberSaveable { mutableStateOf("sample text") }
+    val textHeaderColor = vocColorSelectorLight(cat = "artist")
+    val textFieldColors = getTextFieldColors(
+        colorLight = vocColorSelectorLight(cat = "artist"),
+        colorDark = vocColorSelector(cat = "artist")
+    )
+    EditVocMutableText(
+        textHeaderColor = textHeaderColor,
+        textFieldColors = textFieldColors,
+        disabledText = textName.value,
+        title = "Artist Name",
+        placeholder = "Write name here...",
+        textState = textName
+    )
+}
+
+
+@Composable
+fun EditVocMutableText(
+    modifier: Modifier = Modifier,
+    textHeaderColor: Color = colorResource(id = R.color.light_grey),
+    textFieldColors: TextFieldColors,
+    disabledText: String,
+    disabledTextColor: Color = colorResource(id = R.color.mid_grey),
+    title: String,
+    placeholder: String,
+    textState: MutableState<String>,
+    onClicked: () -> Unit = {},
+    onKeyboardDone: () -> Unit = {}
+) {
+    val isActive = rememberSaveable { mutableStateOf(false) }
+    if (!isActive.value) {
+
+        Column (
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Top
+        ) {
+
+            //Title:
+            Text(
+                modifier = Modifier
+                    .clickable {
+                        isActive.value = true
+                        onClicked()
+                   },
+                text = title,
+                color = textHeaderColor,
+                textAlign = TextAlign.Start,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(top = 8.dp, bottom = 20.dp)
+                    .clickable {
+                        isActive.value = true
+                        onClicked()
+                    },
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                //Edit icon:
+                Icon(
+                    modifier = modifier
+                        .padding(end=8.dp)
+                        .size(20.dp),
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    tint = disabledTextColor
+                )
+
+                //Value:
+                Text(
+                    modifier = modifier
+                        .weight(1f),
+                    text = disabledText,
+                    color = disabledTextColor,
+                    textAlign = TextAlign.Start,
+                    fontSize = 16.sp,
+                    fontStyle = FontStyle.Italic,
+                )
+            }
+        }
+
+    } else {
+        //TextField:
+        EditVocTextField(
+            modifier = modifier,
+            textHeaderColor = textHeaderColor,
+            textFieldColors = textFieldColors,
+            title = title,
+            placeholder = placeholder,
+            textState = textState,
+            showButton = true,
+            onKeyboardDone = {
+                onKeyboardDone()
+                isActive.value = false
+            },
         )
     }
+}
+
+
+@Composable
+fun EditPhoneMutableText(
+    modifier: Modifier = Modifier,
+    textHeaderColor: Color = colorResource(id = R.color.light_grey),
+    textFieldColors: TextFieldColors,
+    disabledText: String,
+    disabledTextColor: Color = colorResource(id = R.color.mid_grey),
+    title: String,
+    textPrefix: MutableState<String>,
+    textPhone: MutableState<String>,
+    onClicked: () -> Unit = {},
+    onKeyboardDone: () -> Unit = {}
+) {
+    val isActive = rememberSaveable { mutableStateOf(false) }
+    Column (
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight(),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.Top
+    ) {
+        //Title:
+        Text(
+            modifier = Modifier
+                .clickable {
+                    isActive.value = true
+                    onClicked()
+                },
+            text = title,
+            color = textHeaderColor,
+            textAlign = TextAlign.Start,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+        )
+
+        if (!isActive.value) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(top = 8.dp, bottom = 20.dp)
+                    .clickable {
+                        isActive.value = true
+                        onClicked()
+                    },
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                //Edit icon:
+                Icon(
+                    modifier = modifier
+                        .padding(end=8.dp)
+                        .size(20.dp),
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    tint = disabledTextColor
+                )
+
+                //Value:
+                Text(
+                    modifier = modifier
+                        .weight(1f),
+                    text = disabledText,
+                    color = disabledTextColor,
+                    textAlign = TextAlign.Start,
+                    fontSize = 16.sp,
+                    fontStyle = FontStyle.Italic,
+                )
+            }
+
+        } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(top = 8.dp, bottom = 10.dp),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                //PREFIX:
+                OutlinedTextField(
+                    modifier = modifier
+                        .width(60.dp),
+                    colors = textFieldColors,
+                    value = textPrefix.value,
+                    onValueChange = { newText ->
+                        textPrefix.value = newText.trimStart { it == '0' }
+                    },
+                    textStyle = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    singleLine = true,
+                    maxLines = 1,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Phone,
+                        imeAction = ImeAction.Next
+                    ),
+                    placeholder = {
+                        Text(
+                            text = "+39",
+                            fontSize = 16.sp,
+                            fontStyle = FontStyle.Italic
+                        )
+                    },
+                )
+                //SUFFIX:
+                OutlinedTextField(
+                    modifier = modifier
+                        .weight(1f),
+                    colors = textFieldColors,
+                    value = textPhone.value,
+                    onValueChange = { newText ->
+                        textPhone.value = newText.trimStart { it == '0' }
+                    },
+                    textStyle = TextStyle(
+                        fontSize = 16.sp
+                    ),
+                    singleLine = true,
+                    maxLines = 1,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            onKeyboardDone()
+                            isActive.value = false
+                        }
+                    ),
+                    placeholder = {
+                        Text(
+                            text = "Phone number...",
+                            fontSize = 16.sp,
+                            fontStyle = FontStyle.Italic
+                        )
+                    },
+                )
+
+                //Button:
+                RoundedSign(
+                    modifier = modifier
+                        .padding(start = 8.dp)
+                        .clickable {
+                            onKeyboardDone()
+                            isActive.value = false
+                       },
+                    signSize = 40.dp,
+                    iconSize = 20.dp,
+                    backgroundColor = textHeaderColor,
+                    borderColor = textHeaderColor,
+                    iconColor = colorResource(id = R.color.light_grey),
+                    iconVector = Icons.Default.Done
+                )
+            }
+        }
+    }
+
 }
 
 

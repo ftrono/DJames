@@ -336,7 +336,8 @@ fun RoundedSign(
     backgroundColor: Color,
     borderColor: Color,
     iconColor: Color,
-    iconPainter: Painter,
+    iconPainter: Painter? = null,
+    iconVector: ImageVector? = null,
     circle: Boolean = true
 ) {
     //ROUNDED SIGN:
@@ -349,13 +350,23 @@ fun RoundedSign(
         contentAlignment = Alignment.Center
     ) {
         //CAT ICON:
-        Icon(
-            modifier = Modifier
-                .size(iconSize),
-            painter = iconPainter,
-            contentDescription = "Category",
-            tint = iconColor
-        )
+        if (iconVector != null) {
+            Icon(
+                modifier = Modifier
+                    .size(iconSize),
+                imageVector = iconVector,
+                contentDescription = "Category",
+                tint = iconColor
+            )
+        } else {
+            Icon(
+                modifier = Modifier
+                    .size(iconSize),
+                painter = iconPainter!!,
+                contentDescription = "Category",
+                tint = iconColor
+            )
+        }
     }
 }
 

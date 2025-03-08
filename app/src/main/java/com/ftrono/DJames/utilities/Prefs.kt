@@ -50,32 +50,37 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getString(KEY_OVERLAY_POSITION, "Right") as String
         set(value) = sharedPrefs.edit().putString(KEY_OVERLAY_POSITION, value).apply()
 
-    //Voice queries default language:
+    //Voice queries: Default language:
     var queryLanguage: String
         //"en-US" -> English; "it" -> Italian
         get() = sharedPrefs.getString(KEY_QUERY_LANGUAGE, "en") as String
         set(value) = sharedPrefs.edit().putString(KEY_QUERY_LANGUAGE, value).apply()
 
-    //Rec timeout:
+    //Voice queries: Rec timeout:
     var recTimeout: String
         get() = sharedPrefs.getString(KEY_REC_TIMEOUT, "10") as String
         set(value) = sharedPrefs.edit().putString(KEY_REC_TIMEOUT, value).apply()
 
-    //Auto start-up:
-    var silenceEnabled: Boolean
-        get() = sharedPrefs.getBoolean(KEY_SILENCE_ENABLED, true) as Boolean
-        set(value) = sharedPrefs.edit().putBoolean(KEY_SILENCE_ENABLED, value).apply()
+    //Voice queries: Silence enabled:
+    var silenceEnabledQueries: Boolean
+        get() = sharedPrefs.getBoolean(KEY_SILENCE_ENABLED_QUERIES, true) as Boolean
+        set(value) = sharedPrefs.edit().putBoolean(KEY_SILENCE_ENABLED_QUERIES, value).apply()
 
-    //Message default language:
+    //Messages: Default language:
     var messageLanguage: String
         //"en-US" -> English; "it" -> Italian
         get() = sharedPrefs.getString(KEY_MESSAGE_LANGUAGE, "it") as String
         set(value) = sharedPrefs.edit().putString(KEY_MESSAGE_LANGUAGE, value).apply()
 
-    //Message timeout:
+    //Messages: Rec timeout:
     var messageTimeout: String
         get() = sharedPrefs.getString(KEY_MESSAGE_TIMEOUT, "15") as String
         set(value) = sharedPrefs.edit().putString(KEY_MESSAGE_TIMEOUT, value).apply()
+
+    //Messages: Silence enabled:
+    var silenceEnabledMess: Boolean
+        get() = sharedPrefs.getBoolean(KEY_SILENCE_ENABLED_MESS, true) as Boolean
+        set(value) = sharedPrefs.edit().putBoolean(KEY_SILENCE_ENABLED_MESS, value).apply()
 
     //Auto Clock:
     var autoClock: Boolean
@@ -148,9 +153,10 @@ class Prefs (context: Context) {
         const val KEY_OVERLAY_POSITION = ".key.overlay_position"
         const val KEY_QUERY_LANGUAGE = ".key.query_language"
         const val KEY_REC_TIMEOUT = ".key.rec_timeout"
-        const val KEY_SILENCE_ENABLED = ".key.enable_silence"
+        const val KEY_SILENCE_ENABLED_QUERIES = ".key.enable_silence_queries"
         const val KEY_MESSAGE_LANGUAGE = ".key.message_language"
         const val KEY_MESSAGE_TIMEOUT = ".key.message_timeout"
+        const val KEY_SILENCE_ENABLED_MESS = ".key.enable_silence_mess"
         const val KEY_AUTO_CLOCK = ".key.auto_clock"
         const val KEY_CLOCK_REDIRECT_ENABLED = ".key.clock_redirect_enabled"
         const val KEY_CLOCK_TIMEOUT = ".key.clock_timeout"

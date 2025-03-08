@@ -386,7 +386,7 @@ class VoiceQueryService: Service() {
                     //Recording is over:
                     break
 
-                } else if (prefs.silenceEnabled) {
+                } else if ((messageMode && prefs.silenceEnabledMess) || (!messageMode && prefs.silenceEnabledQueries)) {
                     //Get max amplitude detected (in %):
                     curAmpl = recorder.getMaxAmplitude()
                     amplitudes.add(curAmpl)

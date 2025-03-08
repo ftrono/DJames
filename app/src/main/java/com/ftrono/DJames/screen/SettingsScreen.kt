@@ -81,7 +81,8 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val mContext = LocalContext.current
     //TODO: STATUSES:
     var checkedStartup = remember { mutableStateOf(if (preview) true else prefs.autoStartup) }
-    var checkedSilence = remember { mutableStateOf(if (preview) true else prefs.silenceEnabled) }
+    var checkedSilenceQueries = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledQueries) }
+    var checkedSilenceMess = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledMess) }
     var checkedAutoClock = remember { mutableStateOf(if (preview) true else prefs.autoClock) }
     var checkedClockRedirect = remember { mutableStateOf(if (preview) true else prefs.clockRedirectEnabled) }
     var checkedVolumeEnabled = remember { mutableStateOf(if (preview) true else prefs.volumeUpEnabled) }
@@ -283,7 +284,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         }
                     )
 
-                    //Silence detection:
+                    //Voice queries: Silence detection:
                     Row(
                         modifier = Modifier
                             .fillMaxWidth(),
@@ -291,7 +292,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Stop recording when silence\nis detected",
+                            text = "Voice queries: Stop recording\nwhen silence is detected",
                             color = colorResource(id = R.color.light_grey),
                             textAlign = TextAlign.Start,
                             fontSize = 14.sp,
@@ -300,13 +301,13 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         )
                         Spacer(Modifier.weight(1f))
                         Switch(
-                            checked = checkedSilence.value,
+                            checked = checkedSilenceQueries.value,
                             colors = getSwitchColors(
                                 color = colorResource(id = R.color.yellowSign)
                             ),
                             onCheckedChange = {
-                                checkedSilence.value = it
-                                prefs.silenceEnabled = it
+                                checkedSilenceQueries.value = it
+                                prefs.silenceEnabledQueries = it
                             }
                         )
                     }
@@ -355,7 +356,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     )
                     OutlinedTextField(
                         modifier = Modifier
-                            .padding(top = 8.dp)
+                            .padding(top = 8.dp, bottom = 20.dp)
                             .width(250.dp)
                             .wrapContentHeight()
                             .focusRequester(focusRequester),
@@ -410,6 +411,34 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             //TODO
                         }
                     )
+
+                    //Messages: Silence detection:
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Messages: Stop recording\nwhen silence is detected",
+                            color = colorResource(id = R.color.light_grey),
+                            textAlign = TextAlign.Start,
+                            fontSize = 14.sp,
+                            lineHeight = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.weight(1f))
+                        Switch(
+                            checked = checkedSilenceMess.value,
+                            colors = getSwitchColors(
+                                color = colorResource(id = R.color.blueSign)
+                            ),
+                            onCheckedChange = {
+                                checkedSilenceMess.value = it
+                                prefs.silenceEnabledMess = it
+                            }
+                        )
+                    }
                 }
 
 

@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +26,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -337,8 +341,8 @@ fun EditVocTextField(
                         .clickable { onKeyboardDone() },
                     signSize = 40.dp,
                     iconSize = 20.dp,
-                    backgroundColor = textHeaderColor,
-                    borderColor = textHeaderColor,
+                    backgroundColor = textFieldColors.textSelectionColors.backgroundColor,
+                    borderColor = textFieldColors.textSelectionColors.backgroundColor,
                     iconColor = colorResource(id = R.color.light_grey),
                     iconVector = Icons.Default.Done
                 )
@@ -349,26 +353,28 @@ fun EditVocTextField(
 
 @Preview
 @Composable
-fun EditVocMutableTextPreview() {
+fun EditVocDynamicFieldPreview() {
     val textName = rememberSaveable { mutableStateOf("sample text") }
     val textHeaderColor = vocColorSelectorLight(cat = "artist")
     val textFieldColors = getTextFieldColors(
         colorLight = vocColorSelectorLight(cat = "artist"),
         colorDark = vocColorSelector(cat = "artist")
     )
-    EditVocMutableText(
+    EditVocDynamicField(
         textHeaderColor = textHeaderColor,
         textFieldColors = textFieldColors,
         disabledText = textName.value,
         title = "Artist Name",
         placeholder = "Write name here...",
-        textState = textName
+        textState = textName,
+        useChips = true
     )
 }
 
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun EditVocMutableText(
+fun EditVocDynamicField(
     modifier: Modifier = Modifier,
     textHeaderColor: Color = colorResource(id = R.color.light_grey),
     textFieldColors: TextFieldColors,
@@ -377,6 +383,7 @@ fun EditVocMutableText(
     title: String,
     placeholder: String,
     textState: MutableState<String>,
+    useChips: Boolean = false,
     onClicked: () -> Unit = {},
     onKeyboardDone: () -> Unit = {}
 ) {
@@ -398,7 +405,7 @@ fun EditVocMutableText(
                         isActive.value = true
                         onClicked()
                    },
-                text = title,
+                text = if (useChips && !isActive.value) title.slice(0..<title.indexOf("(", ignoreCase = true)) else title,
                 color = textHeaderColor,
                 textAlign = TextAlign.Start,
                 fontSize = 16.sp,
@@ -420,7 +427,7 @@ fun EditVocMutableText(
                 //Edit icon:
                 Icon(
                     modifier = modifier
-                        .padding(end=8.dp)
+                        .padding(end = 8.dp)
                         .size(20.dp),
                     imageVector = Icons.Default.Edit,
                     contentDescription = "Edit",
@@ -428,15 +435,52 @@ fun EditVocMutableText(
                 )
 
                 //Value:
-                Text(
-                    modifier = modifier
-                        .weight(1f),
-                    text = disabledText,
-                    color = disabledTextColor,
-                    textAlign = TextAlign.Start,
-                    fontSize = 16.sp,
-                    fontStyle = FontStyle.Italic,
-                )
+                if (useChips && textState.value != "") {
+                    //Chips row:
+                    FlowRow(
+                        modifier = modifier
+                            .weight(1f),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+
+                        for (alias in textState.value.split(",")) {
+                            AssistChip(
+                                modifier = Modifier
+                                    .padding(end=4.dp),
+                                onClick = {
+                                    isActive.value = true
+                                    onClicked()
+                                },
+                                label = { 
+                                    Text(
+                                        text=alias,
+                                        color = colorResource(id = R.color.light_grey),
+                                        fontSize = 14.sp,
+                                        fontStyle = FontStyle.Italic
+                                    )
+                                },
+                                colors = AssistChipDefaults.assistChipColors(
+                                    containerColor = textFieldColors.textSelectionColors.backgroundColor,
+                                    labelColor = colorResource(id = R.color.light_grey)
+                                ),
+                                border = null
+                            )
+                        }
+                    }
+
+                } else {
+                    //Text:
+                    Text(
+                        modifier = modifier
+                            .weight(1f),
+                        text = disabledText,
+                        color = disabledTextColor,
+                        textAlign = TextAlign.Start,
+                        fontSize = 16.sp,
+                        fontStyle = FontStyle.Italic,
+                    )
+                }
             }
         }
 
@@ -460,7 +504,7 @@ fun EditVocMutableText(
 
 
 @Composable
-fun EditPhoneMutableText(
+fun EditPhoneDynamicField(
     modifier: Modifier = Modifier,
     textHeaderColor: Color = colorResource(id = R.color.light_grey),
     textFieldColors: TextFieldColors,
@@ -510,7 +554,7 @@ fun EditPhoneMutableText(
                 //Edit icon:
                 Icon(
                     modifier = modifier
-                        .padding(end=8.dp)
+                        .padding(end = 8.dp)
                         .size(20.dp),
                     imageVector = Icons.Default.Edit,
                     contentDescription = "Edit",
@@ -606,11 +650,11 @@ fun EditPhoneMutableText(
                         .clickable {
                             onKeyboardDone()
                             isActive.value = false
-                       },
+                        },
                     signSize = 40.dp,
                     iconSize = 20.dp,
-                    backgroundColor = textHeaderColor,
-                    borderColor = textHeaderColor,
+                    backgroundColor = textFieldColors.textSelectionColors.backgroundColor,
+                    borderColor = textFieldColors.textSelectionColors.backgroundColor,
                     iconColor = colorResource(id = R.color.light_grey),
                     iconVector = Icons.Default.Done
                 )

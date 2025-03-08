@@ -180,7 +180,7 @@ fun EditVocArtist(
         ) {
             //CONTENT:
             //ARTIST NAME:
-            EditVocMutableText(
+            EditVocDynamicField(
                 modifier = Modifier
                     .focusRequester(focusRequester),
                 onClicked = {
@@ -203,7 +203,7 @@ fun EditVocArtist(
             )
 
             //ARTIST ALIASES:
-            EditVocMutableText(
+            EditVocDynamicField(
                 modifier = Modifier
                     .focusRequester(focusRequester),
                 onClicked = {
@@ -221,12 +221,13 @@ fun EditVocArtist(
                 ),
                 title = "Aliases (separate with commas)",
                 placeholder = "Write aliases here...",
+                useChips = true,
                 textState = textAliases,
                 disabledText = if (textAliases.value == "") "Write here..." else textAliases.value
             )
 
             //ARTIST URL:
-            EditVocMutableText(
+            EditVocDynamicField(
                 modifier = Modifier
                     .focusRequester(focusRequester),
                 onClicked = {
@@ -251,7 +252,7 @@ fun EditVocArtist(
             )
 
             //PLAYLIST URL:
-            EditVocMutableText(
+            EditVocDynamicField(
                 modifier = Modifier
                     .focusRequester(focusRequester),
                 onClicked = {

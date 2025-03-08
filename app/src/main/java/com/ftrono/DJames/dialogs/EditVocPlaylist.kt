@@ -136,7 +136,7 @@ fun EditVocPlaylist(
         ) {
             //CONTENT:
             //PLAYLIST NAME:
-            EditVocMutableText(
+            EditVocDynamicField(
                 modifier = Modifier
                     .focusRequester(focusRequester),
                 onClicked = {
@@ -159,7 +159,7 @@ fun EditVocPlaylist(
             )
 
             //PLAYLIST ALIASES:
-            EditVocMutableText(
+            EditVocDynamicField(
                 modifier = Modifier
                     .focusRequester(focusRequester),
                 onClicked = {
@@ -177,12 +177,13 @@ fun EditVocPlaylist(
                 ),
                 title = "Aliases (separate with commas)",
                 placeholder = "Write aliases here...",
+                useChips = true,
                 textState = textAliases,
                 disabledText = if (textAliases.value == "") "Write here..." else textAliases.value
             )
 
             //PLAYLIST URL:
-            EditVocMutableText(
+            EditVocDynamicField(
                 modifier = Modifier
                     .focusRequester(focusRequester),
                 onClicked = {

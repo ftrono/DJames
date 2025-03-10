@@ -199,7 +199,7 @@ fun EditVocContact(
             }
         ) {
             //CONTACT NAME:
-            EditVocDynamicField(
+            EditVocDynamicNameSection(
                 modifier = Modifier
                     .focusRequester(focusRequester),
                 onClicked = {
@@ -210,15 +210,12 @@ fun EditVocContact(
                     focusManager.clearFocus()
                     keyboardController!!.hide()
                 },
-                textHeaderColor = vocColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
                     colorDark = vocColorSelector(cat = filter)
                 ),
-                title = "Name",
-                placeholder = "Write $filter name...",
-                textState = textName,
-                disabledText = if (textName.value == "") "Write here..." else textName.value
+                filter = filter,
+                textState = textName
             )
 
             //CONTACT ALIASES:
@@ -240,9 +237,8 @@ fun EditVocContact(
                 ),
                 title = "Aliases (separate with commas)",
                 placeholder = "Write aliases here...",
-                useChips = true,
                 textState = textAliases,
-                disabledText = if (textAliases.value == "") "Write here..." else textAliases.value
+                disabledText = if (textAliases.value == "") "Write here..." else "\"" + textAliases.value.split(", ").joinToString("\", \"") + "\""
             )
 
             //CONTACT PHONE:

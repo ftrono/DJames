@@ -3,23 +3,30 @@ package com.ftrono.DJames.dialogs
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.ftrono.DJames.R
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.database.Artist
@@ -28,9 +35,11 @@ import com.ftrono.DJames.screen.VocabularyScreen
 import com.ftrono.DJames.database.ItemInfoView
 import com.ftrono.DJames.test_objects.testArtists
 import com.ftrono.DJames.ui.DropdownSpinner
+import com.ftrono.DJames.ui.RoundedSign
 import com.ftrono.DJames.ui.getTextFieldColors
 import com.ftrono.DJames.ui.vocColorSelector
 import com.ftrono.DJames.ui.vocColorSelectorLight
+import com.ftrono.DJames.ui.vocIconSelector
 
 
 @Preview
@@ -180,7 +189,7 @@ fun EditVocArtist(
         ) {
             //CONTENT:
             //ARTIST NAME:
-            EditVocDynamicField(
+            EditVocDynamicNameSection(
                 modifier = Modifier
                     .focusRequester(focusRequester),
                 onClicked = {
@@ -191,15 +200,12 @@ fun EditVocArtist(
                     focusManager.clearFocus()
                     keyboardController!!.hide()
                 },
-                textHeaderColor = vocColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
                     colorDark = vocColorSelector(cat = filter)
                 ),
-                title = "Name",
-                placeholder = "Write $filter name...",
-                textState = textName,
-                disabledText = if (textName.value == "") "Write here..." else textName.value
+                filter = filter,
+                textState = textName
             )
 
             //ARTIST ALIASES:
@@ -221,9 +227,8 @@ fun EditVocArtist(
                 ),
                 title = "Aliases (separate with commas)",
                 placeholder = "Write aliases here...",
-                useChips = true,
                 textState = textAliases,
-                disabledText = if (textAliases.value == "") "Write here..." else textAliases.value
+                disabledText = if (textAliases.value == "") "Write here..." else "\"" + textAliases.value.split(", ").joinToString("\", \"") + "\""
             )
 
             //ARTIST URL:

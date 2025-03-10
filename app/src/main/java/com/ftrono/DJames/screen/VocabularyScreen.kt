@@ -77,6 +77,7 @@ import com.ftrono.DJames.ui.RoundedLetter
 import com.ftrono.DJames.ui.RoundedSign
 import com.ftrono.DJames.ui.SplitterCat
 import com.ftrono.DJames.ui.StreetBackground
+import com.ftrono.DJames.ui.VocItemCard
 import com.ftrono.DJames.ui.vocColorSelector
 import com.ftrono.DJames.ui.vocIconSelector
 import java.io.File
@@ -404,12 +405,10 @@ fun VocSectionContent(
                         VocItem(
                             currentCatState = currentCatState,
                             keyState = keyState,
-                            head = currentCatState.value,
                             key = map.key,
                             itemJson = map.value,
                             editVocOn = editVocOn,
-                            deleteVocOn = deleteVocOn,
-                            preview = preview
+                            deleteVocOn = deleteVocOn
                         )
                         if (map.key == libraryMap.value.keys.last()) Spacer(modifier = Modifier.padding(60.dp))
                     }
@@ -446,119 +445,52 @@ fun VocLetter(
 fun VocItem(
     currentCatState: MutableState<String>,
     keyState: MutableState<String>,
-    head: String,
     key: String,
     itemJson: String,
     editVocOn: MutableState<Boolean>,
-    deleteVocOn: MutableState<Boolean>,
-    preview: Boolean = false
+    deleteVocOn: MutableState<Boolean>
 ) {
+    val mDisplayMenu = rememberSaveable { mutableStateOf(false) }
     val itemInfo = Json.decodeFromString<ItemInfoView>(itemJson)
     //Init aliases:
     val itemName = itemInfo.name
     val itemAliases = itemInfo.aliases.toMutableList()
     itemAliases.removeAt(0)
-    val isMultiline = rememberSaveable { mutableStateOf(false) }
 
     //VOC CHIPS:
     Box(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        var mDisplayMenu = rememberSaveable {
-            mutableStateOf(false)
-        }
-        Card(
+
+        //Card:
+        VocItemCard(
             modifier = Modifier
                 .wrapContentWidth()
-                .height(60.dp)
-                .clickable {
-                    mDisplayMenu.value = !mDisplayMenu.value
-                },
-            shape = RoundedCornerShape(14.dp),
-            border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
-            colors = CardDefaults.cardColors(
+                .height(60.dp),
+            cardColors = CardDefaults.cardColors(
                 containerColor = if (mDisplayMenu.value) {
                     colorResource(id = R.color.dark_grey)
                 } else {
                     colorResource(id = R.color.dark_grey_background)
                 }
-            )
-        ) {
-            Row (
-                modifier = Modifier
-                    .padding(start = 8.dp, end = 8.dp, top = 12.dp, bottom = 12.dp)
-                    .fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
-            ){
-                //CHIP ICON:
-                RoundedSign(
-                    modifier = Modifier
-                        .padding(end = 4.dp),
-                    signSize = 34.dp,
-                    iconSize = 20.dp,
-                    backgroundColor = vocColorSelector(cat = currentCatState.value),
-                    borderColor = colorResource(id = R.color.midfaded_grey),
-                    iconColor = colorResource(id = R.color.light_grey),
-                    iconPainter = vocIconSelector(cat = head),
-                    circle = currentCatState.value != "playlist"
-                )
-                //TEXT LABEL:
-                Column(
-                    modifier = Modifier
-                        .padding(start = 4.dp, end = 6.dp)
-                        .fillMaxSize(),
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    //Item key:
-                    Text(
-                        modifier = Modifier
-                            .wrapContentWidth()
-                            .wrapContentHeight(),
-                        color = colorResource(id = R.color.light_grey),
-                        fontSize = 14.sp,
-                        lineHeight = 16.sp,
-                        maxLines = if (head == "contact") 1 else 2,
-                        text = utils.trimString(itemName, if (head == "contact") 12 else 24),
-                        fontWeight = FontWeight.Bold,
-                        //fontStyle = FontStyle.Italic,
-                        onTextLayout = { textLayoutResult ->
-                            isMultiline.value = textLayoutResult.lineCount > 1
-                        }
-                    )
-                    //Item detail:
-                    if (itemAliases.isNotEmpty() && !isMultiline.value) {
-                        Text(
-                            modifier = Modifier
-                                .padding(top = 2.dp)
-                                .wrapContentWidth()
-                                .wrapContentHeight(),
-                            color = colorResource(id = R.color.mid_grey),
-                            fontSize = 12.sp,
-                            lineHeight = 14.sp,
-                            maxLines = 1,
-                            fontStyle = FontStyle.Italic,
-                            text = utils.trimString("\"" + itemAliases.joinToString("\", \"") + "\"", 16)
-                        )
-                    } else if (itemInfo.phone != "") {
-                        Text(
-                            modifier = Modifier
-                                .padding(top = 2.dp)
-                                .wrapContentWidth()
-                                .wrapContentHeight(),
-                            color = colorResource(id = R.color.mid_grey),
-                            fontSize = 12.sp,
-                            lineHeight = 14.sp,
-                            maxLines = 1,
-                            fontStyle = FontStyle.Italic,
-                            text = utils.trimString(itemInfo.phone, 16)
-                        )
-                    }
-                }
+            ),
+            signBackgroundColor = vocColorSelector(cat = currentCatState.value),
+            signBorderColor = colorResource(id = R.color.midfaded_grey),
+            signIconColor = colorResource(id = R.color.light_grey),
+            signIconPainter = vocIconSelector(cat = currentCatState.value),
+            circle = currentCatState.value != "playlist",
+            title = utils.trimString(itemName, 24),
+            subtitle = if (itemAliases.isNotEmpty()) {
+                    utils.trimString("\"" + itemAliases.joinToString("\", \"") + "\"", 16)
+                } else if (itemInfo.phone != "") {
+                    utils.trimString(itemInfo.phone, 16)
+                } else "",
+            onClick = {
+                mDisplayMenu.value = !mDisplayMenu.value
             }
-        }
+        )
+        //Options menu:
         ChipOptions(mDisplayMenu, deleteVocOn, editVocOn, keyState, key)
     }
 }

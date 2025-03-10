@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -45,6 +47,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -55,6 +58,7 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.vocHeads
 import com.ftrono.DJames.database.ItemInfoView
 import com.ftrono.DJames.application.libUtils
+import com.ftrono.DJames.application.utils
 
 
 // STREET UI LANGUAGE COMPONENTS
@@ -569,4 +573,113 @@ fun OptionsItem(
             onClick()
         }
     )
+}
+
+
+@Preview
+@Composable
+fun VocItemCardPreview() {
+    VocItemCard(
+        modifier = Modifier
+            .wrapContentWidth()
+            .height(60.dp),
+        cardColors = CardDefaults.cardColors(
+            containerColor = colorResource(id = R.color.dark_grey)
+        ),
+        signBackgroundColor = vocColorSelector(cat = "artist"),
+        signBorderColor = colorResource(id = R.color.midfaded_grey),
+        signIconColor = colorResource(id = R.color.light_grey),
+        signIconPainter = vocIconSelector(cat = "artist"),
+        title = "Item name",
+        subtitle = "subtitle",
+    )
+}
+
+
+@Composable
+fun VocItemCard(
+    modifier: Modifier = Modifier,
+    cardColors: CardColors,
+    signBackgroundColor: Color,
+    signBorderColor: Color,
+    signIconColor: Color,
+    signIconPainter: Painter,
+    circle: Boolean = true,
+    title: String,
+    subtitle: String = "",
+    onClick: () -> Unit = {}
+) {
+    val isMultiline = rememberSaveable { mutableStateOf(false) }
+
+    Card(
+        modifier = modifier
+            .clickable {
+                onClick()
+            },
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
+        colors = cardColors
+    ) {
+
+        Row (
+            modifier = Modifier
+                .padding(start = 8.dp, end = 8.dp, top = 12.dp, bottom = 12.dp)
+                .fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ){
+            //CHIP ICON:
+            RoundedSign(
+                modifier = Modifier
+                    .padding(end = 4.dp),
+                signSize = 34.dp,
+                iconSize = 20.dp,
+                backgroundColor = signBackgroundColor,
+                borderColor = signBorderColor,
+                iconColor = signIconColor,
+                iconPainter = signIconPainter,
+                circle = circle
+            )
+            //TEXT LABEL:
+            Column(
+                modifier = Modifier
+                    .padding(start = 4.dp, end = 6.dp)
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center
+            ) {
+                //Item key:
+                Text(
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .wrapContentHeight(),
+                    color = colorResource(id = R.color.light_grey),
+                    fontSize = 14.sp,
+                    lineHeight = 16.sp,
+                    maxLines = 2,
+                    text = title,
+                    fontWeight = FontWeight.Bold,
+                    //fontStyle = FontStyle.Italic,
+                    onTextLayout = { textLayoutResult ->
+                        isMultiline.value = textLayoutResult.lineCount > 1
+                    }
+                )
+                //Item detail:
+                if (subtitle != "" && !isMultiline.value) {
+                    Text(
+                        modifier = Modifier
+                            .padding(top = 2.dp)
+                            .wrapContentWidth()
+                            .wrapContentHeight(),
+                        color = colorResource(id = R.color.mid_grey),
+                        fontSize = 12.sp,
+                        lineHeight = 14.sp,
+                        maxLines = 1,
+                        fontStyle = FontStyle.Italic,
+                        text = subtitle
+                    )
+                }
+            }
+        }
+    }
 }

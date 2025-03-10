@@ -248,12 +248,28 @@ fun EditVocArtist(
                     colorLight = vocColorSelectorLight(cat = filter),
                     colorDark = vocColorSelector(cat = filter)
                 ),
-                title = "Spotify: Artist URL",
+                title = "Spotify Profile Link",
                 placeholder = "Paste here the Spotify link...",
                 textState = textArtistUrl,
                 disabledText = if (textArtistUrl.value == "") "Write here..." else ".../${
                     textArtistUrl.value.split("/").last()
                 }"
+            )
+
+            //DEFAULT PLAY: DROPDOWN:
+            EditVocTitle(
+                textHeaderColor = vocColorSelectorLight(cat = filter),
+                onClicked = { },
+                title = "Play by default",
+            )
+
+            DropdownSpinner(
+                mContext = mContext,
+                parentOptions = playOptionsValToKeys.keys.toList(),
+                init = initDefaultPlay,
+                state = textDefaultPlay,
+                focusColorLight = vocColorSelectorLight(cat = filter),
+                focusColorDark = vocColorSelector(cat = filter)
             )
 
             //PLAYLIST URL:
@@ -273,29 +289,12 @@ fun EditVocArtist(
                     colorLight = vocColorSelectorLight(cat = filter),
                     colorDark = vocColorSelector(cat = filter)
                 ),
-                title = "Spotify: 'This is' playlist URL",
+                title = "Spotify 'This is' playlist Link",
                 placeholder = "Paste here the Spotify link...",
                 textState = textPlayThisIsUrl,
                 disabledText = if (textPlayThisIsUrl.value == "") "Write here..." else ".../${
                     textPlayThisIsUrl.value.split("/").last()
                 }"
-            )
-
-            //DEFAULT PLAY: DROPDOWN:
-            Text(
-                text = "Play by default",
-                color = vocColorSelectorLight(cat = filter),
-                textAlign = TextAlign.Start,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            DropdownSpinner(
-                mContext = mContext,
-                parentOptions = playOptionsValToKeys.keys.toList(),
-                init = initDefaultPlay,
-                state = textDefaultPlay,
-                focusColorLight = vocColorSelectorLight(cat = filter),
-                focusColorDark = vocColorSelector(cat = filter)
             )
 
         }

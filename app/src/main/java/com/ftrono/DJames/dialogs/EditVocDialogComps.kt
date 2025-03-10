@@ -1,36 +1,19 @@
 package com.ftrono.DJames.dialogs
 
-import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -45,10 +28,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
@@ -61,7 +41,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.RoundedSign
@@ -72,301 +51,72 @@ import com.ftrono.DJames.ui.vocIconSelector
 
 
 //EDIT VOC COMPONENTS:
-
-@Preview
 @Composable
-fun DialogRequestDetailPreview() {
-    DialogRequestDetail(
-        dialogOnState = remember {
-            mutableStateOf(true)
-        }
-    )
-}
-
-
-//Request missing detail:
-@Composable
-fun DialogRequestDetail(
-    dialogOnState: MutableState<Boolean>,
-    title: String = "Title",
-    message: String = "Custom message"
-) {
-    //REQUEST DETAIL DIALOG:
-    GeneralDialog(
-        dialogOnState = dialogOnState,
-        backgroundColor = colorResource(id = R.color.colorPrimaryDark),
-        title = title,
-        content = {
-            Text(
-                text = message,
-                color = colorResource(id = R.color.light_grey),
-                fontSize = 14.sp
-            )
-        },
-        dismissText = "Ok"
-    )
-}
-
-
-@Preview
-@Composable
-fun DialogEditVocPreview() {
-    Dialog (
-        onDismissRequest = {}
-    ) {
-        EditVocDialog(filter = "artist")
-    }
-}
-
-
-//Main Container: EditVocDialog:
-@Composable
-fun EditVocDialog(
-    modifier: Modifier = Modifier,
-    filter: String,
-    onDismiss: () -> Unit = {},
-    onSave: () -> Unit = {},
-    content: @Composable () -> Unit = {}
-) {
-    val configuration = LocalConfiguration.current
-    val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
-
-    //EDIT DIALOG CONTAINER:
-    Card(
-        modifier = modifier
-            .padding(
-                top = 30.dp,
-                bottom = 30.dp,
-                start = if (isLandscape) 80.dp else 40.dp,
-                end = if (isLandscape) 80.dp else 40.dp
-            )
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        shape = RoundedCornerShape(20.dp),
-        //border = BorderStroke(2.dp, colorResource(id = R.color.faded_grey)),
-        colors = CardDefaults.cardColors (
-            containerColor = colorResource(id = R.color.dark_grey_background)
-        )
-    ) {
-
-        Column(
-            modifier = Modifier
-                .padding(20.dp)
-                .wrapContentWidth()
-                .wrapContentHeight(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.Start,
-        ) {
-
-            //TITLE:
-            EditVocHeader(
-                filter = filter,
-                onCancel = { onDismiss() },
-                onSave = { onSave() }
-            )
-
-            //CONTENT:
-            Column(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .wrapContentWidth()
-                    .wrapContentHeight()
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.Start,
-            ) {
-
-                content()
-
-                //END PADDING:
-                Spacer(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(8.dp)
-                )
-            }
-        }
-    }
-}
-
-
-@Preview
-@Composable
-fun EditVocHeaderPreview() {
-    EditVocHeader(
-        filter = "artist",
-        onCancel = {},
-        onSave = {}
-    )
-}
-
-
-//EditVoc Header:
-@Composable
-fun EditVocHeader(
-    filter: String,
-    onCancel: () -> Unit,
-    onSave: () -> Unit
-) {
-    //HEADER:
-    Box(
-        modifier = Modifier
-            .padding(bottom = 12.dp)
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        contentAlignment = Alignment.Center
-    ) {
-        //HEADER CONTENT:
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            //ICON:
-            Icon(
-                modifier = Modifier
-                    .padding(end = 4.dp)
-                    .size(20.dp),
-                painter = vocIconSelector(cat = filter),
-                contentDescription = filter,
-                tint = vocColorSelectorLight(cat = filter)
-            )
-            //TITLE:
-            Text(
-                text = "${filter.replaceFirstChar { it.uppercase() }}",
-                modifier = Modifier
-                    .padding(8.dp)
-                    .weight(1f),
-                color = colorResource(id = R.color.light_grey),
-                textAlign = TextAlign.Start,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
-            //BACK BUTTON:
-            Icon(
-                modifier = Modifier
-                    .padding(end = 12.dp)
-                    .size(35.dp)
-                    .clickable {
-                        onCancel()
-                    },
-                imageVector = Icons.Filled.Close,
-                contentDescription = "Cancel",
-                tint = vocColorSelectorLight(cat = filter)
-            )
-            //SAVE BUTTON:
-            Icon(
-                modifier = Modifier
-                    .size(35.dp)
-                    .clickable {
-                        onSave()
-                    },
-                imageVector = Icons.Default.Check,
-                contentDescription = "Save",
-                tint = vocColorSelectorLight(cat = filter)
-            )
-        }
-    }
-}
-
-
-//Text Field with title:
-@Composable
-fun EditVocTextField(
+fun EditVocTitle(
     modifier: Modifier = Modifier,
     textHeaderColor: Color = colorResource(id = R.color.light_grey),
-    textFieldColors: TextFieldColors,
-    title: String = "",
-    placeholder: String,
-    textState: MutableState<String>,
-    showButton: Boolean = false,
-    onClicked: () -> Unit = {},
-    onKeyboardDone: () -> Unit = {}
+    title: String,
+    onClicked: () -> Unit,
 ) {
-    var textFieldState by remember { mutableStateOf(TextFieldValue(textState.value)) }
-
-    Column (
-        modifier = Modifier
+    //Title:
+    Text(
+        modifier = modifier
             .fillMaxWidth()
-            .wrapContentHeight(),
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.Top
+            .clickable {
+                onClicked()
+            },
+        text = if (title.contains("(")) title.slice(0..<title.indexOf("(", ignoreCase = true)) else title,
+        color = textHeaderColor,
+        textAlign = TextAlign.Start,
+        fontSize = 16.sp,
+        //fontWeight = FontWeight.Bold,
+    )
+}
+
+
+@Composable
+fun EditVocDisabledRow(
+    modifier: Modifier = Modifier,
+    disabledText: String,
+    onClicked: () -> Unit,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .padding(top = 8.dp, bottom = 20.dp)
+            .clickable {
+                onClicked()
+            },
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
     ) {
 
-        //Title:
-        if (title != "") {
-            Text(
-                text = title,
-                color = textHeaderColor,
-                textAlign = TextAlign.Start,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-            )
-        }
+        //Edit icon:
+        Icon(
+            modifier = modifier
+                .padding(end = 8.dp)
+                .size(20.dp),
+            imageVector = Icons.Default.Edit,
+            contentDescription = "Edit",
+            tint = colorResource(id = R.color.mid_grey)
+        )
 
-        Row (
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(top = 8.dp, bottom = 20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
-        ) {
-            //Text Field:
-            OutlinedTextField(
-                modifier = modifier
-                    .weight(1f),
-                colors = textFieldColors,
-                value = textFieldState,
-                onValueChange = { newText ->
-                    val corr = newText.text.strip()
-                    textState.value = corr
-                    textFieldState = newText
-                },
-                textStyle = TextStyle(
-                    fontSize = 16.sp
-                ),
-//                maxLines = 1,
-//                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        onKeyboardDone()
-                    }
-                ),
-                placeholder = {
-                    Text(
-                        text = placeholder,
-                        fontSize = 16.sp,
-                        fontStyle = FontStyle.Italic
-                    )
-                }
-            )
-            LaunchedEffect(Unit) {
-                onClicked()
-                textFieldState = textFieldState.copy(selection = TextRange(textFieldState.text.length))
-            }
-
-            //Button:
-            if (showButton) {
-                RoundedSign(
-                    modifier = modifier
-                        .padding(start = 8.dp)
-                        .clickable { onKeyboardDone() },
-                    signSize = 40.dp,
-                    iconSize = 20.dp,
-                    backgroundColor = textFieldColors.textSelectionColors.backgroundColor,
-                    borderColor = textFieldColors.textSelectionColors.backgroundColor,
-                    iconColor = colorResource(id = R.color.light_grey),
-                    iconVector = Icons.Default.Done
-                )
-            }
-        }
+        //Value:
+        Text(
+            modifier = modifier
+                .weight(1f),
+            text = disabledText,
+            color = colorResource(id = R.color.light_grey),
+            textAlign = TextAlign.Start,
+            fontSize = 16.sp,
+            fontStyle = FontStyle.Italic,
+        )
     }
 }
+
+
+//COMPOSITIONS:
 
 @Preview
 @Composable
@@ -394,7 +144,6 @@ fun EditVocDynamicField(
     textHeaderColor: Color = colorResource(id = R.color.light_grey),
     textFieldColors: TextFieldColors,
     disabledText: String,
-    disabledTextColor: Color = colorResource(id = R.color.mid_grey),
     title: String,
     placeholder: String,
     textState: MutableState<String>,
@@ -402,85 +151,92 @@ fun EditVocDynamicField(
     onKeyboardDone: () -> Unit = {}
 ) {
     val isActive = rememberSaveable { mutableStateOf(false) }
+    var textFieldState by remember { mutableStateOf(TextFieldValue(textState.value)) }
+
+    //Title:
+    EditVocTitle(
+        textHeaderColor = textHeaderColor,
+        onClicked = {
+            isActive.value = true
+            onClicked()
+        },
+        title = title,
+    )
+
     if (!isActive.value) {
-
-        Column (
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.Top
-        ) {
-
-            //Title:
-            Text(
-                modifier = Modifier
-                    .clickable {
-                        isActive.value = true
-                        onClicked()
-                   },
-                text = if (title.contains("(")) title.slice(0..<title.indexOf("(", ignoreCase = true)) else title,
-                color = textHeaderColor,
-                textAlign = TextAlign.Start,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .padding(top = 8.dp, bottom = 20.dp)
-                    .clickable {
-                        isActive.value = true
-                        onClicked()
-                    },
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
-                //Edit icon:
-                Icon(
-                    modifier = modifier
-                        .padding(end = 8.dp)
-                        .size(20.dp),
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit",
-                    tint = colorResource(id = R.color.mid_grey)
-                )
-
-                //Value:
-                Text(
-                    modifier = modifier
-                        .weight(1f),
-                    text = disabledText,
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 16.sp,
-                    fontStyle = FontStyle.Italic,
-                )
+        EditVocDisabledRow(
+            modifier = modifier,
+            disabledText = disabledText,
+            onClicked = {
+                isActive.value = true
+                onClicked()
             }
-        }
+        )
 
     } else {
-        //TextField:
-        EditVocTextField(
-            modifier = modifier,
-            textHeaderColor = textHeaderColor,
-            textFieldColors = textFieldColors,
-            title = title,
-            placeholder = placeholder,
-            textState = textState,
-            showButton = true,
-            onClicked = {
+        Row (
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(top = 8.dp, bottom = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+
+            //Text Field:
+            OutlinedTextField(
+                modifier = modifier
+                    .weight(1f),
+                colors = textFieldColors,
+                value = textFieldState,
+                onValueChange = { newText ->
+                    val corr = newText.text.strip()
+                    textState.value = corr
+                    textFieldState = newText
+                },
+                textStyle = TextStyle(
+                    fontSize = 16.sp
+                ),
+//                maxLines = 1,
+//                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        onKeyboardDone()
+                        isActive.value = false
+                    }
+                ),
+                placeholder = {
+                    Text(
+                        text = placeholder,
+                        fontSize = 16.sp,
+                        fontStyle = FontStyle.Italic
+                    )
+                }
+            )
+            LaunchedEffect(Unit) {
                 onClicked()
-                isActive.value = true
-            },
-            onKeyboardDone = {
-                onKeyboardDone()
-                isActive.value = false
-            },
-        )
+                textFieldState = textFieldState.copy(selection = TextRange(textFieldState.text.length))
+            }
+
+            //Button:
+            RoundedSign(
+                modifier = modifier
+                    .padding(start = 8.dp)
+                    .clickable {
+                        onKeyboardDone()
+                        isActive.value = false
+                    },
+                signSize = 40.dp,
+                iconSize = 20.dp,
+                backgroundColor = textFieldColors.textSelectionColors.backgroundColor,
+                borderColor = textFieldColors.textSelectionColors.backgroundColor,
+                iconColor = colorResource(id = R.color.light_grey),
+                iconVector = Icons.Default.Done
+            )
+        }
     }
 }
 
@@ -491,7 +247,6 @@ fun EditPhoneDynamicField(
     textHeaderColor: Color = colorResource(id = R.color.light_grey),
     textFieldColors: TextFieldColors,
     disabledText: String,
-    disabledTextColor: Color = colorResource(id = R.color.mid_grey),
     title: String,
     textPrefix: MutableState<String>,
     textPhone: MutableState<String>,
@@ -508,57 +263,29 @@ fun EditPhoneDynamicField(
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
+
         //Title:
-        Text(
-            modifier = Modifier
-                .clickable {
-                    isActive.value = true
-                    onClicked()
-                },
-            text = title,
-            color = textHeaderColor,
-            textAlign = TextAlign.Start,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
+        EditVocTitle(
+            textHeaderColor = textHeaderColor,
+            onClicked = {
+                isActive.value = true
+                onClicked()
+            },
+            title = title,
         )
 
         if (!isActive.value) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .padding(top = 8.dp, bottom = 20.dp)
-                    .clickable {
-                        isActive.value = true
-                        onClicked()
-                    },
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
-                //Edit icon:
-                Icon(
-                    modifier = modifier
-                        .padding(end = 8.dp)
-                        .size(20.dp),
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit",
-                    tint = colorResource(id = R.color.mid_grey)
-                )
-
-                //Value:
-                Text(
-                    modifier = modifier
-                        .weight(1f),
-                    text = disabledText,
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 16.sp,
-                    fontStyle = FontStyle.Italic,
-                )
-            }
+            EditVocDisabledRow(
+                modifier = modifier,
+                disabledText = disabledText,
+                onClicked = {
+                    isActive.value = true
+                    onClicked()
+                }
+            )
 
         } else {
+            //Text Field with Button:
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -719,7 +446,7 @@ fun EditVocDynamicNameSection(
                         isActive.value = true
                         onClicked()
                     },
-                text = if (textState.value == "") "${utils.capitalizeWords(filter)} name" else textState.value,
+                text = if (textState.value == "") "${utils.capitalizeWords(filter)} Name" else textState.value,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorResource(id = R.color.light_grey)

@@ -195,7 +195,7 @@ fun EditVocPlaylist(
                     colorLight = vocColorSelectorLight(cat = filter),
                     colorDark = vocColorSelector(cat = filter)
                 ),
-                title = "Spotify: Playlist URL",
+                title = "Spotify Playlist Link",
                 placeholder = "Paste here the Spotify link...",
                 textState = textPlayUrl,
                 disabledText = if (textPlayUrl.value == "") "Write here..." else ".../${

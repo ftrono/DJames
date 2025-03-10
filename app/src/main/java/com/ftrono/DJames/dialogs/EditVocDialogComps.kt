@@ -419,7 +419,7 @@ fun EditVocDynamicField(
                         isActive.value = true
                         onClicked()
                    },
-                text = title,
+                text = if (title.contains("(")) title.slice(0..<title.indexOf("(", ignoreCase = true)) else title,
                 color = textHeaderColor,
                 textAlign = TextAlign.Start,
                 fontSize = 16.sp,
@@ -438,6 +438,7 @@ fun EditVocDynamicField(
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
                 //Edit icon:
                 Icon(
                     modifier = modifier
@@ -445,7 +446,7 @@ fun EditVocDynamicField(
                         .size(20.dp),
                     imageVector = Icons.Default.Edit,
                     contentDescription = "Edit",
-                    tint = disabledTextColor
+                    tint = colorResource(id = R.color.mid_grey)
                 )
 
                 //Value:
@@ -453,7 +454,7 @@ fun EditVocDynamicField(
                     modifier = modifier
                         .weight(1f),
                     text = disabledText,
-                    color = disabledTextColor,
+                    color = colorResource(id = R.color.light_grey),
                     textAlign = TextAlign.Start,
                     fontSize = 16.sp,
                     fontStyle = FontStyle.Italic,
@@ -534,6 +535,7 @@ fun EditPhoneDynamicField(
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
                 //Edit icon:
                 Icon(
                     modifier = modifier
@@ -541,7 +543,7 @@ fun EditPhoneDynamicField(
                         .size(20.dp),
                     imageVector = Icons.Default.Edit,
                     contentDescription = "Edit",
-                    tint = disabledTextColor
+                    tint = colorResource(id = R.color.mid_grey)
                 )
 
                 //Value:
@@ -549,7 +551,7 @@ fun EditPhoneDynamicField(
                     modifier = modifier
                         .weight(1f),
                     text = disabledText,
-                    color = disabledTextColor,
+                    color = colorResource(id = R.color.light_grey),
                     textAlign = TextAlign.Start,
                     fontSize = 16.sp,
                     fontStyle = FontStyle.Italic,
@@ -692,25 +694,9 @@ fun EditVocDynamicNameSection(
     ){
 
         if (!isActive.value) {
-            //Name:
-            Text(
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .weight(1f)
-                    .clickable {
-                        isActive.value = true
-                        onClicked()
-                    },
-                text = if (textState.value == "") "${utils.capitalizeWords(filter)} name" else textState.value,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = colorResource(id = R.color.light_grey)
-            )
-
             //CHIP ICON:
             RoundedSign(
                 modifier = Modifier
-                    .padding(start = 4.dp)
                     .clickable {
                         isActive.value = true
                         onClicked()
@@ -723,6 +709,37 @@ fun EditVocDynamicNameSection(
                 iconPainter = vocIconSelector(cat = filter),
                 circle = filter != "playlist"
             )
+
+            //Name:
+            Text(
+                modifier = Modifier
+                    .padding(start = 20.dp)
+                    .weight(1f)
+                    .clickable {
+                        isActive.value = true
+                        onClicked()
+                    },
+                text = if (textState.value == "") "${utils.capitalizeWords(filter)} name" else textState.value,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = colorResource(id = R.color.light_grey)
+            )
+
+            if (textState.value == "") {
+                //Edit icon:
+                Icon(
+                    modifier = modifier
+                        .padding(start = 8.dp)
+                        .size(30.dp)
+                        .clickable {
+                            isActive.value = true
+                            onClicked()
+                        },
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    tint = colorResource(id = R.color.mid_grey)
+                )
+            }
 
         } else {
             Row (

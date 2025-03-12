@@ -7,19 +7,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -36,13 +32,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -58,7 +51,6 @@ import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.RoundedSign
-import com.ftrono.DJames.ui.VocItemCard
 import com.ftrono.DJames.ui.getTextFieldColors
 import com.ftrono.DJames.ui.vocColorSelector
 import com.ftrono.DJames.ui.vocColorSelectorLight
@@ -501,65 +493,6 @@ fun EditVocDynamicNameSection(
                 onClicked()
                 textFieldState = textFieldState.copy(selection = TextRange(textFieldState.text.length))
             }
-
         }
-
-    }
-}
-
-
-@Composable
-fun EditVocPlayLink(
-    modifier: Modifier = Modifier,
-    signBackgroundColor: Color,
-    signBorderColor: Color = colorResource(id = R.color.midfaded_grey),
-    signIconColor: Color = colorResource(id = R.color.light_grey),
-    signIconPainter: Painter,
-    circle: Boolean = false,
-    title: String,
-    subtitle: String,
-    onClicked: () -> Unit = {},
-    onDelete: () -> Unit = {}
-    ) {
-    Row (
-        modifier = modifier
-            .padding(bottom = 8.dp),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        //Item Card:
-        VocItemCard(
-            modifier = Modifier
-                .weight(1f)
-                .wrapContentWidth()
-                .height(60.dp)
-                .clickable {
-                    onClicked()
-                },
-            cardColors = CardDefaults.cardColors(
-                containerColor = colorResource(id = R.color.dark_grey)
-            ),
-            signBackgroundColor = signBackgroundColor,
-            signBorderColor = signBorderColor,
-            signIconColor = signIconColor,
-            signIconPainter = signIconPainter,
-            circle = circle,
-            title = title,
-            subtitle = subtitle,
-        )
-
-        //Button:
-        Icon(
-            modifier = Modifier
-                .padding(start = 12.dp)
-                .size(28.dp)
-                .clickable {
-                    onDelete()
-                },
-            imageVector = Icons.Default.Delete,
-            tint = colorResource(id = R.color.mid_grey),
-            contentDescription = "Delete"
-        )
     }
 }

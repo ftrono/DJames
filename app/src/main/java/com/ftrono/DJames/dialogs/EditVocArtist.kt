@@ -1,56 +1,29 @@
 package com.ftrono.DJames.dialogs
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.ftrono.DJames.R
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.database.Artist
 import com.ftrono.DJames.database.PlayLink
 import com.ftrono.DJames.screen.VocabularyScreen
-import com.ftrono.DJames.database.ItemInfoView
 import com.ftrono.DJames.test_objects.testArtists
 import com.ftrono.DJames.ui.DropdownSpinner
-import com.ftrono.DJames.ui.RoundedSign
-import com.ftrono.DJames.ui.VocItemCard
 import com.ftrono.DJames.ui.getTextFieldColors
 import com.ftrono.DJames.ui.vocColorSelector
 import com.ftrono.DJames.ui.vocColorSelectorLight
-import com.ftrono.DJames.ui.vocIconSelector
 
 
 @Preview
@@ -73,16 +46,16 @@ fun EditVocArtist(
     val focusRequester = remember { FocusRequester() }
 
     //Init:
-    var itemArtist = Artist()
     val key = keyState.value
 
-    //Recover info:
-    if (key != "") {
-        itemArtist = if (preview) {
-            testArtists[0]
-        } else {
-            libUtils.getArtist(keyState.value)
-        }
+    //Pre-populate:
+    // val itemArtist = Artist()
+    val itemArtist = if (preview) {
+        testArtists[0]
+    } else if (key != "") {
+        libUtils.getArtist(keyState.value)
+    } else {
+        Artist()
     }
 
     //Init aliases:
@@ -248,7 +221,7 @@ fun EditVocArtist(
                     colorDark = vocColorSelector(cat = filter)
                 ),
                 title = "Spotify Profile Link",
-                placeholder = "Paste here the Spotify link...",
+                placeholder = "Paste Spotify link...",
                 textState = textArtistUrl
             )
 
@@ -260,7 +233,7 @@ fun EditVocArtist(
                     colorDark = vocColorSelector(cat = filter)
                 ),
                 title = "Spotify \"This is\" Playlist Link",
-                placeholder = "Paste here the Spotify link...",
+                placeholder = "Paste Spotify link...",
                 textState = textPlayThisIsUrl
             )
 
@@ -287,7 +260,7 @@ fun EditVocArtist(
                     colorDark = vocColorSelector(cat = filter)
                 ),
                 title = "Spotify \"Artist Radio\" Link",
-                placeholder = "Paste here the Spotify link...",
+                placeholder = "Paste Spotify link...",
                 textState = textPlayRadioUrl
             )
 
@@ -299,7 +272,7 @@ fun EditVocArtist(
                     colorDark = vocColorSelector(cat = filter)
                 ),
                 title = "Spotify \"Artist Mix\" Link",
-                placeholder = "Paste here the Spotify link...",
+                placeholder = "Paste Spotify link...",
                 textState = textPlayMixUrl
             )
 

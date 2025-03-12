@@ -17,9 +17,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.database.Artist
 import com.ftrono.DJames.database.ItemInfoView
 import com.ftrono.DJames.database.Playlist
 import com.ftrono.DJames.screen.VocabularyScreen
+import com.ftrono.DJames.test_objects.testArtists
 import com.ftrono.DJames.test_objects.testPlaylists
 import com.ftrono.DJames.ui.getTextFieldColors
 import com.ftrono.DJames.ui.vocColorSelector
@@ -46,16 +48,16 @@ fun EditVocPlaylist(
     val focusRequester = remember { FocusRequester() }
 
     //Init:
-    var itemPlaylist = Playlist()
     val key = keyState.value
 
-    //Recover info:
-    if (key != "") {
-        itemPlaylist = if (preview) {
-            testPlaylists[0]
-        } else {
-            libUtils.getPlaylist(keyState.value)
-        }
+    //Pre-populate:
+    // val itemPlaylist = Playlist()
+    val itemPlaylist = if (preview) {
+        testPlaylists[0]
+    } else if (key != "") {
+        libUtils.getPlaylist(keyState.value)
+    } else {
+        Playlist()
     }
 
     //Init aliases:
@@ -165,7 +167,7 @@ fun EditVocPlaylist(
                     colorDark = vocColorSelector(cat = filter)
                 ),
                 title = "Spotify Playlist Link",
-                placeholder = "Paste here the Spotify link...",
+                placeholder = "Paste Spotify link...",
                 textState = textPlayUrl
             )
         }

@@ -185,7 +185,7 @@ fun EditVocArtist(
                             }
                         }
                     }
-                    itemArtist.name = utils.capitalizeWords(textName.value)
+                    itemArtist.name = utils.capitalizeWords(textName.value).strip()
                     itemArtist.aliases = aliasesList
                     itemArtist.spotifyUrl = textArtistUrl.value.replace(" ", "").split("?")[0]
                     itemArtist.defaultPlay = if (textPlayThisIsUrl.value == "") "artist" else playOptionsValToKeys[textDefaultPlay.value]!!
@@ -203,7 +203,7 @@ fun EditVocArtist(
                     playLinks["spotify_mix"] = PlayLink(
                         name = "${textName.value} mix",
                         owner = "Spotify",
-                        spotifyUrl = textPlayMixUrl.value.replace(" ", "").split("?")[0]
+                        spotifyUrl = textPlayMixUrl.value.replace(" ", "").split("?")[0].strip()
                     )
                     itemArtist.playLinks = playLinks
 

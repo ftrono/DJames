@@ -120,9 +120,9 @@ fun EditVocPlaylist(
                             }
                         }
                     }
-                    itemPlaylist.name = utils.capitalizeWords(textName.value)
+                    itemPlaylist.name = utils.capitalizeWords(textName.value).strip()
                     itemPlaylist.aliases = aliasesList
-                    itemPlaylist.spotifyUrl = textPlayUrl.value
+                    itemPlaylist.spotifyUrl = textPlayUrl.value.replace(" ", "").split("?")[0]
 
                     //3) Update / store to DB:
                     libUtils.storePlaylist(mContext, itemPlaylist)

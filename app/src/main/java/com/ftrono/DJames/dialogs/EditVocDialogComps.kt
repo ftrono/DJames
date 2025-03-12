@@ -163,7 +163,7 @@ fun EditVocDynamicField(
         value = textState.value,
         interactionSource = interactionSource,
         onValueChange = { newText ->
-            textState.value = newText.strip()
+            textState.value = newText
         },
         textStyle = TextStyle(
             fontSize = 16.sp
@@ -456,7 +456,7 @@ fun EditVocDynamicNameSection(
                 colors = textFieldColors,
                 value = textFieldState,
                 onValueChange = { newText ->
-                    val corr = newText.text.strip()
+                    val corr = newText.text
                     textState.value = corr
                     textFieldState = newText
                 },

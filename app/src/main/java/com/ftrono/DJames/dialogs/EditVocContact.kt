@@ -160,7 +160,10 @@ fun EditVocContact(
             onSave = {
                 //CHECK & BUILD:
                 //1) Validate Prefix:
-                requestDetailOn.value = !utils.isGlobalPhone(prefix = textPrefix.value, phone = textPhone.value)
+                requestDetailOn.value = !utils.isGlobalPhone(
+                    prefix = textPrefix.value.strip(),
+                    phone = textPhone.value.strip()
+                )
 
                 if (!requestDetailOn.value && textName.value != "") {
                     //2) Update object:
@@ -173,7 +176,7 @@ fun EditVocContact(
                             }
                         }
                     }
-                    itemContact.name = utils.capitalizeWords(textName.value)
+                    itemContact.name = utils.capitalizeWords(textName.value).strip()
                     itemContact.aliases = aliasesList
                     //Language:
                     if (checkedLang.value) {
@@ -183,8 +186,8 @@ fun EditVocContact(
                     }
                     itemContact.defaultPhone = "personal"
                     phoneSets["personal"] = PhoneSet(
-                        prefix = textPrefix.value,
-                        phone = textPhone.value
+                        prefix = textPrefix.value.strip(),
+                        phone = textPhone.value.strip()
                     )
                     itemContact.phoneSets = phoneSets
 

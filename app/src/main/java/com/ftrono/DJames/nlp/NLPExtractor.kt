@@ -114,7 +114,7 @@ class NLPExtractor (private val context: Context) {
 
 
     //Double check artists between DF & NLP Extractor:
-    fun checkArtists(artistsNlp: JsonArray, artistExtracted: String, reqLanguage: String, getDetails: Boolean, playName: String = ""): JsonObject {
+    fun checkArtists(artistsNlp: JsonArray, artistExtracted: String, reqLanguage: String, playName: String = "", getDetails: Boolean = false): JsonObject {
         val filter = "artist"
         var artistConfirmed = ""
 
@@ -176,11 +176,14 @@ class NLPExtractor (private val context: Context) {
                 val itemInfo = libUtils.getItemInfoUse(filter, vocMatchId)
                 artistConfirmed = itemInfo.name
                 artistJson.addProperty("text_confirmed", artistConfirmed)
-                val defaultPlay = if (playName != "") playName else itemInfo.defaultKey
-                if (defaultPlay == "artist") {
+                //Match playLinkName:
+                val playLinks = itemInfo.playLinks
+                val matchedPlayName = if (playLinks.containsKey(playName)) playName else itemInfo.defaultKey
+                Log.d(TAG, "MATCHING PLAYLINKNAME: $matchedPlayName")
+                if (matchedPlayName == "artist") {
                     artistJson.addProperty("play_URL", itemInfo.spotifyUrl)
                 } else {
-                    val playLink = itemInfo.playLinks[defaultPlay]!!
+                    val playLink = itemInfo.playLinks[matchedPlayName]!!
                     artistJson.addProperty("play_name", playLink.name)
                     artistJson.addProperty("play_owner", playLink.owner)
                     artistJson.addProperty("play_URL", playLink.spotifyUrl)
@@ -319,6 +322,21 @@ class NLPExtractor (private val context: Context) {
         }
         last_log!!.add("contact_extractor", contactConfirmed)
         return contactConfirmed
+    }
+
+
+    //PlayArtist: Extract name of playLink to play:
+    fun extractPlayLink(queryText: String): String {
+        //TODO: Provisional:
+        var playLinkName = ""
+        if (queryText.contains("radio")) {
+            playLinkName = "spotify_radio"
+        } else if (queryText.contains("mix")) {
+            playLinkName = "spotify_mix"
+        } else if (queryText.contains("custom")) {
+            playLinkName = "custom"
+        }
+        return playLinkName
     }
 
 }

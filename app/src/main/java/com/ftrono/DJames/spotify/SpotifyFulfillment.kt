@@ -10,6 +10,7 @@ import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.likedSongsUri
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.reqPlayLinkName
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.nlp.NLPExtractor
 import com.google.gson.JsonObject
@@ -54,8 +55,10 @@ class SpotifyFulfillment (private var context: Context) {
 
         } else if (intentName == "PlayArtist") {
             //ARTIST:
+            val nlpExtractor = NLPExtractor(context)
             playType = "artist"
             contextType = "playlist"
+            reqPlayLinkName = nlpExtractor.extractPlayLink(nlp_queryText)
             ttsToRead = "Tell me the name of the artist in ${reqLangName}."
             utils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
 
@@ -341,14 +344,13 @@ class SpotifyFulfillment (private var context: Context) {
             //Confirm artists with vocabulary check:
             //TODO: Extract name of artist playlist to play
             val artistsNlp = resultsNLP.get("artists").asJsonArray
-            artistJson = nlpExtractor.checkArtists(artistsNlp, matchName, reqLangCode, getDetails=true)
+            artistJson = nlpExtractor.checkArtists(artistsNlp, matchName, reqLangCode, playName=reqPlayLinkName, getDetails=true)
             artistConfirmed = artistJson.get("text_confirmed").asString
             extractorInfo.addProperty("text_confirmed", artistConfirmed)
             extractorInfo.addProperty("artist_confirmed", artistConfirmed)
 
             //Artist playlist:
             if (artistJson.has("play_URL")) {
-                //TODO: ADD PLAYNAME & PLAY ARTIST TOP TRACKS!
                 Log.d(TAG, "PLAY -> Artist playlist in voc")
                 artistPlaylist = artistJson.get("play_URL").asString
                 extractorInfo.addProperty("play_URL", artistPlaylist)

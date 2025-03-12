@@ -2,6 +2,7 @@ package com.ftrono.DJames.dialogs
 
 import android.content.Context
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -11,9 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.ftrono.DJames.R
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.database.Artist
@@ -21,9 +25,11 @@ import com.ftrono.DJames.database.PlayLink
 import com.ftrono.DJames.screen.VocabularyScreen
 import com.ftrono.DJames.test_objects.testArtists
 import com.ftrono.DJames.ui.DropdownSpinner
+import com.ftrono.DJames.ui.SectionTitle
 import com.ftrono.DJames.ui.getTextFieldColors
 import com.ftrono.DJames.ui.vocColorSelector
 import com.ftrono.DJames.ui.vocColorSelectorLight
+import com.ftrono.DJames.ui.vocIconSelector
 
 
 @Preview
@@ -65,6 +71,7 @@ fun EditVocArtist(
     val initPlayThisIsUrl = if (playLinks["spotify_this_is"] == null) "" else playLinks["spotify_this_is"]!!.spotifyUrl   //TODO: TEMP
     val initPlayRadioUrl = if (playLinks["spotify_radio"] == null) "" else playLinks["spotify_radio"]!!.spotifyUrl
     val initPlayMixUrl = if (playLinks["spotify_mix"] == null) "" else playLinks["spotify_mix"]!!.spotifyUrl
+    val initPlayCustomUrl = if (playLinks["custom"] == null) "" else playLinks["custom"]!!.spotifyUrl
 
     //TODO: EXTEND!
     var playOptionsKeysToVal = mutableMapOf<String, String>(
@@ -85,6 +92,7 @@ fun EditVocArtist(
     val textPlayThisIsUrl = rememberSaveable { mutableStateOf(initPlayThisIsUrl) }
     val textPlayRadioUrl = rememberSaveable { mutableStateOf(initPlayRadioUrl) }
     val textPlayMixUrl = rememberSaveable { mutableStateOf(initPlayMixUrl) }
+    val textPlayCustomUrl = rememberSaveable { mutableStateOf(initPlayCustomUrl) }
 
     val requestDetailArtistOn = rememberSaveable { mutableStateOf(false) }
     val requestDetailPlaylistOn = rememberSaveable { mutableStateOf(false) }
@@ -146,6 +154,9 @@ fun EditVocArtist(
                 if (textPlayMixUrl.value != "") {
                     requestDetailPlaylistOn.value = !utils.isPlaylistUrl(textPlayMixUrl.value.replace(" ", ""))
                 }
+                if (textPlayCustomUrl.value != "") {
+                    requestDetailPlaylistOn.value = !utils.isPlaylistUrl(textPlayCustomUrl.value.replace(" ", ""))
+                }
 
                 if (!requestDetailArtistOn.value && !requestDetailPlaylistOn.value && textName.value != "") {
                     //2) Update object:
@@ -162,22 +173,40 @@ fun EditVocArtist(
                     itemArtist.aliases = aliasesList
                     itemArtist.spotifyUrl = textArtistUrl.value.replace(" ", "").split("?")[0]
                     itemArtist.defaultPlay = if (textPlayThisIsUrl.value == "") "artist" else playOptionsValToKeys[textDefaultPlay.value]!!
-                    //TODO: add more playlists:
-                    playLinks["spotify_this_is"] = PlayLink(
-                        name = "this is ${textName.value}",
-                        owner = "Spotify",
-                        spotifyUrl = textPlayThisIsUrl.value.replace(" ", "").split("?")[0]
-                    )
-                    playLinks["spotify_radio"] = PlayLink(
-                        name = "${textName.value} radio",
-                        owner = "Spotify",
-                        spotifyUrl = textPlayRadioUrl.value.replace(" ", "").split("?")[0]
-                    )
-                    playLinks["spotify_mix"] = PlayLink(
-                        name = "${textName.value} mix",
-                        owner = "Spotify",
-                        spotifyUrl = textPlayMixUrl.value.replace(" ", "").split("?")[0].strip()
-                    )
+                    //PlayLinks:
+                    if (textPlayThisIsUrl.value.strip() != "") {
+                        playLinks["spotify_this_is"] = PlayLink(
+                            name = "This is ${textName.value}",
+                            owner = "Spotify",
+                            spotifyUrl = textPlayThisIsUrl.value.replace(" ", "").split("?")[0]
+                        )
+                    }
+
+                    if (textPlayRadioUrl.value.strip() != "") {
+                        playLinks["spotify_radio"] = PlayLink(
+                            name = "${textName.value} Radio",
+                            owner = "Spotify",
+                            spotifyUrl = textPlayRadioUrl.value.replace(" ", "").split("?")[0]
+                        )
+                    }
+
+                    if (textPlayMixUrl.value.strip() != "") {
+                        playLinks["spotify_mix"] = PlayLink(
+                            name = "${textName.value} Mix",
+                            owner = "Spotify",
+                            spotifyUrl = textPlayMixUrl.value.replace(" ", "").split("?")[0].strip()
+                        )
+                    }
+
+                    if (textPlayCustomUrl.value.strip() != "") {
+                        playLinks["custom"] = PlayLink(
+                            name = "${textName.value} Custom",
+                            owner = "",
+                            spotifyUrl = textPlayCustomUrl.value.replace(" ", "")
+                                .split("?")[0].strip()
+                        )
+                    }
+
                     itemArtist.playLinks = playLinks
 
                     //3) Update / store to DB:
@@ -212,6 +241,15 @@ fun EditVocArtist(
                 placeholder = "Write aliases here...",
                 italic = true,
                 textState = textAliases
+            )
+
+            //Section:
+            SectionTitle(
+                modifier = Modifier
+                    .padding(top=4.dp, bottom=12.dp),
+                title = "Main links",
+                signColor = vocColorSelector(cat = filter),
+                iconPainter = painterResource(id = R.drawable.logo_spotify)
             )
 
             //ARTIST URL:
@@ -253,6 +291,15 @@ fun EditVocArtist(
                 focusColorDark = vocColorSelector(cat = filter)
             )
 
+            //Section:
+            SectionTitle(
+                modifier = Modifier
+                    .padding(top=4.dp, bottom=12.dp),
+                title = "Extra links",
+                signColor = vocColorSelector(cat = filter),
+                iconPainter = painterResource(id = R.drawable.sign_headphones)
+            )
+
             //SPOTIFY "RADIO":
             EditVocDynamicField(
                 textHeaderColor = vocColorSelectorLight(cat = filter),
@@ -275,6 +322,18 @@ fun EditVocArtist(
                 title = "Spotify \"Artist Mix\" Link",
                 placeholder = "Paste Spotify link...",
                 textState = textPlayMixUrl
+            )
+
+            //CUSTOM PLAYLIST:
+            EditVocDynamicField(
+                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textFieldColors = getTextFieldColors(
+                    colorLight = vocColorSelectorLight(cat = filter),
+                    colorDark = vocColorSelector(cat = filter)
+                ),
+                title = "Custom Playlist Link",
+                placeholder = "Paste Spotify link...",
+                textState = textPlayCustomUrl
             )
 
         }

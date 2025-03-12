@@ -28,7 +28,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.3.1"
+val appVersion = "2.3.2"
 val copyrightYear = 2024
 
 //DB:
@@ -101,6 +101,7 @@ var logDir: File? = null
 
 //Player info:
 var nlp_queryText = ""
+var reqPlayLinkName = ""
 var songName: String = ""
 var artistName: String = ""
 var contextName: String = ""

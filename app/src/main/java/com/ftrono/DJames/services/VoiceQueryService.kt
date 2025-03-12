@@ -25,6 +25,7 @@ import com.ftrono.DJames.application.audioManager
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recordingMode
+import com.ftrono.DJames.application.reqPlayLinkName
 import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.application.searchFail
 import com.ftrono.DJames.application.silenceInitPatience
@@ -95,6 +96,7 @@ class VoiceQueryService: Service() {
         super.onDestroy()
         followUp = false
         messageMode = false
+        reqPlayLinkName = ""
         //Stop:
         Intent().also { intent ->
             intent.setAction(ACTION_REC_STOP)

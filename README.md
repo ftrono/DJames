@@ -15,6 +15,8 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
+**Version 2.3.2 (2025-03-12)** - New EditVoc Dialogs UI. Added play extra links for Artists (Radio, Mix, Custom).
+
 **Version 2.3.1 (2025-03-03)** - New Library UI states management. Added search & play top tracks for Artists.
 
 **Version 2.3.0 (2025-03-03)** - Migrated Library to new ObjectBox DB, add aliases & save artists URLs. UI visual refinements.

@@ -43,7 +43,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -75,7 +74,6 @@ fun EditVocTitle(
             },
         text = title,
         color = textHeaderColor,
-        textAlign = TextAlign.Start,
         fontSize = fontSize,
         //fontWeight = FontWeight.Bold,
     )

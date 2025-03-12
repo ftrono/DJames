@@ -11,7 +11,7 @@ val testArtists = listOf<Artist>(
     Artist(
         id = 0,
         name = "Aimer",
-        aliases = mutableListOf("aimer", "amor", "amer", "jsdvcivbiuflbnfulb", "uywvfilbwefluwqefhliugqefliuqfv", "ufyivfiuv"),
+        aliases = mutableListOf("aimer", "amor", "amer"),
         spotifyUrl = "https://open.spotify.com/artist/0bAsR2unSRpn6BQPEnNlZm",
         country = "",
         genres = mutableListOf(

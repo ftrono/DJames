@@ -118,7 +118,7 @@ fun EditVocDynamicField(
     textFieldColors: TextFieldColors,
     title: String,
     placeholder: String,
-    fontSize: TextUnit = 16.sp,
+    italic: Boolean = false,
     textState: MutableState<String>
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -141,7 +141,7 @@ fun EditVocDynamicField(
     //Title:
     EditVocTitle(
         textHeaderColor = textHeaderColor,
-        fontSize = fontSize,
+        fontSize = 16.sp,
         title = if (!isActive && title.contains("(")) title.slice(0..<title.indexOf("(", ignoreCase = true)) else title,
     )
 
@@ -158,7 +158,9 @@ fun EditVocDynamicField(
             textState.value = newText
         },
         textStyle = TextStyle(
-            fontSize = 16.sp
+            fontSize = 16.sp,
+            fontStyle = if (italic) FontStyle.Italic else null,
+            fontWeight = if (italic) FontWeight.Bold else null
         ),
         keyboardOptions = KeyboardOptions(
             imeAction = ImeAction.Done

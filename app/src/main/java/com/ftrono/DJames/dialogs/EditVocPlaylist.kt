@@ -156,6 +156,7 @@ fun EditVocPlaylist(
                 ),
                 title = "Aliases (separate with commas)",
                 placeholder = "Write aliases here...",
+                italic = true,
                 textState = textAliases
             )
 

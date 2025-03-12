@@ -86,7 +86,7 @@ fun DropdownSpinner(
             },
             textStyle = TextStyle(
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Normal
+                fontWeight = FontWeight.Bold
             ),
             colors = getTextFieldColors(
                 colorLight = focusColorLight,

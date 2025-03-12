@@ -200,16 +200,6 @@ fun EditVocContact(
         ) {
             //CONTACT NAME:
             EditVocDynamicNameSection(
-                modifier = Modifier
-                    .focusRequester(focusRequester),
-                onClicked = {
-                    focusRequester.requestFocus()
-                    keyboardController!!.show()
-                },
-                onKeyboardDone = {
-                    focusManager.clearFocus()
-                    keyboardController!!.hide()
-                },
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
                     colorDark = vocColorSelector(cat = filter)
@@ -220,16 +210,6 @@ fun EditVocContact(
 
             //CONTACT ALIASES:
             EditVocDynamicField(
-                modifier = Modifier
-                    .focusRequester(focusRequester),
-                onClicked = {
-                    focusRequester.requestFocus()
-                    keyboardController!!.show()
-                },
-                onKeyboardDone = {
-                    focusManager.clearFocus()
-                    keyboardController!!.hide()
-                },
                 textHeaderColor = vocColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
@@ -237,22 +217,11 @@ fun EditVocContact(
                 ),
                 title = "Aliases (separate with commas)",
                 placeholder = "Write aliases here...",
-                textState = textAliases,
-                disabledText = if (textAliases.value == "") "Write here..." else "\"" + textAliases.value.split(", ").joinToString("\", \"") + "\""
+                textState = textAliases
             )
 
             //CONTACT PHONE:
             EditPhoneDynamicField(
-                modifier = Modifier
-                    .focusRequester(focusRequester),
-                onClicked = {
-                    focusRequester.requestFocus()
-                    keyboardController!!.show()
-                },
-                onKeyboardDone = {
-                    focusManager.clearFocus()
-                    keyboardController!!.hide()
-                },
                 textHeaderColor = vocColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
@@ -260,8 +229,7 @@ fun EditVocContact(
                 ),
                 title = "Main phone",
                 textPrefix = textPrefix,
-                textPhone = textPhone,
-                disabledText = if (textPhone.value == "") "Write phone here..." else "${textPrefix.value} ${textPhone.value}"
+                textPhone = textPhone
             )
 
             //CONTACTS: CHECKBOX:

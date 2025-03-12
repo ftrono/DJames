@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.ftrono.DJames.R
 
@@ -137,23 +138,27 @@ fun SettingsSection(
 
 @Composable
 fun CardContainer(
+    modifier: Modifier = Modifier,
+    internalPadding: Dp = 20.dp,
+    roundedCorners: Dp = 20.dp,
+    containerColor: Color = colorResource(id = R.color.dark_grey_background),
     content: @Composable () -> Unit
 ) {
     //CARD:
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight(),
         border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(roundedCorners),
         colors = CardDefaults.cardColors (
-            containerColor = colorResource(id = R.color.dark_grey_background)
+            containerColor = containerColor
         )
     ) {
         //SETTINGS LIST:
         Column(
             modifier = Modifier
-                .padding(20.dp),
+                .padding(internalPadding),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
         ) {

@@ -5,7 +5,16 @@ import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -19,6 +28,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,6 +46,7 @@ import com.ftrono.DJames.database.ItemInfoView
 import com.ftrono.DJames.test_objects.testArtists
 import com.ftrono.DJames.ui.DropdownSpinner
 import com.ftrono.DJames.ui.RoundedSign
+import com.ftrono.DJames.ui.VocItemCard
 import com.ftrono.DJames.ui.getTextFieldColors
 import com.ftrono.DJames.ui.vocColorSelector
 import com.ftrono.DJames.ui.vocColorSelectorLight
@@ -79,6 +90,8 @@ fun EditVocArtist(
     initAliases.removeAt(0)
     val playLinks = itemArtist.playLinks
     val initPlayThisIsUrl = if (playLinks["spotify_this_is"] == null) "" else playLinks["spotify_this_is"]!!.spotifyUrl   //TODO: TEMP
+    val initPlayRadioUrl = if (playLinks["spotify_radio"] == null) "" else playLinks["spotify_radio"]!!.spotifyUrl
+    val initPlayMixUrl = if (playLinks["spotify_mix"] == null) "" else playLinks["spotify_mix"]!!.spotifyUrl
 
     //TODO: EXTEND!
     var playOptionsKeysToVal = mutableMapOf<String, String>(
@@ -97,6 +110,8 @@ fun EditVocArtist(
     val textDefaultPlay = rememberSaveable { mutableStateOf(initDefaultPlay) }
     val textArtistUrl = rememberSaveable { mutableStateOf(itemArtist.spotifyUrl) }
     val textPlayThisIsUrl = rememberSaveable { mutableStateOf(initPlayThisIsUrl) }
+    val textPlayRadioUrl = rememberSaveable { mutableStateOf(initPlayRadioUrl) }
+    val textPlayMixUrl = rememberSaveable { mutableStateOf(initPlayMixUrl) }
 
     val requestDetailArtistOn = rememberSaveable { mutableStateOf(false) }
     val requestDetailPlaylistOn = rememberSaveable { mutableStateOf(false) }
@@ -152,10 +167,15 @@ fun EditVocArtist(
                 if (textPlayThisIsUrl.value != "") {
                     requestDetailPlaylistOn.value = !utils.isPlaylistUrl(textPlayThisIsUrl.value.replace(" ", ""))
                 }
+                if (textPlayRadioUrl.value != "") {
+                    requestDetailPlaylistOn.value = !utils.isPlaylistUrl(textPlayRadioUrl.value.replace(" ", ""))
+                }
+                if (textPlayMixUrl.value != "") {
+                    requestDetailPlaylistOn.value = !utils.isPlaylistUrl(textPlayMixUrl.value.replace(" ", ""))
+                }
 
                 if (!requestDetailArtistOn.value && !requestDetailPlaylistOn.value && textName.value != "") {
                     //2) Update object:
-                    val thisIsName = "this is ${textName.value}"
                     val aliasesList = mutableListOf(textName.value.lowercase())
                     if (textAliases.value != "") {
                         for (alias in textAliases.value.split(",")) {
@@ -171,9 +191,19 @@ fun EditVocArtist(
                     itemArtist.defaultPlay = if (textPlayThisIsUrl.value == "") "artist" else playOptionsValToKeys[textDefaultPlay.value]!!
                     //TODO: add more playlists:
                     playLinks["spotify_this_is"] = PlayLink(
-                        name = thisIsName,
+                        name = "this is ${textName.value}",
                         owner = "Spotify",
                         spotifyUrl = textPlayThisIsUrl.value.replace(" ", "").split("?")[0]
+                    )
+                    playLinks["spotify_radio"] = PlayLink(
+                        name = "${textName.value} radio",
+                        owner = "Spotify",
+                        spotifyUrl = textPlayRadioUrl.value.replace(" ", "").split("?")[0]
+                    )
+                    playLinks["spotify_mix"] = PlayLink(
+                        name = "${textName.value} mix",
+                        owner = "Spotify",
+                        spotifyUrl = textPlayMixUrl.value.replace(" ", "").split("?")[0]
                     )
                     itemArtist.playLinks = playLinks
 
@@ -190,16 +220,6 @@ fun EditVocArtist(
             //CONTENT:
             //ARTIST NAME:
             EditVocDynamicNameSection(
-                modifier = Modifier
-                    .focusRequester(focusRequester),
-                onClicked = {
-                    focusRequester.requestFocus()
-                    keyboardController!!.show()
-                },
-                onKeyboardDone = {
-                    focusManager.clearFocus()
-                    keyboardController!!.hide()
-                },
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
                     colorDark = vocColorSelector(cat = filter)
@@ -210,16 +230,6 @@ fun EditVocArtist(
 
             //ARTIST ALIASES:
             EditVocDynamicField(
-                modifier = Modifier
-                    .focusRequester(focusRequester),
-                onClicked = {
-                    focusRequester.requestFocus()
-                    keyboardController!!.show()
-                },
-                onKeyboardDone = {
-                    focusManager.clearFocus()
-                    keyboardController!!.hide()
-                },
                 textHeaderColor = vocColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
@@ -227,22 +237,11 @@ fun EditVocArtist(
                 ),
                 title = "Aliases (separate with commas)",
                 placeholder = "Write aliases here...",
-                textState = textAliases,
-                disabledText = if (textAliases.value == "") "Write here..." else "\"" + textAliases.value.split(", ").joinToString("\", \"") + "\""
+                textState = textAliases
             )
 
             //ARTIST URL:
             EditVocDynamicField(
-                modifier = Modifier
-                    .focusRequester(focusRequester),
-                onClicked = {
-                    focusRequester.requestFocus()
-                    keyboardController!!.show()
-                },
-                onKeyboardDone = {
-                    focusManager.clearFocus()
-                    keyboardController!!.hide()
-                },
                 textHeaderColor = vocColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
@@ -250,16 +249,24 @@ fun EditVocArtist(
                 ),
                 title = "Spotify Profile Link",
                 placeholder = "Paste here the Spotify link...",
-                textState = textArtistUrl,
-                disabledText = if (textArtistUrl.value == "") "Write here..." else ".../${
-                    textArtistUrl.value.split("/").last()
-                }"
+                textState = textArtistUrl
+            )
+
+            //SPOTIFY "THIS IS":
+            EditVocDynamicField(
+                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textFieldColors = getTextFieldColors(
+                    colorLight = vocColorSelectorLight(cat = filter),
+                    colorDark = vocColorSelector(cat = filter)
+                ),
+                title = "Spotify \"This is\" Playlist Link",
+                placeholder = "Paste here the Spotify link...",
+                textState = textPlayThisIsUrl
             )
 
             //DEFAULT PLAY: DROPDOWN:
             EditVocTitle(
                 textHeaderColor = vocColorSelectorLight(cat = filter),
-                onClicked = { },
                 title = "Play by default",
             )
 
@@ -272,29 +279,28 @@ fun EditVocArtist(
                 focusColorDark = vocColorSelector(cat = filter)
             )
 
-            //PLAYLIST URL:
+            //SPOTIFY "RADIO":
             EditVocDynamicField(
-                modifier = Modifier
-                    .focusRequester(focusRequester),
-                onClicked = {
-                    focusRequester.requestFocus()
-                    keyboardController!!.show()
-                },
-                onKeyboardDone = {
-                    focusManager.clearFocus()
-                    keyboardController!!.hide()
-                },
                 textHeaderColor = vocColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
                     colorDark = vocColorSelector(cat = filter)
                 ),
-                title = "Spotify 'This is' playlist Link",
+                title = "Spotify \"Artist Radio\" Link",
                 placeholder = "Paste here the Spotify link...",
-                textState = textPlayThisIsUrl,
-                disabledText = if (textPlayThisIsUrl.value == "") "Write here..." else ".../${
-                    textPlayThisIsUrl.value.split("/").last()
-                }"
+                textState = textPlayRadioUrl
+            )
+
+            //SPOTIFY "MIX":
+            EditVocDynamicField(
+                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textFieldColors = getTextFieldColors(
+                    colorLight = vocColorSelectorLight(cat = filter),
+                    colorDark = vocColorSelector(cat = filter)
+                ),
+                title = "Spotify \"Artist Mix\" Link",
+                placeholder = "Paste here the Spotify link...",
+                textState = textPlayMixUrl
             )
 
         }

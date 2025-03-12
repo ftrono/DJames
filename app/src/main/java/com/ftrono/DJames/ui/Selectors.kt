@@ -35,6 +35,7 @@ fun getTextFieldColors(
 ): TextFieldColors {
     return OutlinedTextFieldDefaults.colors(
         focusedBorderColor = colorLight,
+        unfocusedContainerColor = colorResource(id = R.color.dark_grey),
         unfocusedBorderColor = colorResource(id = R.color.faded_grey),
         focusedTextColor = colorResource(id = R.color.light_grey),
         unfocusedTextColor = colorResource(id = R.color.light_grey),
@@ -46,6 +47,10 @@ fun getTextFieldColors(
         unfocusedSuffixColor = colorResource(id = R.color.mid_grey),
         focusedSupportingTextColor = colorLight,
         unfocusedSupportingTextColor = colorResource(id = R.color.mid_grey),
+        unfocusedLeadingIconColor = colorResource(id = R.color.mid_grey),
+        focusedLeadingIconColor = colorLight,
+        unfocusedTrailingIconColor = colorResource(id = R.color.mid_grey),
+        focusedTrailingIconColor = colorLight,
         cursorColor = colorLight,
         selectionColors = TextSelectionColors(
             handleColor = colorLight,

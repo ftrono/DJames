@@ -137,16 +137,6 @@ fun EditVocPlaylist(
             //CONTENT:
             //PLAYLIST NAME:
             EditVocDynamicNameSection(
-                modifier = Modifier
-                    .focusRequester(focusRequester),
-                onClicked = {
-                    focusRequester.requestFocus()
-                    keyboardController!!.show()
-                },
-                onKeyboardDone = {
-                    focusManager.clearFocus()
-                    keyboardController!!.hide()
-                },
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
                     colorDark = vocColorSelector(cat = filter)
@@ -157,16 +147,6 @@ fun EditVocPlaylist(
 
             //PLAYLIST ALIASES:
             EditVocDynamicField(
-                modifier = Modifier
-                    .focusRequester(focusRequester),
-                onClicked = {
-                    focusRequester.requestFocus()
-                    keyboardController!!.show()
-                },
-                onKeyboardDone = {
-                    focusManager.clearFocus()
-                    keyboardController!!.hide()
-                },
                 textHeaderColor = vocColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
@@ -174,22 +154,11 @@ fun EditVocPlaylist(
                 ),
                 title = "Aliases (separate with commas)",
                 placeholder = "Write aliases here...",
-                textState = textAliases,
-                disabledText = if (textAliases.value == "") "Write here..." else "\"" + textAliases.value.split(", ").joinToString("\", \"") + "\""
+                textState = textAliases
             )
 
             //PLAYLIST URL:
             EditVocDynamicField(
-                modifier = Modifier
-                    .focusRequester(focusRequester),
-                onClicked = {
-                    focusRequester.requestFocus()
-                    keyboardController!!.show()
-                },
-                onKeyboardDone = {
-                    focusManager.clearFocus()
-                    keyboardController!!.hide()
-                },
                 textHeaderColor = vocColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
@@ -197,10 +166,7 @@ fun EditVocPlaylist(
                 ),
                 title = "Spotify Playlist Link",
                 placeholder = "Paste here the Spotify link...",
-                textState = textPlayUrl,
-                disabledText = if (textPlayUrl.value == "") "Write here..." else ".../${
-                    textPlayUrl.value.split("/").last()
-                }"
+                textState = textPlayUrl
             )
         }
     }

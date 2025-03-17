@@ -28,7 +28,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.3.2"
+val appVersion = "2.3.3"
 val copyrightYear = 2024
 
 //DB:
@@ -59,7 +59,7 @@ val vocSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
 var historyKeys = MutableLiveData<List<String>>(listOf("2024-08-05 18:28:53.json"))
 
 //Preferences:
-val silenceInitPatience = 3
+val silenceInitPatience = 6
 val silencePatience = 2
 val deltaSimilarity = 10   //5
 val playThreshold = 80
@@ -115,6 +115,8 @@ val playlistUrlIntro = "https://open.spotify.com/playlist/"
 val likedSongsUri = "spotify:user:replaceUserId:collection"
 
 //Spotify:
+val spotifyQueryLimit = 10
+val downloadSpotifyProfileImage = false
 var spotTempToken = ""
 var refrTempToken = ""
 var showLoggingIn = MutableLiveData<Boolean>(false)
@@ -129,7 +131,6 @@ val client = OkHttpClient.Builder()
     .readTimeout(queryTimeout.toLong(), TimeUnit.SECONDS)
     .callTimeout(queryTimeout.toLong(), TimeUnit.SECONDS)
     .build()
-val downloadSpotifyProfileImage = false
 
 //BROADCASTS:
 //Event receiver:

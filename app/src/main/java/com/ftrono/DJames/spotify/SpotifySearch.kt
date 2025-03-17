@@ -7,6 +7,7 @@ import com.ftrono.DJames.application.ext_format
 import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.playThreshold
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.spotifyQueryLimit
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import java.net.URLEncoder
@@ -70,9 +71,9 @@ class SpotifySearch(private val context: Context) {
             var queryParams = qParams.joinToString("&", prefix = "&")
             val encodedParams: String =
                 URLEncoder.encode(queryParams, "UTF-8").replace("%26", "%20").replace("%3A", ":")
-            url1 += "?q=${encodedMatchName}${encodedParams}&type=${type}&limit=10&market=${prefs.spotCountry}"
+            url1 += "?q=${encodedMatchName}${encodedParams}&type=${type}&limit=$spotifyQueryLimit&market=${prefs.spotCountry}"
         } else {
-            url1 += "?q=${encodedMatchName}&type=${type}&limit=10&market=${prefs.spotCountry}"
+            url1 += "?q=${encodedMatchName}&type=${type}&limit=$spotifyQueryLimit&market=${prefs.spotCountry}"
         }
         Log.d(TAG, url1)
 
@@ -112,9 +113,9 @@ class SpotifySearch(private val context: Context) {
             //Compose query:
             if (artistName != "") {
                 val encodedArtistName: String = URLEncoder.encode(artistName, "UTF-8")
-                url2 += "?q=${encodedMatchName}+by+${encodedArtistName}&type=${type}&limit=10&market=${prefs.spotCountry}"
+                url2 += "?q=${encodedMatchName}+by+${encodedArtistName}&type=${type}&limit=$spotifyQueryLimit&market=${prefs.spotCountry}"
             } else {
-                url2 += "?q=${encodedMatchName}&type=${type}&limit=10&market=${prefs.spotCountry}"
+                url2 += "?q=${encodedMatchName}&type=${type}&limit=$spotifyQueryLimit&market=${prefs.spotCountry}"
             }
 
             //Second query:

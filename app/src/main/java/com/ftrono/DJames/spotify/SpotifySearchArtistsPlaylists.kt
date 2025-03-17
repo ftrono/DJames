@@ -6,6 +6,7 @@ import com.ftrono.DJames.application.deltaSimilarity
 import com.ftrono.DJames.application.ext_format
 import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.spotifyQueryLimit
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import java.net.URLEncoder
@@ -46,7 +47,7 @@ class SpotifySearchArtistsPlaylists(context: Context) {
 
         //FIRST REQUEST:
         //Compose query:
-        url += "?q=${encodedMatchName}&type=${playType}&limit=10&market=${prefs.spotCountry}"
+        url += "?q=${encodedMatchName}&type=${playType}&limit=$spotifyQueryLimit&market=${prefs.spotCountry}"
         Log.d(TAG, url)
 
         //QUERY:

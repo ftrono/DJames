@@ -141,6 +141,46 @@ class Utilities {
     }
 
 
+    //Replace nums with strings (& opposite):
+    fun replaceNums(text: String): String {
+        //TODO: Replace words with numbers too.
+        val regexMap = mapOf(
+            "\\d*000\\b" to "thousand",
+            "\\d*,000\\b" to "thousand",
+            "\\d*00\\b" to "hundred",
+            "thousand" to "1000",
+            "hundred" to "100"
+        )
+
+        var number = false
+        var newText = text
+        val textSplits = text.lowercase().split(" ")
+        for (tok in textSplits) {
+            if (tok == "number") {
+                number = true
+            }
+            //tok -> entire word:
+            for (regStr in regexMap.keys) {
+                val regex = Regex(regStr)
+                //match -> only fixed portion:
+                val match = regex.find(tok)?.value
+                if (match != null) {
+                    Log.d(TAG, "REGEX MATCHED: $match")
+                    //If match: if "number", remove the word "number" and
+                    if (number) {
+                        newText = newText.replace("number", "")
+                    } else {
+                        //val cleaned = tok.replace(match, "").replace(",", "")
+                        newText = newText.replace(tok, regexMap[regStr]!!)
+                    }
+                    break
+                }
+            }
+        }
+        return newText
+    }
+
+
     fun updateStatesMap(statesMap: SnapshotStateMap<String, Boolean>, target: String): SnapshotStateMap<String, Boolean> {
         for (k in statesMap.keys) {
             if (k == target) {

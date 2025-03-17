@@ -1,11 +1,9 @@
 package com.ftrono.DJames.screen
 
-import android.content.ClipData.Item
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +21,6 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -31,7 +28,6 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -51,8 +47,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -74,7 +68,6 @@ import com.ftrono.DJames.ui.HeaderWithSign
 import com.ftrono.DJames.ui.OptionsItem
 import com.ftrono.DJames.ui.OptionsMenu
 import com.ftrono.DJames.ui.RoundedLetter
-import com.ftrono.DJames.ui.RoundedSign
 import com.ftrono.DJames.ui.SplitterCat
 import com.ftrono.DJames.ui.StreetBackground
 import com.ftrono.DJames.ui.VocItemCard
@@ -112,6 +105,7 @@ fun VocabularyScreen(
     )
     //Statuses:
     val keyState = rememberSaveable { mutableStateOf("") }
+    val nameState = rememberSaveable { mutableStateOf("") }
     val currentCatState = rememberSaveable { mutableStateOf(vocHeads[0]) }
     val libraryMap = rememberSaveable {
         mutableStateOf(libUtils.refreshLibrary(currentCatState.value, preview))
@@ -119,7 +113,7 @@ fun VocabularyScreen(
     val curLibrarySizeState by curLibrarySize.observeAsState()
     val deleteVocOn = rememberSaveable { mutableStateOf(false) }
     if (deleteVocOn.value) {
-        DialogDeleteVocabulary(mContext, deleteVocOn, libraryMap, keyState, currentCatState.value)
+        DialogDeleteVocabulary(mContext, deleteVocOn, libraryMap, keyState, nameState, filter=currentCatState.value)
     }
 
     val editVocOn = rememberSaveable { mutableStateOf(if (editPreview == "") false else true) }
@@ -303,6 +297,7 @@ fun VocabularyScreen(
                         libraryMap = libraryMap,
                         currentCatState = currentCatState,
                         keyState = keyState,
+                        nameState = nameState,
                         editVocOn = editVocOn,
                         deleteVocOn = deleteVocOn,
                         isLandscape = isLandscape,
@@ -322,7 +317,9 @@ fun ChipOptions(
     deleteVocOn: MutableState<Boolean>,
     editVocOn: MutableState<Boolean>,
     keyState: MutableState<String>,
-    key: String
+    nameState: MutableState<String>,
+    key: String,
+    name: String
 ) {
     //DROPDOWN MENU:
     OptionsMenu(
@@ -345,6 +342,7 @@ fun ChipOptions(
                 iconVector = Icons.Default.Delete,
                 onClick = {
                     keyState.value = key
+                    nameState.value = name
                     mDisplayMenu.value = false
                     deleteVocOn.value = true
                 }
@@ -359,6 +357,7 @@ fun VocSectionContent(
     libraryMap: MutableState<Map<String, String>>,
     currentCatState: MutableState<String>,
     keyState: MutableState<String>,
+    nameState: MutableState<String>,
     editVocOn: MutableState<Boolean>,
     deleteVocOn: MutableState<Boolean>,
     isLandscape: Boolean,
@@ -405,6 +404,7 @@ fun VocSectionContent(
                         VocItem(
                             currentCatState = currentCatState,
                             keyState = keyState,
+                            nameState = nameState,
                             key = map.key,
                             itemJson = map.value,
                             editVocOn = editVocOn,
@@ -445,6 +445,7 @@ fun VocLetter(
 fun VocItem(
     currentCatState: MutableState<String>,
     keyState: MutableState<String>,
+    nameState: MutableState<String>,
     key: String,
     itemJson: String,
     editVocOn: MutableState<Boolean>,
@@ -491,7 +492,7 @@ fun VocItem(
             }
         )
         //Options menu:
-        ChipOptions(mDisplayMenu, deleteVocOn, editVocOn, keyState, key)
+        ChipOptions(mDisplayMenu, deleteVocOn, editVocOn, keyState, nameState, key=key, name=itemName)
     }
 }
 
@@ -549,6 +550,7 @@ fun DialogDeleteVocabulary(
     dialogOnState: MutableState<Boolean>,
     libraryMap: MutableState<Map<String, String>>,
     keyState: MutableState<String>,
+    nameState: MutableState<String>,
     filter: String
 ) {
     val key = keyState.value
@@ -560,7 +562,7 @@ fun DialogDeleteVocabulary(
         content = {
             Text(
                 text = if (key != "") {
-                    "Do you want to delete this $filter?\n\n$key"
+                    "Do you want to delete this $filter?\n\n${nameState.value}"
                 } else {
                     "Do you want to delete all ${filter}s in vocabulary?"
                 },
@@ -572,6 +574,7 @@ fun DialogDeleteVocabulary(
         onDismiss = {
             dialogOnState.value = false
             keyState.value = ""
+            nameState.value = ""
         },
         confirmText = "Yes",
         onConfirm = {
@@ -584,6 +587,7 @@ fun DialogDeleteVocabulary(
             libraryMap.value = libUtils.refreshLibrary(filter)   //Refresh list
             dialogOnState.value = false
             keyState.value = ""
+            nameState.value = ""
         }
     )
 }

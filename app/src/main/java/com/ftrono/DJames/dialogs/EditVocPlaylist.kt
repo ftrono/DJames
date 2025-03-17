@@ -139,12 +139,14 @@ fun EditVocPlaylist(
             //CONTENT:
             //PLAYLIST NAME:
             EditVocDynamicNameSection(
+                textHeaderColor = vocColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
                     colorDark = vocColorSelector(cat = filter)
                 ),
                 filter = filter,
-                textState = textName
+                textState = textName,
+                initActive = textName.value == ""
             )
 
             //PLAYLIST ALIASES:

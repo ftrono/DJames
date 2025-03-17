@@ -343,27 +343,40 @@ fun EditPhoneDynamicField(
 @Composable
 fun EditVocDynamicNameSectionPreview() {
     val textName = rememberSaveable { mutableStateOf("sample text") }
+    val textHeaderColor = vocColorSelectorLight(cat = "artist")
     val textFieldColors = getTextFieldColors(
         colorLight = vocColorSelectorLight(cat = "artist"),
         colorDark = vocColorSelector(cat = "artist")
     )
-    EditVocDynamicNameSection(
-        modifier = Modifier.fillMaxWidth(),
-        textFieldColors = textFieldColors,
-        filter = "artist",
-        textState = textName
-    )
+    Column (
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight(),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.Top
+    ) {
+        EditVocDynamicNameSection(
+            modifier = Modifier.fillMaxWidth(),
+            textHeaderColor = textHeaderColor,
+            textFieldColors = textFieldColors,
+            filter = "artist",
+            textState = textName,
+            initActive = true
+        )
+    }
 }
 
 
 @Composable
 fun EditVocDynamicNameSection(
     modifier: Modifier = Modifier,
+    textHeaderColor: Color,
     textFieldColors: TextFieldColors,
     filter: String,
-    textState: MutableState<String>
+    textState: MutableState<String>,
+    initActive: Boolean = false,
 ) {
-    val isActive = rememberSaveable { mutableStateOf(false) }
+    val isActive = rememberSaveable { mutableStateOf(initActive) }
     var textFieldState by remember { mutableStateOf(TextFieldValue(textState.value)) }
 
     val focusRequester = remember { FocusRequester() }
@@ -380,15 +393,14 @@ fun EditVocDynamicNameSection(
         keyboardController!!.hide()
     }
 
-    Row (
-        modifier = Modifier
-            .padding(bottom = 20.dp)
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically
-    ){
-
-        if (!isActive.value) {
+    if (!isActive.value) {
+        Row (
+            modifier = Modifier
+                .padding(bottom = 20.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             //CHIP ICON:
             RoundedSign(
                 modifier = Modifier
@@ -438,61 +450,67 @@ fun EditVocDynamicNameSection(
                     tint = colorResource(id = R.color.mid_grey)
                 )
             }
+        }
+    } else {
+        //Title:
+        EditVocTitle(
+            textHeaderColor = textHeaderColor,
+            fontSize = 16.sp,
+            title = "Name",
+        )
 
-        } else {
-            //TextField:
-            OutlinedTextField(
-                modifier = Modifier
-                    .weight(1f)
-                    .focusRequester(focusRequester),
-                colors = textFieldColors,
-                value = textFieldState,
-                onValueChange = { newText ->
-                    val corr = newText.text
-                    textState.value = corr
-                    textFieldState = newText
-                },
-                textStyle = TextStyle(
-                    fontSize = 20.sp
-                ),
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        onKeyboardDone()
-                        isActive.value = false
-                    }
-                ),
-                placeholder = {
-                    Text(
-                        text = "Write $filter name...",
-                        fontSize = 16.sp,
-                        fontStyle = FontStyle.Italic
-                    )
-                },
-                trailingIcon = {
-                    //Button:
-                    RoundedSign(
-                        modifier = Modifier
-                            .padding(end = 4.dp)
-                            .clickable {
-                                onKeyboardDone()
-                                isActive.value = false
-                            },
-                        signSize = 36.dp,
-                        iconSize = 20.dp,
-                        backgroundColor = textFieldColors.textSelectionColors.backgroundColor,
-                        borderColor = textFieldColors.textSelectionColors.backgroundColor,
-                        iconColor = colorResource(id = R.color.light_grey),
-                        iconVector = Icons.Default.Done
-                    )
+        //TextField:
+        OutlinedTextField(
+            modifier = Modifier
+                .padding(top = 8.dp, bottom = 20.dp)
+                .focusRequester(focusRequester),
+            colors = textFieldColors,
+            value = textFieldState,
+            onValueChange = { newText ->
+                val corr = newText.text
+                textState.value = corr
+                textFieldState = newText
+            },
+            textStyle = TextStyle(
+                fontSize = 20.sp
+            ),
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    onKeyboardDone()
+                    isActive.value = false
                 }
-            )
-            LaunchedEffect(Unit) {
-                onClicked()
-                textFieldState = textFieldState.copy(selection = TextRange(textFieldState.text.length))
+            ),
+            placeholder = {
+                Text(
+                    text = "Write $filter name...",
+                    fontSize = 16.sp,
+                    fontStyle = FontStyle.Italic
+                )
+            },
+            trailingIcon = {
+                //Button:
+                RoundedSign(
+                    modifier = Modifier
+                        .padding(end = 4.dp)
+                        .clickable {
+                            onKeyboardDone()
+                            isActive.value = false
+                        },
+                    signSize = 36.dp,
+                    iconSize = 20.dp,
+                    backgroundColor = textFieldColors.textSelectionColors.backgroundColor,
+                    borderColor = textFieldColors.textSelectionColors.backgroundColor,
+                    iconColor = colorResource(id = R.color.light_grey),
+                    iconVector = Icons.Default.Done
+                )
             }
+        )
+        LaunchedEffect(Unit) {
+            onClicked()
+            textFieldState = textFieldState.copy(selection = TextRange(textFieldState.text.length))
         }
     }
 }

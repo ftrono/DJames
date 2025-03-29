@@ -112,7 +112,7 @@ class ClockActivity: ComponentActivity() {
         //Start personal Receiver:
         val actFilter = IntentFilter()
         actFilter.addAction(ACTION_TIME_TICK)
-        actFilter.addAction(SPOTIFY_METADATA_CHANGED)
+        actFilter.addAction(ACTION_UPDATE_PLAYER)
         actFilter.addAction(ACTION_FINISH_CLOCK)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
@@ -472,40 +472,10 @@ class ClockActivity: ComponentActivity() {
                 }
             }
 
-            //Spotify Metadata Changed:
-            if (intent.action == SPOTIFY_METADATA_CHANGED) {
-                Log.d(TAG, "CLOCK: SPOTIFY_METADATA_CHANGED.")
-                try {
-                    //Get new track data:
-                    val id = intent.getStringExtra("id")
-                    val intentSongName = intent.getStringExtra("track")
-                    val intentArtistName = intent.getStringExtra("artist")
-                    val intentAlbumName = intent.getStringExtra("album")
-
-                    //If new track:
-                    if (intentSongName != songName || intentArtistName != artistName || intentAlbumName != contextName) {
-                        //Update currently_playing JSON:
-                        currently_playing = JsonObject()
-                        currently_playing!!.addProperty("id", id)
-                        currently_playing!!.addProperty("uri", "$uri_format$id")
-                        currently_playing!!.addProperty("spotify_URL", "${ext_format}track/$id")
-                        currently_playing!!.addProperty("song_name", intentSongName)
-                        currently_playing!!.addProperty("artist_name", intentArtistName)
-                        currently_playing!!.addProperty("album_name", intentAlbumName)
-
-                        //Update info:
-                        songName = intentSongName!!
-                        artistName = intentArtistName!!
-                        contextName = intentAlbumName!!
-
-                        //Update player:
-                        if (enablePlayerInfo) {
-                            updatePlayer()
-                        }
-                    }
-                } catch (e: Exception) {
-                    Log.d(TAG, "CLOCK: SPOTIFY_METADATA_CHANGED: resources not available.")
-                }
+            //Update player:
+            if (intent.action == ACTION_UPDATE_PLAYER) {
+                Log.d(TAG, "CLOCK: ACTION_UPDATE_PLAYER.")
+                updatePlayer()
             }
 
             //Finish activity:

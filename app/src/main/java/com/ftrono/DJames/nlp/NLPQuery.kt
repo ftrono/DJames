@@ -46,7 +46,7 @@ class NLPQuery(context: Context) {
                 )
             val sessionsSettings = SessionsSettings.newBuilder()
                 .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
-                .setEndpoint("$regionId-dialogflow.googleapis.com:443")   // EU region endpoint
+                .setEndpoint("$regionId-dialogflow.googleapis.com:443")
                 .build()
             sessionsClient = SessionsClient.create(sessionsSettings)
             sessionId = SessionName.ofProjectLocationSessionName(dialogflow_id, regionId, prefs.nlpUserId)

@@ -55,6 +55,7 @@ import com.ftrono.DJames.application.ACTION_REC_STOP
 import com.ftrono.DJames.application.ACTION_TIME_TICK
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.PHONE_STATE_ACTION
+import com.ftrono.DJames.application.SPOTIFY_METADATA_CHANGED
 import com.ftrono.DJames.application.VOLUME_CHANGED_ACTION
 import com.ftrono.DJames.application.acts_active
 import com.ftrono.DJames.application.audioManager
@@ -230,9 +231,10 @@ class OverlayService : Service() {
 
             //Start Event Receiver:
             val filter = IntentFilter()
-            filter.addAction(Intent.ACTION_SCREEN_ON)
-            filter.addAction(Intent.ACTION_SCREEN_OFF)
             filter.addAction(VOLUME_CHANGED_ACTION)
+            filter.addAction(SPOTIFY_METADATA_CHANGED)
+            filter.addAction(Intent.ACTION_SCREEN_OFF)
+            filter.addAction(Intent.ACTION_SCREEN_ON)
             filter.addAction(ACTION_TOASTER)
 
             //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:

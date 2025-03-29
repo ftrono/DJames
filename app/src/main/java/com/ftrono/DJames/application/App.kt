@@ -102,6 +102,7 @@ var logDir: File? = null
 //Player info:
 var nlp_queryText = ""
 var reqPlayLinkName = ""
+var currentTrackId: String = ""
 var songName: String = ""
 var artistName: String = ""
 var contextName: String = ""
@@ -136,6 +137,7 @@ val client = OkHttpClient.Builder()
 //Event receiver:
 //ACTION_SCREEN_ON, ACTION_SCREEN_OFF
 const val VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION"
+const val SPOTIFY_METADATA_CHANGED = "com.spotify.music.metadatachanged"
 const val ACTION_TOASTER = "com.ftrono.DJames.eventReceiver.ACTION_TOASTER"
 
 //Main Act receiver:
@@ -144,7 +146,7 @@ const val ACTION_LOG_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_LOG_REFRE
 
 //Clock Act receiver:
 const val ACTION_TIME_TICK = "android.intent.action.TIME_TICK"
-const val SPOTIFY_METADATA_CHANGED = "com.spotify.music.metadatachanged"
+const val ACTION_UPDATE_PLAYER = "com.ftrono.DJames.eventReceiver.ACTION_UPDATE_PLAYER"
 const val ACTION_FINISH_CLOCK = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_CLOCK"
 
 //Overlay receiver:

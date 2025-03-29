@@ -25,6 +25,7 @@ import java.io.InputStreamReader
 
 class NLPQuery(context: Context) {
     private val TAG = NLPQuery::class.java.simpleName
+    private val regionId = "europe-west1"
     private var sessionId: SessionName? = null
     private var sessionsClient: SessionsClient? = null
 
@@ -37,10 +38,18 @@ class NLPQuery(context: Context) {
             //Build SessionsClient:
             val stream = context.resources.openRawResource(R.raw.nlp_credentials)
             val credentials = GoogleCredentials.fromStream(stream)
-            val settingsBuilder = SessionsSettings.newBuilder()
-            val sessionsSettings = settingsBuilder.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build()
+                .createScoped(
+                    listOf(
+                        "https://www.googleapis.com/auth/cloud-platform",
+                        "https://www.googleapis.com/auth/dialogflow"
+                    )
+                )
+            val sessionsSettings = SessionsSettings.newBuilder()
+                .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
+                .setEndpoint("$regionId-dialogflow.googleapis.com:443")   // EU region endpoint
+                .build()
             sessionsClient = SessionsClient.create(sessionsSettings)
-            sessionId = SessionName.of(dialogflow_id, prefs.nlpUserId)
+            sessionId = SessionName.ofProjectLocationSessionName(dialogflow_id, regionId, prefs.nlpUserId)
             Log.d(TAG, "nlpUserId: ${prefs.nlpUserId}")
             Log.d(TAG, "CREATED: sessionsClient: ${sessionsClient}")
             Log.d(TAG, "CREATED: sessionId: ${sessionId}")

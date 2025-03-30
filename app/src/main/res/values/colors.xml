@@ -7,6 +7,7 @@
   <color name="colorAccentLight">#84BAA2</color>
   <color name="colorHeader">#FFC000</color>
   <color name="colorBusy">#ED7D31</color>
+  <color name="colorBusyLight">#F5B68B</color>
   <color name="colorBusyDark">#8A3F0C</color>
   <color name="colorStop">#7E0000</color>
   <color name="blueSign">#1C497A</color>

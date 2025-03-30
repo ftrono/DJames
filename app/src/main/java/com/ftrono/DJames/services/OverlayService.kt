@@ -73,7 +73,6 @@ import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recordingMode
 import com.ftrono.DJames.application.sourceIsVolume
 import com.ftrono.DJames.application.streamMaxVolume
-import com.ftrono.DJames.application.toneGen
 import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.application.vol_initialized
 import com.ftrono.DJames.ui.ClockButton
@@ -89,21 +88,18 @@ import kotlin.math.round
 import kotlin.math.roundToInt
 import com.ftrono.DJames.application.ACTION_OVERLAY_CLICK
 import com.ftrono.DJames.application.allowVolumeClick
-import com.ftrono.DJames.application.currentTrackId
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.spotify.SpotifyVarious
-import com.google.gson.JsonArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.coroutineScope
 
 
 class OverlayService : Service() {
     private val TAG = OverlayService::class.java.simpleName
+    private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
 
     //Compose Views:
     private lateinit var bubbleView : ComposeView
@@ -663,7 +659,7 @@ class OverlayService : Service() {
                     //PROCESS QUERY:
                     saveTrackJob = CoroutineScope(Dispatchers.IO).launch {
                         delay(1000)
-                        utils.saveCurrentTrack(context!!)
+                        utils.saveCurrentTrack(context!!, toneGen)
                     }
                 } catch (e: Exception) {
                     Log.w(TAG, "ERROR: Cannot save current track! ", e)

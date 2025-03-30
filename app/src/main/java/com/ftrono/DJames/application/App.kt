@@ -5,7 +5,6 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
-import android.media.ToneGenerator
 import android.util.Log
 import android.net.Uri
 import net.openid.appauth.AuthorizationServiceConfiguration
@@ -98,7 +97,6 @@ var newsTalk = false
 
 //Audio Managers:
 var audioManager: AudioManager? = null
-val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
 
 //JSONs:
 var currently_playing: JsonObject? = null

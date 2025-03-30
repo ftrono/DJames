@@ -16,15 +16,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
-import com.ftrono.DJames.services.VoiceQueryService
 import com.ftrono.DJames.spotify.SpotifyVarious
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.Call
 import okhttp3.Callback
@@ -259,7 +254,7 @@ class Utilities {
 
 
     //SPOTIFY: Save currently playing track:
-    fun saveCurrentTrack(context: Context){
+    fun saveCurrentTrack(context: Context, toneGen: ToneGenerator){
         Log.d(TAG, "SaveTrack job start!")
         var toastText = ""
         try {

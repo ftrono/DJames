@@ -121,6 +121,7 @@ class SpotifyPlayer (private val context: Context) {
         extThread = Thread {
             try {
                 synchronized(this) {
+                    Log.d(TAG, "ExtThread start!")
                     //Open query result in Spotify:
                     val intentSpotify = Intent(
                         Intent.ACTION_VIEW,
@@ -145,6 +146,7 @@ class SpotifyPlayer (private val context: Context) {
                         clockIntent.putExtra("fromwhere", "ser")
                         context.startActivity(clockIntent)
                     }
+                    Log.d(TAG, "ExtThread end!")
                 }
             } catch (e: InterruptedException) {
                 Log.w(TAG, "Interrupted: exception.", e)

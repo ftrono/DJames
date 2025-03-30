@@ -89,12 +89,17 @@ import kotlin.math.round
 import kotlin.math.roundToInt
 import com.ftrono.DJames.application.ACTION_OVERLAY_CLICK
 import com.ftrono.DJames.application.allowVolumeClick
+import com.ftrono.DJames.application.currentTrackId
+import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.spotify.SpotifyVarious
+import com.google.gson.JsonArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.coroutineScope
 
 
 class OverlayService : Service() {
@@ -106,9 +111,11 @@ class OverlayService : Service() {
 
     // Coroutine scope to handle countdown
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-    private var countdownJob: Job? = null
     private val sleepTimes = 8
     private val sleepInterval: Long = 250   //ms
+    private var countdownJob: Job? = null
+    private var loadJob: Job? = null
+    private var saveTrackJob: Job? = null
 
     //View managers:
     private lateinit var windowManager: WindowManager
@@ -229,9 +236,9 @@ class OverlayService : Service() {
             }
 
             //Disable volume button press for the first 3 seconds:
-            val loadThread = Thread {
+            loadJob = serviceScope.launch {
                 try {
-                    Thread.sleep(3000)
+                    delay(3000)
                     //Vol_initialized:
                     if (!vol_initialized) {
                         vol_initialized = true
@@ -239,9 +246,6 @@ class OverlayService : Service() {
                 } catch (e: InterruptedException) {
                     Log.w(TAG, "Interrupted: exception.", e)
                 }
-            }
-            if (!loadThread.isAlive()){
-                loadThread.start()
             }
 
             //Start Event Receiver:
@@ -325,7 +329,7 @@ class OverlayService : Service() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
-                .padding(end=rightPadding)
+                .padding(end = rightPadding)
                 .wrapContentSize()
                 .pointerInput(Unit) {
                     detectDragGestures(
@@ -527,6 +531,11 @@ class OverlayService : Service() {
             stopService(Intent(applicationContext, VoiceQueryService::class.java))
         }
         serviceScope.cancel() // Clean up coroutines
+        try {
+            saveTrackJob?.cancel()
+        } catch (e: Exception) {
+            Log.w(TAG, "SaveTrackJob not active.")
+        }
         vol_initialized = false
         //unregister receivers:
         try {
@@ -614,6 +623,9 @@ class OverlayService : Service() {
                     Log.w(TAG, "ERROR: OVERLAY SERVICE: VOICE QUERY SERVICE NOT STARTED. ", e)
                 }
             } else if (clickCounter.value!! == 2) {
+                overlayStatus.postValue("processing")
+                //Play STOP tone:
+                toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
                 //TRIGGER SAVE TRACK:
                 Intent().also { intent ->
                     intent.setAction(ACTION_SAVE_TRACK)
@@ -648,10 +660,11 @@ class OverlayService : Service() {
             if (intent.action == ACTION_SAVE_TRACK) {
                 Log.d(TAG, "OVERLAY: ACTION_SAVE_TRACK.")
                 try {
-                    //TODO:
-                    //SUCCESS -> Play ACKNOWLEDGE tone:
-                    toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
-                    Toast.makeText(applicationContext, "Track saved!", Toast.LENGTH_SHORT).show()
+                    //PROCESS QUERY:
+                    saveTrackJob = CoroutineScope(Dispatchers.IO).launch {
+                        delay(1000)
+                        utils.saveCurrentTrack(context!!)
+                    }
                 } catch (e: Exception) {
                     Log.w(TAG, "ERROR: Cannot save current track! ", e)
                 }
@@ -683,9 +696,14 @@ class OverlayService : Service() {
                     } else if (state == TelephonyManager.EXTRA_STATE_IDLE) {
                         callMode = false
                         //Private check thread:
-                        val loadThread2 = Thread {
+                        try {
+                            loadJob?.cancel()
+                        } catch (e: Exception) {
+                            Log.w(TAG, "loadJob not active.")
+                        }
+                        loadJob = serviceScope.launch {
                             try {
-                                Thread.sleep(3000)
+                                delay(3000)
                                 //Vol_initialized:
                                 if (!vol_initialized) {
                                     vol_initialized = true
@@ -693,10 +711,6 @@ class OverlayService : Service() {
                             } catch (e: InterruptedException) {
                                 Log.w(TAG, "Interrupted: exception.", e)
                             }
-                        }
-                        //Thread check:
-                        if (!loadThread2.isAlive()) {
-                            loadThread2.start()
                         }
                         Log.d(TAG, "EVENT: CALL MODE OFF.")
                     }

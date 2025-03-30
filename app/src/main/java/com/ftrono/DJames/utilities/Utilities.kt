@@ -17,9 +17,14 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
 import com.ftrono.DJames.services.VoiceQueryService
+import com.ftrono.DJames.spotify.SpotifyVarious
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.Call
 import okhttp3.Callback
@@ -250,6 +255,45 @@ class Utilities {
         }
         //Log.d(TAG, "processStatus: $processStatus")
         return processStatus
+    }
+
+
+    //SPOTIFY: Save currently playing track:
+    fun saveCurrentTrack(context: Context){
+        Log.d(TAG, "SaveTrack job start!")
+        var toastText = ""
+        try {
+            val spotifyVarious = SpotifyVarious(context)
+            val ids = JsonArray()
+            ids.add(currentTrackId.split(":").last())
+            Log.d(TAG, "IDS TO SAVE: $ids")
+            val ret = spotifyVarious.saveTrackRequest(ids)
+            //PROCESS RESPONSE:
+            if (ret == 0) {
+                //SUCCESS -> Play ACKNOWLEDGE tone:
+                toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                Log.d(TAG, "Saved track: $ids")
+                toastText = "Current track saved in Spotify!"
+            } else {
+                //Play FAIL tone:
+                toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                Log.w(TAG, "ERROR: Cannot save track: $ids")
+                toastText = "ERROR: Could not save current track in Spotify!"
+            }
+        } catch (e: Exception) {
+            //Play FAIL tone:
+            toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+            Log.w(TAG, "ERROR: Cannot save current track!")
+            toastText = "ERROR: Could not save current track in Spotify!"
+        }
+        //TOAST -> Send broadcast:
+        Intent().also { intent ->
+            intent.setAction(ACTION_TOASTER)
+            intent.putExtra("toastText", toastText)
+            context.sendBroadcast(intent)
+        }
+        overlayStatus.postValue("ready")
+        Log.d(TAG, "SaveTrack job end!")
     }
 
 

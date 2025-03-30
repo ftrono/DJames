@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -50,7 +51,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.ui.theme.light_grey
 import kotlinx.coroutines.launch
 import kotlin.math.round
@@ -73,6 +73,7 @@ fun DJamesButtonPreview() {
     DJamesButton(
         bubbleSize = 100,
         overlayStatus = MutableLiveData<String>("ready"),
+        clickCounterState = 1,
         onTap = {offset -> }
     )
 }
@@ -83,6 +84,7 @@ fun DJamesButtonPreview() {
 fun DJamesButton(
     bubbleSize: Int,
     overlayStatus: MutableLiveData<String>,
+    clickCounterState: Int,
     onTap: (Offset) -> Unit
 ) {
     val overlayState by overlayStatus.observeAsState()
@@ -92,17 +94,21 @@ fun DJamesButton(
             .size(bubbleSize.dp)
             .clip(CircleShape)
             .background(
-                color = when (overlayState) {
-                    "busy" -> {
-                        colorResource(id = R.color.colorBusy)
-                    }
+                color = if (clickCounterState > 0) {
+                    colorResource(id = R.color.greenSignLight)
+                } else {
+                    when (overlayState) {
+                        "busy" -> {
+                            colorResource(id = R.color.colorBusy)
+                        }
 
-                    "processing" -> {
-                        colorResource(id = R.color.faded_grey)
-                    }
+                        "processing" -> {
+                            colorResource(id = R.color.faded_grey)
+                        }
 
-                    else -> {
-                        colorResource(id = R.color.colorPrimary)
+                        else -> {
+                            colorResource(id = R.color.colorPrimary)
+                        }
                     }
                 }
             )
@@ -119,7 +125,33 @@ fun DJamesButton(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            if (overlayState == "processing") {
+            if (clickCounterState > 0) {
+                //COUNTER TRACKER:
+                when (clickCounterState) {
+                    1 -> Icon(
+                        modifier = Modifier
+                            .size(50.dp),
+                        painter = painterResource(id = R.drawable.icon_speak),
+                        tint = colorResource(id = R.color.colorPrimaryDark),
+                        contentDescription = "Voice request"
+                    )
+                    2 -> Icon(
+                        modifier = Modifier
+                            .size(50.dp),
+                        imageVector = Icons.Default.Add,
+                        tint = colorResource(id = R.color.colorPrimaryDark),
+                        contentDescription = "Voice request"
+                    )
+                    else -> Icon(
+                        modifier = Modifier
+                            .size(50.dp),
+                        imageVector = Icons.Default.Close,
+                        tint = colorResource(id = R.color.colorPrimaryDark),
+                        contentDescription = "Voice request"
+                    )
+                }
+            } else if (overlayState == "processing") {
+                //PROCESSING:
                 CircularProgressIndicator(
                     modifier = Modifier.width(40.dp),
                     color = colorResource(id = R.color.light_grey),
@@ -127,8 +159,10 @@ fun DJamesButton(
                     strokeWidth = 8.dp
                 )
             } else if (overlayState == "busy") {
+                //BUSY:
                 PulsatingWaveform()
             } else {
+                //READY:
                 Image(
                     modifier = Modifier
                         .size(50.dp),

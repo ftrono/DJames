@@ -5,6 +5,7 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
+import android.media.ToneGenerator
 import android.util.Log
 import android.net.Uri
 import net.openid.appauth.AuthorizationServiceConfiguration
@@ -28,7 +29,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.3.3"
+val appVersion = "2.3.4"
 val copyrightYear = 2024
 
 //DB:
@@ -49,10 +50,15 @@ var overlayStatus = MutableLiveData<String>("ready")
 var clockActive = MutableLiveData<Boolean>(false)
 var overlayPos = MutableLiveData<String>("Right")
 var volumeUpEnabled = MutableLiveData<Boolean>(true)
+var sourceIsVolume = MutableLiveData<Boolean>(false)
 var settingsOpen = MutableLiveData<Boolean>(false)
 var innerNavOpen = MutableLiveData<Boolean>(false)
 var currentSongPlaying = MutableLiveData<String>("Don't turn off the screen!")
 var currentArtistPlaying = MutableLiveData<String>("You can keep this Clock\nScreen on to save battery")
+var clickCounter = MutableLiveData<Int>(0)
+var allowVolumeClick = true
+
+//Library / vocabulary:
 var curLibrarySize = MutableLiveData<Int>(0)
 val vocHeads = listOf("artist", "playlist", "contact")
 val vocSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
@@ -82,7 +88,6 @@ var density: Float = 0F
 var acts_active: MutableList<String> = ArrayList()
 var streamMaxVolume: Int = 0
 var screenOn: Boolean = true
-var sourceIsVolume: Boolean = false
 var main_initialized: Boolean = false
 var vol_initialized: Boolean = false
 var voiceQueryOn: Boolean = false
@@ -91,8 +96,9 @@ var callMode: Boolean = false
 var searchFail: Boolean = false
 var newsTalk = false
 
-//Audio Manager:
+//Audio Managers:
 var audioManager: AudioManager? = null
+val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
 
 //JSONs:
 var currently_playing: JsonObject? = null
@@ -150,6 +156,8 @@ const val ACTION_UPDATE_PLAYER = "com.ftrono.DJames.eventReceiver.ACTION_UPDATE_
 const val ACTION_FINISH_CLOCK = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_CLOCK"
 
 //Overlay receiver:
+const val ACTION_OVERLAY_CLICK = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_CLICK"
+const val ACTION_SAVE_TRACK = "com.ftrono.DJames.eventReceiver.ACTION_SAVE_TRACK"
 const val ACTION_MAKE_CALL = "com.ftrono.DJames.eventReceiver.ACTION_MAKE_CALL"
 const val PHONE_STATE_ACTION = "android.intent.action.PHONE_STATE"
 

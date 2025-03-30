@@ -32,6 +32,7 @@ import com.ftrono.DJames.application.silenceInitPatience
 import com.ftrono.DJames.application.silencePatience
 import com.ftrono.DJames.application.sourceIsVolume
 import com.ftrono.DJames.application.streamMaxVolume
+import com.ftrono.DJames.application.toneGen
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.nlp.NLPDispatcher
 import com.ftrono.DJames.recorder.AndroidAudioRecorder
@@ -43,7 +44,6 @@ import java.io.File
 class VoiceQueryService: Service() {
     //Main:
     private val TAG = VoiceQueryService::class.java.simpleName
-    private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
     private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
     //Recorder:
@@ -108,20 +108,7 @@ class VoiceQueryService: Service() {
             Log.w(TAG, "MyRecorder not available.")
         }
         //Stop threads:
-        var t_count = 1
-        var t_max = allThreads.size
-        for (t in allThreads) {
-            try {
-                if (t.isAlive()) {
-                    t.interrupt()
-                    Log.d(TAG, "Stopped thread $t_count / $t_max.")
-                }
-                Log.d(TAG, "Thread $t_count / $t_max not active.")
-            } catch (e: Exception) {
-                Log.w(TAG, "Thread $t_count / $t_max: EXCEPTION: ", e)
-            }
-            t_count ++
-        }
+        utils.stopThreadsInList(allThreads)
         //Stop recorder:
         if (recordingMode || processing) {
             //Play FAIL tone:
@@ -139,7 +126,7 @@ class VoiceQueryService: Service() {
         searchFail = false
         recordingMode = false
         voiceQueryOn = false
-        sourceIsVolume = false
+        sourceIsVolume.postValue(false)
         processing = false
         processStatus = JsonObject()
         //Set overlay READY color:
@@ -258,11 +245,12 @@ class VoiceQueryService: Service() {
             var recFile = MyRecorder.stop()
             Log.d(TAG, "RECORDING STOPPED.")
 
-            //Lower volume if maximum (to enable Receiver):
-            if (sourceIsVolume && audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {
-                audioManager!!.setStreamVolume(AudioManager.STREAM_MUSIC, streamMaxVolume - 1, AudioManager.FLAG_PLAY_SOUND)
-                Log.d(TAG, "Countdown stopped. Volume lowered.")
-            }
+            //TODO: Check:
+//            //Lower volume if maximum (to enable Receiver):
+//            if (sourceIsVolume.value!! && audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {
+//                audioManager!!.setStreamVolume(AudioManager.STREAM_MUSIC, streamMaxVolume - 1, AudioManager.FLAG_PLAY_SOUND)
+//                Log.d(TAG, "Countdown stopped. Volume lowered.")
+//            }
 
             //2) RECORDING RESULT:
             if (searchFail) {

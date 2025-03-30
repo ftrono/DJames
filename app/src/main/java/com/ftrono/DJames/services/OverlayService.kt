@@ -13,6 +13,7 @@ import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.PixelFormat
 import android.media.AudioManager
+import android.media.ToneGenerator
 import android.net.Uri
 import android.os.IBinder
 import android.provider.Settings
@@ -26,10 +27,12 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,6 +55,7 @@ import com.ftrono.DJames.application.ACTION_FINISH_CLOCK
 import com.ftrono.DJames.application.ACTION_FINISH_MAIN
 import com.ftrono.DJames.application.ACTION_MAKE_CALL
 import com.ftrono.DJames.application.ACTION_REC_STOP
+import com.ftrono.DJames.application.ACTION_SAVE_TRACK
 import com.ftrono.DJames.application.ACTION_TIME_TICK
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.PHONE_STATE_ACTION
@@ -60,6 +64,7 @@ import com.ftrono.DJames.application.VOLUME_CHANGED_ACTION
 import com.ftrono.DJames.application.acts_active
 import com.ftrono.DJames.application.audioManager
 import com.ftrono.DJames.application.callMode
+import com.ftrono.DJames.application.clickCounter
 import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.overlayPos
@@ -68,6 +73,7 @@ import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recordingMode
 import com.ftrono.DJames.application.sourceIsVolume
 import com.ftrono.DJames.application.streamMaxVolume
+import com.ftrono.DJames.application.toneGen
 import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.application.vol_initialized
 import com.ftrono.DJames.ui.ClockButton
@@ -81,6 +87,14 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.abs
 import kotlin.math.round
 import kotlin.math.roundToInt
+import com.ftrono.DJames.application.ACTION_OVERLAY_CLICK
+import com.ftrono.DJames.application.allowVolumeClick
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 
 
 class OverlayService : Service() {
@@ -89,6 +103,12 @@ class OverlayService : Service() {
     //Compose Views:
     private lateinit var bubbleView : ComposeView
     private lateinit var closeView : ComposeView
+
+    // Coroutine scope to handle countdown
+    private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var countdownJob: Job? = null
+    private val sleepTimes = 8
+    private val sleepInterval: Long = 250   //ms
 
     //View managers:
     private lateinit var windowManager: WindowManager
@@ -109,26 +129,9 @@ class OverlayService : Service() {
     //Receiver:
     var eventReceiver = EventReceiver()
 
-    //Disable volume button press for the first 3 seconds:
-    val loadThread = Thread {
-        try {
-            synchronized(this) {
-                Thread.sleep(3000)
-                //Vol_initialized:
-                if (!vol_initialized) {
-                    vol_initialized = true
-                }
-            }
-        } catch (e: InterruptedException) {
-            Log.w(TAG, "Interrupted: exception.", e)
-        }
-    }
-
-
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
-
 
     override fun onCreate() {
         super.onCreate()
@@ -136,6 +139,7 @@ class OverlayService : Service() {
             startForeground()
             vol_initialized = false
             callMode = false
+            clickCounter.postValue(0)
             overlayActive.postValue(true)
 
             // Init window manager
@@ -224,7 +228,18 @@ class OverlayService : Service() {
                 Log.d(TAG, "Overlay on: Volume lowered from Max.")
             }
 
-            //Thread check:
+            //Disable volume button press for the first 3 seconds:
+            val loadThread = Thread {
+                try {
+                    Thread.sleep(3000)
+                    //Vol_initialized:
+                    if (!vol_initialized) {
+                        vol_initialized = true
+                    }
+                } catch (e: InterruptedException) {
+                    Log.w(TAG, "Interrupted: exception.", e)
+                }
+            }
             if (!loadThread.isAlive()){
                 loadThread.start()
             }
@@ -244,6 +259,8 @@ class OverlayService : Service() {
             //Start personal Receiver:
             val actFilter = IntentFilter()
             actFilter.addAction(ACTION_TIME_TICK)
+            actFilter.addAction(ACTION_OVERLAY_CLICK)
+            actFilter.addAction(ACTION_SAVE_TRACK)
             actFilter.addAction(ACTION_MAKE_CALL)
             actFilter.addAction(PHONE_STATE_ACTION)
 
@@ -296,12 +313,19 @@ class OverlayService : Service() {
         val coroutineScope = rememberCoroutineScope()
         val mContext = LocalContext.current
         val clockActiveState by clockActive.observeAsState()
+        val clickCounterState by clickCounter.observeAsState()
+        val sourceIsVolumeState by sourceIsVolume.observeAsState()
+        // Animating the horizontal offset based on the state
+        val rightPadding by animateDpAsState(targetValue = if (
+            clickCounterState!! > 0 && overlayPos.value == "Right" && sourceIsVolumeState!!
+        ) (70.dp) else 0.dp)
 
         //CONTAINER:
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
+                .padding(end=rightPadding)
                 .wrapContentSize()
                 .pointerInput(Unit) {
                     detectDragGestures(
@@ -381,16 +405,11 @@ class OverlayService : Service() {
             DJamesButton(
                 bubbleSize = bubbleSize,
                 overlayStatus = overlayStatus,
+                clickCounterState = clickCounterState!!,
                 onTap = {
                     if (!voiceQueryOn) {
-                        //START VOICE QUERY SERVICE:
-                        sourceIsVolume = false
-                        try {
-                            startService(Intent(mContext, VoiceQueryService::class.java))
-                            Log.d(TAG, "OVERLAY SERVICE: VOICE QUERY SERVICE CALLED.")
-                        } catch (e:Exception) {
-                            Log.w(TAG, "OVERLAY SERVICE ERROR: VOICE QUERY SERVICE NOT STARTED. ", e)
-                        }
+                        // COUNT CLICKS:
+                        onOverlayClick(false)
                     } else if (recordingMode) {
                         //EARLY STOP RECORDING:
                         Intent().also { intent ->
@@ -502,10 +521,12 @@ class OverlayService : Service() {
         super.onDestroy()
         overlayActive.postValue(false)
         voiceQueryOn = false
+        clickCounter.postValue(0)
         //Stop Voice Query service:
         if (isMyServiceRunning(VoiceQueryService::class.java)) {
             stopService(Intent(applicationContext, VoiceQueryService::class.java))
         }
+        serviceScope.cancel() // Clean up coroutines
         vol_initialized = false
         //unregister receivers:
         try {
@@ -550,6 +571,64 @@ class OverlayService : Service() {
     }
 
 
+    // COUNTDOWN FUNCTIONS:
+    fun onOverlayClick(fromVolume: Boolean = false) {
+        //CLICK -> Play ALERT tone:
+        if (clickCounter.value!! == 0) {
+            sourceIsVolume.postValue(fromVolume)
+            //TRIGGER COUNTER THREAD:
+            restartCountdown()
+        }
+        if (clickCounter.value!! == 2) {
+            clickCounter.postValue(0)
+            //Play FAIL tone:
+            toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+        } else {
+            clickCounter.postValue(clickCounter.value!! + 1)
+            toneGen.startTone(ToneGenerator.TONE_CDMA_KEYPAD_VOLUME_KEY_LITE)   //ALERT
+        }
+    }
+
+
+    fun restartCountdown() {
+        countdownJob?.cancel() // Cancel any running countdown
+        Log.d(TAG, "CountdownJob canceled!")
+
+        // THREAD:
+        countdownJob = serviceScope.launch {
+            Log.d(TAG, "CountdownJob start!")
+            //Countdown: ensure interval between clicks:
+            for (i in 0..sleepTimes) {
+                delay(sleepInterval)
+                if (!allowVolumeClick) {
+                    allowVolumeClick = true
+                }
+            }
+            //After countdown:
+            if (clickCounter.value!! == 1) {
+                //TRIGGER VOICE REQUEST:
+                try {
+                    applicationContext.startService(Intent(applicationContext, VoiceQueryService::class.java))
+                    Log.d(TAG, "OVERLAY SERVICE: VOICE QUERY SERVICE STARTED.")
+                } catch (e:Exception) {
+                    Log.w(TAG, "ERROR: OVERLAY SERVICE: VOICE QUERY SERVICE NOT STARTED. ", e)
+                }
+            } else if (clickCounter.value!! == 2) {
+                //TRIGGER SAVE TRACK:
+                Intent().also { intent ->
+                    intent.setAction(ACTION_SAVE_TRACK)
+                    applicationContext.sendBroadcast(intent)
+                }
+            }
+            //Reset counter:
+            clickCounter.postValue(0)
+            sourceIsVolume.postValue(false)
+            allowVolumeClick = true
+            Log.d(TAG, "CountdownJob end!")
+        }
+    }
+
+
     //PERSONAL RECEIVER:
     private var overlayReceiver = object: BroadcastReceiver() {
 
@@ -558,6 +637,24 @@ class OverlayService : Service() {
             //Update clock (every minute):
             if (intent!!.action == ACTION_TIME_TICK) {
                 updateMiniClock()
+            }
+
+            //Trigger overlay click:
+            if (intent.action == ACTION_OVERLAY_CLICK) {
+                onOverlayClick(true)
+            }
+
+            //Save current track:
+            if (intent.action == ACTION_SAVE_TRACK) {
+                Log.d(TAG, "OVERLAY: ACTION_SAVE_TRACK.")
+                try {
+                    //TODO:
+                    //SUCCESS -> Play ACKNOWLEDGE tone:
+                    toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                    Toast.makeText(applicationContext, "Track saved!", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Log.w(TAG, "ERROR: Cannot save current track! ", e)
+                }
             }
 
             //MAKE A PHONE CALL:
@@ -588,12 +685,10 @@ class OverlayService : Service() {
                         //Private check thread:
                         val loadThread2 = Thread {
                             try {
-                                synchronized(this) {
-                                    Thread.sleep(3000)
-                                    //Vol_initialized:
-                                    if (!vol_initialized) {
-                                        vol_initialized = true
-                                    }
+                                Thread.sleep(3000)
+                                //Vol_initialized:
+                                if (!vol_initialized) {
+                                    vol_initialized = true
                                 }
                             } catch (e: InterruptedException) {
                                 Log.w(TAG, "Interrupted: exception.", e)

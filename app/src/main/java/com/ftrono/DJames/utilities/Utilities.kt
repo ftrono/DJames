@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.media.AudioFocusRequest
 import android.media.AudioManager
+import android.media.ToneGenerator
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.telephony.PhoneNumberUtils
@@ -15,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
+import com.ftrono.DJames.services.VoiceQueryService
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -248,6 +250,25 @@ class Utilities {
         }
         //Log.d(TAG, "processStatus: $processStatus")
         return processStatus
+    }
+
+
+    fun stopThreadsInList(threads: MutableList<Thread>) {
+        //Stop threads:
+        var t_count = 1
+        var t_max = threads.size
+        for (t in threads) {
+            try {
+                if (t.isAlive()) {
+                    t.interrupt()
+                    Log.d(TAG, "Stopped thread $t_count / $t_max.")
+                }
+                Log.d(TAG, "Thread $t_count / $t_max not active.")
+            } catch (e: Exception) {
+                Log.w(TAG, "Thread $t_count / $t_max: EXCEPTION: ", e)
+            }
+            t_count ++
+        }
     }
 
 

@@ -27,16 +27,14 @@ class EventReceiver: BroadcastReceiver() {
                     audioManager!!.setStreamVolume(AudioManager.STREAM_MUSIC, streamMaxVolume-1, AudioManager.FLAG_PLAY_SOUND)
                     Log.d(TAG, "EVENT: VOLUME_CHANGED_ACTION: Volume lowered.")
                 }
-                //If not voiceQueryOn and not callMode:
-                if (!callMode && vol_initialized && screenOn) {
+                //TRIGGER: If not callMode and all is initialized & ready:
+                if (!callMode && vol_initialized && screenOn && allowVolumeClick) {
                     if (!voiceQueryOn) {
-                        //START VOICE QUERY SERVICE:
-                        sourceIsVolume = true
-                        try {
-                            context!!.startService(Intent(context, VoiceQueryService::class.java))
-                            Log.d(TAG, "EVENT: VOLUME_CHANGED_ACTION: VOICE QUERY SERVICE STARTED.")
-                        } catch (e:Exception) {
-                            Log.w(TAG, "ERROR: VOLUME_CHANGED_ACTION: VOICE QUERY SERVICE NOT STARTED. ", e)
+                        // COUNT CLICKS:
+                        allowVolumeClick = false
+                        Intent().also { intent ->
+                            intent.setAction(ACTION_OVERLAY_CLICK)
+                            context!!.sendBroadcast(intent)
                         }
                     } else if (recordingMode) {
                         //EARLY STOP RECORDING:
@@ -52,27 +50,27 @@ class EventReceiver: BroadcastReceiver() {
 
         //Spotify Metadata Changed:
         if (intent.action == SPOTIFY_METADATA_CHANGED) {
-            Log.d(TAG, "CLOCK: SPOTIFY_METADATA_CHANGED.")
+            Log.d(TAG, "EVENT: SPOTIFY_METADATA_CHANGED.")
             try {
                 //Get new track data:
-                val intentSongId = intent.getStringExtra("id")
+                val intentTrackId = intent.getStringExtra("id")
                 val intentSongName = intent.getStringExtra("track")
                 val intentArtistName = intent.getStringExtra("artist")
                 val intentAlbumName = intent.getStringExtra("album")
 
                 //If new track:
-                if (intentSongName != songName || intentArtistName != artistName || intentAlbumName != contextName) {
+                if (intentTrackId != currentTrackId) {
                     //Update currently_playing JSON:
                     currently_playing = JsonObject()
-                    currently_playing!!.addProperty("id", intentSongId)
-                    currently_playing!!.addProperty("uri", "$uri_format$intentSongId")
-                    currently_playing!!.addProperty("spotify_URL", "${ext_format}track/$intentSongId")
+                    currently_playing!!.addProperty("id", intentTrackId)
+                    currently_playing!!.addProperty("uri", "$uri_format$intentTrackId")
+                    currently_playing!!.addProperty("spotify_URL", "${ext_format}track/$intentTrackId")
                     currently_playing!!.addProperty("song_name", intentSongName)
                     currently_playing!!.addProperty("artist_name", intentArtistName)
                     currently_playing!!.addProperty("album_name", intentAlbumName)
 
                     //Update info:
-                    currentTrackId = intentSongId!!
+                    currentTrackId = intentTrackId!!
                     songName = intentSongName!!
                     artistName = intentArtistName!!
                     contextName = intentAlbumName!!
@@ -86,7 +84,7 @@ class EventReceiver: BroadcastReceiver() {
                     }
                 }
             } catch (e: Exception) {
-                Log.d(TAG, "CLOCK: SPOTIFY_METADATA_CHANGED: resources not available.")
+                Log.d(TAG, "EVENT: SPOTIFY_METADATA_CHANGED: resources not available.")
             }
         }
 

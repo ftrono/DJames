@@ -157,6 +157,8 @@ class MainActivity : ComponentActivity() {
         if (prefs.nlpUserId == "") {
             prefs.nlpUserId = utils.generateRandomString(12)
         }
+        //Prefs:
+        autoStopQueriesState.postValue(prefs.silenceEnabledQueries)
 
         //AUTO START-UP:
         if (prefs.autoStartup && !main_initialized && prefs.spotifyToken != "" && !utils.isMyServiceRunning(OverlayService::class.java, this@MainActivity)) {

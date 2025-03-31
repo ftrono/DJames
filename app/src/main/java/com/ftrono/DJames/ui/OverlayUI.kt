@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
@@ -51,6 +52,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.autoStopQueriesState
+import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.ui.theme.light_grey
 import kotlinx.coroutines.launch
 import kotlin.math.round
@@ -88,6 +91,7 @@ fun DJamesButton(
     onTap: (Offset) -> Unit
 ) {
     val overlayState by overlayStatus.observeAsState()
+    val autoStopQueriesState by autoStopQueriesState.observeAsState()
     //OVERLAY BUTTON:
     Box(
         modifier = Modifier
@@ -139,6 +143,16 @@ fun DJamesButton(
                         modifier = Modifier
                             .size(50.dp),
                         imageVector = Icons.Default.Add,
+                        tint = colorResource(id = R.color.colorPrimaryDark),
+                        contentDescription = "Voice request"
+                    )
+                    3 -> Icon(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .graphicsLayer {
+                                rotationY = if (autoStopQueriesState!!) 0f else 180f
+                            },
+                        painter = if (autoStopQueriesState!!) painterResource(id = R.drawable.icon_hearing_off) else painterResource(id = R.drawable.icon_hearing),
                         tint = colorResource(id = R.color.colorPrimaryDark),
                         contentDescription = "Voice request"
                     )

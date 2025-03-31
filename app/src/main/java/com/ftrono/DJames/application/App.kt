@@ -55,6 +55,7 @@ var innerNavOpen = MutableLiveData<Boolean>(false)
 var currentSongPlaying = MutableLiveData<String>("Don't turn off the screen!")
 var currentArtistPlaying = MutableLiveData<String>("You can keep this Clock\nScreen on to save battery")
 var clickCounter = MutableLiveData<Int>(0)
+var autoStopQueriesState = MutableLiveData<Boolean>(false)
 var allowVolumeClick = true
 
 //Library / vocabulary:
@@ -64,6 +65,7 @@ val vocSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
 var historyKeys = MutableLiveData<List<String>>(listOf("2024-08-05 18:28:53.json"))
 
 //Preferences:
+val maxClickOptions = 3
 val silenceInitPatience = 6
 val silencePatience = 2
 val deltaSimilarity = 10   //5

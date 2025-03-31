@@ -27,6 +27,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -53,6 +54,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.appVersion
+import com.ftrono.DJames.application.autoStopQueriesState
 import com.ftrono.DJames.application.copyrightYear
 import com.ftrono.DJames.application.messLangFull
 import com.ftrono.DJames.application.messLangCodes
@@ -80,17 +82,17 @@ fun SettingsScreenPreview() {
 fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val mContext = LocalContext.current
     //TODO: STATUSES:
-    var checkedStartup = remember { mutableStateOf(if (preview) true else prefs.autoStartup) }
-    var checkedSilenceQueries = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledQueries) }
-    var checkedSilenceMess = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledMess) }
-    var checkedAutoClock = remember { mutableStateOf(if (preview) true else prefs.autoClock) }
-    var checkedClockRedirect = remember { mutableStateOf(if (preview) true else prefs.clockRedirectEnabled) }
-    var checkedVolumeEnabled = remember { mutableStateOf(if (preview) true else prefs.volumeUpEnabled) }
+    val checkedStartup = remember { mutableStateOf(if (preview) true else prefs.autoStartup) }
+    val checkedSilenceQueries by autoStopQueriesState.observeAsState()
+    val checkedSilenceMess = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledMess) }
+    val checkedAutoClock = remember { mutableStateOf(if (preview) true else prefs.autoClock) }
+    val checkedClockRedirect = remember { mutableStateOf(if (preview) true else prefs.clockRedirectEnabled) }
+    val checkedVolumeEnabled = remember { mutableStateOf(if (preview) true else prefs.volumeUpEnabled) }
     var recTimeout by rememberSaveable { mutableStateOf(if (preview) "5" else prefs.recTimeout) }
     var messTimeout by rememberSaveable { mutableStateOf(if (preview) "5" else prefs.messageTimeout) }
     var clockTimeout by rememberSaveable { mutableStateOf(if (preview) "5" else prefs.clockTimeout) }
-    //var textQueryLangState = rememberSaveable { mutableStateOf(if (preview) "English" else queryLangFull[queryLangCodes.indexOf(prefs.queryLanguage)]) }
-    var textMessLangState = rememberSaveable { mutableStateOf(if (preview) "English" else messLangFull[messLangCodes.indexOf(prefs.messageLanguage)]) }
+    //val textQueryLangState = rememberSaveable { mutableStateOf(if (preview) "English" else queryLangFull[queryLangCodes.indexOf(prefs.queryLanguage)]) }
+    val textMessLangState = rememberSaveable { mutableStateOf(if (preview) "English" else messLangFull[messLangCodes.indexOf(prefs.messageLanguage)]) }
 
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -301,12 +303,12 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         )
                         Spacer(Modifier.weight(1f))
                         Switch(
-                            checked = checkedSilenceQueries.value,
+                            checked = checkedSilenceQueries!!,
                             colors = getSwitchColors(
                                 color = colorResource(id = R.color.yellowSign)
                             ),
                             onCheckedChange = {
-                                checkedSilenceQueries.value = it
+                                autoStopQueriesState.postValue(it)
                                 prefs.silenceEnabledQueries = it
                             }
                         )

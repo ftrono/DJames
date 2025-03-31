@@ -88,6 +88,8 @@ import kotlin.math.round
 import kotlin.math.roundToInt
 import com.ftrono.DJames.application.ACTION_OVERLAY_CLICK
 import com.ftrono.DJames.application.allowVolumeClick
+import com.ftrono.DJames.application.autoStopQueriesState
+import com.ftrono.DJames.application.maxClickOptions
 import com.ftrono.DJames.application.utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -584,7 +586,7 @@ class OverlayService : Service() {
             //TRIGGER COUNTER THREAD:
             restartCountdown()
         }
-        if (clickCounter.value!! == 2) {
+        if (clickCounter.value!! == maxClickOptions) {
             clickCounter.postValue(0)
             //Play FAIL tone:
             toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
@@ -619,12 +621,25 @@ class OverlayService : Service() {
                     Log.w(TAG, "ERROR: OVERLAY SERVICE: VOICE QUERY SERVICE NOT STARTED. ", e)
                 }
             } else if (clickCounter.value!! == 2) {
+                //TRIGGER SAVE TRACK:
                 overlayStatus.postValue("processing")
                 //Play STOP tone:
                 toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
-                //TRIGGER SAVE TRACK:
                 Intent().also { intent ->
                     intent.setAction(ACTION_SAVE_TRACK)
+                    applicationContext.sendBroadcast(intent)
+                }
+            } else if (clickCounter.value!! == 3) {
+                //TRIGGER ENABLE/DISABLE SILENCE DETECTION:
+                val silenceModeToTrigger = if (prefs.silenceEnabledQueries) "OFF" else "ON"
+                prefs.silenceEnabledQueries = !prefs.silenceEnabledQueries
+                autoStopQueriesState.postValue(!autoStopQueriesState.value!!)
+                //SUCCESS -> Play ACKNOWLEDGE tone:
+                toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                //TOAST:
+                Intent().also { intent ->
+                    intent.setAction(ACTION_TOASTER)
+                    intent.putExtra("toastText", "Silence detection $silenceModeToTrigger")
                     applicationContext.sendBroadcast(intent)
                 }
             }

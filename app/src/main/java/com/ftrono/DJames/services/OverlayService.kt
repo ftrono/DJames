@@ -109,8 +109,8 @@ class OverlayService : Service() {
 
     // Coroutine scope to handle countdown
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-    private val sleepTimes = 8
-    private val sleepInterval: Long = 250   //ms
+    private val sleepTimes = 40
+    private val sleepInterval: Long = 50   //ms
     private var countdownJob: Job? = null
     private var loadJob: Job? = null
     private var saveTrackJob: Job? = null
@@ -534,6 +534,11 @@ class OverlayService : Service() {
         } catch (e: Exception) {
             Log.w(TAG, "SaveTrackJob not active.")
         }
+        try {
+            countdownJob?.cancel()
+        } catch (e: Exception) {
+            Log.w(TAG, "SaveTrackJob not active.")
+        }
         vol_initialized = false
         //unregister receivers:
         try {
@@ -602,7 +607,7 @@ class OverlayService : Service() {
         Log.d(TAG, "CountdownJob canceled!")
 
         // THREAD:
-        countdownJob = serviceScope.launch {
+        countdownJob = CoroutineScope(Dispatchers.IO).launch {
             Log.d(TAG, "CountdownJob start!")
             //Countdown: ensure interval between clicks:
             for (i in 0..sleepTimes) {

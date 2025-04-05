@@ -109,8 +109,8 @@ class OverlayService : Service() {
 
     // Coroutine scope to handle countdown
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-    private val sleepTimes = 40
-    private val sleepInterval: Long = 50   //ms
+    private val countdownTime: Long = 2000   //ms
+    private val sleepInterval: Long = 100   //ms
     private var countdownJob: Job? = null
     private var loadJob: Job? = null
     private var saveTrackJob: Job? = null
@@ -586,11 +586,8 @@ class OverlayService : Service() {
     // COUNTDOWN FUNCTIONS:
     fun onOverlayClick(fromVolume: Boolean = false) {
         //CLICK -> Play ALERT tone:
-        if (clickCounter.value!! == 0) {
-            sourceIsVolume.postValue(fromVolume)
-            //TRIGGER COUNTER THREAD:
-            restartCountdown()
-        }
+        sourceIsVolume.postValue(fromVolume)
+        restartCountdown()
         if (clickCounter.value!! == maxClickOptions) {
             clickCounter.postValue(0)
             //Play FAIL tone:
@@ -610,12 +607,11 @@ class OverlayService : Service() {
         countdownJob = CoroutineScope(Dispatchers.IO).launch {
             Log.d(TAG, "CountdownJob start!")
             //Countdown: ensure interval between clicks:
-            for (i in 0..sleepTimes) {
-                delay(sleepInterval)
-                if (!allowVolumeClick) {
-                    allowVolumeClick = true
-                }
+            delay(sleepInterval)
+            if (!allowVolumeClick) {
+                allowVolumeClick = true
             }
+            delay(countdownTime-sleepInterval)
             //After countdown:
             if (clickCounter.value!! == 1) {
                 //TRIGGER VOICE REQUEST:

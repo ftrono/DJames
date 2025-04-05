@@ -255,7 +255,7 @@ fun SettingsUserSection(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val userImage = rememberSaveable { mutableStateOf(if (preview || prefs.spotUserImage == "") "" else prefs.spotUserImage) }
-    var beforeText = if (textState.value == "") "Nickname" else textState.value
+    var beforeText = if (preview || textState.value == "") "Nickname" else textState.value
 
     fun onClicked() {
         focusRequester.requestFocus()
@@ -362,7 +362,7 @@ fun SettingsUserSection(
                                     isActive.value = true
                                     onClicked()
                                 },
-                            text = if (textState.value == "") beforeText else textState.value,
+                            text = textState.value,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = colorResource(id = R.color.light_grey)

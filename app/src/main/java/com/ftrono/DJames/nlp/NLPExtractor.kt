@@ -51,8 +51,8 @@ class NLPExtractor (private val context: Context) {
 
             //SLICE:
             if (contextInd > -1) {
-                matchExtracted = queryText.slice(0..< contextInd).strip()
-                contextExtracted = queryText.slice((contextInd + contextStr.length)..< queryText.length).strip()
+                matchExtracted = queryText.slice(0..< contextInd).trim()
+                contextExtracted = queryText.slice((contextInd + contextStr.length)..< queryText.length).trim()
             }
             else {
                 contextTypeConfirmed = "album"
@@ -77,8 +77,8 @@ class NLPExtractor (private val context: Context) {
 
         if (byInd > -1) {
             //SLICE:
-            artistExtracted = matchExtracted.slice((byInd + byStr.length)..< matchExtracted.length).strip()
-            matchExtracted = matchExtracted.slice(0..< byInd).strip()
+            artistExtracted = matchExtracted.slice((byInd + byStr.length)..< matchExtracted.length).trim()
+            matchExtracted = matchExtracted.slice(0..< byInd).trim()
 
         } else {
             //Count occurrences of the word "by":
@@ -93,8 +93,8 @@ class NLPExtractor (private val context: Context) {
             if (byNumber == 1) {
                 //SLICE:
                 byInd = matchExtracted.indexOf(byStr, ignoreCase = true)
-                artistExtracted = matchExtracted.slice((byInd + byStr.length)..< matchExtracted.length).strip()
-                matchExtracted = matchExtracted.slice(0..< byInd).strip()
+                artistExtracted = matchExtracted.slice((byInd + byStr.length)..< matchExtracted.length).trim()
+                matchExtracted = matchExtracted.slice(0..< byInd).trim()
 
             }
         }
@@ -281,7 +281,7 @@ class NLPExtractor (private val context: Context) {
                     var introStr = intro.asString
                     queryClean = queryClean.replace(introStr, "")
                 }
-                queryClean = queryClean.strip()
+                queryClean = queryClean.trim()
             }
 
             //"to / call / message":
@@ -301,7 +301,7 @@ class NLPExtractor (private val context: Context) {
             if (toInd > -1) {
                 //slice:
                 Log.d(TAG, "TO_STR: $toStr")
-                val contactExtracted = queryClean.slice((toInd + toStr.length)..queryClean.lastIndex).strip()
+                val contactExtracted = queryClean.slice((toInd + toStr.length)..queryClean.lastIndex).trim()
                 contactConfirmed.addProperty("contact_extracted", contactExtracted)
                 Log.d(TAG, "CONTACT EXTRACTED: $contactExtracted")
 

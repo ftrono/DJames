@@ -95,6 +95,13 @@ class Utilities {
     }
 
 
+    //Clean string from alphanumeric characters:
+    fun cleanString(text: String): String {
+        val re = Regex("[^A-Za-z0-9 ]")
+        return capitalizeWords(re.replace(text, ""))
+    }
+
+
     //Check if string is made of alphabetic characters:
     fun isLetters(string: String): Boolean {
         return string.all { it.isLetter() }

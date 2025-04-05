@@ -28,7 +28,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.3.4"
+val appVersion = "2.3.5"
 val copyrightYear = 2024
 
 //DB:
@@ -123,7 +123,6 @@ val likedSongsUri = "spotify:user:replaceUserId:collection"
 
 //Spotify:
 val spotifyQueryLimit = 10
-val downloadSpotifyProfileImage = false
 var spotTempToken = ""
 var refrTempToken = ""
 var showLoggingIn = MutableLiveData<Boolean>(false)

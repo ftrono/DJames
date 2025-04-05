@@ -116,13 +116,13 @@ fun EditVocPlaylist(
                     val aliasesList = mutableListOf(textName.value.lowercase())
                     if (textAliases.value != "") {
                         for (alias in textAliases.value.split(",")) {
-                            val temp = alias.lowercase().strip()
+                            val temp = alias.lowercase().trim()
                             if (temp != "" && !aliasesList.contains(temp)) {
                                 aliasesList.add(temp)
                             }
                         }
                     }
-                    itemPlaylist.name = utils.capitalizeWords(textName.value).strip()
+                    itemPlaylist.name = utils.capitalizeWords(textName.value).trim()
                     itemPlaylist.aliases = aliasesList
                     itemPlaylist.spotifyUrl = textPlayUrl.value.replace(" ", "").split("?")[0]
 

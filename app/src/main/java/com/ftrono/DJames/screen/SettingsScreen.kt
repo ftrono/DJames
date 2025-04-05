@@ -61,11 +61,14 @@ import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryLangFull
 import com.ftrono.DJames.application.queryLangCodes
+import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.dialogs.EditVocDynamicNameSection
 import com.ftrono.DJames.services.OverlayService
 import com.ftrono.DJames.ui.DropdownSpinner
 import com.ftrono.DJames.ui.SettingsHeader
 import com.ftrono.DJames.ui.SettingsSection
+import com.ftrono.DJames.ui.SettingsUserSection
 import com.ftrono.DJames.ui.StreetBackground
 import com.ftrono.DJames.ui.getSwitchColors
 import com.ftrono.DJames.ui.getTextFieldColors
@@ -82,6 +85,9 @@ fun SettingsScreenPreview() {
 fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val mContext = LocalContext.current
     //TODO: STATUSES:
+    val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
+    val userNickname = remember { mutableStateOf(if (preview) "User" else prefs.userNickname) }
+    val userGenderMale = remember { mutableStateOf(if (preview) true else prefs.genderMale) }
     val checkedStartup = remember { mutableStateOf(if (preview) true else prefs.autoStartup) }
     val checkedSilenceQueries by autoStopQueriesState.observeAsState()
     val checkedSilenceMess = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledMess) }
@@ -154,10 +160,24 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 horizontalAlignment = Alignment.Start,
             ) {
 
+                //SECTION: USER NICKNAME:
+                SettingsUserSection(
+                    modifier = Modifier
+                        .padding(bottom = 4.dp),
+                    textHeaderColor = colorResource(id = R.color.greenSignLight),
+                    textFieldColors = getTextFieldColors(
+                        colorLight = colorResource(id = R.color.greenSignLight),
+                        colorDark = colorResource(id = R.color.greenSign)
+                    ),
+                    textState = userNickname,
+                    genderMale = userGenderMale,
+                    preview = preview
+                )
+
                 //SECTION: OVERLAY BUTTON:
                 SettingsSection(
                     modifier = Modifier
-                        .padding(end=8.dp, bottom=4.dp),
+                        .padding(top=8.dp, end=8.dp, bottom=4.dp),
                     title = "Overlay button",
                     signColor = colorResource(id = R.color.greenSign),
                     iconPainter = painterResource(id = R.drawable.sign_touch)

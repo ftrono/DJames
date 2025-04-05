@@ -163,18 +163,18 @@ fun EditVocArtist(
                     val aliasesList = mutableListOf(textName.value.lowercase())
                     if (textAliases.value != "") {
                         for (alias in textAliases.value.split(",")) {
-                            val temp = alias.lowercase().strip()
+                            val temp = alias.lowercase().trim()
                             if (temp != "" && !aliasesList.contains(temp)) {
                                 aliasesList.add(temp)
                             }
                         }
                     }
-                    itemArtist.name = utils.capitalizeWords(textName.value).strip()
+                    itemArtist.name = utils.capitalizeWords(textName.value).trim()
                     itemArtist.aliases = aliasesList
                     itemArtist.spotifyUrl = textArtistUrl.value.replace(" ", "").split("?")[0]
                     itemArtist.defaultPlay = if (textPlayThisIsUrl.value == "") "artist" else playOptionsValToKeys[textDefaultPlay.value]!!
                     //PlayLinks:
-                    if (textPlayThisIsUrl.value.strip() != "") {
+                    if (textPlayThisIsUrl.value.trim() != "") {
                         playLinks["spotify_this_is"] = PlayLink(
                             name = "This is ${textName.value}",
                             owner = "Spotify",
@@ -182,7 +182,7 @@ fun EditVocArtist(
                         )
                     }
 
-                    if (textPlayRadioUrl.value.strip() != "") {
+                    if (textPlayRadioUrl.value.trim() != "") {
                         playLinks["spotify_radio"] = PlayLink(
                             name = "${textName.value} Radio",
                             owner = "Spotify",
@@ -190,20 +190,20 @@ fun EditVocArtist(
                         )
                     }
 
-                    if (textPlayMixUrl.value.strip() != "") {
+                    if (textPlayMixUrl.value.trim() != "") {
                         playLinks["spotify_mix"] = PlayLink(
                             name = "${textName.value} Mix",
                             owner = "Spotify",
-                            spotifyUrl = textPlayMixUrl.value.replace(" ", "").split("?")[0].strip()
+                            spotifyUrl = textPlayMixUrl.value.replace(" ", "").split("?")[0].trim()
                         )
                     }
 
-                    if (textPlayCustomUrl.value.strip() != "") {
+                    if (textPlayCustomUrl.value.trim() != "") {
                         playLinks["custom"] = PlayLink(
                             name = "${textName.value} Custom",
                             owner = "",
                             spotifyUrl = textPlayCustomUrl.value.replace(" ", "")
-                                .split("?")[0].strip()
+                                .split("?")[0].trim()
                         )
                     }
 

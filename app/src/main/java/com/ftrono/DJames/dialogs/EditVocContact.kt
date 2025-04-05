@@ -146,8 +146,8 @@ fun EditVocContact(
                 //CHECK & BUILD:
                 //1) Validate Prefix:
                 requestDetailOn.value = !utils.isGlobalPhone(
-                    prefix = textPrefix.value.strip(),
-                    phone = textPhone.value.strip()
+                    prefix = textPrefix.value.trim(),
+                    phone = textPhone.value.trim()
                 )
 
                 if (!requestDetailOn.value && textName.value != "") {
@@ -155,13 +155,13 @@ fun EditVocContact(
                     val aliasesList = mutableListOf(textName.value.lowercase())
                     if (textAliases.value != "") {
                         for (alias in textAliases.value.split(",")) {
-                            val temp = alias.lowercase().strip()
+                            val temp = alias.lowercase().trim()
                             if (temp != "" && !aliasesList.contains(temp)) {
                                 aliasesList.add(temp)
                             }
                         }
                     }
-                    itemContact.name = utils.capitalizeWords(textName.value).strip()
+                    itemContact.name = utils.capitalizeWords(textName.value).trim()
                     itemContact.aliases = aliasesList
                     //Language:
                     if (checkedLang.value) {
@@ -171,8 +171,8 @@ fun EditVocContact(
                     }
                     itemContact.defaultPhone = "personal"
                     phoneSets["personal"] = PhoneSet(
-                        prefix = textPrefix.value.strip(),
-                        phone = textPhone.value.strip()
+                        prefix = textPrefix.value.trim(),
+                        phone = textPhone.value.trim()
                     )
                     itemContact.phoneSets = phoneSets
 

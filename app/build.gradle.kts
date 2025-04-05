@@ -1,21 +1,22 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
-    id("kotlin-kapt") // Only for Kotlin projects
-    id("io.objectbox") // Apply last
-    kotlin("plugin.serialization") version "1.5.0"
+    id("com.google.devtools.ksp")
+    id("io.objectbox")
+    kotlin("plugin.serialization") version "2.1.20"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.1.20"
 }
 
 android {
     namespace = "com.ftrono.DJames"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.ftrono.DJames"
         minSdk = 29
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
-        versionName = "2.3.4"
+        versionName = "2.3.5"
 
         manifestPlaceholders["appAuthRedirectScheme"] = "djames-oauth"
 
@@ -35,19 +36,16 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
         viewBinding = true
         buildConfig = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
     }
     packaging {
         resources {
@@ -64,9 +62,6 @@ android {
 }
 
 dependencies {
-    //val nav_version = "2.7.7"
-    val compose_version = rootProject.extra.get("compose_version") as String
-
     implementation(libs.androidx.core)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -81,15 +76,15 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation("androidx.compose.ui:ui:$compose_version")
-    implementation("androidx.compose.material:material:$compose_version")
-    implementation("androidx.compose.ui:ui-tooling-preview:$compose_version")
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4:$compose_version")
-    debugImplementation("androidx.compose.ui:ui-tooling:$compose_version")
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.material:material")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-tooling")
 
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.material3.adaptive.navigation.suite)
@@ -141,4 +136,7 @@ dependencies {
     implementation("me.xdrop:fuzzywuzzy:1.4.0")
     //AppAuth:
     implementation("net.openid:appauth:0.11.1")
+    //Coil:
+    implementation("io.coil-kt.coil3:coil-compose:3.1.0")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.1.0")
 }

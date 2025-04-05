@@ -554,16 +554,17 @@ class MainActivity : ComponentActivity() {
                         prefs.spotUserId = respJSON.get("id").asString
                         prefs.spotUserEMail = respJSON.get("email").asString
                         prefs.spotCountry = respJSON.get("country").asString
-                        if (downloadSpotifyProfileImage) {
-                            //Spotify profile image:
-                            try {
-                                val images = respJSON.getAsJsonArray("images")
-                                val firstImage = images.get(0).asJsonObject
-                                prefs.spotUserImage = firstImage.get("url").asString
-                            } catch (e: Exception) {
-                                Log.w(TAG, "Unable to retrieve user image: ", e)
-                                prefs.spotUserImage = ""
-                            }
+                        if (prefs.userNickname == "") {
+                            prefs.userNickname = utils.cleanString(respJSON.get("display_name").asString)
+                        }
+                        //Spotify profile image:
+                        try {
+                            val images = respJSON.getAsJsonArray("images")
+                            val firstImage = images.get(0).asJsonObject
+                            prefs.spotUserImage = firstImage.get("url").asString
+                        } catch (e: Exception) {
+                            Log.w(TAG, "Unable to retrieve user image: ", e)
+                            prefs.spotUserImage = ""
                         }
                         //Generate NLP user ID:
                         prefs.nlpUserId = utils.generateRandomString(30, numOnly = true)

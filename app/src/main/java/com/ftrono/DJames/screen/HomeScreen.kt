@@ -85,7 +85,7 @@ fun HomeScreen() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            SpotifyLoginStatus(spotifyLoggedInState!!, mContext)
+            SpotifyLoginStatus(Modifier, spotifyLoggedInState!!, mContext)
             if (isLandscape) {
                 //DISPLAY HORIZONTALLY:
                 Row(
@@ -278,12 +278,15 @@ fun StartButton(overlayActiveState: Boolean) {
 
 
 @Composable
-fun SpotifyLoginStatus(spotifyLoggedInState: Boolean, mContext: Context) {
+fun SpotifyLoginStatus(
+    modifier: Modifier = Modifier,
+    spotifyLoggedInState: Boolean,
+    mContext: Context
+) {
     //SPOTIFY LOGIN STATUS:
     Row (
-        modifier = Modifier
+        modifier = modifier
             .padding(bottom = 20.dp)
-            .wrapContentWidth()
             .clickable {
                 if (!spotifyLoggedInState) {
                     Toast

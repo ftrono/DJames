@@ -246,11 +246,7 @@ class MainActivity : ComponentActivity() {
         NavigationSuiteScaffold(
             modifier = Modifier
                 .fillMaxSize()
-                .safeDrawingPadding()
-                .shadow(
-                    elevation = 4.dp,
-                    spotColor = colorResource(id = R.color.mid_grey)
-                ),
+                .safeDrawingPadding(),
             layoutType = customNavSuiteType,
             navigationSuiteItems = {
                 navItems.forEach { navItem ->

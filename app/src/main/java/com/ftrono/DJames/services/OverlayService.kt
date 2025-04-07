@@ -37,11 +37,14 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -182,7 +185,9 @@ class OverlayService : Service() {
                         bubbleSize = 100,
                         onDrag = { x, y ->
                             bubbleParams.x += x
-                            bubbleParams.y += y
+                            if (bubbleParams.y + y >= 0) {
+                                bubbleParams.y += y
+                            }
                             windowManager.updateViewLayout(it, bubbleParams)
                         }
                     )
@@ -312,6 +317,8 @@ class OverlayService : Service() {
         onDrag: (Int, Int) -> Unit
     ) {
         // Coroutine scope for animating drag events
+        val configuration = LocalConfiguration.current
+        val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
         val coroutineScope = rememberCoroutineScope()
         val mContext = LocalContext.current
         val clockActiveState by clockActive.observeAsState()
@@ -346,8 +353,10 @@ class OverlayService : Service() {
                         //ON DRAG END:
                         onDragEnd = {
                             // Hide close view:
+                            var startClosingRegion = if (isLandscape) screenHeight * 0.5 else screenHeight * 0.7
                             removeCloseView()
-                            if (abs(bubbleParams.y.toFloat()) >= (screenHeight - 400)) {
+                            // Check if overlay is in the lower 20% of the screen
+                            if (abs(bubbleParams.y.toFloat()) >= (startClosingRegion)) {
                                 // If SWIPE DOWN -> CLOSE:
                                 stopSelf()
                             } else {

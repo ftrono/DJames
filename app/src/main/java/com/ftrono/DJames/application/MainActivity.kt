@@ -157,6 +157,10 @@ class MainActivity : ComponentActivity() {
         if (prefs.nlpUserId == "") {
             prefs.nlpUserId = utils.generateRandomString(12)
         }
+        spotUserImageState.postValue(prefs.spotUserImage)
+        userNicknameState.postValue(prefs.userNickname)
+        genderMaleState.postValue(prefs.genderMale)
+
         //Prefs:
         autoStopQueriesState.postValue(prefs.silenceEnabledQueries)
 
@@ -222,7 +226,7 @@ class MainActivity : ComponentActivity() {
         val dialogLoggingInOn by showLoggingIn.observeAsState()
         if (dialogLoggingInOn!!) {
             DialogLoggingIn(mContext = mContext)
-            getSpotifyUserData(mContext)
+            getSpotifyUserData(mContext, navController)
         }
 
         val myNavigationSuiteItemColors = NavigationSuiteDefaults.itemColors(
@@ -296,7 +300,13 @@ class MainActivity : ComponentActivity() {
         ) {
             //MAIN SCREEN: SCAFFOLD:
             Scaffold(
-                topBar = { TopBar(navController, spotifyLoggedInState!!, settingsOpenState!!) },
+                topBar = {
+                    TopBar(
+                        navController,
+                        spotifyLoggedInState!!,
+                        settingsOpenState!!
+                    )
+                 },
                 // Set background color to avoid the white flashing when you switch between screens:
                 containerColor = colorResource(id = R.color.windowBackground)
             ) {
@@ -315,7 +325,11 @@ class MainActivity : ComponentActivity() {
     //TOP APP BAR:
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun TopBar(navController: NavController, spotifyLoggedInState: Boolean, settingsOpenState: Boolean) {
+    fun TopBar(
+        navController: NavController,
+        spotifyLoggedInState: Boolean,
+        settingsOpenState: Boolean
+    ) {
         val mContext = LocalContext.current
 
         // STATES:
@@ -325,7 +339,12 @@ class MainActivity : ComponentActivity() {
 
         val logoutDialogOn = rememberSaveable { mutableStateOf(false) }
         if (logoutDialogOn.value) {
-            DialogLogout(mContext, logoutDialogOn)
+            DialogLogout(
+                mContext,
+                logoutDialogOn,
+                navController,
+                settingsOpenState
+            )
         }
 
         CenterAlignedTopAppBar(
@@ -454,7 +473,12 @@ class MainActivity : ComponentActivity() {
 
 
     @Composable
-    fun DialogLogout(mContext: Context, dialogOnState: MutableState<Boolean>) {
+    fun DialogLogout(
+        mContext: Context,
+        dialogOnState: MutableState<Boolean>,
+        navController: NavController,
+        settingsOpenState: Boolean
+    ) {
         GeneralDialog(
             dialogOnState = dialogOnState,
             backgroundColor = colorResource(id = R.color.colorPrimaryDark),
@@ -469,7 +493,11 @@ class MainActivity : ComponentActivity() {
             dismissText = "No",
             confirmText = "Yes",
             onConfirm = {
-                logout(mContext)
+                logout(
+                    mContext,
+                    navController,
+                    settingsOpenState
+                )
                 dialogOnState.value = false
             }
         )
@@ -521,7 +549,10 @@ class MainActivity : ComponentActivity() {
     }
 
 
-    fun getSpotifyUserData(mContext: Context) {
+    fun getSpotifyUserData(
+        mContext: Context,
+        navController: NavController
+    ) {
         //Get user profile data:
         //BUILD GET REQUEST:
         val url = "https://api.spotify.com/v1/me"
@@ -550,9 +581,8 @@ class MainActivity : ComponentActivity() {
                         prefs.spotUserId = respJSON.get("id").asString
                         prefs.spotUserEMail = respJSON.get("email").asString
                         prefs.spotCountry = respJSON.get("country").asString
-                        if (prefs.userNickname == "") {
-                            prefs.userNickname = utils.cleanString(respJSON.get("display_name").asString)
-                        }
+                        prefs.userNickname = utils.cleanString(respJSON.get("display_name").asString)
+                        prefs.genderMale = true
                         //Spotify profile image:
                         try {
                             val images = respJSON.getAsJsonArray("images")
@@ -580,13 +610,31 @@ class MainActivity : ComponentActivity() {
             }
             spotTempToken = ""
             refrTempToken = ""
+            //States:
             showLoggingIn.postValue(false)
+            genderMaleState.postValue(true)
+            spotUserImageState.postValue(prefs.spotUserImage)
+            userNicknameState.postValue(prefs.userNickname)
+            //TOAST -> Send broadcast:
+            Intent().also { intent ->
+                intent.setAction(ACTION_TOASTER)
+                intent.putExtra("toastText", "Logged in! Please pick a nickname for you!")
+                mContext.sendBroadcast(intent)
+            }
+            //Navigate to Settings:
+            val curNavRoute = NavigationItem.Settings.route
+            navigateTo(navController, curNavRoute)
+            lastNavRoute = curNavRoute
         }
     }
 
 
     //LOGOUT:
-    fun logout(context: Context) {
+    fun logout(
+        context: Context,
+        navController: NavController,
+        settingsOpenState: Boolean
+    ) {
         //Delete tokens & user details:
         spotifyLoggedIn.postValue(false)
         prefs.spotifyToken = ""
@@ -596,9 +644,22 @@ class MainActivity : ComponentActivity() {
         prefs.spotUserEMail = ""
         prefs.spotUserImage = ""
         prefs.spotCountry = ""
+        prefs.userNickname = ""
+        prefs.genderMale = true
         prefs.nlpUserId = utils.generateRandomString(12)
+        genderMaleState.postValue(true)
+        spotUserImageState.postValue("")
+        userNicknameState.postValue("")
         //utils.deleteUserCache()
         Toast.makeText(context, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()
+        //Navigate to Home:
+        val curNavRoute = NavigationItem.Home.route
+        if (curNavRoute == lastNavRoute && (settingsOpenState)) {
+            navController.popBackStack()
+        } else {
+            navigateTo(navController, curNavRoute)
+        }
+        lastNavRoute = curNavRoute
     }
 
 

@@ -66,8 +66,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.genderMaleState
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.spotUserImageState
 import com.ftrono.DJames.application.spotifyLoggedIn
+import com.ftrono.DJames.application.userNicknameState
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.dialogs.EditVocTitle
 import com.ftrono.DJames.screen.SpotifyLoginStatus
@@ -214,8 +217,6 @@ fun CardContainer(
 @Preview
 @Composable
 fun SettingsUserSectionPreview() {
-    val userNickname = remember { mutableStateOf("User") }
-    val genderMale = remember { mutableStateOf(true) }
     SettingsUserSection(
         modifier = Modifier
             .padding(bottom = 4.dp),
@@ -224,8 +225,6 @@ fun SettingsUserSectionPreview() {
             colorLight = colorResource(id = R.color.greenSignLight),
             colorDark = colorResource(id = R.color.greenSign)
         ),
-        textState = userNickname,
-        genderMale = genderMale,
         preview = true
     )
 }
@@ -236,8 +235,6 @@ fun SettingsUserSection(
     modifier: Modifier = Modifier,
     textHeaderColor: Color,
     textFieldColors: TextFieldColors,
-    textState: MutableState<String>,
-    genderMale: MutableState<Boolean>,
     preview: Boolean = false,
 ) {
     val headerText = "Write your nickname"
@@ -246,16 +243,20 @@ fun SettingsUserSection(
         unselectedColor = colorResource(id = R.color.faded_grey)
     )
 
-    val isActive = rememberSaveable { mutableStateOf(false) }
-    var textFieldState by remember { mutableStateOf(TextFieldValue(textState.value)) }
-    val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
     val mContext = LocalContext.current
+    val isActive = rememberSaveable { mutableStateOf(false) }
 
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val userImage = rememberSaveable { mutableStateOf(if (preview || prefs.spotUserImage == "") "" else prefs.spotUserImage) }
-    var beforeText = if (preview || textState.value == "") "Nickname" else textState.value
+
+    val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
+    val userImage by spotUserImageState.observeAsState()
+    val genderMale = remember { mutableStateOf(genderMaleState.value) }
+
+    var textFieldState by remember { mutableStateOf(TextFieldValue(userNicknameState.value!!)) }
+    val shownTextState = remember { mutableStateOf(if (userNicknameState.value == "") "User" else userNicknameState.value) }
+    var beforeText = shownTextState.value
 
     fun onClicked() {
         focusRequester.requestFocus()
@@ -263,11 +264,14 @@ fun SettingsUserSection(
     }
 
     fun onKeyboardDone() {
-        if (!preview && textState.value != "") {
-            prefs.userNickname = utils.cleanString(textState.value)
-            beforeText = textState.value
+        if (!preview && textFieldState.text != "") {
+            prefs.userNickname = utils.cleanString(textFieldState.text)
+            userNicknameState.postValue(textFieldState.text)
+            shownTextState.value = textFieldState.text
+            beforeText = textFieldState.text
         } else {
-            textState.value = beforeText
+            shownTextState.value = beforeText
+            userNicknameState.postValue(beforeText)
         }
         focusManager.clearFocus()
         keyboardController!!.hide()
@@ -297,7 +301,7 @@ fun SettingsUserSection(
             ) {
 
                 //CHIP ICON:
-                if (userImage.value == "") {
+                if (userImage == "") {
                     RoundedSign(
                         modifier = Modifier
                             .focusRequester(focusRequester)
@@ -319,7 +323,7 @@ fun SettingsUserSection(
                             .size(70.dp)
                             .clip(CircleShape)
                             .border(1.5.dp, colorResource(id = R.color.midfaded_grey), CircleShape),
-                        model = prefs.spotUserImage,
+                        model = userImage,
                         contentDescription = "User profile image"
                     )
                 }
@@ -362,7 +366,7 @@ fun SettingsUserSection(
                                     isActive.value = true
                                     onClicked()
                                 },
-                            text = textState.value,
+                            text = shownTextState.value!!,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = colorResource(id = R.color.light_grey)
@@ -401,8 +405,6 @@ fun SettingsUserSection(
                 colors = textFieldColors,
                 value = textFieldState,
                 onValueChange = { newText ->
-                    val corr = newText.text
-                    textState.value = corr
                     textFieldState = newText
                 },
                 textStyle = TextStyle(
@@ -457,11 +459,12 @@ fun SettingsUserSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             RadioButton(
-                selected = genderMale.value,
+                selected = genderMale.value!!,
                 onClick = {
-                    genderMale.value = !genderMale.value
+                    genderMale.value = !genderMale.value!!
+                    genderMaleState.postValue(genderMale.value)
                     if (!preview) {
-                        prefs.genderMale = genderMale.value
+                        prefs.genderMale = genderMale.value!!
                     }
                   },
                 colors = radioButtonColors
@@ -475,11 +478,12 @@ fun SettingsUserSection(
             )
 
             RadioButton(
-                selected = !genderMale.value,
+                selected = !genderMale.value!!,
                 onClick = {
-                    genderMale.value = !genderMale.value
+                    genderMale.value = !genderMale.value!!
+                    genderMaleState.postValue(genderMale.value)
                     if (!preview) {
-                        prefs.genderMale = genderMale.value
+                        prefs.genderMale = genderMale.value!!
                     }
                   },
                 colors = radioButtonColors

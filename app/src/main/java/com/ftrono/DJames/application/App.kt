@@ -57,6 +57,9 @@ var currentArtistPlaying = MutableLiveData<String>("You can keep this Clock\nScr
 var clickCounter = MutableLiveData<Int>(0)
 var autoStopQueriesState = MutableLiveData<Boolean>(false)
 var allowVolumeClick = true
+var genderMaleState = MutableLiveData<Boolean>(true)
+var userNicknameState = MutableLiveData<String>("")
+var spotUserImageState = MutableLiveData<String>("")
 
 //Library / vocabulary:
 var curLibrarySize = MutableLiveData<Int>(0)

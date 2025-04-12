@@ -16,7 +16,7 @@ android {
         minSdk = 29
         targetSdk = 35
         versionCode = 1
-        versionName = "2.3.5"
+        versionName = "2.3.6"
 
         manifestPlaceholders["appAuthRedirectScheme"] = "djames-oauth"
 

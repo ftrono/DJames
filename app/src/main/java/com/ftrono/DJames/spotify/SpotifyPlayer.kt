@@ -7,23 +7,17 @@ import android.util.Log
 import com.ftrono.DJames.application.ACTION_LOG_REFRESH
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.ClockActivity
-import com.ftrono.DJames.application.client
 import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.utils
 import com.google.gson.JsonObject
-import com.google.gson.JsonParser
-import kotlinx.coroutines.runBlocking
-import okhttp3.Headers
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.net.URLEncoder
 
 
 class SpotifyPlayer (private val context: Context) {
 
     private val TAG = SpotifyPlayer::class.java.simpleName
+    private var query = SpotifyQuery(context)
     private var extThread: Thread? = null
 
 
@@ -37,7 +31,7 @@ class SpotifyPlayer (private val context: Context) {
         var sessionState = playInternally(playInfo, useAlbum=false)
         Log.d(TAG, "(FIRST) SESSION STATE: ${sessionState}")
 
-        if (sessionState == 0) {
+        if (sessionState == 200 || sessionState == 204) {
             if (playInfo.get("context_type").asString == "album") {
                 //If context was "album" -> terminate:
                 return 0
@@ -70,7 +64,7 @@ class SpotifyPlayer (private val context: Context) {
                         context.sendBroadcast(intent)
                     }
 
-                    if (sessionState == 0) {
+                    if (sessionState == 200 || sessionState == 204) {
                         //OK -> Terminate:
                         return 0
 
@@ -159,157 +153,55 @@ class SpotifyPlayer (private val context: Context) {
 
     //PLAY INTERNALLY:
     fun playInternally(resultJSON: JsonObject, useAlbum: Boolean = false): Int {
-        var ret = -1
-        //BUILD PUT REQUEST:
         var url = "https://api.spotify.com/v1/me/player/play"
         var playType = resultJSON.get("play_type").asString
-        var offset = JsonObject()  //Context
-        if (playType == "track") {
-            //Start playing from the song:
-            offset.addProperty("uri", resultJSON.get("uri").asString)
-        } else if (playType != "artist") {
-            //Start playing from the beginning:
-            offset.addProperty("position", 0)
-        }
 
+        //Body:
         var jsonBody = JsonObject()
-        if (useAlbum && playType == "track") {
-            //use album context:
+        var offset = JsonObject()   //Context
+
+        // Use requested context:
+        if (playType == "track" && useAlbum) {
             jsonBody.addProperty("context_uri", resultJSON.get("album_uri").asString)
         } else {
-            //Use requested context:
             jsonBody.addProperty("context_uri", resultJSON.get("context_uri").asString)
         }
+
+        //Start playing from:
         if (playType != "artist") {
+            if (playType == "track") {
+                offset.addProperty("uri", resultJSON.get("uri").asString)   //song uri
+            } else {
+                offset.addProperty("position", 0)   //beginning
+            }
             jsonBody.add("offset", offset)
         }
         jsonBody.addProperty("position_ms", 0)
 
-        var body = jsonBody.toString().toRequestBody()
+        //Headers:
+        var jsonHeads = JsonObject()
+        jsonHeads.addProperty("Authorization", "Bearer ${prefs.spotifyToken}")
+        jsonHeads.addProperty("Content-Type", "application/json")
 
-        //FIRST PUT REQUEST:
-        var headers = Headers.Builder()
-            .add("Authorization", "Bearer ${prefs.spotifyToken}")
-            .add("Content-Type", "application/json")
-            .build()
-
-        var request = Request.Builder()
-            .url(url)
-            .put(body)
-            .headers(headers)
-            .build()
-
-        try {
-            runBlocking {
-                var response = utils.makeRequest(client, request)
-                //Log.d(TAG, response)
-                try {
-                    //Check if error 401:
-                    var respJSON = JsonParser.parseString(response).asJsonObject
-                    if (respJSON.has("error")) {
-                        var errorJSON = respJSON.get("error").asJsonObject
-                        var status = errorJSON.get("status").asString.toInt()
-                        Log.d(TAG, "First Search answer: received error ${status}.")
-
-                        //401 -> token expired!
-                        if (status == 401) {
-                            //Calling Refresh:
-                            Log.d(TAG, "Refreshing token...")
-                            var query = SpotifyQuery(context)
-                            query.refreshAuth(context)
-
-                            //SECOND PUT REQUEST:
-                            headers = Headers.Builder()
-                                .add("Authorization", "Bearer ${prefs.spotifyToken}")
-                                .add("Content-Type", "application/json")
-                                .build()
-
-                            request = Request.Builder()
-                                .url(url)
-                                .put(body)
-                                .headers(headers)
-                                .build()
-
-                            response = utils.makeRequest(client, request)
-                            //Log.d(TAG, response)
-                        }
-                    }
-                } catch (e: Exception) {
-                    Log.d(TAG, "PlayInternally(): Response is not a JSON -> OK")
-                }
-
-                //CHECK RESPONSE:
-                if (response == "") {
-                    Log.d(TAG, "PLAY INTERNALLY: request sent.")
-                    ret = 0
-                } else {
-                    Log.d(TAG, "COULD NOT PLAY INTERNALLY.")
-                    try {
-                        var respJSON = JsonParser.parseString(response).asJsonObject
-                        if (respJSON.has("error")) {
-                            Log.d(TAG, "PLAY INTERNALLY: Error response: ${response}")
-                        }
-                    } catch (e:Exception) {
-                        Log.w(TAG, "PLAY INTERNALLY: Could not parse response. Error: ", e)
-                    }
-                    ret = -1
-                }
-            }
-            return ret
-        } catch (e: Exception) {
-            Log.w(TAG, "PLAY INTERNALLY ERROR: ", e)
-            return -1
-        }
+        //PUT REQUEST:
+        var response = query.querySpotify(type = "put", url = url, jsonHeads = jsonHeads, jsonBody = jsonBody)
+        Log.d(TAG, "PLAY INTERNALLY: ${response.code}!")
+        return response.code
     }
 
     
     //GET PLAYBACK STATE:
     fun getPlaybackState(): Int {
-        var ret = -1
-        //BUILD GET REQUEST:
         var url = "https://api.spotify.com/v1/me/player"
 
-        var headers = Headers.Builder()
-            .add("Authorization", "Bearer ${prefs.spotifyToken}")
-            .build()
+        //Headers:
+        var jsonHeads = JsonObject()
+        jsonHeads.addProperty("Authorization", "Bearer ${prefs.spotifyToken}")
 
-        var request = Request.Builder()
-            .url(url)
-            .headers(headers)
-            .build()
-
-        try {
-            runBlocking {
-                var response = utils.makeRequest(client, request)
-                Log.d(TAG, response.toString())
-                if (response == "") {
-                    //204: WRONG CONTEXT:
-                    Log.d(TAG, "PLAYBACK STATE: 204")
-                    ret = 204
-                } else {
-                    try {
-                        var respJSON = JsonParser.parseString(response).asJsonObject
-                        if (respJSON.has("item")) {
-                            if (respJSON.get("item").toString() != "null") {
-                                //200: CONTEXT OK:
-                                Log.d(TAG, "PLAYBACK STATE: 200")
-                                ret = 200
-                            } else {
-                                Log.d(TAG, "PLAYBACK STATE: Error response")
-                            }
-                        } else {
-                            Log.d(TAG, "PLAYBACK STATE: Error response")
-                        }
-                    } catch (e:Exception) {
-                        Log.w(TAG, "PLAYBACK STATE: Could not parse response. Error: ", e)
-                    }
-                }
-            }
-            return ret
-        } catch (e: Exception) {
-            Log.w(TAG, "PLAYBACK STATE ERROR: ", e)
-            return -1
-        }
+        //GET REQUEST:
+        var response = query.querySpotify(type = "get", url = url, jsonHeads = jsonHeads)
+        Log.d(TAG, "PLAYBACK STATE: ${response.code}")
+        return response.code
     }
 
 }

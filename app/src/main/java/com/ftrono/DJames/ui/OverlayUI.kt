@@ -6,6 +6,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -76,7 +78,7 @@ fun DJamesButtonPreview() {
     DJamesButton(
         bubbleSize = 100,
         overlayStatus = MutableLiveData<String>("ready"),
-        clickCounterState = 1,
+        clickCounterState = 2,
         onTap = {offset -> }
     )
 }
@@ -139,13 +141,29 @@ fun DJamesButton(
                         tint = colorResource(id = R.color.colorPrimaryDark),
                         contentDescription = "Voice request"
                     )
-                    2 -> Icon(
+                    2 -> Row (
                         modifier = Modifier
-                            .size(50.dp),
-                        imageVector = Icons.Default.Add,
-                        tint = colorResource(id = R.color.colorPrimaryDark),
-                        contentDescription = "Voice request"
-                    )
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            modifier = Modifier
+                                .offset(x=6.dp)
+                                .size(40.dp),
+                            painter = painterResource(R.drawable.logo_spotify),
+                            tint = colorResource(id = R.color.colorPrimaryDark),
+                            contentDescription = "Save track to Spotify"
+                        )
+                        Icon(
+                            modifier = Modifier
+                                .offset(x=0.dp, y=14.dp)
+                                .size(34.dp),
+                            imageVector = Icons.Default.Add,
+                            tint = colorResource(id = R.color.colorPrimaryDark),
+                            contentDescription = "Save track to Spotify"
+                        )
+                    }
                     3 -> Icon(
                         modifier = Modifier
                             .size(50.dp)
@@ -186,6 +204,11 @@ fun DJamesButton(
             }
         }
     }
+}
+
+@Composable
+fun Row(content: @Composable () -> Unit) {
+    TODO("Not yet implemented")
 }
 
 

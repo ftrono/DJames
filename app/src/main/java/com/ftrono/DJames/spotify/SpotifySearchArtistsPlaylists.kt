@@ -9,6 +9,7 @@ import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.spotifyQueryLimit
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import java.net.URLEncoder
 import me.xdrop.fuzzywuzzy.FuzzySearch
 import kotlin.math.roundToInt
@@ -51,66 +52,71 @@ class SpotifySearchArtistsPlaylists(context: Context) {
         Log.d(TAG, url)
 
         //QUERY:
-        var respJSON = query.querySpotify(type = "get", url = url, jsonHeads = jsonHeads)
-        var n_items = 0
-        //Log:
-        logJSON.addProperty("type", "searchTrackOrAlbum")
-        logJSON.addProperty("url", url)
-        //Check content:
-        var keySet = respJSON.keySet()
-        if (keySet.size == 0) {
-            //Empty:
-            logJSON.addProperty("n_items", n_items)
-            Log.d(TAG, "ERROR: Spotify Search results not received!!")
-        } else {
-            //Analyse response & get index of best result:
-            var temp = respJSON.getAsJsonObject("${playType}s").getAsJsonArray("items")
-            var buf = JsonObject()
-            for (item in temp) {
-                try {
-                    buf = item.asJsonObject
-                    items.add(item)
-                } catch (_: Exception) { }
+        val response = query.querySpotify(type = "get", url = url, jsonHeads = jsonHeads)
+
+        if (response.body != "") {
+            var respJSON = JsonParser.parseString(response.body).asJsonObject
+            var n_items = 0
+            //Log:
+            logJSON.addProperty("type", "searchTrackOrAlbum")
+            logJSON.addProperty("url", url)
+            //Check content:
+            var keySet = respJSON.keySet()
+            if (keySet.size == 0) {
+                //Empty:
+                logJSON.addProperty("n_items", n_items)
+                Log.d(TAG, "ERROR: Spotify Search results not received!!")
+
+            } else {
+                //Analyse response & get index of best result:
+                var temp = respJSON.getAsJsonObject("${playType}s").getAsJsonArray("items")
+                var buf = JsonObject()
+                for (item in temp) {
+                    try {
+                        buf = item.asJsonObject
+                        items.add(item)
+                    } catch (_: Exception) { }
+                }
+
+                n_items = items.size()
+                logJSON.addProperty("n_items", n_items)
+                //Get best score:
+                if (n_items > 0) {
+                    bestMatches = getBestMatchingArtistPlaylist(items, matchName, playType)
+                    logJSON.add("spotify_matches", bestMatches)
+                    //Best:
+                    bestInd = bestMatches[0].asJsonObject.get("pos").asInt
+                    bestScore = bestMatches[0].asJsonObject.get("score").asInt
+                    bestResult = items.get(bestInd).asJsonObject
+                }
             }
+            //Log:
+            logQueries.add(logJSON)
+            last_log!!.add("spotify_queries", logQueries)
+            last_log!!.addProperty("best_score", bestScore)
 
-            n_items = items.size()
-            logJSON.addProperty("n_items", n_items)
-            //Get best score:
-            if (n_items > 0) {
-                bestMatches = getBestMatchingArtistPlaylist(items, matchName, playType)
-                logJSON.add("spotify_matches", bestMatches)
-                //Best:
-                bestInd = bestMatches[0].asJsonObject.get("pos").asInt
-                bestScore = bestMatches[0].asJsonObject.get("score").asInt
-                bestResult = items.get(bestInd).asJsonObject
+            //EXTRACT INFO:
+            if (!bestResult.isEmpty) {
+                Log.d(TAG, "BEST RESULT: INDEX $bestInd, ITEM: $bestResult")
+                returnJSON.addProperty("play_type", playType)
+
+                //ID & uri:
+                val id = bestResult.get("id").asString
+                returnJSON.addProperty("id", id)
+                returnJSON.addProperty("uri", "spotify:$playType:$id")
+                returnJSON.addProperty("spotify_URL", "${ext_format}${playType}/$id")
+                var owner = ""
+                if (playType == "playlist") {
+                    owner = bestResult.get("owner").asJsonObject.get("display_name").asString   //display_name!
+                }
+                returnJSON.addProperty("owner", owner)
+
+                //Match name:
+                returnJSON.add("match_name", bestResult.get("name"))
+
+                Log.d(TAG, "Spotify $playType search results successfully processed!")
+                Log.d(TAG, "returnJSON: ${returnJSON}")
             }
-        }
-        //Log:
-        logQueries.add(logJSON)
-        last_log!!.add("spotify_queries", logQueries)
-        last_log!!.addProperty("best_score", bestScore)
-
-        //EXTRACT INFO:
-        if (!bestResult.isEmpty) {
-            Log.d(TAG, "BEST RESULT: INDEX $bestInd, ITEM: $bestResult")
-            returnJSON.addProperty("play_type", playType)
-
-            //ID & uri:
-            val id = bestResult.get("id").asString
-            returnJSON.addProperty("id", id)
-            returnJSON.addProperty("uri", "spotify:$playType:$id")
-            returnJSON.addProperty("spotify_URL", "${ext_format}${playType}/$id")
-            var owner = ""
-            if (playType == "playlist") {
-                owner = bestResult.get("owner").asJsonObject.get("display_name").asString   //display_name!
-            }
-            returnJSON.addProperty("owner", owner)
-
-            //Match name:
-            returnJSON.add("match_name", bestResult.get("name"))
-
-            Log.d(TAG, "Spotify $playType search results successfully processed!")
-            Log.d(TAG, "returnJSON: ${returnJSON}")
         }
         return returnJSON
     }

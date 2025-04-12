@@ -16,7 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
-import com.ftrono.DJames.spotify.SpotifyVarious
+import com.ftrono.DJames.spotify.SpotifyCalls
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -45,17 +45,28 @@ import kotlin.streams.asSequence
 
 class Utilities {
     private val TAG = Utilities::class.java.simpleName
+    data class HttpResponse(val code: Int, val body: String)
 
     //OkHTTP: make HTTP request:
-    suspend fun makeRequest(client: OkHttpClient, request: Request): String = suspendCoroutine { continuation ->
+    suspend fun makeRequest(client: OkHttpClient, request: Request): HttpResponse = suspendCoroutine { continuation ->
         client.newCall(request).enqueue(object: Callback {
             override fun onResponse(call: Call, response: Response) {
-                continuation.resume(response.body!!.string())
+                continuation.resume(
+                    HttpResponse(
+                        code = response.code,
+                        body = response.body!!.string()
+                    )
+                )
             }
 
             override fun onFailure(call: Call, e: IOException) {
-                continuation.resume("")
-                Log.d(TAG, "RESPONSE ERROR: ", e)
+                continuation.resume(
+                    HttpResponse(
+                        code = -1,  // -1 to indicate failure
+                        body = ""
+                    )
+                )
+                Log.d("TAG", "RESPONSE ERROR: ", e)
             }
         })
     }
@@ -98,7 +109,7 @@ class Utilities {
     //Clean string from alphanumeric characters:
     fun cleanString(text: String): String {
         val re = Regex("[^A-Za-z0-9 ]")
-        return capitalizeWords(re.replace(text, ""))
+        return capitalizeWords(re.replace(text, " "))
     }
 
 
@@ -265,13 +276,13 @@ class Utilities {
         Log.d(TAG, "SaveTrack job start!")
         var toastText = ""
         try {
-            val spotifyVarious = SpotifyVarious(context)
+            val spotifyCalls = SpotifyCalls(context)
             val ids = JsonArray()
             ids.add(currentTrackId.split(":").last())
             Log.d(TAG, "IDS TO SAVE: $ids")
-            val ret = spotifyVarious.saveTrackRequest(ids)
+            val ret = spotifyCalls.saveTrackRequest(ids)
             //PROCESS RESPONSE:
-            if (ret == 0) {
+            if (ret == 200) {
                 //SUCCESS -> Play ACKNOWLEDGE tone:
                 toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                 Log.d(TAG, "Saved track: $ids")

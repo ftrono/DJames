@@ -38,6 +38,7 @@ import com.ftrono.DJames.ui.DropdownSpinner
 import com.ftrono.DJames.ui.getTextFieldColors
 import com.ftrono.DJames.ui.vocColorSelector
 import com.ftrono.DJames.ui.vocColorSelectorLight
+import com.ftrono.DJames.ui.vocIconSelector
 
 
 @Preview
@@ -136,7 +137,10 @@ fun EditVocContact(
                 .clickable {
                     focusManager.clearFocus()
                 },
-            filter = filter,
+            title = filter,
+            headerColor = vocColorSelectorLight(cat = filter),
+            headerPainter = vocIconSelector(cat = filter),
+            showRefresh = false,
             onDismiss = {
                 //cancelable -> true
                 dialogOnState.value = false

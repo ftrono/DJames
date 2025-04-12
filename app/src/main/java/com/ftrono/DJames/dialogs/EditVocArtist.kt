@@ -135,7 +135,11 @@ fun EditVocArtist(
                 .clickable {
                     focusManager.clearFocus()
                 },
-            filter = filter,
+            title = filter,
+            headerColor = vocColorSelectorLight(cat = filter),
+            headerPainter = vocIconSelector(cat = filter),
+            showRefresh = true,
+            onRefresh = { },
             onDismiss = {
                 //cancelable -> true
                 dialogOnState.value = false

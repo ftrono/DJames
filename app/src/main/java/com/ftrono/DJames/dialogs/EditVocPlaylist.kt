@@ -9,7 +9,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
@@ -17,15 +16,13 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.database.Artist
-import com.ftrono.DJames.database.ItemInfoView
 import com.ftrono.DJames.database.Playlist
 import com.ftrono.DJames.screen.VocabularyScreen
-import com.ftrono.DJames.test_objects.testArtists
 import com.ftrono.DJames.test_objects.testPlaylists
 import com.ftrono.DJames.ui.getTextFieldColors
 import com.ftrono.DJames.ui.vocColorSelector
 import com.ftrono.DJames.ui.vocColorSelectorLight
+import com.ftrono.DJames.ui.vocIconSelector
 
 
 @Preview
@@ -100,7 +97,11 @@ fun EditVocPlaylist(
                 .clickable {
                     focusManager.clearFocus()
                 },
-            filter = filter,
+            title = filter,
+            headerColor = vocColorSelectorLight(cat = filter),
+            headerPainter = vocIconSelector(cat = filter),
+            showRefresh = true,
+            onRefresh = { },
             onDismiss = {
                 //cancelable -> true
                 dialogOnState.value = false

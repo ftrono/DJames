@@ -11,6 +11,7 @@ import com.ftrono.DJames.application.artistUrlIntro
 import com.ftrono.DJames.application.currentTrackId
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.playlistUrlIntro
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.Artist
 import com.ftrono.DJames.be.database.Playlist
 import com.google.gson.JsonArray
@@ -159,7 +160,7 @@ class SpotifyUtils {
                 itemPlaylist.spotifyUrl = url
                 //Owner:
                 try {
-                    itemPlaylist.owner = respJson.get("owner").asJsonObject.get("display_name").asString
+                    itemPlaylist.owner = utils.cleanString(respJson.get("owner").asJsonObject.get("display_name").asString)
                 } catch (e: Exception) {
                     itemPlaylist.owner = ""
                 }

@@ -16,7 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
-import com.ftrono.DJames.spotify.SpotifyCalls
+import com.ftrono.DJames.be.spotify.SpotifyCalls
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser

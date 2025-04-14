@@ -14,6 +14,8 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
+**Version 2.4.0 (2025-04-14)** - Repo refactor.
+
 **Version 2.3.6 (2025-04-12)** - Rework Dialog Composables for easy reutilization, rework Spotify Query processes & calls.
 
 **Version 2.3.5 (2025-04-05)** - Full Gradle & code updates for Android 15 and Kotlin v2. Add nickname and Spotify user image download (WIP).

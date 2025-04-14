@@ -81,14 +81,14 @@
         </activity>
 
         <service
-            android:name=".services.OverlayService"
+            android:name=".application.services.OverlayService"
             android:label="Overlay Service"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="microphone">
         </service>
         <service
-            android:name=".services.VoiceQueryService"
+            android:name=".application.services.VoiceQueryService"
             android:label="Voice Query Service"
             android:enabled="true"
             android:exported="false"

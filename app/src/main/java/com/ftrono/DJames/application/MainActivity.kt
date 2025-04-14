@@ -14,7 +14,6 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -23,19 +22,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRailItemDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarColors
@@ -45,11 +39,11 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -60,27 +54,24 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.coroutineScope
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
-import com.ftrono.DJames.dialogs.DialogLoading
-import com.ftrono.DJames.dialogs.GeneralDialog
-import com.ftrono.DJames.screen.updateHistory
-import com.ftrono.DJames.services.OverlayService
-import com.ftrono.DJames.spotify.SpotifyLoginUtils
-import com.ftrono.DJames.ui.Navigation
-import com.ftrono.DJames.ui.OptionsItem
-import com.ftrono.DJames.ui.OptionsMenu
-import com.ftrono.DJames.ui.navigateTo
+import com.ftrono.DJames.application.screens.updateHistory
+import com.ftrono.DJames.application.services.OverlayService
+import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
+import com.ftrono.DJames.ui.components.OptionsItem
+import com.ftrono.DJames.ui.components.OptionsMenu
+import com.ftrono.DJames.ui.dialogs.DialogLoading
+import com.ftrono.DJames.ui.dialogs.GeneralDialog
+import com.ftrono.DJames.ui.navigation.Navigation
+import com.ftrono.DJames.ui.navigation.navigateTo
 import com.ftrono.DJames.ui.theme.DJamesTheme
 import com.ftrono.DJames.ui.theme.NavigationItem
 import com.ftrono.DJames.ui.theme.windowBackground
@@ -163,7 +154,8 @@ class MainActivity : ComponentActivity() {
         autoStopQueriesState.postValue(prefs.silenceEnabledQueries)
 
         //AUTO START-UP:
-        if (prefs.autoStartup && !main_initialized && prefs.spotifyToken != "" && !utils.isMyServiceRunning(OverlayService::class.java, this@MainActivity)) {
+        if (prefs.autoStartup && !main_initialized && prefs.spotifyToken != "" && !utils.isMyServiceRunning(
+                OverlayService::class.java, this@MainActivity)) {
             try {
                 var intentOS = Intent(this@MainActivity, OverlayService::class.java)
                 this@MainActivity.startService(intentOS)
@@ -310,7 +302,7 @@ class MainActivity : ComponentActivity() {
                         spotifyLoggedInState!!,
                         settingsOpenState!!
                     )
-                 },
+                },
                 // Set background color to avoid the white flashing when you switch between screens:
                 containerColor = colorResource(id = R.color.windowBackground)
             ) {
@@ -363,9 +355,9 @@ class MainActivity : ComponentActivity() {
                 bottom = 0.dp
             ),
             title = {
-                Column (
+                Column(
                     horizontalAlignment = Alignment.CenterHorizontally
-                ){
+                ) {
                     Text(
                         modifier = Modifier.offset(y = (2.dp)),
                         text = stringResource(id = R.string.app_title),
@@ -436,7 +428,8 @@ class MainActivity : ComponentActivity() {
                             onClick = {
                                 if (!spotifyLoggedInState) {
                                     //Login user -> Open WebView:
-                                    val intent1 = Intent(this@MainActivity, AuthActivity::class.java)
+                                    val intent1 =
+                                        Intent(this@MainActivity, AuthActivity::class.java)
                                     startActivity(intent1)
                                 } else {
                                     //LOG OUT:

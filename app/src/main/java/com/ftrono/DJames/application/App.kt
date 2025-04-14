@@ -10,11 +10,11 @@ import android.net.Uri
 import net.openid.appauth.AuthorizationServiceConfiguration
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.application.App.ObjectBox.store
-import com.ftrono.DJames.database.Artist
-import com.ftrono.DJames.database.Contact
-import com.ftrono.DJames.database.LibraryUtils
-import com.ftrono.DJames.database.MyObjectBox
-import com.ftrono.DJames.database.Playlist
+import com.ftrono.DJames.be.database.Artist
+import com.ftrono.DJames.be.database.Contact
+import com.ftrono.DJames.be.database.LibraryUtils
+import com.ftrono.DJames.be.database.MyObjectBox
+import com.ftrono.DJames.be.database.Playlist
 import com.ftrono.DJames.utilities.Prefs
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
@@ -28,7 +28,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.3.6"
+val appVersion = "2.4.0"
 val copyrightYear = 2024
 
 //DB:

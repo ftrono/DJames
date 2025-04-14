@@ -402,18 +402,18 @@ fun AddLinkDialog(
     headerIcon: ImageVector? = null,
     headerPainter: Painter? = null,
     onDismiss: () -> Unit = {},
-    onSave: () -> Unit = {},
-    content: @Composable () -> Unit = {}
+    onSave: () -> Unit = {}
 ) {
     val focusRequester = remember { FocusRequester() }
 
     //MAIN:
     EditVocDialog(
-        modifier = Modifier
+        modifier = modifier
             .focusRequester(focusRequester),
         title = header,
         headerColor = headerColor,
         headerIcon = headerIcon,
+        headerPainter = headerPainter,
         onDismiss = onDismiss,
         onSave = onSave,
         smallHeader = false,

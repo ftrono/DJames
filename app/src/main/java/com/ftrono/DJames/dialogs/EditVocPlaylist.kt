@@ -2,6 +2,8 @@ package com.ftrono.DJames.dialogs
 
 import android.content.Context
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -11,14 +13,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.ftrono.DJames.R
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.database.Playlist
 import com.ftrono.DJames.screen.VocabularyScreen
 import com.ftrono.DJames.test_objects.testPlaylists
+import com.ftrono.DJames.ui.CustomCheckbox
 import com.ftrono.DJames.ui.getTextFieldColors
 import com.ftrono.DJames.ui.vocColorSelector
 import com.ftrono.DJames.ui.vocColorSelectorLight
@@ -65,6 +71,7 @@ fun EditVocPlaylist(
     val textName = rememberSaveable { mutableStateOf(itemPlaylist.name) }
     val textAliases = rememberSaveable { mutableStateOf(initAliases.joinToString(", ")) }
     val textPlayUrl = rememberSaveable { mutableStateOf(itemPlaylist.spotifyUrl) }
+    val checkedSpotify = remember { mutableStateOf(itemPlaylist.owner.lowercase() == "spotify") }
 
     val requestDetailOn = rememberSaveable { mutableStateOf(false) }
     if (requestDetailOn.value) {
@@ -126,6 +133,8 @@ fun EditVocPlaylist(
                     itemPlaylist.name = utils.capitalizeWords(textName.value).trim()
                     itemPlaylist.aliases = aliasesList
                     itemPlaylist.spotifyUrl = textPlayUrl.value.replace(" ", "").split("?")[0]
+                    //TODO: TEMP:
+                    itemPlaylist.owner = if (checkedSpotify.value) "Spotify" else if (itemPlaylist.owner == "Spotify") "" else itemPlaylist.owner
 
                     //3) Update / store to DB:
                     libUtils.storePlaylist(mContext, itemPlaylist)
@@ -173,6 +182,16 @@ fun EditVocPlaylist(
                 title = "Spotify Playlist Link",
                 placeholder = "Paste Spotify link...",
                 textState = textPlayUrl
+            )
+
+            //OWNER: CHECKBOX:
+            CustomCheckbox(
+                modifier = Modifier
+                    .padding(bottom=5.dp),
+                checkedState = checkedSpotify,
+                checkedColor = vocColorSelectorLight(cat = filter),
+                textColor = colorResource(id = R.color.light_grey),
+                text = "By Spotify"
             )
         }
     }

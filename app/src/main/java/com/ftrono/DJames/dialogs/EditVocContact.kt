@@ -2,18 +2,12 @@ package com.ftrono.DJames.dialogs
 
 import android.content.Context
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
@@ -21,7 +15,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.ftrono.DJames.R
@@ -34,6 +27,7 @@ import com.ftrono.DJames.database.Contact
 import com.ftrono.DJames.database.PhoneSet
 import com.ftrono.DJames.screen.VocabularyScreen
 import com.ftrono.DJames.test_objects.testContacts
+import com.ftrono.DJames.ui.CustomCheckbox
 import com.ftrono.DJames.ui.DropdownSpinner
 import com.ftrono.DJames.ui.getTextFieldColors
 import com.ftrono.DJames.ui.vocColorSelector
@@ -108,12 +102,6 @@ fun EditVocContact(
             message = "Please enter a valid phone number for the current Contact!\n\nPlease include the international prefix at the beginning (i.e. \"+39\", \"+44\", ...)."
         )
     }
-
-    val checkBoxColors = CheckboxDefaults.colors(
-        checkedColor = vocColorSelectorLight(cat = filter),
-        uncheckedColor = colorResource(id = R.color.mid_grey),
-        checkmarkColor = colorResource(id = R.color.dark_grey_background)
-    )
 
     //EDIT DIALOG:
     Dialog(
@@ -228,34 +216,20 @@ fun EditVocContact(
             )
 
             //CONTACTS: CHECKBOX:
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Checkbox(
-                    modifier = Modifier
-                        .padding(bottom = if (checkedLang.value) 0.dp else 6.dp)
-                        .offset(x = -(12.dp)),
-                    checked = checkedLang.value,
-                    onCheckedChange = { checkedLang.value = it },
-                    colors = checkBoxColors
-                )
-                Text(
-                    modifier = Modifier
-                        .padding(bottom = if (checkedLang.value) 0.dp else 6.dp)
-                        .offset(x = -(12.dp))
-                        .clickable { checkedLang.value = !checkedLang.value },
-                    text = if (checkedLang.value) {
-                        "Set custom messaging language"
-                    } else {
-                        "Set custom messaging language\n(default: ${messLangFull[messLangCodes.indexOf(initLanguage)]})"
-                    },
-                    fontSize = 14.sp,
-                    lineHeight = 16.sp,
-                    color = if (checkedLang.value) colorResource(id = R.color.light_grey) else colorResource(
-                        id = R.color.mid_grey
-                    )
-                )
-            }
+            CustomCheckbox(
+                modifier = Modifier
+                    .padding(bottom = if (checkedLang.value) 0.dp else 6.dp),
+                checkedState = checkedLang,
+                checkedColor = vocColorSelectorLight(cat = filter),
+                textColor = if (checkedLang.value) colorResource(id = R.color.light_grey) else colorResource(
+                    id = R.color.mid_grey
+                ),
+                text = if (checkedLang.value) {
+                    "Set custom messaging language"
+                } else {
+                    "Set custom messaging language\n(default: ${messLangFull[messLangCodes.indexOf(initLanguage)]})"
+                }
+            )
             if (checkedLang.value) {
                 //CONTACTS: DROPDOWN:
                 DropdownSpinner(

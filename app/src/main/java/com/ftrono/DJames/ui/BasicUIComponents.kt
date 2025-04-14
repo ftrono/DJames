@@ -1,10 +1,15 @@
 package com.ftrono.DJames.ui
 
 import android.content.Context
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -14,10 +19,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
@@ -32,6 +39,44 @@ import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryLangFull
 import com.ftrono.DJames.application.queryLangCodes
 import com.ftrono.DJames.screen.restartOverlay
+
+
+@Composable
+fun CustomCheckbox(
+    modifier: Modifier = Modifier,
+    checkedState: MutableState<Boolean>,
+    checkedColor: Color,
+    textColor: Color,
+    text: String
+){
+    val checkBoxColors = CheckboxDefaults.colors(
+        checkedColor = checkedColor,
+        uncheckedColor = colorResource(id = R.color.mid_grey),
+        checkmarkColor = colorResource(id = R.color.dark_grey_background)
+    )
+
+    Row(
+        modifier = modifier
+            .offset(x=-(12.dp)),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Checkbox(
+            modifier = Modifier,
+            checked = checkedState.value,
+            onCheckedChange = { checkedState.value = it },
+            colors = checkBoxColors
+        )
+        Text(
+            modifier = Modifier
+                .clickable { checkedState.value = !checkedState.value },
+            text = text,
+            fontSize = 14.sp,
+            lineHeight = 16.sp,
+            color = textColor
+        )
+    }
+}
 
 
 @OptIn(ExperimentalMaterial3Api::class)

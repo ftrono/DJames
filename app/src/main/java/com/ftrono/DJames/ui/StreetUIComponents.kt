@@ -56,9 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.vocHeads
-import com.ftrono.DJames.database.ItemInfoView
 import com.ftrono.DJames.application.libUtils
-import com.ftrono.DJames.application.utils
 
 
 // STREET UI LANGUAGE COMPONENTS

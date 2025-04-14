@@ -648,18 +648,11 @@ fun VocItemCard(
                 )
             } else {
                 AsyncImage(
-                    modifier = if (circle) {
-                        Modifier
-                            .padding(end = 4.dp)
-                            .size(34.dp)
-                            .clip(CircleShape)
-                            .border(1.dp, colorResource(id = R.color.midfaded_grey), CircleShape)
-                    } else {
-                        Modifier
-                            .padding(end = 4.dp)
-                            .size(34.dp)
-                            .border(1.dp, colorResource(id = R.color.midfaded_grey))
-                    },
+                    modifier = Modifier
+                        .padding(end = 4.dp)
+                        .size(34.dp)
+                        .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
+                        .border(1.dp, colorResource(id = R.color.midfaded_grey), if (circle) CircleShape else RoundedCornerShape(4.dp)),
                     model = imageUrl,
                     contentDescription = "Spotify profile image"
                 )

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -426,16 +427,10 @@ fun EditVocDynamicNameSection(
                 )
             } else {
                 AsyncImage(
-                    modifier = if (filter == "playlist") {
-                                    Modifier
-                                        .size(70.dp)
-                                        .border(1.5.dp, colorResource(id = R.color.midfaded_grey))
-                                } else {
-                                    Modifier
-                                        .size(70.dp)
-                                        .clip(CircleShape)
-                                        .border(1.5.dp, colorResource(id = R.color.midfaded_grey), CircleShape)
-                                },
+                    modifier = Modifier
+                        .size(70.dp)
+                        .clip(if (filter != "playlist") CircleShape else RoundedCornerShape(4.dp))
+                        .border(1.5.dp, colorResource(id = R.color.midfaded_grey), if (filter != "playlist") CircleShape else RoundedCornerShape(4.dp)),
                     model = imageUrlState.value,
                     contentDescription = "Spotify profile image"
                 )

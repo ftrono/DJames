@@ -181,16 +181,16 @@ fun EditVocArtist(
 
                 if (!requestDetailArtistOn.value && !requestDetailPlaylistOn.value && textName.value != "") {
                     //2) Update object:
-                    val aliasesList = mutableListOf(textName.value.lowercase())
+                    val aliasesList = mutableListOf(utils.cleanString(textName.value).lowercase())
                     if (textAliases.value != "") {
                         for (alias in textAliases.value.split(",")) {
-                            val temp = alias.lowercase().trim()
+                            val temp = utils.cleanString(alias).lowercase()
                             if (temp != "" && !aliasesList.contains(temp)) {
                                 aliasesList.add(temp)
                             }
                         }
                     }
-                    itemArtist.name = utils.capitalizeWords(textName.value).trim()
+                    itemArtist.name = textName.value.trim()   //utils.capitalizeWords(textName.value).trim()
                     itemArtist.aliases = aliasesList
                     itemArtist.imageUrl = imageUrlState.value
                     itemArtist.spotifyUrl = spotifyUtils.trimSpotifyUrl(textArtistUrl.value)

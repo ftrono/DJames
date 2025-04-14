@@ -3,24 +3,15 @@ package com.ftrono.DJames.utilities
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
-import android.media.AudioFocusRequest
-import android.media.AudioManager
-import android.media.ToneGenerator
-import android.speech.tts.TextToSpeech
-import android.speech.tts.UtteranceProgressListener
 import android.telephony.PhoneNumberUtils
 import android.util.Log
-import android.util.Patterns
-import android.webkit.URLUtil
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
-import com.ftrono.DJames.be.spotify.SpotifyCalls
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import kotlinx.coroutines.runBlocking
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
@@ -33,7 +24,6 @@ import java.io.IOException
 import java.io.InputStreamReader
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import java.util.Random
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -106,10 +96,12 @@ class Utilities {
     }
 
 
-    //Clean string from alphanumeric characters:
+    //Clean string keeping only alphanumeric characters:
     fun cleanString(text: String): String {
-        val re = Regex("[^A-Za-z0-9 ]")
-        return capitalizeWords(re.replace(text, " "))
+        //val re = Regex("[^A-Za-z0-9 ]")
+        val re = Regex("[\\p{P}\\p{S}]|[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+")
+        val cleaned = re.replace(text, " ").replace(Regex("\\s+"), " ").trim()
+        return capitalizeWords(cleaned).trim()
     }
 
 

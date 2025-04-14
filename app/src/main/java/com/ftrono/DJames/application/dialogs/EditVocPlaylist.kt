@@ -33,6 +33,7 @@ import com.ftrono.DJames.ui.selectors.getTextFieldColors
 import com.ftrono.DJames.ui.selectors.vocColorSelector
 import com.ftrono.DJames.ui.selectors.vocColorSelectorLight
 import com.ftrono.DJames.ui.selectors.vocIconSelector
+import android.util.Log
 
 
 @Preview
@@ -131,16 +132,17 @@ fun EditVocPlaylist(
 
                 if (!requestDetailOn.value && textName.value != "") {
                     //2) Update object:
-                    val aliasesList = mutableListOf(textName.value.lowercase())
+                    val aliasesList = mutableListOf(utils.cleanString(textName.value).lowercase())
+                    Log.d("EditVocPlaylist", "$aliasesList")
                     if (textAliases.value != "") {
                         for (alias in textAliases.value.split(",")) {
-                            val temp = alias.lowercase().trim()
+                            val temp = utils.cleanString(alias).lowercase()
                             if (temp != "" && !aliasesList.contains(temp)) {
                                 aliasesList.add(temp)
                             }
                         }
                     }
-                    itemPlaylist.name = utils.capitalizeWords(textName.value).trim()
+                    itemPlaylist.name = textName.value.trim()   //utils.capitalizeWords(textName.value).trim()
                     itemPlaylist.aliases = aliasesList
                     itemPlaylist.imageUrl = imageUrlState.value
                     itemPlaylist.spotifyUrl = spotifyUtils.trimSpotifyUrl(textPlayUrl.value)

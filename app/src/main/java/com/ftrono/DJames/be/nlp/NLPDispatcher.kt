@@ -2,6 +2,7 @@ package com.ftrono.DJames.be.nlp
 
 import android.content.Context
 import android.util.Log
+import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.newsTalk
@@ -64,7 +65,7 @@ class NLPDispatcher (private var context: Context) {
                 try {
                     //Get relevant results:
                     nlp_queryText = resultsNLP.get("query_text").asString
-                    nlp_queryText = utils.replaceNums(nlp_queryText)
+                    nlp_queryText = fulfillmentUtils.replaceNums(nlp_queryText)
                     intentName = resultsNLP.get("intent_name").asString
                     Log.d(TAG, "NLPDispatcher1: detected intent: $intentName")
                 } catch (e: Exception) {
@@ -127,7 +128,7 @@ class NLPDispatcher (private var context: Context) {
                     //Get relevant results:
                     nlp_queryText = resultsNLP.get("query_text").asString
                     if (!messageMode) {
-                        nlp_queryText = utils.replaceNums(nlp_queryText)
+                        nlp_queryText = fulfillmentUtils.replaceNums(nlp_queryText)
                     }
                     intentName = resultsNLP.get("intent_name").asString
                     Log.d(TAG, "NLPDispatcher2: detected intent: $intentName")

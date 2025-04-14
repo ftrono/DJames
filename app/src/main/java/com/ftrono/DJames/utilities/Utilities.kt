@@ -119,22 +119,6 @@ class Utilities {
     }
 
 
-    //Validate artist URL:
-    fun isArtistUrl(playUrl: String): Boolean {
-        val urlTest = URLUtil.isValidUrl(playUrl) && Patterns.WEB_URL.matcher(playUrl).matches()
-        //True if conditions are met:
-        return (urlTest && playUrl.contains(artistUrlIntro))
-    }
-
-
-    //Validate playlist URL:
-    fun isPlaylistUrl(playUrl: String): Boolean {
-        val urlTest = URLUtil.isValidUrl(playUrl) && Patterns.WEB_URL.matcher(playUrl).matches()
-        //True if conditions are met:
-        return (urlTest && playUrl.contains(playlistUrlIntro))
-    }
-
-
     //Validate contact phone (i.e. no phone number, no international prefix in phone number):
     fun isGlobalPhone(prefix: String, phone: String): Boolean {
         val phoneTest = PhoneNumberUtils.isGlobalPhoneNumber(phone)
@@ -153,51 +137,12 @@ class Utilities {
         return textTrimmed
     }
 
+
     //Get stdev:
     fun getStDev(numbers: List<Int>): Int {
         val mean = numbers.average()
         val variance = numbers.map { (it - mean).pow(2) }.average()
         return sqrt(variance).roundToInt()
-    }
-
-
-    //Replace nums with strings (& opposite):
-    fun replaceNums(text: String): String {
-        //TODO: Replace words with numbers too.
-        val regexMap = mapOf(
-            "\\d*000\\b" to "thousand",
-            "\\d*,000\\b" to "thousand",
-            "\\d*00\\b" to "hundred",
-            "thousand" to "1000",
-            "hundred" to "100"
-        )
-
-        var number = false
-        var newText = text
-        val textSplits = text.lowercase().split(" ")
-        for (tok in textSplits) {
-            if (tok == "number") {
-                number = true
-            }
-            //tok -> entire word:
-            for (regStr in regexMap.keys) {
-                val regex = Regex(regStr)
-                //match -> only fixed portion:
-                val match = regex.find(tok)?.value
-                if (match != null) {
-                    Log.d(TAG, "REGEX MATCHED: $match")
-                    //If match: if "number", remove the word "number" and
-                    if (number) {
-                        newText = newText.replace("number", "")
-                    } else {
-                        //val cleaned = tok.replace(match, "").replace(",", "")
-                        newText = newText.replace(tok, regexMap[regStr]!!)
-                    }
-                    break
-                }
-            }
-        }
-        return newText
     }
 
 
@@ -271,45 +216,6 @@ class Utilities {
     }
 
 
-    //SPOTIFY: Save currently playing track:
-    fun saveCurrentTrack(context: Context, toneGen: ToneGenerator){
-        Log.d(TAG, "SaveTrack job start!")
-        var toastText = ""
-        try {
-            val spotifyCalls = SpotifyCalls(context)
-            val ids = JsonArray()
-            ids.add(currentTrackId.split(":").last())
-            Log.d(TAG, "IDS TO SAVE: $ids")
-            val ret = spotifyCalls.saveTrackRequest(ids)
-            //PROCESS RESPONSE:
-            if (ret == 200) {
-                //SUCCESS -> Play ACKNOWLEDGE tone:
-                toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
-                Log.d(TAG, "Saved track: $ids")
-                toastText = "Current track saved in Spotify!"
-            } else {
-                //Play FAIL tone:
-                toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-                Log.w(TAG, "ERROR: Cannot save track: $ids")
-                toastText = "ERROR: Could not save current track in Spotify!"
-            }
-        } catch (e: Exception) {
-            //Play FAIL tone:
-            toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-            Log.w(TAG, "ERROR: Cannot save current track!")
-            toastText = "ERROR: Could not save current track in Spotify!"
-        }
-        //TOAST -> Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_TOASTER)
-            intent.putExtra("toastText", toastText)
-            context.sendBroadcast(intent)
-        }
-        overlayStatus.postValue("ready")
-        Log.d(TAG, "SaveTrack job end!")
-    }
-
-
     fun stopThreadsInList(threads: MutableList<Thread>) {
         //Stop threads:
         var t_count = 1
@@ -326,135 +232,6 @@ class Utilities {
             }
             t_count ++
         }
-    }
-
-
-    //HELPER: TTS directly read:
-    private suspend fun ttsReadNoFocus(context: Context, langCode: String, text: String): Unit = suspendCoroutine { continuation ->
-        //SET UP TTS:
-        //Set Locale:
-        var locale = Locale.UK
-        if (langCode == "it") {
-            locale = Locale.ITALY
-        }
-        var tts: TextToSpeech? = null
-        tts = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                val result = tts!!.setLanguage(locale)
-                if (result == TextToSpeech.LANG_MISSING_DATA ||
-                    result == TextToSpeech.LANG_NOT_SUPPORTED
-                ) {
-                    Log.e(TAG, "Language ${langCode} not supported!")
-                } else {
-                    tts!!.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                        override fun onStart(utteranceId: String) {
-                        }
-
-                        override fun onDone(utteranceId: String) {
-                            continuation.resume(Unit)
-                        }
-
-                        override fun onError(utteranceId: String) {
-                            Log.e(TAG, "Error on $utteranceId")
-                            //continuation.resume(Unit)
-                        }
-                    })
-                    tts!!.speak(text, TextToSpeech.QUEUE_FLUSH, null, generateRandomString(8))
-                }
-            } else {
-                Log.e(TAG, "Initialization Failed!")
-                continuation.resume(Unit)
-            }
-        }
-    }
-
-
-    //HELPER: TTS read with audio dimming:
-    private fun ttsReadWithFocus(context: Context, audioFocusRequest: AudioFocusRequest, language: String, text: String) {
-        //BUILD FOCUS REQUEST:
-        val focusRequest = audioManager!!.requestAudioFocus(audioFocusRequest)
-        when (focusRequest) {
-            AudioManager.AUDIOFOCUS_REQUEST_FAILED -> {
-                Log.d(TAG, "Cannot gain audio focus! Try again.")
-            }
-
-            AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {
-                runBlocking {
-                    ttsReadNoFocus(context, language, text)
-                }
-                audioManager!!.abandonAudioFocusRequest(audioFocusRequest)
-            }
-
-            AudioManager.AUDIOFOCUS_REQUEST_DELAYED -> {
-                //mAudioFocusPlaybackDelayed = true
-            }
-        }
-    }
-
-    //TTS READER: MAIN FUNCTION:
-    fun ttsRead(context: Context, language: String, text: String, dimAudio: Boolean = false) {
-        try {
-            Thread.sleep(1000)
-            if (dimAudio) {
-                //Build AudioFocus dim request:
-                audioFocusRequest =
-                    AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
-                        .setAudioAttributes(audioAttributes!!)
-                        .setAcceptsDelayedFocusGain(true)
-                        .setOnAudioFocusChangeListener(audioFocusChangeListener)
-                        .build()
-                ttsReadWithFocus(context, audioFocusRequest!!, language, text)
-            } else {
-                runBlocking {
-                    ttsReadNoFocus(context, language, text)
-                }
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "ttsRead: cannot read TTS. EXCEPTION: ", e)
-        }
-    }
-
-
-    //Release AudioFocus
-    fun releaseAudioFocus() {
-        try {
-            audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: AudioFocus already released.")
-        }
-    }
-    
-
-    //Emoji replacer:
-    fun replaceEmojis(context: Context, text: String, reqLanguage: String): String {
-        var textReplaced = text
-        var reader: BufferedReader? = null
-        //Query language:
-        var messLanguage = prefs.messageLanguage
-        if (reqLanguage != "") {
-            messLanguage = reqLanguage
-        }
-        //language:
-        if (messLanguage == "it") {
-            reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents_ita)))   //"ita"
-        } else {
-            reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents_eng)))   //"eng"
-        }
-
-        //Load map:
-        val sourceSents = JsonParser.parseReader(reader).asJsonObject
-        val emojiMap = sourceSents.get("emojiMap").asJsonObject
-
-        //Replace:
-        textReplaced = textReplaced.replace("Emoji", "emoji")
-        textReplaced = textReplaced.replace("emoji,", "emoji")
-        textReplaced = textReplaced.replace("emoji.", "emoji")
-        textReplaced = textReplaced.replace("emoji?", "emoji")
-
-        for (sent in emojiMap.keySet()) {
-            textReplaced = textReplaced.replace("emoji $sent", emojiMap.get(sent).asString, ignoreCase=true)
-        }
-        return textReplaced
     }
 
 

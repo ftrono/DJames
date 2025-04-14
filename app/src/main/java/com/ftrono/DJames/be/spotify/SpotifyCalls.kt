@@ -64,8 +64,11 @@ class SpotifyCalls(private val context: Context) {
 
 
     //GET SPOTIFY PLAYLIST:
-    fun getSpotifyPlaylist(id: String): HttpResponse {
+    fun getSpotifyPlaylist(id: String, detailsOnly: Boolean): HttpResponse {
         var url = "https://api.spotify.com/v1/playlists/$id"
+        if (detailsOnly) {
+            url += "?fields=name%2Cimages%2Cowner%2Csnapshot_id"
+        }
 
         //Headers:
         var jsonHeads = JsonObject()

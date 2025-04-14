@@ -93,7 +93,7 @@ import com.ftrono.DJames.application.ACTION_OVERLAY_CLICK
 import com.ftrono.DJames.application.allowVolumeClick
 import com.ftrono.DJames.application.autoStopQueriesState
 import com.ftrono.DJames.application.maxClickOptions
-import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.application.spotifyUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -684,7 +684,7 @@ class OverlayService : Service() {
                     //PROCESS QUERY:
                     saveTrackJob = CoroutineScope(Dispatchers.IO).launch {
                         delay(1000)
-                        utils.saveCurrentTrack(context!!, toneGen)
+                        spotifyUtils.saveCurrentTrack(context!!, toneGen)
                     }
                 } catch (e: Exception) {
                     Log.w(TAG, "ERROR: Cannot save current track! ", e)

@@ -23,6 +23,7 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.Artist
 import com.ftrono.DJames.be.database.PlayLink
 import com.ftrono.DJames.application.screens.VocabularyScreen
+import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.be.samples.testArtists
 import com.ftrono.DJames.ui.components.DropdownSpinner
 import com.ftrono.DJames.ui.components.SectionTitle
@@ -47,11 +48,12 @@ fun DialogEditArtistPreview() {
 
 @Composable
 fun EditVocArtist(
-    mContext: Context,
-    dialogOnState: MutableState<Boolean>,
+    context: Context,
     libraryMap: MutableState<Map<String, String>>,
     keyState: MutableState<String>,
+    initLinkState: MutableState<String>,
     filter: String,
+    onDismiss: () -> Unit = {},
     preview: Boolean = false
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -61,12 +63,16 @@ fun EditVocArtist(
 
     //Pre-populate:
     // val itemArtist = Artist()
-    val itemArtist = if (preview) {
+    var itemArtist = if (preview) {
         testArtists[0]
     } else if (key != "") {
         libUtils.getArtist(keyState.value)
     } else {
         Artist()
+    }
+
+    if (initLinkState.value != "") {
+        itemArtist = spotifyUtils.getArtistInfo(context, initLinkState.value, itemArtist, init=true)
     }
 
     //Init aliases:
@@ -92,8 +98,9 @@ fun EditVocArtist(
     //States:
     val textName = rememberSaveable { mutableStateOf(itemArtist.name) }
     val textAliases = rememberSaveable { mutableStateOf(initAliases.joinToString(", ")) }
+    val imageUrlState = rememberSaveable { mutableStateOf(itemArtist.imageUrl) }
     val textDefaultPlay = rememberSaveable { mutableStateOf(initDefaultPlay) }
-    val textArtistUrl = rememberSaveable { mutableStateOf(itemArtist.spotifyUrl) }
+    val textArtistUrl = rememberSaveable { mutableStateOf(if (initLinkState.value != "") initLinkState.value else itemArtist.spotifyUrl) }
     val textPlayThisIsUrl = rememberSaveable { mutableStateOf(initPlayThisIsUrl) }
     val textPlayRadioUrl = rememberSaveable { mutableStateOf(initPlayRadioUrl) }
     val textPlayMixUrl = rememberSaveable { mutableStateOf(initPlayMixUrl) }
@@ -121,9 +128,7 @@ fun EditVocArtist(
     //EDIT DIALOG:
     Dialog(
         onDismissRequest = {
-            //cancelable -> true
-            dialogOnState.value = false
-            keyState.value = ""
+            onDismiss()
         },
         properties = DialogProperties(
             dismissOnBackPress = true,
@@ -144,32 +149,34 @@ fun EditVocArtist(
             headerColor = vocColorSelectorLight(cat = filter),
             headerPainter = vocIconSelector(cat = filter),
             showRefresh = true,
-            onRefresh = { },
+            onRefresh = {
+                itemArtist = spotifyUtils.getArtistInfo(context, textArtistUrl.value, itemArtist, init=false)
+                textName.value = itemArtist.name
+                imageUrlState.value = itemArtist.imageUrl
+            },
             onDismiss = {
-                //cancelable -> true
-                dialogOnState.value = false
-                keyState.value = ""
+                onDismiss()
             },
             onSave = {
                 //CHECK & BUILD:
                 //1) Validate Artist URL & Playlist URL:
                 requestDetailArtistOn.value =
-                    !utils.isArtistUrl(textArtistUrl.value.replace(" ", ""))
+                    !spotifyUtils.isArtistUrl(textArtistUrl.value.replace(" ", ""))
                 if (textPlayThisIsUrl.value != "") {
                     requestDetailPlaylistOn.value =
-                        !utils.isPlaylistUrl(textPlayThisIsUrl.value.replace(" ", ""))
+                        !spotifyUtils.isPlaylistUrl(textPlayThisIsUrl.value.replace(" ", ""))
                 }
                 if (textPlayRadioUrl.value != "") {
                     requestDetailPlaylistOn.value =
-                        !utils.isPlaylistUrl(textPlayRadioUrl.value.replace(" ", ""))
+                        !spotifyUtils.isPlaylistUrl(textPlayRadioUrl.value.replace(" ", ""))
                 }
                 if (textPlayMixUrl.value != "") {
                     requestDetailPlaylistOn.value =
-                        !utils.isPlaylistUrl(textPlayMixUrl.value.replace(" ", ""))
+                        !spotifyUtils.isPlaylistUrl(textPlayMixUrl.value.replace(" ", ""))
                 }
                 if (textPlayCustomUrl.value != "") {
                     requestDetailPlaylistOn.value =
-                        !utils.isPlaylistUrl(textPlayCustomUrl.value.replace(" ", ""))
+                        !spotifyUtils.isPlaylistUrl(textPlayCustomUrl.value.replace(" ", ""))
                 }
 
                 if (!requestDetailArtistOn.value && !requestDetailPlaylistOn.value && textName.value != "") {
@@ -185,7 +192,8 @@ fun EditVocArtist(
                     }
                     itemArtist.name = utils.capitalizeWords(textName.value).trim()
                     itemArtist.aliases = aliasesList
-                    itemArtist.spotifyUrl = textArtistUrl.value.replace(" ", "").split("?")[0]
+                    itemArtist.imageUrl = imageUrlState.value
+                    itemArtist.spotifyUrl = spotifyUtils.trimSpotifyUrl(textArtistUrl.value)
                     itemArtist.defaultPlay =
                         if (textPlayThisIsUrl.value == "") "artist" else playOptionsValToKeys[textDefaultPlay.value]!!
                     //PlayLinks:
@@ -193,7 +201,7 @@ fun EditVocArtist(
                         playLinks["spotify_this_is"] = PlayLink(
                             name = "This is ${textName.value}",
                             owner = "Spotify",
-                            spotifyUrl = textPlayThisIsUrl.value.replace(" ", "").split("?")[0]
+                            spotifyUrl = spotifyUtils.trimSpotifyUrl(textPlayThisIsUrl.value)
                         )
                     }
 
@@ -201,7 +209,7 @@ fun EditVocArtist(
                         playLinks["spotify_radio"] = PlayLink(
                             name = "${textName.value} Radio",
                             owner = "Spotify",
-                            spotifyUrl = textPlayRadioUrl.value.replace(" ", "").split("?")[0]
+                            spotifyUrl = spotifyUtils.trimSpotifyUrl(textPlayRadioUrl.value)
                         )
                     }
 
@@ -209,7 +217,7 @@ fun EditVocArtist(
                         playLinks["spotify_mix"] = PlayLink(
                             name = "${textName.value} Mix",
                             owner = "Spotify",
-                            spotifyUrl = textPlayMixUrl.value.replace(" ", "").split("?")[0].trim()
+                            spotifyUrl = spotifyUtils.trimSpotifyUrl(textPlayMixUrl.value)
                         )
                     }
 
@@ -217,20 +225,18 @@ fun EditVocArtist(
                         playLinks["custom"] = PlayLink(
                             name = "${textName.value} Custom",
                             owner = "",
-                            spotifyUrl = textPlayCustomUrl.value.replace(" ", "")
-                                .split("?")[0].trim()
+                            spotifyUrl = spotifyUtils.trimSpotifyUrl(textPlayCustomUrl.value)
                         )
                     }
 
                     itemArtist.playLinks = playLinks
 
                     //3) Update / store to DB:
-                    libUtils.storeArtist(mContext, itemArtist)
+                    libUtils.storeArtist(context, itemArtist)
 
                     //4) End & close:
                     libraryMap.value = libUtils.refreshLibrary(filter)   //Refresh list
-                    dialogOnState.value = false
-                    keyState.value = ""
+                    onDismiss()
                 }
             }
         ) {
@@ -244,6 +250,7 @@ fun EditVocArtist(
                 ),
                 filter = filter,
                 textState = textName,
+                imageUrlState = imageUrlState,
                 initActive = textName.value == ""
             )
 
@@ -300,7 +307,7 @@ fun EditVocArtist(
             )
 
             DropdownSpinner(
-                mContext = mContext,
+                context = context,
                 parentOptions = playOptionsValToKeys.keys.toList(),
                 init = initDefaultPlay,
                 state = textDefaultPlay,

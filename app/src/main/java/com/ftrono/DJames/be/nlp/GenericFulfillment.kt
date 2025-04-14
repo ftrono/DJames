@@ -7,6 +7,7 @@ import android.util.Log
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_MAKE_CALL
 import com.ftrono.DJames.application.ACTION_TOASTER
+import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.messLangFull
 import com.ftrono.DJames.application.nlp_queryText
@@ -60,10 +61,10 @@ class GenericFulfillment (private var context: Context) {
 
             //TODO: eng only!
             var ttsToRead = "Calling ${contact_name}..."
-            utils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
+            fulfillmentUtils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
         }
 
-        utils.releaseAudioFocus()
+        fulfillmentUtils.releaseAudioFocus()
 
         //processStatus:
         processStatus.addProperty("stopService", true)
@@ -147,7 +148,7 @@ class GenericFulfillment (private var context: Context) {
 
             //TODO: eng only!
             var ttsToRead = "Please, dictate the message for ${contact_name} in $reqLangName."
-            utils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
+            fulfillmentUtils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
         }
 
         //processStatus:
@@ -176,7 +177,7 @@ class GenericFulfillment (private var context: Context) {
 
             //Send SMS:
             val smsManager: SmsManager = SmsManager.getDefault()
-            var messageText = utils.replaceEmojis(context=context, text=nlp_queryText, reqLanguage=reqLangCode)
+            var messageText = fulfillmentUtils.replaceEmojis(context=context, text=nlp_queryText, reqLanguage=reqLangCode)
 
             val parts = smsManager.divideMessage(messageText)
             smsManager.sendMultipartTextMessage(phone, null, parts, null, null)
@@ -191,7 +192,7 @@ class GenericFulfillment (private var context: Context) {
 
             //TODO: eng only!
             var ttsToRead = "Message sent to ${contact_name}!"
-            utils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
+            fulfillmentUtils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
 
 
         } catch (e: Exception) {
@@ -202,7 +203,7 @@ class GenericFulfillment (private var context: Context) {
         processStatus.addProperty("stopService", true)
         processStatus.addProperty("stopSound", true)
         Log.d(TAG, processStatus.toString())
-        utils.releaseAudioFocus()
+        fulfillmentUtils.releaseAudioFocus()
 
         return processStatus
     }

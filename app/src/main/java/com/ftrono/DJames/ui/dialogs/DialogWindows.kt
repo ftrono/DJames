@@ -378,9 +378,8 @@ fun AddLinkDialogPreview() {
     ) {
         AddLinkDialog(
             textState = textState,
+            dialogHeader = "New",
             textBoxHeader = "Paste link here",
-            header = "New",
-            headerColor = colorResource(R.color.mid_grey),
             headerIcon = Icons.Default.Add,
         )
     }
@@ -391,9 +390,9 @@ fun AddLinkDialogPreview() {
 fun AddLinkDialog(
     modifier: Modifier = Modifier,
     textState: MutableState<String>,
+    dialogHeader: String,
     textBoxHeader: String,
-    header: String,
-    headerColor: Color,
+    headerColor: Color = colorResource(R.color.mid_grey),
     headerIcon: ImageVector? = null,
     headerPainter: Painter? = null,
     onDismiss: () -> Unit = {},
@@ -402,57 +401,68 @@ fun AddLinkDialog(
     val focusRequester = remember { FocusRequester() }
 
     //MAIN:
-    EditVocDialog(
-        modifier = modifier
-            .focusRequester(focusRequester),
-        title = header,
-        headerColor = headerColor,
-        headerIcon = headerIcon,
-        headerPainter = headerPainter,
-        onDismiss = onDismiss,
-        onSave = onSave,
-        smallHeader = false,
-        showRefresh = false,
+    Dialog(
+        onDismissRequest = {
+            onDismiss
+        },
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true,
+            usePlatformDefaultWidth = false
+        )
     ) {
-        EditVocTitle(
-            title = textBoxHeader,
-            textHeaderColor = headerColor,
-        )
-
-        OutlinedTextField(
-            modifier = Modifier
-                .padding(top = 8.dp, bottom = 20.dp)
-                .width(250.dp)
-                .wrapContentHeight()
+        EditVocDialog(
+            modifier = modifier
+                .fillMaxWidth()
                 .focusRequester(focusRequester),
-            colors = getTextFieldColors(
-                colorLight = colorResource(id = R.color.yellowSignLight),
-                colorDark = colorResource(id = R.color.yellowSign)
-            ),
-            value = textState.value,
-            textStyle = TextStyle(
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            ),
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    onSave()
+            title = dialogHeader,
+            headerColor = headerColor,
+            headerIcon = headerIcon,
+            headerPainter = headerPainter,
+            onDismiss = onDismiss,
+            onSave = onSave,
+            smallHeader = false,
+            showRefresh = false,
+        ) {
+            EditVocTitle(
+                title = textBoxHeader,
+                textHeaderColor = headerColor,
+            )
+
+            OutlinedTextField(
+                modifier = Modifier
+                    .padding(top = 8.dp, bottom = 20.dp)
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .focusRequester(focusRequester),
+                colors = getTextFieldColors(
+                    colorLight = colorResource(id = R.color.mid_grey),
+                    colorDark = colorResource(id = R.color.faded_grey)
+                ),
+                value = textState.value,
+                textStyle = TextStyle(
+                    fontSize = 16.sp
+                ),
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        onSave()
+                    }
+                ),
+                placeholder = {
+                    Text(
+                        text = "Paste Spotify link here...",
+                        fontSize = 16.sp,
+                        fontStyle = FontStyle.Italic
+                    )
+                },
+                onValueChange = { newText ->
+                    textState.value = newText
                 }
-            ),
-            placeholder = {
-                Text(
-                    text = "Paste Spotify link here...",
-                    fontSize = 16.sp,
-                    fontStyle = FontStyle.Italic
-                )
-            },
-            onValueChange = { newText ->
-                textState.value = newText
-            }
-        )
+            )
+        }
     }
 }
 

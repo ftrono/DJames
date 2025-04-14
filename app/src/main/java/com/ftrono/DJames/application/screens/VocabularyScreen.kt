@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.addLinkOn
 import com.ftrono.DJames.application.curLibrarySize
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
@@ -63,6 +64,9 @@ import com.ftrono.DJames.be.database.ItemInfoView
 import com.ftrono.DJames.application.dialogs.EditVocArtist
 import com.ftrono.DJames.application.dialogs.EditVocContact
 import com.ftrono.DJames.application.dialogs.EditVocPlaylist
+import com.ftrono.DJames.application.spotifyUtils
+import com.ftrono.DJames.be.database.Artist
+import com.ftrono.DJames.be.samples.testArtists
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.components.HeaderWithSign
 import com.ftrono.DJames.ui.components.OptionsItem
@@ -71,6 +75,7 @@ import com.ftrono.DJames.ui.components.RoundedLetter
 import com.ftrono.DJames.ui.components.SplitterCat
 import com.ftrono.DJames.ui.components.StreetBackground
 import com.ftrono.DJames.ui.components.VocItemCard
+import com.ftrono.DJames.ui.dialogs.AddLinkDialog
 import com.ftrono.DJames.ui.selectors.vocColorSelector
 import com.ftrono.DJames.ui.selectors.vocIconSelector
 import java.io.File
@@ -89,6 +94,7 @@ fun VocScreenPreview() {
 @Composable
 fun VocabularyScreen(
     editPreview: String = "",
+    addLinkPreview: Boolean = false,
     preview: Boolean = false
 ) {
     val configuration = LocalConfiguration.current
@@ -101,9 +107,10 @@ fun VocabularyScreen(
         "contact" to "Call or message..."
     )
     //Statuses:
-    val keyState = rememberSaveable { mutableStateOf("") }
+    val keyState = rememberSaveable { mutableStateOf(if (editPreview != "") editPreview else "") }
     val nameState = rememberSaveable { mutableStateOf("") }
     val currentCatState = rememberSaveable { mutableStateOf(vocHeads[0]) }
+    val addLinkState = rememberSaveable { mutableStateOf("") }
     val libraryMap = rememberSaveable {
         mutableStateOf(libUtils.refreshLibrary(currentCatState.value, preview))
     }
@@ -114,20 +121,80 @@ fun VocabularyScreen(
     }
 
     val editVocOn = rememberSaveable { mutableStateOf(if (editPreview == "") false else true) }
-
-    var editKey = ""
-    if (editPreview != "") {
-        editKey = editPreview
-    } else if (editVocOn.value) {
-        editKey = currentCatState.value
-    }
+    var editCat = if (editPreview != "") editPreview else if (editVocOn.value) currentCatState.value else ""
 
     if (editVocOn.value) {
-        when (editKey) {
-            "artist" -> EditVocArtist(mContext, editVocOn, libraryMap, keyState, filter=editKey, preview)
-            "playlist" -> EditVocPlaylist(mContext, editVocOn, libraryMap, keyState, filter=editKey, preview)
-            "contact" -> EditVocContact(mContext, editVocOn, libraryMap, keyState, filter=editKey, preview)
+        when (editCat) {
+            "artist" -> EditVocArtist(
+                context = mContext,
+                libraryMap = libraryMap,
+                keyState = keyState,
+                filter = editCat,
+                initLinkState = addLinkState,
+                onDismiss = {
+                    //cancelable -> true
+                    editVocOn.value = false
+                    keyState.value = ""
+                    addLinkState.value = ""
+                },
+                preview = preview
+            )
+            "playlist" -> EditVocPlaylist(
+                context = mContext,
+                libraryMap = libraryMap,
+                keyState = keyState,
+                filter = editCat,
+                initLinkState = addLinkState,
+                onDismiss = {
+                    //cancelable -> true
+                    editVocOn.value = false
+                    keyState.value = ""
+                    addLinkState.value = ""
+                },
+                preview = preview
+            )
+            "contact" -> EditVocContact(
+                context = mContext,
+                libraryMap = libraryMap,
+                keyState = keyState,
+                filter = editCat,
+                onDismiss = {
+                    //cancelable -> true
+                    editVocOn.value = false
+                    keyState.value = ""
+                    addLinkState.value = ""
+                },
+                preview = preview
+            )
         }
+    }
+
+    val addLinkOnState by addLinkOn.observeAsState()
+    if (addLinkOnState!!) {
+        AddLinkDialog(
+            textState = addLinkState,
+            dialogHeader = "New",
+            textBoxHeader = "Spotify: Artist or Playlist URL",
+            headerIcon = Icons.Default.Add,
+            onDismiss = {
+                //cancelable -> true
+                addLinkOn.postValue(false)
+                keyState.value = ""
+                addLinkState.value = ""
+            },
+            onSave = {
+                val goto = spotifyUtils.disambiguateSpotifyURL(addLinkState.value.trim())
+                if (goto != "") {
+                    addLinkOn.postValue(false)
+                    currentCatState.value = goto
+                    addLinkState.value = spotifyUtils.trimSpotifyUrl(addLinkState.value)
+                    //TODO: Check duplicate link & call Spotify GET query
+                    editVocOn.value = true
+                } else {
+                    Toast.makeText(mContext, "Invalid Spotify Artist or Playlist link!", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
     }
 
     var mDisplayMainMenu = rememberSaveable {
@@ -157,7 +224,11 @@ fun VocabularyScreen(
                 },
                 onClick = {
                     keyState.value = ""
-                    editVocOn.value = true
+                    if (currentCatState.value == "contact") {
+                        editVocOn.value = true
+                    } else {
+                        addLinkOn.postValue(true)
+                    }
                 }
             )
         }
@@ -452,6 +523,7 @@ fun VocItem(
     val itemInfo = Json.decodeFromString<ItemInfoView>(itemJson)
     //Init aliases:
     val itemName = itemInfo.name
+    val itemImage = itemInfo.imageUrl
     val itemAliases = itemInfo.aliases.toMutableList()
     itemAliases.removeAt(0)
 
@@ -484,6 +556,7 @@ fun VocItem(
                 } else if (itemInfo.phone != "") {
                     utils.trimString(itemInfo.phone, 16)
                 } else "",
+            imageUrl = itemImage,
             onClick = {
                 mDisplayMenu.value = !mDisplayMenu.value
             }

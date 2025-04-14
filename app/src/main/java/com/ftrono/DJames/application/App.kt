@@ -15,6 +15,8 @@ import com.ftrono.DJames.be.database.Contact
 import com.ftrono.DJames.be.database.LibraryUtils
 import com.ftrono.DJames.be.database.MyObjectBox
 import com.ftrono.DJames.be.database.Playlist
+import com.ftrono.DJames.be.nlp.FulfillmentUtils
+import com.ftrono.DJames.be.spotify.SpotifyUtils
 import com.ftrono.DJames.utilities.Prefs
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
@@ -39,6 +41,8 @@ var contactBox: Box<Contact>? = null
 //UTILS:
 val utils = Utilities()
 val libUtils = LibraryUtils()
+val spotifyUtils = SpotifyUtils()
+val fulfillmentUtils = FulfillmentUtils()
 
 //STATUS VARS:
 var curNavId = 0
@@ -60,6 +64,7 @@ var allowVolumeClick = true
 var genderMaleState = MutableLiveData<Boolean>(true)
 var userNicknameState = MutableLiveData<String>("")
 var spotUserImageState = MutableLiveData<String>("")
+var addLinkOn = MutableLiveData<Boolean>(false)
 
 //Library / vocabulary:
 var curLibrarySize = MutableLiveData<Int>(0)

@@ -226,7 +226,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
 //                        fontWeight = FontWeight.Bold
 //                    )
 //                    DropdownSpinner(
-//                        mContext,
+//                        context=mContext,
 //                        parentOptions=queryLangFull,
 //                        init=textQueryLangState.value,
 //                        state=textQueryLangState,
@@ -349,7 +349,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         fontWeight = FontWeight.Bold
                     )
                     DropdownSpinner(
-                        mContext = mContext,
+                        context = mContext,
                         parentOptions = messLangFull,
                         init = textMessLangState.value,
                         state = textMessLangState,

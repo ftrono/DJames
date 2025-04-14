@@ -83,7 +83,7 @@ fun CustomCheckbox(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DropdownSpinner(
-    mContext: Context,
+    context: Context,
     parentOptions: List<String>,
     init: String,
     state: MutableState<String>,
@@ -164,7 +164,7 @@ fun DropdownSpinner(
                         if (prefName == "overlayPosition") {
                             prefs.overlayPosition = selectionOption
                             state.value = selectionOption
-                            restartOverlay(mContext)
+                            restartOverlay(context)
                         } else if (prefName == "queryLanguage") {
                             prefs.queryLanguage = queryLangCodes[queryLangFull.indexOf(selectionOption)]
                             state.value = selectionOption

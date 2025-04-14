@@ -22,6 +22,7 @@ import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.Playlist
 import com.ftrono.DJames.application.screens.VocabularyScreen
+import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.be.samples.testPlaylists
 import com.ftrono.DJames.ui.components.CustomCheckbox
 import com.ftrono.DJames.ui.dialogs.DialogRequestDetail
@@ -44,11 +45,12 @@ fun DialogEditPlaylistPreview() {
 
 @Composable
 fun EditVocPlaylist(
-    mContext: Context,
-    dialogOnState: MutableState<Boolean>,
+    context: Context,
     libraryMap: MutableState<Map<String, String>>,
     keyState: MutableState<String>,
+    initLinkState: MutableState<String>,
     filter: String,
+    onDismiss: () -> Unit = {},
     preview: Boolean = false
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -58,12 +60,16 @@ fun EditVocPlaylist(
 
     //Pre-populate:
     // val itemPlaylist = Playlist()
-    val itemPlaylist = if (preview) {
+    var itemPlaylist = if (preview) {
         testPlaylists[0]
     } else if (key != "") {
         libUtils.getPlaylist(keyState.value)
     } else {
         Playlist()
+    }
+
+    if (initLinkState.value != "") {
+        itemPlaylist = spotifyUtils.getPlaylistInfo(context, initLinkState.value, itemPlaylist, init=true)
     }
 
     //Init aliases:
@@ -73,7 +79,8 @@ fun EditVocPlaylist(
     //States:
     val textName = rememberSaveable { mutableStateOf(itemPlaylist.name) }
     val textAliases = rememberSaveable { mutableStateOf(initAliases.joinToString(", ")) }
-    val textPlayUrl = rememberSaveable { mutableStateOf(itemPlaylist.spotifyUrl) }
+    val imageUrlState = rememberSaveable { mutableStateOf(itemPlaylist.imageUrl) }
+    val textPlayUrl = rememberSaveable { mutableStateOf(if (initLinkState.value != "") initLinkState.value else itemPlaylist.spotifyUrl) }
     val checkedSpotify = remember { mutableStateOf(itemPlaylist.owner.lowercase() == "spotify") }
 
     val requestDetailOn = rememberSaveable { mutableStateOf(false) }
@@ -88,9 +95,7 @@ fun EditVocPlaylist(
     //EDIT DIALOG:
     Dialog(
         onDismissRequest = {
-            //cancelable -> true
-            dialogOnState.value = false
-            keyState.value = ""
+            onDismiss()
         },
         properties = DialogProperties(
             dismissOnBackPress = true,
@@ -111,16 +116,18 @@ fun EditVocPlaylist(
             headerColor = vocColorSelectorLight(cat = filter),
             headerPainter = vocIconSelector(cat = filter),
             showRefresh = true,
-            onRefresh = { },
+            onRefresh = {
+                itemPlaylist = spotifyUtils.getPlaylistInfo(context, textPlayUrl.value, itemPlaylist, init=false)
+                textName.value = itemPlaylist.name
+                imageUrlState.value = itemPlaylist.imageUrl
+            },
             onDismiss = {
-                //cancelable -> true
-                dialogOnState.value = false
-                keyState.value = ""
+                onDismiss()
             },
             onSave = {
                 //CHECK & BUILD:
                 //1) Validate Playlist URL:
-                requestDetailOn.value = !utils.isPlaylistUrl(textPlayUrl.value.replace(" ", ""))
+                requestDetailOn.value = !spotifyUtils.isPlaylistUrl(textPlayUrl.value.replace(" ", ""))
 
                 if (!requestDetailOn.value && textName.value != "") {
                     //2) Update object:
@@ -135,18 +142,18 @@ fun EditVocPlaylist(
                     }
                     itemPlaylist.name = utils.capitalizeWords(textName.value).trim()
                     itemPlaylist.aliases = aliasesList
-                    itemPlaylist.spotifyUrl = textPlayUrl.value.replace(" ", "").split("?")[0]
+                    itemPlaylist.imageUrl = imageUrlState.value
+                    itemPlaylist.spotifyUrl = spotifyUtils.trimSpotifyUrl(textPlayUrl.value)
                     //TODO: TEMP:
                     itemPlaylist.owner =
                         if (checkedSpotify.value) "Spotify" else if (itemPlaylist.owner == "Spotify") "" else itemPlaylist.owner
 
                     //3) Update / store to DB:
-                    libUtils.storePlaylist(mContext, itemPlaylist)
+                    libUtils.storePlaylist(context, itemPlaylist)
 
                     //4) End & close:
                     libraryMap.value = libUtils.refreshLibrary(filter)   //Refresh list
-                    dialogOnState.value = false
-                    keyState.value = ""
+                    onDismiss()
                 }
             }
         ) {
@@ -160,6 +167,7 @@ fun EditVocPlaylist(
                 ),
                 filter = filter,
                 textState = textName,
+                imageUrlState = imageUrlState,
                 initActive = textName.value == ""
             )
 

@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.vocHeads
 import com.ftrono.DJames.application.libUtils
@@ -610,6 +611,7 @@ fun VocItemCard(
     circle: Boolean = true,
     title: String,
     subtitle: String = "",
+    imageUrl: String = "",
     onClick: () -> Unit = {}
 ) {
     val isMultiline = rememberSaveable { mutableStateOf(false) }
@@ -632,17 +634,36 @@ fun VocItemCard(
             horizontalArrangement = Arrangement.Start
         ){
             //CHIP ICON:
-            RoundedSign(
-                modifier = Modifier
-                    .padding(end = 4.dp),
-                signSize = 34.dp,
-                iconSize = 20.dp,
-                backgroundColor = signBackgroundColor,
-                borderColor = signBorderColor,
-                iconColor = signIconColor,
-                iconPainter = signIconPainter,
-                circle = circle
-            )
+            if (imageUrl == "") {
+                RoundedSign(
+                    modifier = Modifier
+                        .padding(end = 4.dp),
+                    signSize = 34.dp,
+                    iconSize = 20.dp,
+                    backgroundColor = signBackgroundColor,
+                    borderColor = signBorderColor,
+                    iconColor = signIconColor,
+                    iconPainter = signIconPainter,
+                    circle = circle
+                )
+            } else {
+                AsyncImage(
+                    modifier = if (circle) {
+                        Modifier
+                            .padding(end = 4.dp)
+                            .size(34.dp)
+                            .clip(CircleShape)
+                            .border(1.dp, colorResource(id = R.color.midfaded_grey), CircleShape)
+                    } else {
+                        Modifier
+                            .padding(end = 4.dp)
+                            .size(34.dp)
+                            .border(1.dp, colorResource(id = R.color.midfaded_grey))
+                    },
+                    model = imageUrl,
+                    contentDescription = "Spotify profile image"
+                )
+            }
             //TEXT LABEL:
             Column(
                 modifier = Modifier

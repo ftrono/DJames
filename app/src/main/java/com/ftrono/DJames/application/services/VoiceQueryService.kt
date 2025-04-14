@@ -22,6 +22,7 @@ import com.ftrono.DJames.application.audioAttributes
 import com.ftrono.DJames.application.audioFocusChangeListener
 import com.ftrono.DJames.application.audioFocusRequest
 import com.ftrono.DJames.application.audioManager
+import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recordingMode
@@ -115,7 +116,7 @@ class VoiceQueryService: Service() {
             toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
         }
         //Abandon audio focus:
-        utils.releaseAudioFocus()
+        fulfillmentUtils.releaseAudioFocus()
         //unregister receiver:
         try {
             unregisterReceiver(VQReceiver)

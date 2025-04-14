@@ -1,5 +1,6 @@
 package com.ftrono.DJames.ui.components
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -30,6 +32,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -47,6 +50,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
@@ -342,6 +346,7 @@ fun EditPhoneDynamicField(
 @Composable
 fun EditVocDynamicNameSectionPreview() {
     val textName = rememberSaveable { mutableStateOf("sample text") }
+    val imageUrlState = rememberSaveable { mutableStateOf("") }
     val textHeaderColor = vocColorSelectorLight(cat = "artist")
     val textFieldColors = getTextFieldColors(
         colorLight = vocColorSelectorLight(cat = "artist"),
@@ -360,6 +365,7 @@ fun EditVocDynamicNameSectionPreview() {
             textFieldColors = textFieldColors,
             filter = "artist",
             textState = textName,
+            imageUrlState = imageUrlState,
             initActive = true
         )
     }
@@ -373,6 +379,7 @@ fun EditVocDynamicNameSection(
     textFieldColors: TextFieldColors,
     filter: String,
     textState: MutableState<String>,
+    imageUrlState: MutableState<String>,
     initActive: Boolean = false,
 ) {
     val isActive = rememberSaveable { mutableStateOf(initActive) }
@@ -401,21 +408,38 @@ fun EditVocDynamicNameSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             //CHIP ICON:
-            RoundedSign(
-                modifier = Modifier
-                    .focusRequester(focusRequester)
-                    .clickable {
-                        isActive.value = true
-                        onClicked()
-                    },
-                signSize = 70.dp,
-                iconSize = 40.dp,
-                backgroundColor = vocColorSelector(cat = filter),
-                borderColor = colorResource(id = R.color.midfaded_grey),
-                iconColor = colorResource(id = R.color.light_grey),
-                iconPainter = vocIconSelector(cat = filter),
-                circle = filter != "playlist"
-            )
+            if (imageUrlState.value == "") {
+                RoundedSign(
+                    modifier = Modifier
+                        .focusRequester(focusRequester)
+                        .clickable {
+                            isActive.value = true
+                            onClicked()
+                        },
+                    signSize = 70.dp,
+                    iconSize = 40.dp,
+                    backgroundColor = vocColorSelector(cat = filter),
+                    borderColor = colorResource(id = R.color.midfaded_grey),
+                    iconColor = colorResource(id = R.color.light_grey),
+                    iconPainter = vocIconSelector(cat = filter),
+                    circle = filter != "playlist"
+                )
+            } else {
+                AsyncImage(
+                    modifier = if (filter == "playlist") {
+                                    Modifier
+                                        .size(70.dp)
+                                        .border(1.5.dp, colorResource(id = R.color.midfaded_grey))
+                                } else {
+                                    Modifier
+                                        .size(70.dp)
+                                        .clip(CircleShape)
+                                        .border(1.5.dp, colorResource(id = R.color.midfaded_grey), CircleShape)
+                                },
+                    model = imageUrlState.value,
+                    contentDescription = "Spotify profile image"
+                )
+            }
 
             //Name:
             Text(

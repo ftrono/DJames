@@ -50,11 +50,11 @@ fun DialogEditContactPreview() {
 
 @Composable
 fun EditVocContact(
-    mContext: Context,
-    dialogOnState: MutableState<Boolean>,
+    context: Context,
     libraryMap: MutableState<Map<String, String>>,
     keyState: MutableState<String>,
     filter: String,
+    onDismiss: () -> Unit = {},
     preview: Boolean = false
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -94,6 +94,7 @@ fun EditVocContact(
     //States:
     val textName = rememberSaveable { mutableStateOf(itemContact.name) }
     val textAliases = rememberSaveable { mutableStateOf(initAliases.joinToString(", ")) }
+    val imageUrlState = rememberSaveable { mutableStateOf("") }
     val textLanguage = rememberSaveable { mutableStateOf(messLangFull[messLangCodes.indexOf(initLanguage)]) }
     val textDefaultPhone = rememberSaveable { mutableStateOf(itemContact.defaultPhone) }   //TODO
     val textPrefix = rememberSaveable { mutableStateOf(initPersPrefix) }
@@ -111,9 +112,7 @@ fun EditVocContact(
     //EDIT DIALOG:
     Dialog(
         onDismissRequest = {
-            //cancelable -> true
-            dialogOnState.value = false
-            keyState.value = ""
+            onDismiss()
         },
         properties = DialogProperties(
             dismissOnBackPress = true,
@@ -135,9 +134,7 @@ fun EditVocContact(
             headerPainter = vocIconSelector(cat = filter),
             showRefresh = false,
             onDismiss = {
-                //cancelable -> true
-                dialogOnState.value = false
-                keyState.value = ""
+                onDismiss()
             },
             onSave = {
                 //CHECK & BUILD:
@@ -175,12 +172,11 @@ fun EditVocContact(
                     itemContact.phoneSets = phoneSets
 
                     //3) Update / store to DB:
-                    libUtils.storeContact(mContext, itemContact)
+                    libUtils.storeContact(context, itemContact)
 
                     //4) End & close:
                     libraryMap.value = libUtils.refreshLibrary(filter)   //Refresh list
-                    dialogOnState.value = false
-                    keyState.value = ""
+                    onDismiss()
                 }
             }
         ) {
@@ -193,6 +189,7 @@ fun EditVocContact(
                 ),
                 filter = filter,
                 textState = textName,
+                imageUrlState = imageUrlState,
                 initActive = textName.value == ""
             )
 
@@ -243,7 +240,7 @@ fun EditVocContact(
             if (checkedLang.value) {
                 //CONTACTS: DROPDOWN:
                 DropdownSpinner(
-                    mContext = mContext,
+                    context = context,
                     parentOptions = messLangFull,
                     init = messLangFull[messLangCodes.indexOf(initLanguage)],
                     state = textLanguage,

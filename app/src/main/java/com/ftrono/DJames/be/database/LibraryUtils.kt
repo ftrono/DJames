@@ -41,6 +41,7 @@ class LibraryUtils {
                     item.id.toString() to Json.encodeToString(
                         ItemInfoView(
                             name = item.name,
+                            imageUrl = item.imageUrl,
                             aliases = item.aliases
                         )
                     )
@@ -56,6 +57,7 @@ class LibraryUtils {
                     item.id.toString() to Json.encodeToString(
                         ItemInfoView(
                             name = item.name,
+                            imageUrl = item.imageUrl,
                             aliases = item.aliases
                         )
                     )
@@ -71,6 +73,7 @@ class LibraryUtils {
                     item.id.toString() to Json.encodeToString(
                         ItemInfoView(
                             name = item.name,
+                            imageUrl = "",
                             aliases = item.aliases,
                             phone = item.phoneSets["personal"]!!.phone
                         )

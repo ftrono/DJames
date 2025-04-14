@@ -14,7 +14,7 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
-**Version 2.4.0 (2025-04-14)** - Repo refactor.
+**Version 2.4.0 (2025-04-14)** - Repo refactor. Add Library images & AddLink basic Dialog (WIP).
 
 **Version 2.3.6 (2025-04-12)** - Rework Dialog Composables for easy reutilization, rework Spotify Query processes & calls.
 

@@ -131,6 +131,7 @@ fun HeaderPreview() {
 @Composable
 fun HeaderWithSign(
     iconRes: Painter,
+    pretitle: String? = null,
     title: String,
     subtitle: String? = null,
     num: Int? = null,
@@ -154,6 +155,7 @@ fun HeaderWithSign(
                 .weight(1f)
                 .wrapContentSize(align = Alignment.TopStart),
             iconRes = iconRes,
+            pretitle = pretitle,
             title = title,
             subtitle = subtitle,
             num = num,
@@ -174,6 +176,7 @@ fun HeaderWithSign(
 fun HeaderSign(
     modifier: Modifier,
     iconRes: Painter,
+    pretitle: String? = null,
     title: String,
     subtitle: String? = null,
     num: Int? = null,
@@ -206,13 +209,19 @@ fun HeaderSign(
                 modifier = Modifier
                     .padding(start = 8.dp, end = 30.dp)
             ) {
+                if (pretitle != null) {
+                    Text(
+                        text = pretitle,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colorResource(id = R.color.light_grey),
+                    )
+                }
                 Text(
                     text = title,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = colorResource(id = R.color.light_grey),
-                    modifier = Modifier
-                        .wrapContentWidth()
                 )
                 if (subtitle != null) {
                     Text(
@@ -220,21 +229,19 @@ fun HeaderSign(
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = colorResource(id = R.color.light_grey),
-                        modifier = Modifier
-                            .wrapContentWidth()
                     )
                 }
             }
             if (num != null) {
                 //N items:
                 Text(
+                    modifier = Modifier
+                        .padding(end = 8.dp)
+                        .wrapContentWidth(),
                     text = "$num",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = colorResource(id = R.color.light_grey),
-                    modifier = Modifier
-                        .padding(end = 8.dp)
-                        .wrapContentWidth()
+                    color = colorResource(id = R.color.light_grey)
                 )
             }
         }
@@ -271,9 +278,9 @@ fun SplitterCat(
     title: String,
     selected: Boolean,
     num: Int? = null,
+    isLandscape: Boolean = false,
     preview: Boolean = false
 ){
-    val mContext = LocalContext.current
     Row(
         modifier = Modifier
             .padding(start=10.dp, end=10.dp, top=8.dp, bottom=8.dp)
@@ -289,19 +296,19 @@ fun SplitterCat(
         Icon(
             modifier = Modifier
                 .padding(
-                    start = if (selected) 4.dp else 8.dp,
-                    end = if (selected) 4.dp else 8.dp
+                    start = if (isLandscape && selected) 4.dp else 8.dp,
+                    end = if (isLandscape && selected) 4.dp else 8.dp
                 )
-                .size(18.dp),
+                .size(if(selected) 26.dp else 18.dp),
             painter = vocIconSelector(head),
             contentDescription = "category",
             tint = if (selected) vocColorSelectorLight(head) else colorResource(id = R.color.light_grey)
         )
         //Title:
-        if (selected) {
+        if (isLandscape && selected) {
             Text(
                 modifier = Modifier
-                    .padding(end = 6.dp),
+                    .padding(start = 4.dp, end = 6.dp),
                 text = title,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,

@@ -10,11 +10,11 @@
   <color name="colorBusyLight">#F5B68B</color>
   <color name="colorBusyDark">#8A3F0C</color>
   <color name="colorStop">#7E0000</color>
-  <color name="blueSign">#1C497A</color>
-  <color name="blueSignLight">#639CDB</color>
+  <color name="blueSign">#124370</color>
+  <color name="blueSignLight">#5FB2F7</color>
   <color name="greenSign">#004C38</color>
   <color name="greenSignLight">#00D69E</color>
-  <color name="yellowSign">#BF9000</color>
+  <color name="yellowSign">#926F00</color>
   <color name="yellowSignLight">#FFD243</color>
   <color name="white">#ffffff</color>
   <color name="light_grey">#dddddd</color>

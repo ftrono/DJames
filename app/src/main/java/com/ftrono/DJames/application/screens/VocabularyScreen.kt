@@ -104,12 +104,6 @@ fun VocabularyScreen(
     val configuration = LocalConfiguration.current
     val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
     val mContext = LocalContext.current
-    //Descriptions:
-    val subtitles = mapOf(
-        "artist" to "My artists to play",
-        "playlist" to "Play songs from...",
-        "contact" to "Call or message..."
-    )
     //Statuses:
     val keyState = rememberSaveable { mutableStateOf(if (editPreview != "") editPreview else "") }
     val nameState = rememberSaveable { mutableStateOf("") }
@@ -287,10 +281,10 @@ fun VocabularyScreen(
                         if (!isLandscape) {
                             HeaderWithSign(
                                 iconRes = painterResource(id = R.drawable.sign_fork),
-                                title = "Library",
-                                subtitle = subtitles[currentCatState.value]!!,
+                                pretitle = "Library",
+                                title = if (currentCatState.value == "artist") "Artists   " else "${utils.capitalizeWords(currentCatState.value)}s",
                                 num = curLibrarySizeState,
-                                // signColor = vocColorSelector(cat = currentCatState.value)
+                                signColor = vocColorSelector(cat = currentCatState.value)
                             ){
                                 Box() {
                                     //1) CAT OPTIONS:
@@ -353,6 +347,7 @@ fun VocabularyScreen(
                                                 head = head,
                                                 title = "${head.replaceFirstChar { it.uppercase() }}s",
                                                 selected = currentCatState.value == head,
+                                                isLandscape = isLandscape,
                                                 num = if (isLandscape && currentCatState.value == head) curLibrarySizeState else null,
                                                 preview = preview
                                             )

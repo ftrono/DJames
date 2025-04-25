@@ -346,35 +346,47 @@ fun RoundedSign(
     iconColor: Color,
     iconPainter: Painter? = null,
     iconVector: ImageVector? = null,
+    imageUrl: String = "",
     circle: Boolean = true
 ) {
     //ROUNDED SIGN:
-    Box (
-        modifier = modifier
-            .size(signSize)
-            .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
-            .background(backgroundColor)
-            .border(1.5.dp, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp)),
-        contentAlignment = Alignment.Center
-    ) {
-        //CAT ICON:
-        if (iconVector != null) {
-            Icon(
-                modifier = Modifier
-                    .size(iconSize),
-                imageVector = iconVector,
-                contentDescription = "Category",
-                tint = iconColor
-            )
-        } else {
-            Icon(
-                modifier = Modifier
-                    .size(iconSize),
-                painter = iconPainter!!,
-                contentDescription = "Category",
-                tint = iconColor
-            )
+    if (imageUrl == "") {
+        Box(
+            modifier = modifier
+                .size(signSize)
+                .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
+                .background(backgroundColor)
+                .border(1.5.dp, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            //CAT ICON:
+            if (iconVector != null) {
+                Icon(
+                    modifier = Modifier
+                        .size(iconSize),
+                    imageVector = iconVector,
+                    contentDescription = "Item image",
+                    tint = iconColor
+                )
+            } else {
+                Icon(
+                    modifier = Modifier
+                        .size(iconSize),
+                    painter = iconPainter!!,
+                    contentDescription = "Item image",
+                    tint = iconColor
+                )
+            }
         }
+    } else {
+        AsyncImage(
+            modifier = modifier
+                .size(signSize)
+                .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
+                .border(1.5.dp, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp)),
+            model = imageUrl,
+            contentDescription = "Item image"
+        )
     }
 }
 
@@ -634,29 +646,18 @@ fun VocItemCard(
             horizontalArrangement = Arrangement.Start
         ){
             //CHIP ICON:
-            if (imageUrl == "") {
-                RoundedSign(
-                    modifier = Modifier
-                        .padding(end = 4.dp),
-                    signSize = 34.dp,
-                    iconSize = 20.dp,
-                    backgroundColor = signBackgroundColor,
-                    borderColor = signBorderColor,
-                    iconColor = signIconColor,
-                    iconPainter = signIconPainter,
-                    circle = circle
-                )
-            } else {
-                AsyncImage(
-                    modifier = Modifier
-                        .padding(end = 4.dp)
-                        .size(34.dp)
-                        .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
-                        .border(1.dp, colorResource(id = R.color.midfaded_grey), if (circle) CircleShape else RoundedCornerShape(4.dp)),
-                    model = imageUrl,
-                    contentDescription = "Spotify profile image"
-                )
-            }
+            RoundedSign(
+                modifier = Modifier
+                    .padding(end = 4.dp),
+                signSize = 34.dp,
+                iconSize = 20.dp,
+                backgroundColor = signBackgroundColor,
+                borderColor = signBorderColor,
+                iconColor = signIconColor,
+                iconPainter = signIconPainter,
+                imageUrl = imageUrl,
+                circle = circle
+            )
             //TEXT LABEL:
             Column(
                 modifier = Modifier

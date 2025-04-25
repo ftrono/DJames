@@ -51,7 +51,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
@@ -409,32 +408,22 @@ fun EditVocDynamicNameSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             //CHIP ICON:
-            if (imageUrlState.value == "") {
-                RoundedSign(
-                    modifier = Modifier
-                        .focusRequester(focusRequester)
-                        .clickable {
-                            isActive.value = true
-                            onClicked()
-                        },
-                    signSize = 70.dp,
-                    iconSize = 40.dp,
-                    backgroundColor = vocColorSelector(cat = filter),
-                    borderColor = colorResource(id = R.color.midfaded_grey),
-                    iconColor = colorResource(id = R.color.light_grey),
-                    iconPainter = vocIconSelector(cat = filter),
-                    circle = filter != "playlist"
-                )
-            } else {
-                AsyncImage(
-                    modifier = Modifier
-                        .size(70.dp)
-                        .clip(if (filter != "playlist") CircleShape else RoundedCornerShape(4.dp))
-                        .border(1.5.dp, colorResource(id = R.color.midfaded_grey), if (filter != "playlist") CircleShape else RoundedCornerShape(4.dp)),
-                    model = imageUrlState.value,
-                    contentDescription = "Spotify profile image"
-                )
-            }
+            RoundedSign(
+                modifier = Modifier
+                    .focusRequester(focusRequester)
+                    .clickable {
+                        isActive.value = true
+                        onClicked()
+                    },
+                signSize = 70.dp,
+                iconSize = 40.dp,
+                backgroundColor = vocColorSelector(cat = filter),
+                borderColor = colorResource(id = R.color.midfaded_grey),
+                iconColor = colorResource(id = R.color.light_grey),
+                iconPainter = vocIconSelector(cat = filter),
+                imageUrl = imageUrlState.value,
+                circle = filter != "playlist"
+            )
 
             //Name:
             Text(

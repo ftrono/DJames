@@ -61,7 +61,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.genderMaleState
 import com.ftrono.DJames.application.prefs
@@ -298,32 +297,22 @@ fun SettingsUserSection(
             ) {
 
                 //CHIP ICON:
-                if (userImage == "") {
-                    RoundedSign(
-                        modifier = Modifier
-                            .focusRequester(focusRequester)
-                            .clickable {
-                                isActive.value = true
-                                onClicked()
-                            },
-                        signSize = 70.dp,
-                        iconSize = 40.dp,
-                        backgroundColor = colorResource(id = R.color.faded_grey),
-                        borderColor = colorResource(id = R.color.midfaded_grey),
-                        iconColor = colorResource(id = R.color.light_grey),
-                        iconVector = Icons.Outlined.Person,
-                        circle = true
-                    )
-                } else {
-                    AsyncImage(
-                        modifier = modifier
-                            .size(70.dp)
-                            .clip(CircleShape)
-                            .border(1.5.dp, colorResource(id = R.color.midfaded_grey), CircleShape),
-                        model = userImage,
-                        contentDescription = "User profile image"
-                    )
-                }
+                RoundedSign(
+                    modifier = Modifier
+                        .focusRequester(focusRequester)
+                        .clickable {
+                            isActive.value = true
+                            onClicked()
+                        },
+                    signSize = 70.dp,
+                    iconSize = 40.dp,
+                    backgroundColor = colorResource(id = R.color.faded_grey),
+                    borderColor = colorResource(id = R.color.midfaded_grey),
+                    iconColor = colorResource(id = R.color.light_grey),
+                    iconVector = Icons.Outlined.Person,
+                    imageUrl = userImage!!,
+                    circle = true
+                )
 
                 Column (
                     modifier = Modifier

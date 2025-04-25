@@ -65,6 +65,7 @@ var genderMaleState = MutableLiveData<Boolean>(true)
 var userNicknameState = MutableLiveData<String>("")
 var spotUserImageState = MutableLiveData<String>("")
 var addLinkOn = MutableLiveData<Boolean>(false)
+var sharedLink = MutableLiveData<String>("")
 
 //Library / vocabulary:
 var curLibrarySize = MutableLiveData<Int>(0)

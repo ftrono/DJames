@@ -52,6 +52,7 @@ fun EditVocArtist(
     libraryMap: MutableState<Map<String, String>>,
     keyState: MutableState<String>,
     initLinkState: MutableState<String>,
+    loadingDialogOn: MutableState<Boolean>,
     filter: String,
     onDismiss: () -> Unit = {},
     preview: Boolean = false
@@ -73,6 +74,7 @@ fun EditVocArtist(
 
     if (initLinkState.value != "") {
         itemArtist = spotifyUtils.getArtistInfo(context, initLinkState.value, itemArtist, init=true)
+        loadingDialogOn.value = false
     }
 
     //Init aliases:

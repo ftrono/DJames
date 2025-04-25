@@ -1,16 +1,19 @@
 package com.ftrono.DJames.be.spotify
 
 import android.content.Context
-import android.content.Intent
 import android.media.ToneGenerator
 import android.util.Log
 import android.util.Patterns
 import android.webkit.URLUtil
-import com.ftrono.DJames.application.ACTION_TOASTER
+import android.widget.Toast
+import androidx.compose.runtime.MutableState
+import com.ftrono.DJames.application.addLinkOn
 import com.ftrono.DJames.application.artistUrlIntro
 import com.ftrono.DJames.application.currentTrackId
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.playlistUrlIntro
+import com.ftrono.DJames.application.sharedLink
+import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.Artist
 import com.ftrono.DJames.be.database.Playlist
@@ -56,6 +59,33 @@ class SpotifyUtils {
         return if (urlTest && url.contains(artistUrlIntro)) "artist" else if (urlTest && url.contains(playlistUrlIntro)) "playlist" else ""
     }
 
+
+    //Disambiguate and Open EditVocDialog:
+    fun checkAndEditVoc(
+        context: Context,
+        addLinkState: MutableState<String>,
+        currentCatState: MutableState<String>,
+        editVocOn: MutableState<Boolean>,
+        loadingDialogOn: MutableState<Boolean>
+    ) {
+        loadingDialogOn.value = true
+        var urlToCheck = if (sharedLink.value != "") sharedLink.value!!.trim() else (addLinkState.value)
+        val goto = spotifyUtils.disambiguateSpotifyURL(urlToCheck)
+        if (goto != "") {
+            addLinkOn.postValue(false)
+            currentCatState.value = goto
+            urlToCheck = spotifyUtils.trimSpotifyUrl(urlToCheck)
+            addLinkState.value = urlToCheck
+            //TODO: Check duplicate link & call Spotify GET query
+            editVocOn.value = true
+        } else {
+            loadingDialogOn.value = false
+            Toast.makeText(context, "Invalid Spotify Artist or Playlist link!", Toast.LENGTH_SHORT).show()
+        }
+        sharedLink.postValue("")
+    }
+
+
     //Save currently playing track:
     fun saveCurrentTrack(context: Context, toneGen: ToneGenerator){
         Log.d(TAG, "SaveTrack: job start!")
@@ -84,12 +114,8 @@ class SpotifyUtils {
             Log.w(TAG, "ERROR: Cannot save current track!")
             toastText = "ERROR: Could not save current track in Spotify!"
         }
-        //TOAST -> Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_TOASTER)
-            intent.putExtra("toastText", toastText)
-            context.sendBroadcast(intent)
-        }
+        //TOAST:
+        Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
         overlayStatus.postValue("ready")
         Log.d(TAG, "SaveTrack: job end!")
     }
@@ -132,12 +158,8 @@ class SpotifyUtils {
             Log.w(TAG, "ERROR: Could not extract info from Spotify! ", e)
             toastText = if (!init) "Cannot refresh now!" else "Please fill in missing information!"
         }
-        //TOAST -> Send broadcast:
-        Intent().also { intent ->
-                intent.setAction(ACTION_TOASTER)
-                intent.putExtra("toastText", toastText)
-                context.sendBroadcast(intent)
-            }
+        //TOAST:
+        Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
         Log.d(TAG, "getArtistInfo: job end!")
         return itemArtist
     }
@@ -179,12 +201,8 @@ class SpotifyUtils {
             Log.w(TAG, "ERROR: Could not extract info from Spotify! ", e)
             toastText = if (!init) "Cannot refresh now!" else "Please fill in missing information!"
         }
-        //TOAST -> Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_TOASTER)
-            intent.putExtra("toastText", toastText)
-            context.sendBroadcast(intent)
-        }
+        //TOAST:
+        Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
         Log.d(TAG, "getPlaylistInfo: job end!")
         return itemPlaylist
     }

@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.coroutineScope
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
@@ -167,6 +168,7 @@ class MainActivity : ComponentActivity() {
 
         //Done:
         overlayPos.postValue(prefs.overlayPosition)
+        handleShareIntent(intent)
         main_initialized = true
 
     }
@@ -498,6 +500,30 @@ class MainActivity : ComponentActivity() {
                 dialogOnState.value = false
             }
         )
+    }
+
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        intent.let { handleShareIntent(it) }
+    }
+
+    private fun handleShareIntent(
+        intent: Intent
+    ) {
+        if (intent.action == Intent.ACTION_SEND) {
+            val type = intent.type
+
+            when {
+                type == "text/plain" -> {
+                    val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
+                    sharedText?.let {
+                        Log.d("SharedData", "Received URL/Text: $it")
+                        sharedLink.postValue(it)
+                    }
+                }
+            }
+        }
     }
 
 

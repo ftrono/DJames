@@ -58,7 +58,7 @@ fun Navigation(navController: NavHostController) {
             curNavId = 0
             innerNavOpen.postValue(false)
             settingsOpen.postValue(false)
-            HomeScreen()
+            HomeScreen(navController)
         }
 
         //1 -> GUIDE:

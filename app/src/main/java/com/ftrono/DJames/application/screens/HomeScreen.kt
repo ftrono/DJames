@@ -43,20 +43,34 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.ClockActivity
+import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.volumeUpEnabled
 import com.ftrono.DJames.application.services.OverlayService
+import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.ui.components.StreetLine
+import com.ftrono.DJames.ui.navigation.navigateTo
+import com.ftrono.DJames.ui.theme.NavigationItem
 
 
 @Preview
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
-fun HomeScreen() {
+fun HomeScreenPreview() {
+    val navController = rememberNavController()
+    HomeScreen(navController)
+}
+
+@Composable
+fun HomeScreen(
+    navController: NavController
+) {
     val configuration = LocalConfiguration.current
     val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
 
@@ -64,6 +78,13 @@ fun HomeScreen() {
     val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
     val overlayActiveState by overlayActive.observeAsState()
     val volumeUpEnabledState by volumeUpEnabled.observeAsState()
+
+    val sharedLinkState by sharedLink.observeAsState()
+    if (sharedLinkState != "") {
+        val curNavRoute = NavigationItem.Vocabulary.route
+        navigateTo(navController, curNavRoute)
+        lastNavRoute = curNavRoute
+    }
 
     Box (
         modifier = Modifier

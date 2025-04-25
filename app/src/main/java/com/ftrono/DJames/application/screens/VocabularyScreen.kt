@@ -64,6 +64,7 @@ import com.ftrono.DJames.be.database.ItemInfoView
 import com.ftrono.DJames.application.dialogs.EditVocArtist
 import com.ftrono.DJames.application.dialogs.EditVocContact
 import com.ftrono.DJames.application.dialogs.EditVocPlaylist
+import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.be.database.Artist
 import com.ftrono.DJames.be.samples.testArtists
@@ -76,11 +77,14 @@ import com.ftrono.DJames.ui.components.SplitterCat
 import com.ftrono.DJames.ui.components.StreetBackground
 import com.ftrono.DJames.ui.components.VocItemCard
 import com.ftrono.DJames.ui.dialogs.AddLinkDialog
+import com.ftrono.DJames.ui.dialogs.DialogLoading
 import com.ftrono.DJames.ui.selectors.vocColorSelector
 import com.ftrono.DJames.ui.selectors.vocIconSelector
 import java.io.File
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.decodeFromString
+import kotlin.Boolean
+import kotlin.String
 
 
 @Preview
@@ -94,7 +98,6 @@ fun VocScreenPreview() {
 @Composable
 fun VocabularyScreen(
     editPreview: String = "",
-    addLinkPreview: Boolean = false,
     preview: Boolean = false
 ) {
     val configuration = LocalConfiguration.current
@@ -110,7 +113,8 @@ fun VocabularyScreen(
     val keyState = rememberSaveable { mutableStateOf(if (editPreview != "") editPreview else "") }
     val nameState = rememberSaveable { mutableStateOf("") }
     val currentCatState = rememberSaveable { mutableStateOf(vocHeads[0]) }
-    val addLinkState = rememberSaveable { mutableStateOf("") }
+    val sharedLinkState by sharedLink.observeAsState()
+    val addLinkState = rememberSaveable { mutableStateOf(sharedLinkState!!) }
     val libraryMap = rememberSaveable {
         mutableStateOf(libUtils.refreshLibrary(currentCatState.value, preview))
     }
@@ -123,6 +127,13 @@ fun VocabularyScreen(
     val editVocOn = rememberSaveable { mutableStateOf(if (editPreview == "") false else true) }
     var editCat = if (editPreview != "") editPreview else if (editVocOn.value) currentCatState.value else ""
 
+    val loadingDialogOn = rememberSaveable { mutableStateOf(false) }
+    if (loadingDialogOn.value) {
+        DialogLoading(
+            text = "Getting link information..."
+        )
+    }
+
     if (editVocOn.value) {
         when (editCat) {
             "artist" -> EditVocArtist(
@@ -131,11 +142,13 @@ fun VocabularyScreen(
                 keyState = keyState,
                 filter = editCat,
                 initLinkState = addLinkState,
+                loadingDialogOn = loadingDialogOn,
                 onDismiss = {
                     //cancelable -> true
                     editVocOn.value = false
                     keyState.value = ""
                     addLinkState.value = ""
+                    sharedLink.postValue("")
                 },
                 preview = preview
             )
@@ -145,11 +158,13 @@ fun VocabularyScreen(
                 keyState = keyState,
                 filter = editCat,
                 initLinkState = addLinkState,
+                loadingDialogOn = loadingDialogOn,
                 onDismiss = {
                     //cancelable -> true
                     editVocOn.value = false
                     keyState.value = ""
                     addLinkState.value = ""
+                    sharedLink.postValue("")
                 },
                 preview = preview
             )
@@ -163,6 +178,7 @@ fun VocabularyScreen(
                     editVocOn.value = false
                     keyState.value = ""
                     addLinkState.value = ""
+                    sharedLink.postValue("")
                 },
                 preview = preview
             )
@@ -181,24 +197,32 @@ fun VocabularyScreen(
                 addLinkOn.postValue(false)
                 keyState.value = ""
                 addLinkState.value = ""
+                sharedLink.postValue("")
             },
             onSave = {
-                val goto = spotifyUtils.disambiguateSpotifyURL(addLinkState.value.trim())
-                if (goto != "") {
-                    addLinkOn.postValue(false)
-                    currentCatState.value = goto
-                    addLinkState.value = spotifyUtils.trimSpotifyUrl(addLinkState.value)
-                    //TODO: Check duplicate link & call Spotify GET query
-                    editVocOn.value = true
-                } else {
-                    Toast.makeText(mContext, "Invalid Spotify Artist or Playlist link!", Toast.LENGTH_SHORT).show()
-                }
+                spotifyUtils.checkAndEditVoc(
+                    context = mContext,
+                    addLinkState = addLinkState,
+                    currentCatState = currentCatState,
+                    editVocOn = editVocOn,
+                    loadingDialogOn = loadingDialogOn
+                )
             }
         )
     }
 
     var mDisplayMainMenu = rememberSaveable {
         mutableStateOf(false)
+    }
+
+    if (sharedLinkState != "") {
+        spotifyUtils.checkAndEditVoc(
+            context = mContext,
+            addLinkState = addLinkState,
+            currentCatState = currentCatState,
+            editVocOn = editVocOn,
+            loadingDialogOn = loadingDialogOn
+        )
     }
 
 

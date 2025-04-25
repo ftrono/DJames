@@ -200,8 +200,10 @@ fun VocabularyScreen(
                 sharedLink.postValue("")
             },
             onSave = {
+                addLinkState.value = spotifyUtils.extractUrl(addLinkState.value)
                 spotifyUtils.checkAndEditVoc(
                     context = mContext,
+                    keyState = keyState,
                     addLinkState = addLinkState,
                     currentCatState = currentCatState,
                     editVocOn = editVocOn,
@@ -218,6 +220,7 @@ fun VocabularyScreen(
     if (sharedLinkState != "") {
         spotifyUtils.checkAndEditVoc(
             context = mContext,
+            keyState = keyState,
             addLinkState = addLinkState,
             currentCatState = currentCatState,
             editVocOn = editVocOn,

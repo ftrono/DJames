@@ -10,6 +10,7 @@ import androidx.compose.runtime.MutableState
 import com.ftrono.DJames.application.addLinkOn
 import com.ftrono.DJames.application.artistUrlIntro
 import com.ftrono.DJames.application.currentTrackId
+import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.playlistUrlIntro
 import com.ftrono.DJames.application.sharedLink
@@ -24,6 +25,24 @@ import com.google.gson.JsonParser
 class SpotifyUtils {
     private val TAG = SpotifyUtils::class.java.simpleName
 
+    //Extract URL from share message:
+    fun extractUrl(text: String): String {
+        var url = ""
+        Log.d(TAG, "Extracting URL from message: $text")
+        try {
+            if (text.contains("https://")) {
+                url = text.split("https://")[1].trim()
+                url = "https://" + url.split(" ")[0]
+                url = trimSpotifyUrl(url.trim())
+                Log.d(TAG, "Extracted URL: $url")
+            } else {
+                Log.w(TAG, "Cannot extract URL from text!")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: Cannot extract URL from text. ", e)
+        }
+        return url
+    }
 
     //Validate artist URL:
     fun isArtistUrl(playUrl: String): Boolean {
@@ -63,6 +82,7 @@ class SpotifyUtils {
     //Disambiguate and Open EditVocDialog:
     fun checkAndEditVoc(
         context: Context,
+        keyState: MutableState<String>,
         addLinkState: MutableState<String>,
         currentCatState: MutableState<String>,
         editVocOn: MutableState<Boolean>,
@@ -74,9 +94,14 @@ class SpotifyUtils {
         if (goto != "") {
             addLinkOn.postValue(false)
             currentCatState.value = goto
-            urlToCheck = spotifyUtils.trimSpotifyUrl(urlToCheck)
-            addLinkState.value = urlToCheck
-            //TODO: Check duplicate link & call Spotify GET query
+            val urlMap = libUtils.getUrlMap(goto)
+            val foundKey = urlMap.getOrDefault(urlToCheck, "")
+            if (foundKey != "") {
+                keyState.value = foundKey
+                loadingDialogOn.value = false
+            } else {
+                addLinkState.value = urlToCheck
+            }
             editVocOn.value = true
         } else {
             loadingDialogOn.value = false

@@ -142,6 +142,31 @@ class LibraryUtils {
         return vocMap
     }
 
+
+    //Get URL Map in format {"url": "id"}:
+    fun getUrlMap(filter: String): Map<String, String> {
+        var urlMap = mapOf<String, String>()
+        when (filter) {
+            "artist" -> {
+                urlMap =
+                    artistBox!!.query().order(Artist_.name).build().find().associate { artist ->
+                        artist.spotifyUrl.toString() to artist.id.toString() // Ensures no null values
+                    }
+            }
+
+            "playlist" -> {
+                urlMap = playlistBox!!.query().order(Playlist_.name).build().find()
+                    .associate { playlist ->
+                        playlist.spotifyUrl.toString() to playlist.id.toString() // Ensures no null values
+                    }
+            }
+
+            "contact" -> { }
+        }
+        return urlMap
+    }
+
+
     //GET SINGLE:
     //Get entire item:
     fun getArtist(id: String): Artist {

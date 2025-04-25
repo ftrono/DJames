@@ -519,7 +519,7 @@ class MainActivity : ComponentActivity() {
                     val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
                     sharedText?.let {
                         Log.d("SharedData", "Received URL/Text: $it")
-                        sharedLink.postValue(it)
+                        sharedLink.postValue(spotifyUtils.extractUrl(it))
                     }
                 }
             }

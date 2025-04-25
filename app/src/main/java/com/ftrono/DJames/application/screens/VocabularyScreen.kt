@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -28,6 +30,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -66,8 +69,6 @@ import com.ftrono.DJames.application.dialogs.EditVocContact
 import com.ftrono.DJames.application.dialogs.EditVocPlaylist
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotifyUtils
-import com.ftrono.DJames.be.database.Artist
-import com.ftrono.DJames.be.samples.testArtists
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.components.HeaderWithSign
 import com.ftrono.DJames.ui.components.OptionsItem
@@ -329,26 +330,44 @@ fun VocabularyScreen(
                                 horizontalArrangement = Arrangement.Center
                             ) {
                                 //BUTTONS:
-                                for (head in vocHeads) {
-                                    SplitterCat(
-                                        currentCatState = currentCatState,
-                                        libraryMap = libraryMap,
-                                        head = head,
-                                        title = if (!isLandscape && head == "artist") "Artists  " else "${head.replaceFirstChar { it.uppercase() }}s",
-                                        selected = currentCatState.value == head,
-                                        num = if (isLandscape && currentCatState.value == head) curLibrarySizeState else null,
-                                        preview = preview
+                                Card(
+                                    modifier = Modifier
+                                        .wrapContentWidth()
+                                        .wrapContentHeight(),
+                                    border = BorderStroke(2.dp, colorResource(id = R.color.faded_grey)),
+                                    shape = RoundedCornerShape(18.dp),
+                                    colors = CardDefaults.cardColors (
+                                        containerColor = colorResource(id = R.color.dark_grey_background)
                                     )
-                                    //DIVIDERS:
-                                    if (head != vocHeads.last()) {
-                                        VerticalDivider(
-                                            modifier = Modifier
-                                                .padding(start = 4.dp, end = 4.dp)
-                                                .height(30.dp)
-                                                .wrapContentWidth(),
-                                            thickness = 2.dp,
-                                            color = colorResource(id = R.color.faded_grey)
-                                        )
+                                ) {
+                                    Row (
+                                        modifier = Modifier
+                                            .padding(top=4.dp, bottom=4.dp, start=12.dp, end=12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        for (head in vocHeads) {
+                                            SplitterCat(
+                                                currentCatState = currentCatState,
+                                                libraryMap = libraryMap,
+                                                head = head,
+                                                title = "${head.replaceFirstChar { it.uppercase() }}s",
+                                                selected = currentCatState.value == head,
+                                                num = if (isLandscape && currentCatState.value == head) curLibrarySizeState else null,
+                                                preview = preview
+                                            )
+                                            //DIVIDERS:
+                                            if (head != vocHeads.last()) {
+                                                VerticalDivider(
+                                                    modifier = Modifier
+                                                        .padding(start = 4.dp, end = 4.dp)
+                                                        .height(30.dp)
+                                                        .wrapContentWidth(),
+                                                    thickness = 2.dp,
+                                                    color = colorResource(id = R.color.faded_grey)
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }

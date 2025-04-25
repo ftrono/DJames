@@ -62,6 +62,7 @@ import com.ftrono.DJames.ui.selectors.guideColorSelector
 import com.ftrono.DJames.ui.selectors.guideColorSelectorLight
 import com.ftrono.DJames.ui.selectors.guideIconSelector
 import com.ftrono.DJames.ui.selectors.vocColorSelector
+import com.ftrono.DJames.ui.selectors.vocColorSelectorLight
 import com.ftrono.DJames.ui.selectors.vocIconSelector
 
 
@@ -244,7 +245,6 @@ fun HeaderSign(
 @Preview
 @Composable
 fun SplitterPreview() {
-    val mContext = LocalContext.current
     val cur = vocHeads[2]
     val currentCatState = rememberSaveable { mutableStateOf(cur) }
     val libraryMap = rememberSaveable {
@@ -274,52 +274,42 @@ fun SplitterCat(
     preview: Boolean = false
 ){
     val mContext = LocalContext.current
-    Card(
+    Row(
         modifier = Modifier
-            .padding(start = 6.dp, end = 6.dp)
+            .padding(start=10.dp, end=10.dp, top=8.dp, bottom=8.dp)
             .wrapContentWidth()
             .clickable {
                 currentCatState.value = head
                 libraryMap.value = libUtils.refreshLibrary(currentCatState.value, preview)
             },
-        shape = RoundedCornerShape(14.dp),
-        border = if (selected) BorderStroke(1.5.dp, colorResource(id = R.color.midfaded_grey)) else null,
-        colors = CardDefaults.cardColors(
-            containerColor = if (selected) {
-                vocColorSelector(cat = currentCatState.value)
-            } else {
-                colorResource(id = R.color.transparent_full)
-            }
-        )
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
     ) {
-        Row(
+        //Sign icon:
+        Icon(
             modifier = Modifier
-                .padding(8.dp)
-                .wrapContentWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            //Sign icon:
-            Icon(
-                modifier = Modifier
-                    .padding(start = 4.dp, end = 4.dp)
-                    .size(18.dp),
-                painter = vocIconSelector(head),
-                contentDescription = "category",
-                tint = colorResource(id = R.color.light_grey)
-            )
-            //Title:
+                .padding(
+                    start = if (selected) 4.dp else 8.dp,
+                    end = if (selected) 4.dp else 8.dp
+                )
+                .size(18.dp),
+            painter = vocIconSelector(head),
+            contentDescription = "category",
+            tint = if (selected) vocColorSelectorLight(head) else colorResource(id = R.color.light_grey)
+        )
+        //Title:
+        if (selected) {
             Text(
                 modifier = Modifier
                     .padding(end = 6.dp),
                 text = title,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = colorResource(id = R.color.light_grey),
+                color = vocColorSelectorLight(head),
                 maxLines = 1
             )
-            if (selected && num != null) {
-                //Title:
+            if (num != null) {
+                //Number of items:
                 Text(
                     modifier = Modifier
                         .padding(start = 4.dp, end = 4.dp)
@@ -327,7 +317,7 @@ fun SplitterCat(
                     text = num.toString(),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = colorResource(id = R.color.light_grey),
+                    color = vocColorSelectorLight(head),
                     maxLines = 1
                 )
             }

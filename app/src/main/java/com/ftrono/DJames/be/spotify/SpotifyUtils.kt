@@ -1,12 +1,14 @@
 package com.ftrono.DJames.be.spotify
 
 import android.content.Context
+import android.content.Intent
 import android.media.ToneGenerator
 import android.util.Log
 import android.util.Patterns
 import android.webkit.URLUtil
 import android.widget.Toast
 import androidx.compose.runtime.MutableState
+import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.addLinkOn
 import com.ftrono.DJames.application.artistUrlIntro
 import com.ftrono.DJames.application.currentTrackId
@@ -139,8 +141,12 @@ class SpotifyUtils {
             Log.w(TAG, "ERROR: Cannot save current track!")
             toastText = "ERROR: Could not save current track in Spotify!"
         }
-        //TOAST:
-        Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
+        //TOAST -> Send broadcast:
+        Intent().also { intent ->
+            intent.setAction(ACTION_TOASTER)
+            intent.putExtra("toastText", toastText)
+                context.sendBroadcast(intent)
+        }
         overlayStatus.postValue("ready")
         Log.d(TAG, "SaveTrack: job end!")
     }

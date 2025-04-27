@@ -54,6 +54,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -238,6 +239,7 @@ class ClockActivity: ComponentActivity() {
     @Composable
     fun PlayerInfo(isLandscape: Boolean) {
         //PLAYER INFO:
+        val currentPlayingPrefixState by currentPlayingPrefix.observeAsState()
         val currentSongPlayingState by currentSongPlaying.observeAsState()
         val currentArtistPlayingState by currentArtistPlaying.observeAsState()
 
@@ -287,6 +289,19 @@ class ClockActivity: ComponentActivity() {
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.Start
                 ) {
+                    if (currentPlayingPrefixState != "") {
+                        //PREFIX:
+                        Text(
+                            modifier = Modifier
+                                .padding(start = 14.dp, bottom = 2.dp)
+                                .wrapContentWidth(),
+                            text = currentPlayingPrefixState!!,
+                            lineHeight = 12.sp,
+                            color = colorResource(id = R.color.midfaded_grey),
+                            fontSize = 12.sp,
+                            // fontWeight = FontWeight.Bold
+                        )
+                    }
                     //SONG NAME:
                     Text(
                         modifier = Modifier
@@ -305,8 +320,7 @@ class ClockActivity: ComponentActivity() {
                         text = currentArtistPlayingState!!,
                         lineHeight = 16.sp,
                         color = colorResource(id = R.color.mid_grey),
-                        fontSize = 16.sp,
-                        //fontWeight = FontWeight.Bold
+                        fontSize = 16.sp
                     )
                 }
             }
@@ -449,9 +463,11 @@ class ClockActivity: ComponentActivity() {
 
     fun updatePlayer() {
         //Populate player info:
-        currentSongPlaying.postValue(utils.trimString(songName))
-        currentArtistPlaying.postValue(utils.trimString(artistName))
-        //currentAlbumPlaying.postValue(utils.trimString(contextName))
+        if (currentPlayingPrefix.value == "") {
+            currentPlayingPrefix.postValue("Last song played")
+        }
+        currentSongPlaying.postValue(utils.trimString(songName, 28))
+        currentArtistPlaying.postValue(utils.trimString(artistName, 28))
     }
 
 

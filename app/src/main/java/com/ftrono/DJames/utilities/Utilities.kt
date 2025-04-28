@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
+import com.ftrono.DJames.be.models.HttpResponse
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -35,7 +36,6 @@ import kotlin.streams.asSequence
 
 class Utilities {
     private val TAG = Utilities::class.java.simpleName
-    data class HttpResponse(val code: Int, val body: String)
 
     //OkHTTP: make HTTP request:
     suspend fun makeRequest(client: OkHttpClient, request: Request): HttpResponse = suspendCoroutine { continuation ->

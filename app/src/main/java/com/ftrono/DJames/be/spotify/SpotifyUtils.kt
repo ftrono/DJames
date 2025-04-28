@@ -103,6 +103,34 @@ class SpotifyUtils {
     }
 
 
+    //Get currently playing item:
+    fun getCurrentlyPlayingItem(context: Context){
+        Log.d(TAG, "getCurrentlyPlayingItem: job start!")
+        try {
+            val spotifyCalls = SpotifyCalls(context)
+            val resp = spotifyCalls.getCurrentPlayQueue()
+            //PROCESS RESPONSE:
+            if (resp.code == 200) {
+                //SUCCESS -> Extract info:
+                Log.d(TAG, "getCurrentlyPlayingItem: results received!")
+                val respJson = JsonParser.parseString(resp.body).asJsonObject
+                try {
+                    val playType = respJson.get("currently_playing").asJsonObject.get("type").asString
+                    //TODO: Check item "currently_playing.type", it can be "track" or "episode"
+
+                } catch (e: Exception) {
+                    Log.w(TAG, "getCurrentlyPlayingItem: Nothing playing now!")
+                }
+            } else {
+                Log.w(TAG, "ERROR: Cannot check current play queue!")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: Cannot check current play queue!")
+        }
+        Log.d(TAG, "getCurrentlyPlayingItem: job end!")
+    }
+
+
     //Save currently playing track:
     fun saveCurrentTrack(context: Context, toneGen: ToneGenerator){
         Log.d(TAG, "SaveTrack: job start!")

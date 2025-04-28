@@ -6,7 +6,7 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.client
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.utilities.Utilities.HttpResponse
+import com.ftrono.DJames.be.models.HttpResponse
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import kotlinx.coroutines.runBlocking

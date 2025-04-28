@@ -3,7 +3,7 @@ package com.ftrono.DJames.be.spotify
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.utilities.Utilities.HttpResponse
+import com.ftrono.DJames.be.models.HttpResponse
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
@@ -33,9 +33,9 @@ class SpotifyCalls(private val context: Context) {
     }
 
 
-    //GET CURRENTLY PLAYING TRACK:
-    fun getCurrentlyPlayingTrack(): HttpResponse {
-        var url = "https://api.spotify.com/v1/me/player/currently-playing"
+    //GET CURRENT PLAY QUEUE:
+    fun getCurrentPlayQueue(): HttpResponse {
+        var url = "https://api.spotify.com/v1/me/player/queue"
 
         //Headers:
         var jsonHeads = JsonObject()
@@ -43,7 +43,7 @@ class SpotifyCalls(private val context: Context) {
 
         //GET REQUEST:
         var response = query.querySpotify(type = "get", url = url, jsonHeads = jsonHeads)
-        Log.d(TAG, "getCurrentlyPlayingTrack: response code: ${response.code}")
+        Log.d(TAG, "getCurrentPlayQueue: response code: ${response.code}")
         return response
     }
 

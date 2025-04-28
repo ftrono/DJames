@@ -103,7 +103,7 @@ fun EditVocPlaylist(
         properties = DialogProperties(
             dismissOnBackPress = true,
             dismissOnClickOutside = false,
-            usePlatformDefaultWidth = false
+            usePlatformDefaultWidth = true
         )
     ) {
         val focusManager = LocalFocusManager.current
@@ -130,7 +130,7 @@ fun EditVocPlaylist(
             onSave = {
                 //CHECK & BUILD:
                 //1) Validate Playlist URL:
-                requestDetailOn.value = !spotifyUtils.isPlaylistUrl(textPlayUrl.value.replace(" ", ""))
+                requestDetailOn.value = spotifyUtils.disambiguateSpotifyURL(textPlayUrl.value.replace(" ", "")) != "playlist"
 
                 if (!requestDetailOn.value && textName.value != "") {
                     //2) Update object:

@@ -203,12 +203,6 @@ fun EditVocDialog(
     //EDIT DIALOG CONTAINER:
     Card(
         modifier = modifier
-            .padding(
-                top = 30.dp,
-                bottom = 30.dp,
-                start = if (isLandscape) 80.dp else 40.dp,
-                end = if (isLandscape) 80.dp else 40.dp
-            )
             .fillMaxWidth()
             .wrapContentHeight(),
         shape = RoundedCornerShape(20.dp),
@@ -408,7 +402,7 @@ fun AddLinkDialog(
         properties = DialogProperties(
             dismissOnBackPress = true,
             dismissOnClickOutside = true,
-            usePlatformDefaultWidth = false
+            usePlatformDefaultWidth = true
         )
     ) {
         EditVocDialog(

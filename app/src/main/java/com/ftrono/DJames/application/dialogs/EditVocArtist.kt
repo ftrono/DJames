@@ -2,6 +2,8 @@ package com.ftrono.DJames.application.dialogs
 
 import android.content.Context
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -84,7 +86,6 @@ fun EditVocArtist(
     val initPlayThisIsUrl = if (playLinks["spotify_this_is"] == null) "" else playLinks["spotify_this_is"]!!.spotifyUrl   //TODO: TEMP
     val initPlayRadioUrl = if (playLinks["spotify_radio"] == null) "" else playLinks["spotify_radio"]!!.spotifyUrl
     val initPlayMixUrl = if (playLinks["spotify_mix"] == null) "" else playLinks["spotify_mix"]!!.spotifyUrl
-    val initPlayCustomUrl = if (playLinks["custom"] == null) "" else playLinks["custom"]!!.spotifyUrl
 
     //TODO: EXTEND!
     var playOptionsKeysToVal = mutableMapOf<String, String>(
@@ -106,7 +107,6 @@ fun EditVocArtist(
     val textPlayThisIsUrl = rememberSaveable { mutableStateOf(initPlayThisIsUrl) }
     val textPlayRadioUrl = rememberSaveable { mutableStateOf(initPlayRadioUrl) }
     val textPlayMixUrl = rememberSaveable { mutableStateOf(initPlayMixUrl) }
-    val textPlayCustomUrl = rememberSaveable { mutableStateOf(initPlayCustomUrl) }
 
     val requestDetailArtistOn = rememberSaveable { mutableStateOf(false) }
     val requestDetailPlaylistOn = rememberSaveable { mutableStateOf(false) }
@@ -135,7 +135,7 @@ fun EditVocArtist(
         properties = DialogProperties(
             dismissOnBackPress = true,
             dismissOnClickOutside = false,
-            usePlatformDefaultWidth = false
+            usePlatformDefaultWidth = true
         )
     ) {
         val focusManager = LocalFocusManager.current
@@ -163,22 +163,18 @@ fun EditVocArtist(
                 //CHECK & BUILD:
                 //1) Validate Artist URL & Playlist URL:
                 requestDetailArtistOn.value =
-                    !spotifyUtils.isArtistUrl(textArtistUrl.value.replace(" ", ""))
+                    spotifyUtils.disambiguateSpotifyURL(textArtistUrl.value.replace(" ", "")) != "artist"
                 if (textPlayThisIsUrl.value != "") {
                     requestDetailPlaylistOn.value =
-                        !spotifyUtils.isPlaylistUrl(textPlayThisIsUrl.value.replace(" ", ""))
+                        spotifyUtils.disambiguateSpotifyURL(textPlayThisIsUrl.value.replace(" ", "")) != "playlist"
                 }
                 if (textPlayRadioUrl.value != "") {
                     requestDetailPlaylistOn.value =
-                        !spotifyUtils.isPlaylistUrl(textPlayRadioUrl.value.replace(" ", ""))
+                        spotifyUtils.disambiguateSpotifyURL(textPlayRadioUrl.value.replace(" ", "")) != "playlist"
                 }
                 if (textPlayMixUrl.value != "") {
                     requestDetailPlaylistOn.value =
-                        !spotifyUtils.isPlaylistUrl(textPlayMixUrl.value.replace(" ", ""))
-                }
-                if (textPlayCustomUrl.value != "") {
-                    requestDetailPlaylistOn.value =
-                        !spotifyUtils.isPlaylistUrl(textPlayCustomUrl.value.replace(" ", ""))
+                        spotifyUtils.disambiguateSpotifyURL(textPlayMixUrl.value.replace(" ", "")) != "playlist"
                 }
 
                 if (!requestDetailArtistOn.value && !requestDetailPlaylistOn.value && textName.value != "") {
@@ -220,14 +216,6 @@ fun EditVocArtist(
                             name = "${textName.value} Mix",
                             owner = "Spotify",
                             spotifyUrl = spotifyUtils.trimSpotifyUrl(textPlayMixUrl.value)
-                        )
-                    }
-
-                    if (textPlayCustomUrl.value.trim() != "") {
-                        playLinks["custom"] = PlayLink(
-                            name = "${textName.value} Custom",
-                            owner = "",
-                            spotifyUrl = spotifyUtils.trimSpotifyUrl(textPlayCustomUrl.value)
                         )
                     }
 
@@ -348,18 +336,6 @@ fun EditVocArtist(
                 title = "Spotify \"Artist Mix\" Link",
                 placeholder = "Paste Spotify link...",
                 textState = textPlayMixUrl
-            )
-
-            //CUSTOM PLAYLIST:
-            EditVocDynamicField(
-                textHeaderColor = vocColorSelectorLight(cat = filter),
-                textFieldColors = getTextFieldColors(
-                    colorLight = vocColorSelectorLight(cat = filter),
-                    colorDark = vocColorSelector(cat = filter)
-                ),
-                title = "Custom Playlist Link",
-                placeholder = "Paste Spotify link...",
-                textState = textPlayCustomUrl
             )
 
         }

@@ -333,8 +333,6 @@ class NLPExtractor (private val context: Context) {
             playLinkName = "spotify_radio"
         } else if (queryText.contains("mix")) {
             playLinkName = "spotify_mix"
-        } else if (queryText.contains("custom")) {
-            playLinkName = "custom"
         }
         return playLinkName
     }

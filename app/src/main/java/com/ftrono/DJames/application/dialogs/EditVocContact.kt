@@ -117,7 +117,7 @@ fun EditVocContact(
         properties = DialogProperties(
             dismissOnBackPress = true,
             dismissOnClickOutside = false,
-            usePlatformDefaultWidth = false
+            usePlatformDefaultWidth = true
         )
     ) {
         val focusManager = LocalFocusManager.current

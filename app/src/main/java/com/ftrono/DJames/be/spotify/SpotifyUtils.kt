@@ -17,7 +17,6 @@ import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.playlistUrlIntro
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotifyUtils
-import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.Artist
 import com.ftrono.DJames.be.database.Playlist
 import com.google.gson.JsonArray
@@ -46,21 +45,6 @@ class SpotifyUtils {
         return url
     }
 
-    //Validate artist URL:
-    fun isArtistUrl(playUrl: String): Boolean {
-        val urlTest = URLUtil.isValidUrl(playUrl) && Patterns.WEB_URL.matcher(playUrl).matches()
-        //True if conditions are met:
-        return (urlTest && playUrl.contains(artistUrlIntro))
-    }
-
-
-    //Validate playlist URL:
-    fun isPlaylistUrl(playUrl: String): Boolean {
-        val urlTest = URLUtil.isValidUrl(playUrl) && Patterns.WEB_URL.matcher(playUrl).matches()
-        //True if conditions are met:
-        return (urlTest && playUrl.contains(playlistUrlIntro))
-    }
-
 
     //Trim Spotify URL:
     fun trimSpotifyUrl(playURL: String): String {
@@ -77,7 +61,13 @@ class SpotifyUtils {
     //Disambiguate Spotify URL:
     fun disambiguateSpotifyURL(url: String): String {
         val urlTest = URLUtil.isValidUrl(url) && Patterns.WEB_URL.matcher(url).matches()
-        return if (urlTest && url.contains(artistUrlIntro)) "artist" else if (urlTest && url.contains(playlistUrlIntro)) "playlist" else ""
+        return if (
+            urlTest && url.contains(artistUrlIntro)
+            ) "artist"
+        else if (
+            urlTest && url.contains(playlistUrlIntro)
+            ) "playlist"
+        else ""
     }
 
 

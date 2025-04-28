@@ -213,7 +213,7 @@ class SpotifyUtils {
                 itemPlaylist.spotifyUrl = url
                 //Owner:
                 try {
-                    itemPlaylist.owner = utils.cleanString(respJson.get("owner").asJsonObject.get("display_name").asString)
+                    itemPlaylist.owner = respJson.get("owner").asJsonObject.get("display_name").asString
                 } catch (e: Exception) {
                     itemPlaylist.owner = ""
                 }

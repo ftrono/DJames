@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,7 +21,6 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -30,13 +28,11 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -75,7 +71,7 @@ import com.ftrono.DJames.ui.components.HeaderWithSign
 import com.ftrono.DJames.ui.components.OptionsItem
 import com.ftrono.DJames.ui.components.OptionsMenu
 import com.ftrono.DJames.ui.components.RoundedLetter
-import com.ftrono.DJames.ui.components.SplitterCat
+import com.ftrono.DJames.ui.components.SplitterSign
 import com.ftrono.DJames.ui.components.StreetBackground
 import com.ftrono.DJames.ui.components.VocItemCard
 import com.ftrono.DJames.ui.dialogs.AddLinkDialog
@@ -297,7 +293,7 @@ fun VocabularyScreen(
                             HeaderWithSign(
                                 iconRes = painterResource(id = R.drawable.sign_fork),
                                 pretitle = "Library",
-                                title = if (currentCatState.value == "artist") "Artists   " else "${utils.capitalizeWords(currentCatState.value)}s",
+                                title = if (currentCatState.value == "artist" || currentCatState.value == "route") "${utils.capitalizeWords(currentCatState.value)}s   " else "${utils.capitalizeWords(currentCatState.value)}s",
                                 num = curLibrarySizeState,
                                 signColor = vocColorSelector(cat = currentCatState.value)
                             ){
@@ -332,54 +328,19 @@ fun VocabularyScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
+                            //Splitter Sign (bigger weight with margins):
                             Row (
                                 modifier = Modifier
                                     .weight(1f),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center
                             ) {
-                                //BUTTONS:
-                                Card(
-                                    modifier = Modifier
-                                        .wrapContentWidth()
-                                        .wrapContentHeight(),
-                                    border = BorderStroke(2.dp, colorResource(id = R.color.faded_grey)),
-                                    shape = RoundedCornerShape(18.dp),
-                                    colors = CardDefaults.cardColors (
-                                        containerColor = colorResource(id = R.color.dark_grey_background)
-                                    )
-                                ) {
-                                    Row (
-                                        modifier = Modifier
-                                            .padding(top=4.dp, bottom=4.dp, start=12.dp, end=12.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Center
-                                    ) {
-                                        for (head in vocHeads) {
-                                            SplitterCat(
-                                                currentCatState = currentCatState,
-                                                libraryMap = libraryMap,
-                                                head = head,
-                                                title = "${head.replaceFirstChar { it.uppercase() }}s",
-                                                selected = currentCatState.value == head,
-                                                isLandscape = isLandscape,
-                                                num = if (isLandscape && currentCatState.value == head) curLibrarySizeState else null,
-                                                preview = preview
-                                            )
-                                            //DIVIDERS:
-                                            if (head != vocHeads.last()) {
-                                                VerticalDivider(
-                                                    modifier = Modifier
-                                                        .padding(start = 4.dp, end = 4.dp)
-                                                        .height(30.dp)
-                                                        .wrapContentWidth(),
-                                                    thickness = 2.dp,
-                                                    color = colorResource(id = R.color.faded_grey)
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
+                                SplitterSign(
+                                    libraryMap = libraryMap,
+                                    currentCatState = currentCatState,
+                                    curLibrarySizeState = curLibrarySizeState!!,
+                                    preview = preview
+                                )
                             }
                             //CAT OPTIONS:
                             if (isLandscape) {

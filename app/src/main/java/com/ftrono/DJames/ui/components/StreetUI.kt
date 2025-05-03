@@ -1,5 +1,6 @@
 package com.ftrono.DJames.ui.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -32,9 +33,12 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,7 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
@@ -56,8 +60,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.vocHeads
 import com.ftrono.DJames.application.libUtils
+import com.ftrono.DJames.application.vocHeads
 import com.ftrono.DJames.ui.selectors.guideColorSelector
 import com.ftrono.DJames.ui.selectors.guideColorSelectorLight
 import com.ftrono.DJames.ui.selectors.guideIconSelector
@@ -251,22 +255,73 @@ fun HeaderSign(
 
 @Preview
 @Composable
-fun SplitterPreview() {
-    val cur = vocHeads[2]
-    val currentCatState = rememberSaveable { mutableStateOf(cur) }
+fun SplitterSignPreview() {
+    val currentCatState = rememberSaveable { mutableStateOf(vocHeads[0]) }
     val libraryMap = rememberSaveable {
         mutableStateOf(libUtils.refreshLibrary(currentCatState.value, true))
     }
 
-    SplitterCat(
-        currentCatState = currentCatState,
+    SplitterSign(
         libraryMap = libraryMap,
-        head = cur,
-        title = "${cur.replaceFirstChar { it.uppercase() }}s",
-        selected = currentCatState.value == cur,
-        num = libraryMap.value.size,
+        currentCatState = currentCatState,
+        curLibrarySizeState = 0,
         preview = true
     )
+}
+
+
+@Composable
+fun SplitterSign(
+    currentCatState: MutableState<String>,
+    libraryMap: MutableState<Map<String, String>>,
+    curLibrarySizeState: Int,
+    preview: Boolean
+) {
+    val configuration = LocalConfiguration.current
+    val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
+
+    //BUTTONS:
+    Card(
+        modifier = Modifier
+            .wrapContentWidth()
+            .wrapContentHeight(),
+        border = BorderStroke(2.dp, colorResource(id = R.color.faded_grey)),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors (
+            containerColor = colorResource(id = R.color.dark_grey_background)
+        )
+    ) {
+        Row (
+            modifier = Modifier
+                .padding(top=4.dp, bottom=4.dp, start=12.dp, end=12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            for (head in vocHeads) {
+                SplitterCat(
+                    currentCatState = currentCatState,
+                    libraryMap = libraryMap,
+                    head = head,
+                    title = "${head.replaceFirstChar { it.uppercase() }}s",
+                    selected = currentCatState.value == head,
+                    isLandscape = isLandscape,
+                    num = if (isLandscape && currentCatState.value == head) curLibrarySizeState else null,
+                    preview = preview
+                )
+                //DIVIDERS:
+                if (head != vocHeads.last()) {
+                    VerticalDivider(
+                        modifier = Modifier
+                            .padding(start = 4.dp, end = 4.dp)
+                            .height(30.dp)
+                            .wrapContentWidth(),
+                        thickness = 2.dp,
+                        color = colorResource(id = R.color.faded_grey)
+                    )
+                }
+            }
+        }
+    }
 }
 
 
@@ -283,7 +338,7 @@ fun SplitterCat(
 ){
     Row(
         modifier = Modifier
-            .padding(start=10.dp, end=10.dp, top=8.dp, bottom=8.dp)
+            .padding(start = 10.dp, end = 10.dp, top = 8.dp, bottom = 8.dp)
             .wrapContentWidth()
             .clickable {
                 currentCatState.value = head
@@ -296,10 +351,10 @@ fun SplitterCat(
         Icon(
             modifier = Modifier
                 .padding(
-                    start = if (isLandscape && selected) 4.dp else 8.dp,
-                    end = if (isLandscape && selected) 4.dp else 8.dp
+                    start = if (isLandscape && selected) 4.dp else 6.dp,
+                    end = if (isLandscape && selected) 4.dp else 6.dp
                 )
-                .size(if(selected) 26.dp else 18.dp),
+                .size(if (selected) 26.dp else 18.dp),
             painter = vocIconSelector(head),
             contentDescription = "category",
             tint = if (selected) vocColorSelectorLight(head) else colorResource(id = R.color.light_grey)

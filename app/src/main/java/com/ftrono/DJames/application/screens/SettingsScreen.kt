@@ -457,6 +457,38 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 }
 
 
+                //SECTION: ROUTES:
+                SettingsSection(
+                    modifier = Modifier
+                        .padding(end=8.dp, top=16.dp, bottom=4.dp),
+                    title = "Routes",
+                    signColor = colorResource(id = R.color.brownSign),
+                    iconPainter = painterResource(id = R.drawable.sign_place)
+                ) {
+
+                    //Routes language:
+                    Text(
+                        modifier = Modifier
+                            .padding(bottom = 4.dp),
+                        text = "Routes: default language",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    DropdownSpinner(
+                        context = mContext,
+                        parentOptions = messLangFull,
+                        init = textMessLangState.value,
+                        state = textMessLangState,
+                        focusColorLight = colorResource(id = R.color.brownSignLight),
+                        focusColorDark = colorResource(id = R.color.brownSign),
+                        prefName = "routeLanguage",
+                        width = 200
+                    )
+                }
+
+
                 //SECTION: CLOCK SCREEN:
                 SettingsSection(
                     modifier = Modifier

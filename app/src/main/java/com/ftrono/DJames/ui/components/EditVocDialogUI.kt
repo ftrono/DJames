@@ -1,6 +1,5 @@
 package com.ftrono.DJames.ui.components
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -12,8 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -33,7 +30,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -71,7 +67,6 @@ fun EditVocTitle(
     //Title:
     Text(
         modifier = modifier
-            .fillMaxWidth()
             .clickable {
                 onClicked()
             },
@@ -94,21 +89,16 @@ fun EditVocDynamicFieldPreview() {
         colorLight = vocColorSelectorLight(cat = "artist"),
         colorDark = vocColorSelector(cat = "artist")
     )
-    Column (
+
+    EditVocDynamicField(
         modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.Top
-    ) {
-        EditVocDynamicField(
-            textHeaderColor = textHeaderColor,
-            textFieldColors = textFieldColors,
-            title = "Artist Name",
-            placeholder = "Write name here...",
-            textState = textName
-        )
-    }
+            .fillMaxWidth(),
+        textHeaderColor = textHeaderColor,
+        textFieldColors = textFieldColors,
+        title = "Artist Name",
+        placeholder = "Write name here...",
+        textState = textName
+    )
 }
 
 
@@ -120,7 +110,8 @@ fun EditVocDynamicField(
     title: String,
     placeholder: String,
     italic: Boolean = false,
-    textState: MutableState<String>
+    textState: MutableState<String>,
+    charLimit: Int = 0
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isActive by interactionSource.collectIsFocusedAsState()
@@ -139,71 +130,82 @@ fun EditVocDynamicField(
         keyboardController!!.hide()
     }
 
-    //Title:
-    EditVocTitle(
-        textHeaderColor = textHeaderColor,
-        fontSize = 16.sp,
-        title = if (!isActive && title.contains("(")) title.slice(0..<title.indexOf("(", ignoreCase = true)) else title,
-    )
+    Column (
+        modifier = modifier,
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.Top
+    ) {
 
-    //Text Field:
-    OutlinedTextField(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 20.dp)
-            .focusRequester(focusRequester),
-        colors = textFieldColors,
-        value = textState.value,
-        interactionSource = interactionSource,
-        onValueChange = { newText ->
-            textState.value = newText
-        },
-        textStyle = TextStyle(
+        //Title:
+        EditVocTitle(
+            textHeaderColor = textHeaderColor,
             fontSize = 16.sp,
-            fontStyle = if (italic) FontStyle.Italic else null,
-            fontWeight = if (italic) FontWeight.Bold else null
-        ),
-        keyboardOptions = KeyboardOptions(
-            imeAction = ImeAction.Done
-        ),
-        keyboardActions = KeyboardActions(
-            onDone = {
-                onKeyboardDone()
-            }
-        ),
-        placeholder = {
-            Text(
-                text = placeholder,
-                fontSize = 16.sp,
-                fontStyle = FontStyle.Italic
-            )
-        },
-        trailingIcon = {
-            if (isActive) {
-                //Button:
-                RoundedSign(
-                    modifier = Modifier
-                        .padding(end = 4.dp)
-                        .focusRequester(focusRequester)
-                        .clickable {
-                            onKeyboardDone()
-                        },
-                    signSize = 36.dp,
-                    iconSize = 20.dp,
-                    backgroundColor = textFieldColors.textSelectionColors.backgroundColor,
-                    borderColor = textFieldColors.textSelectionColors.backgroundColor,
-                    iconColor = colorResource(id = R.color.light_grey),
-                    iconVector = Icons.Default.Done
+            title = if (!isActive && title.contains("(")) title.slice(
+                0..<title.indexOf(
+                    "(",
+                    ignoreCase = true
                 )
-            } else {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit"
-                )
-            }
+            ) else title,
+        )
 
-        }
-    )
+        //Text Field:
+        OutlinedTextField(
+            modifier = Modifier
+                .padding(top = 8.dp, bottom = 20.dp)
+                .focusRequester(focusRequester),
+            colors = textFieldColors,
+            value = textState.value,
+            interactionSource = interactionSource,
+            onValueChange = { newText ->
+                textState.value = if (charLimit > 0 && newText.length >= charLimit) newText.slice(0..<charLimit) else newText
+            },
+            textStyle = TextStyle(
+                fontSize = 16.sp,
+                fontStyle = if (italic) FontStyle.Italic else null,
+                fontWeight = if (italic) FontWeight.Bold else null
+            ),
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    onKeyboardDone()
+                }
+            ),
+            placeholder = {
+                Text(
+                    text = placeholder,
+                    fontSize = 16.sp,
+                    fontStyle = FontStyle.Italic
+                )
+            },
+            trailingIcon = {
+                if (isActive) {
+                    //Button:
+                    RoundedSign(
+                        modifier = Modifier
+                            .padding(end = 4.dp)
+                            .focusRequester(focusRequester)
+                            .clickable {
+                                onKeyboardDone()
+                            },
+                        signSize = 36.dp,
+                        iconSize = 20.dp,
+                        backgroundColor = textFieldColors.textSelectionColors.backgroundColor,
+                        borderColor = textFieldColors.textSelectionColors.backgroundColor,
+                        iconColor = colorResource(id = R.color.light_grey),
+                        iconVector = Icons.Default.Done
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit"
+                    )
+                }
+
+            }
+        )
+    }
 }
 
 
@@ -344,31 +346,53 @@ fun EditPhoneDynamicField(
 
 @Preview
 @Composable
+fun EditVocSectionTitlePreview() {
+    EditVocSectionTitle(
+        title = "DESTINATION ADDRESS"
+    )
+}
+
+
+@Composable
+fun EditVocSectionTitle(
+    title: String
+) {
+    Text(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp, bottom = 16.dp),
+        text = title.uppercase(),
+        fontSize = 16.sp,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 2.sp,
+        color = colorResource(id = R.color.light_grey)
+    )
+}
+
+
+@Preview
+@Composable
 fun EditVocDynamicNameSectionPreview() {
-    val textName = rememberSaveable { mutableStateOf("sample text") }
+    val textName = rememberSaveable { mutableStateOf("") }
+    val subtitle = rememberSaveable { mutableStateOf("Alternative Rock") }
     val imageUrlState = rememberSaveable { mutableStateOf("") }
     val textHeaderColor = vocColorSelectorLight(cat = "artist")
     val textFieldColors = getTextFieldColors(
         colorLight = vocColorSelectorLight(cat = "artist"),
         colorDark = vocColorSelector(cat = "artist")
     )
-    Column (
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.Top
-    ) {
-        EditVocDynamicNameSection(
-            modifier = Modifier.fillMaxWidth(),
-            textHeaderColor = textHeaderColor,
-            textFieldColors = textFieldColors,
-            filter = "artist",
-            textState = textName,
-            imageUrlState = imageUrlState,
-            initActive = true
-        )
-    }
+
+    EditVocDynamicNameSection(
+        modifier = Modifier.fillMaxWidth(),
+        textHeaderColor = textHeaderColor,
+        textFieldColors = textFieldColors,
+        filter = "artist",
+        textState = textName,
+        subtitleState = subtitle,
+        imageUrlState = imageUrlState,
+        initActive = false,
+        showEditIcon = true
+    )
 }
 
 
@@ -379,8 +403,10 @@ fun EditVocDynamicNameSection(
     textFieldColors: TextFieldColors,
     filter: String,
     textState: MutableState<String>,
+    subtitleState: MutableState<String>,
     imageUrlState: MutableState<String>,
     initActive: Boolean = false,
+    showEditIcon: Boolean = false
 ) {
     val isActive = rememberSaveable { mutableStateOf(initActive) }
     var textFieldState by remember { mutableStateOf(TextFieldValue(textState.value)) }
@@ -399,125 +425,152 @@ fun EditVocDynamicNameSection(
         keyboardController!!.hide()
     }
 
-    if (!isActive.value) {
-        Row (
-            modifier = Modifier
-                .padding(bottom = 20.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            //CHIP ICON:
-            RoundedSign(
-                modifier = Modifier
-                    .focusRequester(focusRequester)
-                    .clickable {
-                        isActive.value = true
-                        onClicked()
-                    },
-                signSize = 70.dp,
-                iconSize = 40.dp,
-                backgroundColor = vocColorSelector(cat = filter),
-                borderColor = colorResource(id = R.color.midfaded_grey),
-                iconColor = colorResource(id = R.color.light_grey),
-                iconPainter = vocIconSelector(cat = filter),
-                imageUrl = imageUrlState.value,
-                circle = filter != "playlist"
-            )
+    Column (
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight(),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.Top
+    ) {
 
-            //Name:
-            Text(
+        if (!isActive.value) {
+            Row(
                 modifier = Modifier
-                    .padding(start = 20.dp)
-                    .weight(1f)
-                    .focusRequester(focusRequester)
-                    .clickable {
-                        isActive.value = true
-                        onClicked()
-                    },
-                text = if (textState.value == "") "${utils.capitalizeWords(filter)} Name" else textState.value,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = colorResource(id = R.color.light_grey)
-            )
-
-            if (textState.value == "") {
-                //Edit icon:
-                Icon(
+                    .padding(bottom = 20.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                //CHIP ICON:
+                RoundedSign(
                     modifier = Modifier
-                        .padding(start = 8.dp)
-                        .size(30.dp)
                         .focusRequester(focusRequester)
                         .clickable {
                             isActive.value = true
                             onClicked()
                         },
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit",
-                    tint = colorResource(id = R.color.mid_grey)
-                )
-            }
-        }
-    } else {
-        //Title:
-        EditVocTitle(
-            textHeaderColor = textHeaderColor,
-            fontSize = 16.sp,
-            title = "Name",
-        )
-
-        //TextField:
-        OutlinedTextField(
-            modifier = Modifier
-                .padding(top = 8.dp, bottom = 20.dp)
-                .focusRequester(focusRequester),
-            colors = textFieldColors,
-            value = textFieldState,
-            onValueChange = { newText ->
-                val corr = newText.text
-                textState.value = corr
-                textFieldState = newText
-            },
-            textStyle = TextStyle(
-                fontSize = 20.sp
-            ),
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    onKeyboardDone()
-                    isActive.value = false
-                }
-            ),
-            placeholder = {
-                Text(
-                    text = "Write $filter name...",
-                    fontSize = 16.sp,
-                    fontStyle = FontStyle.Italic
-                )
-            },
-            trailingIcon = {
-                //Button:
-                RoundedSign(
-                    modifier = Modifier
-                        .padding(end = 4.dp)
-                        .clickable {
-                            onKeyboardDone()
-                            isActive.value = false
-                        },
-                    signSize = 36.dp,
-                    iconSize = 20.dp,
-                    backgroundColor = textFieldColors.textSelectionColors.backgroundColor,
-                    borderColor = textFieldColors.textSelectionColors.backgroundColor,
+                    signSize = 70.dp,
+                    iconSize = 40.dp,
+                    backgroundColor = vocColorSelector(cat = filter),
+                    borderColor = colorResource(id = R.color.midfaded_grey),
                     iconColor = colorResource(id = R.color.light_grey),
-                    iconVector = Icons.Default.Done
+                    iconPainter = vocIconSelector(cat = filter),
+                    imageUrl = imageUrlState.value,
+                    circle = filter != "playlist" && filter != "route"
                 )
+
+                Column(
+                    modifier = Modifier
+                        .padding(start = 20.dp)
+                        .weight(1f)
+                        .focusRequester(focusRequester)
+                        .clickable {
+                            isActive.value = true
+                            onClicked()
+                        },
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    //Name:
+                    Text(
+                        text = if (textState.value == "") "${utils.capitalizeWords(filter)} Name" else textState.value,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colorResource(id = R.color.light_grey)
+                    )
+                    if (subtitleState.value != "") {
+                        //Subtitle:
+                        Text(
+                            modifier = Modifier
+                                .padding(top = 4.dp),
+                            text = subtitleState.value,
+                            fontSize = 16.sp,
+                            fontStyle = FontStyle.Italic,
+                            color = colorResource(id = R.color.mid_grey)
+                        )
+                    }
+
+                }
+
+                if (showEditIcon) {
+                    //Edit icon:
+                    Icon(
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .size(30.dp)
+                            .focusRequester(focusRequester)
+                            .clickable {
+                                isActive.value = true
+                                onClicked()
+                            },
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit",
+                        tint = colorResource(id = R.color.mid_grey)
+                    )
+                }
             }
-        )
-        LaunchedEffect(Unit) {
-            onClicked()
-            textFieldState = textFieldState.copy(selection = TextRange(textFieldState.text.length))
+        } else {
+            //Title:
+            EditVocTitle(
+                textHeaderColor = textHeaderColor,
+                fontSize = 16.sp,
+                title = "Name",
+            )
+
+            //TextField:
+            OutlinedTextField(
+                modifier = Modifier
+                    .padding(top = 8.dp, bottom = 20.dp)
+                    .focusRequester(focusRequester),
+                colors = textFieldColors,
+                value = textFieldState,
+                onValueChange = { newText ->
+                    val corr = newText.text
+                    textState.value = corr
+                    textFieldState = newText
+                },
+                textStyle = TextStyle(
+                    fontSize = 20.sp
+                ),
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        onKeyboardDone()
+                        isActive.value = false
+                    }
+                ),
+                placeholder = {
+                    Text(
+                        text = "Write $filter name...",
+                        fontSize = 16.sp,
+                        fontStyle = FontStyle.Italic
+                    )
+                },
+                trailingIcon = {
+                    //Button:
+                    RoundedSign(
+                        modifier = Modifier
+                            .padding(end = 4.dp)
+                            .clickable {
+                                onKeyboardDone()
+                                isActive.value = false
+                            },
+                        signSize = 36.dp,
+                        iconSize = 20.dp,
+                        backgroundColor = textFieldColors.textSelectionColors.backgroundColor,
+                        borderColor = textFieldColors.textSelectionColors.backgroundColor,
+                        iconColor = colorResource(id = R.color.light_grey),
+                        iconVector = Icons.Default.Done
+                    )
+                }
+            )
+            LaunchedEffect(Unit) {
+                onClicked()
+                textFieldState =
+                    textFieldState.copy(selection = TextRange(textFieldState.text.length))
+            }
         }
     }
 }

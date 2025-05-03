@@ -53,7 +53,13 @@ class SpotifyFulfillment (private var context: Context) {
             playType = "playlist"
             contextType = "playlist"
             ttsToRead = "Tell me the name of the playlist in ${reqLangName}."
-            fulfillmentUtils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
+            val itemsToRead = listOf(
+                mapOf(
+                    "language" to prefs.queryLanguage,
+                    "text" to ttsToRead
+                )
+            )
+            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
 
         } else if (intentName == "PlayArtist") {
             //ARTIST:
@@ -62,7 +68,13 @@ class SpotifyFulfillment (private var context: Context) {
             contextType = "playlist"
             reqPlayLinkName = nlpExtractor.extractPlayLink(nlp_queryText)
             ttsToRead = "Tell me the name of the artist in ${reqLangName}."
-            fulfillmentUtils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
+            val itemsToRead = listOf(
+                mapOf(
+                    "language" to prefs.queryLanguage,
+                    "text" to ttsToRead
+                )
+            )
+            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
 
         } else if (intentName == "PlayAlbum") {
             //ALBUM:
@@ -73,7 +85,13 @@ class SpotifyFulfillment (private var context: Context) {
             } else {
                 ttsToRead = "Tell me in ${reqLangName} the name of the album and the name of the artist."
             }
-            fulfillmentUtils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
+            val itemsToRead = listOf(
+                mapOf(
+                    "language" to prefs.queryLanguage,
+                    "text" to ttsToRead
+                )
+            )
+            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
 
         } else {
             //TRACK:
@@ -94,14 +112,20 @@ class SpotifyFulfillment (private var context: Context) {
                     contextType = "album"
                 }
 
-                //TODO: eng only!
+                //Read:
                 if (reqLangCode == "en") {
                     ttsToRead = "Tell me in ${reqLangName}: name of the song, by, name of the artist."
                 } else {
                     ttsToRead = "Tell me in ${reqLangName} the name of the song and the name of the artist."
                 }
             }
-            fulfillmentUtils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
+            val itemsToRead = listOf(
+                mapOf(
+                    "language" to prefs.queryLanguage,
+                    "text" to ttsToRead
+                )
+            )
+            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
         }
 
         //processStatus:
@@ -140,9 +164,15 @@ class SpotifyFulfillment (private var context: Context) {
             context.sendBroadcast(intent)
         }
 
-        //TODO: eng only!
+        //Read:
         var ttsToRead = "Playing your Liked Songs collection!"
-        fulfillmentUtils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=true)
+        val itemsToRead = listOf(
+            mapOf(
+                "language" to prefs.queryLanguage,
+                "text" to ttsToRead
+            )
+        )
+        fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=true)
 
         //PLAY -> Liked Songs:
         var playInfo = JsonObject()
@@ -252,7 +282,7 @@ class SpotifyFulfillment (private var context: Context) {
                     Log.d(TAG, "Context -> Playlist in voc")
                     //Get playlist URL:
                     val itemInfo = libUtils.getItemInfoUse("playlist", playlistMatchId)
-                    val playlistUrl = itemInfo.spotifyUrl
+                    val playlistUrl = itemInfo.url
                     val playlistId = spotifyUtils.getSpotifyID(playlistUrl)
                     extractorInfo.addProperty("context_confirmed", playlistMatchId)
 
@@ -261,7 +291,7 @@ class SpotifyFulfillment (private var context: Context) {
                     playInfo.addProperty("context_type", "playlist")
                     playInfo.addProperty("context_uri", uri)
                     playInfo.addProperty("context_name", itemInfo.name)
-                    playInfo.addProperty("context_owner", itemInfo.owner)
+                    playInfo.addProperty("context_owner", itemInfo.detail)
                 } else {
                     //Playlist not found:
                     contextAlbum = true
@@ -279,9 +309,17 @@ class SpotifyFulfillment (private var context: Context) {
             //Read TTS:
             var itemName = playInfo.get("match_name").asString.lowercase()
             var artist = playInfo.get("artist_name").asString.lowercase()
-            //TODO: eng only!
-            var ttsToRead = "Playing the $playType $itemName, by $artist."
-            fulfillmentUtils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=true)
+            val itemsToRead = listOf(
+                mapOf(
+                    "language" to prefs.queryLanguage,
+                    "text" to "Playing the $playType: "
+                ),
+                mapOf(
+                    "language" to reqLangCode,
+                    "text" to "$itemName, by $artist."
+                )
+            )
+            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=true)
 
             //Player info:
             last_log!!.add("nlp_extractor", extractorInfo)
@@ -392,9 +430,9 @@ class SpotifyFulfillment (private var context: Context) {
                 Log.d(TAG, "PLAY -> Playlist in voc")
                 //Get playlist URL:
                 val itemInfo = libUtils.getItemInfoUse(playType, playlistMatchId)
-                val playUrl = itemInfo.spotifyUrl
+                val playUrl = itemInfo.url
                 contextConfirmed = itemInfo.name
-                ownerConfirmed = itemInfo.owner
+                ownerConfirmed = itemInfo.detail
                 extractorInfo.addProperty("text_confirmed", contextConfirmed)
                 extractorInfo.addProperty("context_confirmed", contextConfirmed)
                 extractorInfo.addProperty("owner_confirmed", ownerConfirmed)
@@ -455,18 +493,31 @@ class SpotifyFulfillment (private var context: Context) {
             Thread.sleep(1000)
 
             //Read TTS:
-            //TODO: eng only!
-            var ttsToRead = ""
             val playName = playInfo.get("match_name").asString.lowercase()
             val ownerString = if (ownerConfirmed == "") "" else ", by $ownerConfirmed"
+            var introText = ""
+            var detailText = ""
             if (ownerConfirmed == prefs.spotUserName) {
-                ttsToRead = "Playing your playlist ${playName}!"
+                introText = "Playing your playlist: "
+                detailText = playName
             } else if (playType == "artist") {
-                ttsToRead = "Playing top tracks for the artist ${playName}!"
+                introText = "Playing top tracks for the artist: "
+                detailText = playName
             } else {
-                ttsToRead = "Playing the $playType ${playName}${ownerString}!"
+                introText = "Playing the $playType: "
+                detailText = "${playName}${ownerString}."
             }
-            fulfillmentUtils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=true)
+            val itemsToRead = listOf(
+                mapOf(
+                    "language" to prefs.queryLanguage,
+                    "text" to introText
+                ),
+                mapOf(
+                    "language" to reqLangCode,
+                    "text" to detailText
+                )
+            )
+            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=true)
 
             //Player info:
             last_log!!.add("nlp_extractor", extractorInfo)

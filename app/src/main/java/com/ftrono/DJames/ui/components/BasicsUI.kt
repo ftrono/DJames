@@ -48,6 +48,7 @@ fun CustomCheckbox(
     checkedState: MutableState<Boolean>,
     checkedColor: Color,
     textColor: Color,
+    onClickExtra: () -> Unit = {},
     text: String
 ){
     val checkBoxColors = CheckboxDefaults.colors(
@@ -65,12 +66,18 @@ fun CustomCheckbox(
         Checkbox(
             modifier = Modifier,
             checked = checkedState.value,
-            onCheckedChange = { checkedState.value = it },
+            onCheckedChange = {
+                checkedState.value = it
+                onClickExtra()
+              },
             colors = checkBoxColors
         )
         Text(
             modifier = Modifier
-                .clickable { checkedState.value = !checkedState.value },
+                .clickable {
+                    checkedState.value = !checkedState.value
+                    onClickExtra()
+                   },
             text = text,
             fontSize = 14.sp,
             lineHeight = 16.sp,
@@ -170,6 +177,9 @@ fun DropdownSpinner(
                             state.value = selectionOption
                         } else if (prefName == "messageLanguage") {
                             prefs.messageLanguage = messLangCodes[messLangFull.indexOf(selectionOption)]
+                            state.value = selectionOption
+                        } else if (prefName == "routeLanguage") {
+                            prefs.routeLanguage = messLangCodes[messLangFull.indexOf(selectionOption)]
                             state.value = selectionOption
                         } else {
                             state.value = selectionOption

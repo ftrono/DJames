@@ -2,6 +2,7 @@ package com.ftrono.DJames.application.dialogs
 
 import android.content.Context
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -93,6 +94,7 @@ fun EditVocContact(
 
     //States:
     val textName = rememberSaveable { mutableStateOf(itemContact.name) }
+    val textSubtitle = rememberSaveable { mutableStateOf("") }
     val textAliases = rememberSaveable { mutableStateOf(initAliases.joinToString(", ")) }
     val imageUrlState = rememberSaveable { mutableStateOf("") }
     val textLanguage = rememberSaveable { mutableStateOf(messLangFull[messLangCodes.indexOf(initLanguage)]) }
@@ -189,12 +191,16 @@ fun EditVocContact(
                 ),
                 filter = filter,
                 textState = textName,
+                subtitleState = textSubtitle,
                 imageUrlState = imageUrlState,
-                initActive = textName.value == ""
+                initActive = textName.value == "",
+                showEditIcon = true
             )
 
             //CONTACT ALIASES:
             EditVocDynamicField(
+                modifier = Modifier
+                    .fillMaxWidth(),
                 textHeaderColor = vocColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),

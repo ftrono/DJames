@@ -20,7 +20,9 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
@@ -193,8 +195,10 @@ fun EditVocDialog(
     onDismiss: () -> Unit = {},
     onSave: () -> Unit = {},
     onRefresh: () -> Unit = {},
+    onGo: () -> Unit = {},
     smallHeader: Boolean = true,
     showRefresh: Boolean = true,
+    showGo: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {
     val configuration = LocalConfiguration.current
@@ -230,8 +234,10 @@ fun EditVocDialog(
                 onCancel = { onDismiss() },
                 onSave = { onSave() },
                 onRefresh = { onRefresh() },
+                onGo = { onGo() },
                 small = smallHeader,
-                showRefresh = showRefresh
+                showRefresh = showRefresh,
+                showGo = showGo
             )
 
             //CONTENT:
@@ -269,8 +275,10 @@ fun EditVocHeader(
     onCancel: () -> Unit,
     onSave: () -> Unit,
     onRefresh: () -> Unit,
+    onGo: () -> Unit,
     small: Boolean = false,
-    showRefresh: Boolean = false
+    showRefresh: Boolean = false,
+    showGo: Boolean = false
 ) {
     //HEADER:
     Box(
@@ -320,6 +328,20 @@ fun EditVocHeader(
                 fontSize = if (small) 16.sp else 24.sp,
                 fontWeight = FontWeight.Bold
             )
+            if (showGo) {
+                //GO BUTTON:
+                Icon(
+                    modifier = Modifier
+                        .padding(end = 12.dp)
+                        .size(35.dp)
+                        .clickable {
+                            onGo()
+                        },
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = "Go",
+                    tint = color
+                )
+            }
             if (showRefresh) {
                 //REFRESH BUTTON:
                 Icon(

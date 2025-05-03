@@ -11,8 +11,10 @@ import com.ftrono.DJames.application.audioAttributes
 import com.ftrono.DJames.application.audioFocusChangeListener
 import com.ftrono.DJames.application.audioFocusRequest
 import com.ftrono.DJames.application.audioManager
+import com.ftrono.DJames.application.gMapsLinkFormat
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.database.Route
 import com.google.gson.JsonParser
 import kotlinx.coroutines.runBlocking
 import java.io.BufferedReader
@@ -37,8 +39,10 @@ class FulfillmentUtils {
 
 
     //HELPER: TTS directly read:
-    private suspend fun ttsReadNoFocus(context: Context, langCode: String, text: String): Unit = suspendCoroutine { continuation ->
+    private suspend fun ttsReadNoFocus(context: Context, item: Map<String, String>): Unit = suspendCoroutine { continuation ->
         //SET UP TTS:
+        val langCode = item["language"]
+        val text = item["text"]
         //Set Locale:
         var locale = Locale.UK
         if (langCode == "it") {
@@ -77,7 +81,11 @@ class FulfillmentUtils {
 
 
     //HELPER: TTS read with audio dimming:
-    private fun ttsReadWithFocus(context: Context, audioFocusRequest: AudioFocusRequest, language: String, text: String) {
+    private fun ttsReadWithFocus(
+        context: Context,
+        audioFocusRequest: AudioFocusRequest,
+        items: List<Map<String, String>>
+    ) {
         //BUILD FOCUS REQUEST:
         val focusRequest = audioManager!!.requestAudioFocus(audioFocusRequest)
         when (focusRequest) {
@@ -87,7 +95,9 @@ class FulfillmentUtils {
 
             AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {
                 runBlocking {
-                    ttsReadNoFocus(context, language, text)
+                    for (item in items) {
+                        ttsReadNoFocus(context, item)
+                    }
                 }
                 audioManager!!.abandonAudioFocusRequest(audioFocusRequest)
             }
@@ -99,7 +109,7 @@ class FulfillmentUtils {
     }
 
     //TTS READER: MAIN FUNCTION:
-    fun ttsRead(context: Context, language: String, text: String, dimAudio: Boolean = false) {
+    fun ttsRead(context: Context, items: List<Map<String, String>>, dimAudio: Boolean = false) {
         try {
             Thread.sleep(1000)
             if (dimAudio) {
@@ -110,10 +120,12 @@ class FulfillmentUtils {
                         .setAcceptsDelayedFocusGain(true)
                         .setOnAudioFocusChangeListener(audioFocusChangeListener)
                         .build()
-                ttsReadWithFocus(context, audioFocusRequest!!, language, text)
+                ttsReadWithFocus(context, audioFocusRequest!!, items)
             } else {
                 runBlocking {
-                    ttsReadNoFocus(context, language, text)
+                    for (item in items) {
+                        ttsReadNoFocus(context, item)
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -192,6 +204,37 @@ class FulfillmentUtils {
             textReplaced = textReplaced.replace("emoji $sent", emojiMap.get(sent).asString, ignoreCase=true)
         }
         return textReplaced
+    }
+
+
+    //Route: build navigation URL:
+    fun buildRouteUrl(item: Route): String {
+        var url = gMapsLinkFormat
+        //Via:
+        var fullVia = listOf(
+                item.via.placeName,
+                item.via.address,
+                item.via.number,
+                item.via.zip,
+                item.via.town,
+                item.via.province
+            ).joinToString(" ").trim()
+        if (fullVia != "") {
+            fullVia = fullVia + "/"
+        }
+
+        //Destination:
+        var fullDestination = listOf(
+            item.destination.placeName,
+            item.destination.address,
+            item.destination.number,
+            item.destination.zip,
+            item.destination.town,
+            item.destination.province
+        ).joinToString(" ").trim()
+
+        return url + fullVia.replace(" ", "+") + fullDestination.replace(" ", "+")
+
     }
 
 }

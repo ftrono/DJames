@@ -16,13 +16,16 @@ fun vocIconSelector(
         return painterResource(id = R.drawable.sign_phone)
     } else if (cat == "playlist") {
         return painterResource(id = R.drawable.sign_disc)
+    } else if (cat == "route") {
+        return painterResource(id = R.drawable.sign_place)
     } else {
-        return painterResource(id = R.drawable.sign_person)
+        return painterResource(id = R.drawable.sign_people)
     }
 }
 
 
 //GUIDE:
+//TODO: Update!
 @Composable
 fun guideIconSelector(
     cat: String
@@ -46,6 +49,8 @@ fun historyIconSelector(
         return painterResource(id = R.drawable.sign_phone)
     } else if (cat == "MessageRequest") {
         return painterResource(id = R.drawable.sign_message)
+    } else if (cat == "DriveRequest") {
+        return painterResource(id = R.drawable.sign_place)
     } else if (cat.contains("Play")) {
         return painterResource(id = R.drawable.sign_headphones)
     } else {

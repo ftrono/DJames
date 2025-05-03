@@ -9,6 +9,7 @@ import com.ftrono.DJames.application.ACTION_MAKE_CALL
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.last_log
+import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.messLangFull
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
@@ -16,10 +17,12 @@ import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.messLangLower
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.voiceQueryOn
+import com.ftrono.DJames.be.database.ItemInfoUse
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import kotlinx.serialization.json.Json
 
 
 class GenericFulfillment (private var context: Context) {
@@ -59,9 +62,15 @@ class GenericFulfillment (private var context: Context) {
                 context.sendBroadcast(intent)
             }
 
-            //TODO: eng only!
+            //Read:
             var ttsToRead = "Calling ${contact_name}..."
-            fulfillmentUtils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
+            val itemsToRead = listOf(
+                mapOf(
+                    "language" to prefs.queryLanguage,
+                    "text" to ttsToRead
+                )
+            )
+            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
         }
 
         fulfillmentUtils.releaseAudioFocus()
@@ -146,9 +155,15 @@ class GenericFulfillment (private var context: Context) {
                 context.sendBroadcast(intent)
             }
 
-            //TODO: eng only!
+            //Read:
             var ttsToRead = "Please, dictate the message for ${contact_name} in $reqLangName."
-            fulfillmentUtils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
+            val itemsToRead = listOf(
+                mapOf(
+                    "language" to prefs.queryLanguage,
+                    "text" to ttsToRead
+                )
+            )
+            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
         }
 
         //processStatus:
@@ -190,9 +205,15 @@ class GenericFulfillment (private var context: Context) {
                 context.sendBroadcast(intent)
             }
 
-            //TODO: eng only!
+            //Read:
             var ttsToRead = "Message sent to ${contact_name}!"
-            fulfillmentUtils.ttsRead(context, prefs.queryLanguage, ttsToRead, dimAudio=false)
+            val itemsToRead = listOf(
+                mapOf(
+                    "language" to prefs.queryLanguage,
+                    "text" to ttsToRead
+                )
+            )
+            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
 
 
         } catch (e: Exception) {
@@ -207,5 +228,150 @@ class GenericFulfillment (private var context: Context) {
 
         return processStatus
     }
+
+
+    //Process Drive request: PART 1:
+    fun driveRequest1(resultsNLP: JsonObject) : JsonObject {
+        var processStatus = JsonObject()
+        utils.openLog()
+
+        //Detect & process requested languages:
+        var intentName = resultsNLP.get("intent_name").asString
+        var detLanguage = resultsNLP.get("reqLanguage").asString
+        var reqLangCode = utils.getLanguageCode(context, detLanguage, prefs.routeLanguage)
+        var reqLangName = utils.getLanguageName(context, reqLangCode)
+
+        //Prepare toast text:
+        var toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
+
+        //TOAST -> Send broadcast:
+        Intent().also { intent ->
+            intent.setAction(ACTION_TOASTER)
+            intent.putExtra("toastText", toastText)
+            context.sendBroadcast(intent)
+        }
+
+        //Distinguish by intent & build voice response:
+        var ttsToRead = ""
+
+        //Read:
+        ttsToRead = "Tell me your saved route in ${reqLangName}."
+        val itemsToRead = listOf(
+            mapOf(
+                "language" to prefs.queryLanguage,
+                "text" to ttsToRead
+            )
+        )
+        fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
+
+        //processStatus:
+        processStatus.addProperty("followUp", true)
+        processStatus.addProperty("reqLanguage", reqLangCode)
+        processStatus.addProperty("intent_name", intentName)
+        Log.d(TAG, processStatus.toString())
+
+        //Log:
+        last_log!!.addProperty("intent_name", intentName)
+        return processStatus
+    }
+
+
+    //Process Drive request: PART 2:
+    fun driveRequest2(resultsNLP: JsonObject, prevStatus: JsonObject) : JsonObject {
+        var processStatus = JsonObject()
+        last_log!!.add("nlp", resultsNLP)
+
+        //Prepare toast text:
+        var toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
+
+        //TOAST -> Send broadcast:
+        Intent().also { intent ->
+            intent.setAction(ACTION_TOASTER)
+            intent.putExtra("toastText", toastText)
+            context.sendBroadcast(intent)
+        }
+
+
+        //PROCESS PLAY INFO:
+        //item:
+        var matchName = nlp_queryText
+        var routeMatchId = ""
+        var routeConfirmed = ""
+        var detailConfirmed = ""
+        var routeUrl = ""
+        var routeLanguage = prefs.routeLanguage
+        var routeInfo = JsonObject()
+
+        var extractorInfo = JsonObject()
+        extractorInfo.addProperty("match_extracted", nlp_queryText)
+        extractorInfo.addProperty("text_confirmed", nlp_queryText)
+
+        var nlpExtractor = NLPExtractor(context)
+        //Check route in vocabulary:
+        routeMatchId = nlpExtractor.matchVocabulary("route", matchName)
+        if (routeMatchId == "") {
+            //Route not found:
+            Log.d(TAG, "DRIVE -> Route not found!")
+            //Close log:
+            //utils.closeLog(context)
+            return utils.fallback()
+        } else {
+            Log.d(TAG, "DRIVE -> Route found!")
+            //Get route URL:
+            val itemInfo = libUtils.getItemInfoUse("route", routeMatchId)
+            routeConfirmed = itemInfo.name
+            detailConfirmed = itemInfo.detail
+            routeLanguage = itemInfo.language   //TODO
+            routeUrl = itemInfo.url   //TODO: Build route URL
+            extractorInfo.addProperty("text_confirmed", routeConfirmed)
+            extractorInfo.addProperty("detail_confirmed", detailConfirmed)
+            //Route info:
+            routeInfo.addProperty("name", routeConfirmed)
+            routeInfo.addProperty("detail", detailConfirmed)
+            routeInfo.addProperty("language", itemInfo.language)   //TODO
+            routeInfo.addProperty("url", routeUrl)
+
+            //B) ROUTE FOUND!
+            fulfillmentUtils.releaseAudioFocus()
+
+            //Wait 1 sec:
+            Thread.sleep(1000)
+
+            //Read TTS:
+            var ttsToRead = ""
+            if (detailConfirmed == "") {
+                ttsToRead = "${routeConfirmed}!"
+            } else {
+                ttsToRead = "${routeConfirmed}, ${detailConfirmed}!"
+            }
+            val itemsToRead = listOf(
+                mapOf(
+                    "language" to prefs.queryLanguage,
+                    "text" to "Here's the route to: "
+                ),
+                mapOf(
+                    "language" to routeLanguage,
+                    "text" to ttsToRead
+                )
+            )
+            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=true)
+
+            //Player info:
+            last_log!!.add("nlp_extractor", extractorInfo)
+            last_log!!.add("route_info", routeInfo)
+
+            //DRIVE TO ROUTE:
+            utils.openLink(context, url = routeUrl, fromService = true)
+        }
+
+        //Build return
+        processStatus.addProperty("stopService", true)
+        Log.d(TAG, processStatus.toString())
+
+        //Close log:
+        utils.closeLog(context)
+        return processStatus
+    }
+
 
 }

@@ -34,6 +34,7 @@ import com.ftrono.DJames.ui.selectors.vocColorSelector
 import com.ftrono.DJames.ui.selectors.vocColorSelectorLight
 import com.ftrono.DJames.ui.selectors.vocIconSelector
 import android.util.Log
+import androidx.compose.foundation.layout.fillMaxWidth
 
 
 @Preview
@@ -81,6 +82,7 @@ fun EditVocPlaylist(
 
     //States:
     val textName = rememberSaveable { mutableStateOf(itemPlaylist.name) }
+    val textOwner = rememberSaveable { mutableStateOf("by " + itemPlaylist.owner) }
     val textAliases = rememberSaveable { mutableStateOf(initAliases.joinToString(", ")) }
     val imageUrlState = rememberSaveable { mutableStateOf(itemPlaylist.imageUrl) }
     val textPlayUrl = rememberSaveable { mutableStateOf(if (initLinkState.value != "") initLinkState.value else itemPlaylist.spotifyUrl) }
@@ -122,6 +124,7 @@ fun EditVocPlaylist(
             onRefresh = {
                 itemPlaylist = spotifyUtils.getPlaylistInfo(context, textPlayUrl.value, itemPlaylist, init=false)
                 textName.value = itemPlaylist.name
+                textOwner.value = "by " + itemPlaylist.owner
                 imageUrlState.value = itemPlaylist.imageUrl
             },
             onDismiss = {
@@ -171,12 +174,16 @@ fun EditVocPlaylist(
                 ),
                 filter = filter,
                 textState = textName,
+                subtitleState = textOwner,
                 imageUrlState = imageUrlState,
-                initActive = textName.value == ""
+                initActive = textName.value == "",
+                showEditIcon = textName.value == ""
             )
 
             //PLAYLIST ALIASES:
             EditVocDynamicField(
+                modifier = Modifier
+                    .fillMaxWidth(),
                 textHeaderColor = vocColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
@@ -190,6 +197,8 @@ fun EditVocPlaylist(
 
             //PLAYLIST URL:
             EditVocDynamicField(
+                modifier = Modifier
+                    .fillMaxWidth(),
                 textHeaderColor = vocColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
@@ -207,7 +216,14 @@ fun EditVocPlaylist(
                 checkedState = checkedSpotify,
                 checkedColor = vocColorSelectorLight(cat = filter),
                 textColor = colorResource(id = R.color.light_grey),
-                text = "By Spotify"
+                text = "By Spotify",
+                onClickExtra = {
+                    if (checkedSpotify.value) {
+                        textOwner.value = "by Spotify"
+                    } else {
+                        textOwner.value = ""
+                    }
+                }
             )
         }
     }

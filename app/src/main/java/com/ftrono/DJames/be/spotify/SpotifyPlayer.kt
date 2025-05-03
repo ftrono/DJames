@@ -10,6 +10,7 @@ import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.utils
 import com.google.gson.JsonObject
 import java.net.URLEncoder
 
@@ -117,13 +118,7 @@ class SpotifyPlayer (private val context: Context) {
                 synchronized(this) {
                     Log.d(TAG, "ExtThread start!")
                     //Open query result in Spotify:
-                    val intentSpotify = Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse(spotifyToOpen)
-                    )
-                    intentSpotify.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    intentSpotify.putExtra("fromwhere", "ser")
-                    context.startActivity(intentSpotify)
+                    utils.openLink(context, url = spotifyToOpen, fromService = true)
 
                     if (clockWasActive && prefs.clockRedirectEnabled) {
                         //TOAST -> Send broadcast:

@@ -3,6 +3,7 @@ package com.ftrono.DJames.application.dialogs
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -33,6 +34,7 @@ import com.ftrono.DJames.ui.dialogs.DialogRequestDetail
 import com.ftrono.DJames.ui.dialogs.EditVocDialog
 import com.ftrono.DJames.ui.components.EditVocDynamicField
 import com.ftrono.DJames.ui.components.EditVocDynamicNameSection
+import com.ftrono.DJames.ui.components.EditVocSectionTitle
 import com.ftrono.DJames.ui.components.EditVocTitle
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
 import com.ftrono.DJames.ui.selectors.vocColorSelector
@@ -100,6 +102,7 @@ fun EditVocArtist(
 
     //States:
     val textName = rememberSaveable { mutableStateOf(itemArtist.name) }
+    val textGenres = rememberSaveable { mutableStateOf(itemArtist.genres.joinToString(", ")) }
     val textAliases = rememberSaveable { mutableStateOf(initAliases.joinToString(", ")) }
     val imageUrlState = rememberSaveable { mutableStateOf(itemArtist.imageUrl) }
     val textDefaultPlay = rememberSaveable { mutableStateOf(initDefaultPlay) }
@@ -154,6 +157,7 @@ fun EditVocArtist(
             onRefresh = {
                 itemArtist = spotifyUtils.getArtistInfo(context, textArtistUrl.value, itemArtist, init=false)
                 textName.value = itemArtist.name
+                textGenres.value = itemArtist.genres.joinToString(", ")
                 imageUrlState.value = itemArtist.imageUrl
             },
             onDismiss = {
@@ -240,12 +244,16 @@ fun EditVocArtist(
                 ),
                 filter = filter,
                 textState = textName,
+                subtitleState = textGenres,
                 imageUrlState = imageUrlState,
-                initActive = textName.value == ""
+                initActive = textName.value == "",
+                showEditIcon = textName.value == ""
             )
 
             //ARTIST ALIASES:
             EditVocDynamicField(
+                modifier = Modifier
+                    .fillMaxWidth(),
                 textHeaderColor = vocColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
@@ -257,17 +265,10 @@ fun EditVocArtist(
                 textState = textAliases
             )
 
-            //Section:
-            SectionTitle(
-                modifier = Modifier
-                    .padding(top = 4.dp, bottom = 12.dp),
-                title = "Main links",
-                signColor = vocColorSelector(cat = filter),
-                iconPainter = painterResource(id = R.drawable.logo_spotify)
-            )
-
             //ARTIST URL:
             EditVocDynamicField(
+                modifier = Modifier
+                    .fillMaxWidth(),
                 textHeaderColor = vocColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
@@ -278,8 +279,15 @@ fun EditVocArtist(
                 textState = textArtistUrl
             )
 
+            //Section:
+            EditVocSectionTitle(
+                title = "Spotify \"This is\""
+            )
+
             //SPOTIFY "THIS IS":
             EditVocDynamicField(
+                modifier = Modifier
+                    .fillMaxWidth(),
                 textHeaderColor = vocColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
@@ -306,16 +314,14 @@ fun EditVocArtist(
             )
 
             //Section:
-            SectionTitle(
-                modifier = Modifier
-                    .padding(top = 4.dp, bottom = 12.dp),
-                title = "Extra links",
-                signColor = vocColorSelector(cat = filter),
-                iconPainter = painterResource(id = R.drawable.sign_headphones)
+            EditVocSectionTitle(
+                title = "Spotify Radio & Mix"
             )
 
             //SPOTIFY "RADIO":
             EditVocDynamicField(
+                modifier = Modifier
+                    .fillMaxWidth(),
                 textHeaderColor = vocColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),
@@ -328,6 +334,8 @@ fun EditVocArtist(
 
             //SPOTIFY "MIX":
             EditVocDynamicField(
+                modifier = Modifier
+                    .fillMaxWidth(),
                 textHeaderColor = vocColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
                     colorLight = vocColorSelectorLight(cat = filter),

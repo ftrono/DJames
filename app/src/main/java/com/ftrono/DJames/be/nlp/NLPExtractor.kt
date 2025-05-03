@@ -181,7 +181,7 @@ class NLPExtractor (private val context: Context) {
                 val matchedPlayName = if (playLinks.containsKey(playName)) playName else itemInfo.defaultKey
                 Log.d(TAG, "MATCHING PLAYLINKNAME: $matchedPlayName")
                 if (matchedPlayName == "artist") {
-                    artistJson.addProperty("play_URL", itemInfo.spotifyUrl)
+                    artistJson.addProperty("play_URL", itemInfo.url)
                 } else {
                     val playLink = itemInfo.playLinks[matchedPlayName]!!
                     artistJson.addProperty("play_name", playLink.name)
@@ -213,7 +213,7 @@ class NLPExtractor (private val context: Context) {
                     val aliasScores = mutableListOf<Int>()
                     //Check each alias:
                     for (curAlias in vocMap[curId]!!) {
-                        if (filter == "playlist") {
+                        if (filter == "playlist" || filter == "route") {
                             val namePartial = FuzzySearch.partialRatio(curAlias, eval.lowercase())
                             val nameFull = FuzzySearch.ratio(curAlias, eval.lowercase())
                             score = listOf<Int>(namePartial, nameFull).average().roundToInt()

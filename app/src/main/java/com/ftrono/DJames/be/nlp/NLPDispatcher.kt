@@ -79,6 +79,7 @@ class NLPDispatcher (private var context: Context) {
                     when (intentName) {
                         "CallRequest" -> return fulfillment.makeCall(resultsNLP)
                         "MessageRequest" -> return fulfillment.sendMessage1(resultsNLP)
+                        "DriveRequest" -> return fulfillment.driveRequest1(resultsNLP)
                         "PlaySong" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
                         "PlayAlbum" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
                         "PlayArtist" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
@@ -150,6 +151,7 @@ class NLPDispatcher (private var context: Context) {
                             "Cancel" -> return utils.fallback()
                             else -> {
                                 when (prevIntent) {
+                                    "DriveRequest" -> return fulfillment.driveRequest2(resultsNLP, prevStatus)
                                     "PlaySong" -> if (spotifyLoggedIn.value!!) return spotify.playSongAlbum2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
                                     "PlayAlbum" -> if (spotifyLoggedIn.value!!) return spotify.playSongAlbum2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
                                     "PlayArtist" -> if (spotifyLoggedIn.value!!) return spotify.playArtistPlaylist2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")

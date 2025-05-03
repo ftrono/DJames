@@ -32,6 +32,7 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.streams.asSequence
+import androidx.core.net.toUri
 
 
 class Utilities {
@@ -138,6 +139,23 @@ class Utilities {
     }
 
 
+    //Open link externally:
+    fun openLink(context: Context, url: String, fromService: Boolean = false) {
+        //Intent view:
+        Log.d(TAG, "Opening URL: $url")
+        val intent = Intent(
+            Intent.ACTION_VIEW,
+            url.toUri()
+        )
+        if (fromService) {
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intent.putExtra("fromwhere", "ser")
+        }
+        context.startActivity(intent)
+    }
+
+
+    //UI update:
     fun updateStatesMap(statesMap: SnapshotStateMap<String, Boolean>, target: String): SnapshotStateMap<String, Boolean> {
         for (k in statesMap.keys) {
             if (k == target) {

@@ -2,6 +2,8 @@ package com.ftrono.DJames.be.database
 
 import io.objectbox.annotation.Entity
 import io.objectbox.annotation.Id
+import io.objectbox.annotation.Convert
+import io.objectbox.converter.PropertyConverter
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -22,21 +24,32 @@ data class PhoneSet(
     var phone: String
 )
 
+@Serializable
+data class Address(
+    var address: String = "",
+    var number: String = "",
+    var placeName: String = "",
+    var town: String = "",
+    var zip: String = "",
+    var province: String = "",
+    var country: String = "Italy",
+)
+
 //ITEM INFO:
 @Serializable
 data class ItemInfoView(
     var name: String = "",
     var imageUrl: String = "",
     var aliases: MutableList<String> = mutableListOf(),
-    var phone: String = ""
+    var detail: String = "",
 )
 
 @Serializable
 data class ItemInfoUse(
     var name: String,
-    var owner: String = "",
+    var detail: String = "",
     var language: String = "",
-    var spotifyUrl: String = "",
+    var url: String = "",
     var defaultKey: String = "",
     var playLinks: MutableMap<String, PlayLink> = mutableMapOf(),
     var phoneSets: MutableMap<String, PhoneSet> = mutableMapOf(),
@@ -107,4 +120,30 @@ data class Contact(
         set(value) {
             phoneSetsJson = Json.encodeToString(value)
         }
+}
+
+@Serializable
+@Entity
+data class Route(
+    //Primary key:
+    @Id var id: Long = 0,
+    var name: String = "",
+    var aliases: MutableList<String> = mutableListOf(""),
+
+    @Convert(converter = AddressConverter::class, dbType = String::class)
+    var destination: Address = Address(),
+
+    @Convert(converter = AddressConverter::class, dbType = String::class)
+    var via: Address = Address(),
+)
+
+
+class AddressConverter : PropertyConverter<Address, String> {
+    override fun convertToEntityProperty(databaseValue: String?): Address {
+        return Json.decodeFromString(databaseValue ?: "{}")
+    }
+
+    override fun convertToDatabaseValue(entityProperty: Address?): String {
+        return Json.encodeToString(entityProperty ?: Address())
+    }
 }

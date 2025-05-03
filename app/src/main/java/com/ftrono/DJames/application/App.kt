@@ -15,6 +15,7 @@ import com.ftrono.DJames.be.database.Contact
 import com.ftrono.DJames.be.database.LibraryUtils
 import com.ftrono.DJames.be.database.MyObjectBox
 import com.ftrono.DJames.be.database.Playlist
+import com.ftrono.DJames.be.database.Route
 import com.ftrono.DJames.be.nlp.FulfillmentUtils
 import com.ftrono.DJames.be.spotify.SpotifyUtils
 import com.ftrono.DJames.utilities.Prefs
@@ -30,13 +31,14 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.4.0"
+val appVersion = "2.4.1"
 val copyrightYear = 2024
 
 //DB:
 var artistBox: Box<Artist>? = null
 var playlistBox: Box<Playlist>? = null
 var contactBox: Box<Contact>? = null
+var routeBox: Box<Route>? = null
 
 //UTILS:
 val utils = Utilities()
@@ -70,7 +72,7 @@ var sharedLink = MutableLiveData<String>("")
 
 //Library / vocabulary:
 var curLibrarySize = MutableLiveData<Int>(0)
-val vocHeads = listOf("artist", "playlist", "contact")
+val vocHeads = listOf("artist", "playlist", "contact", "route")
 val vocSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
 var historyKeys = MutableLiveData<List<String>>(listOf("2024-08-05 18:28:53.json"))
 
@@ -124,6 +126,8 @@ var artistName: String = ""
 var contextName: String = ""
 
 //HTTP:
+val gMapsLinkFormat = "https://www.google.com/maps/dir//"
+
 //Spotify formats:
 val uri_format = "spotify:track:"   ///spotify:<type>:<id>
 val ext_format = "https://open.spotify.com/"
@@ -259,5 +263,6 @@ class App: Application()
         artistBox = store.boxFor(Artist::class.java)
         playlistBox = store.boxFor(Playlist::class.java)
         contactBox = store.boxFor(Contact::class.java)
+        routeBox = store.boxFor(Route::class.java)
     }
 }

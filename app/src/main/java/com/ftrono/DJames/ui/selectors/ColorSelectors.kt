@@ -67,6 +67,8 @@ fun vocColorSelector(
         return colorResource(id = R.color.greenSign)
     } else if (cat == "playlist") {
         return colorResource(id = R.color.yellowSign)
+    } else if (cat == "route") {
+        return colorResource(id = R.color.brownSign)
     } else {
         return colorResource(id = R.color.blueSign)
     }
@@ -81,6 +83,8 @@ fun vocColorSelectorLight(
         return colorResource(id = R.color.greenSignLight)
     } else if (cat == "playlist") {
         return colorResource(id = R.color.yellowSignLight)
+    } else if (cat == "route") {
+        return colorResource(id = R.color.brownSignLight)
     } else {
         return colorResource(id = R.color.blueSignLight)
     }
@@ -125,6 +129,8 @@ fun historyColorSelectorLight(
         return colorResource(id = R.color.greenSignLight)
     } else if (cat == "MessageRequest") {
         return colorResource(id = R.color.blueSignLight)
+    } else if (cat == "DriveRequest") {
+        return colorResource(id = R.color.brownSignLight)
     } else if (cat.contains("Play")) {
         return colorResource(id = R.color.yellowSignLight)
     } else {

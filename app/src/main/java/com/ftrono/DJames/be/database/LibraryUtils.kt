@@ -6,7 +6,10 @@ import android.widget.Toast
 import com.ftrono.DJames.application.artistBox
 import com.ftrono.DJames.application.contactBox
 import com.ftrono.DJames.application.curLibrarySize
+import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.playlistBox
+import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.routeBox
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.vocHeads
 import com.ftrono.DJames.application.vocSectionIdentifier
@@ -16,6 +19,8 @@ import com.ftrono.DJames.be.samples.testPlaylists
 import com.ftrono.DJames.be.database.Artist_
 import com.ftrono.DJames.be.database.Contact_
 import com.ftrono.DJames.be.database.Playlist_
+import com.ftrono.DJames.be.database.Route_
+import com.ftrono.DJames.be.samples.testRoutes
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
@@ -31,66 +36,107 @@ class LibraryUtils {
     fun refreshLibrary(filter: String, preview: Boolean = false, addHeaders: Boolean = true): Map<String, String> {
         //1) Load library:
         var vocMap = mapOf<String, String>()
-        when (filter) {
-            "artist" -> {
-                vocMap = if (preview) {
-                    testArtists
-                } else {
-                    artistBox!!.query().order(Artist_.name).build().find()
-                }.associate { item ->
-                    item.id.toString() to Json.encodeToString(
-                        ItemInfoView(
-                            name = item.name,
-                            imageUrl = item.imageUrl,
-                            aliases = item.aliases
+        try {
+            when (filter) {
+                "artist" -> {
+                    vocMap = if (preview) {
+                        testArtists
+                    } else {
+                        artistBox!!.query().order(Artist_.name).build().find()
+                    }.associate { item ->
+                        item.id.toString() to Json.encodeToString(
+                            ItemInfoView(
+                                name = item.name,
+                                imageUrl = item.imageUrl,
+                                aliases = item.aliases
+                            )
                         )
-                    )
+                    }
+                }
+
+                "playlist" -> {
+                    vocMap = if (preview) {
+                        testPlaylists
+                    } else {
+                        playlistBox!!.query().order(Playlist_.name).build().find()
+                    }.associate { item ->
+                        item.id.toString() to Json.encodeToString(
+                            ItemInfoView(
+                                name = item.name,
+                                imageUrl = item.imageUrl,
+                                aliases = item.aliases
+                            )
+                        )
+                    }
+                }
+
+                "contact" -> {
+                    vocMap = if (preview) {
+                        testContacts
+                    } else {
+                        contactBox!!.query().order(Contact_.name).build().find()
+                    }.associate { item ->
+                        item.id.toString() to Json.encodeToString(
+                            ItemInfoView(
+                                name = item.name,
+                                imageUrl = "",
+                                aliases = item.aliases,
+                                detail = item.phoneSets["personal"]!!.phone
+                            )
+                        )
+                    }
+                }
+
+                "route" -> {
+                    vocMap = if (preview) {
+                        testRoutes
+                    } else {
+                        routeBox!!.query().order(Route_.name).build().find()
+                    }.associate { item ->
+                        item.id.toString() to Json.encodeToString(
+                            ItemInfoView(
+                                name = item.name,
+                                imageUrl = "",
+                                aliases = item.aliases,
+                                detail = buildRouteSubtitle(item)
+                            )
+                        )
+                    }
                 }
             }
 
-            "playlist" -> {
-                vocMap = if (preview) {
-                    testPlaylists
-                } else {
-                    playlistBox!!.query().order(Playlist_.name).build().find()
-                }.associate { item ->
-                    item.id.toString() to Json.encodeToString(
-                        ItemInfoView(
-                            name = item.name,
-                            imageUrl = item.imageUrl,
-                            aliases = item.aliases
-                        )
-                    )
-                }
+            //2) Update Library size (IMPORTANT - for signs):
+            curLibrarySize.postValue(vocMap.size)
+
+            //3) Build library map & add headers:
+            if (addHeaders) {
+                return addLetterHeaders(vocMap)
+            } else {
+                return vocMap
             }
 
-            "contact" -> {
-                vocMap = if (preview) {
-                    testContacts
-                } else {
-                    contactBox!!.query().order(Contact_.name).build().find()
-                }.associate { item ->
-                    item.id.toString() to Json.encodeToString(
-                        ItemInfoView(
-                            name = item.name,
-                            imageUrl = "",
-                            aliases = item.aliases,
-                            phone = item.phoneSets["personal"]!!.phone
-                        )
-                    )
-                }
-            }
-        }
-
-        //2) Update Library size (IMPORTANT - for signs):
-        curLibrarySize.postValue(vocMap.size)
-
-        //3) Build library map & add headers:
-        if (addHeaders) {
-            return addLetterHeaders(vocMap)
-        } else {
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: cannot refresh Library for $filter! ", e)
+            curLibrarySize.postValue(0)
             return vocMap
         }
+    }
+
+
+    //Route: build subtitle:
+    fun buildRouteSubtitle(item: Route, viewLanguage: String = "en"): String {
+        var subtitle = ""
+        if (item.via.placeName == "" && item.via.address == "") {
+            if (item.destination.town != "" && item.destination.address != "") {
+                subtitle = item.destination.town + ", " + item.destination.address + " " + item.destination.number
+            } else {
+                subtitle = ""
+            }
+        } else {
+            val introStr = if (viewLanguage == "it") "Da " else "By "
+            subtitle = introStr + if (item.via.placeName != "") item.via.placeName else item.via.address + " " + item.via.number
+        }
+        return subtitle
     }
 
 
@@ -138,6 +184,13 @@ class LibraryUtils {
                         contact.id.toString() to (contact.aliases ?: emptyList()) // Ensures no null values
                     }
             }
+
+            "route" -> {
+                vocMap =
+                    routeBox!!.query().order(Route_.name).build().find().associate { route ->
+                        route.id.toString() to (route.aliases ?: emptyList()) // Ensures no null values
+                    }
+            }
         }
         return vocMap
     }
@@ -161,7 +214,7 @@ class LibraryUtils {
                     }
             }
 
-            "contact" -> { }
+            else -> { }
         }
         return urlMap
     }
@@ -179,6 +232,10 @@ class LibraryUtils {
 
     fun getContact(id: String): Contact {
         return contactBox!!.get(id.toLong())
+    }
+
+    fun getRoute(id: String): Route {
+        return routeBox!!.get(id.toLong())
     }
 
     //Get single item name:
@@ -205,6 +262,13 @@ class LibraryUtils {
                     .property(Contact_.name)
                     .findString()
             }
+            "route" -> {
+                return routeBox!!.query()
+                    .equal(Route_.id, id.toLong())
+                    .build()
+                    .property(Route_.name)
+                    .findString()
+            }
             else -> return ""
         }
     }
@@ -217,7 +281,7 @@ class LibraryUtils {
                 val item = artistBox!!.get(id.toLong())
                 return ItemInfoUse(
                     name = item.name,
-                    spotifyUrl = item.spotifyUrl,
+                    url = item.spotifyUrl,
                     defaultKey = item.defaultPlay,
                     playLinks = item.playLinks,
                 )
@@ -227,8 +291,8 @@ class LibraryUtils {
                 val item = playlistBox!!.get(id.toLong())
                 return ItemInfoUse(
                     name = item.name,
-                    owner = item.owner,
-                    spotifyUrl = item.spotifyUrl
+                    detail = item.owner,
+                    url = item.spotifyUrl
                 )
             }
 
@@ -239,6 +303,17 @@ class LibraryUtils {
                     language = item.language,
                     defaultKey = item.defaultPhone,
                     phoneSets = item.phoneSets
+                )
+            }
+            "route" -> {
+                //TODO: Route!!!
+                val item = routeBox!!.get(id.toLong())
+                val language = prefs.routeLanguage   //TODO: Default only!
+                return ItemInfoUse(
+                    name = item.name,
+                    detail = buildRouteSubtitle(item, viewLanguage = language),
+                    language = language,
+                    url = fulfillmentUtils.buildRouteUrl(item)
                 )
             }
             else -> return ItemInfoUse(
@@ -285,6 +360,18 @@ class LibraryUtils {
         }
     }
 
+    //Update / store Route to DB:
+    fun storeRoute(context: Context, item: Route) {
+        try {
+            routeBox!!.put(item)
+            Log.d(TAG, "Route ${item.id} saved!")
+            Toast.makeText(context, "Route saved!", Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: Route ${item.id} not saved!", e)
+            Toast.makeText(context, "ERROR: Route not saved!", Toast.LENGTH_LONG).show()
+        }
+    }
+
 
     //UTILS:
     fun getCollectionSize(filter: String): Long {
@@ -292,6 +379,7 @@ class LibraryUtils {
             "artist" -> artistBox!!.count()
             "playlist" -> playlistBox!!.count()
             "contact" -> contactBox!!.count()
+            "route" -> routeBox!!.count()
             else -> 0
         }
     }
@@ -305,6 +393,7 @@ class LibraryUtils {
                 "artist" -> artistBox!!.remove(id.toLong())
                 "playlist" -> playlistBox!!.remove(id.toLong())
                 "contact" -> contactBox!!.remove(id.toLong())
+                "route" -> routeBox!!.remove(id.toLong())
             }
             Log.d(TAG, "Deleted $filter item $id!")
             Toast.makeText(context, "${filter.replaceFirstChar { it.uppercase() }} deleted!", Toast.LENGTH_LONG).show()
@@ -321,8 +410,8 @@ class LibraryUtils {
                 "artist" -> artistBox!!.removeAll()
                 "playlist" -> playlistBox!!.removeAll()
                 "contact" -> contactBox!!.removeAll()
+                "route" -> routeBox!!.removeAll()
             }
-            artistBox!!.removeAll()
             Log.d(TAG, "Deleted ${filter} library!")
             Toast.makeText(context, "${filter.replaceFirstChar { it.uppercase() }} library deleted!", Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
@@ -350,6 +439,10 @@ class LibraryUtils {
                 }
                 "contact" -> {
                     val libArray = contactBox!!.query().order(Contact_.name).build().find().toList()
+                    cachedFile.writeText(Json.encodeToString(libArray))
+                }
+                "route" -> {
+                    val libArray = routeBox!!.query().order(Route_.name).build().find().toList()
                     cachedFile.writeText(Json.encodeToString(libArray))
                 }
             }

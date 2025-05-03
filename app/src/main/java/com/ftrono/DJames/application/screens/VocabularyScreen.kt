@@ -67,6 +67,7 @@ import com.ftrono.DJames.be.database.ItemInfoView
 import com.ftrono.DJames.application.dialogs.EditVocArtist
 import com.ftrono.DJames.application.dialogs.EditVocContact
 import com.ftrono.DJames.application.dialogs.EditVocPlaylist
+import com.ftrono.DJames.application.dialogs.EditVocRoute
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
@@ -163,6 +164,20 @@ fun VocabularyScreen(
                 },
                 preview = preview
             )
+            "route" -> EditVocRoute(
+                context = mContext,
+                libraryMap = libraryMap,
+                keyState = keyState,
+                filter = editCat,
+                onDismiss = {
+                    //cancelable -> true
+                    editVocOn.value = false
+                    keyState.value = ""
+                    addLinkState.value = ""
+                    sharedLink.postValue("")
+                },
+                preview = preview
+            )
             "contact" -> EditVocContact(
                 context = mContext,
                 libraryMap = libraryMap,
@@ -246,7 +261,7 @@ fun VocabularyScreen(
                 },
                 onClick = {
                     keyState.value = ""
-                    if (currentCatState.value == "contact") {
+                    if (currentCatState.value == "contact" || currentCatState.value == "route") {
                         editVocOn.value = true
                     } else {
                         addLinkOn.postValue(true)
@@ -511,6 +526,8 @@ fun VocSectionContent(
                     //ITEM:
                     item {
                         VocItem(
+                            modifier = Modifier
+                                .height(60.dp),
                             currentCatState = currentCatState,
                             keyState = keyState,
                             nameState = nameState,
@@ -552,6 +569,7 @@ fun VocLetter(
 
 @Composable
 fun VocItem(
+    modifier: Modifier,
     currentCatState: MutableState<String>,
     keyState: MutableState<String>,
     nameState: MutableState<String>,
@@ -576,9 +594,7 @@ fun VocItem(
 
         //Card:
         VocItemCard(
-            modifier = Modifier
-                .wrapContentWidth()
-                .height(60.dp),
+            modifier = modifier,
             cardColors = CardDefaults.cardColors(
                 containerColor = if (mDisplayMenu.value) {
                     colorResource(id = R.color.dark_grey)
@@ -590,12 +606,12 @@ fun VocItem(
             signBorderColor = colorResource(id = R.color.midfaded_grey),
             signIconColor = colorResource(id = R.color.light_grey),
             signIconPainter = vocIconSelector(cat = currentCatState.value),
-            circle = currentCatState.value != "playlist",
+            circle = currentCatState.value != "playlist" && currentCatState.value != "route",
             title = utils.trimString(itemName, 24),
-            subtitle = if (itemAliases.isNotEmpty()) {
+            subtitle = if (currentCatState.value != "route" && itemAliases.isNotEmpty()) {
                     utils.trimString("\"" + itemAliases.joinToString("\", \"") + "\"", 16)
-                } else if (itemInfo.phone != "") {
-                    utils.trimString(itemInfo.phone, 16)
+                } else if (itemInfo.detail != "") {
+                    utils.trimString(itemInfo.detail, 16)
                 } else "",
             imageUrl = itemImage,
             onClick = {

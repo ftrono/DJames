@@ -469,6 +469,17 @@ fun getHistoryItemInfo(item: JsonObject, context: Context): JsonObject {
         var contacted = item.get("contact_extractor").asJsonObject.get("contact_confirmed").asString.replaceFirstChar { it.uppercase() }
         textExtra = "Contact:  $contacted"
 
+    } else if (intentName.contains("Drive")) {
+        //Drive:
+        var routeInfo = item.get("route_info").asJsonObject
+        var routeName = routeInfo.get("name").asString
+        var routeDetail = routeInfo.get("detail").asString
+        if (routeDetail == "") {
+            textExtra = "Route:  ${routeInfo.get("name").asString}"
+        } else {
+            textExtra = "Route:  $routeName\nDetail:  $routeDetail"
+        }
+
     } else if (intentName.contains("Play")) {
         //Play requests:
         var playType = try {

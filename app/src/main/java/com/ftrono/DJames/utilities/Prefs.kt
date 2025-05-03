@@ -91,6 +91,12 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getBoolean(KEY_SILENCE_ENABLED_MESS, true) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_SILENCE_ENABLED_MESS, value).apply()
 
+    //Routes: Default language:
+    var routeLanguage: String
+        //"en-US" -> English; "it" -> Italian
+        get() = sharedPrefs.getString(KEY_ROUTE_LANGUAGE, "it") as String
+        set(value) = sharedPrefs.edit().putString(KEY_ROUTE_LANGUAGE, value).apply()
+
     //Auto Clock:
     var autoClock: Boolean
         get() = sharedPrefs.getBoolean(KEY_AUTO_CLOCK, true) as Boolean
@@ -168,6 +174,7 @@ class Prefs (context: Context) {
         const val KEY_MESSAGE_LANGUAGE = ".key.message_language"
         const val KEY_MESSAGE_TIMEOUT = ".key.message_timeout"
         const val KEY_SILENCE_ENABLED_MESS = ".key.enable_silence_mess"
+        const val KEY_ROUTE_LANGUAGE = ".key.route_language"
         const val KEY_AUTO_CLOCK = ".key.auto_clock"
         const val KEY_CLOCK_REDIRECT_ENABLED = ".key.clock_redirect_enabled"
         const val KEY_CLOCK_TIMEOUT = ".key.clock_timeout"

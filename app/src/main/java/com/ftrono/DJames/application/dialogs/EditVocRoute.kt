@@ -81,7 +81,7 @@ fun EditVocRoute(
 
     //States:
     val textName = rememberSaveable { mutableStateOf(itemRoute.name) }
-    val textSubtitle = rememberSaveable { mutableStateOf(libUtils.buildRouteSubtitle(itemRoute)) }
+    val textSubtitle = rememberSaveable { mutableStateOf(itemRoute.destination.town) }
     val textAliases = rememberSaveable { mutableStateOf(initAliases.joinToString(", ")) }
     val imageUrlState = rememberSaveable { mutableStateOf("") }
     //Destination:
@@ -142,7 +142,7 @@ fun EditVocRoute(
             showGo = true,
             onGo = {
                 if (itemRoute.destination.town != "") {
-                    utils.openLink(mContext, url = fulfillmentUtils.buildRouteUrl(itemRoute), fromService = false)
+                    utils.openLink(mContext, url = fulfillmentUtils.buildRouteUrlFromItem(itemRoute), fromService = false)
                 }
             },
             onDismiss = {
@@ -160,19 +160,8 @@ fun EditVocRoute(
 
                 if (!requestDetailOn.value && textName.value != "") {
                     //2) Update object:
-                    //TODO: TEMP:
                     val aliasesList = mutableListOf(
-                        utils.cleanString(textName.value).lowercase(),
-                        utils.cleanString(
-                            textDestPlaceName.value.trim()
-                            + " " + textDestAddress.value.trim()
-                            + " " + textDestNumber.value.trim()
-                            + " " + textDestTown.value.trim()
-                            + " " + textViaPlaceName.value.trim()
-                            + " " + textViaAddress.value.trim()
-                            + " " + textViaNumber.value.trim()
-                            + " " + textViaTown.value.trim()
-                        ).lowercase(),
+                        utils.cleanString(textName.value).lowercase()
                     )
                     Log.d("EditVocRoute", "$aliasesList")
                     if (textAliases.value != "") {

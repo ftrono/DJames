@@ -196,7 +196,7 @@ class NLPExtractor (private val context: Context) {
 
 
     //Match item from user query against user vocabulary:
-    fun matchVocabulary(filter: String, text: String): String {
+    fun matchVocabulary(filter: String, text: String, threshold: Int = midThreshold): String {
         var matchId = ""
         val vocMap = libUtils.getAliasesMap(filter)
         if (text != "" && vocMap.isNotEmpty()) {
@@ -213,7 +213,7 @@ class NLPExtractor (private val context: Context) {
                     val aliasScores = mutableListOf<Int>()
                     //Check each alias:
                     for (curAlias in vocMap[curId]!!) {
-                        if (filter == "playlist" || filter == "route") {
+                        if (filter == "playlist") {
                             val namePartial = FuzzySearch.partialRatio(curAlias, eval.lowercase())
                             val nameFull = FuzzySearch.ratio(curAlias, eval.lowercase())
                             score = listOf<Int>(namePartial, nameFull).average().roundToInt()
@@ -225,7 +225,7 @@ class NLPExtractor (private val context: Context) {
                     }
                     //Get Max alias score and add globally only if high enough:
                     val maxScore = aliasScores.max()
-                    if (!scoresMap.keys.contains(curId) && maxScore >= midThreshold) {
+                    if (!scoresMap.keys.contains(curId) && maxScore >= threshold) {
                         scoresMap[curId] = maxScore
                     }
                 }

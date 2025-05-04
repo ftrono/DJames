@@ -457,6 +457,8 @@ fun getHistoryItemInfo(item: JsonObject, context: Context): JsonObject {
     val textIntro = "${datetime.slice(0..< (datetime.length-3))}  $itemScore"
     val textMain = if (intentName.contains("Play") && !queryText.contains("play ")) {
         "play: $queryText"
+    } else if (intentName.contains("Drive") ) {
+        "drive: $queryText"
     } else {
         queryText
     }

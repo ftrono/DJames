@@ -15,6 +15,7 @@ import com.ftrono.DJames.application.gMapsLinkFormat
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.Route
+import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import kotlinx.coroutines.runBlocking
 import java.io.BufferedReader
@@ -207,8 +208,8 @@ class FulfillmentUtils {
     }
 
 
-    //Route: build navigation URL:
-    fun buildRouteUrl(item: Route): String {
+    //Route: build navigation URL from Route item:
+    fun buildRouteUrlFromItem(item: Route): String {
         var url = gMapsLinkFormat
         //Via:
         var fullVia = listOf(
@@ -235,6 +236,29 @@ class FulfillmentUtils {
 
         return url + fullVia.replace(" ", "+") + fullDestination.replace(" ", "+")
 
+    }
+
+
+    //Route: build navigation URL from Message text:
+    fun buildRouteUrlFromMessage(text: String, language: String): JsonObject {
+        var routeInfo = JsonObject()
+        var url = gMapsLinkFormat
+        //TODO TEMP:
+        var routeComps = text.split(" tramite ")
+        var viaText = ""
+        var viaUrl = ""
+        if (routeComps.size > 1) {
+            if (routeComps[1] != "") {
+                viaText = routeComps[1].trim()
+                viaUrl = viaText.replace(" ", "+") + "/"
+            }
+        }
+        routeInfo.addProperty("name", utils.capitalizeWords(routeComps[0]))
+        routeInfo.addProperty("detail", utils.capitalizeWords(viaText))
+        routeInfo.addProperty("language", language)
+        url = url + viaUrl + routeComps[0].replace(" ", "+").trim() + "/"
+        routeInfo.addProperty("url", url)
+        return routeInfo
     }
 
 }

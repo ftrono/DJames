@@ -10,6 +10,7 @@ import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.libUtils
+import com.ftrono.DJames.application.maxThreshold
 import com.ftrono.DJames.application.messLangFull
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
@@ -255,7 +256,7 @@ class GenericFulfillment (private var context: Context) {
         var ttsToRead = ""
 
         //Read:
-        ttsToRead = "Tell me your saved route in ${reqLangName}."
+        ttsToRead = "Tell me the route you need in ${reqLangName}."
         val itemsToRead = listOf(
             mapOf(
                 "language" to prefs.queryLanguage,
@@ -279,6 +280,7 @@ class GenericFulfillment (private var context: Context) {
     //Process Drive request: PART 2:
     fun driveRequest2(resultsNLP: JsonObject, prevStatus: JsonObject) : JsonObject {
         var processStatus = JsonObject()
+        var reqLangCode = prevStatus.get("reqLanguage").asString
         last_log!!.add("nlp", resultsNLP)
 
         //Prepare toast text:
@@ -299,7 +301,7 @@ class GenericFulfillment (private var context: Context) {
         var routeConfirmed = ""
         var detailConfirmed = ""
         var routeUrl = ""
-        var routeLanguage = prefs.routeLanguage
+        var routeLanguage = reqLangCode
         var routeInfo = JsonObject()
 
         var extractorInfo = JsonObject()
@@ -308,21 +310,25 @@ class GenericFulfillment (private var context: Context) {
 
         var nlpExtractor = NLPExtractor(context)
         //Check route in vocabulary:
-        routeMatchId = nlpExtractor.matchVocabulary("route", matchName)
+        routeMatchId = nlpExtractor.matchVocabulary("route", matchName, maxThreshold)
         if (routeMatchId == "") {
             //Route not found:
-            Log.d(TAG, "DRIVE -> Route not found!")
-            //Close log:
-            //utils.closeLog(context)
-            return utils.fallback()
+            Log.d(TAG, "DRIVE -> Route from Message")
+            last_log!!.addProperty("voc_score", 100)
+            routeInfo = fulfillmentUtils.buildRouteUrlFromMessage(nlp_queryText, reqLangCode)
+            routeConfirmed = routeInfo.get("name").asString
+            detailConfirmed = routeInfo.get("detail").asString
+            routeLanguage = routeInfo.get("language").asString
+            routeUrl = routeInfo.get("url").asString
+
         } else {
-            Log.d(TAG, "DRIVE -> Route found!")
-            //Get route URL:
+            //Route found:
+            Log.d(TAG, "DRIVE -> Route from Library")
             val itemInfo = libUtils.getItemInfoUse("route", routeMatchId)
             routeConfirmed = itemInfo.name
             detailConfirmed = itemInfo.detail
             routeLanguage = itemInfo.language   //TODO
-            routeUrl = itemInfo.url   //TODO: Build route URL
+            routeUrl = itemInfo.url
             extractorInfo.addProperty("text_confirmed", routeConfirmed)
             extractorInfo.addProperty("detail_confirmed", detailConfirmed)
             //Route info:
@@ -330,8 +336,14 @@ class GenericFulfillment (private var context: Context) {
             routeInfo.addProperty("detail", detailConfirmed)
             routeInfo.addProperty("language", itemInfo.language)   //TODO
             routeInfo.addProperty("url", routeUrl)
+        }
 
-            //B) ROUTE FOUND!
+        if (routeUrl == "") {
+            //Close log:
+            //utils.closeLog(context)
+            return utils.fallback()
+        } else {
+            //NAVIGATE:
             fulfillmentUtils.releaseAudioFocus()
 
             //Wait 1 sec:
@@ -372,6 +384,5 @@ class GenericFulfillment (private var context: Context) {
         utils.closeLog(context)
         return processStatus
     }
-
 
 }

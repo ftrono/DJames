@@ -98,7 +98,7 @@ class LibraryUtils {
                                 name = item.name,
                                 imageUrl = "",
                                 aliases = item.aliases,
-                                detail = buildRouteSubtitle(item)
+                                detail = item.destination.town
                             )
                         )
                     }
@@ -313,7 +313,7 @@ class LibraryUtils {
                     name = item.name,
                     detail = buildRouteSubtitle(item, viewLanguage = language),
                     language = language,
-                    url = fulfillmentUtils.buildRouteUrl(item)
+                    url = fulfillmentUtils.buildRouteUrlFromItem(item)
                 )
             }
             else -> return ItemInfoUse(

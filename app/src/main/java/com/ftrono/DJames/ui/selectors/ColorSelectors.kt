@@ -104,6 +104,8 @@ fun guideColorSelector(
         return colorResource(id = R.color.greenSign)
     } else if (cat == "messages") {
         return colorResource(id = R.color.blueSign)
+    } else if (cat == "routes") {
+        return colorResource(id = R.color.brownSign)
     } else {
         return colorResource(id = R.color.yellowSign)
     }
@@ -118,6 +120,8 @@ fun guideColorSelectorLight(
         return colorResource(id = R.color.greenSignLight)
     } else if (cat == "messages") {
         return colorResource(id = R.color.blueSignLight)
+    } else if (cat == "routes") {
+        return colorResource(id = R.color.brownSignLight)
     } else {
         return colorResource(id = R.color.yellowSignLight)
     }

@@ -63,6 +63,7 @@ import com.ftrono.DJames.be.database.ItemInfoView
 import com.ftrono.DJames.application.dialogs.EditVocArtist
 import com.ftrono.DJames.application.dialogs.EditVocContact
 import com.ftrono.DJames.application.dialogs.EditVocPlaylist
+import com.ftrono.DJames.application.dialogs.EditVocPodcast
 import com.ftrono.DJames.application.dialogs.EditVocRoute
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotifyUtils
@@ -160,6 +161,22 @@ fun VocabularyScreen(
                 },
                 preview = preview
             )
+            "podcast" -> EditVocPodcast(
+                context = mContext,
+                libraryMap = libraryMap,
+                keyState = keyState,
+                filter = editCat,
+                initLinkState = addLinkState,
+                loadingDialogOn = loadingDialogOn,
+                onDismiss = {
+                    //cancelable -> true
+                    editVocOn.value = false
+                    keyState.value = ""
+                    addLinkState.value = ""
+                    sharedLink.postValue("")
+                },
+                preview = preview
+            )
             "route" -> EditVocRoute(
                 context = mContext,
                 libraryMap = libraryMap,
@@ -196,7 +213,7 @@ fun VocabularyScreen(
         AddLinkDialog(
             textState = addLinkState,
             dialogHeader = "New",
-            textBoxHeader = "Spotify: Artist or Playlist URL",
+            textBoxHeader = "Spotify: Artist, Playlist or Podcast URL",
             headerIcon = Icons.Default.Add,
             onDismiss = {
                 //cancelable -> true
@@ -293,7 +310,13 @@ fun VocabularyScreen(
                             HeaderWithSign(
                                 iconRes = painterResource(id = R.drawable.sign_fork),
                                 pretitle = "Library",
-                                title = if (currentCatState.value == "artist" || currentCatState.value == "route") "${utils.capitalizeWords(currentCatState.value)}s   " else "${utils.capitalizeWords(currentCatState.value)}s",
+                                title = if (currentCatState.value == "artist" || currentCatState.value == "route") {
+                                    "${utils.capitalizeWords(currentCatState.value)}s   "
+                                } else if (currentCatState.value == "podcast") {
+                                    "${utils.capitalizeWords(currentCatState.value)}s "
+                                } else {
+                                    "${utils.capitalizeWords(currentCatState.value)}s"
+                                },
                                 num = curLibrarySizeState,
                                 signColor = vocColorSelector(cat = currentCatState.value)
                             ){
@@ -567,7 +590,7 @@ fun VocItem(
             signBorderColor = colorResource(id = R.color.midfaded_grey),
             signIconColor = colorResource(id = R.color.light_grey),
             signIconPainter = vocIconSelector(cat = currentCatState.value),
-            circle = currentCatState.value != "playlist" && currentCatState.value != "route",
+            circle = currentCatState.value != "playlist" && currentCatState.value != "podcast" && currentCatState.value != "route",
             title = utils.trimString(itemName, 24),
             subtitle = if (currentCatState.value != "route" && itemAliases.isNotEmpty()) {
                     utils.trimString("\"" + itemAliases.joinToString("\", \"") + "\"", 16)

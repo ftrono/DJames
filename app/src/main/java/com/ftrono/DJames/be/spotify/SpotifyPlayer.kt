@@ -2,7 +2,6 @@ package com.ftrono.DJames.be.spotify
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.util.Log
 import com.ftrono.DJames.application.ACTION_LOG_REFRESH
 import com.ftrono.DJames.application.ACTION_TOASTER
@@ -11,6 +10,7 @@ import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import java.net.URLEncoder
 
@@ -155,23 +155,32 @@ class SpotifyPlayer (private val context: Context) {
         var jsonBody = JsonObject()
         var offset = JsonObject()   //Context
 
-        // Use requested context:
-        if (playType == "track" && useAlbum) {
-            jsonBody.addProperty("context_uri", resultJSON.get("album_uri").asString)
-        } else {
-            jsonBody.addProperty("context_uri", resultJSON.get("context_uri").asString)
-        }
+        //Use uri vs context_uri:
+        if (playType == "podcast") {
+            val uris = JsonArray()
+            uris.add(resultJSON.get("uri").asString)
+            jsonBody.add("uris", uris)
+            jsonBody.addProperty("position_ms", resultJSON.get("episode_resume_position_ms").asString)
 
-        //Start playing from:
-        if (playType != "artist") {
-            if (playType == "track") {
-                offset.addProperty("uri", resultJSON.get("uri").asString)   //song uri
+        } else {
+            // Use requested context:
+            if (playType == "track" && useAlbum) {
+                jsonBody.addProperty("context_uri", resultJSON.get("album_uri").asString)
             } else {
-                offset.addProperty("position", 0)   //beginning
+                jsonBody.addProperty("context_uri", resultJSON.get("context_uri").asString)
             }
-            jsonBody.add("offset", offset)
+
+            //Start playing from:
+            if (playType != "artist") {
+                if (playType == "track") {
+                    offset.addProperty("uri", resultJSON.get("uri").asString)   //song uri
+                } else {
+                    offset.addProperty("position", 0)   //beginning
+                }
+                jsonBody.add("offset", offset)
+            }
+            jsonBody.addProperty("position_ms", 0)
         }
-        jsonBody.addProperty("position_ms", 0)
 
         //Headers:
         var jsonHeads = JsonObject()

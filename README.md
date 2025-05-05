@@ -11,6 +11,8 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
+**Version 2.4.2 (2025-05-05)** - Add support to Podcasts playing (WIP: latest episode only).
+
 **Version 2.4.1 (2025-05-03)** - Add support to Driving directions (Routes). Introduce multi-language TTS read.
 
 **Version 2.4.0 (2025-04-14)** - Repo refactor. Add Library images & AddLink basic Dialog (WIP), with direct external share links. Minor UI refinements.

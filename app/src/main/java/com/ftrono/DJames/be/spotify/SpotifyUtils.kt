@@ -16,9 +16,12 @@ import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.playlistUrlIntro
 import com.ftrono.DJames.application.sharedLink
+import com.ftrono.DJames.application.showUrlIntro
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.be.database.Artist
+import com.ftrono.DJames.be.database.Episode
 import com.ftrono.DJames.be.database.Playlist
+import com.ftrono.DJames.be.database.Podcast
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
 
@@ -63,10 +66,13 @@ class SpotifyUtils {
         val urlTest = URLUtil.isValidUrl(url) && Patterns.WEB_URL.matcher(url).matches()
         return if (
             urlTest && url.contains(artistUrlIntro)
-            ) "artist"
+        ) "artist"
         else if (
             urlTest && url.contains(playlistUrlIntro)
-            ) "playlist"
+        ) "playlist"
+        else if (
+            urlTest && url.contains(showUrlIntro)
+        ) "podcast"
         else ""
     }
 
@@ -97,7 +103,7 @@ class SpotifyUtils {
             editVocOn.value = true
         } else {
             loadingDialogOn.value = false
-            Toast.makeText(context, "Invalid Spotify Artist or Playlist link!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Invalid Spotify Artist, Playlist or Podcast link!", Toast.LENGTH_SHORT).show()
         }
         sharedLink.postValue("")
     }
@@ -255,5 +261,115 @@ class SpotifyUtils {
         Log.d(TAG, "getPlaylistInfo: job end!")
         return itemPlaylist
     }
+
+
+    //Get Podcast info:
+    fun getPodcastInfo(context: Context, url: String, initPodcast: Podcast = Podcast(), init: Boolean): Podcast {
+        Log.d(TAG, "getPodcastInfo: job start!")
+        var toastText = ""
+        var itemPodcast = initPodcast
+        try {
+            val spotifyCalls = SpotifyCalls(context)
+            val resp = spotifyCalls.getSpotifyPodcast(getSpotifyID(url))
+            //PROCESS RESPONSE:
+            if (resp.code == 200) {
+                //SUCCESS -> Extract info:
+                Log.d(TAG, "getPodcastInfo: results received!")
+                val respJson = JsonParser.parseString(resp.body).asJsonObject
+                itemPodcast.name = respJson.get("name").asString
+                itemPodcast.spotifyUrl = url
+                itemPodcast.publisher = respJson.get("publisher").asString
+                itemPodcast.description = respJson.get("description").asString
+                //Languages:
+                var itemLanguages = mutableListOf<String>()
+                for (obj in respJson.get("languages").asJsonArray) {
+                    itemLanguages.add(obj.asString)
+                }
+                itemPodcast.languages = itemLanguages
+                //Image URL:
+                try {
+                    itemPodcast.imageUrl = respJson.get("images").asJsonArray.get(0).asJsonObject.get("url").asString
+                } catch (e: Exception) {
+                    itemPodcast.imageUrl = ""
+                }
+                toastText = if (!init) "Refreshed!" else "Please fill in additional information!"
+            } else {
+                Log.w(TAG, "ERROR: Could not extract info from Spotify!")
+                toastText = if (!init) "Cannot refresh now!" else "Please fill in missing information!"
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: Could not extract info from Spotify! ", e)
+            toastText = if (!init) "Cannot refresh now!" else "Please fill in missing information!"
+        }
+        //TOAST:
+        Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
+        Log.d(TAG, "getPodcastInfo: job end!")
+        return itemPodcast
+    }
+
+
+    //Get Podcast info:
+    fun getPodcastEpisodes(context: Context, url: String, latestOnly: Boolean = true): List<Episode> {
+        Log.d(TAG, "getPodcastEpisodes: job start!")
+        var episodes = mutableListOf<Episode>()
+        try {
+            val spotifyCalls = SpotifyCalls(context)
+            val resp = spotifyCalls.getSpotifyPodcastEpisodes(getSpotifyID(url), limit = if (latestOnly) 1 else null)
+            //PROCESS RESPONSE:
+            if (resp.code == 200) {
+                //SUCCESS -> Extract info:
+                Log.d(TAG, "getPodcastEpisodes: results received!")
+                val respJson = JsonParser.parseString(resp.body).asJsonObject
+                val items = respJson.get("items").asJsonArray
+                if (items.isEmpty) {
+                    Log.w(TAG, "ERROR: Could not get Podcast Episodes from Spotify!")
+                } else {
+                    for (item in items) {
+                        val itemJson = item.asJsonObject
+                        var fullyPlayed = false
+                        var resumePositionMs = 0
+                        //ResumePoint info:
+                        try {
+                            var itemResume = itemJson.get("resume_point").asJsonObject
+                            fullyPlayed = itemResume.get("fully_played").asBoolean
+                            if (!fullyPlayed) {
+                                resumePositionMs = itemResume.get("resume_position_ms").asInt
+                            }
+                        } catch (e: Exception) {
+                            Log.d(TAG, "No ResumePoint info in current Episode!")
+                        }
+                        //Languages:
+                        var itemLanguages = mutableListOf<String>()
+                        for (obj in itemJson.get("languages").asJsonArray) {
+                            itemLanguages.add(obj.asString)
+                        }
+                        episodes.add(
+                            Episode(
+                                name = itemJson.get("name").asString,
+                                spotifyId = itemJson.get("id").asString,
+                                releaseDate = try {
+                                    itemJson.get("release_date").asString
+                                } catch (e: Exception) {
+                                    ""
+                                },
+                                languages = itemLanguages,
+                                fullyPlayed = fullyPlayed,
+                                resumePositionMs = resumePositionMs,
+                            )
+                        )
+                    }
+                }
+
+            } else {
+                Log.w(TAG, "ERROR: Could not get Podcast Episodes from Spotify!")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: Could not get Podcast Episodes from Spotify! ", e)
+        }
+        //TOAST:
+        Log.d(TAG, "getPodcastEpisodes: job end!")
+        return episodes
+    }
+
 
 }

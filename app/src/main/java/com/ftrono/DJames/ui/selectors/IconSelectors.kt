@@ -16,6 +16,8 @@ fun vocIconSelector(
         return painterResource(id = R.drawable.sign_phone)
     } else if (cat == "playlist") {
         return painterResource(id = R.drawable.sign_disc)
+    } else if (cat == "podcast") {
+        return painterResource(id = R.drawable.sign_headphones)
     } else if (cat == "route") {
         return painterResource(id = R.drawable.sign_place)
     } else {

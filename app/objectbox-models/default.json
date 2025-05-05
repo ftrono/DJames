@@ -168,9 +168,58 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "6:1620935941318992556",
+      "lastPropertyId": "8:1476645708829123178",
+      "name": "Podcast",
+      "properties": [
+        {
+          "id": "1:5749680667865156168",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7441223096043738735",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:5546730909839372132",
+          "name": "aliases",
+          "type": 30
+        },
+        {
+          "id": "4:7429519897058764010",
+          "name": "publisher",
+          "type": 9
+        },
+        {
+          "id": "5:1097227935510598234",
+          "name": "description",
+          "type": 9
+        },
+        {
+          "id": "6:5996475673466489626",
+          "name": "imageUrl",
+          "type": 9
+        },
+        {
+          "id": "7:8428850603074859967",
+          "name": "spotifyUrl",
+          "type": 9
+        },
+        {
+          "id": "8:1476645708829123178",
+          "name": "languages",
+          "type": 30
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "5:8772910962691441876",
+  "lastEntityId": "6:1620935941318992556",
   "lastIndexId": "0:0",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

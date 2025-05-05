@@ -456,7 +456,7 @@ fun EditVocDynamicNameSection(
                     iconColor = colorResource(id = R.color.light_grey),
                     iconPainter = vocIconSelector(cat = filter),
                     imageUrl = imageUrlState.value,
-                    circle = filter != "playlist" && filter != "route"
+                    circle = filter != "playlist" && filter != "podcast" && filter != "route"
                 )
 
                 Column(

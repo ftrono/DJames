@@ -8,6 +8,7 @@ import com.ftrono.DJames.application.contactBox
 import com.ftrono.DJames.application.curLibrarySize
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.playlistBox
+import com.ftrono.DJames.application.podcastBox
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.routeBox
 import com.ftrono.DJames.application.utils
@@ -20,6 +21,7 @@ import com.ftrono.DJames.be.database.Artist_
 import com.ftrono.DJames.be.database.Contact_
 import com.ftrono.DJames.be.database.Playlist_
 import com.ftrono.DJames.be.database.Route_
+import com.ftrono.DJames.be.samples.testPodcasts
 import com.ftrono.DJames.be.samples.testRoutes
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
@@ -65,6 +67,23 @@ class LibraryUtils {
                                 name = item.name,
                                 imageUrl = item.imageUrl,
                                 aliases = item.aliases
+                            )
+                        )
+                    }
+                }
+
+                "podcast" -> {
+                    vocMap = if (preview) {
+                        testPodcasts
+                    } else {
+                        podcastBox!!.query().order(Podcast_.name).build().find()
+                    }.associate { item ->
+                        item.id.toString() to Json.encodeToString(
+                            ItemInfoView(
+                                name = item.name,
+                                imageUrl = item.imageUrl,
+                                aliases = item.aliases,
+                                detail = item.publisher
                             )
                         )
                     }
@@ -178,6 +197,13 @@ class LibraryUtils {
                     }
             }
 
+            "podcast" -> {
+                vocMap = podcastBox!!.query().order(Podcast_.name).build().find()
+                    .associate { podcast ->
+                        podcast.id.toString() to (podcast.aliases ?: emptyList()) // Ensures no null values
+                    }
+            }
+
             "contact" -> {
                 vocMap =
                     contactBox!!.query().order(Contact_.name).build().find().associate { contact ->
@@ -214,6 +240,13 @@ class LibraryUtils {
                     }
             }
 
+            "podcast" -> {
+                urlMap = podcastBox!!.query().order(Podcast_.name).build().find()
+                    .associate { podcast ->
+                        podcast.spotifyUrl.toString() to podcast.id.toString() // Ensures no null values
+                    }
+            }
+
             else -> { }
         }
         return urlMap
@@ -228,6 +261,10 @@ class LibraryUtils {
 
     fun getPlaylist(id: String): Playlist {
         return playlistBox!!.get(id.toLong())
+    }
+
+    fun getPodcast(id: String): Podcast {
+        return podcastBox!!.get(id.toLong())
     }
 
     fun getContact(id: String): Contact {
@@ -253,6 +290,13 @@ class LibraryUtils {
                     .equal(Playlist_.id, id.toLong())
                     .build()
                     .property(Playlist_.name)
+                    .findString()
+            }
+            "podcast" -> {
+                return podcastBox!!.query()
+                    .equal(Podcast_.id, id.toLong())
+                    .build()
+                    .property(Podcast_.name)
                     .findString()
             }
             "contact" -> {
@@ -296,6 +340,20 @@ class LibraryUtils {
                 )
             }
 
+            "podcast" -> {
+                val item = podcastBox!!.get(id.toLong())
+                return ItemInfoUse(
+                    name = item.name,
+                    detail = item.publisher,
+                    url = item.spotifyUrl,
+                    language = try {
+                        item.languages[0]
+                    } catch (e: Exception) {
+                        "en"
+                    },
+                )
+            }
+
             "contact" -> {
                 val item = contactBox!!.get(id.toLong())
                 return ItemInfoUse(
@@ -305,8 +363,8 @@ class LibraryUtils {
                     phoneSets = item.phoneSets
                 )
             }
+
             "route" -> {
-                //TODO: Route!!!
                 val item = routeBox!!.get(id.toLong())
                 val language = prefs.routeLanguage   //TODO: Default only!
                 return ItemInfoUse(
@@ -316,6 +374,7 @@ class LibraryUtils {
                     url = fulfillmentUtils.buildRouteUrlFromItem(item)
                 )
             }
+
             else -> return ItemInfoUse(
                 name = ""
             )
@@ -345,6 +404,18 @@ class LibraryUtils {
         } catch (e: Exception) {
             Log.w(TAG, "ERROR: Playlist ${item.id} not saved!", e)
             Toast.makeText(context, "ERROR: Playlist not saved!", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    //Update / store Podcast to DB:
+    fun storePodcast(context: Context, item: Podcast) {
+        try {
+            podcastBox!!.put(item)
+            Log.d(TAG, "Podcast ${item.id} saved!")
+            Toast.makeText(context, "Podcast saved!", Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: Podcast ${item.id} not saved!", e)
+            Toast.makeText(context, "ERROR: Podcast not saved!", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -378,6 +449,7 @@ class LibraryUtils {
         return when (filter) {
             "artist" -> artistBox!!.count()
             "playlist" -> playlistBox!!.count()
+            "podcast" -> podcastBox!!.count()
             "contact" -> contactBox!!.count()
             "route" -> routeBox!!.count()
             else -> 0
@@ -392,6 +464,7 @@ class LibraryUtils {
             when (filter) {
                 "artist" -> artistBox!!.remove(id.toLong())
                 "playlist" -> playlistBox!!.remove(id.toLong())
+                "podcast" -> podcastBox!!.remove(id.toLong())
                 "contact" -> contactBox!!.remove(id.toLong())
                 "route" -> routeBox!!.remove(id.toLong())
             }
@@ -409,6 +482,7 @@ class LibraryUtils {
             when (filter) {
                 "artist" -> artistBox!!.removeAll()
                 "playlist" -> playlistBox!!.removeAll()
+                "podcast" -> podcastBox!!.removeAll()
                 "contact" -> contactBox!!.removeAll()
                 "route" -> routeBox!!.removeAll()
             }
@@ -435,6 +509,10 @@ class LibraryUtils {
                 }
                 "playlist" -> {
                     val libArray = playlistBox!!.query().order(Playlist_.name).build().find().toList()
+                    cachedFile.writeText(Json.encodeToString(libArray))
+                }
+                "podcast" -> {
+                    val libArray = podcastBox!!.query().order(Podcast_.name).build().find().toList()
                     cachedFile.writeText(Json.encodeToString(libArray))
                 }
                 "contact" -> {

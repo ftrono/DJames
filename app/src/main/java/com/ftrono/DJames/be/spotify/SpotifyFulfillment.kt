@@ -48,7 +48,20 @@ class SpotifyFulfillment (private var context: Context) {
         var playType = ""
         var contextType = ""
 
-        if (intentName == "PlayPlaylist") {
+        if (intentName == "PlayPodcast") {
+            //PLAYLIST:
+            playType = "podcast"
+            contextType = "podcast"
+            ttsToRead = "Tell me the name of the podcast in ${reqLangName}."
+            val itemsToRead = listOf(
+                mapOf(
+                    "language" to prefs.queryLanguage,
+                    "text" to ttsToRead
+                )
+            )
+            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
+
+        } else if (intentName == "PlayPlaylist") {
             //PLAYLIST:
             playType = "playlist"
             contextType = "playlist"
@@ -506,6 +519,153 @@ class SpotifyFulfillment (private var context: Context) {
             } else {
                 introText = "Playing the $playType: "
                 detailText = "${playName}${ownerString}."
+            }
+            val itemsToRead = listOf(
+                mapOf(
+                    "language" to prefs.queryLanguage,
+                    "text" to introText
+                ),
+                mapOf(
+                    "language" to reqLangCode,
+                    "text" to detailText
+                )
+            )
+            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=true)
+
+            //Player info:
+            last_log!!.add("nlp_extractor", extractorInfo)
+            last_log!!.add("spotify_play", playInfo)
+
+            //PLAY:
+            val spotifyPlayer = SpotifyPlayer(context)
+            spotifyPlayer.spotifyPlay(playInfo)
+        }
+
+        //Build return
+        processStatus.addProperty("stopService", true)
+        Log.d(TAG, processStatus.toString())
+
+        //Close log:
+        utils.closeLog(context)
+        return processStatus
+    }
+
+
+    //Play a podcast: PART 2:
+    fun playPodcast2(resultsNLP: JsonObject, prevStatus: JsonObject) : JsonObject {
+        var processStatus = JsonObject()
+        last_log!!.add("nlp", resultsNLP)
+
+        //Detect & process requested languages:
+        var playType = prevStatus.get("play_type").asString
+        var reqLangCode = prevStatus.get("reqLanguage").asString
+
+        //Prepare toast text:
+        var toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
+
+        //TOAST -> Send broadcast:
+        Intent().also { intent ->
+            intent.setAction(ACTION_TOASTER)
+            intent.putExtra("toastText", toastText)
+            context.sendBroadcast(intent)
+        }
+
+
+        //PROCESS PLAY INFO:
+        //item:
+        var matchName = nlp_queryText
+        var podcastName = ""
+        var podcastMatchId = ""
+        var spotifyPodcastId = ""
+        var spotifyEpisodeId = ""
+        var episodeName = ""
+        var episodeDate = ""
+        var episodeFullyPlayed = false
+        var episodeResumePositionMs = 0
+        var uri = ""
+        var playInfo = JsonObject()
+
+        var extractorInfo = JsonObject()
+        extractorInfo.addProperty("play_type", playType)
+        extractorInfo.addProperty("match_extracted", nlp_queryText)
+        extractorInfo.addProperty("text_confirmed", nlp_queryText)
+        extractorInfo.addProperty("context_type", playType)
+
+        var nlpExtractor = NLPExtractor(context)
+
+        //Check podcast in vocabulary:
+        podcastMatchId = nlpExtractor.matchVocabulary(playType, matchName)
+
+        if (podcastMatchId != "") {
+            Log.d(TAG, "PLAY -> Podcast in voc")
+            //Get podcast URL:
+            val itemInfo = libUtils.getItemInfoUse(playType, podcastMatchId)
+            val podcastUrl = itemInfo.url
+            podcastName = itemInfo.name
+            extractorInfo.addProperty("text_confirmed", podcastName)
+            extractorInfo.addProperty("context_confirmed", podcastName)
+            spotifyPodcastId = spotifyUtils.getSpotifyID(podcastUrl)
+
+            //PLAY -> podcast episode:
+            playInfo.addProperty("play_type", playType)
+            //Podcast info:
+            playInfo.addProperty("context_type", playType)
+            playInfo.addProperty("podcast_name", podcastName)
+            playInfo.addProperty("podcast_id", podcastName)
+
+            //GET latest podcast episode:
+            //TODO: latest episode only!
+            try {
+                val episodeInfo = spotifyUtils.getPodcastEpisodes(context, podcastUrl, latestOnly = true)[0]
+                episodeName = episodeInfo.name
+                spotifyEpisodeId = episodeInfo.spotifyId
+                episodeDate = episodeInfo.releaseDate
+                episodeFullyPlayed = episodeInfo.fullyPlayed
+                episodeResumePositionMs = episodeInfo.resumePositionMs
+                //Episode info:
+                uri = "spotify:episode:${spotifyEpisodeId}"
+                playInfo.addProperty("uri", uri)
+                playInfo.addProperty("context_uri", "")   //TODO
+                playInfo.addProperty("episode_name", episodeName)
+                playInfo.addProperty("episode_id", spotifyEpisodeId)
+                playInfo.addProperty("episode_date", episodeDate)
+                playInfo.addProperty("episode_fully_played", episodeFullyPlayed)
+                playInfo.addProperty("episode_resume_position_ms", episodeResumePositionMs)
+                playInfo.addProperty("spotify_URL", "${ext_format}episode/$spotifyEpisodeId")
+
+            } catch (e: Exception) {
+                //PLAY -> Episodes not found:
+                Log.d(TAG, "PLAY -> Episodes not found! ", e)
+            }
+
+        } else {
+            //PLAY -> Podcast not found:
+            Log.d(TAG, "PLAY -> Podcast not found!")
+        }
+
+        //PLAY:
+        //A) EMPTY QUERY RESULT:
+        if (!playInfo.has("uri")) {
+            //Close log:
+            //utils.closeLog(context)
+            return utils.fallback()
+
+        } else {
+            //B) SPOTIFY RESULT RECEIVED!
+            fulfillmentUtils.releaseAudioFocus()
+
+            //Wait 1 sec:
+            Thread.sleep(1000)
+
+            //Read TTS:
+            var introText = ""
+            var detailText = ""
+            if (episodeDate != "") {
+                introText = "Playing the latest episode dated $episodeDate: "
+                detailText = episodeName
+            } else {
+                introText = "Playing the latest episode: "
+                detailText = episodeName
             }
             val itemsToRead = listOf(
                 mapOf(

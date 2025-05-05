@@ -19,6 +19,16 @@ data class PlayLink(
 )
 
 @Serializable
+data class Episode(
+    var name: String,
+    var spotifyId: String,
+    var releaseDate: String,
+    var languages: MutableList<String> = mutableListOf(""),
+    var fullyPlayed: Boolean = false,
+    var resumePositionMs: Int = 0,
+)
+
+@Serializable
 data class PhoneSet(
     var prefix: String,
     var phone: String
@@ -95,6 +105,20 @@ data class Playlist(
     var owner: String = "",
     var imageUrl: String = "",
     var spotifyUrl: String = "",
+)
+
+@Serializable
+@Entity
+data class Podcast(
+    //Primary key:
+    @Id var id: Long = 0,
+    var name: String = "",
+    var aliases: MutableList<String> = mutableListOf(""),
+    var publisher: String = "",
+    var description: String = "",
+    var imageUrl: String = "",
+    var spotifyUrl: String = "",
+    var languages: MutableList<String> = mutableListOf(""),
 )
 
 @Serializable

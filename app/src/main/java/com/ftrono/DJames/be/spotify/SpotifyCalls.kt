@@ -80,4 +80,37 @@ class SpotifyCalls(private val context: Context) {
         return response
     }
 
+
+    //GET SPOTIFY PODCAST:
+    fun getSpotifyPodcast(id: String): HttpResponse {
+        var url = "https://api.spotify.com/v1/shows/$id"
+
+        //Headers:
+        var jsonHeads = JsonObject()
+        jsonHeads.addProperty("Authorization", "Bearer ${prefs.spotifyToken}")
+
+        //GET REQUEST:
+        var response = query.querySpotify(type = "get", url = url, jsonHeads = jsonHeads)
+        Log.d(TAG, "getSpotifyPodcast: response code: ${response.code}")
+        return response
+    }
+
+
+    //GET SPOTIFY PODCAST:
+    fun getSpotifyPodcastEpisodes(id: String, limit: Int? = null): HttpResponse {
+        var url = "https://api.spotify.com/v1/shows/$id/episodes"
+        if (limit != null) {
+            url = "$url?limit=$limit"
+        }
+
+        //Headers:
+        var jsonHeads = JsonObject()
+        jsonHeads.addProperty("Authorization", "Bearer ${prefs.spotifyToken}")
+
+        //GET REQUEST:
+        var response = query.querySpotify(type = "get", url = url, jsonHeads = jsonHeads)
+        Log.d(TAG, "getPodcastEpisodes: response code: ${response.code}")
+        return response
+    }
+
 }

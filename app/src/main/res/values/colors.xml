@@ -19,6 +19,8 @@
   <color name="orangeSignLight">#FF9C4B</color>
   <color name="brownSign">#7B4D31</color>
   <color name="brownSignLight">#CF8C63</color>
+  <color name="redSign">#7E0000</color>
+  <color name="redSignLight">#FF6565</color>
   <color name="white">#ffffff</color>
   <color name="light_grey">#dddddd</color>
   <color name="mid_grey">#9c9c9c</color>

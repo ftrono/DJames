@@ -15,6 +15,7 @@ import com.ftrono.DJames.be.database.Contact
 import com.ftrono.DJames.be.database.LibraryUtils
 import com.ftrono.DJames.be.database.MyObjectBox
 import com.ftrono.DJames.be.database.Playlist
+import com.ftrono.DJames.be.database.Podcast
 import com.ftrono.DJames.be.database.Route
 import com.ftrono.DJames.be.nlp.FulfillmentUtils
 import com.ftrono.DJames.be.spotify.SpotifyUtils
@@ -31,12 +32,13 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.4.1"
+val appVersion = "2.4.2"
 val copyrightYear = 2024
 
 //DB:
 var artistBox: Box<Artist>? = null
 var playlistBox: Box<Playlist>? = null
+var podcastBox: Box<Podcast>? = null
 var contactBox: Box<Contact>? = null
 var routeBox: Box<Route>? = null
 
@@ -72,7 +74,7 @@ var sharedLink = MutableLiveData<String>("")
 
 //Library / vocabulary:
 var curLibrarySize = MutableLiveData<Int>(0)
-val vocHeads = listOf("artist", "playlist", "contact", "route")
+val vocHeads = listOf("artist", "playlist", "podcast", "contact", "route")
 val vocSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
 var historyKeys = MutableLiveData<List<String>>(listOf("2024-08-05 18:28:53.json"))
 
@@ -131,8 +133,11 @@ val gMapsLinkFormat = "https://www.google.com/maps/dir//"
 //Spotify formats:
 val uri_format = "spotify:track:"   ///spotify:<type>:<id>
 val ext_format = "https://open.spotify.com/"
+val trackUrlIntro = "https://open.spotify.com/track/"
 val artistUrlIntro = "https://open.spotify.com/artist/"
 val playlistUrlIntro = "https://open.spotify.com/playlist/"
+val showUrlIntro = "https://open.spotify.com/show/"
+val episodeUrlIntro = "https://open.spotify.com/episode/"
 val likedSongsUri = "spotify:user:replaceUserId:collection"
 
 //Spotify:
@@ -262,6 +267,7 @@ class App: Application()
         ObjectBox.init(this)
         artistBox = store.boxFor(Artist::class.java)
         playlistBox = store.boxFor(Playlist::class.java)
+        podcastBox = store.boxFor(Podcast::class.java)
         contactBox = store.boxFor(Contact::class.java)
         routeBox = store.boxFor(Route::class.java)
     }

@@ -490,7 +490,17 @@ fun getHistoryItemInfo(item: JsonObject, context: Context): JsonObject {
             ""
         }
 
-        if (playType == "playlist") {
+        if (playType == "podcast") {
+            //Podcast:
+            var matchName = item.get("spotify_play").asJsonObject.get("podcast_name").asString.split(" ").map { it.lowercase().capitalize(
+                Locale.getDefault()) }.joinToString(" ")
+            var episodeName = item.get("spotify_play").asJsonObject.get("episode_name").asString.split(" ").map { it.lowercase().capitalize(
+                Locale.getDefault()) }.joinToString(" ")
+            var episodeDate = item.get("spotify_play").asJsonObject.get("episode_date").asString.split(" ").map { it.lowercase().capitalize(
+                Locale.getDefault()) }.joinToString(" ")
+            textExtra = "Podcast:  $matchName\nEpisode:  ($episodeDate) $episodeName"
+
+        } else if (playType == "playlist") {
             //Playlist / artist playlist / collection:
             var matchName = item.get("spotify_play").asJsonObject.get("context_name").asString.split(" ").map { it.lowercase().capitalize(
                 Locale.getDefault()) }.joinToString(" ")

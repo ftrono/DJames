@@ -67,6 +67,8 @@ fun vocColorSelector(
         return colorResource(id = R.color.greenSign)
     } else if (cat == "playlist") {
         return colorResource(id = R.color.yellowSign)
+    } else if (cat == "podcast") {
+        return colorResource(id = R.color.redSign)
     } else if (cat == "route") {
         return colorResource(id = R.color.brownSign)
     } else {
@@ -83,6 +85,8 @@ fun vocColorSelectorLight(
         return colorResource(id = R.color.greenSignLight)
     } else if (cat == "playlist") {
         return colorResource(id = R.color.yellowSignLight)
+    } else if (cat == "podcast") {
+        return colorResource(id = R.color.redSignLight)
     } else if (cat == "route") {
         return colorResource(id = R.color.brownSignLight)
     } else {

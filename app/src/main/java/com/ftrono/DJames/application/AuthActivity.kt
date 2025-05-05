@@ -66,6 +66,7 @@ class AuthActivity: ComponentActivity() {
                 "playlist-read-collaborative",   //Include collaborative playlists when requesting a user's playlists
                 "user-follow-modify",   //Write/delete access to the list of artists and other users that the user follows
                 "user-follow-read",   //Read access to the list of artists and other users that the user follows
+                "user-read-playback-position",   //Read access to a user’s playback position in a content
                 "user-top-read",   //Read access to a user's top artists and tracks
                 "user-read-recently-played",   //Read access to a user’s recently played tracks
                 "user-library-read",   //Access saved content (tracks, albums)

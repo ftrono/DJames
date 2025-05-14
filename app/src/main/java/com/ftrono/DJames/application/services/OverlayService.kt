@@ -94,6 +94,7 @@ import com.ftrono.DJames.application.allowVolumeClick
 import com.ftrono.DJames.application.autoStopQueriesState
 import com.ftrono.DJames.application.maxClickOptions
 import com.ftrono.DJames.application.spotifyUtils
+import com.ftrono.DJames.application.utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -661,6 +662,23 @@ class OverlayService : Service() {
         }
     }
 
+    //Restart service:
+    fun restartService(context: Context) {
+        //Play RESTART tone:
+        toneGen.startTone(ToneGenerator.TONE_CDMA_ALERT_NETWORK_LITE)   //RESTART
+        //RESTART:
+        Log.d(TAG, "Restarting...")
+        stopSelf()
+        if (!utils.isMyServiceRunning(OverlayService::class.java, context)) {
+            try {
+                var intentOS = Intent(context, OverlayService::class.java)
+                context.startService(intentOS)
+            } catch (e: Exception) {
+                Log.w(TAG, "Cannot auto-start Overlay Service. EXCEPTION: ", e)
+            }
+        }
+    }
+
 
     //PERSONAL RECEIVER:
     private var overlayReceiver = object: BroadcastReceiver() {
@@ -729,6 +747,7 @@ class OverlayService : Service() {
                                 if (!vol_initialized) {
                                     vol_initialized = true
                                 }
+                                restartService(context!!)
                             } catch (e: InterruptedException) {
                                 Log.w(TAG, "Interrupted: exception.", e)
                             }

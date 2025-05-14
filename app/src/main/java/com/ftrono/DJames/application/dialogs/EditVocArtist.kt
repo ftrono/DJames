@@ -199,8 +199,15 @@ fun EditVocArtist(
                     itemArtist.defaultPlay =
                         if (textPlayThisIsUrl.value == "") "artist" else playOptionsValToKeys[textDefaultPlay.value]!!
                     //PlayLinks:
+                    val newPlayLinks = mutableMapOf(
+                        "spotify_this_is" to PlayLink(
+                            name = "",
+                            owner = "Spotify",
+                            spotifyUrl = ""
+                        )
+                    )
                     if (textPlayThisIsUrl.value.trim() != "") {
-                        playLinks["spotify_this_is"] = PlayLink(
+                        newPlayLinks["spotify_this_is"] = PlayLink(
                             name = "This is ${textName.value}",
                             owner = "Spotify",
                             spotifyUrl = spotifyUtils.trimSpotifyUrl(textPlayThisIsUrl.value)
@@ -208,7 +215,7 @@ fun EditVocArtist(
                     }
 
                     if (textPlayRadioUrl.value.trim() != "") {
-                        playLinks["spotify_radio"] = PlayLink(
+                        newPlayLinks["spotify_radio"] = PlayLink(
                             name = "${textName.value} Radio",
                             owner = "Spotify",
                             spotifyUrl = spotifyUtils.trimSpotifyUrl(textPlayRadioUrl.value)
@@ -216,14 +223,14 @@ fun EditVocArtist(
                     }
 
                     if (textPlayMixUrl.value.trim() != "") {
-                        playLinks["spotify_mix"] = PlayLink(
+                        newPlayLinks["spotify_mix"] = PlayLink(
                             name = "${textName.value} Mix",
                             owner = "Spotify",
                             spotifyUrl = spotifyUtils.trimSpotifyUrl(textPlayMixUrl.value)
                         )
                     }
 
-                    itemArtist.playLinks = playLinks
+                    itemArtist.playLinks = newPlayLinks
 
                     //3) Update / store to DB:
                     libUtils.storeArtist(context, itemArtist)
@@ -317,6 +324,7 @@ fun EditVocArtist(
             EditVocSectionTitle(
                 title = "Spotify Radio & Mix"
             )
+
 
             //SPOTIFY "RADIO":
             EditVocDynamicField(

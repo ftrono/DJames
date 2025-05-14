@@ -20,14 +20,12 @@ val testArtists = listOf<Artist>(
         ),
         imageUrl = "https://i.scdn.co/image/ab6761610000e5eb7e58b86655f447e0ef0278b8",
         defaultPlay = "spotify_this_is",
-        playLinksJson = Json.encodeToString(
-            mutableMapOf(
-                "spotify_this_is" to PlayLink(
-                    name = "This is Aimer",
-                    owner = "Spotify",
-                    spotifyUrl = "https://open.spotify.com/playlist/37i9dQZF1DZ06evO02uS96"
-                )
-            ),
+        playLinks = mutableMapOf(
+            "spotify_this_is" to PlayLink(
+                name = "This is Aimer",
+                owner = "Spotify",
+                spotifyUrl = "https://open.spotify.com/playlist/37i9dQZF1DZ06evO02uS96"
+            )
         ),
     ),
     Artist(
@@ -43,14 +41,12 @@ val testArtists = listOf<Artist>(
         ),
         imageUrl = "https://i.scdn.co/image/ab6761610000e5eb7e58b86655f447e0ef0278b8",
         defaultPlay = "spotify_this_is",
-        playLinksJson = Json.encodeToString(
-            mutableMapOf(
-                "spotify_this_is" to PlayLink(
-                    name = "This is Alex Goot",
-                    owner = "Spotify",
-                    spotifyUrl = "https://open.spotify.com/playlist/37i9dQZF1DZ06evO02uS96"
-                )
-            ),
+        playLinks = mutableMapOf(
+            "spotify_this_is" to PlayLink(
+                name = "This is Alex Goot",
+                owner = "Spotify",
+                spotifyUrl = "https://open.spotify.com/playlist/37i9dQZF1DZ06evO02uS96"
+            )
         ),
     ),
     Artist(
@@ -65,14 +61,12 @@ val testArtists = listOf<Artist>(
         ),
         imageUrl = "https://i.scdn.co/image/ab6761610000e5eb7e58b86655f447e0ef0278b8",
         defaultPlay = "spotify_this_is",
-        playLinksJson = Json.encodeToString(
-            mutableMapOf(
-                "spotify_this_is" to PlayLink(
-                    name = "This is Deaf Havana",
-                    owner = "Spotify",
-                    spotifyUrl = "https://open.spotify.com/playlist/37i9dQZF1DZ06evO02uS96"
-                )
-            ),
+        playLinks = mutableMapOf(
+            "spotify_this_is" to PlayLink(
+                name = "This is Deaf Havana",
+                owner = "Spotify",
+                spotifyUrl = "https://open.spotify.com/playlist/37i9dQZF1DZ06evO02uS96"
+            )
         ),
     ),
     Artist(
@@ -87,14 +81,12 @@ val testArtists = listOf<Artist>(
         ),
         imageUrl = "https://i.scdn.co/image/ab6761610000e5eb7e58b86655f447e0ef0278b8",
         defaultPlay = "spotify_this_is",
-        playLinksJson = Json.encodeToString(
-            mutableMapOf(
-                "spotify_this_is" to PlayLink(
-                    name = "This is The Script",
-                    owner = "Spotify",
-                    spotifyUrl = "https://open.spotify.com/playlist/37i9dQZF1DZ06evO02uS96"
-                )
-            ),
+        playLinks = mutableMapOf(
+            "spotify_this_is" to PlayLink(
+                name = "This is The Script",
+                owner = "Spotify",
+                spotifyUrl = "https://open.spotify.com/playlist/37i9dQZF1DZ06evO02uS96"
+            )
         ),
     )
 )

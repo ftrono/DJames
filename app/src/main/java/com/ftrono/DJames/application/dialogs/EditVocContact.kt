@@ -142,8 +142,8 @@ fun EditVocContact(
                 //CHECK & BUILD:
                 //1) Validate Prefix:
                 requestDetailOn.value = !utils.isGlobalPhone(
-                    prefix = textPrefix.value.trim(),
-                    phone = textPhone.value.trim()
+                    prefix = textPrefix.value.replace(" ", ""),
+                    phone = textPhone.value.replace(" ", "")
                 )
 
                 if (!requestDetailOn.value && textName.value != "") {
@@ -168,8 +168,8 @@ fun EditVocContact(
                     }
                     itemContact.defaultPhone = "personal"
                     phoneSets["personal"] = PhoneSet(
-                        prefix = textPrefix.value.trim(),
-                        phone = textPhone.value.trim()
+                        prefix = textPrefix.value.replace(" ", ""),
+                        phone = textPhone.value.replace(" ", "")
                     )
                     itemContact.phoneSets = phoneSets
 

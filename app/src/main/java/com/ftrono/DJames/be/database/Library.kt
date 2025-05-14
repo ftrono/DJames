@@ -66,6 +66,17 @@ data class ItemInfoUse(
 )
 
 //ENTITIES:
+
+// ARTIST:
+val defaultPlayLinkStr = "{\"spotify_this_is\": {\"name\": \"\", \"owner\": \"\", \"spotifyUrl\": \"\"}}"
+val defaultPlayLinkObj = mutableMapOf(
+    "spotify_this_is" to PlayLink(
+        name = "",
+        owner = "Spotify",
+        spotifyUrl = ""
+    )
+)
+
 @Serializable
 @Entity
 data class Artist(
@@ -78,23 +89,22 @@ data class Artist(
     var genres: MutableList<String> = mutableListOf(""),
     var imageUrl: String = "",
     var defaultPlay: String = "artist",
-    var playLinksJson: String = Json.encodeToString(
-        mutableMapOf(
-            "spotify_this_is" to PlayLink(
-                name = "",
-                owner = "Spotify",
-                spotifyUrl = ""
-            )
-        ),
-    ),
-) {
-    var playLinks: MutableMap<String, PlayLink>
-        get() = Json.decodeFromString<Map<String, PlayLink>>(playLinksJson).toMutableMap()
-        set(value) {
-            playLinksJson = Json.encodeToString(value)
-        }
+    @Convert(converter = PlayLinkConverter::class, dbType = String::class)
+    var playLinks: MutableMap<String, PlayLink> = defaultPlayLinkObj
+)
+
+class PlayLinkConverter : PropertyConverter<MutableMap<String, PlayLink>, String> {
+    override fun convertToEntityProperty(databaseValue: String?): MutableMap<String, PlayLink> {
+        return Json.decodeFromString(databaseValue ?: defaultPlayLinkStr)
+    }
+
+    override fun convertToDatabaseValue(entityProperty: MutableMap<String, PlayLink>?): String {
+        return Json.encodeToString(entityProperty ?: defaultPlayLinkObj)
+    }
 }
 
+
+// PLAYLIST:
 @Serializable
 @Entity
 data class Playlist(
@@ -107,6 +117,8 @@ data class Playlist(
     var spotifyUrl: String = "",
 )
 
+
+// PODCAST:
 @Serializable
 @Entity
 data class Podcast(
@@ -121,6 +133,16 @@ data class Podcast(
     var languages: MutableList<String> = mutableListOf(""),
 )
 
+
+// CONTACT:
+val defaultPhoneSetStr = "{\"personal\": {\"prefix\": \"\", \"phone\": \"\"}}"
+val defaultPhoneSetObj = mutableMapOf(
+    "personal" to PhoneSet(
+        prefix = "+39",
+        phone = ""
+    )
+)
+
 @Serializable
 @Entity
 data class Contact(
@@ -130,22 +152,22 @@ data class Contact(
     var aliases: MutableList<String> = mutableListOf(""),
     var language: String = "",
     var defaultPhone: String = "personal",
-    var phoneSetsJson: String = Json.encodeToString(
-        mutableMapOf(
-            "personal" to PhoneSet(
-                prefix = "",
-                phone = ""
-            )
-        ),
-    ),
-) {
-    var phoneSets: MutableMap<String, PhoneSet>
-        get() = Json.decodeFromString<Map<String, PhoneSet>>(phoneSetsJson).toMutableMap()
-        set(value) {
-            phoneSetsJson = Json.encodeToString(value)
-        }
+    @Convert(converter = PhoneSetsConverter::class, dbType = String::class)
+    var phoneSets: MutableMap<String, PhoneSet> = defaultPhoneSetObj
+)
+
+class PhoneSetsConverter : PropertyConverter<MutableMap<String, PhoneSet>, String> {
+    override fun convertToEntityProperty(databaseValue: String?): MutableMap<String, PhoneSet> {
+        return Json.decodeFromString(databaseValue ?: defaultPhoneSetStr)
+    }
+
+    override fun convertToDatabaseValue(entityProperty: MutableMap<String, PhoneSet>?): String {
+        return Json.encodeToString(entityProperty ?: defaultPhoneSetObj)
+    }
 }
 
+
+// ROUTE:
 @Serializable
 @Entity
 data class Route(
@@ -160,7 +182,6 @@ data class Route(
     @Convert(converter = AddressConverter::class, dbType = String::class)
     var via: Address = Address(),
 )
-
 
 class AddressConverter : PropertyConverter<Address, String> {
     override fun convertToEntityProperty(databaseValue: String?): Address {

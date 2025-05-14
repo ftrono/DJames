@@ -13,13 +13,11 @@ val testContacts = listOf<Contact>(
         aliases = mutableListOf("amal"),
         language = "",
         defaultPhone = "personal",
-        phoneSetsJson = Json.encodeToString(
-            mutableMapOf(
-                "personal" to PhoneSet(
-                    prefix = "+39",
-                    phone = "3331122333"
-                )
-            ),
+        phoneSets = mutableMapOf(
+            "personal" to PhoneSet(
+                prefix = "+39",
+                phone = "3331122333"
+            )
         ),
     ),
     Contact(
@@ -28,13 +26,11 @@ val testContacts = listOf<Contact>(
         aliases = mutableListOf("mammut", "mammood"),
         language = "it",
         defaultPhone = "personal",
-        phoneSetsJson = Json.encodeToString(
-            mutableMapOf(
-                "personal" to PhoneSet(
-                    prefix = "+39",
-                    phone = "3320011234"
-                )
-            ),
+        phoneSets = mutableMapOf(
+            "personal" to PhoneSet(
+                prefix = "+39",
+                phone = "3320011234"
+            )
         ),
     ),
     Contact(
@@ -43,13 +39,11 @@ val testContacts = listOf<Contact>(
         aliases = mutableListOf("rick"),
         language = "en",
         defaultPhone = "personal",
-        phoneSetsJson = Json.encodeToString(
-            mutableMapOf(
-                "personal" to PhoneSet(
-                    prefix = "+39",
-                    phone = "3325678912"
-                )
-            ),
+        phoneSets = mutableMapOf(
+            "personal" to PhoneSet(
+                prefix = "+39",
+                phone = "3325678912"
+            )
         ),
     ),
 )

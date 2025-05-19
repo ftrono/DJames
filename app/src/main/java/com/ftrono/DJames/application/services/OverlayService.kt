@@ -131,9 +131,10 @@ class OverlayService : Service() {
     private var now: LocalDateTime? = null
     private val miniClockFormat = DateTimeFormatter.ofPattern("HH:mm")
 
-    //Pos:
+    //Vars:
     var screenHeight = 0
     var screenWidth = 0
+    var restarting = false
 
     //Receiver:
     var eventReceiver = EventReceiver()
@@ -562,10 +563,12 @@ class OverlayService : Service() {
             Log.w(TAG, "overlayReceiver: cannot unregister. ", e)
         }
         Log.d(TAG, "Receivers stopped.")
-        //End Clock Screen():
-        Intent().also { intent ->
-            intent.setAction(ACTION_FINISH_CLOCK)
-            sendBroadcast(intent)
+        if (!restarting) {
+            //End Clock Screen():
+            Intent().also { intent ->
+                intent.setAction(ACTION_FINISH_CLOCK)
+                sendBroadcast(intent)
+            }
         }
         try {
             bubbleView.let {
@@ -668,6 +671,7 @@ class OverlayService : Service() {
         toneGen.startTone(ToneGenerator.TONE_CDMA_ALERT_NETWORK_LITE)   //RESTART
         //RESTART:
         Log.d(TAG, "Restarting...")
+        restarting = true
         stopSelf()
         if (!utils.isMyServiceRunning(OverlayService::class.java, context)) {
             try {
@@ -748,6 +752,8 @@ class OverlayService : Service() {
                                     vol_initialized = true
                                 }
                                 restartService(context!!)
+                                delay(1000)
+                                restarting = false
                             } catch (e: InterruptedException) {
                                 Log.w(TAG, "Interrupted: exception.", e)
                             }

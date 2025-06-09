@@ -12,7 +12,6 @@ import com.ftrono.DJames.application.audioFocusChangeListener
 import com.ftrono.DJames.application.audioFocusRequest
 import com.ftrono.DJames.application.audioManager
 import com.ftrono.DJames.application.gMapsLinkFormat
-import com.ftrono.DJames.application.lastLog
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.ItemInfoUse

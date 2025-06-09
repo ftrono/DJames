@@ -196,81 +196,103 @@ class SpotifySearch(private val context: Context) {
         var ids = mutableListOf<String>()
         var scoresMap = mutableMapOf<Int, Int>()
         for (item in items) {
-            var curMatch = SpotifyMatchModel()
-            curMatch.pos = c
-            var curJson = item.asJsonObject
+            try {
+                var curMatch = SpotifyMatchModel()
+                curMatch.pos = c
+                var curJson = item.asJsonObject
 
-            // Extract key info:
-            curMatch.playable.type = playType
-            curMatch.playable.name = curJson.get("name").asString
-            ids.add(curJson.get("id").asString)
-            curMatch.playable.id = curJson.get("id").asString
+                // Extract key info:
+                curMatch.playable.type = playType
+                curMatch.playable.name = curJson.get("name").asString
+                ids.add(curJson.get("id").asString)
+                curMatch.playable.id = curJson.get("id").asString
 
-            if (playType == "track" || playType == "album") {
-                // Extract artists:
-                var artists = curJson.getAsJsonArray("artists")
-                for (artist in artists) {
-                    curMatch.playable.artistsIds.add(artist.asJsonObject.get("id").asString)
-                    curMatch.playable.artistsNames.add(artist.asJsonObject.get("name").asString)
+                if (playType == "track" || playType == "album") {
+                    // Extract artists:
+                    var artists = curJson.getAsJsonArray("artists")
+                    for (artist in artists) {
+                        curMatch.playable.artistsIds.add(artist.asJsonObject.get("id").asString)
+                        curMatch.playable.artistsNames.add(artist.asJsonObject.get("name").asString)
+                    }
+                    // Extract album:
+                    if (playType == "album") {
+                        curMatch.playable.albumType = curJson.get("album_type").asString
+                    } else {
+                        curMatch.playable.albumId =
+                            curJson.get("album").asJsonObject.get("id").asString
+                        curMatch.playable.albumType =
+                            curJson.get("album").asJsonObject.get("album_type").asString
+                        curMatch.playable.albumName =
+                            curJson.get("album").asJsonObject.get("name").asString
+                    }
+
+                } else if (playType == "playlist") {
+                    curMatch.playable.owner = curJson.get("owner").asJsonObject.get("display_name").asString
                 }
-                // Extract album:
-                if (playType == "album") {
-                    curMatch.playable.albumType = curJson.get("album_type").asString
+
+                // Calculate similarity:
+                var score = 0
+                if (artistName == "") {
+                    // Match name only:
+                    var stringToMatch = re.replace(
+                        curMatch.playable.name,
+                        ""
+                    ) + " " + re.replace(
+                        curMatch.playable.artistsNames.joinToString(", ", "", ""),
+                        ""
+                    )
+                    stringToMatch = stringToMatch.lowercase()
+                    curMatch.nameSetSimilarity = FuzzySearch.tokenSetRatio(stringToMatch, matchName)
+                    curMatch.namePartialSimilarity =
+                        FuzzySearch.partialRatio(stringToMatch, matchName)
+                    curMatch.nameFullSimilarity = FuzzySearch.ratio(stringToMatch, matchName)
+                    score = listOf<Int>(
+                        curMatch.nameSetSimilarity,
+                        curMatch.namePartialSimilarity,
+                        curMatch.nameFullSimilarity
+                    ).average().roundToInt()
+
                 } else {
-                    curMatch.playable.albumId = curJson.get("album").asJsonObject.get("id").asString
-                    curMatch.playable.albumType = curJson.get("album").asJsonObject.get("album_type").asString
-                    curMatch.playable.albumName = curJson.get("album").asJsonObject.get("name").asString
+                    // Match name and artist:
+                    var tempName = re.replace(curMatch.playable.name.lowercase(), "")
+                    var tempArtists = re.replace(
+                        curMatch.playable.artistsNames.joinToString(", ", "", "").lowercase(), ""
+                    )
+                    curMatch.nameSetSimilarity = FuzzySearch.tokenSetRatio(tempName, matchName)
+                    curMatch.namePartialSimilarity = FuzzySearch.partialRatio(tempName, matchName)
+                    curMatch.nameFullSimilarity = FuzzySearch.ratio(tempName, matchName)
+                    curMatch.artistSetSimilarity =
+                        FuzzySearch.tokenSetRatio(tempArtists, artistName)
+                    curMatch.artistPartialSimilarity =
+                        FuzzySearch.partialRatio(tempArtists, artistName)
+                    score = listOf<Int>(
+                        curMatch.nameSetSimilarity,
+                        curMatch.namePartialSimilarity,
+                        curMatch.nameFullSimilarity,
+                        curMatch.artistSetSimilarity,
+                        curMatch.artistPartialSimilarity
+                    ).average().roundToInt()
                 }
-            }
 
-            // Calculate similarity:
-            var score = 0
-            if (artistName == "") {
-                // Match name only:
-                var stringToMatch = re.replace(curMatch.playable.name, "") + " " + re.replace(curMatch.playable.artistsNames.joinToString(", ", "", ""), "")
-                stringToMatch = stringToMatch.lowercase()
-                curMatch.nameSetSimilarity = FuzzySearch.tokenSetRatio(stringToMatch, matchName)
-                curMatch.namePartialSimilarity = FuzzySearch.partialRatio(stringToMatch, matchName)
-                curMatch.nameFullSimilarity = FuzzySearch.ratio(stringToMatch, matchName)
-                score = listOf<Int>(
-                    curMatch.nameSetSimilarity,
-                    curMatch.namePartialSimilarity,
-                    curMatch.nameFullSimilarity
-                ).average().roundToInt()
-
-            } else {
-                // Match name and artist:
-                var tempName = re.replace(curMatch.playable.name.lowercase(), "")
-                var tempArtists = re.replace(curMatch.playable.artistsNames.joinToString(", ", "", "").lowercase(), "")
-                curMatch.nameSetSimilarity = FuzzySearch.tokenSetRatio(tempName, matchName)
-                curMatch.namePartialSimilarity = FuzzySearch.partialRatio(tempName, matchName)
-                curMatch.nameFullSimilarity = FuzzySearch.ratio(tempName, matchName)
-                curMatch.artistSetSimilarity = FuzzySearch.tokenSetRatio(tempArtists, artistName)
-                curMatch.artistPartialSimilarity = FuzzySearch.partialRatio(tempArtists, artistName)
-                score = listOf<Int>(
-                    curMatch.nameSetSimilarity,
-                    curMatch.namePartialSimilarity,
-                    curMatch.nameFullSimilarity,
-                    curMatch.artistSetSimilarity,
-                    curMatch.artistPartialSimilarity
-                ).average().roundToInt()
-            }
-
-            //Check if live:
-            if (playType == "track" || playType == "artist") {
-                for (tok in curMatch.playable.name.lowercase().split(" ")) {
-                    if (!live && tok.lowercase() == "live") {
-                        score -= deltaSimilarity
-                        break
+                //Check if live:
+                if (playType == "track" || playType == "artist") {
+                    for (tok in curMatch.playable.name.lowercase().split(" ")) {
+                        if (!live && tok.lowercase() == "live") {
+                            score -= deltaSimilarity
+                            break
+                        }
                     }
                 }
-            }
 
-            // Store score:
-            curMatch.score = score
-            scoresMap[c] = score
-            allMatches.add(curMatch)
-            Log.d(TAG, curMatch.toString())
+                // Store score:
+                curMatch.score = score
+                scoresMap[c] = score
+                allMatches.add(curMatch)
+                Log.d(TAG, curMatch.toString())
+
+            } catch (e: Exception) {
+                Log.w(TAG, "Error: Spotify match item skipped. ", e)
+            }
             c += 1
         }
 

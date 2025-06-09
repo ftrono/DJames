@@ -12,15 +12,15 @@ class NLPMatcher (private val context: Context) {
     private val TAG = NLPMatcher::class.java.simpleName
 
     //Match item from user query against user vocabulary:
-    fun matchVocabulary(filter: String, text: String, threshold: Int = midThreshold): String {
-        var matchId = ""
+    fun matchVocabulary(filter: String, text: String, threshold: Int = midThreshold): Long {
+        var matchId = -1L
         val vocMap = libUtils.getAliasesMap(filter)
         if (text != "" && vocMap.isNotEmpty()) {
             //Init:
             var score = 0
             val listEvalued = text.split(", ")
-            val listConfirmed = mutableListOf<String>()
-            val scoresMap = mutableMapOf<String, Int>()
+            val listConfirmed = mutableListOf<Long>()
+            val scoresMap = mutableMapOf<Long, Int>()
 
             //Check each evaluated item:
             for (eval in listEvalued) {

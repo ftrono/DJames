@@ -48,8 +48,8 @@ fun DialogEditPlaylistPreview() {
 @Composable
 fun EditVocPlaylist(
     context: Context,
-    libraryMap: MutableState<Map<String, String>>,
-    keyState: MutableState<String>,
+    libraryItems: MutableState<List<String>>,
+    idState: MutableState<Long>,
     initLinkState: MutableState<String>,
     loadingDialogOn: MutableState<Boolean>,
     filter: String,
@@ -59,14 +59,14 @@ fun EditVocPlaylist(
     val focusRequester = remember { FocusRequester() }
 
     //Init:
-    val key = keyState.value
+    val id: Long = idState.value
 
     //Pre-populate:
     // val itemPlaylist = Playlist()
     var itemPlaylist = if (preview) {
         testPlaylists[0]
-    } else if (key != "") {
-        libUtils.getPlaylist(keyState.value)
+    } else if (id > -1) {
+        libUtils.getPlaylist(idState.value)
     } else {
         Playlist()
     }
@@ -159,7 +159,7 @@ fun EditVocPlaylist(
                     libUtils.storePlaylist(context, itemPlaylist)
 
                     //4) End & close:
-                    libraryMap.value = libUtils.refreshLibrary(filter)   //Refresh list
+                    libraryItems.value = libUtils.refreshLibrary(filter)   //Refresh list
                     onDismiss()
                 }
             }

@@ -82,7 +82,7 @@ var curLibrarySize = MutableLiveData<Int>(0)
 val vocHeads = listOf("artist", "playlist", "podcast", "contact", "route")
 val vocSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
 var curHistorySize = MutableLiveData<Int>(0)
-var historyKeys = MutableLiveData<List<String>>(listOf())
+var historyItems = MutableLiveData<List<String>>(listOf())
 
 //Preferences:
 val maxClickOptions = 3

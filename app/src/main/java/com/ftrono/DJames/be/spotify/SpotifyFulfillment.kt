@@ -249,7 +249,7 @@ class SpotifyFulfillment (private var context: Context) {
             //Confirm artists with vocabulary check:
             artistConfirmed = nlpExtractor.checkArtists(resultsNLP.artists, artistExtracted, reqLangCode)
             val vocMatchId = nlpMatcher.matchVocabulary("artist", artistConfirmed)
-            if (vocMatchId != "") {
+            if (vocMatchId > -1) {
                 artistConfirmed = libUtils.getItemName("artist", vocMatchId)
             }
             extractorInfo.artistConfirmed = artistConfirmed
@@ -286,7 +286,7 @@ class SpotifyFulfillment (private var context: Context) {
                 val nlpMatcher = NLPMatcher(context)
                 val vocMatchId = nlpMatcher.matchVocabulary("playlist", contextExtracted)
 
-                if (vocMatchId != "") {
+                if (vocMatchId > -1) {
                     Log.d(TAG, "Context -> Playlist in voc")
                     //Get playlist URL:
                     val itemInfo = libUtils.getItemInfoUse("playlist", vocMatchId)
@@ -370,7 +370,7 @@ class SpotifyFulfillment (private var context: Context) {
             extractorInfo.artistConfirmed = artistExtracted
             val vocMatchId = nlpMatcher.matchVocabulary("artist", artistExtracted)
 
-            if (vocMatchId != "") {
+            if (vocMatchId > -1) {
                 //Build playable:
                 val itemInfo = libUtils.getItemInfoUse("artist", vocMatchId)
                 extractorInfo.artistConfirmed = itemInfo.name
@@ -399,7 +399,7 @@ class SpotifyFulfillment (private var context: Context) {
             val nlpMatcher = NLPMatcher(context)
             val vocMatchId = nlpMatcher.matchVocabulary(playType, matchName)
 
-            if (vocMatchId != "") {
+            if (vocMatchId > -1) {
                 //Build playable:
                 Log.d(TAG, "PLAY -> Playlist in voc")
                 val itemInfo = libUtils.getItemInfoUse(playType, vocMatchId)
@@ -510,7 +510,7 @@ class SpotifyFulfillment (private var context: Context) {
 
         //PODCAST:
         val vocMatchId = nlpMatcher.matchVocabulary(playType, matchName)
-        if (vocMatchId != "") {
+        if (vocMatchId > -1) {
             Log.d(TAG, "PLAY -> Podcast in voc")
             //1) Context -> Podcast:
             val itemInfo = libUtils.getItemInfoUse(playType, vocMatchId)

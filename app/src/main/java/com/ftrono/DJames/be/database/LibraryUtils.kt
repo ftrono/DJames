@@ -26,7 +26,7 @@ import com.ftrono.DJames.be.samples.testRoutes
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
-import okhttp3.internal.toImmutableMap
+import okhttp3.internal.toImmutableList
 import java.io.File
 
 
@@ -34,21 +34,22 @@ class LibraryUtils {
     private val TAG = LibraryUtils::class.java.simpleName
 
     //GET ALL:
-    //Get Library View Map in format {"id": ItemInfoView(...)}:
-    fun refreshLibrary(filter: String, preview: Boolean = false, addHeaders: Boolean = true): Map<String, String> {
+    //Get List of ItemInfoView items:
+    fun refreshLibrary(filter: String, preview: Boolean = false, addHeaders: Boolean = true): List<String> {
         //1) Load library:
-        var vocMap = mapOf<String, String>()
+        var library = listOf<String>()
         try {
             when (filter) {
                 "artist" -> {
-                    vocMap = if (preview) {
+                    library = if (preview) {
                         testArtists
                     } else {
                         artistBox!!.query().order(Artist_.name).build().find()
-                    }.associate { item ->
+                    }.map { item ->
                         //Cast value to String to allow storing into MutableState:
-                        item.id.toString() to Json.encodeToString(
+                        Json.encodeToString(
                             ItemInfoView(
+                                id = item.id,
                                 name = item.name,
                                 imageUrl = item.imageUrl,
                                 aliases = item.aliases
@@ -58,13 +59,14 @@ class LibraryUtils {
                 }
 
                 "playlist" -> {
-                    vocMap = if (preview) {
+                    library = if (preview) {
                         testPlaylists
                     } else {
                         playlistBox!!.query().order(Playlist_.name).build().find()
-                    }.associate { item ->
-                        item.id.toString() to Json.encodeToString(
+                    }.map { item ->
+                        Json.encodeToString(
                             ItemInfoView(
+                                id = item.id,
                                 name = item.name,
                                 imageUrl = item.imageUrl,
                                 aliases = item.aliases
@@ -74,13 +76,14 @@ class LibraryUtils {
                 }
 
                 "podcast" -> {
-                    vocMap = if (preview) {
+                    library = if (preview) {
                         testPodcasts
                     } else {
                         podcastBox!!.query().order(Podcast_.name).build().find()
-                    }.associate { item ->
-                        item.id.toString() to Json.encodeToString(
+                    }.map { item ->
+                        Json.encodeToString(
                             ItemInfoView(
+                                id = item.id,
                                 name = item.name,
                                 imageUrl = item.imageUrl,
                                 aliases = item.aliases,
@@ -91,13 +94,14 @@ class LibraryUtils {
                 }
 
                 "contact" -> {
-                    vocMap = if (preview) {
+                    library = if (preview) {
                         testContacts
                     } else {
                         contactBox!!.query().order(Contact_.name).build().find()
-                    }.associate { item ->
-                        item.id.toString() to Json.encodeToString(
+                    }.map { item ->
+                        Json.encodeToString(
                             ItemInfoView(
+                                id = item.id,
                                 name = item.name,
                                 imageUrl = "",
                                 aliases = item.aliases,
@@ -108,13 +112,14 @@ class LibraryUtils {
                 }
 
                 "route" -> {
-                    vocMap = if (preview) {
+                    library = if (preview) {
                         testRoutes
                     } else {
                         routeBox!!.query().order(Route_.name).build().find()
-                    }.associate { item ->
-                        item.id.toString() to Json.encodeToString(
+                    }.map { item ->
+                        Json.encodeToString(
                             ItemInfoView(
+                                id = item.id,
                                 name = item.name,
                                 imageUrl = "",
                                 aliases = item.aliases,
@@ -126,19 +131,19 @@ class LibraryUtils {
             }
 
             //2) Update Library size (IMPORTANT - for signs):
-            curLibrarySize.postValue(vocMap.size)
+            curLibrarySize.postValue(library.size)
 
             //3) Build library map & add headers:
             if (addHeaders) {
-                return addLetterHeaders(vocMap)
+                return addLetterHeaders(library)
             } else {
-                return vocMap
+                return library
             }
 
         } catch (e: Exception) {
             Log.w(TAG, "ERROR: cannot refresh Library for $filter! ", e)
             curLibrarySize.postValue(0)
-            return vocMap
+            return library
         }
     }
 
@@ -161,61 +166,61 @@ class LibraryUtils {
 
 
     //Get key List with headers:
-    fun addLetterHeaders(vocMap: Map<String, String>): Map<String, String> {
-        val mapWithHeaders = mutableMapOf<String, String>()
-        //Cast ids to string and add Letter headers:
+    fun addLetterHeaders(library: List<String>): List<String> {
+        val listWithHeaders = mutableListOf<String>()
+        //Add Letter headers:
         var letter = ""
-        for (id in vocMap.keys) {
+        for (itemJson in library) {
             //get first alias:
-            val item = Json.decodeFromString<ItemInfoView>(vocMap[id]!!)
+            val item = Json.decodeFromString<ItemInfoView>(itemJson)
             val curFirst = item.name.lowercase().first().toString()
             //extend List with letter header:
             if (curFirst != letter) {
                 letter = if (utils.isLetters(curFirst)) curFirst.uppercase() else "#"
-                mapWithHeaders["$vocSectionIdentifier$letter"] = Json.encodeToString(ItemInfoView())
+                listWithHeaders.add("$vocSectionIdentifier$letter")
             }
-            mapWithHeaders[id] = vocMap[id]!!
+            listWithHeaders.add(itemJson)
         }
-        return mapWithHeaders.toImmutableMap()
+        return listWithHeaders.toImmutableList()
     }
 
 
     //Get aliases Map in format {"id": ["aliases", ...]}:
-    fun getAliasesMap(filter: String): Map<String, List<String>> {
-        var vocMap = mapOf<String, List<String>>()
+    fun getAliasesMap(filter: String): Map<Long, List<String>> {
+        var vocMap = mapOf<Long, List<String>>()
         when (filter) {
             "artist" -> {
                 vocMap =
                     artistBox!!.query().order(Artist_.name).build().find().associate { artist ->
-                        artist.id.toString() to (artist.aliases ?: emptyList()) // Ensures no null values
+                        artist.id to (artist.aliases ?: emptyList()) // Ensures no null values
                     }
             }
 
             "playlist" -> {
                 vocMap = playlistBox!!.query().order(Playlist_.name).build().find()
                     .associate { playlist ->
-                        playlist.id.toString() to (playlist.aliases ?: emptyList()) // Ensures no null values
+                        playlist.id to (playlist.aliases ?: emptyList()) // Ensures no null values
                     }
             }
 
             "podcast" -> {
                 vocMap = podcastBox!!.query().order(Podcast_.name).build().find()
                     .associate { podcast ->
-                        podcast.id.toString() to (podcast.aliases ?: emptyList()) // Ensures no null values
+                        podcast.id to (podcast.aliases ?: emptyList()) // Ensures no null values
                     }
             }
 
             "contact" -> {
                 vocMap =
                     contactBox!!.query().order(Contact_.name).build().find().associate { contact ->
-                        contact.id.toString() to (contact.aliases ?: emptyList()) // Ensures no null values
+                        contact.id to (contact.aliases ?: emptyList()) // Ensures no null values
                     }
             }
 
             "route" -> {
                 vocMap =
                     routeBox!!.query().order(Route_.name).build().find().associate { route ->
-                        route.id.toString() to (route.aliases ?: emptyList()) // Ensures no null values
+                        route.id to (route.aliases ?: emptyList()) // Ensures no null values
                     }
             }
         }
@@ -224,27 +229,27 @@ class LibraryUtils {
 
 
     //Get URL Map in format {"url": "id"}:
-    fun getUrlMap(filter: String): Map<String, String> {
-        var urlMap = mapOf<String, String>()
+    fun getUrlMap(filter: String): Map<String, Long> {
+        var urlMap = mapOf<String, Long>()
         when (filter) {
             "artist" -> {
                 urlMap =
                     artistBox!!.query().order(Artist_.name).build().find().associate { artist ->
-                        artist.spotifyUrl.toString() to artist.id.toString() // Ensures no null values
+                        artist.spotifyUrl.toString() to artist.id // Ensures no null values
                     }
             }
 
             "playlist" -> {
                 urlMap = playlistBox!!.query().order(Playlist_.name).build().find()
                     .associate { playlist ->
-                        playlist.spotifyUrl.toString() to playlist.id.toString() // Ensures no null values
+                        playlist.spotifyUrl.toString() to playlist.id // Ensures no null values
                     }
             }
 
             "podcast" -> {
                 urlMap = podcastBox!!.query().order(Podcast_.name).build().find()
                     .associate { podcast ->
-                        podcast.spotifyUrl.toString() to podcast.id.toString() // Ensures no null values
+                        podcast.spotifyUrl.toString() to podcast.id // Ensures no null values
                     }
             }
 
@@ -256,60 +261,60 @@ class LibraryUtils {
 
     //GET SINGLE:
     //Get entire item:
-    fun getArtist(id: String): Artist {
-        return artistBox!!.get(id.toLong())
+    fun getArtist(id: Long): Artist {
+        return artistBox!!.get(id)
     }
 
-    fun getPlaylist(id: String): Playlist {
-        return playlistBox!!.get(id.toLong())
+    fun getPlaylist(id: Long): Playlist {
+        return playlistBox!!.get(id)
     }
 
-    fun getPodcast(id: String): Podcast {
-        return podcastBox!!.get(id.toLong())
+    fun getPodcast(id: Long): Podcast {
+        return podcastBox!!.get(id)
     }
 
-    fun getContact(id: String): Contact {
-        return contactBox!!.get(id.toLong())
+    fun getContact(id: Long): Contact {
+        return contactBox!!.get(id)
     }
 
-    fun getRoute(id: String): Route {
-        return routeBox!!.get(id.toLong())
+    fun getRoute(id: Long): Route {
+        return routeBox!!.get(id)
     }
 
     //Get single item name:
-    fun getItemName(filter: String, id: String): String {
+    fun getItemName(filter: String, id: Long): String {
         when (filter) {
             "artist" -> {
                 return artistBox!!.query()
-                    .equal(Artist_.id, id.toLong())
+                    .equal(Artist_.id, id)
                     .build()
                     .property(Artist_.name)
                     .findString()
             }
             "playlist" -> {
                 return playlistBox!!.query()
-                    .equal(Playlist_.id, id.toLong())
+                    .equal(Playlist_.id, id)
                     .build()
                     .property(Playlist_.name)
                     .findString()
             }
             "podcast" -> {
                 return podcastBox!!.query()
-                    .equal(Podcast_.id, id.toLong())
+                    .equal(Podcast_.id, id)
                     .build()
                     .property(Podcast_.name)
                     .findString()
             }
             "contact" -> {
                 return contactBox!!.query()
-                    .equal(Contact_.id, id.toLong())
+                    .equal(Contact_.id, id)
                     .build()
                     .property(Contact_.name)
                     .findString()
             }
             "route" -> {
                 return routeBox!!.query()
-                    .equal(Route_.id, id.toLong())
+                    .equal(Route_.id, id)
                     .build()
                     .property(Route_.name)
                     .findString()
@@ -320,10 +325,10 @@ class LibraryUtils {
 
 
     //Get single item, only key ItemInfoUse info:
-    fun getItemInfoUse(filter: String, id: String): ItemInfoUse {
+    fun getItemInfoUse(filter: String, id: Long): ItemInfoUse {
         when (filter) {
             "artist" -> {
-                val item = artistBox!!.get(id.toLong())
+                val item = artistBox!!.get(id)
                 return ItemInfoUse(
                     type = filter,
                     name = item.name,
@@ -334,7 +339,7 @@ class LibraryUtils {
             }
 
             "playlist" -> {
-                val item = playlistBox!!.get(id.toLong())
+                val item = playlistBox!!.get(id)
                 return ItemInfoUse(
                     type = filter,
                     name = item.name,
@@ -344,7 +349,7 @@ class LibraryUtils {
             }
 
             "podcast" -> {
-                val item = podcastBox!!.get(id.toLong())
+                val item = podcastBox!!.get(id)
                 return ItemInfoUse(
                     type = filter,
                     name = item.name,
@@ -359,7 +364,7 @@ class LibraryUtils {
             }
 
             "contact" -> {
-                val item = contactBox!!.get(id.toLong())
+                val item = contactBox!!.get(id)
                 return ItemInfoUse(
                     type = filter,
                     name = item.name,
@@ -370,7 +375,7 @@ class LibraryUtils {
             }
 
             "route" -> {
-                val item = routeBox!!.get(id.toLong())
+                val item = routeBox!!.get(id)
                 val language = prefs.routeLanguage   //TODO: Default only!
                 return ItemInfoUse(
                     type = filter,
@@ -463,14 +468,14 @@ class LibraryUtils {
 
     //DB DELETE:
     //Delete single item:
-    fun deleteLibraryItem(context: Context, filter: String, id: String) {
+    fun deleteLibraryItem(context: Context, filter: String, id: Long) {
         try {
             when (filter) {
-                "artist" -> artistBox!!.remove(id.toLong())
-                "playlist" -> playlistBox!!.remove(id.toLong())
-                "podcast" -> podcastBox!!.remove(id.toLong())
-                "contact" -> contactBox!!.remove(id.toLong())
-                "route" -> routeBox!!.remove(id.toLong())
+                "artist" -> artistBox!!.remove(id)
+                "playlist" -> playlistBox!!.remove(id)
+                "podcast" -> podcastBox!!.remove(id)
+                "contact" -> contactBox!!.remove(id)
+                "route" -> routeBox!!.remove(id)
             }
             Log.d(TAG, "Deleted $filter item $id!")
             Toast.makeText(context, "${filter.replaceFirstChar { it.uppercase() }} deleted!", Toast.LENGTH_LONG).show()

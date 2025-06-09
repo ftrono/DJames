@@ -46,7 +46,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.historyKeys
+import com.ftrono.DJames.application.historyItems
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.logDir
 import com.ftrono.DJames.application.logUtils
@@ -85,8 +85,8 @@ fun HistoryScreen(preview: Boolean = false) {
 //    val configuration = LocalConfiguration.current
 //    val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
     val mContext = LocalContext.current
-    val historyKeysState by historyKeys.observeAsState()
-    historyKeys.postValue(logUtils.refreshHistory(preview))
+    val historyItemsState by historyItems.observeAsState()
+    historyItems.postValue(logUtils.refreshHistory(preview))
 
     val mDisplayMainMenu = rememberSaveable {
         mutableStateOf(false)
@@ -106,7 +106,7 @@ fun HistoryScreen(preview: Boolean = false) {
             iconRes = painterResource(id = R.drawable.sign_history),
             title = "History",
             subtitle = "Last 30 days",
-            num = historyKeysState!!.size
+            num = historyItemsState!!.size
         ) {
             Box() {
                 //1) CAT OPTIONS:
@@ -129,7 +129,7 @@ fun HistoryScreen(preview: Boolean = false) {
         }
 
         //CONTENT:
-        if (historyKeysState!!.isEmpty()) {
+        if (historyItemsState!!.isEmpty()) {
             //HISTORY EMPTY:
             Text(
                 text = "History is empty",
@@ -149,7 +149,7 @@ fun HistoryScreen(preview: Boolean = false) {
                 state = rememberLazyListState()
             ) {
                 itemsIndexed(
-                    historyKeysState!!
+                    historyItemsState!!
                 ) { index, item ->
                     //HISTORY CARD:
                     HistoryCard(
@@ -392,7 +392,7 @@ fun DialogDeleteHistory(
                 //Delete all:
                 logUtils.deleteHistory(mContext)
             }
-            historyKeys.postValue(logUtils.refreshHistory())   //Refresh list
+            historyItems.postValue(logUtils.refreshHistory())   //Refresh list
             Toast.makeText(mContext, toastText, Toast.LENGTH_LONG).show()
             dialogOnState.value = false
         }
@@ -416,7 +416,7 @@ fun getLogViewInfo(logItem: HistoryLog): LogViewInfo {
             } else {
                 "🟡"
             }
-        } else if (logItem.keyInfo.vocScore > midThreshold) {
+        } else if (logItem.keyInfo.vocScore > midThreshold || logItem.keyInfo.vocScore == 0) {
             "🟢"
         } else {
             "🟡"

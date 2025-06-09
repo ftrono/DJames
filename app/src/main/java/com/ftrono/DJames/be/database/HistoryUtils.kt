@@ -25,7 +25,7 @@ class HistoryUtils {
     private val TAG = HistoryUtils::class.java.simpleName
 
     //GET ALL:
-    //Get History List of HistoryLog items:
+    //Get List of HistoryLog items:
     fun refreshHistory(preview: Boolean = false): List<String> {
         //1) Load history:
         var history = listOf<String>()

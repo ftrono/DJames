@@ -50,8 +50,8 @@ fun DialogEditPodcastPreview() {
 @Composable
 fun EditVocPodcast(
     context: Context,
-    libraryMap: MutableState<Map<String, String>>,
-    keyState: MutableState<String>,
+    libraryItems: MutableState<List<String>>,
+    idState: MutableState<Long>,
     initLinkState: MutableState<String>,
     loadingDialogOn: MutableState<Boolean>,
     filter: String,
@@ -61,14 +61,14 @@ fun EditVocPodcast(
     val focusRequester = remember { FocusRequester() }
 
     //Init:
-    val key = keyState.value
+    val id: Long = idState.value
 
     //Pre-populate:
     // val itemPodcast = Podcast()
     var itemPodcast = if (preview) {
         testPodcasts[0]
-    } else if (key != "") {
-        libUtils.getPodcast(keyState.value)
+    } else if (id > -1) {
+        libUtils.getPodcast(idState.value)
     } else {
         Podcast()
     }
@@ -166,7 +166,7 @@ fun EditVocPodcast(
                     libUtils.storePodcast(context, itemPodcast)
 
                     //4) End & close:
-                    libraryMap.value = libUtils.refreshLibrary(filter)   //Refresh list
+                    libraryItems.value = libUtils.refreshLibrary(filter)   //Refresh list
                     onDismiss()
                 }
             }

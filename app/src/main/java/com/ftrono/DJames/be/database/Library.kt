@@ -38,6 +38,7 @@ data class Address(
 //ITEM INFO:
 @Serializable
 data class ItemInfoView(
+    var id: Long = 0,
     var name: String = "",
     var imageUrl: String = "",
     var aliases: MutableList<String> = mutableListOf(),

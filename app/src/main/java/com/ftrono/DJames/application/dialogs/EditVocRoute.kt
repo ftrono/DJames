@@ -53,8 +53,8 @@ fun DialogEditRoutePreview() {
 @Composable
 fun EditVocRoute(
     context: Context,
-    libraryMap: MutableState<Map<String, String>>,
-    keyState: MutableState<String>,
+    libraryItems: MutableState<List<String>>,
+    idState: MutableState<Long>,
     filter: String,
     onDismiss: () -> Unit = {},
     preview: Boolean = false
@@ -63,14 +63,14 @@ fun EditVocRoute(
     val mContext = LocalContext.current
 
     //Init:
-    val key = keyState.value
+    val id: Long = idState.value
 
     //Pre-populate:
     // val itemRoute = Route()
     var itemRoute = if (preview) {
         testRoutes[0]
-    } else if (key != "") {
-        libUtils.getRoute(keyState.value)
+    } else if (id > -1) {
+        libUtils.getRoute(idState.value)
     } else {
         Route()
     }
@@ -196,7 +196,7 @@ fun EditVocRoute(
                     libUtils.storeRoute(context, itemRoute)
 
                     //4) End & close:
-                    libraryMap.value = libUtils.refreshLibrary(filter)   //Refresh list
+                    libraryItems.value = libUtils.refreshLibrary(filter)   //Refresh list
                     onDismiss()
                 }
             }

@@ -131,7 +131,7 @@ class MainActivity : ComponentActivity() {
             if (!logDir!!.exists()) {
                 logDir!!.mkdir()
             }
-            historyKeys.postValue(logUtils.refreshHistory())
+            historyItems.postValue(logUtils.refreshHistory())
             //delete older logs:
             logUtils.deleteOldLogs()
             //delete older cached Library files:
@@ -540,7 +540,7 @@ class MainActivity : ComponentActivity() {
             //Refresh History list:
             if (intent.action == ACTION_LOG_REFRESH) {
                 Log.d(TAG, "HISTORY: ACTION_LOG_REFRESH.")
-                historyKeys.postValue(logUtils.refreshHistory())   //Refresh list
+                historyItems.postValue(logUtils.refreshHistory())   //Refresh list
             }
         }
     }

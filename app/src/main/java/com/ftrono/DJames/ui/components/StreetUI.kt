@@ -257,12 +257,12 @@ fun HeaderSign(
 @Composable
 fun SplitterSignPreview() {
     val currentCatState = rememberSaveable { mutableStateOf(vocHeads[0]) }
-    val libraryMap = rememberSaveable {
+    val libraryItems = rememberSaveable {
         mutableStateOf(libUtils.refreshLibrary(currentCatState.value, true))
     }
 
     SplitterSign(
-        libraryMap = libraryMap,
+        libraryItems = libraryItems,
         currentCatState = currentCatState,
         curLibrarySizeState = 0,
         preview = true
@@ -273,7 +273,7 @@ fun SplitterSignPreview() {
 @Composable
 fun SplitterSign(
     currentCatState: MutableState<String>,
-    libraryMap: MutableState<Map<String, String>>,
+    libraryItems: MutableState<List<String>>,
     curLibrarySizeState: Int,
     preview: Boolean
 ) {
@@ -300,7 +300,7 @@ fun SplitterSign(
             for (head in vocHeads) {
                 SplitterCat(
                     currentCatState = currentCatState,
-                    libraryMap = libraryMap,
+                    libraryItems = libraryItems,
                     head = head,
                     title = "${head.replaceFirstChar { it.uppercase() }}s",
                     selected = currentCatState.value == head,
@@ -328,7 +328,7 @@ fun SplitterSign(
 @Composable
 fun SplitterCat(
     currentCatState: MutableState<String>,
-    libraryMap: MutableState<Map<String, String>>,
+    libraryItems: MutableState<List<String>>,
     head: String,
     title: String,
     selected: Boolean,
@@ -342,7 +342,7 @@ fun SplitterCat(
             .wrapContentWidth()
             .clickable {
                 currentCatState.value = head
-                libraryMap.value = libUtils.refreshLibrary(currentCatState.value, preview)
+                libraryItems.value = libUtils.refreshLibrary(currentCatState.value, preview)
             },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center

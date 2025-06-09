@@ -80,7 +80,7 @@ class SpotifyUtils {
     //Disambiguate and Open EditVocDialog:
     fun checkAndEditVoc(
         context: Context,
-        keyState: MutableState<String>,
+        idState: MutableState<Long>,
         addLinkState: MutableState<String>,
         currentCatState: MutableState<String>,
         editVocOn: MutableState<Boolean>,
@@ -93,9 +93,9 @@ class SpotifyUtils {
             addLinkOn.postValue(false)
             currentCatState.value = goto
             val urlMap = libUtils.getUrlMap(goto)
-            val foundKey = urlMap.getOrDefault(urlToCheck, "")
-            if (foundKey != "") {
-                keyState.value = foundKey
+            val foundId = urlMap.getOrDefault(urlToCheck, -1L)
+            if (foundId > -1) {
+                idState.value = foundId
                 loadingDialogOn.value = false
             } else {
                 addLinkState.value = urlToCheck

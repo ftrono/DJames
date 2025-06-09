@@ -173,7 +173,7 @@ class LibraryUtils {
         for (itemJson in library) {
             //get first alias:
             val item = Json.decodeFromString<ItemInfoView>(itemJson)
-            val curFirst = item.name.lowercase().first().toString()
+            val curFirst = item.name.uppercase().first().toString()
             //extend List with letter header:
             if (curFirst != letter) {
                 letter = if (utils.isLetters(curFirst)) curFirst.uppercase() else "#"

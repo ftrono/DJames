@@ -99,7 +99,7 @@ fun VocabularyScreen(
     val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
     val mContext = LocalContext.current
     //Statuses:
-    val idState = rememberSaveable { mutableStateOf(if (editPreview != "") 0L else -1L) }
+    val idState = rememberSaveable { mutableStateOf<Long>(if (editPreview != "") 0L else -1L) }
     val nameState = rememberSaveable { mutableStateOf("") }
     val currentCatState = rememberSaveable { mutableStateOf(vocHeads[0]) }
     val sharedLinkState by sharedLink.observeAsState()
@@ -404,8 +404,7 @@ fun VocabularyScreen(
                         nameState = nameState,
                         editVocOn = editVocOn,
                         deleteVocOn = deleteVocOn,
-                        isLandscape = isLandscape,
-                        preview = preview
+                        isLandscape = isLandscape
                     )
                 }
             }
@@ -464,8 +463,7 @@ fun VocSectionContent(
     nameState: MutableState<String>,
     editVocOn: MutableState<Boolean>,
     deleteVocOn: MutableState<Boolean>,
-    isLandscape: Boolean,
-    preview: Boolean = false
+    isLandscape: Boolean
 ) {
 
     //CONTENT:
@@ -496,13 +494,14 @@ fun VocSectionContent(
 
                 if (item.contains(vocSectionIdentifier)) {
                     //HEADER:
-                    item (
+                    item(
                         span = { GridItemSpan(maxLineSpan) }
                     ) {
                         VocLetter(
                             letter = item.replace(vocSectionIdentifier, "")
                         )
                     }
+
                 } else {
                     //ITEM:
                     item {
@@ -519,6 +518,7 @@ fun VocSectionContent(
                         if (item == libraryItems.value.last()) Spacer(modifier = Modifier.padding(60.dp))
                     }
                 }
+
             }
         }
     }

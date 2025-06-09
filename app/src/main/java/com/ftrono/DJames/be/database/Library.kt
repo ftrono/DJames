@@ -41,7 +41,7 @@ data class ItemInfoView(
     var id: Long = 0,
     var name: String = "",
     var imageUrl: String = "",
-    var aliases: MutableList<String> = mutableListOf(),
+    var aliases: MutableList<String> = mutableListOf<String>(),
     var detail: String = "",
 )
 
@@ -53,8 +53,8 @@ data class ItemInfoUse(
     var language: String = "",
     var url: String = "",
     var defaultKey: String = "",
-    var playLinks: MutableMap<String, PlayLink> = mutableMapOf(),
-    var phoneSets: MutableMap<String, PhoneSet> = mutableMapOf(),
+    var playLinks: MutableMap<String, PlayLink> = mutableMapOf<String, PlayLink>(),
+    var phoneSets: MutableMap<String, PhoneSet> = mutableMapOf<String, PhoneSet>(),
 )
 
 //ENTITIES:

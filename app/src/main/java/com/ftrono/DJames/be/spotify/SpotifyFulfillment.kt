@@ -216,6 +216,7 @@ class SpotifyFulfillment (private var context: Context) {
     //Play a song or an album: PART 2:
     fun playSongAlbum2(resultsNLP: NlpQueryModel, prevStatus: DispatcherInfo): DispatcherInfo {
         // Context:
+        Log.w(TAG, "SONO DENTRO. WIIIIIIIIII")
         var playType = prevStatus.playType
         var reqLangCode = prevStatus.reqLanguage
         var contextType = prevStatus.contextType
@@ -367,13 +368,11 @@ class SpotifyFulfillment (private var context: Context) {
         if (playType == "artist") {
             //Confirm artists with vocabulary check:
             val artistExtracted = nlpExtractor.checkArtists(resultsNLP.artists, matchName, reqLangCode)
-            extractorInfo.artistConfirmed = artistExtracted
             val vocMatchId = nlpMatcher.matchVocabulary("artist", artistExtracted)
 
             if (vocMatchId > -1) {
                 //Build playable:
                 val itemInfo = libUtils.getItemInfoUse("artist", vocMatchId)
-                extractorInfo.artistConfirmed = itemInfo.name
                 //Match playLinkName:
                 val playLinks = itemInfo.playLinks
                 val matchedPlayName = if (playLinks.containsKey(reqPlayLinkName)) reqPlayLinkName else itemInfo.defaultKey
@@ -438,13 +437,13 @@ class SpotifyFulfillment (private var context: Context) {
             //Read:
             if (playable.owner == prefs.spotUserName) {
                 introText = "Playing your playlist: "
-                detailText = playable.name
+                detailText = utils.cleanString(playable.name, emojiOnly = true)
             } else if (playType == "artist") {
                 introText = "Playing top tracks for the artist: "
-                detailText = playable.name
+                detailText = utils.cleanString(playable.name, emojiOnly = true)
             } else {
                 introText = "Playing the $playType: "
-                detailText = "${playable.name}${ownerString}."
+                detailText = utils.cleanString("${playable.name}${ownerString}.", emojiOnly = true)
             }
             val itemsToRead = listOf(
                 mapOf(
@@ -561,10 +560,10 @@ class SpotifyFulfillment (private var context: Context) {
             var detailText = ""
             if (playable.releaseDate != "") {
                 introText = "Playing the latest episode dated ${playable.releaseDate}: "
-                detailText = playable.name
+                detailText = utils.cleanString(playable.name, emojiOnly = true)
             } else {
                 introText = "Playing the latest episode: "
-                detailText = playable.name
+                detailText = utils.cleanString(playable.name, emojiOnly = true)
             }
             val itemsToRead = listOf(
                 mapOf(
@@ -573,7 +572,7 @@ class SpotifyFulfillment (private var context: Context) {
                 ),
                 mapOf(
                     "language" to reqLangCode,
-                    "text" to detailText
+                    "text" to utils.cleanString(detailText, emojiOnly = true)
                 )
             )
             fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=true)

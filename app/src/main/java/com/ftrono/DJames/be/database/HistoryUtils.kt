@@ -11,8 +11,8 @@ import com.ftrono.DJames.application.appVersion
 import com.ftrono.DJames.application.curHistorySize
 import com.ftrono.DJames.application.historyBox
 import com.ftrono.DJames.application.lastLog
-import com.ftrono.DJames.application.logDir
 import com.ftrono.DJames.be.samples.testHistory
+import io.objectbox.query.QueryBuilder
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
@@ -33,7 +33,7 @@ class HistoryUtils {
             history = if (preview) {
                 testHistory
             } else {
-                historyBox!!.query().order(HistoryLog_.datetime).build().find()
+                historyBox!!.query().order(HistoryLog_.datetime, QueryBuilder.DESCENDING).build().find()
             }.map { item ->
                 //Cast value to String to allow storing into MutableState:
                 Json.encodeToString(
@@ -90,27 +90,24 @@ class HistoryUtils {
 
     //Store last open log to DB:
     fun storeLog(context: Context) {
-        if (lastLog.keyInfo.vocScore == 0 && lastLog.keyInfo.bestScore == 0) {
-            Log.d(TAG, "No scores: Log not saved!")
-        } else {
-            try {
-                lastLog.keyInfo.intentName = lastLog.nlpQueries.first().intentName
-                lastLog.keyInfo.queryText = lastLog.nlpQueries.last().queryText
-                if (lastLog.keyInfo.intentName != "" && lastLog.keyInfo.queryText != "") {
-                    historyBox!!.put(lastLog)
-                    Log.d(TAG, "HistoryLog item ${lastLog.id} saved!")
-                    //Send broadcast:
-                    Intent().also { intent ->
-                        intent.setAction(ACTION_LOG_REFRESH)
-                        context.sendBroadcast(intent)
-                    }
-                } else {
-                    lastLog = HistoryLog()
-                    Log.w(TAG, "Empty HistoryLog: Discarded!")
+        try {
+            lastLog.keyInfo.intentName = lastLog.nlpQueries.first().intentName
+            lastLog.keyInfo.queryText = lastLog.nlpQueries.last().queryText
+            Log.d(TAG, "CURRENT LOG: $lastLog")
+            if (lastLog.keyInfo.intentName != "" && lastLog.keyInfo.queryText != "") {
+                historyBox!!.put(lastLog)
+                Log.d(TAG, "HistoryLog item ${lastLog.id} saved!")
+                //Send broadcast:
+                Intent().also { intent ->
+                    intent.setAction(ACTION_LOG_REFRESH)
+                    context.sendBroadcast(intent)
                 }
-            } catch (e: Exception) {
-                Log.w(TAG, "ERROR: HistoryLog not saved!", e)
+            } else {
+                lastLog = HistoryLog()
+                Log.w(TAG, "Empty HistoryLog: Discarded!")
             }
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: HistoryLog not saved!", e)
         }
     }
 
@@ -178,7 +175,7 @@ class HistoryUtils {
     fun prepareLogFile(context: Context, id: Long): String {
         try {
             val logItem = getFullLog(id)
-            val filename = "log_${logItem.datetime}.json"
+            val filename = "log_${logItem.datetime.replace(":", "_")}.json"
             val cachedFile = File(context.cacheDir, filename)
             cachedFile.writeText(Json.encodeToString(logItem))
             return filename
@@ -190,12 +187,12 @@ class HistoryUtils {
 
 
     //Open HistoryLog in external app:
-    fun openLogViaApp(mContext: Context, filename: String) {
+    fun openLogViaApp(context: Context, filename: String) {
         try {
             // Get URI and MIME type of file
-            val file = File(logDir, filename)
-            val uri = FileProvider.getUriForFile(mContext, "com.ftrono.DJames.provider", file)
-            val mime = mContext.contentResolver.getType(uri)
+            val file = File(context.cacheDir, filename)
+            val uri = FileProvider.getUriForFile(context, "com.ftrono.DJames.provider", file)
+            val mime = context.contentResolver.getType(uri)
 
             // Open file with user selected app
             val intent1 = Intent()
@@ -204,10 +201,10 @@ class HistoryUtils {
             intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             intent1.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             intent1.putExtra("fromwhere", "ser")
-            startActivity(mContext, intent1, null)
+            startActivity(context, intent1, null)
         } catch (e: Exception) {
             Log.d("HistoryScreen", "openLogViaApp(): viewer app not found!")
-            Toast.makeText(mContext, "No app to open the selected file!", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "No app to open the selected file!", Toast.LENGTH_LONG).show()
         }
     }
 

@@ -190,6 +190,7 @@ class SpotifySearch(private val context: Context) {
 
     //Spotify: get Best Result:
     fun getBestMatches(items: JsonArray, playType: String, matchName: String, artistName: String, live: Boolean): MutableList<SpotifyMatchModel> {
+        val re = Regex("[^A-Za-z0-9 ]")
         var c = 0
         var allMatches = mutableListOf<SpotifyMatchModel>()
         var ids = mutableListOf<String>()
@@ -200,10 +201,8 @@ class SpotifySearch(private val context: Context) {
             var curJson = item.asJsonObject
 
             // Extract key info:
-            val re = Regex("[^A-Za-z0-9 ]")
-            var name = re.replace(curJson.get("name").asString, "")
             curMatch.playable.type = playType
-            curMatch.playable.name = name
+            curMatch.playable.name = curJson.get("name").asString
             ids.add(curJson.get("id").asString)
             curMatch.playable.id = curJson.get("id").asString
 
@@ -228,7 +227,7 @@ class SpotifySearch(private val context: Context) {
             var score = 0
             if (artistName == "") {
                 // Match name only:
-                var stringToMatch = curMatch.playable.name + " " + curMatch.playable.artistsNames.joinToString(", ", "", "")
+                var stringToMatch = re.replace(curMatch.playable.name, "") + " " + re.replace(curMatch.playable.artistsNames.joinToString(", ", "", ""), "")
                 stringToMatch = stringToMatch.lowercase()
                 curMatch.nameSetSimilarity = FuzzySearch.tokenSetRatio(stringToMatch, matchName)
                 curMatch.namePartialSimilarity = FuzzySearch.partialRatio(stringToMatch, matchName)
@@ -241,8 +240,8 @@ class SpotifySearch(private val context: Context) {
 
             } else {
                 // Match name and artist:
-                var tempName = curMatch.playable.name.lowercase()
-                var tempArtists = curMatch.playable.artistsNames.joinToString(", ", "", "").lowercase()
+                var tempName = re.replace(curMatch.playable.name.lowercase(), "")
+                var tempArtists = re.replace(curMatch.playable.artistsNames.joinToString(", ", "", "").lowercase(), "")
                 curMatch.nameSetSimilarity = FuzzySearch.tokenSetRatio(tempName, matchName)
                 curMatch.namePartialSimilarity = FuzzySearch.partialRatio(tempName, matchName)
                 curMatch.nameFullSimilarity = FuzzySearch.ratio(tempName, matchName)
@@ -259,7 +258,7 @@ class SpotifySearch(private val context: Context) {
 
             //Check if live:
             if (playType == "track" || playType == "artist") {
-                for (tok in name.split(" ")) {
+                for (tok in curMatch.playable.name.lowercase().split(" ")) {
                     if (!live && tok.lowercase() == "live") {
                         score -= deltaSimilarity
                         break

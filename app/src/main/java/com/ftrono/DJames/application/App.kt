@@ -82,7 +82,7 @@ var curLibrarySize = MutableLiveData<Int>(0)
 val vocHeads = listOf("artist", "playlist", "podcast", "contact", "route")
 val vocSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
 var curHistorySize = MutableLiveData<Int>(0)
-var historyItems = MutableLiveData<List<String>>(listOf())
+var historyItems = MutableLiveData<List<String>>(listOf<String>())
 
 //Preferences:
 val maxClickOptions = 3
@@ -106,7 +106,7 @@ var messLangLower = listOf<String>("english", "italian", "french", "german", "sp
 
 //Modes:
 var density: Float = 0F
-var acts_active: MutableList<String> = mutableListOf()
+var acts_active: MutableList<String> = mutableListOf<String>()
 var streamMaxVolume: Int = 0
 var screenOn: Boolean = true
 var main_initialized: Boolean = false

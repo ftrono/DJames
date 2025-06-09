@@ -63,8 +63,8 @@ data class SpotifyPlayable(
     var id: String = "",
     var name: String = "",
     //Artists:
-    var artistsIds: MutableList<String> = mutableListOf(),
-    var artistsNames: MutableList<String> = mutableListOf(),
+    var artistsIds: MutableList<String> = mutableListOf<String>(),
+    var artistsNames: MutableList<String> = mutableListOf<String>(),
     //Albums:
     var albumType: String = "",
     var albumName: String = "",
@@ -105,7 +105,7 @@ data class SpotifyQueryModel(
     var url: String = "",
     var numItems: Int = 0,
     @Convert(converter = SpotifyMatchModelConverter::class, dbType = String::class)
-    var spotifyMatches: MutableList<SpotifyMatchModel> = mutableListOf()
+    var spotifyMatches: MutableList<SpotifyMatchModel> = mutableListOf<SpotifyMatchModel>()
 )
 
 class SpotifyMatchModelConverter : PropertyConverter<MutableList<SpotifyMatchModel>, String> {
@@ -138,7 +138,7 @@ data class HistoryLog(
     var nlpExtractor: ExtractorInfo = ExtractorInfo(),
 
     @Convert(converter = SpotifyQueryModelConverter::class, dbType = String::class)
-    var spotifyQueries: MutableList<SpotifyQueryModel> = mutableListOf(),
+    var spotifyQueries: MutableList<SpotifyQueryModel> = mutableListOf<SpotifyQueryModel>(),
 
     @Convert(converter = SpotifyPlayableConverter::class, dbType = String::class)
     var spotifyPlay: SpotifyPlayable = SpotifyPlayable(),
@@ -173,7 +173,7 @@ class ExtractorInfoConverter : PropertyConverter<ExtractorInfo, String> {
     }
 
     override fun convertToDatabaseValue(entityProperty: ExtractorInfo?): String {
-        return Json.encodeToString(entityProperty ?: ExtractorInfo)
+        return Json.encodeToString(entityProperty ?: ExtractorInfo())
     }
 }
 
@@ -193,7 +193,7 @@ class SpotifyPlayableConverter : PropertyConverter<SpotifyPlayable, String> {
     }
 
     override fun convertToDatabaseValue(entityProperty: SpotifyPlayable?): String {
-        return Json.encodeToString(entityProperty ?: SpotifyPlayable)
+        return Json.encodeToString(entityProperty ?: SpotifyPlayable())
     }
 }
 

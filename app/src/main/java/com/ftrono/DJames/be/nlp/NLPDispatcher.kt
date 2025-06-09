@@ -107,7 +107,7 @@ class NLPDispatcher (private var context: Context) {
             }
 
             //Process request:
-            if (resultsNLP.intentName != "Fallback") {
+            if (resultsNLP.queryText != "") {
                 //A) PROCESS:
                 try {
                     //Get relevant results:

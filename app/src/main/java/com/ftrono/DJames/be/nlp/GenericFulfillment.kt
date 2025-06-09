@@ -51,7 +51,7 @@ class GenericFulfillment (private var context: Context) {
         val nlpMatcher = NLPMatcher(context)
         var vocMatchId = nlpMatcher.matchVocabulary(filter, text=contactExtracted)
 
-        if (vocMatchId > 0 || !voiceQueryOn) {
+        if (vocMatchId < 0 || !voiceQueryOn) {
             //Fallback:
             return fulfillmentUtils.fallback("Sorry, I did not understand!")
 
@@ -284,10 +284,9 @@ class GenericFulfillment (private var context: Context) {
         //Check route in vocabulary:
         val nlpMatcher = NLPMatcher(context)
         val vocMatchId = nlpMatcher.matchVocabulary("route", matchName, maxThreshold)
-        if (vocMatchId == -1L) {
+        if (vocMatchId < 0) {
             //Route NOT found:
             Log.d(TAG, "DRIVE -> Route from Message")
-            lastLog.keyInfo.vocScore = 100   //TODO
             itemInfo = nlpExtractor.extractRoute(nlp_queryText, reqLangCode)
             itemInfo.url = fulfillmentUtils.buildRouteUrlFromItemInfo(itemInfo)
             extractorInfo.matchExtracted = itemInfo.name

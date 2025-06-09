@@ -176,7 +176,7 @@ fun HistoryCard(
 
     val deleteLogOn = rememberSaveable { mutableStateOf(false) }
     if (deleteLogOn.value) {
-        DialogDeleteHistory(mContext, deleteLogOn, logItem.id)
+        DialogDeleteHistory(mContext, deleteLogOn, logItem.id, logItem.datetime)
     }
 
     //CARD:
@@ -362,7 +362,8 @@ fun HistoryItemOptions(
 fun DialogDeleteHistory(
     mContext: Context,
     dialogOnState: MutableState<Boolean>,
-    id: Long? = null
+    id: Long? = null,
+    datetime: String = "",
 ) {
 
     //DELETE DIALOG:
@@ -373,7 +374,7 @@ fun DialogDeleteHistory(
         content = {
             Text(
                 text = if (id != null) {
-                    "Do you want to delete this log item?\n\n$id"
+                    "Do you want to delete this log item?\n\n$datetime"
                 } else {
                     "Do you want to delete all history logs?"
                 },
@@ -384,7 +385,6 @@ fun DialogDeleteHistory(
         dismissText = "No",
         confirmText = "Yes",
         onConfirm = {
-            var toastText = ""
             if (id != null) {
                 //Delete current:
                 logUtils.deleteLogItem(mContext, id)
@@ -393,7 +393,6 @@ fun DialogDeleteHistory(
                 logUtils.deleteHistory(mContext)
             }
             historyItems.postValue(logUtils.refreshHistory())   //Refresh list
-            Toast.makeText(mContext, toastText, Toast.LENGTH_LONG).show()
             dialogOnState.value = false
         }
     )
@@ -410,7 +409,7 @@ fun getLogViewInfo(logItem: HistoryLog): LogViewInfo {
     )
 
     //Request scoring:
-    var itemScore = if (intentName.contains("Play")) {
+    var itemScore = if (intentName.contains("Play") && logItem.keyInfo.bestScore > 0) {
             if (!logItem.keyInfo.contextError && logItem.keyInfo.bestScore >= playThreshold) {
                 "🟢"
             } else {
@@ -455,7 +454,7 @@ fun getLogViewInfo(logItem: HistoryLog): LogViewInfo {
         //Play requests:
         val playable = logItem.spotifyPlay
 
-        if (playable.type == "podcast") {
+        if (playable.type == "podcast" || playable.type == "episode") {
             //Podcast:
             var podcastName = utils.capitalizeWords(playable.contextName)
             var episodeName = utils.capitalizeWords(playable.name)
@@ -475,9 +474,9 @@ fun getLogViewInfo(logItem: HistoryLog): LogViewInfo {
             var matchName = utils.trimString(playable.name, trimLength)
             var artistName =
                 utils.trimString(playable.artistsNames.joinToString(", "), trimLength)
-            if (playable.albumType != "Album") {
+            if (playable.albumType != "album") {
                 detailText =
-                    "Album:  $matchName  (${playable.albumType})\nArtist:  $artistName"
+                    "Album:  $matchName  (${utils.capitalizeWords(playable.albumType)})\nArtist:  $artistName"
             } else {
                 detailText = "Album:  $matchName\nArtist:  $artistName"
             }
@@ -496,7 +495,7 @@ fun getLogViewInfo(logItem: HistoryLog): LogViewInfo {
                 contextName = playable.contextName
             } else {
                 //Default to Album type:
-                contextType = playable.albumType
+                contextType = utils.capitalizeWords(playable.albumType)
                 contextName = playable.albumName
             }
             var contextFull = "$contextName  ($contextType)"

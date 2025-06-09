@@ -19,9 +19,9 @@ import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.showUrlIntro
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.be.database.Artist
-import com.ftrono.DJames.be.database.Episode
 import com.ftrono.DJames.be.database.Playlist
 import com.ftrono.DJames.be.database.Podcast
+import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
 
@@ -309,12 +309,12 @@ class SpotifyUtils {
 
 
     //Get Podcast info:
-    fun getPodcastEpisodes(context: Context, url: String, latestOnly: Boolean = true): List<Episode> {
+    fun getPodcastEpisodes(context: Context, spotifyId: String, latestOnly: Boolean = true): List<SpotifyPlayable> {
         Log.d(TAG, "getPodcastEpisodes: job start!")
-        var episodes = mutableListOf<Episode>()
+        var episodes = mutableListOf<SpotifyPlayable>()
         try {
             val spotifyCalls = SpotifyCalls(context)
-            val resp = spotifyCalls.getSpotifyPodcastEpisodes(getSpotifyID(url), limit = if (latestOnly) 1 else null)
+            val resp = spotifyCalls.getSpotifyPodcastEpisodes(spotifyId, limit = if (latestOnly) 1 else null)
             //PROCESS RESPONSE:
             if (resp.code == 200) {
                 //SUCCESS -> Extract info:
@@ -344,9 +344,10 @@ class SpotifyUtils {
                             itemLanguages.add(obj.asString)
                         }
                         episodes.add(
-                            Episode(
+                            SpotifyPlayable(
+                                type = "episode",
+                                id = itemJson.get("id").asString,
                                 name = itemJson.get("name").asString,
-                                spotifyId = itemJson.get("id").asString,
                                 releaseDate = try {
                                     itemJson.get("release_date").asString
                                 } catch (e: Exception) {

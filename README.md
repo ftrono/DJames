@@ -11,6 +11,8 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
+**Version 2.5.0 (2025-05-14)** - Fulfillment overhaul: replaced JsonObjects() with data classes. Isolated DialogFlow & manual extractions logic. Add HistoryLog() to ObjectBox DB.
+
 **Version 2.4.3 (2025-05-14)** - Code streamlining: rework PlayLinks and PhoneSets access management.
 
 **Version 2.4.2 (2025-05-05)** - Add support to Podcasts playing (WIP: latest episode only). Fixed annoying audioFocus bug after call end.

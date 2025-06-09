@@ -7,9 +7,13 @@ import com.ftrono.DJames.application.ACTION_LOG_REFRESH
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.clockActive
-import com.ftrono.DJames.application.last_log
+import com.ftrono.DJames.application.lastLog
+import com.ftrono.DJames.application.spotIntroUrl
+import com.ftrono.DJames.application.likedSongsUri
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.spotIntroUri
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import java.net.URLEncoder
@@ -23,17 +27,21 @@ class SpotifyPlayer (private val context: Context) {
 
 
     //PLAY INTERNALLY OR EXTERNALLY:
-    fun spotifyPlay(playInfo: JsonObject): Int {
-        val spotifyUrl = playInfo.get("spotify_URL").asString
-        val playType = playInfo.get("play_type").asString
+    fun spotifyPlay(playable: SpotifyPlayable): Int {
+        //Build external URL:
+        val playUrl = if (playable.type == "collection") {
+            "$spotIntroUrl/collection/tracks"
+        } else {
+            "$spotIntroUrl/${playable.type}/${playable.id}"
+        }
         //TRIAL 1:
         //Try requested context:
         val clockWasActive = clockActive.value!!
-        var sessionState = playInternally(playInfo, useAlbum=false)
+        var sessionState = playInternally(playable, useAlbum=false)
         Log.d(TAG, "(FIRST) SESSION STATE: ${sessionState}")
 
         if (sessionState == 200 || sessionState == 204) {
-            if (playInfo.get("context_type").asString == "album") {
+            if (playable.contextType == "" || playable.contextType == "album") {
                 //If context was "album" -> terminate:
                 return 0
 
@@ -53,11 +61,11 @@ class SpotifyPlayer (private val context: Context) {
                     //204: WRONG CONTEXT or 400-on:
                     //TRIAL 2:
                     //Use album as context:
-                    sessionState = playInternally(playInfo, useAlbum = true)
+                    sessionState = playInternally(playable, useAlbum = true)
                     Log.d(TAG, "(SECOND) SESSION STATE: ${sessionState}")
 
                     //Update log:
-                    last_log!!.addProperty("context_error", true)
+                    lastLog.keyInfo.contextError = true
 
                     //Send broadcast:
                     Intent().also { intent ->
@@ -72,14 +80,12 @@ class SpotifyPlayer (private val context: Context) {
                     } else {
                         //400-on: OPEN EXTERNALLY WITH CONTEXT = ALBUM:
                         //Open externally:
-                        if (playType != "track") {
-                            openExternally(spotifyUrl, clockWasActive)
+                        if (playable.type != "track") {
+                            openExternally(playUrl, clockWasActive)
                         } else {
-                            var contextUri =
-                                playInfo.get("album_uri").asString
-                            val encodedContextUri: String =
-                                URLEncoder.encode(contextUri, "UTF-8")
-                            openExternally("$spotifyUrl?context=$encodedContextUri", clockWasActive)
+                            var contextUri = "$spotIntroUri:album:${playable.albumId}"
+                            val encodedContextUri = URLEncoder.encode(contextUri, "UTF-8")
+                            openExternally("$playUrl?context=$encodedContextUri", clockWasActive)
                         }
                         return -1
                     }
@@ -89,16 +95,15 @@ class SpotifyPlayer (private val context: Context) {
         } else {
             //400-on: OPEN EXTERNALLY WITH CONTEXT = ALBUM:
             //Open externally:
-            if (playType != "track") {
-                openExternally(spotifyUrl, clockWasActive)
+            if (playable.type != "track") {
+                openExternally(playUrl, clockWasActive)
             } else {
-                var contextUri = playInfo.get("album_uri").asString
-                val encodedContextUri: String =
-                    URLEncoder.encode(contextUri, "UTF-8")
-                openExternally("$spotifyUrl?context=$encodedContextUri", clockWasActive)
+                var contextUri = "$spotIntroUri:album:${playable.albumId}"
+                val encodedContextUri = URLEncoder.encode(contextUri, "UTF-8")
+                openExternally("$playUrl?context=$encodedContextUri", clockWasActive)
             }
             //Update log:
-            last_log!!.addProperty("play_externally", true)
+            lastLog.keyInfo.playedExternally = true
 
             //Send broadcast:
             Intent().also { intent ->
@@ -147,33 +152,44 @@ class SpotifyPlayer (private val context: Context) {
 
 
     //PLAY INTERNALLY:
-    fun playInternally(resultJSON: JsonObject, useAlbum: Boolean = false): Int {
+    fun playInternally(playable: SpotifyPlayable, useAlbum: Boolean = false): Int {
         var url = "https://api.spotify.com/v1/me/player/play"
-        var playType = resultJSON.get("play_type").asString
 
         //Body:
         var jsonBody = JsonObject()
         var offset = JsonObject()   //Context
 
         //Use uri vs context_uri:
-        if (playType == "podcast") {
+        if (playable.type == "episode") {
+            // Podcast episode:
             val uris = JsonArray()
-            uris.add(resultJSON.get("uri").asString)
+            uris.add("$spotIntroUri:episode:${playable.id}")
             jsonBody.add("uris", uris)
-            jsonBody.addProperty("position_ms", resultJSON.get("episode_resume_position_ms").asString)
+            jsonBody.addProperty("position_ms", playable.resumePositionMs)
 
         } else {
-            // Use requested context:
-            if (playType == "track" && useAlbum) {
-                jsonBody.addProperty("context_uri", resultJSON.get("album_uri").asString)
+            if (playable.type == "track") {
+                if (!useAlbum && playable.contextUri != "") {
+                    // Use requested track context:
+                    jsonBody.addProperty("context_uri", playable.contextUri)
+                } else {
+                    // Force album:
+                    jsonBody.addProperty("context_uri", "$spotIntroUri:album:${playable.albumId}")
+                }
+
+            } else if (playable.type == "collection") {
+                // Collection uri as context:
+                jsonBody.addProperty("context_uri", likedSongsUri.replace("replaceUserId", prefs.spotUserId))
+
             } else {
-                jsonBody.addProperty("context_uri", resultJSON.get("context_uri").asString)
+                // Use main uri as context:
+                jsonBody.addProperty("context_uri", "$spotIntroUri:${playable.type}:${playable.id}")
             }
 
             //Start playing from:
-            if (playType != "artist") {
-                if (playType == "track") {
-                    offset.addProperty("uri", resultJSON.get("uri").asString)   //song uri
+            if (playable.type != "artist") {
+                if (playable.type == "track") {
+                    offset.addProperty("uri", "$spotIntroUri:${playable.type}:${playable.id}")   //track uri
                 } else {
                     offset.addProperty("position", 0)   //beginning
                 }

@@ -19,16 +19,6 @@ data class PlayLink(
 )
 
 @Serializable
-data class Episode(
-    var name: String,
-    var spotifyId: String,
-    var releaseDate: String,
-    var languages: MutableList<String> = mutableListOf(""),
-    var fullyPlayed: Boolean = false,
-    var resumePositionMs: Int = 0,
-)
-
-@Serializable
 data class PhoneSet(
     var prefix: String,
     var phone: String
@@ -56,8 +46,8 @@ data class ItemInfoView(
 
 @Serializable
 data class ItemInfoUse(
-    var name: String,
-    var detail: String = "",
+    var name: String = "",
+    var detail: String = "",   //playlist owner or podcast publisher
     var language: String = "",
     var url: String = "",
     var defaultKey: String = "",

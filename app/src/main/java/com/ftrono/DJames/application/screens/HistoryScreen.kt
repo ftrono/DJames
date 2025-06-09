@@ -1,7 +1,6 @@
 package com.ftrono.DJames.application.screens
 
 import android.content.Context
-import android.content.Intent
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
@@ -46,14 +45,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat.startActivity
-import androidx.core.content.FileProvider
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.historyKeys
 import com.ftrono.DJames.application.logDir
+import com.ftrono.DJames.application.logUtils
 import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.playThreshold
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.database.HistoryLog
+import com.ftrono.DJames.be.database.LogViewInfo
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.components.HeaderWithSign
 import com.ftrono.DJames.ui.components.OptionsItem
@@ -159,15 +159,11 @@ fun HistoryScreen(preview: Boolean = false) {
 
 @Composable
 fun HistoryCard(
-    item: JsonObject
+    item: HistoryLog
 ) {
     //INFO:
     val mContext = LocalContext.current
-    val itemInfo = getHistoryItemInfo(item, mContext)
-    val filename = itemInfo.get("filename").asString
-    val textIntro = itemInfo.get("textIntro").asString
-    val textMain = itemInfo.get("textMain").asString
-    val textExtra = itemInfo.get("textExtra").asString
+    val viewInfo = getLogViewInfo(item)
 
     var mDisplayMenu = rememberSaveable {
         mutableStateOf(false)
@@ -175,19 +171,12 @@ fun HistoryCard(
 
     val deleteLogOn = rememberSaveable { mutableStateOf(false) }
     if (deleteLogOn.value) {
-        DialogDeleteHistory(mContext, deleteLogOn, filename)
-    }
-
-    //Intent name:
-    val intentName = if (item.has("intent_name")) {
-        item.get("intent_name").asString
-    } else {
-        "Unknown"
+        DialogDeleteHistory(mContext, deleteLogOn, viewInfo.id)
     }
 
     //CARD:
     Card(
-        onClick = { openLog(mContext, filename) },
+        onClick = { viewLog(mContext, viewInfo.id) },
         modifier = Modifier
             .padding(
                 start = 32.dp,
@@ -220,26 +209,26 @@ fun HistoryCard(
                     modifier = Modifier
                         .padding(start = 12.dp)
                         .size(16.dp),
-                    painter = historyIconSelector(cat = intentName),
-                    contentDescription = intentName,
-                    tint = historyColorSelectorLight(cat = intentName)
+                    painter = historyIconSelector(cat = viewInfo.intentName),
+                    contentDescription = viewInfo.intentName,
+                    tint = historyColorSelectorLight(cat = viewInfo.intentName)
                 )
                 //CAT NAME:
                 Text(
                     modifier = Modifier
                         .padding(start = 4.dp),
-                    color = historyColorSelectorLight(cat = intentName),
+                    color = historyColorSelectorLight(cat = viewInfo.intentName),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    text = "${intentName}  •  "
+                    text = "${viewInfo.intentName}  •  "
                 )
-                //INTRO & DATETIME:
+                //INTRO TEXT & DATETIME:
                 Text(
                     modifier = Modifier
                         .weight(1f),
                     color = colorResource(id = R.color.mid_grey),
                     fontSize = 12.sp,
-                    text = textIntro
+                    text = viewInfo.head
                 )
                 //"MORE OPTIONS" BUTTON:
                 Box() {
@@ -255,10 +244,10 @@ fun HistoryCard(
                         mContext = mContext,
                         mDisplayMenu = mDisplayMenu,
                         deleteLogOn = deleteLogOn,
-                        filename = filename)
+                        id = viewInfo.id)
                 }
             }
-            //REQUEST TEXT:
+            //MAIN TEXT:
             Text(
                 modifier = Modifier
                     .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 10.dp)
@@ -269,9 +258,9 @@ fun HistoryCard(
                 fontWeight = FontWeight.Bold,
                 fontStyle = FontStyle.Italic,
                 lineHeight = 16.sp,
-                text = textMain
+                text = viewInfo.main
             )
-            //EXTRA INFO:
+            //DETAIL TEXT:
             Text(
                 modifier = Modifier
                     .padding(start = 12.dp, bottom = 8.dp)
@@ -280,7 +269,7 @@ fun HistoryCard(
                 color = colorResource(id = R.color.mid_grey),
                 fontSize = 12.sp,
                 lineHeight = 14.sp,
-                text = textExtra
+                text = viewInfo.detail
             )
         }
     }
@@ -318,7 +307,7 @@ fun HistoryItemOptions(
     mContext: Context,
     mDisplayMenu: MutableState<Boolean>,
     deleteLogOn: MutableState<Boolean>,
-    filename: String
+    id: Long
 ) {
     //DROPDOWN MENU:
     OptionsMenu(
@@ -330,7 +319,7 @@ fun HistoryItemOptions(
                 title = "View",
                 iconVector = Icons.Default.Search,
                 onClick = {
-                    openLog(mContext, filename)
+                    logUtils.viewLog(mContext, id)
                     mDisplayMenu.value = false
                 }
             )
@@ -339,7 +328,7 @@ fun HistoryItemOptions(
                 title = "Share",
                 iconVector = Icons.Default.Share,
                 onClick = {
-                    sendLog(mContext, filename)
+                    logUtils.sendLog(mContext, id)
                     mDisplayMenu.value = false
                 }
             )
@@ -361,18 +350,18 @@ fun HistoryItemOptions(
 fun DialogDeleteHistory(
     mContext: Context,
     dialogOnState: MutableState<Boolean>,
-    filename: String = ""
+    id: Long? = null
 ) {
 
     //DELETE DIALOG:
     GeneralDialog(
         dialogOnState = dialogOnState,
         backgroundColor = colorResource(id = R.color.colorPrimaryDark),
-        title = if (filename != "") "Delete log" else "Delete history",
+        title = if (id != "") "Delete log" else "Delete history",
         content = {
             Text(
-                text = if (filename != "") {
-                    "Do you want to delete this log item?\n\n$filename"
+                text = if (id != "") {
+                    "Do you want to delete this log item?\n\n$id"
                 } else {
                     "Do you want to delete all history logs?"
                 },
@@ -384,10 +373,10 @@ fun DialogDeleteHistory(
         confirmText = "Yes",
         onConfirm = {
             var toastText = ""
-            if (filename != "") {
+            if (id != null) {
                 //Delete current:
-                File(logDir, filename).delete()
-                Log.d("HistoryScreen", "Deleted file: $filename")
+                File(logDir, id).delete()
+                Log.d("HistoryScreen", "Deleted log: $id")
                 toastText = "Log deleted!"
             } else {
                 //Delete all:
@@ -403,209 +392,119 @@ fun DialogDeleteHistory(
 }
 
 
-//GET ITEM INFO:
-fun getHistoryItemInfo(item: JsonObject, context: Context): JsonObject {
-    var itemInfo = JsonObject()
+//BUILD LOG VIEW INFO:
+fun getLogViewInfo(logItem: HistoryLog): LogViewInfo {
     val trimLength = 40
-
-    //Datetime:
-    val datetime = item.get("datetime").asString
-
-    //Intent name:
-    val intentName = if (item.has("intent_name")) {
-        item.get("intent_name").asString
-    } else {
-        "Unknown"
-    }
-
-    //Album type:
-    var albumType = try {
-        item.get("spotify_play").asJsonObject.get("album_type").asString.replaceFirstChar { it.uppercase() }
-    } catch (e: Exception) {
-        "Album"
-    }
-
-    //Context error:
-    val context_error = try {
-        item.get("context_error").asBoolean
-    } catch (e: Exception) {
-        false
-    }
+    val intentName = logItem.keyInfo.intentName
+    var viewInfo = LogViewInfo(
+        id = logItem.id,
+        intentName = intentName
+    )
 
     //Request scoring:
-    var itemScore = ""
-    try {
-        itemScore = if (item.has("voc_score")) {
-            if (item.get("voc_score").asInt > midThreshold) {
+    var itemScore = if (intentName.contains("Play")) {
+            if (!logItem.keyInfo.contextError && logItem.keyInfo.bestScore >= playThreshold) {
                 "🟢"
             } else {
                 "🟡"
             }
+        } else if (logItem.keyInfo.vocScore > midThreshold) {
+            "🟢"
         } else {
-            if (!context_error && item.get("best_score").asInt >= playThreshold) {
-                "🟢"
-            } else {
-                "🟡"
-            }
+            "🟡"
         }
-    } catch (e: Exception) {
-        Log.d("HistoryScreen", "No score info in log item: $datetime")
-    }
 
     //Build info:
-    val queryText = item.get("nlp").asJsonObject.get("query_text").asString
-    val textIntro = "${datetime.slice(0..< (datetime.length-3))}  $itemScore"
-    val textMain = if (intentName.contains("Play") && !queryText.contains("play ")) {
+    viewInfo.head = "${logItem.keyInfo.datetime.slice(0..< (logItem.keyInfo.datetime.length-3))}  $itemScore"
+
+    //Main text:
+    val queryText = logItem.nlpQueries.last().queryText
+    viewInfo.main = if (intentName.contains("Play") && !queryText.contains("play ")) {
         "play: $queryText"
-    } else if (intentName.contains("Drive") ) {
+    } else if (intentName.contains("Drive")) {
         "drive: $queryText"
     } else {
         queryText
     }
 
-    //Extra text:
-    var textExtra = ""
-
+    //Detail text:
+    var detailText = ""
     if (intentName.contains("Call") || intentName.contains("Message")) {
         //Calls & Messages:
-        var contacted = item.get("contact_extractor").asJsonObject.get("contact_confirmed").asString.replaceFirstChar { it.uppercase() }
-        textExtra = "Contact:  $contacted"
+        val itemInfo = logItem.usable
+        detailText = "Contact:  ${itemInfo.name}"
 
     } else if (intentName.contains("Drive")) {
         //Drive:
-        var routeInfo = item.get("route_info").asJsonObject
-        var routeName = routeInfo.get("name").asString
-        var routeDetail = routeInfo.get("detail").asString
-        if (routeDetail == "") {
-            textExtra = "Route:  ${routeInfo.get("name").asString}"
+        val itemInfo = logItem.usable
+        if (itemInfo.detail == "") {
+            detailText = "Route:  ${itemInfo.name}"
         } else {
-            textExtra = "Route:  $routeName\nDetail:  $routeDetail"
+            detailText = "Route:  ${itemInfo.name}\nDetail:  ${itemInfo.detail}"
         }
 
     } else if (intentName.contains("Play")) {
         //Play requests:
-        var playType = try {
-            item.get("spotify_play").asJsonObject.get("play_type").asString
-        } catch (e: Exception) {
-            ""
-        }
+        val playable = logItem.spotifyPlay
 
-        if (playType == "podcast") {
+        if (playable.type == "podcast") {
             //Podcast:
-            var matchName = item.get("spotify_play").asJsonObject.get("podcast_name").asString.split(" ").map { it.lowercase().capitalize(
-                Locale.getDefault()) }.joinToString(" ")
-            var episodeName = item.get("spotify_play").asJsonObject.get("episode_name").asString.split(" ").map { it.lowercase().capitalize(
-                Locale.getDefault()) }.joinToString(" ")
-            var episodeDate = item.get("spotify_play").asJsonObject.get("episode_date").asString.split(" ").map { it.lowercase().capitalize(
-                Locale.getDefault()) }.joinToString(" ")
-            textExtra = "Podcast:  $matchName\nEpisode:  ($episodeDate) $episodeName"
+            var podcastName = utils.capitalizeWords(playable.contextName)
+            var episodeName = utils.capitalizeWords(playable.name)
+            var episodeDate = utils.capitalizeWords(playable.releaseDate)
+            detailText = "Podcast:  $podcastName\nEpisode:  ($episodeDate) $episodeName"
 
-        } else if (playType == "playlist") {
+        } else if (playable.type == "playlist" || playable.type == "collection") {
             //Playlist / artist playlist / collection:
-            var matchName = item.get("spotify_play").asJsonObject.get("context_name").asString.split(" ").map { it.lowercase().capitalize(
-                Locale.getDefault()) }.joinToString(" ")
-            textExtra = "Playlist:  $matchName"
+            detailText = "Playlist:  ${utils.capitalizeWords(playable.name)}"
 
-        } else if (playType == "artist") {
+        } else if (playable.type == "artist") {
             //Artist:
-            var matchName = item.get("spotify_play").asJsonObject.get("context_name").asString.split(" ").map { it.lowercase().capitalize(
-                Locale.getDefault()) }.joinToString(" ")
-            textExtra = "Artist:  $matchName"
+            detailText = "Artist:  ${utils.capitalizeWords(playable.name)}"
 
-
-        } else if (playType == "album") {
+        } else if (playable.type == "album") {
             //Album:
-            var matchName = utils.trimString(item.get("spotify_play").asJsonObject.get("match_name").asString, trimLength)
-            var artistName = utils.trimString(item.get("spotify_play").asJsonObject.get("artist_name").asString, trimLength)
-            if (albumType != "Album") {
-                textExtra = "Album:  $matchName  ($albumType)\nArtist:  $artistName"
+            var matchName = utils.trimString(playable.name, trimLength)
+            var artistName =
+                utils.trimString(playable.artistsNames.joinToString(", "), trimLength)
+            if (playable.albumType != "Album") {
+                detailText =
+                    "Album:  $matchName  (${playable.albumType})\nArtist:  $artistName"
             } else {
-                textExtra = "Album:  $matchName\nArtist:  $artistName"
+                detailText = "Album:  $matchName\nArtist:  $artistName"
             }
 
         } else {
             //Track:
-            //Log.d("History", item.toString())
-            var matchName = utils.trimString(item.get("spotify_play").asJsonObject.get("match_name").asString, trimLength)
-            var artistName = utils.trimString(item.get("spotify_play").asJsonObject.get("artist_name").asString, trimLength)
+            var matchName = utils.trimString(playable.name, trimLength)
+            var artistName =
+                utils.trimString(playable.artistsNames.joinToString(", "), trimLength)
 
             //Context:
-            var play_externally = try {
-                item.get("play_externally").asBoolean
-            } catch (e: Exception) {
-                false
-            }
-            var contextType = item.get("spotify_play").asJsonObject.get("context_type").asString.replaceFirstChar { it.uppercase() }
+            var contextType = playable.contextType
             var contextName = ""
-            if (contextType == "Playlist" && !context_error && !play_externally) {
+            if (contextType == "Playlist" && !logItem.keyInfo.contextError && !logItem.keyInfo.playedExternally) {
                 //Use Playlist:
-                contextName = item.get("spotify_play").asJsonObject.get("context_name").asString
+                contextName = playable.contextName
             } else {
                 //Default to Album type:
-                contextType = albumType
-                contextName = item.get("spotify_play").asJsonObject.get("album_name").asString
+                contextType = playable.albumType
+                contextName = playable.albumName
             }
-            contextName = utils.trimString(contextName.split(" ").joinToString(" ") { it.replaceFirstChar(Char::titlecase) })
             var contextFull = "$contextName  ($contextType)"
-            if (play_externally) {
+            if (logItem.keyInfo.playedExternally) {
                 contextFull = "$contextFull [EXT]"
             }
-            textExtra = "Track:  $matchName\nArtist:  $artistName\nContext:  $contextFull"
+            detailText = "Track:  $matchName\nArtist:  $artistName\nContext:  $contextFull"
         }
 
     } else {
-        textExtra = "(No info)"
+        detailText = "(No info)"
     }
 
-
-    //Store to JSON:
-    itemInfo.addProperty("filename", "$datetime.json")
-    itemInfo.addProperty("textIntro", textIntro)
-    itemInfo.addProperty("textMain", textMain)
-    itemInfo.addProperty("textExtra", textExtra)
-
-    return itemInfo
-}
-
-
-//CARD ACTIONS:
-//Send:
-fun sendLog(mContext: Context, filename: String) {
-    //Send the current file:
-    val file = File(logDir, filename)
-    val uriToFile = FileProvider.getUriForFile(mContext, "com.ftrono.DJames.provider", file)
-    val sendIntent: Intent = Intent().apply {
-        action = Intent.ACTION_SEND
-        putExtra(Intent.EXTRA_STREAM, uriToFile)
-        type = "image/jpeg"
-    }
-    var chooserIntent = Intent.createChooser(sendIntent, null)
-    chooserIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    chooserIntent.putExtra("fromwhere", "ser")
-    startActivity(mContext, chooserIntent, null)
-}
-
-
-//Open:
-fun openLog(mContext: Context, filename: String) {
-    try {
-        // Get URI and MIME type of file
-        val file = File(logDir, filename)
-        val uri = FileProvider.getUriForFile(mContext, "com.ftrono.DJames.provider", file)
-        val mime = mContext.contentResolver.getType(uri)
-
-        // Open file with user selected app
-        val intent1 = Intent()
-        intent1.setAction(Intent.ACTION_VIEW)
-        intent1.setDataAndType(uri, mime)
-        intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        intent1.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        intent1.putExtra("fromwhere", "ser")
-        startActivity(mContext, intent1, null)
-    } catch (e: Exception) {
-        Log.d("HistoryScreen", "OpenLogFile(): viewer app not found!")
-        Toast.makeText(mContext, "No app to open the selected file!", Toast.LENGTH_LONG).show()
-    }
+    //Store:
+    viewInfo.detail = detailText
+    return viewInfo
 }
 
 

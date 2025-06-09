@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
+import com.ftrono.DJames.be.models.NlpQueryModel
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.dialogflow.v2.AudioEncoding
@@ -77,8 +78,8 @@ class NLPQuery(context: Context) {
     }
 
 
-    fun queryNLP(recFile: File, messageMode: Boolean = false, reqLanguage: String = ""): JsonObject {
-        var respJson = JsonObject()
+    fun queryNLP(recFile: File, messageMode: Boolean = false, reqLanguage: String = ""): NlpQueryModel {
+        var respData = NlpQueryModel()
         try {
             var languageCode = ""
             var punct = false
@@ -136,12 +137,12 @@ class NLPQuery(context: Context) {
                     queryText = queryText.lowercase()
                 }
                 //Key information:
-                respJson.addProperty("request_language", languageFound)
-                respJson.addProperty("query_text", queryText)
-                respJson.addProperty("intent_name", queryResult.intent.displayName)
+                respData.language = languageFound
+                respData.queryText = queryText
+                respData.intentName = queryResult.intent.displayName
                 //Artists:
+                var artistsList = mutableListOf<String>()
                 try {
-                    var artistsList = JsonArray()
                     try {
                         //Multiple artists:
                         var artistsObj = queryResult.parameters.fieldsMap["music-artist"]!!.listValue.valuesList
@@ -152,26 +153,24 @@ class NLPQuery(context: Context) {
                         //Single artist:
                         artistsList.add(queryResult.parameters.fieldsMap["music-artist"]!!.stringValue)
                     }
-                    //LIST:
-                    respJson.add("artists", artistsList)
                 } catch (e: Exception) {
-                    //No artist:
-                    respJson.add("artists", JsonArray())
+                    Log.d(TAG, "NLP: No artists present in request.")
                 }
+                respData.artists = artistsList
                 //Genre:
                 try {
-                    respJson.addProperty("genre", queryResult.parameters.fieldsMap["music-genre"]!!.stringValue.lowercase())
+                    respData.genre = queryResult.parameters.fieldsMap["music-genre"]!!.stringValue.lowercase()
                 } catch (e: Exception) {
-                    respJson.addProperty("genre", "")
+                    Log.d(TAG, "NLP: No genre present in request.")
                 }
                 //Language:
                 try {
-                    respJson.addProperty("reqLanguage", queryResult.parameters.fieldsMap["language"]!!.stringValue.lowercase())
+                    respData.reqLanguage = queryResult.parameters.fieldsMap["language"]!!.stringValue.lowercase()
                 } catch (e: Exception) {
-                    respJson.addProperty("reqLanguage", "")
+                    Log.d(TAG, "NLP: No reqLanguage present in request.")
                 }
 
-                Log.d(TAG, "SUCCESS detectIntentResponse RESPONSE: ${respJson}")
+                Log.d(TAG, "SUCCESS detectIntentResponse RESPONSE: ${respData}")
 
             } catch (e: Exception) {
                 //Response is not a JSON:
@@ -185,7 +184,7 @@ class NLPQuery(context: Context) {
         } catch (e: Exception) {
             Log.d(TAG, "SessionsClient already shut down.")
         }
-        return respJson
+        return respData
     }
     
 }

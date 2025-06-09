@@ -142,7 +142,7 @@ fun EditVocRoute(
             showGo = true,
             onGo = {
                 if (itemRoute.destination.town != "") {
-                    utils.openLink(mContext, url = fulfillmentUtils.buildRouteUrlFromItem(itemRoute), fromService = false)
+                    utils.openLink(mContext, url = fulfillmentUtils.buildRouteUrlFromLibraryItem(itemRoute), fromService = false)
                 }
             },
             onDismiss = {

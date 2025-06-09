@@ -4,26 +4,27 @@ import android.util.Log
 import com.ftrono.DJames.R
 import com.google.gson.JsonObject
 import android.content.Context
-import com.ftrono.DJames.application.last_log
+import com.ftrono.DJames.application.gMapsLinkFormat
+import com.ftrono.DJames.application.lastLog
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.maxThreshold
-import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.prefs
-import com.google.gson.JsonArray
+import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.database.ExtractorInfo
+import com.ftrono.DJames.be.database.ItemInfoUse
 import com.google.gson.JsonParser
 import me.xdrop.fuzzywuzzy.FuzzySearch
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import kotlin.math.roundToInt
 
 
 class NLPExtractor (private val context: Context) {
     private val TAG = NLPExtractor::class.java.simpleName
 
     //SONGS + ALBUM: Extract play info:
-    fun extractPlayInfo(queryText: String, reqLanguage: String, playType: String, contextType: String): JsonObject {
+    fun extractPlayInfo(queryText: String, reqLanguage: String, playType: String, contextType: String): ExtractorInfo {
         //INIT:
-        var retExtracted = JsonObject()
+        var retExtracted = ExtractorInfo()
         var byNumber = 0
         var byInd = -1
         var contextInd = -1
@@ -35,7 +36,7 @@ class NLPExtractor (private val context: Context) {
         //1) Extract context info (if track only):
         if (playType == "track" && contextType == "playlist") {
             var contextStr = ""
-            var contextSents = arrayListOf(
+            var contextSents = mutableListOf(
                 "from the playlist",
                 "from playlist",
                 "playlist"
@@ -61,7 +62,7 @@ class NLPExtractor (private val context: Context) {
 
         //2) Extract artist info:
         var byStr = ""
-        var byFullSents = arrayListOf(
+        var byFullSents = mutableListOf(
             " by the artist ",
             " by artist ",
             " artist "
@@ -100,13 +101,11 @@ class NLPExtractor (private val context: Context) {
         }
 
         //FILL RET JSON:
-        retExtracted.addProperty("play_type", playType)
-        retExtracted.addProperty("match_extracted", matchExtracted)
-        retExtracted.addProperty("artist_extracted", artistExtracted)
-        retExtracted.addProperty("artist_confirmed", "")
-        retExtracted.addProperty("context_type", contextTypeConfirmed)
-        retExtracted.addProperty("context_extracted", contextExtracted)
-        retExtracted.addProperty("context_confirmed", "")
+        retExtracted.playType = playType
+        retExtracted.matchExtracted = matchExtracted
+        retExtracted.artistExtracted = artistExtracted
+        retExtracted.contextType = contextTypeConfirmed
+        retExtracted.contextExtracted = contextExtracted
         Log.d(TAG, "NLP EXTRACTOR RESULTS: $retExtracted")
 
         return retExtracted
@@ -114,21 +113,20 @@ class NLPExtractor (private val context: Context) {
 
 
     //Double check artists between DF & NLP Extractor:
-    fun checkArtists(artistsNlp: JsonArray, artistExtracted: String, reqLanguage: String, playName: String = "", getDetails: Boolean = false): JsonObject {
-        val filter = "artist"
+    fun checkArtists(artistsNlp: MutableList<String>, artistExtracted: String, reqLanguage: String): String {
         var artistConfirmed = ""
 
         //1) CHECK NLP ENTITIES VS ORIGINAL TEXT EXTRACTION:
-        if (artistsNlp.isEmpty) {
+        if (artistsNlp.isEmpty()) {
             //Confirm artists extracted by Extractor:
             artistConfirmed = artistExtracted
 
         } else if (artistExtracted != "") {
             var score = 0
             var artist = ""
-            var artistsTemp = ArrayList<String>()
+            var artistsTemp = mutableListOf<String>()
             //Split artists extracted:
-            var listExtracted: List<String>? = null
+            var listExtracted: List<String> = listOf<String>()
             //language:
             var queryLanguage = prefs.queryLanguage
             if (reqLanguage != "") {
@@ -140,9 +138,8 @@ class NLPExtractor (private val context: Context) {
                 listExtracted = artistExtracted.split(" and ")
             }
             //Match one by one the artists extracted by DF with those extracted by Extractor:
-            for (extr in listExtracted!!) {
-                for (artJs in artistsNlp) {
-                    artist = artJs.asString
+            for (extr in listExtracted) {
+                for (artist in artistsNlp) {
                     score = FuzzySearch.ratio(artist.lowercase(), extr)
                     Log.d(TAG, "EVALUATION: COMPARING $artist WITH $extr, MATCH: $score")
                     if (!artistsTemp.contains(artist) && score >= maxThreshold) {
@@ -150,7 +147,6 @@ class NLPExtractor (private val context: Context) {
                     }
                 }
             }
-
             Log.d(TAG, "Evalued Artists List: $artistsTemp")
 
             //Priority to DF if matches found:
@@ -160,104 +156,16 @@ class NLPExtractor (private val context: Context) {
                 artistConfirmed = artistsTemp.joinToString(", ", "", "")
             }
         }
-
-        var artistJson = JsonObject()
-        artistJson.addProperty("text_confirmed", artistConfirmed)
-
-        //2) Hand check artist evalued against user vocabulary:
-        val vocMatchId = matchVocabulary(filter, text=artistConfirmed)
-        if (vocMatchId != "") {
-            //Replace artist name:
-            if (!getDetails) {
-                //Get only artist name:
-                artistJson.addProperty("text_confirmed", libUtils.getItemName(filter, vocMatchId))
-            } else {
-                //Get artist useful details:
-                val itemInfo = libUtils.getItemInfoUse(filter, vocMatchId)
-                artistConfirmed = itemInfo.name
-                artistJson.addProperty("text_confirmed", artistConfirmed)
-                //Match playLinkName:
-                val playLinks = itemInfo.playLinks
-                val matchedPlayName = if (playLinks.containsKey(playName)) playName else itemInfo.defaultKey
-                Log.d(TAG, "MATCHING PLAYLINKNAME: $matchedPlayName")
-                if (matchedPlayName == "artist") {
-                    artistJson.addProperty("play_URL", itemInfo.url)
-                } else {
-                    val playLink = itemInfo.playLinks[matchedPlayName]!!
-                    artistJson.addProperty("play_name", playLink.name)
-                    artistJson.addProperty("play_owner", playLink.owner)
-                    artistJson.addProperty("play_URL", playLink.spotifyUrl)
-                }
-            }
-        }
-        Log.d(TAG, "ARTIST CONFIRMED: $artistJson")
-        return  artistJson
-    }
-
-
-    //Match item from user query against user vocabulary:
-    fun matchVocabulary(filter: String, text: String, threshold: Int = midThreshold): String {
-        var matchId = ""
-        val vocMap = libUtils.getAliasesMap(filter)
-        if (text != "" && vocMap.isNotEmpty()) {
-            //Init:
-            var score = 0
-            val listEvalued = text.split(", ")
-            val listConfirmed = ArrayList<String>()
-            val scoresMap = mutableMapOf<String, Int>()
-
-            //Check each evaluated item:
-            for (eval in listEvalued) {
-                //Check each artist id:
-                for (curId in vocMap.keys) {
-                    val aliasScores = mutableListOf<Int>()
-                    //Check each alias:
-                    for (curAlias in vocMap[curId]!!) {
-                        if (filter == "playlist") {
-                            val namePartial = FuzzySearch.partialRatio(curAlias, eval.lowercase())
-                            val nameFull = FuzzySearch.ratio(curAlias, eval.lowercase())
-                            score = listOf<Int>(namePartial, nameFull).average().roundToInt()
-                        } else {
-                            score = FuzzySearch.ratio(curAlias, eval.lowercase())
-                        }
-                        Log.d(TAG, "VOC CONFIRMATION: COMPARING $curAlias WITH ${eval.lowercase()}, MATCH: $score")
-                        aliasScores.add(score)
-                    }
-                    //Get Max alias score and add globally only if high enough:
-                    val maxScore = aliasScores.max()
-                    if (!scoresMap.keys.contains(curId) && maxScore >= threshold) {
-                        scoresMap[curId] = maxScore
-                    }
-                }
-                if (scoresMap.isNotEmpty()) {
-                    //Sort and get highest match:
-                    val sortedScores = scoresMap.toList().sortedByDescending { it.second }.toMap()
-                    Log.d(TAG, "SORTED MAP FOR $eval: $sortedScores")
-                    listConfirmed.add(sortedScores.keys.toList()[0])
-                    last_log!!.addProperty("voc_score", sortedScores.values.toList()[0])
-                }
-            }
-            //Final:
-            if (listConfirmed.isNotEmpty()) {
-                Log.d(TAG, "listConfirmed: $listConfirmed")
-                matchId = listConfirmed[0]
-                Log.d(TAG, "VOCABULARY MATCH ID: $matchId, ALIASES: ${vocMap[matchId]!!}")
-            }
-        }
-        return matchId
+        Log.d(TAG, "ARTIST CONFIRMED: $artistConfirmed")
+        return artistConfirmed
     }
 
 
     //Match contact from user query against user vocabulary:
-    fun extractContact(queryText: String, fullLanguage: String = ""): JsonObject {
+    fun extractContact(queryText: String, fullLanguage: String = ""): String {
         val filter = "contact"
         var queryClean = queryText
-        //Init log:
-        var contactConfirmed = JsonObject()
-        contactConfirmed.addProperty("contact_extracted", "")
-        contactConfirmed.addProperty("contact_confirmed", "")
-        contactConfirmed.addProperty("contact_phone", "")
-        contactConfirmed.addProperty("contact_language", "")
+        var contactExtracted = ""
 
         if (libUtils.getCollectionSize(filter) > 0) {
             //Search items:
@@ -301,27 +209,11 @@ class NLPExtractor (private val context: Context) {
             if (toInd > -1) {
                 //slice:
                 Log.d(TAG, "TO_STR: $toStr")
-                val contactExtracted = queryClean.slice((toInd + toStr.length)..queryClean.lastIndex).trim()
-                contactConfirmed.addProperty("contact_extracted", contactExtracted)
+                contactExtracted = queryClean.slice((toInd + toStr.length)..queryClean.lastIndex).trim()
                 Log.d(TAG, "CONTACT EXTRACTED: $contactExtracted")
-
-                //2) Match extracted contact name with user vocabulary:
-                val vocMatchId = matchVocabulary(filter, text=contactExtracted)
-                if (vocMatchId != "") {
-                    val itemInfo = libUtils.getItemInfoUse(filter, vocMatchId)
-                    val defaultPhoneSet = itemInfo.phoneSets[itemInfo.defaultKey]!!   //TODO
-                    val prefix = defaultPhoneSet.prefix
-                    val phone = defaultPhoneSet.phone
-                    //Replace:
-                    contactConfirmed.addProperty("contact_confirmed", itemInfo.name)
-                    contactConfirmed.addProperty("contact_phone", "${prefix}${phone}")
-                    contactConfirmed.addProperty("contact_language", itemInfo.language)
-                }
-                Log.d(TAG, "CONTACT CONFIRMED: $contactConfirmed")
             }
         }
-        last_log!!.add("contact_extractor", contactConfirmed)
-        return contactConfirmed
+        return contactExtracted
     }
 
 
@@ -335,6 +227,25 @@ class NLPExtractor (private val context: Context) {
             playLinkName = "spotify_mix"
         }
         return playLinkName
+    }
+
+
+    //Route: extract Route Info from Message text:
+    fun extractRoute(text: String, language: String): ItemInfoUse {
+        var routeInfo = ItemInfoUse()
+        routeInfo.language = language
+        //TODO TEMP:
+        var routeComps = text.split(" tramite ")
+        // Comps[0] -> name, Comps[1] -> detail:
+        routeInfo.name = utils.capitalizeWords(routeComps[0])
+        var viaText = ""
+        if (routeComps.size > 1) {
+            if (routeComps[1] != "") {
+                viaText = routeComps[1].trim()
+            }
+        }
+        routeInfo.detail = utils.capitalizeWords(viaText)
+        return routeInfo
     }
 
 }

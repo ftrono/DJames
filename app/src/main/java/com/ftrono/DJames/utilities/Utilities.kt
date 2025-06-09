@@ -33,6 +33,11 @@ import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.streams.asSequence
 import androidx.core.net.toUri
+import com.ftrono.DJames.be.database.HistoryLog
+import com.ftrono.DJames.be.models.DispatcherInfo
+import com.ftrono.DJames.be.models.languageNamesMap
+import com.ftrono.DJames.be.models.languageWordsMap
+import java.util.Locale
 
 
 class Utilities {
@@ -169,60 +174,21 @@ class Utilities {
 
 
     //From a detected language name, get the supported language code:
-    fun getLanguageCode(context: Context, language: String, default: String): String {
-        var reqLanguage = default
-        val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.language_codes)))
-        val sourceJson = JsonParser.parseReader(reader).asJsonObject
-        if (sourceJson.has(language)) {
-            reqLanguage = sourceJson[language].asString
+    fun getLanguageCode(language: String, default: String = ""): String {
+        var reqLangCode = default
+        if (languageWordsMap.contains(language)) {
+            reqLangCode = languageWordsMap[language]!!
+            Log.d(TAG, "REQUESTED LANGUAGE: $reqLangCode")
+        } else {
+            Log.d(TAG, "No requested language found in the voice request.")
         }
-        return reqLanguage
+        return reqLangCode
     }
 
 
     //Get the corresponding language name in preferred language for the detected language code:
-    fun getLanguageName(context: Context, languageCode: String): String {
-        val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.language_names)))
-        val prefLanguage = prefs.queryLanguage
-        val sourceJson = JsonParser.parseReader(reader).asJsonObject.get(prefLanguage).asJsonObject
-        return sourceJson[languageCode].asString
-    }
-
-
-    //Open new log:
-    fun openLog() {
-        val now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-        last_log = JsonObject()
-        last_log!!.addProperty("datetime", now)
-        last_log!!.addProperty("app_version", appVersion)
-    }
-
-
-    //Close last open log:
-    fun closeLog(context: Context) {
-        try {
-            var now = last_log!!.get("datetime").asString
-            var logFile = File(logDir, "$now.json")
-            logFile.writeText(last_log.toString())
-            //Send broadcast:
-            Intent().also { intent ->
-                intent.setAction(ACTION_LOG_REFRESH)
-                context.sendBroadcast(intent)
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Log not saved!", e)
-        }
-    }
-
-    //FALLBACK:
-    fun fallback(toastText: String = ""): JsonObject {
-        var processStatus = JsonObject()
-        processStatus.addProperty("fail", true)
-        if (toastText != "") {
-            processStatus.addProperty("toastText", toastText)
-        }
-        //Log.d(TAG, "processStatus: $processStatus")
-        return processStatus
+    fun getLanguageName(languageCode: String): String {
+        return languageNamesMap[prefs.queryLanguage]!![languageCode]!!
     }
 
 

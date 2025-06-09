@@ -12,6 +12,8 @@ import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.application.App.ObjectBox.store
 import com.ftrono.DJames.be.database.Artist
 import com.ftrono.DJames.be.database.Contact
+import com.ftrono.DJames.be.database.HistoryLog
+import com.ftrono.DJames.be.database.HistoryUtils
 import com.ftrono.DJames.be.database.LibraryUtils
 import com.ftrono.DJames.be.database.MyObjectBox
 import com.ftrono.DJames.be.database.Playlist
@@ -28,14 +30,16 @@ import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 import java.io.File
 
+
 //GLOBALS:
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.4.3"
+val appVersion = "2.5.0"
 val copyrightYear = 2024
 
 //DB:
+var historyBox: Box<HistoryLog>? = null
 var artistBox: Box<Artist>? = null
 var playlistBox: Box<Playlist>? = null
 var podcastBox: Box<Podcast>? = null
@@ -45,6 +49,7 @@ var routeBox: Box<Route>? = null
 //UTILS:
 val utils = Utilities()
 val libUtils = LibraryUtils()
+val logUtils = HistoryUtils()
 val spotifyUtils = SpotifyUtils()
 val fulfillmentUtils = FulfillmentUtils()
 
@@ -100,7 +105,7 @@ var messLangLower = listOf<String>("english", "italian", "french", "german", "sp
 
 //Modes:
 var density: Float = 0F
-var acts_active: MutableList<String> = ArrayList()
+var acts_active: MutableList<String> = mutableListOf()
 var streamMaxVolume: Int = 0
 var screenOn: Boolean = true
 var main_initialized: Boolean = false
@@ -109,14 +114,13 @@ var voiceQueryOn: Boolean = false
 var recordingMode: Boolean = false
 var callMode: Boolean = false
 var searchFail: Boolean = false
-var newsTalk = false
 
 //Audio Managers:
 var audioManager: AudioManager? = null
 
 //JSONs:
 var currently_playing: JsonObject? = null
-var last_log: JsonObject? = null
+var lastLog: HistoryLog = HistoryLog()
 var logDir: File? = null
 
 //Player info:
@@ -131,8 +135,8 @@ var contextName: String = ""
 val gMapsLinkFormat = "https://www.google.com/maps/dir//"
 
 //Spotify formats:
-val uri_format = "spotify:track:"   ///spotify:<type>:<id>
-val ext_format = "https://open.spotify.com/"
+val spotIntroUri = "spotify"   // spotify:<type>:<id>
+val spotIntroUrl = "https://open.spotify.com"   // .../<type>/<id>
 val trackUrlIntro = "https://open.spotify.com/track/"
 val artistUrlIntro = "https://open.spotify.com/artist/"
 val playlistUrlIntro = "https://open.spotify.com/playlist/"
@@ -265,6 +269,7 @@ class App: Application()
 
         //DB:
         ObjectBox.init(this)
+        historyBox = store.boxFor(HistoryLog::class.java)
         artistBox = store.boxFor(Artist::class.java)
         playlistBox = store.boxFor(Playlist::class.java)
         podcastBox = store.boxFor(Podcast::class.java)

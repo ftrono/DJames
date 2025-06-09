@@ -371,7 +371,7 @@ class LibraryUtils {
                     name = item.name,
                     detail = buildRouteSubtitle(item, viewLanguage = language),
                     language = language,
-                    url = fulfillmentUtils.buildRouteUrlFromItem(item)
+                    url = fulfillmentUtils.buildRouteUrlFromLibraryItem(item)
                 )
             }
 

@@ -58,7 +58,7 @@ class VoiceQueryService: Service() {
     //Status:
     private var followUp = false
     private var messageMode = false
-    private var processStatus = JsonObject()
+    private var dispatcherInfo = JsonObject()
 
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -129,7 +129,7 @@ class VoiceQueryService: Service() {
         voiceQueryOn = false
         sourceIsVolume.postValue(false)
         processing = false
-        processStatus = JsonObject()
+        dispatcherInfo = JsonObject()
         //Set overlay READY color:
         overlayStatus.postValue("ready")
         Log.d(TAG, "VOICE QUERY SERVICE TERMINATED.")
@@ -290,26 +290,26 @@ class VoiceQueryService: Service() {
         try {
             //CALL NLP DISPATCHER:
             var nlpDispatcher = NLPDispatcher(applicationContext)
-            processStatus = nlpDispatcher.dispatch(recFile, processStatus, followUp, messageMode)
+            dispatcherInfo = nlpDispatcher.dispatch(recFile, dispatcherInfo, followUp, messageMode)
             processing = false
 
-            if (processStatus.isEmpty || processStatus.has("fail")) {
+            if (dispatcherInfo.isEmpty || dispatcherInfo.has("fail")) {
                 var toastText = ""
-                if (processStatus.has("toastText")) {
-                    toastText = processStatus.get("toastText").asString
+                if (dispatcherInfo.has("toastText")) {
+                    toastText = dispatcherInfo.get("toastText").asString
                 }
                 fail(toastText)
 
-            } else if (processStatus.has("stopService")) {
-                if (processStatus.has("stopSound")) {
+            } else if (dispatcherInfo.has("end")) {
+                if (dispatcherInfo.has("playAcknowledge")) {
                     //SUCCESS -> Play ACKNOWLEDGE tone:
                     toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                 }
                 //Gracefully stop the service:
                 stopSelf()
 
-            } else if (processStatus.has("messageMode")) {
-                messageMode = processStatus.get("messageMode").asBoolean
+            } else if (dispatcherInfo.has("messageMode")) {
+                messageMode = dispatcherInfo.get("messageMode").asBoolean
                 //SUPPOSED TO BE TRUE:
                 try {
                     startRecording()
@@ -318,8 +318,8 @@ class VoiceQueryService: Service() {
                     fail()
                 }
 
-            } else if (processStatus.has("followUp")) {
-                followUp = processStatus.get("followUp").asBoolean
+            } else if (dispatcherInfo.has("followUp")) {
+                followUp = dispatcherInfo.get("followUp").asBoolean
                 //SUPPOSED TO BE TRUE:
                 try {
                     startRecording()

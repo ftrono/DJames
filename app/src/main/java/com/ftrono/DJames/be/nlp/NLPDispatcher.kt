@@ -3,15 +3,14 @@ package com.ftrono.DJames.be.nlp
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.fulfillmentUtils
-import com.ftrono.DJames.application.last_log
 import com.ftrono.DJames.application.spotifyLoggedIn
-import com.ftrono.DJames.application.newsTalk
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.voiceQueryOn
+import com.ftrono.DJames.be.database.NlpQueryModel
+import com.ftrono.DJames.be.models.DispatcherInfo
 import com.ftrono.DJames.be.spotify.SpotifyFulfillment
-import com.google.gson.JsonObject
 import java.io.File
 
 
@@ -19,28 +18,19 @@ class NLPDispatcher (private var context: Context) {
 
     private val TAG = NLPDispatcher::class.java.simpleName
 
-    fun dispatch(recFile: File, prevStatus: JsonObject = JsonObject(), followUp: Boolean = false, messageMode: Boolean = false) : JsonObject {
-        /*
-        {
-            "fail": Bool (standalone final),
-            "stopService": Bool (standalone final),
-            "stopSound": Bool (only if true),
-            "followUp": Bool (only if true),
-            "messageMode": Bool (only if true),
-            "toastText": String (only if needed),
-            "reqLanguage": String,
-            "intent_name": String,
-            "play_type": String,
-            "context_type": String
-        }
-         */
-
+    fun dispatch(
+        recFile: File,
+        prevDispatch: DispatcherInfo = DispatcherInfo(),
+        followUp: Boolean = false,
+        messageMode: Boolean = false
+    ): DispatcherInfo {
+        
         //Init:
         var reqLanguage = prefs.queryLanguage
         var intentName = ""
 
-        if (prevStatus.has("reqLanguage")) {
-            reqLanguage = prevStatus.get("reqLanguage").asString
+        if (prevDispatch.reqLanguage != "") {
+            reqLanguage = prevDispatch.reqLanguage
         }
 
 
@@ -48,7 +38,7 @@ class NLPDispatcher (private var context: Context) {
         var nlpQuery = NLPQuery(context)
         var fulfillment = GenericFulfillment(context)
         var spotify = SpotifyFulfillment(context)
-        var resultsNLP = JsonObject()
+        var resultsNLP = NlpQueryModel()
 
         //1ST REQUEST -> always in default request language:
         if (!followUp && !messageMode) {
@@ -56,42 +46,42 @@ class NLPDispatcher (private var context: Context) {
             resultsNLP = nlpQuery.queryNLP(recFile, messageMode = false, reqLanguage = reqLanguage)
 
             //Process request:
-            if (resultsNLP.isEmpty) {
-                //A) EMPTY NLP RESULTS:
-                return utils.fallback()
-
-            } else {
-                //B) PROCESS:
+            if (resultsNLP.intentName != "Fallback") {
+                //A) PROCESS:
                 try {
                     //Get relevant results:
-                    nlp_queryText = resultsNLP.get("query_text").asString
+                    nlp_queryText = resultsNLP.queryText
                     nlp_queryText = fulfillmentUtils.replaceNums(nlp_queryText)
-                    intentName = resultsNLP.get("intent_name").asString
+                    intentName = resultsNLP.intentName
                     Log.d(TAG, "NLPDispatcher1: detected intent: $intentName")
                 } catch (e: Exception) {
                     Log.w(TAG, "NLPDispatcher1: no NLP results!")
-                    return utils.fallback()
+                    return fulfillmentUtils.fallback()
                 }
 
 
                 //DISPATCH PROCESSING:
                 if (nlp_queryText != "" && intentName != "") {
                     when (intentName) {
-                        "CallRequest" -> return fulfillment.makeCall(resultsNLP)
-                        "MessageRequest" -> return fulfillment.sendMessage1(resultsNLP)
+                        "CallRequest" -> return fulfillment.contactRequest(resultsNLP)
+                        "MessageRequest" -> return fulfillment.contactRequest(resultsNLP)
                         "DriveRequest" -> return fulfillment.driveRequest1(resultsNLP)
-                        "PlaySong" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
-                        "PlayAlbum" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
-                        "PlayArtist" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
-                        "PlayPlaylist" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
-                        "PlayPodcast" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
-                        "PlayCollection" -> if (spotifyLoggedIn.value!!) return spotify.playCollection(resultsNLP) else return utils.fallback("Not logged in to Spotify!")
-                        "Cancel" -> return utils.fallback()
-                        else -> return utils.fallback("Sorry, I did not understand!")
+                        "PlaySong" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback("Not logged in to Spotify!")
+                        "PlayAlbum" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback("Not logged in to Spotify!")
+                        "PlayArtist" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback("Not logged in to Spotify!")
+                        "PlayPlaylist" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback("Not logged in to Spotify!")
+                        "PlayPodcast" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback("Not logged in to Spotify!")
+                        "PlayCollection" -> if (spotifyLoggedIn.value!!) return spotify.playCollection(resultsNLP) else return fulfillmentUtils.fallback("Not logged in to Spotify!")
+                        "Cancel" -> return fulfillmentUtils.fallback()
+                        else -> return fulfillmentUtils.fallback("Sorry, I did not understand!")
                     }
                 } else {
-                    return utils.fallback("Sorry, I did not understand!")
+                    return fulfillmentUtils.fallback("Sorry, I did not understand!")
                 }
+
+            } else {
+                //B) EMPTY NLP RESULTS:
+                return fulfillmentUtils.fallback()
             }
 
 
@@ -100,7 +90,7 @@ class NLPDispatcher (private var context: Context) {
             //FOLLOW UP / MESSAGE MODE:
             //Check prev intent & requested language:
             var prevIntent = ""
-            var reqLangCode = prevStatus.get("reqLanguage").asString
+            var reqLangCode = prevDispatch.reqLanguage
 
             //Query NLP:
             if (messageMode) {
@@ -111,61 +101,58 @@ class NLPDispatcher (private var context: Context) {
             } else {
                 Log.d(TAG, "GENERIC FOLLOWUP.")
                 //Store previous information:
-                prevIntent = prevStatus.get("intent_name").asString
-                if (!newsTalk) {
-                    last_log!!.addProperty("query_text", nlp_queryText)
-                }
+                prevIntent = prevDispatch.intentName
                 resultsNLP =
                     nlpQuery.queryNLP(recFile, messageMode = false, reqLanguage = reqLangCode)
             }
 
             //Process request:
-            if (resultsNLP.isEmpty) {
-                //A) EMPTY NLP RESULTS:
-                return utils.fallback()
-
-            } else {
-                //B) PROCESS:
+            if (resultsNLP.intentName != "Fallback") {
+                //A) PROCESS:
                 try {
                     //Get relevant results:
-                    nlp_queryText = resultsNLP.get("query_text").asString
+                    nlp_queryText = resultsNLP.queryText
                     if (!messageMode) {
                         nlp_queryText = fulfillmentUtils.replaceNums(nlp_queryText)
                     }
-                    intentName = resultsNLP.get("intent_name").asString
+                    intentName = resultsNLP.intentName
                     Log.d(TAG, "NLPDispatcher2: detected intent: $intentName")
                 } catch (e: Exception) {
                     Log.w(TAG, "NLPDispatcher2: no NLP results!")
-                    return utils.fallback()
+                    return fulfillmentUtils.fallback()
                 }
 
                 //DISPATCH PROCESSING:
                 if (nlp_queryText != "" && intentName != "") {
                     if (messageMode) {
                         when (intentName) {
-                            "Cancel" -> return utils.fallback()
-                            else -> return fulfillment.sendMessage2(prevStatus)
+                            "Cancel" -> return fulfillmentUtils.fallback()
+                            else -> return fulfillment.sendMessage2(prevDispatch)
                         }
 
                     } else {
                         when (intentName) {
-                            "Cancel" -> return utils.fallback()
+                            "Cancel" -> return fulfillmentUtils.fallback()
                             else -> {
                                 when (prevIntent) {
-                                    "DriveRequest" -> return fulfillment.driveRequest2(resultsNLP, prevStatus)
-                                    "PlaySong" -> if (spotifyLoggedIn.value!!) return spotify.playSongAlbum2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
-                                    "PlayAlbum" -> if (spotifyLoggedIn.value!!) return spotify.playSongAlbum2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
-                                    "PlayArtist" -> if (spotifyLoggedIn.value!!) return spotify.playArtistPlaylist2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
-                                    "PlayPlaylist" -> if (spotifyLoggedIn.value!!) return spotify.playArtistPlaylist2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
-                                    "PlayPodcast" -> if (spotifyLoggedIn.value!!) return spotify.playPodcast2(resultsNLP, prevStatus) else return utils.fallback("Not logged in to Spotify!")
+                                    "DriveRequest" -> return fulfillment.driveRequest2(resultsNLP, prevDispatch)
+                                    "PlaySong" -> if (spotifyLoggedIn.value!!) return spotify.playSongAlbum2(resultsNLP, prevDispatch) else return fulfillmentUtils.fallback("Not logged in to Spotify!")
+                                    "PlayAlbum" -> if (spotifyLoggedIn.value!!) return spotify.playSongAlbum2(resultsNLP, prevDispatch) else return fulfillmentUtils.fallback("Not logged in to Spotify!")
+                                    "PlayArtist" -> if (spotifyLoggedIn.value!!) return spotify.playArtistPlaylist2(resultsNLP, prevDispatch) else return fulfillmentUtils.fallback("Not logged in to Spotify!")
+                                    "PlayPlaylist" -> if (spotifyLoggedIn.value!!) return spotify.playArtistPlaylist2(resultsNLP, prevDispatch) else return fulfillmentUtils.fallback("Not logged in to Spotify!")
+                                    "PlayPodcast" -> if (spotifyLoggedIn.value!!) return spotify.playPodcast2(resultsNLP, prevDispatch) else return fulfillmentUtils.fallback("Not logged in to Spotify!")
                                 }
                             }
                         }
                     }
                 }
+
+            } else {
+                //A) EMPTY NLP RESULTS:
+                return fulfillmentUtils.fallback()
             }
         }
-        return utils.fallback()
+        return fulfillmentUtils.fallback()
     }
     
 }

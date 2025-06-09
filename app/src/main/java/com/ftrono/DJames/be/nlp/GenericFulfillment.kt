@@ -4,12 +4,12 @@ import android.content.Context
 import android.content.Intent
 import android.telephony.SmsManager
 import android.util.Log
-import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_MAKE_CALL
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.fulfillmentUtils
-import com.ftrono.DJames.application.last_log
+import com.ftrono.DJames.application.lastLog
 import com.ftrono.DJames.application.libUtils
+import com.ftrono.DJames.application.logUtils
 import com.ftrono.DJames.application.maxThreshold
 import com.ftrono.DJames.application.messLangFull
 import com.ftrono.DJames.application.nlp_queryText
@@ -18,43 +18,56 @@ import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.messLangLower
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.voiceQueryOn
+import com.ftrono.DJames.be.database.ExtractorInfo
 import com.ftrono.DJames.be.database.ItemInfoUse
+import com.ftrono.DJames.be.database.NlpQueryModel
+import com.ftrono.DJames.be.models.DispatcherInfo
 import com.google.gson.JsonObject
-import com.google.gson.JsonParser
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import kotlinx.serialization.json.Json
 
 
 class GenericFulfillment (private var context: Context) {
     private val TAG = GenericFulfillment::class.java.simpleName
 
 
-    //Make a call:
-    fun makeCall(resultsNLP: JsonObject) : JsonObject {
-        var processStatus = JsonObject()
-        utils.openLog()
+    //Process a request involving a Contact (Call / Message):
+    fun contactRequest(resultsNLP: NlpQueryModel): DispatcherInfo {
+        var dispatcherInfo = DispatcherInfo()
+        var itemInfo = ItemInfoUse()
+        val filter = "contact"
 
         //Log:
-        last_log!!.addProperty("intent_name", resultsNLP.get("intent_name").asString)
-        last_log!!.add("nlp", resultsNLP)
+        logUtils.openLog()
+        lastLog.nlpQueries.add(resultsNLP)
 
         //Extract contact:
+        var extractorInfo = ExtractorInfo()
         var nlpExtractor = NLPExtractor(context)
-        var contact_extractor = nlpExtractor.extractContact(nlp_queryText)
-        var contact_name = contact_extractor.get("contact_confirmed").asString
-        var phone = contact_extractor.get("contact_phone").asString
+        var contactExtracted = nlpExtractor.extractContact(nlp_queryText)
+        extractorInfo.matchExtracted = contactExtracted
 
-        if (phone == "") {
+        //Match extracted contact name with user vocabulary:
+        val nlpMatcher = NLPMatcher(context)
+        var vocMatchId = nlpMatcher.matchVocabulary(filter, text=contactExtracted)
+
+        if (vocMatchId == "" || !voiceQueryOn) {
             //Fallback:
-            return utils.fallback("Sorry, I did not understand!")
+            return fulfillmentUtils.fallback("Sorry, I did not understand!")
 
         } else {
-            //Prepare toast text:
+            //Get contact:
+            itemInfo = libUtils.getItemInfoUse(filter, vocMatchId)
+
+            //Log:
+            extractorInfo.matchConfirmed = itemInfo.name
+            lastLog.nlpExtractor = extractorInfo
+            lastLog.usable = itemInfo
+
+            //Prepare toast text with actual contact name:
             var toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
-            if (contact_name != "") {
-                toastText = toastText.replace(contact_extractor.get("contact_extracted").asString, contact_name.uppercase())
-            }
+            toastText = toastText.replace(
+                contactExtracted,
+                itemInfo.name.uppercase()
+            )
 
             //TOAST -> Send broadcast:
             Intent().also { intent ->
@@ -63,151 +76,114 @@ class GenericFulfillment (private var context: Context) {
                 context.sendBroadcast(intent)
             }
 
-            //Read:
-            var ttsToRead = "Calling ${contact_name}..."
-            val itemsToRead = listOf(
-                mapOf(
-                    "language" to prefs.queryLanguage,
-                    "text" to ttsToRead
+            //CASES:
+            if (resultsNLP.intentName.contains("Call")) {
+                //A) CALL:
+                val defaultPhoneSet = itemInfo.phoneSets[itemInfo.defaultKey]!!   //TODO: add multiple phones
+                val contactPhone = "${defaultPhoneSet.prefix}${defaultPhoneSet.phone}"
+
+                //Read:
+                var ttsToRead = "Calling ${itemInfo.name}..."
+                val itemsToRead = listOf(
+                    mapOf(
+                        "language" to prefs.queryLanguage,
+                        "text" to ttsToRead
+                    )
                 )
-            )
-            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
-        }
+                fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio = false)
+                fulfillmentUtils.releaseAudioFocus()
 
-        fulfillmentUtils.releaseAudioFocus()
+                //dispatcherInfo:
+                dispatcherInfo.end = true
+                dispatcherInfo.playAcknowledge = true
+                Log.d(TAG, dispatcherInfo.toString())
 
-        //processStatus:
-        processStatus.addProperty("stopService", true)
-        processStatus.addProperty("stopSound", true)
-        Log.d(TAG, processStatus.toString())
+                //CALL:
+                Intent().also { intent ->
+                    intent.setAction(ACTION_MAKE_CALL)
+                    intent.putExtra("toCall", "tel:${contactPhone}")
+                    context.sendBroadcast(intent)
+                }
 
-        //Close log:
-        utils.closeLog(context)
+            } else if (resultsNLP.intentName.contains("Message")) {
+                //B) MESSAGE:
+                //Check if voice request contains a specific requested language:
+                var reqLangName = resultsNLP.reqLanguage
+                var reqLangCode = utils.getLanguageCode(reqLangName)
 
-        //CALL:
-        Intent().also { intent ->
-            intent.setAction(ACTION_MAKE_CALL)
-            intent.putExtra("toCall", "tel:${phone}")
-            context.sendBroadcast(intent)
-        }
-        return processStatus
-    }
+                //If no specific language requested -> use contact preferences or global preferences:
+                if (reqLangCode == "") {
+                    try {
+                        //Contact preferences:
+                        reqLangCode = itemInfo.language
+                        reqLangName = messLangLower[messLangCodes.indexOf(reqLangCode)]
+                        Log.d(TAG, "PREFERRED CONTACT LANGUAGE: $reqLangCode")
+                    } catch (e: Exception) {
+                        //Global preferences:
+                        reqLangCode = prefs.messageLanguage
+                        reqLangName = messLangFull[messLangCodes.indexOf(prefs.messageLanguage)]
+                        Log.d(TAG, "Messaging in default language: $reqLangCode")
+                    }
+                }
 
-
-    //Send a message: PART 1:
-    fun sendMessage1(resultsNLP: JsonObject) : JsonObject {
-        var processStatus = JsonObject()
-        utils.openLog()
-
-        //Log:
-        last_log!!.addProperty("intent_name", resultsNLP.get("intent_name").asString)
-        last_log!!.add("nlp", resultsNLP)
-
-        //Check if voice request contains a specific requested language:
-        var reqLangName = ""
-        var reqLangCode = ""
-        try {
-            //Get requested messaging language:
-            val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.language_codes)))
-            val sourceJson = JsonParser.parseReader(reader).asJsonObject
-            reqLangName = resultsNLP.get("reqLanguage").asString
-            reqLangCode = sourceJson[reqLangName].asString
-            Log.d(TAG, "REQUESTED MESSAGING LANGUAGE: $reqLangCode")
-        } catch (e: Exception) {
-            Log.w(TAG, "No specific language provided in the voice request.", e)
-        }
-
-        //Extract contact:
-        var nlpExtractor = NLPExtractor(context)
-        var contact_extractor = nlpExtractor.extractContact(nlp_queryText, fullLanguage=reqLangName)
-        var contact_name = contact_extractor.get("contact_confirmed").asString
-        var phone = contact_extractor.get("contact_phone").asString
-
-        //If no specific language requested -> use contact preferences or global preferences:
-        if (reqLangCode == "") {
-            try {
-                //Contact preferences:
-                reqLangCode = contact_extractor.get("contact_language").asString
-                reqLangName = messLangLower[messLangCodes.indexOf(reqLangCode)]
-                Log.d(TAG, "PREFERRED CONTACT LANGUAGE: $reqLangCode")
-            } catch (e: Exception) {
-                //Global preferences:
-                reqLangCode = prefs.messageLanguage
-                reqLangName = messLangFull[messLangCodes.indexOf(prefs.messageLanguage)]
-                Log.d(TAG, "Messaging in default language: $reqLangCode")
-            }
-        }
-
-        if (phone == "" || !voiceQueryOn) {
-            //Fallback:
-            return utils.fallback("Sorry, I did not understand!")
-
-        } else {
-            //Prepare toast text:
-            var toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
-            if (contact_name != "") {
-                toastText = toastText.replace(contact_extractor.get("contact_extracted").asString, contact_name.uppercase())
-            }
-
-            //TOAST -> Send broadcast:
-            Intent().also { intent ->
-                intent.setAction(ACTION_TOASTER)
-                intent.putExtra("toastText", toastText)
-                context.sendBroadcast(intent)
-            }
-
-            //Read:
-            var ttsToRead = "Please, dictate the message for ${contact_name} in $reqLangName."
-            val itemsToRead = listOf(
-                mapOf(
-                    "language" to prefs.queryLanguage,
-                    "text" to ttsToRead
+                //Read:
+                var ttsToRead = "Please, dictate the message for ${itemInfo.name} in $reqLangName."
+                val itemsToRead = listOf(
+                    mapOf(
+                        "language" to prefs.queryLanguage,
+                        "text" to ttsToRead
+                    )
                 )
-            )
-            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
+                fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
+
+                //dispatcherInfo:
+                dispatcherInfo.usable = itemInfo
+                dispatcherInfo.messageMode = true
+                dispatcherInfo.reqLanguage = reqLangCode
+                Log.d(TAG, dispatcherInfo.toString())
+
+            } else {
+                //Fallback:
+                return fulfillmentUtils.fallback("Sorry, I did not understand!")
+            }
+
+            //Close log:
+            logUtils.saveLog(context)
+
+            return dispatcherInfo
         }
-
-        //processStatus:
-        processStatus.addProperty("messageMode", true)
-        processStatus.addProperty("reqLanguage", reqLangCode)
-        processStatus.add("contact_extractor", contact_extractor)
-        Log.d(TAG, processStatus.toString())
-
-        //Close log:
-        utils.closeLog(context)
-        return processStatus
     }
 
 
     //Send a message: PART 2:
-    fun sendMessage2(prevStatus: JsonObject) : JsonObject {
-        var processStatus = JsonObject()
+    fun sendMessage2(prevDispatch: DispatcherInfo): DispatcherInfo {
+        var dispatcherInfo = DispatcherInfo()
 
         // MESSAGE SENDER:
         try {
             //Recover info:
-            var reqLangCode = prevStatus.get("reqLanguage").asString
-            var contact_extractor = prevStatus.get("contact_extractor").asJsonObject
-            var contact_name = contact_extractor.get("contact_confirmed").asString
-            var phone = contact_extractor.get("contact_phone").asString
+            var reqLangCode = prevDispatch.reqLanguage
+            var itemInfo = prevDispatch.usable
+            val defaultPhoneSet = itemInfo.phoneSets[itemInfo.defaultKey]!!   //TODO: add multiple phones
+            val contactPhone = "${defaultPhoneSet.prefix}${defaultPhoneSet.phone}"
 
             //Send SMS:
             val smsManager: SmsManager = SmsManager.getDefault()
             var messageText = fulfillmentUtils.replaceEmojis(context=context, text=nlp_queryText, reqLanguage=reqLangCode)
 
             val parts = smsManager.divideMessage(messageText)
-            smsManager.sendMultipartTextMessage(phone, null, parts, null, null)
+            smsManager.sendMultipartTextMessage(contactPhone, null, parts, null, null)
             //smsManager.sendTextMessage(phone, null, messageText, null, null)
 
             //TOAST -> Send broadcast:
             Intent().also { intent ->
                 intent.setAction(ACTION_TOASTER)
-                intent.putExtra("toastText", "SMS sent to ${contact_name.uppercase()}")
+                intent.putExtra("toastText", "SMS sent to ${itemInfo.name.uppercase()}")
                 context.sendBroadcast(intent)
             }
 
             //Read:
-            var ttsToRead = "Message sent to ${contact_name}!"
+            var ttsToRead = "Message sent to ${itemInfo.name}!"
             val itemsToRead = listOf(
                 mapOf(
                     "language" to prefs.queryLanguage,
@@ -219,28 +195,28 @@ class GenericFulfillment (private var context: Context) {
 
         } catch (e: Exception) {
             Log.w(TAG, "sendMessage2: EXCEPTION: ", e)
-            return utils.fallback("ERROR: SMS not sent!")
+            return fulfillmentUtils.fallback("ERROR: SMS not sent!")
         }
 
-        processStatus.addProperty("stopService", true)
-        processStatus.addProperty("stopSound", true)
-        Log.d(TAG, processStatus.toString())
+        dispatcherInfo.end = true
+        dispatcherInfo.playAcknowledge = true
+        Log.d(TAG, dispatcherInfo.toString())
         fulfillmentUtils.releaseAudioFocus()
 
-        return processStatus
+        return dispatcherInfo
     }
 
 
     //Process Drive request: PART 1:
-    fun driveRequest1(resultsNLP: JsonObject) : JsonObject {
-        var processStatus = JsonObject()
-        utils.openLog()
+    fun driveRequest1(resultsNLP: NlpQueryModel): DispatcherInfo {
+        var dispatcherInfo = DispatcherInfo()
+        logUtils.openLog()
+        lastLog.nlpQueries.add(resultsNLP)
 
         //Detect & process requested languages:
-        var intentName = resultsNLP.get("intent_name").asString
-        var detLanguage = resultsNLP.get("reqLanguage").asString
-        var reqLangCode = utils.getLanguageCode(context, detLanguage, prefs.routeLanguage)
-        var reqLangName = utils.getLanguageName(context, reqLangCode)
+        var detLanguage = resultsNLP.reqLanguage
+        var reqLangCode = utils.getLanguageCode(detLanguage, prefs.routeLanguage)
+        var reqLangName = utils.getLanguageName(reqLangCode)
 
         //Prepare toast text:
         var toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
@@ -265,23 +241,21 @@ class GenericFulfillment (private var context: Context) {
         )
         fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
 
-        //processStatus:
-        processStatus.addProperty("followUp", true)
-        processStatus.addProperty("reqLanguage", reqLangCode)
-        processStatus.addProperty("intent_name", intentName)
-        Log.d(TAG, processStatus.toString())
+        //dispatcherInfo:
+        dispatcherInfo.intentName = resultsNLP.intentName
+        dispatcherInfo.followUp = true
+        dispatcherInfo.reqLanguage = reqLangCode
+        Log.d(TAG, dispatcherInfo.toString())
 
-        //Log:
-        last_log!!.addProperty("intent_name", intentName)
-        return processStatus
+        return dispatcherInfo
     }
 
 
     //Process Drive request: PART 2:
-    fun driveRequest2(resultsNLP: JsonObject, prevStatus: JsonObject) : JsonObject {
-        var processStatus = JsonObject()
-        var reqLangCode = prevStatus.get("reqLanguage").asString
-        last_log!!.add("nlp", resultsNLP)
+    fun driveRequest2(resultsNLP: NlpQueryModel, prevDispatch: DispatcherInfo): DispatcherInfo {
+        var dispatcherInfo = DispatcherInfo()
+        var reqLangCode = prevDispatch.reqLanguage
+        lastLog.nlpQueries.add(resultsNLP)
 
         //Prepare toast text:
         var toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
@@ -294,54 +268,41 @@ class GenericFulfillment (private var context: Context) {
         }
 
 
-        //PROCESS PLAY INFO:
+        //PROCESS ROUTE INFO:
         //item:
         var matchName = nlp_queryText
-        var routeMatchId = ""
-        var routeConfirmed = ""
-        var detailConfirmed = ""
-        var routeUrl = ""
-        var routeLanguage = reqLangCode
-        var routeInfo = JsonObject()
-
-        var extractorInfo = JsonObject()
-        extractorInfo.addProperty("match_extracted", nlp_queryText)
-        extractorInfo.addProperty("text_confirmed", nlp_queryText)
+        var routeLanguage = reqLangCode   //TODO
+        var itemInfo = ItemInfoUse()
 
         var nlpExtractor = NLPExtractor(context)
+        var extractorInfo = ExtractorInfo()
+
         //Check route in vocabulary:
-        routeMatchId = nlpExtractor.matchVocabulary("route", matchName, maxThreshold)
-        if (routeMatchId == "") {
-            //Route not found:
+        val nlpMatcher = NLPMatcher(context)
+        val vocMatchId = nlpMatcher.matchVocabulary("route", matchName, maxThreshold)
+        if (vocMatchId == "") {
+            //Route NOT found:
             Log.d(TAG, "DRIVE -> Route from Message")
-            last_log!!.addProperty("voc_score", 100)
-            routeInfo = fulfillmentUtils.buildRouteUrlFromMessage(nlp_queryText, reqLangCode)
-            routeConfirmed = routeInfo.get("name").asString
-            detailConfirmed = routeInfo.get("detail").asString
-            routeLanguage = routeInfo.get("language").asString
-            routeUrl = routeInfo.get("url").asString
+            lastLog.keyInfo.vocScore = 100   //TODO
+            itemInfo = nlpExtractor.extractRoute(nlp_queryText, reqLangCode)
+            itemInfo.url = fulfillmentUtils.buildRouteUrlFromItemInfo(itemInfo)
+            extractorInfo.matchExtracted = itemInfo.name
+            extractorInfo.contextExtracted = itemInfo.detail
 
         } else {
             //Route found:
             Log.d(TAG, "DRIVE -> Route from Library")
-            val itemInfo = libUtils.getItemInfoUse("route", routeMatchId)
-            routeConfirmed = itemInfo.name
-            detailConfirmed = itemInfo.detail
-            routeLanguage = itemInfo.language   //TODO
-            routeUrl = itemInfo.url
-            extractorInfo.addProperty("text_confirmed", routeConfirmed)
-            extractorInfo.addProperty("detail_confirmed", detailConfirmed)
-            //Route info:
-            routeInfo.addProperty("name", routeConfirmed)
-            routeInfo.addProperty("detail", detailConfirmed)
-            routeInfo.addProperty("language", itemInfo.language)   //TODO
-            routeInfo.addProperty("url", routeUrl)
+            itemInfo = libUtils.getItemInfoUse("route", vocMatchId)
+            extractorInfo.matchExtracted = nlp_queryText
+            extractorInfo.matchConfirmed = itemInfo.name
+            extractorInfo.contextConfirmed = itemInfo.detail
         }
 
-        if (routeUrl == "") {
+        if (itemInfo.url == "") {
             //Close log:
-            //utils.closeLog(context)
-            return utils.fallback()
+            //logUtils.saveLog(context)
+            return fulfillmentUtils.fallback()
+
         } else {
             //NAVIGATE:
             fulfillmentUtils.releaseAudioFocus()
@@ -351,10 +312,10 @@ class GenericFulfillment (private var context: Context) {
 
             //Read TTS:
             var ttsToRead = ""
-            if (detailConfirmed == "") {
-                ttsToRead = "${routeConfirmed}!"
+            if (itemInfo.detail == "") {
+                ttsToRead = "${itemInfo.name}!"
             } else {
-                ttsToRead = "${routeConfirmed}, ${detailConfirmed}!"
+                ttsToRead = "${itemInfo.name}, ${itemInfo.detail}!"
             }
             val itemsToRead = listOf(
                 mapOf(
@@ -369,20 +330,20 @@ class GenericFulfillment (private var context: Context) {
             fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=true)
 
             //Player info:
-            last_log!!.add("nlp_extractor", extractorInfo)
-            last_log!!.add("route_info", routeInfo)
+            lastLog.nlpExtractor = extractorInfo
+            lastLog.usable = itemInfo
 
             //DRIVE TO ROUTE:
-            utils.openLink(context, url = routeUrl, fromService = true)
+            utils.openLink(context, url = itemInfo.url, fromService = true)
         }
 
         //Build return
-        processStatus.addProperty("stopService", true)
-        Log.d(TAG, processStatus.toString())
+        dispatcherInfo.end = true
+        Log.d(TAG, dispatcherInfo.toString())
 
         //Close log:
-        utils.closeLog(context)
-        return processStatus
+        logUtils.saveLog(context)
+        return dispatcherInfo
     }
 
 }

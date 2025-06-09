@@ -33,7 +33,6 @@ class FulfillmentUtils {
 
     //FALLBACK:
     fun fallback(toastText: String = ""): DispatcherInfo {
-        Log.d(TAG, "AT FALLBACK: ${lastLog}")
         var dispatcherInfo = DispatcherInfo()
         dispatcherInfo.fail = true
         if (toastText != "") {

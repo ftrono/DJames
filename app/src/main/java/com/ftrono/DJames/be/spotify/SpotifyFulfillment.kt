@@ -216,7 +216,6 @@ class SpotifyFulfillment (private var context: Context) {
     //Play a song or an album: PART 2:
     fun playSongAlbum2(resultsNLP: NlpQueryModel, prevStatus: DispatcherInfo): DispatcherInfo {
         // Context:
-        Log.w(TAG, "SONO DENTRO. WIIIIIIIIII")
         var playType = prevStatus.playType
         var reqLangCode = prevStatus.reqLanguage
         var contextType = prevStatus.contextType

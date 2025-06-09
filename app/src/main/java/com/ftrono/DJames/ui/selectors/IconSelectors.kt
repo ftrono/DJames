@@ -35,7 +35,7 @@ fun guideIconSelector(
         return painterResource(id = R.drawable.sign_phone)
     } else if (cat == "messages") {
         return painterResource(id = R.drawable.sign_message)
-    } else if (cat == "DriveRequest") {
+    } else if (cat == "routes") {
         return painterResource(id = R.drawable.sign_place)
     } else {
         return painterResource(id = R.drawable.sign_headphones)

@@ -24,7 +24,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
@@ -44,8 +42,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.settingsOpen
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.database.GuideCategory
+import com.ftrono.DJames.be.database.fullGuide
 import com.ftrono.DJames.ui.components.GeneralSectionHeader
 import com.ftrono.DJames.ui.components.HeaderWithSign
 import com.ftrono.DJames.ui.components.StreetBackground
@@ -64,10 +63,7 @@ fun GuideScreenPreview() {
 
 @Composable
 fun GuideScreen(navController: NavController) {
-    val mContext = LocalContext.current
-    val settingsOpenState by settingsOpen.observeAsState()
-    var guideItems = utils.getGuideArray(mContext)
-    var guideStateItems = utils.getGuideStateItems(guideItems)
+    var guideStateItems = getGuideStateItems(fullGuide)
     val expandedStates = remember {
         mutableStateMapOf(*guideStateItems.map { it to false }.toTypedArray())
     }
@@ -92,16 +88,15 @@ fun GuideScreen(navController: NavController) {
         ) {
 
             //SECTIONS LIST:
-            for (category in guideItems) {
-                var catItem = category.asJsonObject
-                var cat = catItem.get("category").asString
+            for (catItem in fullGuide) {
+                var cat = catItem.category
 
                 //CATEGORY SECTION:
                 ExpandableGuideSection(
                     modifier = Modifier
                         .fillMaxWidth(),
                     cat = cat,
-                    title = catItem.get("header").asString
+                    title = catItem.header
                 ) {
 
                     //REQUESTS:
@@ -112,22 +107,13 @@ fun GuideScreen(navController: NavController) {
                         horizontalAlignment = Alignment.Start
                     ) {
 
-//                        HorizontalDivider(
-//                            modifier = Modifier
-//                                .offset(y=(-8).dp)
-//                                .padding(start=32.dp, end=26.dp)
-//                                .fillMaxWidth(),
-//                            color = colorResource(id = R.color.faded_grey)
-//                        )
-
-                        for (request in catItem.get("requests").asJsonArray) {
-                            var reqItem = request.asJsonObject
+                        for (reqItem in catItem.requests) {
                             //REQUEST CARD:
                             ExpandableGuideItem(
                                 cat = cat,
-                                requestIntro = reqItem.get("intro").asString,
-                                requestSentence = reqItem.get("sentence").asString,
-                                requestDescr = reqItem.get("description").asString,
+                                requestIntro = reqItem.intro,
+                                requestSentence = reqItem.sentence,
+                                requestDescr = reqItem.description,
                                 expandedStates = expandedStates,
                                 currentExpanded = currentExpanded
                             )
@@ -324,4 +310,20 @@ fun ExpandableGuideItemTitle(
             contentDescription = "Expand / collapse"
         )
     }
+}
+
+
+// GET GUIDE:
+// Get list of Guide items for state:
+fun getGuideStateItems(fullGuide: List<GuideCategory>): List<String> {
+    var guideItems = mutableListOf<String>()
+    for (item in fullGuide) {
+        var cat = item.category
+        var requests = item.requests
+        for (req in requests) {
+            var intro = req.intro
+            guideItems.add("$cat - $intro")
+        }
+    }
+    return guideItems
 }

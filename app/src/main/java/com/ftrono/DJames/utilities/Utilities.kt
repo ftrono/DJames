@@ -32,6 +32,7 @@ import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.streams.asSequence
 import androidx.core.net.toUri
+import com.ftrono.DJames.be.database.GuideCategory
 import com.ftrono.DJames.be.models.languageNamesMap
 import com.ftrono.DJames.be.models.languageWordsMap
 
@@ -244,41 +245,6 @@ class Utilities {
         } catch (e: Exception) {
             Log.w(TAG, "Recording flac not deleted.")
         }
-    }
-
-
-    //GUIDE:
-    //Read Guide:
-    fun getGuideArray(context: Context): JsonArray {
-        var guideArray = JsonArray()
-        var reader: BufferedReader? = null
-        try {
-            //TODO: Add more query languages:
-            reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.guide_eng)))
-            //Load:
-            guideArray = JsonParser.parseReader(reader).asJsonArray
-        } catch (e: Exception) {
-            Log.w(TAG, "GUIDE PARSING ERROR: ", e)
-        }
-        //Log.d(TAG, guideArray.toString())
-        return guideArray
-    }
-
-
-    //Get list of Guide items for state:
-    fun getGuideStateItems(guideArray: JsonArray): List<String> {
-        var guideItems = mutableListOf<String>()
-        for (item in guideArray) {
-            var itemJson = item.asJsonObject
-            var cat = itemJson.get("category").asString
-            var requests = itemJson.get("requests").asJsonArray
-            for (req in requests) {
-                var reqJson = req.asJsonObject
-                var intro = reqJson.get("intro").asString
-                guideItems.add("$cat - $intro")
-            }
-        }
-        return guideItems
     }
 
 

@@ -1,7 +1,6 @@
 package com.ftrono.DJames.application.screens
 
 import android.content.Context
-import android.content.Intent
 import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -50,8 +49,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat.startActivity
-import androidx.core.content.FileProvider
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.addLinkOn
 import com.ftrono.DJames.application.curLibrarySize
@@ -79,7 +76,6 @@ import com.ftrono.DJames.ui.dialogs.AddLinkDialog
 import com.ftrono.DJames.ui.dialogs.DialogLoading
 import com.ftrono.DJames.ui.selectors.vocColorSelector
 import com.ftrono.DJames.ui.selectors.vocIconSelector
-import java.io.File
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.decodeFromString
 import kotlin.Boolean
@@ -637,7 +633,9 @@ fun CatOptions(
                 title = "Share",
                 iconVector = Icons.Default.Share,
                 onClick = {
-                    sendVoc(mContext, head)
+                    //Prepare and send cached file:
+                    val filename = libUtils.buildLibraryToSend(mContext, head)
+                    utils.sendCachedFile(mContext, filename)
                     mDisplayMenu.value = false
                 }
             )
@@ -702,28 +700,3 @@ fun DialogDeleteVocabulary(
         }
     )
 }
-
-
-//VOC ACTIONS:
-//Send:
-fun sendVoc(mContext: Context, filter: String) {
-    //Build cached file:
-    val fileName = libUtils.buildLibraryToSend(mContext, filter)
-    if (fileName != "") {
-        //Get cached file:
-        val file = File(mContext.cacheDir, fileName)
-        val uriToFile = FileProvider.getUriForFile(mContext, "com.ftrono.DJames.provider", file)
-        val sendIntent: Intent = Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_STREAM, uriToFile)
-            type = "image/jpeg"
-        }
-        var chooserIntent = Intent.createChooser(sendIntent, null)
-        chooserIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        chooserIntent.putExtra("fromwhere", "ser")
-        startActivity(mContext, chooserIntent, null)
-    } else (
-        Toast.makeText(mContext, "ERROR: cannot prepare consolidated Library file for ${filter}s to send!", Toast.LENGTH_LONG).show()
-    )
-}
-

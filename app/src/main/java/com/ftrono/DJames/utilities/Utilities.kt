@@ -5,13 +5,15 @@ import android.content.Context
 import android.content.Intent
 import android.telephony.PhoneNumberUtils
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.core.content.ContextCompat.startActivity
+import androidx.core.content.FileProvider
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
 import com.ftrono.DJames.be.models.HttpResponse
 import com.google.gson.JsonArray
-import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import okhttp3.Call
 import okhttp3.Callback
@@ -20,11 +22,8 @@ import okhttp3.Request
 import okhttp3.Response
 import java.io.BufferedReader
 import java.io.File
-import java.io.FileReader
 import java.io.IOException
 import java.io.InputStreamReader
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.Random
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -33,11 +32,8 @@ import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.streams.asSequence
 import androidx.core.net.toUri
-import com.ftrono.DJames.be.database.HistoryLog
-import com.ftrono.DJames.be.models.DispatcherInfo
 import com.ftrono.DJames.be.models.languageNamesMap
 import com.ftrono.DJames.be.models.languageWordsMap
-import java.util.Locale
 
 
 class Utilities {
@@ -192,6 +188,7 @@ class Utilities {
     }
 
 
+    //Threads management:
     fun stopThreadsInList(threads: MutableList<Thread>) {
         //Stop threads:
         var t_count = 1
@@ -211,78 +208,23 @@ class Utilities {
     }
 
 
-    //LOG:
-    //Get List of all log files:
-    fun getLogKeys(): List<String> {
-        var logKeys = mutableListOf<String>()
-        var obj = JsonObject()
-        if (logDir!!.exists()) {
-            var logFiles = logDir!!.list()
-            logFiles!!.sortDescending()   //Sort descending by date
-            for (f in logFiles) {
-                var reader = FileReader(File(logDir, f))
-                try {
-                    obj = JsonParser.parseReader(reader).asJsonObject
-                    //Delete empty searches:
-                    if (obj.has("best_score") || obj.has("voc_score")) {
-                        val best = if (obj.has("best_score")) obj.get("best_score").asInt else obj.get("voc_score").asInt
-                        if (best == 0) {
-                            //Delete invalid files:
-                            File(logDir, f).delete()
-                            Log.w(TAG, "Deleted file: $f")
-                        } else {
-                            //Add:
-                            logKeys.add(f)
-                        }
-                    }
-                } catch (e: Exception) {
-                    Log.w(TAG, "ERROR: Cannot open file $f: ", e)
-                    //Delete invalid files:
-                    File(logDir, f).delete()
-                    Log.w(TAG, "Deleted file: $f")
-                }
+    //Send a cached file:
+    fun sendCachedFile(context: Context, filename: String) {
+        if (filename != "") {
+            //Get cached file:
+            val file = File(context.cacheDir, filename)
+            val uriToFile = FileProvider.getUriForFile(context, "com.ftrono.DJames.provider", file)
+            val sendIntent: Intent = Intent().apply {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_STREAM, uriToFile)
+                type = "image/jpeg"
             }
-        }
-        //Log.d(TAG, logKeys.toString())
-        return logKeys
-    }
-
-
-    //Get single log item:
-    fun getLogItem(f: String): JsonObject {
-        val logItem = JsonObject()
-        try {
-            var reader = FileReader(File(logDir, f))
-            val obj = JsonParser.parseReader(reader).asJsonObject
-            //Log.d(TAG, "ITEM: $obj")
-            return obj
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Cannot open file $f: ", e)
-            return logItem
-        }
-    }
-
-
-    //History cleaning:
-    fun deleteOldLogs() {
-        if (logDir!!.exists()) {
-            val thresholdDate = LocalDateTime.now().minusDays(30)
-            val thresholdDateStr = thresholdDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-            Log.d(TAG, "THRESHOLD DATE: $thresholdDateStr")
-            var c = 0
-            var logFiles = logDir!!.list()
-            logFiles!!.sort()   //Sort ascending by date
-            //Log.d(TAG, logFiles.toList().toString())
-            for (f in logFiles) {
-                if (f < thresholdDateStr) {
-                    //Log.d(TAG, "Removing file: $f")
-                    File(logDir, f).delete()
-                    c ++
-                } else {
-                    break
-                }
-            }
-            Log.d(TAG, "Removed $c older logs.")
+            var chooserIntent = Intent.createChooser(sendIntent, null)
+            chooserIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            chooserIntent.putExtra("fromwhere", "ser")
+            startActivity(context, chooserIntent, null)
+        } else {
+            Toast.makeText(context, "ERROR: cannot send the requested file!", Toast.LENGTH_LONG).show()
         }
     }
 

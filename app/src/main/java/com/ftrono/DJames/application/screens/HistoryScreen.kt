@@ -47,12 +47,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.historyKeys
+import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.logDir
 import com.ftrono.DJames.application.logUtils
 import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.playThreshold
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.HistoryLog
+import com.ftrono.DJames.be.database.ItemInfoView
 import com.ftrono.DJames.be.database.LogViewInfo
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.components.HeaderWithSign
@@ -63,6 +65,8 @@ import com.ftrono.DJames.ui.selectors.historyColorSelectorLight
 import com.ftrono.DJames.ui.selectors.historyIconSelector
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -82,7 +86,7 @@ fun HistoryScreen(preview: Boolean = false) {
 //    val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
     val mContext = LocalContext.current
     val historyKeysState by historyKeys.observeAsState()
-    historyKeys.postValue(updateHistory(mContext, preview))
+    historyKeys.postValue(logUtils.refreshHistory(preview))
 
     val mDisplayMainMenu = rememberSaveable {
         mutableStateOf(false)
@@ -149,7 +153,7 @@ fun HistoryScreen(preview: Boolean = false) {
                 ) { index, item ->
                     //HISTORY CARD:
                     HistoryCard(
-                        item = getHistoryItem(mContext, item, preview)
+                        itemJson = item
                     )
                 }
             }
@@ -159,11 +163,12 @@ fun HistoryScreen(preview: Boolean = false) {
 
 @Composable
 fun HistoryCard(
-    item: HistoryLog
+    itemJson: String
 ) {
     //INFO:
     val mContext = LocalContext.current
-    val viewInfo = getLogViewInfo(item)
+    val logItem = Json.decodeFromString<HistoryLog>(itemJson)
+    val viewInfo = getLogViewInfo(logItem)
 
     var mDisplayMenu = rememberSaveable {
         mutableStateOf(false)
@@ -171,12 +176,16 @@ fun HistoryCard(
 
     val deleteLogOn = rememberSaveable { mutableStateOf(false) }
     if (deleteLogOn.value) {
-        DialogDeleteHistory(mContext, deleteLogOn, viewInfo.id)
+        DialogDeleteHistory(mContext, deleteLogOn, logItem.id)
     }
 
     //CARD:
     Card(
-        onClick = { viewLog(mContext, viewInfo.id) },
+        onClick = {
+            // Open Log file via external app:
+            val filename = logUtils.prepareLogFile(mContext, logItem.id)
+            logUtils.openLogViaApp(mContext, filename)
+          },
         modifier = Modifier
             .padding(
                 start = 32.dp,
@@ -319,7 +328,8 @@ fun HistoryItemOptions(
                 title = "View",
                 iconVector = Icons.Default.Search,
                 onClick = {
-                    logUtils.viewLog(mContext, id)
+                    val filename = logUtils.prepareLogFile(mContext, id)
+                    logUtils.openLogViaApp(mContext, filename)
                     mDisplayMenu.value = false
                 }
             )
@@ -328,7 +338,9 @@ fun HistoryItemOptions(
                 title = "Share",
                 iconVector = Icons.Default.Share,
                 onClick = {
-                    logUtils.sendLog(mContext, id)
+                    //Prepare & send cached file:
+                    val filename = logUtils.prepareLogFile(mContext, id)
+                    utils.sendCachedFile(mContext, filename)
                     mDisplayMenu.value = false
                 }
             )
@@ -357,10 +369,10 @@ fun DialogDeleteHistory(
     GeneralDialog(
         dialogOnState = dialogOnState,
         backgroundColor = colorResource(id = R.color.colorPrimaryDark),
-        title = if (id != "") "Delete log" else "Delete history",
+        title = if (id != null) "Delete log" else "Delete history",
         content = {
             Text(
-                text = if (id != "") {
+                text = if (id != null) {
                     "Do you want to delete this log item?\n\n$id"
                 } else {
                     "Do you want to delete all history logs?"
@@ -375,16 +387,12 @@ fun DialogDeleteHistory(
             var toastText = ""
             if (id != null) {
                 //Delete current:
-                File(logDir, id).delete()
-                Log.d("HistoryScreen", "Deleted log: $id")
-                toastText = "Log deleted!"
+                logUtils.deleteLogItem(mContext, id)
             } else {
                 //Delete all:
-                logDir!!.deleteRecursively()
-                Log.d("HistoryScreen", "Deleted ALL logs.")
-                toastText = "History deleted!"
+                logUtils.deleteHistory(mContext)
             }
-            historyKeys.postValue(updateHistory(mContext))   //Refresh list
+            historyKeys.postValue(logUtils.refreshHistory())   //Refresh list
             Toast.makeText(mContext, toastText, Toast.LENGTH_LONG).show()
             dialogOnState.value = false
         }
@@ -415,10 +423,10 @@ fun getLogViewInfo(logItem: HistoryLog): LogViewInfo {
         }
 
     //Build info:
-    viewInfo.head = "${logItem.keyInfo.datetime.slice(0..< (logItem.keyInfo.datetime.length-3))}  $itemScore"
+    viewInfo.head = "${logItem.datetime.slice(0..< (logItem.datetime.length-3))}  $itemScore"
 
     //Main text:
-    val queryText = logItem.nlpQueries.last().queryText
+    val queryText = logItem.keyInfo.queryText
     viewInfo.main = if (intentName.contains("Play") && !queryText.contains("play ")) {
         "play: $queryText"
     } else if (intentName.contains("Drive")) {
@@ -506,37 +514,3 @@ fun getLogViewInfo(logItem: HistoryLog): LogViewInfo {
     viewInfo.detail = detailText
     return viewInfo
 }
-
-
-//REFRESH:
-fun updateHistory(mContext: Context, preview: Boolean = false): List<String> {
-    if (preview) {
-        //Mock data:
-        val reader = BufferedReader(InputStreamReader(mContext.resources.openRawResource(R.raw.history_sample)))
-        val logItems = JsonParser.parseReader(reader).asJsonObject
-        val logKeys = logItems.keySet().toList()
-        return logKeys
-    } else {
-        //Real data:
-        val logKeys = utils.getLogKeys()
-        //Log.d("Items", logKeys.toString())
-        return logKeys
-    }
-}
-
-//GET:
-fun getHistoryItem(mContext: Context, key: String, preview: Boolean = false): JsonObject {
-    if (preview) {
-        //Mock data:
-        val reader = BufferedReader(InputStreamReader(mContext.resources.openRawResource(R.raw.history_sample)))
-        val logItems = JsonParser.parseReader(reader).asJsonObject
-        val logItem = logItems.get(key).asJsonObject
-        return logItem
-    } else {
-        //Real data:
-        val logItem = utils.getLogItem(key)
-        //Log.d("Item", logItem.toString())
-        return logItem
-    }
-}
-

@@ -232,7 +232,9 @@ class NLPExtractor (private val context: Context) {
 
     //Route: extract Route Info from Message text:
     fun extractRoute(text: String, language: String): ItemInfoUse {
-        var routeInfo = ItemInfoUse()
+        var routeInfo = ItemInfoUse(
+            type = "route"
+        )
         routeInfo.language = language
         //TODO TEMP:
         var routeComps = text.split(" tramite ")

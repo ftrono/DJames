@@ -33,6 +33,7 @@ import com.ftrono.DJames.application.silenceInitPatience
 import com.ftrono.DJames.application.silencePatience
 import com.ftrono.DJames.application.sourceIsVolume
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.models.DispatcherInfo
 import com.ftrono.DJames.be.nlp.NLPDispatcher
 import com.ftrono.DJames.be.recorder.AndroidAudioRecorder
 import com.ftrono.DJames.be.recorder.AudioRecorder
@@ -58,7 +59,7 @@ class VoiceQueryService: Service() {
     //Status:
     private var followUp = false
     private var messageMode = false
-    private var dispatcherInfo = JsonObject()
+    private var dispatcherInfo = DispatcherInfo()
 
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -129,7 +130,7 @@ class VoiceQueryService: Service() {
         voiceQueryOn = false
         sourceIsVolume.postValue(false)
         processing = false
-        dispatcherInfo = JsonObject()
+        dispatcherInfo = DispatcherInfo()
         //Set overlay READY color:
         overlayStatus.postValue("ready")
         Log.d(TAG, "VOICE QUERY SERVICE TERMINATED.")
@@ -293,24 +294,24 @@ class VoiceQueryService: Service() {
             dispatcherInfo = nlpDispatcher.dispatch(recFile, dispatcherInfo, followUp, messageMode)
             processing = false
 
-            if (dispatcherInfo.isEmpty || dispatcherInfo.has("fail")) {
+            if (dispatcherInfo.intentName == "" || dispatcherInfo.fail) {
                 var toastText = ""
-                if (dispatcherInfo.has("toastText")) {
-                    toastText = dispatcherInfo.get("toastText").asString
+                if (dispatcherInfo.toastText != "") {
+                    toastText = dispatcherInfo.toastText
                 }
                 fail(toastText)
 
-            } else if (dispatcherInfo.has("end")) {
-                if (dispatcherInfo.has("playAcknowledge")) {
+            } else if (dispatcherInfo.end) {
+                if (dispatcherInfo.playAcknowledge) {
                     //SUCCESS -> Play ACKNOWLEDGE tone:
                     toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                 }
                 //Gracefully stop the service:
                 stopSelf()
 
-            } else if (dispatcherInfo.has("messageMode")) {
-                messageMode = dispatcherInfo.get("messageMode").asBoolean
+            } else if (dispatcherInfo.messageMode) {
                 //SUPPOSED TO BE TRUE:
+                messageMode = true
                 try {
                     startRecording()
                 } catch (e: Exception) {
@@ -318,9 +319,9 @@ class VoiceQueryService: Service() {
                     fail()
                 }
 
-            } else if (dispatcherInfo.has("followUp")) {
-                followUp = dispatcherInfo.get("followUp").asBoolean
+            } else if (dispatcherInfo.followUp) {
                 //SUPPOSED TO BE TRUE:
+                followUp = true
                 try {
                     startRecording()
                 } catch (e: Exception) {

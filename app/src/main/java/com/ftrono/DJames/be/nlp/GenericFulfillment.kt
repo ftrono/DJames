@@ -32,8 +32,10 @@ class GenericFulfillment (private var context: Context) {
     //Process a request involving a Contact (Call / Message):
     fun contactRequest(resultsNLP: NlpQueryModel): DispatcherInfo {
         var dispatcherInfo = DispatcherInfo()
-        var itemInfo = ItemInfoUse()
         val filter = "contact"
+        var itemInfo = ItemInfoUse(
+            type = filter
+        )
 
         //Log:
         logUtils.openLog()
@@ -148,7 +150,7 @@ class GenericFulfillment (private var context: Context) {
             }
 
             //Close log:
-            logUtils.saveLog(context)
+            logUtils.storeLog(context)
 
             return dispatcherInfo
         }
@@ -272,7 +274,9 @@ class GenericFulfillment (private var context: Context) {
         //item:
         var matchName = nlp_queryText
         var routeLanguage = reqLangCode   //TODO
-        var itemInfo = ItemInfoUse()
+        var itemInfo = ItemInfoUse(
+            type = "route"
+        )
 
         var nlpExtractor = NLPExtractor(context)
         var extractorInfo = ExtractorInfo()
@@ -300,7 +304,7 @@ class GenericFulfillment (private var context: Context) {
 
         if (itemInfo.url == "") {
             //Close log:
-            //logUtils.saveLog(context)
+            //logUtils.storeLog(context)
             return fulfillmentUtils.fallback()
 
         } else {
@@ -342,7 +346,7 @@ class GenericFulfillment (private var context: Context) {
         Log.d(TAG, dispatcherInfo.toString())
 
         //Close log:
-        logUtils.saveLog(context)
+        logUtils.storeLog(context)
         return dispatcherInfo
     }
 

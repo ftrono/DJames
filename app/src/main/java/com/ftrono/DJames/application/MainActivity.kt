@@ -64,7 +64,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.screens.updateHistory
 import com.ftrono.DJames.application.services.OverlayService
 import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
 import com.ftrono.DJames.ui.components.OptionsItem
@@ -132,9 +131,9 @@ class MainActivity : ComponentActivity() {
             if (!logDir!!.exists()) {
                 logDir!!.mkdir()
             }
-            historyKeys.postValue(updateHistory(this@MainActivity))
+            historyKeys.postValue(logUtils.refreshHistory())
             //delete older logs:
-            utils.deleteOldLogs()
+            logUtils.deleteOldLogs()
             //delete older cached Library files:
             libUtils.cleanLibraryCache(this@MainActivity)
             //delete older recFiles in cache:
@@ -541,7 +540,7 @@ class MainActivity : ComponentActivity() {
             //Refresh History list:
             if (intent.action == ACTION_LOG_REFRESH) {
                 Log.d(TAG, "HISTORY: ACTION_LOG_REFRESH.")
-                historyKeys.postValue(updateHistory(context!!))   //Refresh list
+                historyKeys.postValue(logUtils.refreshHistory())   //Refresh list
             }
         }
     }

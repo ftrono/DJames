@@ -8,9 +8,11 @@ import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import com.ftrono.DJames.application.ACTION_LOG_REFRESH
 import com.ftrono.DJames.application.appVersion
+import com.ftrono.DJames.application.curHistorySize
+import com.ftrono.DJames.application.historyBox
 import com.ftrono.DJames.application.lastLog
 import com.ftrono.DJames.application.logDir
-import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.samples.testHistory
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
@@ -22,58 +24,173 @@ import java.time.format.DateTimeFormatter
 class HistoryUtils {
     private val TAG = HistoryUtils::class.java.simpleName
 
+    //GET ALL:
+    //Get History List of HistoryLog items:
+    fun refreshHistory(preview: Boolean = false): List<String> {
+        //1) Load history:
+        var history = listOf<String>()
+        try {
+            history = if (preview) {
+                testHistory
+            } else {
+                historyBox!!.query().order(HistoryLog_.datetime).build().find()
+            }.map { item ->
+                //Cast value to String to allow storing into MutableState:
+                Json.encodeToString(
+                    HistoryLog(
+                        id = item.id,
+                        datetime = item.datetime,
+                        keyInfo = item.keyInfo,
+                        usable = item.usable,
+                        spotifyPlay = item.spotifyPlay
+                    )
+                )
+            }
 
+            //2) Update History size (IMPORTANT - for signs):
+            curHistorySize.postValue(history.size)
+            return history
+
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: cannot refresh History! ", e)
+            curHistorySize.postValue(0)
+            return history
+        }
+    }
+
+
+    //GET SINGLE:
+    //Get entire single item:
+    fun getFullLog(id: Long): HistoryLog {
+        return historyBox!!.get(id)
+    }
+
+
+    //Get single item, only key info:
+    fun getKeyLogInfo(id: Long): HistoryLog {
+        val item = historyBox!!.get(id)
+        return HistoryLog(
+            datetime = item.datetime,
+            keyInfo = item.keyInfo,
+            usable = item.usable,
+            spotifyPlay = item.spotifyPlay
+        )
+    }
+
+
+    // INSERT NEW:
     //Open new log:
     fun openLog() {
         val now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         lastLog = HistoryLog()
-        lastLog.keyInfo.datetime = now
-        lastLog.keyInfo.appVersion = appVersion
+        lastLog.datetime = now
+        lastLog.appVersion = appVersion
     }
 
 
-    //Close last open log:
-    fun saveLog(context: Context) {
+    //Store last open log to DB:
+    fun storeLog(context: Context) {
         if (lastLog.keyInfo.vocScore == 0 && lastLog.keyInfo.bestScore == 0) {
             Log.d(TAG, "No scores: Log not saved!")
         } else {
             try {
                 lastLog.keyInfo.intentName = lastLog.nlpQueries.first().intentName
-                var now = last_log!!.get("datetime").asString
-                var logFile = File(logDir, "$now.json")
-                logFile.writeText(last_log.toString())
-                //Send broadcast:
-                Intent().also { intent ->
-                    intent.setAction(ACTION_LOG_REFRESH)
-                    context.sendBroadcast(intent)
+                lastLog.keyInfo.queryText = lastLog.nlpQueries.last().queryText
+                if (lastLog.keyInfo.intentName != "" && lastLog.keyInfo.queryText != "") {
+                    historyBox!!.put(lastLog)
+                    Log.d(TAG, "HistoryLog item ${lastLog.id} saved!")
+                    //Send broadcast:
+                    Intent().also { intent ->
+                        intent.setAction(ACTION_LOG_REFRESH)
+                        context.sendBroadcast(intent)
+                    }
+                } else {
+                    lastLog = HistoryLog()
+                    Log.w(TAG, "Empty HistoryLog: Discarded!")
                 }
             } catch (e: Exception) {
-                Log.w(TAG, "ERROR: Log not saved!", e)
+                Log.w(TAG, "ERROR: HistoryLog not saved!", e)
             }
         }
     }
 
+    //UTILS:
+    fun getHistorySize(): Long {
+        return historyBox!!.count()
+    }
 
-    //CARD ACTIONS:
-    //Send:
-    fun sendLog(mContext: Context, filename: String) {
-        //Send the current file:
-        val file = File(logDir, filename)
-        val uriToFile = FileProvider.getUriForFile(mContext, "com.ftrono.DJames.provider", file)
-        val sendIntent: Intent = Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_STREAM, uriToFile)
-            type = "image/jpeg"
+    //DB DELETE:
+    //Delete single item:
+    fun deleteLogItem(context: Context, id: Long) {
+        try {
+            historyBox!!.remove(id)
+            Log.d(TAG, "Deleted Log item $id!")
+            Toast.makeText(context, "Log deleted!", Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Toast.makeText(context, "ERROR in deleting this log!", Toast.LENGTH_LONG).show()
+            Log.w(TAG, "ERROR in deleting Log item: $id. ", e)
         }
-        var chooserIntent = Intent.createChooser(sendIntent, null)
-        chooserIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        chooserIntent.putExtra("fromwhere", "ser")
-        startActivity(mContext, chooserIntent, null)
+    }
+
+    //Delete all:
+    fun deleteHistory(context: Context) {
+        try {
+            historyBox!!.removeAll()
+            Log.d(TAG, "History deleted!")
+            Toast.makeText(context, "History deleted!", Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR in deleting history. ", e)
+            Toast.makeText(context, "ERROR in deleting history!", Toast.LENGTH_LONG).show()
+        }
     }
 
 
-    //Open:
-    fun viewLog(mContext: Context, filename: String) {
+    //Delete older items (cleaning):
+    fun deleteOldLogs() {
+        try {
+            // Define formatter for parsing datetime strings
+            val thresholdDate = LocalDateTime.now().minusDays(30)
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+
+            // Load all objects (you can optimize this if you know a rough range)
+            val allItems = historyBox!!.all
+
+            // Filter items with datetime before today
+            val itemsToDelete = allItems.filter { item ->
+                try {
+                    val itemDateTime = LocalDateTime.parse(item.datetime, formatter)
+                    itemDateTime.isBefore(thresholdDate)
+                } catch (e: Exception) {
+                    false // skip invalid formats
+                }
+            }
+
+            // Bulk delete
+            historyBox!!.remove(itemsToDelete)
+            Log.d(TAG, "History cleaned: deleted ${itemsToDelete.size} older logs!")
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR in cleaning history. ", e)
+        }
+        }
+
+
+    //Prepare cached HistoryLog file to send:
+    fun prepareLogFile(context: Context, id: Long): String {
+        try {
+            val logItem = getFullLog(id)
+            val filename = "log_${logItem.datetime}.json"
+            val cachedFile = File(context.cacheDir, filename)
+            cachedFile.writeText(Json.encodeToString(logItem))
+            return filename
+        } catch (e: Exception) {
+            Log.d(TAG, "ERROR: Cannot prepare Log to send. ", e)
+            return ""
+        }
+    }
+
+
+    //Open HistoryLog in external app:
+    fun openLogViaApp(mContext: Context, filename: String) {
         try {
             // Get URI and MIME type of file
             val file = File(logDir, filename)
@@ -89,7 +206,7 @@ class HistoryUtils {
             intent1.putExtra("fromwhere", "ser")
             startActivity(mContext, intent1, null)
         } catch (e: Exception) {
-            Log.d("HistoryScreen", "ViewLog(): viewer app not found!")
+            Log.d("HistoryScreen", "openLogViaApp(): viewer app not found!")
             Toast.makeText(mContext, "No app to open the selected file!", Toast.LENGTH_LONG).show()
         }
     }

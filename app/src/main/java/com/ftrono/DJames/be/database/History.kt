@@ -23,11 +23,8 @@ data class LogViewInfo(
 
 @Serializable
 data class KeyLogInfo(
-    var datetime: String = "",
-    var appVersion: String = "",
     var intentName: String = "",
-    var mainText: String = "",
-    var detailText: String = "",
+    var queryText: String = "",
     var vocScore: Int = 0,
     var bestScore: Int = 0,
     var playedExternally: Boolean = false,
@@ -73,7 +70,7 @@ data class SpotifyPlayable(
     var albumName: String = "",
     var albumId: String = "",
     //Podcasts or custom:
-    var contextType: String = "",
+    var contextType: String = "",   // only if "playlist" or "podcast"
     var contextUri: String = "",
     var contextName: String = "",
     //Episodes:
@@ -124,9 +121,12 @@ class SpotifyMatchModelConverter : PropertyConverter<MutableList<SpotifyMatchMod
 
 //ENTITIES:
 @Serializable
+@Entity
 data class HistoryLog(
     //Primary key:
     @Id var id: Long = 0,
+    var datetime: String = "",
+    var appVersion: String = "",
 
     @Convert(converter = KeyLogInfoConverter::class, dbType = String::class)
     var keyInfo: KeyLogInfo = KeyLogInfo(),
@@ -142,6 +142,8 @@ data class HistoryLog(
 
     @Convert(converter = SpotifyPlayableConverter::class, dbType = String::class)
     var spotifyPlay: SpotifyPlayable = SpotifyPlayable(),
+
+    @Convert(converter = ItemInfoUseConverter::class, dbType = String::class)
     var usable: ItemInfoUse = ItemInfoUse(),
 )
 
@@ -192,5 +194,15 @@ class SpotifyPlayableConverter : PropertyConverter<SpotifyPlayable, String> {
 
     override fun convertToDatabaseValue(entityProperty: SpotifyPlayable?): String {
         return Json.encodeToString(entityProperty ?: SpotifyPlayable)
+    }
+}
+
+class ItemInfoUseConverter : PropertyConverter<ItemInfoUse, String> {
+    override fun convertToEntityProperty(databaseValue: String?): ItemInfoUse {
+        return Json.decodeFromString(databaseValue ?: "{}")
+    }
+
+    override fun convertToDatabaseValue(entityProperty: ItemInfoUse?): String {
+        return Json.encodeToString(entityProperty ?: ItemInfoUse())
     }
 }

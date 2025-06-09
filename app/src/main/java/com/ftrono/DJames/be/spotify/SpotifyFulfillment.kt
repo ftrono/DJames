@@ -208,7 +208,7 @@ class SpotifyFulfillment (private var context: Context) {
 
         //Close log:
         lastLog.spotifyPlay = playable
-        logUtils.saveLog(context)
+        logUtils.storeLog(context)
         return dispatcherInfo
     }
 
@@ -263,7 +263,7 @@ class SpotifyFulfillment (private var context: Context) {
         //A) EMPTY QUERY RESULT:
         if (playable.id == "") {
             //Close log:
-            logUtils.saveLog(context)
+            logUtils.storeLog(context)
             return fulfillmentUtils.fallback()
 
         } else {
@@ -327,7 +327,7 @@ class SpotifyFulfillment (private var context: Context) {
         Log.d(TAG, dispatcherInfo.toString())
 
         //Close log:
-        logUtils.saveLog(context)
+        logUtils.storeLog(context)
         return dispatcherInfo
     }
 
@@ -420,7 +420,7 @@ class SpotifyFulfillment (private var context: Context) {
         if (playable.id == "") {
             Log.d(TAG, "PLAY -> Artist / Playlist not found!")
             //Close log:
-            //logUtils.saveLog(context)
+            //logUtils.storeLog(context)
             return fulfillmentUtils.fallback()
 
         } else {
@@ -472,7 +472,7 @@ class SpotifyFulfillment (private var context: Context) {
         Log.d(TAG, dispatcherInfo.toString())
 
         //Close log:
-        logUtils.saveLog(context)
+        logUtils.storeLog(context)
         return dispatcherInfo
     }
 
@@ -546,7 +546,7 @@ class SpotifyFulfillment (private var context: Context) {
         if (playable.id == "") {
             Log.d(TAG, "PLAY -> Podcast not found!")
             //Close log:
-            //logUtils.saveLog(context)
+            //logUtils.storeLog(context)
             return fulfillmentUtils.fallback()
 
         } else {
@@ -592,7 +592,7 @@ class SpotifyFulfillment (private var context: Context) {
         Log.d(TAG, dispatcherInfo.toString())
 
         //Close log:
-        logUtils.saveLog(context)
+        logUtils.storeLog(context)
         return dispatcherInfo
     }
 

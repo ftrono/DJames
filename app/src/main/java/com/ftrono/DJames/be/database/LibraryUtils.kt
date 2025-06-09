@@ -46,6 +46,7 @@ class LibraryUtils {
                     } else {
                         artistBox!!.query().order(Artist_.name).build().find()
                     }.associate { item ->
+                        //Cast value to String to allow storing into MutableState:
                         item.id.toString() to Json.encodeToString(
                             ItemInfoView(
                                 name = item.name,
@@ -318,12 +319,13 @@ class LibraryUtils {
     }
 
 
-    //Get Map in format {"id": {"key": "...", "aliases": "...", "phone": "..."}}:
+    //Get single item, only key ItemInfoUse info:
     fun getItemInfoUse(filter: String, id: String): ItemInfoUse {
         when (filter) {
             "artist" -> {
                 val item = artistBox!!.get(id.toLong())
                 return ItemInfoUse(
+                    type = filter,
                     name = item.name,
                     url = item.spotifyUrl,
                     defaultKey = item.defaultPlay,
@@ -334,6 +336,7 @@ class LibraryUtils {
             "playlist" -> {
                 val item = playlistBox!!.get(id.toLong())
                 return ItemInfoUse(
+                    type = filter,
                     name = item.name,
                     detail = item.owner,
                     url = item.spotifyUrl
@@ -343,6 +346,7 @@ class LibraryUtils {
             "podcast" -> {
                 val item = podcastBox!!.get(id.toLong())
                 return ItemInfoUse(
+                    type = filter,
                     name = item.name,
                     detail = item.publisher,
                     url = item.spotifyUrl,
@@ -357,6 +361,7 @@ class LibraryUtils {
             "contact" -> {
                 val item = contactBox!!.get(id.toLong())
                 return ItemInfoUse(
+                    type = filter,
                     name = item.name,
                     language = item.language,
                     defaultKey = item.defaultPhone,
@@ -368,6 +373,7 @@ class LibraryUtils {
                 val item = routeBox!!.get(id.toLong())
                 val language = prefs.routeLanguage   //TODO: Default only!
                 return ItemInfoUse(
+                    type = filter,
                     name = item.name,
                     detail = buildRouteSubtitle(item, viewLanguage = language),
                     language = language,
@@ -375,9 +381,7 @@ class LibraryUtils {
                 )
             }
 
-            else -> return ItemInfoUse(
-                name = ""
-            )
+            else -> return ItemInfoUse()
         }
     }
 
@@ -471,7 +475,7 @@ class LibraryUtils {
             Log.d(TAG, "Deleted $filter item $id!")
             Toast.makeText(context, "${filter.replaceFirstChar { it.uppercase() }} deleted!", Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
-            Toast.makeText(context, "ERROR in deleting $filter item: $id}!", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "ERROR in deleting $filter item!", Toast.LENGTH_LONG).show()
             Log.w(TAG, "ERROR in deleting ${filter.replaceFirstChar { it.uppercase() }}: $id. ", e)
         }
     }
@@ -495,12 +499,12 @@ class LibraryUtils {
     }
 
 
-    //Prepare and send cached Library file:
+    //Prepare cached Library file to send:
     fun buildLibraryToSend(context: Context, filter: String): String {
-        var fileName = ""
+        var filename = ""
         try {
-            fileName = "library_${filter}s.json"
-            val cachedFile = File(context.cacheDir, fileName)
+            filename = "library_${filter}s.json"
+            val cachedFile = File(context.cacheDir, filename)
             //Populate cached array & store to cached file:
             when (filter) {
                 "artist" -> {
@@ -528,7 +532,7 @@ class LibraryUtils {
         } catch (e: Exception) {
             Log.w(TAG, "ERROR: Cannot prepare or cache consolidated Library for ${filter}s!, ", e)
         }
-        return fileName
+        return filename
     }
 
 

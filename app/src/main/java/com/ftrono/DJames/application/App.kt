@@ -81,7 +81,8 @@ var sharedLink = MutableLiveData<String>("")
 var curLibrarySize = MutableLiveData<Int>(0)
 val vocHeads = listOf("artist", "playlist", "podcast", "contact", "route")
 val vocSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
-var historyKeys = MutableLiveData<List<String>>(listOf("2024-08-05 18:28:53.json"))
+var curHistorySize = MutableLiveData<Int>(0)
+var historyKeys = MutableLiveData<List<String>>(listOf())
 
 //Preferences:
 val maxClickOptions = 3

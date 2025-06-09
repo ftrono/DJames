@@ -46,6 +46,7 @@ data class ItemInfoView(
 
 @Serializable
 data class ItemInfoUse(
+    var type: String = "",
     var name: String = "",
     var detail: String = "",   //playlist owner or podcast publisher
     var language: String = "",

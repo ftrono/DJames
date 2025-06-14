@@ -3,6 +3,7 @@ package com.ftrono.DJames.be.database
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import io.objectbox.Box
 import com.ftrono.DJames.application.artistBox
 import com.ftrono.DJames.application.contactBox
 import com.ftrono.DJames.application.curLibrarySize
@@ -23,6 +24,8 @@ import com.ftrono.DJames.be.database.Playlist_
 import com.ftrono.DJames.be.database.Route_
 import com.ftrono.DJames.be.samples.testPodcasts
 import com.ftrono.DJames.be.samples.testRoutes
+import io.objectbox.Property
+import io.objectbox.query.QueryBuilder.StringOrder
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
@@ -256,6 +259,16 @@ class LibraryUtils {
             else -> { }
         }
         return urlMap
+    }
+
+    //Get Phone Map in format {"phone": "id"}:
+    fun getPhoneMap(phoneKey: String = "personal"): Map<String, Long> {
+        var phoneMap = mapOf<String, Long>()
+        phoneMap =
+            contactBox!!.query().order(Contact_.name).build().find().associate { contact ->
+                "${contact.phoneSets["phoneKey"]!!.prefix}${contact.phoneSets["phoneKey"]!!.phone}" to contact.id // Ensures no null values
+            }
+        return phoneMap
     }
 
 
@@ -504,38 +517,52 @@ class LibraryUtils {
     }
 
 
-    //Prepare cached Library file to send:
-    fun buildLibraryToSend(context: Context, filter: String): String {
-        var filename = ""
+    // SEND:
+    //Prepare Library JSON string for export:
+    fun serializeLibrary(filter: String): String {
+        var jsonContent = ""
         try {
-            filename = "library_${filter}s.json"
-            val cachedFile = File(context.cacheDir, filename)
             //Populate cached array & store to cached file:
             when (filter) {
                 "artist" -> {
                     val libArray = artistBox!!.query().order(Artist_.name).build().find().toList()
-                    cachedFile.writeText(Json.encodeToString(libArray))
+                    jsonContent = Json.encodeToString(libArray)
                 }
                 "playlist" -> {
                     val libArray = playlistBox!!.query().order(Playlist_.name).build().find().toList()
-                    cachedFile.writeText(Json.encodeToString(libArray))
+                    jsonContent = Json.encodeToString(libArray)
                 }
                 "podcast" -> {
                     val libArray = podcastBox!!.query().order(Podcast_.name).build().find().toList()
-                    cachedFile.writeText(Json.encodeToString(libArray))
+                    jsonContent = Json.encodeToString(libArray)
                 }
                 "contact" -> {
                     val libArray = contactBox!!.query().order(Contact_.name).build().find().toList()
-                    cachedFile.writeText(Json.encodeToString(libArray))
+                    jsonContent = Json.encodeToString(libArray)
                 }
                 "route" -> {
                     val libArray = routeBox!!.query().order(Route_.name).build().find().toList()
-                    cachedFile.writeText(Json.encodeToString(libArray))
+                    jsonContent = Json.encodeToString(libArray)
                 }
             }
-            Log.d(TAG, "Successfully prepared and cached consolidated Library for ${filter}s.")
+            Log.d(TAG, "Successfully serialized Library for ${filter}s.")
         } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Cannot prepare or cache consolidated Library for ${filter}s!, ", e)
+            Log.w(TAG, "ERROR: Cannot serialize Library for ${filter}s!, ", e)
+        }
+        return jsonContent
+    }
+
+
+    //Prepare cached Library file to send:
+    fun buildFileToSend(context: Context, filter: String, jsonContent: String): String {
+        var filename = ""
+        try {
+            filename = "library_${filter}s.json"
+            val cachedFile = File(context.cacheDir, filename)
+            cachedFile.writeText(jsonContent)
+            Log.d(TAG, "Successfully prepared and cached Library for ${filter}s.")
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: Cannot prepare or cache Library for ${filter}s!, ", e)
         }
         return filename
     }
@@ -549,6 +576,77 @@ class LibraryUtils {
             } catch (e: Exception) {
                 Log.w(TAG, "No cached library_$head.json file to delete!")
             }
+        }
+    }
+
+
+    // IMPORT:
+    //Common importer:
+    inline fun <reified T : LibraryItem> importItems(
+        items: List<T>,
+        box: Box<T>,
+        stringProperty: Property<T>,
+        tag: String
+    ): Int {
+        var count = 0
+        for (item in items) {
+            try {
+                //Check duplicates to update:
+                val duplicates = box.query(stringProperty.equal(item.name, StringOrder.CASE_INSENSITIVE)).build().find()
+                if (duplicates.isNotEmpty()) {
+                    item.id = duplicates[0].id
+                } else {
+                    item.id = 0
+                }
+                //Insert / update:
+                box.put(item)
+                count++
+            } catch (e: Exception) {
+                Log.w(tag, "Cannot import item!", e)
+            }
+        }
+        return count
+    }
+
+    //Import Library from file:
+    fun importLibrary(context: Context, filter: String, jsonContent: String) {
+        try {
+            var c = 0
+            var tot = 0
+            when (filter) {
+                "artist" -> {
+                    val items = Json.decodeFromString<List<Artist>>(jsonContent)
+                    tot = items.size
+                    c = importItems(items, artistBox!!, Artist_.name, TAG)
+                }
+                "playlist" -> {
+                    val items = Json.decodeFromString<List<Playlist>>(jsonContent)
+                    tot = items.size
+                    c = importItems(items, playlistBox!!, Playlist_.name, TAG)
+                }
+                "podcast" -> {
+                    val items = Json.decodeFromString<List<Podcast>>(jsonContent)
+                    tot = items.size
+                    c = importItems(items, podcastBox!!, Podcast_.name, TAG)
+                }
+                "contact" -> {
+                    val items = Json.decodeFromString<List<Contact>>(jsonContent)
+                    tot = items.size
+                    c = importItems(items, contactBox!!, Contact_.name, TAG)
+                }
+                "route" -> {
+                    val items = Json.decodeFromString<List<Route>>(jsonContent)
+                    tot = items.size
+                    c = importItems(items, routeBox!!, Route_.name, TAG)
+                }
+                else -> {}
+            }
+            Log.d(TAG, "Imported $c / $tot ${filter}s!")
+            Toast.makeText(context, "Imported $c / $tot ${filter}s!", Toast.LENGTH_LONG).show()
+
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: Invalid file! ", e)
+            Toast.makeText(context, "ERROR: Invalid file!", Toast.LENGTH_LONG).show()
         }
     }
 }

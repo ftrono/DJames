@@ -10,6 +10,13 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
 
 
+//INTERFACE:
+interface LibraryItem {
+    var id: Long
+    var name: String
+    var aliases: MutableList<String>
+}
+
 //SUPPORT CLASSES:
 @Serializable
 data class PlayLink(
@@ -73,9 +80,9 @@ val defaultPlayLinkObj = mutableMapOf(
 @Entity
 data class Artist(
     //Primary key:
-    @Id var id: Long = 0,
-    var name: String = "",
-    var aliases: MutableList<String> = mutableListOf(""),
+    @Id override var id: Long = 0,
+    override var name: String = "",
+    override var aliases: MutableList<String> = mutableListOf(""),
     var spotifyUrl: String = "",
     var country: String = "",
     var genres: MutableList<String> = mutableListOf(""),
@@ -83,7 +90,7 @@ data class Artist(
     var defaultPlay: String = "artist",
     @Convert(converter = PlayLinkConverter::class, dbType = String::class)
     var playLinks: MutableMap<String, PlayLink> = defaultPlayLinkObj
-)
+): LibraryItem
 
 class PlayLinkConverter : PropertyConverter<MutableMap<String, PlayLink>, String> {
     override fun convertToEntityProperty(databaseValue: String?): MutableMap<String, PlayLink> {
@@ -101,13 +108,13 @@ class PlayLinkConverter : PropertyConverter<MutableMap<String, PlayLink>, String
 @Entity
 data class Playlist(
     //Primary key:
-    @Id var id: Long = 0,
-    var name: String = "",
-    var aliases: MutableList<String> = mutableListOf(""),
+    @Id override var id: Long = 0,
+    override var name: String = "",
+    override var aliases: MutableList<String> = mutableListOf(""),
     var owner: String = "",
     var imageUrl: String = "",
     var spotifyUrl: String = "",
-)
+): LibraryItem
 
 
 // PODCAST:
@@ -115,15 +122,15 @@ data class Playlist(
 @Entity
 data class Podcast(
     //Primary key:
-    @Id var id: Long = 0,
-    var name: String = "",
-    var aliases: MutableList<String> = mutableListOf(""),
+    @Id override var id: Long = 0,
+    override var name: String = "",
+    override var aliases: MutableList<String> = mutableListOf(""),
     var publisher: String = "",
     var description: String = "",
     var imageUrl: String = "",
     var spotifyUrl: String = "",
     var languages: MutableList<String> = mutableListOf(""),
-)
+): LibraryItem
 
 
 // CONTACT:
@@ -139,14 +146,14 @@ val defaultPhoneSetObj = mutableMapOf(
 @Entity
 data class Contact(
     //Primary key:
-    @Id var id: Long = 0,
-    var name: String = "",
-    var aliases: MutableList<String> = mutableListOf(""),
+    @Id override var id: Long = 0,
+    override var name: String = "",
+    override var aliases: MutableList<String> = mutableListOf(""),
     var language: String = "",
     var defaultPhone: String = "personal",
     @Convert(converter = PhoneSetsConverter::class, dbType = String::class)
     var phoneSets: MutableMap<String, PhoneSet> = defaultPhoneSetObj
-)
+): LibraryItem
 
 class PhoneSetsConverter : PropertyConverter<MutableMap<String, PhoneSet>, String> {
     override fun convertToEntityProperty(databaseValue: String?): MutableMap<String, PhoneSet> {
@@ -164,16 +171,16 @@ class PhoneSetsConverter : PropertyConverter<MutableMap<String, PhoneSet>, Strin
 @Entity
 data class Route(
     //Primary key:
-    @Id var id: Long = 0,
-    var name: String = "",
-    var aliases: MutableList<String> = mutableListOf(""),
+    @Id override var id: Long = 0,
+    override var name: String = "",
+    override var aliases: MutableList<String> = mutableListOf(""),
 
     @Convert(converter = AddressConverter::class, dbType = String::class)
     var destination: Address = Address(),
 
     @Convert(converter = AddressConverter::class, dbType = String::class)
     var via: Address = Address(),
-)
+): LibraryItem
 
 class AddressConverter : PropertyConverter<Address, String> {
     override fun convertToEntityProperty(databaseValue: String?): Address {

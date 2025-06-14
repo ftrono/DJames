@@ -1,8 +1,6 @@
 package com.ftrono.DJames.application.screens
 
 import android.content.Context
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -47,14 +45,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.historyItems
-import com.ftrono.DJames.application.libUtils
-import com.ftrono.DJames.application.logDir
 import com.ftrono.DJames.application.logUtils
 import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.playThreshold
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.HistoryLog
-import com.ftrono.DJames.be.database.ItemInfoView
 import com.ftrono.DJames.be.database.LogViewInfo
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.components.HeaderWithSign
@@ -63,14 +58,8 @@ import com.ftrono.DJames.ui.components.OptionsMenu
 import com.ftrono.DJames.ui.components.StreetBackground
 import com.ftrono.DJames.ui.selectors.historyColorSelectorLight
 import com.ftrono.DJames.ui.selectors.historyIconSelector
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import java.io.BufferedReader
-import java.io.File
-import java.io.InputStreamReader
-import java.util.Locale
 
 
 @Preview

@@ -3,6 +3,7 @@ package com.ftrono.DJames.utilities
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.telephony.PhoneNumberUtils
 import android.util.Log
 import android.widget.Toast
@@ -10,20 +11,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
-import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
 import com.ftrono.DJames.be.models.HttpResponse
-import com.google.gson.JsonArray
-import com.google.gson.JsonParser
+import androidx.core.net.toUri
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import java.io.BufferedReader
 import java.io.File
 import java.io.IOException
-import java.io.InputStreamReader
 import java.util.Random
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -31,8 +28,6 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.streams.asSequence
-import androidx.core.net.toUri
-import com.ftrono.DJames.be.database.GuideCategory
 import com.ftrono.DJames.be.models.languageNamesMap
 import com.ftrono.DJames.be.models.languageWordsMap
 
@@ -214,6 +209,7 @@ class Utilities {
     }
 
 
+    //FILE MANAGEMENT:
     //Send a cached file:
     fun sendCachedFile(context: Context, filename: String) {
         if (filename != "") {
@@ -256,8 +252,8 @@ class Utilities {
     //On Logout: delete user cache files:
     fun deleteUserCache(context: Context) {
         try {
-            logDir!!.deleteRecursively()
-            Log.d(TAG, "Deleted ALL logs.")
+            logUtils.deleteHistory(context)
+            Log.d(TAG, "Deleted ALL history logs.")
             libUtils.deleteLibrary(context, "artists")
             libUtils.deleteLibrary(context, "playlists")
             libUtils.deleteLibrary(context, "contacts")

@@ -75,7 +75,6 @@ import com.ftrono.DJames.ui.navigation.navigateTo
 import com.ftrono.DJames.ui.theme.DJamesTheme
 import com.ftrono.DJames.ui.theme.NavigationItem
 import com.ftrono.DJames.ui.theme.windowBackground
-import java.io.File
 
 
 class MainActivity : ComponentActivity() {
@@ -126,11 +125,6 @@ class MainActivity : ComponentActivity() {
 
         //CLEANING:
         if (!main_initialized) {
-            //Init log directory:
-            logDir = File(cacheDir, "log_requests")
-            if (!logDir!!.exists()) {
-                logDir!!.mkdir()
-            }
             historyItems.postValue(logUtils.refreshHistory())
             //delete older logs:
             logUtils.deleteOldLogs()

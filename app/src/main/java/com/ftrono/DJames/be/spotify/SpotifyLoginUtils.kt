@@ -131,7 +131,7 @@ class SpotifyLoginUtils {
         genderMaleState.postValue(true)
         spotUserImageState.postValue("")
         userNicknameState.postValue("")
-        //utils.deleteUserCache()
+        //utils.deleteUserCache(context)
         Toast.makeText(context, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()
         //Navigate to Home:
         val curNavRoute = NavigationItem.Home.route

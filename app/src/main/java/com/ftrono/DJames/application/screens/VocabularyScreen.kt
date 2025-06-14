@@ -2,7 +2,11 @@ package com.ftrono.DJames.application.screens
 
 import android.content.Context
 import android.content.res.Configuration
+import android.net.Uri
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +25,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -39,6 +45,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -613,6 +620,42 @@ fun CatOptions(
     deleteVocOn: MutableState<Boolean>,
     head: String
 ) {
+    var selectedJsonUri by remember { mutableStateOf<Uri?>(null) }
+    var jsonImport by remember { mutableStateOf<String?>(null) }
+    var jsonExport by remember { mutableStateOf<String?>(null) }
+
+    // IMPORTER:
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        // Assign stream & read JSON content from the selected file
+        selectedJsonUri = uri
+        uri?.let {
+            try {
+                val inputStream = mContext.contentResolver.openInputStream(it)
+                jsonImport = inputStream?.bufferedReader().use { reader -> reader?.readText() }
+                //Store JSON into Library:
+                libUtils.importLibrary(mContext, head, jsonImport!!)
+                libraryItems.value = libUtils.refreshLibrary(head)   //Refresh list
+            } catch (e: Exception) {
+                Log.w("LibraryScreen", "ERROR: Cannot read imported document! ", e)
+                Toast.makeText(mContext, "ERROR: Invalid file!", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    // EXPORTER:
+    val saveLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri: Uri? ->
+        uri?.let {
+            val outputStream = mContext.contentResolver.openOutputStream(it)
+            outputStream?.bufferedWriter().use { writer ->
+                writer?.write(jsonExport)
+            }
+        }
+    }
+
     //DROPDOWN MENU:
     OptionsMenu(
         expandedState = mDisplayMenu,
@@ -625,21 +668,42 @@ fun CatOptions(
                 onClick = {
                     mDisplayMenu.value = false
                     libraryItems.value = libUtils.refreshLibrary(head)
-                    Toast.makeText(mContext, "${head.replaceFirstChar { it.uppercase() }}s vocabulary updated!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(mContext, "${head.replaceFirstChar { it.uppercase() }}s library updated!", Toast.LENGTH_SHORT).show()
                 }
             )
-            //2) Item: SHARE VOC CATEGORY
+            //2) Item: IMPORT CATEGORY ITEMS
+            OptionsItem(
+                title = "Import from file",
+                iconVector = Icons.AutoMirrored.Filled.List,
+                onClick = {
+                    mDisplayMenu.value = false
+                    filePickerLauncher.launch("application/json")   // Json MIME type
+                }
+            )
+            //3) Item: EXPORT CATEGORY ITEMS
+            OptionsItem(
+                title = "Export to file",
+                iconVector = Icons.AutoMirrored.Filled.ExitToApp,
+                onClick = {
+                    mDisplayMenu.value = false
+                    jsonExport = libUtils.serializeLibrary(head)
+                    saveLauncher.launch("library_${head}s.json")   // Target filename
+                    Toast.makeText(mContext, "${head.replaceFirstChar { it.uppercase() }}s library ready for export!", Toast.LENGTH_SHORT).show()
+                }
+            )
+            //4) Item: SHARE VOC CATEGORY
             OptionsItem(
                 title = "Share",
                 iconVector = Icons.Default.Share,
                 onClick = {
                     //Prepare and send cached file:
-                    val filename = libUtils.buildLibraryToSend(mContext, head)
+                    jsonExport = libUtils.serializeLibrary(head)
+                    val filename = libUtils.buildFileToSend(mContext, head, jsonExport!!)
                     utils.sendCachedFile(mContext, filename)
                     mDisplayMenu.value = false
                 }
             )
-            //3) Item: DELETE VOC CATEGORY
+            //5) Item: DELETE VOC CATEGORY
             OptionsItem(
                 title = "Delete all",
                 iconVector = Icons.Default.Delete,
@@ -673,7 +737,7 @@ fun DialogDeleteVocabulary(
                 text = if (id > -1) {
                     "Do you want to delete this $filter?\n\n${nameState.value}"
                 } else {
-                    "Do you want to delete all ${filter}s in vocabulary?"
+                    "Do you want to delete all ${filter}s in library?"
                 },
                 color = colorResource(id = R.color.light_grey),
                 fontSize = 14.sp

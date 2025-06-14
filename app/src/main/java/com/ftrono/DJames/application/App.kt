@@ -28,14 +28,13 @@ import io.objectbox.Box
 import io.objectbox.BoxStore
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
-import java.io.File
 
 
 //GLOBALS:
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.5.0"
+val appVersion = "2.5.1"
 val copyrightYear = 2024
 
 //DB:
@@ -122,7 +121,6 @@ var audioManager: AudioManager? = null
 //JSONs:
 var currently_playing: JsonObject? = null
 var lastLog: HistoryLog = HistoryLog()
-var logDir: File? = null
 
 //Player info:
 var nlp_queryText = ""

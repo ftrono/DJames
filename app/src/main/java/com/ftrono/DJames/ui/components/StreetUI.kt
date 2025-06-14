@@ -61,13 +61,13 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.libUtils
-import com.ftrono.DJames.application.vocHeads
+import com.ftrono.DJames.application.libHeads
 import com.ftrono.DJames.ui.selectors.guideColorSelector
 import com.ftrono.DJames.ui.selectors.guideColorSelectorLight
 import com.ftrono.DJames.ui.selectors.guideIconSelector
-import com.ftrono.DJames.ui.selectors.vocColorSelector
-import com.ftrono.DJames.ui.selectors.vocColorSelectorLight
-import com.ftrono.DJames.ui.selectors.vocIconSelector
+import com.ftrono.DJames.ui.selectors.libColorSelector
+import com.ftrono.DJames.ui.selectors.libColorSelectorLight
+import com.ftrono.DJames.ui.selectors.libIconSelector
 
 
 // STREET UI LANGUAGE COMPONENTS
@@ -256,7 +256,7 @@ fun HeaderSign(
 @Preview
 @Composable
 fun SplitterSignPreview() {
-    val currentCatState = rememberSaveable { mutableStateOf(vocHeads[0]) }
+    val currentCatState = rememberSaveable { mutableStateOf(libHeads[0]) }
     val libraryItems = rememberSaveable {
         mutableStateOf(libUtils.refreshLibrary(currentCatState.value, true))
     }
@@ -297,7 +297,7 @@ fun SplitterSign(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            for (head in vocHeads) {
+            for (head in libHeads) {
                 SplitterCat(
                     currentCatState = currentCatState,
                     libraryItems = libraryItems,
@@ -309,7 +309,7 @@ fun SplitterSign(
                     preview = preview
                 )
                 //DIVIDERS:
-                if (head != vocHeads.last()) {
+                if (head != libHeads.last()) {
                     VerticalDivider(
                         modifier = Modifier
                             .padding(start = 4.dp, end = 4.dp)
@@ -355,9 +355,9 @@ fun SplitterCat(
                     end = if (isLandscape && selected) 4.dp else 6.dp
                 )
                 .size(if (selected) 26.dp else 18.dp),
-            painter = vocIconSelector(head),
+            painter = libIconSelector(head),
             contentDescription = "category",
-            tint = if (selected) vocColorSelectorLight(head) else colorResource(id = R.color.light_grey)
+            tint = if (selected) libColorSelectorLight(head) else colorResource(id = R.color.light_grey)
         )
         //Title:
         if (isLandscape && selected) {
@@ -367,7 +367,7 @@ fun SplitterCat(
                 text = title,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = vocColorSelectorLight(head),
+                color = libColorSelectorLight(head),
                 maxLines = 1
             )
             if (num != null) {
@@ -379,7 +379,7 @@ fun SplitterCat(
                     text = num.toString(),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = vocColorSelectorLight(head),
+                    color = libColorSelectorLight(head),
                     maxLines = 1
                 )
             }
@@ -646,18 +646,18 @@ fun OptionsItem(
 
 @Preview
 @Composable
-fun VocItemCardPreview() {
-    VocItemCard(
+fun LibItemCardPreview() {
+    LibItemCard(
         modifier = Modifier
             .wrapContentWidth()
             .height(60.dp),
         cardColors = CardDefaults.cardColors(
             containerColor = colorResource(id = R.color.dark_grey)
         ),
-        signBackgroundColor = vocColorSelector(cat = "artist"),
+        signBackgroundColor = libColorSelector(cat = "artist"),
         signBorderColor = colorResource(id = R.color.midfaded_grey),
         signIconColor = colorResource(id = R.color.light_grey),
-        signIconPainter = vocIconSelector(cat = "artist"),
+        signIconPainter = libIconSelector(cat = "artist"),
         title = "Item name",
         subtitle = "subtitle",
     )
@@ -665,7 +665,7 @@ fun VocItemCardPreview() {
 
 
 @Composable
-fun VocItemCard(
+fun LibItemCard(
     modifier: Modifier = Modifier,
     cardColors: CardColors,
     signBackgroundColor: Color,

@@ -61,14 +61,14 @@ import com.ftrono.DJames.application.addLinkOn
 import com.ftrono.DJames.application.curLibrarySize
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.application.vocHeads
-import com.ftrono.DJames.application.vocSectionIdentifier
+import com.ftrono.DJames.application.libHeads
+import com.ftrono.DJames.application.libSectionIdentifier
 import com.ftrono.DJames.be.database.ItemInfoView
-import com.ftrono.DJames.application.dialogs.EditVocArtist
-import com.ftrono.DJames.application.dialogs.EditVocContact
-import com.ftrono.DJames.application.dialogs.EditVocPlaylist
-import com.ftrono.DJames.application.dialogs.EditVocPodcast
-import com.ftrono.DJames.application.dialogs.EditVocRoute
+import com.ftrono.DJames.application.dialogs.EditLibArtist
+import com.ftrono.DJames.application.dialogs.EditLibContact
+import com.ftrono.DJames.application.dialogs.EditLibPlaylist
+import com.ftrono.DJames.application.dialogs.EditLibPodcast
+import com.ftrono.DJames.application.dialogs.EditLibRoute
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
@@ -78,11 +78,11 @@ import com.ftrono.DJames.ui.components.OptionsMenu
 import com.ftrono.DJames.ui.components.RoundedLetter
 import com.ftrono.DJames.ui.components.SplitterSign
 import com.ftrono.DJames.ui.components.StreetBackground
-import com.ftrono.DJames.ui.components.VocItemCard
+import com.ftrono.DJames.ui.components.LibItemCard
 import com.ftrono.DJames.ui.dialogs.AddLinkDialog
 import com.ftrono.DJames.ui.dialogs.DialogLoading
-import com.ftrono.DJames.ui.selectors.vocColorSelector
-import com.ftrono.DJames.ui.selectors.vocIconSelector
+import com.ftrono.DJames.ui.selectors.libColorSelector
+import com.ftrono.DJames.ui.selectors.libIconSelector
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.decodeFromString
 import kotlin.Boolean
@@ -92,13 +92,13 @@ import kotlin.String
 @Preview
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
-fun VocScreenPreview() {
-    VocabularyScreen(editPreview="", preview=true)
+fun LibScreenPreview() {
+    LibraryScreen(editPreview="", preview=true)
 }
 
 
 @Composable
-fun VocabularyScreen(
+fun LibraryScreen(
     editPreview: String = "",
     preview: Boolean = false
 ) {
@@ -108,20 +108,20 @@ fun VocabularyScreen(
     //Statuses:
     val idState = rememberSaveable { mutableStateOf<Long>(if (editPreview != "") 0L else -1L) }
     val nameState = rememberSaveable { mutableStateOf("") }
-    val currentCatState = rememberSaveable { mutableStateOf(vocHeads[0]) }
+    val currentCatState = rememberSaveable { mutableStateOf(libHeads[0]) }
     val sharedLinkState by sharedLink.observeAsState()
     val addLinkState = rememberSaveable { mutableStateOf(sharedLinkState!!) }
     val libraryItems = rememberSaveable {
         mutableStateOf(libUtils.refreshLibrary(currentCatState.value, preview))
     }
     val curLibrarySizeState by curLibrarySize.observeAsState()
-    val deleteVocOn = rememberSaveable { mutableStateOf(false) }
-    if (deleteVocOn.value) {
-        DialogDeleteVocabulary(mContext, deleteVocOn, libraryItems, idState, nameState, filter=currentCatState.value)
+    val deleteLibOn = rememberSaveable { mutableStateOf(false) }
+    if (deleteLibOn.value) {
+        DialogDeleteLibrary(mContext, deleteLibOn, libraryItems, idState, nameState, filter=currentCatState.value)
     }
 
-    val editVocOn = rememberSaveable { mutableStateOf(editPreview != "") }
-    var editCat = if (editPreview != "") editPreview else if (editVocOn.value) currentCatState.value else ""
+    val editLibOn = rememberSaveable { mutableStateOf(editPreview != "") }
+    var editCat = if (editPreview != "") editPreview else if (editLibOn.value) currentCatState.value else ""
 
     val loadingDialogOn = rememberSaveable { mutableStateOf(false) }
     if (loadingDialogOn.value) {
@@ -130,9 +130,9 @@ fun VocabularyScreen(
         )
     }
 
-    if (editVocOn.value) {
+    if (editLibOn.value) {
         when (editCat) {
-            "artist" -> EditVocArtist(
+            "artist" -> EditLibArtist(
                 context = mContext,
                 libraryItems = libraryItems,
                 idState = idState,
@@ -141,14 +141,14 @@ fun VocabularyScreen(
                 loadingDialogOn = loadingDialogOn,
                 onDismiss = {
                     //cancelable -> true
-                    editVocOn.value = false
+                    editLibOn.value = false
                     idState.value = -1
                     addLinkState.value = ""
                     sharedLink.postValue("")
                 },
                 preview = preview
             )
-            "playlist" -> EditVocPlaylist(
+            "playlist" -> EditLibPlaylist(
                 context = mContext,
                 libraryItems = libraryItems,
                 idState = idState,
@@ -157,14 +157,14 @@ fun VocabularyScreen(
                 loadingDialogOn = loadingDialogOn,
                 onDismiss = {
                     //cancelable -> true
-                    editVocOn.value = false
+                    editLibOn.value = false
                     idState.value = -1
                     addLinkState.value = ""
                     sharedLink.postValue("")
                 },
                 preview = preview
             )
-            "podcast" -> EditVocPodcast(
+            "podcast" -> EditLibPodcast(
                 context = mContext,
                 libraryItems = libraryItems,
                 idState = idState,
@@ -173,35 +173,35 @@ fun VocabularyScreen(
                 loadingDialogOn = loadingDialogOn,
                 onDismiss = {
                     //cancelable -> true
-                    editVocOn.value = false
+                    editLibOn.value = false
                     idState.value = -1
                     addLinkState.value = ""
                     sharedLink.postValue("")
                 },
                 preview = preview
             )
-            "route" -> EditVocRoute(
+            "route" -> EditLibRoute(
                 context = mContext,
                 libraryItems = libraryItems,
                 idState = idState,
                 filter = editCat,
                 onDismiss = {
                     //cancelable -> true
-                    editVocOn.value = false
+                    editLibOn.value = false
                     idState.value = -1
                     addLinkState.value = ""
                     sharedLink.postValue("")
                 },
                 preview = preview
             )
-            "contact" -> EditVocContact(
+            "contact" -> EditLibContact(
                 context = mContext,
                 libraryItems = libraryItems,
                 idState = idState,
                 filter = editCat,
                 onDismiss = {
                     //cancelable -> true
-                    editVocOn.value = false
+                    editLibOn.value = false
                     idState.value = -1
                     addLinkState.value = ""
                     sharedLink.postValue("")
@@ -227,12 +227,12 @@ fun VocabularyScreen(
             },
             onSave = {
                 addLinkState.value = spotifyUtils.extractUrl(addLinkState.value)
-                spotifyUtils.checkAndEditVoc(
+                spotifyUtils.checkAndEditLib(
                     context = mContext,
                     idState = idState,
                     addLinkState = addLinkState,
                     currentCatState = currentCatState,
-                    editVocOn = editVocOn,
+                    editLibOn = editLibOn,
                     loadingDialogOn = loadingDialogOn
                 )
             }
@@ -244,12 +244,12 @@ fun VocabularyScreen(
     }
 
     if (sharedLinkState != "") {
-        spotifyUtils.checkAndEditVoc(
+        spotifyUtils.checkAndEditLib(
             context = mContext,
             idState = idState,
             addLinkState = addLinkState,
             currentCatState = currentCatState,
-            editVocOn = editVocOn,
+            editLibOn = editLibOn,
             loadingDialogOn = loadingDialogOn
         )
     }
@@ -278,7 +278,7 @@ fun VocabularyScreen(
                 onClick = {
                     idState.value = -1
                     if (currentCatState.value == "contact" || currentCatState.value == "route") {
-                        editVocOn.value = true
+                        editLibOn.value = true
                     } else {
                         addLinkOn.postValue(true)
                     }
@@ -321,7 +321,7 @@ fun VocabularyScreen(
                                     "${utils.capitalizeWords(currentCatState.value)}s"
                                 },
                                 num = curLibrarySizeState,
-                                signColor = vocColorSelector(cat = currentCatState.value)
+                                signColor = libColorSelector(cat = currentCatState.value)
                             ){
                                 Box() {
                                     //1) CAT OPTIONS:
@@ -340,7 +340,7 @@ fun VocabularyScreen(
                                         mContext = mContext,
                                         libraryItems = libraryItems,
                                         mDisplayMenu = mDisplayMainMenu,
-                                        deleteVocOn = deleteVocOn,
+                                        deleteLibOn = deleteLibOn,
                                         head = currentCatState.value
                                     )
                                 }
@@ -387,7 +387,7 @@ fun VocabularyScreen(
                                         mContext = mContext,
                                         libraryItems = libraryItems,
                                         mDisplayMenu = mDisplayMainMenu,
-                                        deleteVocOn = deleteVocOn,
+                                        deleteLibOn = deleteLibOn,
                                         head = currentCatState.value
                                     )
                                 }
@@ -404,13 +404,13 @@ fun VocabularyScreen(
                 ) {
 
                     //CONTENT:
-                    VocSectionContent(
+                    LibSectionContent(
                         libraryItems = libraryItems,
                         currentCatState = currentCatState,
                         idState = idState,
                         nameState = nameState,
-                        editVocOn = editVocOn,
-                        deleteVocOn = deleteVocOn,
+                        editLibOn = editLibOn,
+                        deleteLibOn = deleteLibOn,
                         isLandscape = isLandscape
                     )
                 }
@@ -424,8 +424,8 @@ fun VocabularyScreen(
 @Composable
 fun ChipOptions(
     mDisplayMenu: MutableState<Boolean>,
-    deleteVocOn: MutableState<Boolean>,
-    editVocOn: MutableState<Boolean>,
+    deleteLibOn: MutableState<Boolean>,
+    editLibOn: MutableState<Boolean>,
     idState: MutableState<Long>,
     nameState: MutableState<String>,
     id: Long,
@@ -436,17 +436,17 @@ fun ChipOptions(
         expandedState = mDisplayMenu,
         backgroundColor = colorResource(id = R.color.dark_grey),
         options = {
-            //1) Item: EDIT VOC ITEM
+            //1) Item: EDIT LIB ITEM
             OptionsItem(
                 title = "Edit",
                 iconVector = Icons.Default.Edit,
                 onClick = {
                     idState.value = id
                     mDisplayMenu.value = false
-                    editVocOn.value = true
+                    editLibOn.value = true
                 }
             )
-            //2) Item: DELETE VOC ITEM
+            //2) Item: DELETE LIB ITEM
             OptionsItem(
                 title = "Delete",
                 iconVector = Icons.Default.Delete,
@@ -454,7 +454,7 @@ fun ChipOptions(
                     idState.value = id
                     nameState.value = name
                     mDisplayMenu.value = false
-                    deleteVocOn.value = true
+                    deleteLibOn.value = true
                 }
             )
         }
@@ -463,19 +463,19 @@ fun ChipOptions(
 
 
 @Composable
-fun VocSectionContent(
+fun LibSectionContent(
     libraryItems: MutableState<List<String>>,
     currentCatState: MutableState<String>,
     idState: MutableState<Long>,
     nameState: MutableState<String>,
-    editVocOn: MutableState<Boolean>,
-    deleteVocOn: MutableState<Boolean>,
+    editLibOn: MutableState<Boolean>,
+    deleteLibOn: MutableState<Boolean>,
     isLandscape: Boolean
 ) {
 
     //CONTENT:
     if (libraryItems.value.isEmpty()) {
-        //VOCABULARY EMPTY:
+        //LIBRARY EMPTY:
         Text(
             text = "${currentCatState.value.replaceFirstChar { it.uppercase() }}s library\nis empty",
             textAlign = TextAlign.Center,
@@ -487,7 +487,7 @@ fun VocSectionContent(
                 .wrapContentWidth()
         )
     } else {
-        //VOCABULARY LIST:
+        //LIBRARY LIST:
         LazyVerticalGrid(
             modifier = Modifier
                 .padding(start = 32.dp, end = 24.dp, bottom = 12.dp)
@@ -499,28 +499,28 @@ fun VocSectionContent(
             //ITEMS:
             libraryItems.value.forEach { item ->
 
-                if (item.contains(vocSectionIdentifier)) {
+                if (item.contains(libSectionIdentifier)) {
                     //HEADER:
                     item(
                         span = { GridItemSpan(maxLineSpan) }
                     ) {
-                        VocLetter(
-                            letter = item.replace(vocSectionIdentifier, "")
+                        LibLetter(
+                            letter = item.replace(libSectionIdentifier, "")
                         )
                     }
 
                 } else {
                     //ITEM:
                     item {
-                        VocItem(
+                        LibItem(
                             modifier = Modifier
                                 .height(60.dp),
                             currentCatState = currentCatState,
                             idState = idState,
                             nameState = nameState,
                             itemJson = item,
-                            editVocOn = editVocOn,
-                            deleteVocOn = deleteVocOn
+                            editLibOn = editLibOn,
+                            deleteLibOn = deleteLibOn
                         )
                         if (item == libraryItems.value.last()) Spacer(modifier = Modifier.padding(60.dp))
                     }
@@ -533,7 +533,7 @@ fun VocSectionContent(
 
 
 @Composable
-fun VocLetter(
+fun LibLetter(
     letter: String
 ) {
     //TEXT LABEL:
@@ -555,14 +555,14 @@ fun VocLetter(
 
 
 @Composable
-fun VocItem(
+fun LibItem(
     modifier: Modifier,
     currentCatState: MutableState<String>,
     idState: MutableState<Long>,
     nameState: MutableState<String>,
     itemJson: String,
-    editVocOn: MutableState<Boolean>,
-    deleteVocOn: MutableState<Boolean>
+    editLibOn: MutableState<Boolean>,
+    deleteLibOn: MutableState<Boolean>
 ) {
     val mDisplayMenu = rememberSaveable { mutableStateOf(false) }
     val itemInfo = Json.decodeFromString<ItemInfoView>(itemJson)
@@ -573,14 +573,14 @@ fun VocItem(
     val itemAliases = itemInfo.aliases.toMutableList()
     itemAliases.removeAt(0)
 
-    //VOC CHIPS:
+    //LIB CHIPS:
     Box(
         modifier = Modifier
             .fillMaxSize()
     ) {
 
         //Card:
-        VocItemCard(
+        LibItemCard(
             modifier = modifier,
             cardColors = CardDefaults.cardColors(
                 containerColor = if (mDisplayMenu.value) {
@@ -589,10 +589,10 @@ fun VocItem(
                     colorResource(id = R.color.dark_grey_background)
                 }
             ),
-            signBackgroundColor = vocColorSelector(cat = currentCatState.value),
+            signBackgroundColor = libColorSelector(cat = currentCatState.value),
             signBorderColor = colorResource(id = R.color.midfaded_grey),
             signIconColor = colorResource(id = R.color.light_grey),
-            signIconPainter = vocIconSelector(cat = currentCatState.value),
+            signIconPainter = libIconSelector(cat = currentCatState.value),
             circle = currentCatState.value != "playlist" && currentCatState.value != "podcast" && currentCatState.value != "route",
             title = utils.trimString(itemName, 24),
             subtitle = if (currentCatState.value != "route" && itemAliases.isNotEmpty()) {
@@ -606,7 +606,7 @@ fun VocItem(
             }
         )
         //Options menu:
-        ChipOptions(mDisplayMenu, deleteVocOn, editVocOn, idState, nameState, id=id, name=itemName)
+        ChipOptions(mDisplayMenu, deleteLibOn, editLibOn, idState, nameState, id=id, name=itemName)
     }
 }
 
@@ -617,7 +617,7 @@ fun CatOptions(
     mContext: Context,
     libraryItems: MutableState<List<String>>,
     mDisplayMenu: MutableState<Boolean>,
-    deleteVocOn: MutableState<Boolean>,
+    deleteLibOn: MutableState<Boolean>,
     head: String
 ) {
     var selectedJsonUri by remember { mutableStateOf<Uri?>(null) }
@@ -661,7 +661,7 @@ fun CatOptions(
         expandedState = mDisplayMenu,
         backgroundColor = colorResource(id = R.color.dark_grey),
         options = {
-            //1) Item: REFRESH VOC CATEGORY
+            //1) Item: REFRESH LIB CATEGORY
             OptionsItem(
                 title = "Refresh",
                 iconVector = Icons.Default.Refresh,
@@ -691,7 +691,7 @@ fun CatOptions(
                     Toast.makeText(mContext, "${head.replaceFirstChar { it.uppercase() }}s library ready for export!", Toast.LENGTH_SHORT).show()
                 }
             )
-            //4) Item: SHARE VOC CATEGORY
+            //4) Item: SHARE LIB CATEGORY
             OptionsItem(
                 title = "Share",
                 iconVector = Icons.Default.Share,
@@ -703,13 +703,13 @@ fun CatOptions(
                     mDisplayMenu.value = false
                 }
             )
-            //5) Item: DELETE VOC CATEGORY
+            //5) Item: DELETE LIB CATEGORY
             OptionsItem(
                 title = "Delete all",
                 iconVector = Icons.Default.Delete,
                 onClick = {
                     mDisplayMenu.value = false
-                    deleteVocOn.value = true
+                    deleteLibOn.value = true
                 }
             )
         }
@@ -718,7 +718,7 @@ fun CatOptions(
 
 
 @Composable
-fun DialogDeleteVocabulary(
+fun DialogDeleteLibrary(
     mContext: Context,
     dialogOnState: MutableState<Boolean>,
     libraryItems: MutableState<List<String>>,

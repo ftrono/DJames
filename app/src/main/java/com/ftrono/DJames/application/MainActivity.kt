@@ -193,7 +193,7 @@ class MainActivity : ComponentActivity() {
         val navItems = listOf(
             NavigationItem.Home,
             NavigationItem.Guide,
-            NavigationItem.Vocabulary,
+            NavigationItem.Library,
             NavigationItem.History
         )
 
@@ -477,7 +477,7 @@ class MainActivity : ComponentActivity() {
             title = "Logout",
             content = {
                 Text(
-                    text = "You will need to login again to Spotify to use DJames.\n\nDo you want to log out?",   // and you'll lose your saved vocabulary & history
+                    text = "You will need to login again to Spotify to use DJames.\n\nDo you want to log out?",   // and you'll lose your saved library & history
                     color = colorResource(id = R.color.light_grey),
                     fontSize = 14.sp
                 )

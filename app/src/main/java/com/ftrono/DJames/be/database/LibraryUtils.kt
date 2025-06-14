@@ -13,8 +13,8 @@ import com.ftrono.DJames.application.podcastBox
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.routeBox
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.application.vocHeads
-import com.ftrono.DJames.application.vocSectionIdentifier
+import com.ftrono.DJames.application.libHeads
+import com.ftrono.DJames.application.libSectionIdentifier
 import com.ftrono.DJames.be.samples.testArtists
 import com.ftrono.DJames.be.samples.testContacts
 import com.ftrono.DJames.be.samples.testPlaylists
@@ -180,7 +180,7 @@ class LibraryUtils {
             //extend List with letter header:
             if (curFirst != letter) {
                 letter = if (utils.isLetters(curFirst)) curFirst.uppercase() else "#"
-                listWithHeaders.add("$vocSectionIdentifier$letter")
+                listWithHeaders.add("$libSectionIdentifier$letter")
             }
             listWithHeaders.add(itemJson)
         }
@@ -190,44 +190,44 @@ class LibraryUtils {
 
     //Get aliases Map in format {"id": ["aliases", ...]}:
     fun getAliasesMap(filter: String): Map<Long, List<String>> {
-        var vocMap = mapOf<Long, List<String>>()
+        var libMap = mapOf<Long, List<String>>()
         when (filter) {
             "artist" -> {
-                vocMap =
+                libMap =
                     artistBox!!.query().order(Artist_.name).build().find().associate { artist ->
                         artist.id to (artist.aliases ?: emptyList()) // Ensures no null values
                     }
             }
 
             "playlist" -> {
-                vocMap = playlistBox!!.query().order(Playlist_.name).build().find()
+                libMap = playlistBox!!.query().order(Playlist_.name).build().find()
                     .associate { playlist ->
                         playlist.id to (playlist.aliases ?: emptyList()) // Ensures no null values
                     }
             }
 
             "podcast" -> {
-                vocMap = podcastBox!!.query().order(Podcast_.name).build().find()
+                libMap = podcastBox!!.query().order(Podcast_.name).build().find()
                     .associate { podcast ->
                         podcast.id to (podcast.aliases ?: emptyList()) // Ensures no null values
                     }
             }
 
             "contact" -> {
-                vocMap =
+                libMap =
                     contactBox!!.query().order(Contact_.name).build().find().associate { contact ->
                         contact.id to (contact.aliases ?: emptyList()) // Ensures no null values
                     }
             }
 
             "route" -> {
-                vocMap =
+                libMap =
                     routeBox!!.query().order(Route_.name).build().find().associate { route ->
                         route.id to (route.aliases ?: emptyList()) // Ensures no null values
                     }
             }
         }
-        return vocMap
+        return libMap
     }
 
 
@@ -570,7 +570,7 @@ class LibraryUtils {
 
     //Clean consolidated cache (from directory, no DB):
     fun cleanLibraryCache(context: Context) {
-        for (head in vocHeads) {
+        for (head in libHeads) {
             try {
                 File(context.cacheDir, "library_${head}s.json").delete()
             } catch (e: Exception) {

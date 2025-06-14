@@ -326,7 +326,7 @@ fun SettingsUserSection(
                 ) {
 
                     //Title:
-                    EditVocTitle(
+                    EditLibTitle(
                         modifier = Modifier
                             .padding(bottom = 4.dp)
                             .clickable {
@@ -377,7 +377,7 @@ fun SettingsUserSection(
             }
         } else {
             //Title:
-            EditVocTitle(
+            EditLibTitle(
                 textHeaderColor = textHeaderColor,
                 fontSize = 16.sp,
                 title = headerText,

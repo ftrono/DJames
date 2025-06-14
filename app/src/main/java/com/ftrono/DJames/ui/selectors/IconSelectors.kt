@@ -7,9 +7,9 @@ import com.ftrono.DJames.R
 
 //ICONS SELECTORS:
 
-//VOCABULARY:
+//LIBRARY:
 @Composable
-fun vocIconSelector(
+fun libIconSelector(
     cat: String
 ): Painter {
     if (cat == "contact") {

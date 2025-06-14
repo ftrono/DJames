@@ -17,7 +17,7 @@ val testHistory = listOf<HistoryLog>(
         keyInfo = KeyLogInfo(
             intentName = "CallRequest",
             queryText = "call myself",
-            vocScore = 100,
+            libScore = 100,
         ),
         usable = ItemInfoUse(
             type = "contact",
@@ -33,7 +33,7 @@ val testHistory = listOf<HistoryLog>(
         keyInfo = KeyLogInfo(
             intentName = "MessageRequest",
             queryText = "send a message to myself",
-            vocScore = 100,
+            libScore = 100,
         ),
         usable = ItemInfoUse(
             type = "contact",
@@ -85,7 +85,7 @@ val testHistory = listOf<HistoryLog>(
         keyInfo = KeyLogInfo(
             intentName = "PlayPlaylist",
             queryText = "francis ford",
-            vocScore = 100,
+            libScore = 100,
         ),
         spotifyPlay = SpotifyPlayable(
             type = "playlist",

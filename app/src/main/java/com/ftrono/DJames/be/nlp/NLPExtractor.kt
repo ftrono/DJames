@@ -161,7 +161,7 @@ class NLPExtractor (private val context: Context) {
     }
 
 
-    //Match contact from user query against user vocabulary:
+    //Match contact from user query against user library:
     fun extractContact(queryText: String, fullLanguage: String = ""): String {
         val filter = "contact"
         var queryClean = queryText

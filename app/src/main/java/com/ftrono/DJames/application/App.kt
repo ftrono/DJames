@@ -76,10 +76,10 @@ var spotUserImageState = MutableLiveData<String>("")
 var addLinkOn = MutableLiveData<Boolean>(false)
 var sharedLink = MutableLiveData<String>("")
 
-//Library / vocabulary:
+//Library:
 var curLibrarySize = MutableLiveData<Int>(0)
-val vocHeads = listOf("artist", "playlist", "podcast", "contact", "route")
-val vocSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
+val libHeads = listOf("artist", "playlist", "podcast", "contact", "route")
+val libSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
 var curHistorySize = MutableLiveData<Int>(0)
 var historyItems = MutableLiveData<List<String>>(listOf<String>())
 

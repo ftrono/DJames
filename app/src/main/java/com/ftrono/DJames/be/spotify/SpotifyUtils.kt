@@ -77,13 +77,13 @@ class SpotifyUtils {
     }
 
 
-    //Disambiguate and Open EditVocDialog:
-    fun checkAndEditVoc(
+    //Disambiguate and Open EditLibDialog:
+    fun checkAndEditLib(
         context: Context,
         idState: MutableState<Long>,
         addLinkState: MutableState<String>,
         currentCatState: MutableState<String>,
-        editVocOn: MutableState<Boolean>,
+        editLibOn: MutableState<Boolean>,
         loadingDialogOn: MutableState<Boolean>
     ) {
         loadingDialogOn.value = true
@@ -100,7 +100,7 @@ class SpotifyUtils {
             } else {
                 addLinkState.value = urlToCheck
             }
-            editVocOn.value = true
+            editLibOn.value = true
         } else {
             loadingDialogOn.value = false
             Toast.makeText(context, "Invalid Spotify Artist, Playlist or Podcast link!", Toast.LENGTH_SHORT).show()

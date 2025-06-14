@@ -47,17 +47,17 @@ class GenericFulfillment (private var context: Context) {
         var contactExtracted = nlpExtractor.extractContact(nlp_queryText)
         extractorInfo.matchExtracted = contactExtracted
 
-        //Match extracted contact name with user vocabulary:
+        //Match extracted contact name with user library:
         val nlpMatcher = NLPMatcher(context)
-        var vocMatchId = nlpMatcher.matchVocabulary(filter, text=contactExtracted)
+        var libMatchId = nlpMatcher.matchLibrary(filter, text=contactExtracted)
 
-        if (vocMatchId < 0 || !voiceQueryOn) {
+        if (libMatchId < 0 || !voiceQueryOn) {
             //Fallback:
             return fulfillmentUtils.fallback("Sorry, I did not understand!")
 
         } else {
             //Get contact:
-            itemInfo = libUtils.getItemInfoUse(filter, vocMatchId)
+            itemInfo = libUtils.getItemInfoUse(filter, libMatchId)
 
             //Log:
             extractorInfo.matchConfirmed = itemInfo.name
@@ -281,10 +281,10 @@ class GenericFulfillment (private var context: Context) {
         var nlpExtractor = NLPExtractor(context)
         var extractorInfo = ExtractorInfo()
 
-        //Check route in vocabulary:
+        //Check route in library:
         val nlpMatcher = NLPMatcher(context)
-        val vocMatchId = nlpMatcher.matchVocabulary("route", matchName, maxThreshold)
-        if (vocMatchId < 0) {
+        val libMatchId = nlpMatcher.matchLibrary("route", matchName, maxThreshold)
+        if (libMatchId < 0) {
             //Route NOT found:
             Log.d(TAG, "DRIVE -> Route from Message")
             itemInfo = nlpExtractor.extractRoute(nlp_queryText, reqLangCode)
@@ -295,7 +295,7 @@ class GenericFulfillment (private var context: Context) {
         } else {
             //Route found:
             Log.d(TAG, "DRIVE -> Route from Library")
-            itemInfo = libUtils.getItemInfoUse("route", vocMatchId)
+            itemInfo = libUtils.getItemInfoUse("route", libMatchId)
             extractorInfo.matchExtracted = nlp_queryText
             extractorInfo.matchConfirmed = itemInfo.name
             extractorInfo.contextConfirmed = itemInfo.detail

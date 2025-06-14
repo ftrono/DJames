@@ -21,17 +21,17 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.Route
-import com.ftrono.DJames.application.screens.VocabularyScreen
+import com.ftrono.DJames.application.screens.LibraryScreen
 import com.ftrono.DJames.be.samples.testRoutes
 import com.ftrono.DJames.ui.components.CustomCheckbox
 import com.ftrono.DJames.ui.dialogs.DialogRequestDetail
-import com.ftrono.DJames.ui.dialogs.EditVocDialog
-import com.ftrono.DJames.ui.components.EditVocDynamicField
-import com.ftrono.DJames.ui.components.EditVocDynamicNameSection
+import com.ftrono.DJames.ui.dialogs.EditLibDialog
+import com.ftrono.DJames.ui.components.EditLibDynamicField
+import com.ftrono.DJames.ui.components.EditLibDynamicNameSection
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
-import com.ftrono.DJames.ui.selectors.vocColorSelector
-import com.ftrono.DJames.ui.selectors.vocColorSelectorLight
-import com.ftrono.DJames.ui.selectors.vocIconSelector
+import com.ftrono.DJames.ui.selectors.libColorSelector
+import com.ftrono.DJames.ui.selectors.libColorSelectorLight
+import com.ftrono.DJames.ui.selectors.libIconSelector
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,19 +39,19 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import com.ftrono.DJames.application.fulfillmentUtils
-import com.ftrono.DJames.ui.components.EditVocSectionTitle
+import com.ftrono.DJames.ui.components.EditLibSectionTitle
 
 
 @Preview
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
 fun DialogEditRoutePreview() {
-    VocabularyScreen(editPreview="route", preview=true)
+    LibraryScreen(editPreview="route", preview=true)
 }
 
 
 @Composable
-fun EditVocRoute(
+fun EditLibRoute(
     context: Context,
     libraryItems: MutableState<List<String>>,
     idState: MutableState<Long>,
@@ -130,14 +130,14 @@ fun EditVocRoute(
         val keyboardController = LocalSoftwareKeyboardController.current
 
         //MAIN:
-        EditVocDialog(
+        EditLibDialog(
             modifier = Modifier
                 .clickable {
                     focusManager.clearFocus()
                 },
             title = filter,
-            headerColor = vocColorSelectorLight(cat = filter),
-            headerPainter = vocIconSelector(cat = filter),
+            headerColor = libColorSelectorLight(cat = filter),
+            headerPainter = libIconSelector(cat = filter),
             showRefresh = false,
             showGo = true,
             onGo = {
@@ -163,7 +163,7 @@ fun EditVocRoute(
                     val aliasesList = mutableListOf(
                         utils.cleanString(textName.value).lowercase()
                     )
-                    Log.d("EditVocRoute", "$aliasesList")
+                    Log.d("EditLibRoute", "$aliasesList")
                     if (textAliases.value != "") {
                         for (alias in textAliases.value.split(",")) {
                             val temp = utils.cleanString(alias).lowercase()
@@ -203,11 +203,11 @@ fun EditVocRoute(
         ) {
             //CONTENT:
             //ROUTE NAME:
-            EditVocDynamicNameSection(
-                textHeaderColor = vocColorSelectorLight(cat = filter),
+            EditLibDynamicNameSection(
+                textHeaderColor = libColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
-                    colorLight = vocColorSelectorLight(cat = filter),
-                    colorDark = vocColorSelector(cat = filter)
+                    colorLight = libColorSelectorLight(cat = filter),
+                    colorDark = libColorSelector(cat = filter)
                 ),
                 filter = filter,
                 textState = textName,
@@ -218,13 +218,13 @@ fun EditVocRoute(
             )
 
             //ROUTE ALIASES:
-            EditVocDynamicField(
+            EditLibDynamicField(
                 modifier = Modifier
                     .fillMaxWidth(),
-                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textHeaderColor = libColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
-                    colorLight = vocColorSelectorLight(cat = filter),
-                    colorDark = vocColorSelector(cat = filter)
+                    colorLight = libColorSelectorLight(cat = filter),
+                    colorDark = libColorSelector(cat = filter)
                 ),
                 title = "Aliases (separate with commas)",
                 placeholder = "Write aliases here...",
@@ -249,7 +249,7 @@ fun EditVocRoute(
                 modifier = Modifier
                     .padding(bottom = 5.dp),
                 checkedState = checkedVia,
-                checkedColor = vocColorSelectorLight(cat = filter),
+                checkedColor = libColorSelectorLight(cat = filter),
                 textColor = colorResource(id = R.color.light_grey),
                 text = "Use a Pass Through address"
             )
@@ -286,18 +286,18 @@ fun AddressGroup(
     val filter = "route"
 
     //Section:
-    EditVocSectionTitle(
+    EditLibSectionTitle(
         title = title
     )
 
     //PLACE NAME:
-    EditVocDynamicField(
+    EditLibDynamicField(
         modifier = Modifier
             .fillMaxWidth(),
-        textHeaderColor = vocColorSelectorLight(cat = filter),
+        textHeaderColor = libColorSelectorLight(cat = filter),
         textFieldColors = getTextFieldColors(
-            colorLight = vocColorSelectorLight(cat = filter),
-            colorDark = vocColorSelector(cat = filter)
+            colorLight = libColorSelectorLight(cat = filter),
+            colorDark = libColorSelector(cat = filter)
         ),
         title = "Place / Business name",
         placeholder = "(optional)",
@@ -305,13 +305,13 @@ fun AddressGroup(
     )
 
     //STREET NAME:
-    EditVocDynamicField(
+    EditLibDynamicField(
         modifier = Modifier
             .fillMaxWidth(),
-        textHeaderColor = vocColorSelectorLight(cat = filter),
+        textHeaderColor = libColorSelectorLight(cat = filter),
         textFieldColors = getTextFieldColors(
-            colorLight = vocColorSelectorLight(cat = filter),
-            colorDark = vocColorSelector(cat = filter)
+            colorLight = libColorSelectorLight(cat = filter),
+            colorDark = libColorSelector(cat = filter)
         ),
         title = "Street name",
         placeholder = "Write street...",
@@ -325,14 +325,14 @@ fun AddressGroup(
         horizontalArrangement = Arrangement.Start
     ) {
         //NUMBER:
-        EditVocDynamicField(
+        EditLibDynamicField(
             modifier = Modifier
                 .weight(0.5f)
                 .padding(end = 2.dp),
-            textHeaderColor = vocColorSelectorLight(cat = filter),
+            textHeaderColor = libColorSelectorLight(cat = filter),
             textFieldColors = getTextFieldColors(
-                colorLight = vocColorSelectorLight(cat = filter),
-                colorDark = vocColorSelector(cat = filter)
+                colorLight = libColorSelectorLight(cat = filter),
+                colorDark = libColorSelector(cat = filter)
             ),
             title = "Number",
             placeholder = "...",
@@ -341,14 +341,14 @@ fun AddressGroup(
         )
 
         //ZIP:
-        EditVocDynamicField(
+        EditLibDynamicField(
             modifier = Modifier
                 .weight(0.5f)
                 .padding(start = 2.dp),
-            textHeaderColor = vocColorSelectorLight(cat = filter),
+            textHeaderColor = libColorSelectorLight(cat = filter),
             textFieldColors = getTextFieldColors(
-                colorLight = vocColorSelectorLight(cat = filter),
-                colorDark = vocColorSelector(cat = filter)
+                colorLight = libColorSelectorLight(cat = filter),
+                colorDark = libColorSelector(cat = filter)
             ),
             title = "Zip code",
             placeholder = "...",
@@ -358,13 +358,13 @@ fun AddressGroup(
     }
 
     //TOWN NAME:
-    EditVocDynamicField(
+    EditLibDynamicField(
         modifier = Modifier
             .fillMaxWidth(),
-        textHeaderColor = vocColorSelectorLight(cat = filter),
+        textHeaderColor = libColorSelectorLight(cat = filter),
         textFieldColors = getTextFieldColors(
-            colorLight = vocColorSelectorLight(cat = filter),
-            colorDark = vocColorSelector(cat = filter)
+            colorLight = libColorSelectorLight(cat = filter),
+            colorDark = libColorSelector(cat = filter)
         ),
         title = "Town name",
         placeholder = "Write town...",
@@ -378,14 +378,14 @@ fun AddressGroup(
         horizontalArrangement = Arrangement.Start
     ) {
         //PROVINCE:
-        EditVocDynamicField(
+        EditLibDynamicField(
             modifier = Modifier
                 .weight(0.4f)
                 .padding(end = 2.dp),
-            textHeaderColor = vocColorSelectorLight(cat = filter),
+            textHeaderColor = libColorSelectorLight(cat = filter),
             textFieldColors = getTextFieldColors(
-                colorLight = vocColorSelectorLight(cat = filter),
-                colorDark = vocColorSelector(cat = filter)
+                colorLight = libColorSelectorLight(cat = filter),
+                colorDark = libColorSelector(cat = filter)
             ),
             title = "Province",
             placeholder = "...",
@@ -394,14 +394,14 @@ fun AddressGroup(
         )
 
         //COUNTRY:
-        EditVocDynamicField(
+        EditLibDynamicField(
             modifier = Modifier
                 .weight(0.6f)
                 .padding(start = 2.dp),
-            textHeaderColor = vocColorSelectorLight(cat = filter),
+            textHeaderColor = libColorSelectorLight(cat = filter),
             textFieldColors = getTextFieldColors(
-                colorLight = vocColorSelectorLight(cat = filter),
-                colorDark = vocColorSelector(cat = filter)
+                colorLight = libColorSelectorLight(cat = filter),
+                colorDark = libColorSelector(cat = filter)
             ),
             title = "Country",
             placeholder = "Country...",

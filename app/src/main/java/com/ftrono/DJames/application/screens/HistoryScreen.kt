@@ -404,7 +404,7 @@ fun getLogViewInfo(logItem: HistoryLog): LogViewInfo {
             } else {
                 "🟡"
             }
-        } else if (logItem.keyInfo.vocScore > midThreshold || logItem.keyInfo.vocScore == 0) {
+        } else if (logItem.keyInfo.libScore > midThreshold || logItem.keyInfo.libScore == 0) {
             "🟢"
         } else {
             "🟡"

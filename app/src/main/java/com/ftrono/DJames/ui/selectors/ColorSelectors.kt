@@ -58,9 +58,9 @@ fun getTextFieldColors(
 }
 
 
-//VOCABULARY:
+//LIBRARY:
 @Composable
-fun vocColorSelector(
+fun libColorSelector(
     cat: String
 ): Color {
     if (cat == "contact") {
@@ -78,7 +78,7 @@ fun vocColorSelector(
 
 
 @Composable
-fun vocColorSelectorLight(
+fun libColorSelectorLight(
     cat: String
 ): Color {
     if (cat == "contact") {

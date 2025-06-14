@@ -25,7 +25,7 @@ data class LogViewInfo(
 data class KeyLogInfo(
     var intentName: String = "",
     var queryText: String = "",
-    var vocScore: Int = 0,
+    var libScore: Int = 0,
     var bestScore: Int = 0,
     var playedExternally: Boolean = false,
     var contextError: Boolean = false,

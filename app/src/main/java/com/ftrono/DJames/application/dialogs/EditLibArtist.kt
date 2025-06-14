@@ -2,10 +2,7 @@ package com.ftrono.DJames.application.dialogs
 
 import android.content.Context
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -15,43 +12,39 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.ftrono.DJames.R
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.Artist
 import com.ftrono.DJames.be.database.PlayLink
-import com.ftrono.DJames.application.screens.VocabularyScreen
+import com.ftrono.DJames.application.screens.LibraryScreen
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.be.samples.testArtists
 import com.ftrono.DJames.ui.components.DropdownSpinner
-import com.ftrono.DJames.ui.components.SectionTitle
 import com.ftrono.DJames.ui.dialogs.DialogRequestDetail
-import com.ftrono.DJames.ui.dialogs.EditVocDialog
-import com.ftrono.DJames.ui.components.EditVocDynamicField
-import com.ftrono.DJames.ui.components.EditVocDynamicNameSection
-import com.ftrono.DJames.ui.components.EditVocSectionTitle
-import com.ftrono.DJames.ui.components.EditVocTitle
+import com.ftrono.DJames.ui.dialogs.EditLibDialog
+import com.ftrono.DJames.ui.components.EditLibDynamicField
+import com.ftrono.DJames.ui.components.EditLibDynamicNameSection
+import com.ftrono.DJames.ui.components.EditLibSectionTitle
+import com.ftrono.DJames.ui.components.EditLibTitle
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
-import com.ftrono.DJames.ui.selectors.vocColorSelector
-import com.ftrono.DJames.ui.selectors.vocColorSelectorLight
-import com.ftrono.DJames.ui.selectors.vocIconSelector
+import com.ftrono.DJames.ui.selectors.libColorSelector
+import com.ftrono.DJames.ui.selectors.libColorSelectorLight
+import com.ftrono.DJames.ui.selectors.libIconSelector
 
 
 @Preview
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
 fun DialogEditArtistPreview() {
-    VocabularyScreen(editPreview="artist", preview=true)
+    LibraryScreen(editPreview="artist", preview=true)
 }
 
 
 @Composable
-fun EditVocArtist(
+fun EditLibArtist(
     context: Context,
     libraryItems: MutableState<List<String>>,
     idState: MutableState<Long>,
@@ -145,14 +138,14 @@ fun EditVocArtist(
         val keyboardController = LocalSoftwareKeyboardController.current
 
         //MAIN:
-        EditVocDialog(
+        EditLibDialog(
             modifier = Modifier
                 .clickable {
                     focusManager.clearFocus()
                 },
             title = filter,
-            headerColor = vocColorSelectorLight(cat = filter),
-            headerPainter = vocIconSelector(cat = filter),
+            headerColor = libColorSelectorLight(cat = filter),
+            headerPainter = libIconSelector(cat = filter),
             showRefresh = true,
             onRefresh = {
                 itemArtist = spotifyUtils.getArtistInfo(context, textArtistUrl.value, itemArtist, init=false)
@@ -243,11 +236,11 @@ fun EditVocArtist(
         ) {
             //CONTENT:
             //ARTIST NAME:
-            EditVocDynamicNameSection(
-                textHeaderColor = vocColorSelectorLight(cat = filter),
+            EditLibDynamicNameSection(
+                textHeaderColor = libColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
-                    colorLight = vocColorSelectorLight(cat = filter),
-                    colorDark = vocColorSelector(cat = filter)
+                    colorLight = libColorSelectorLight(cat = filter),
+                    colorDark = libColorSelector(cat = filter)
                 ),
                 filter = filter,
                 textState = textName,
@@ -258,13 +251,13 @@ fun EditVocArtist(
             )
 
             //ARTIST ALIASES:
-            EditVocDynamicField(
+            EditLibDynamicField(
                 modifier = Modifier
                     .fillMaxWidth(),
-                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textHeaderColor = libColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
-                    colorLight = vocColorSelectorLight(cat = filter),
-                    colorDark = vocColorSelector(cat = filter)
+                    colorLight = libColorSelectorLight(cat = filter),
+                    colorDark = libColorSelector(cat = filter)
                 ),
                 title = "Aliases (separate with commas)",
                 placeholder = "Write aliases here...",
@@ -273,13 +266,13 @@ fun EditVocArtist(
             )
 
             //ARTIST URL:
-            EditVocDynamicField(
+            EditLibDynamicField(
                 modifier = Modifier
                     .fillMaxWidth(),
-                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textHeaderColor = libColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
-                    colorLight = vocColorSelectorLight(cat = filter),
-                    colorDark = vocColorSelector(cat = filter)
+                    colorLight = libColorSelectorLight(cat = filter),
+                    colorDark = libColorSelector(cat = filter)
                 ),
                 title = "Spotify Profile Link",
                 placeholder = "Paste Spotify link...",
@@ -287,18 +280,18 @@ fun EditVocArtist(
             )
 
             //Section:
-            EditVocSectionTitle(
+            EditLibSectionTitle(
                 title = "Spotify \"This is\""
             )
 
             //SPOTIFY "THIS IS":
-            EditVocDynamicField(
+            EditLibDynamicField(
                 modifier = Modifier
                     .fillMaxWidth(),
-                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textHeaderColor = libColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
-                    colorLight = vocColorSelectorLight(cat = filter),
-                    colorDark = vocColorSelector(cat = filter)
+                    colorLight = libColorSelectorLight(cat = filter),
+                    colorDark = libColorSelector(cat = filter)
                 ),
                 title = "Spotify \"This is\" Playlist Link",
                 placeholder = "Paste Spotify link...",
@@ -306,8 +299,8 @@ fun EditVocArtist(
             )
 
             //DEFAULT PLAY: DROPDOWN:
-            EditVocTitle(
-                textHeaderColor = vocColorSelectorLight(cat = filter),
+            EditLibTitle(
+                textHeaderColor = libColorSelectorLight(cat = filter),
                 title = "Play by default",
             )
 
@@ -316,24 +309,24 @@ fun EditVocArtist(
                 parentOptions = playOptionsValToKeys.keys.toList(),
                 init = initDefaultPlay,
                 state = textDefaultPlay,
-                focusColorLight = vocColorSelectorLight(cat = filter),
-                focusColorDark = vocColorSelector(cat = filter)
+                focusColorLight = libColorSelectorLight(cat = filter),
+                focusColorDark = libColorSelector(cat = filter)
             )
 
             //Section:
-            EditVocSectionTitle(
+            EditLibSectionTitle(
                 title = "Spotify Radio & Mix"
             )
 
 
             //SPOTIFY "RADIO":
-            EditVocDynamicField(
+            EditLibDynamicField(
                 modifier = Modifier
                     .fillMaxWidth(),
-                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textHeaderColor = libColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
-                    colorLight = vocColorSelectorLight(cat = filter),
-                    colorDark = vocColorSelector(cat = filter)
+                    colorLight = libColorSelectorLight(cat = filter),
+                    colorDark = libColorSelector(cat = filter)
                 ),
                 title = "Spotify \"Artist Radio\" Link",
                 placeholder = "Paste Spotify link...",
@@ -341,13 +334,13 @@ fun EditVocArtist(
             )
 
             //SPOTIFY "MIX":
-            EditVocDynamicField(
+            EditLibDynamicField(
                 modifier = Modifier
                     .fillMaxWidth(),
-                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textHeaderColor = libColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
-                    colorLight = vocColorSelectorLight(cat = filter),
-                    colorDark = vocColorSelector(cat = filter)
+                    colorLight = libColorSelectorLight(cat = filter),
+                    colorDark = libColorSelector(cat = filter)
                 ),
                 title = "Spotify \"Artist Mix\" Link",
                 placeholder = "Paste Spotify link...",

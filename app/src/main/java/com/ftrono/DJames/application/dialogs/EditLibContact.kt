@@ -26,31 +26,31 @@ import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.Contact
 import com.ftrono.DJames.be.database.PhoneSet
-import com.ftrono.DJames.application.screens.VocabularyScreen
+import com.ftrono.DJames.application.screens.LibraryScreen
 import com.ftrono.DJames.be.samples.testContacts
 import com.ftrono.DJames.ui.components.CustomCheckbox
 import com.ftrono.DJames.ui.components.DropdownSpinner
 import com.ftrono.DJames.ui.dialogs.DialogRequestDetail
 import com.ftrono.DJames.ui.components.EditPhoneDynamicField
-import com.ftrono.DJames.ui.dialogs.EditVocDialog
-import com.ftrono.DJames.ui.components.EditVocDynamicField
-import com.ftrono.DJames.ui.components.EditVocDynamicNameSection
+import com.ftrono.DJames.ui.dialogs.EditLibDialog
+import com.ftrono.DJames.ui.components.EditLibDynamicField
+import com.ftrono.DJames.ui.components.EditLibDynamicNameSection
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
-import com.ftrono.DJames.ui.selectors.vocColorSelector
-import com.ftrono.DJames.ui.selectors.vocColorSelectorLight
-import com.ftrono.DJames.ui.selectors.vocIconSelector
+import com.ftrono.DJames.ui.selectors.libColorSelector
+import com.ftrono.DJames.ui.selectors.libColorSelectorLight
+import com.ftrono.DJames.ui.selectors.libIconSelector
 
 
 @Preview
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
 fun DialogEditContactPreview() {
-    VocabularyScreen(editPreview="contact", preview=true)
+    LibraryScreen(editPreview="contact", preview=true)
 }
 
 
 @Composable
-fun EditVocContact(
+fun EditLibContact(
     context: Context,
     libraryItems: MutableState<List<String>>,
     idState: MutableState<Long>,
@@ -126,14 +126,14 @@ fun EditVocContact(
         val keyboardController = LocalSoftwareKeyboardController.current
 
         //MAIN:
-        EditVocDialog(
+        EditLibDialog(
             modifier = Modifier
                 .clickable {
                     focusManager.clearFocus()
                 },
             title = filter,
-            headerColor = vocColorSelectorLight(cat = filter),
-            headerPainter = vocIconSelector(cat = filter),
+            headerColor = libColorSelectorLight(cat = filter),
+            headerPainter = libIconSelector(cat = filter),
             showRefresh = false,
             onDismiss = {
                 onDismiss()
@@ -183,11 +183,11 @@ fun EditVocContact(
             }
         ) {
             //CONTACT NAME:
-            EditVocDynamicNameSection(
-                textHeaderColor = vocColorSelectorLight(cat = filter),
+            EditLibDynamicNameSection(
+                textHeaderColor = libColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
-                    colorLight = vocColorSelectorLight(cat = filter),
-                    colorDark = vocColorSelector(cat = filter)
+                    colorLight = libColorSelectorLight(cat = filter),
+                    colorDark = libColorSelector(cat = filter)
                 ),
                 filter = filter,
                 textState = textName,
@@ -198,13 +198,13 @@ fun EditVocContact(
             )
 
             //CONTACT ALIASES:
-            EditVocDynamicField(
+            EditLibDynamicField(
                 modifier = Modifier
                     .fillMaxWidth(),
-                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textHeaderColor = libColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
-                    colorLight = vocColorSelectorLight(cat = filter),
-                    colorDark = vocColorSelector(cat = filter)
+                    colorLight = libColorSelectorLight(cat = filter),
+                    colorDark = libColorSelector(cat = filter)
                 ),
                 title = "Aliases (separate with commas)",
                 placeholder = "Write aliases here...",
@@ -214,10 +214,10 @@ fun EditVocContact(
 
             //CONTACT PHONE:
             EditPhoneDynamicField(
-                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textHeaderColor = libColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
-                    colorLight = vocColorSelectorLight(cat = filter),
-                    colorDark = vocColorSelector(cat = filter)
+                    colorLight = libColorSelectorLight(cat = filter),
+                    colorDark = libColorSelector(cat = filter)
                 ),
                 title = "Main phone",
                 textPrefix = textPrefix,
@@ -229,7 +229,7 @@ fun EditVocContact(
                 modifier = Modifier
                     .padding(bottom = if (checkedLang.value) 0.dp else 6.dp),
                 checkedState = checkedLang,
-                checkedColor = vocColorSelectorLight(cat = filter),
+                checkedColor = libColorSelectorLight(cat = filter),
                 textColor = if (checkedLang.value) colorResource(id = R.color.light_grey) else colorResource(
                     id = R.color.mid_grey
                 ),
@@ -250,8 +250,8 @@ fun EditVocContact(
                     parentOptions = messLangFull,
                     init = messLangFull[messLangCodes.indexOf(initLanguage)],
                     state = textLanguage,
-                    focusColorLight = vocColorSelectorLight(cat = filter),
-                    focusColorDark = vocColorSelector(cat = filter)
+                    focusColorLight = libColorSelectorLight(cat = filter),
+                    focusColorDark = libColorSelector(cat = filter)
                 )
             } else {
                 textLanguage.value = ""

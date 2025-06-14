@@ -81,7 +81,7 @@ fun HomeScreen(
 
     val sharedLinkState by sharedLink.observeAsState()
     if (sharedLinkState != "") {
-        val curNavRoute = NavigationItem.Vocabulary.route
+        val curNavRoute = NavigationItem.Library.route
         navigateTo(navController, curNavRoute)
         lastNavRoute = curNavRoute
     }

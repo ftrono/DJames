@@ -21,18 +21,18 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.Playlist
-import com.ftrono.DJames.application.screens.VocabularyScreen
+import com.ftrono.DJames.application.screens.LibraryScreen
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.be.samples.testPlaylists
 import com.ftrono.DJames.ui.components.CustomCheckbox
 import com.ftrono.DJames.ui.dialogs.DialogRequestDetail
-import com.ftrono.DJames.ui.dialogs.EditVocDialog
-import com.ftrono.DJames.ui.components.EditVocDynamicField
-import com.ftrono.DJames.ui.components.EditVocDynamicNameSection
+import com.ftrono.DJames.ui.dialogs.EditLibDialog
+import com.ftrono.DJames.ui.components.EditLibDynamicField
+import com.ftrono.DJames.ui.components.EditLibDynamicNameSection
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
-import com.ftrono.DJames.ui.selectors.vocColorSelector
-import com.ftrono.DJames.ui.selectors.vocColorSelectorLight
-import com.ftrono.DJames.ui.selectors.vocIconSelector
+import com.ftrono.DJames.ui.selectors.libColorSelector
+import com.ftrono.DJames.ui.selectors.libColorSelectorLight
+import com.ftrono.DJames.ui.selectors.libIconSelector
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
 
@@ -41,12 +41,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
 fun DialogEditPlaylistPreview() {
-    VocabularyScreen(editPreview="playlist", preview=true)
+    LibraryScreen(editPreview="playlist", preview=true)
 }
 
 
 @Composable
-fun EditVocPlaylist(
+fun EditLibPlaylist(
     context: Context,
     libraryItems: MutableState<List<String>>,
     idState: MutableState<Long>,
@@ -112,14 +112,14 @@ fun EditVocPlaylist(
         val keyboardController = LocalSoftwareKeyboardController.current
 
         //MAIN:
-        EditVocDialog(
+        EditLibDialog(
             modifier = Modifier
                 .clickable {
                     focusManager.clearFocus()
                 },
             title = filter,
-            headerColor = vocColorSelectorLight(cat = filter),
-            headerPainter = vocIconSelector(cat = filter),
+            headerColor = libColorSelectorLight(cat = filter),
+            headerPainter = libIconSelector(cat = filter),
             showRefresh = true,
             onRefresh = {
                 itemPlaylist = spotifyUtils.getPlaylistInfo(context, textPlayUrl.value, itemPlaylist, init=false)
@@ -138,7 +138,7 @@ fun EditVocPlaylist(
                 if (!requestDetailOn.value && textName.value != "") {
                     //2) Update object:
                     val aliasesList = mutableListOf(utils.cleanString(textName.value).lowercase())
-                    Log.d("EditVocPlaylist", "$aliasesList")
+                    Log.d("EditLibPlaylist", "$aliasesList")
                     if (textAliases.value != "") {
                         for (alias in textAliases.value.split(",")) {
                             val temp = utils.cleanString(alias).lowercase()
@@ -166,11 +166,11 @@ fun EditVocPlaylist(
         ) {
             //CONTENT:
             //PLAYLIST NAME:
-            EditVocDynamicNameSection(
-                textHeaderColor = vocColorSelectorLight(cat = filter),
+            EditLibDynamicNameSection(
+                textHeaderColor = libColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
-                    colorLight = vocColorSelectorLight(cat = filter),
-                    colorDark = vocColorSelector(cat = filter)
+                    colorLight = libColorSelectorLight(cat = filter),
+                    colorDark = libColorSelector(cat = filter)
                 ),
                 filter = filter,
                 textState = textName,
@@ -181,13 +181,13 @@ fun EditVocPlaylist(
             )
 
             //PLAYLIST ALIASES:
-            EditVocDynamicField(
+            EditLibDynamicField(
                 modifier = Modifier
                     .fillMaxWidth(),
-                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textHeaderColor = libColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
-                    colorLight = vocColorSelectorLight(cat = filter),
-                    colorDark = vocColorSelector(cat = filter)
+                    colorLight = libColorSelectorLight(cat = filter),
+                    colorDark = libColorSelector(cat = filter)
                 ),
                 title = "Aliases (separate with commas)",
                 placeholder = "Write aliases here...",
@@ -196,13 +196,13 @@ fun EditVocPlaylist(
             )
 
             //PLAYLIST URL:
-            EditVocDynamicField(
+            EditLibDynamicField(
                 modifier = Modifier
                     .fillMaxWidth(),
-                textHeaderColor = vocColorSelectorLight(cat = filter),
+                textHeaderColor = libColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
-                    colorLight = vocColorSelectorLight(cat = filter),
-                    colorDark = vocColorSelector(cat = filter)
+                    colorLight = libColorSelectorLight(cat = filter),
+                    colorDark = libColorSelector(cat = filter)
                 ),
                 title = "Spotify Playlist Link",
                 placeholder = "Paste Spotify link...",
@@ -214,7 +214,7 @@ fun EditVocPlaylist(
                 modifier = Modifier
                     .padding(bottom = 5.dp),
                 checkedState = checkedSpotify,
-                checkedColor = vocColorSelectorLight(cat = filter),
+                checkedColor = libColorSelectorLight(cat = filter),
                 textColor = colorResource(id = R.color.light_grey),
                 text = "By Spotify",
                 onClickExtra = {

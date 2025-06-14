@@ -50,14 +50,14 @@ import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
-import com.ftrono.DJames.ui.selectors.vocColorSelector
-import com.ftrono.DJames.ui.selectors.vocColorSelectorLight
-import com.ftrono.DJames.ui.selectors.vocIconSelector
+import com.ftrono.DJames.ui.selectors.libColorSelector
+import com.ftrono.DJames.ui.selectors.libColorSelectorLight
+import com.ftrono.DJames.ui.selectors.libIconSelector
 
 
-//EDIT VOC COMPONENTS:
+//EDIT LIB COMPONENTS:
 @Composable
-fun EditVocTitle(
+fun EditLibTitle(
     modifier: Modifier = Modifier,
     textHeaderColor: Color = colorResource(id = R.color.light_grey),
     fontSize: TextUnit = 16.sp,
@@ -82,15 +82,15 @@ fun EditVocTitle(
 
 @Preview
 @Composable
-fun EditVocDynamicFieldPreview() {
+fun EditLibDynamicFieldPreview() {
     val textName = rememberSaveable { mutableStateOf("sample text") }
-    val textHeaderColor = vocColorSelectorLight(cat = "artist")
+    val textHeaderColor = libColorSelectorLight(cat = "artist")
     val textFieldColors = getTextFieldColors(
-        colorLight = vocColorSelectorLight(cat = "artist"),
-        colorDark = vocColorSelector(cat = "artist")
+        colorLight = libColorSelectorLight(cat = "artist"),
+        colorDark = libColorSelector(cat = "artist")
     )
 
-    EditVocDynamicField(
+    EditLibDynamicField(
         modifier = Modifier
             .fillMaxWidth(),
         textHeaderColor = textHeaderColor,
@@ -103,7 +103,7 @@ fun EditVocDynamicFieldPreview() {
 
 
 @Composable
-fun EditVocDynamicField(
+fun EditLibDynamicField(
     modifier: Modifier = Modifier,
     textHeaderColor: Color = colorResource(id = R.color.light_grey),
     textFieldColors: TextFieldColors,
@@ -137,7 +137,7 @@ fun EditVocDynamicField(
     ) {
 
         //Title:
-        EditVocTitle(
+        EditLibTitle(
             textHeaderColor = textHeaderColor,
             fontSize = 16.sp,
             title = if (!isActive && title.contains("(")) title.slice(
@@ -237,7 +237,7 @@ fun EditPhoneDynamicField(
     }
 
     //Title:
-    EditVocTitle(
+    EditLibTitle(
         textHeaderColor = textHeaderColor,
         fontSize = fontSize,
         title = title,
@@ -346,15 +346,15 @@ fun EditPhoneDynamicField(
 
 @Preview
 @Composable
-fun EditVocSectionTitlePreview() {
-    EditVocSectionTitle(
+fun EditLibSectionTitlePreview() {
+    EditLibSectionTitle(
         title = "DESTINATION ADDRESS"
     )
 }
 
 
 @Composable
-fun EditVocSectionTitle(
+fun EditLibSectionTitle(
     title: String
 ) {
     Text(
@@ -372,17 +372,17 @@ fun EditVocSectionTitle(
 
 @Preview
 @Composable
-fun EditVocDynamicNameSectionPreview() {
+fun EditLibDynamicNameSectionPreview() {
     val textName = rememberSaveable { mutableStateOf("") }
     val subtitle = rememberSaveable { mutableStateOf("Alternative Rock") }
     val imageUrlState = rememberSaveable { mutableStateOf("") }
-    val textHeaderColor = vocColorSelectorLight(cat = "artist")
+    val textHeaderColor = libColorSelectorLight(cat = "artist")
     val textFieldColors = getTextFieldColors(
-        colorLight = vocColorSelectorLight(cat = "artist"),
-        colorDark = vocColorSelector(cat = "artist")
+        colorLight = libColorSelectorLight(cat = "artist"),
+        colorDark = libColorSelector(cat = "artist")
     )
 
-    EditVocDynamicNameSection(
+    EditLibDynamicNameSection(
         modifier = Modifier.fillMaxWidth(),
         textHeaderColor = textHeaderColor,
         textFieldColors = textFieldColors,
@@ -397,7 +397,7 @@ fun EditVocDynamicNameSectionPreview() {
 
 
 @Composable
-fun EditVocDynamicNameSection(
+fun EditLibDynamicNameSection(
     modifier: Modifier = Modifier,
     textHeaderColor: Color,
     textFieldColors: TextFieldColors,
@@ -451,10 +451,10 @@ fun EditVocDynamicNameSection(
                         },
                     signSize = 70.dp,
                     iconSize = 40.dp,
-                    backgroundColor = vocColorSelector(cat = filter),
+                    backgroundColor = libColorSelector(cat = filter),
                     borderColor = colorResource(id = R.color.midfaded_grey),
                     iconColor = colorResource(id = R.color.light_grey),
-                    iconPainter = vocIconSelector(cat = filter),
+                    iconPainter = libIconSelector(cat = filter),
                     imageUrl = imageUrlState.value,
                     circle = filter != "playlist" && filter != "podcast" && filter != "route"
                 )
@@ -511,7 +511,7 @@ fun EditVocDynamicNameSection(
             }
         } else {
             //Title:
-            EditVocTitle(
+            EditLibTitle(
                 textHeaderColor = textHeaderColor,
                 fontSize = 16.sp,
                 title = "Name",

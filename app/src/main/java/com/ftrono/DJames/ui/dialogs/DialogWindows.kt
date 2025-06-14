@@ -60,10 +60,10 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.showLoggingIn
-import com.ftrono.DJames.ui.components.EditVocTitle
+import com.ftrono.DJames.ui.components.EditLibTitle
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
-import com.ftrono.DJames.ui.selectors.vocColorSelectorLight
-import com.ftrono.DJames.ui.selectors.vocIconSelector
+import com.ftrono.DJames.ui.selectors.libColorSelectorLight
+import com.ftrono.DJames.ui.selectors.libIconSelector
 
 
 // DIALOG WINDOWS:
@@ -170,23 +170,23 @@ fun DialogLoading(
 
 @Preview
 @Composable
-fun DialogEditVocPreview() {
+fun DialogEditLibPreview() {
     val filter = "artist"
     Dialog (
         onDismissRequest = {}
     ) {
-        EditVocDialog(
+        EditLibDialog(
             title = filter,
-            headerColor = vocColorSelectorLight(cat = filter),
-            headerPainter = vocIconSelector(cat = filter)
+            headerColor = libColorSelectorLight(cat = filter),
+            headerPainter = libIconSelector(cat = filter)
         )
     }
 }
 
 
-//Main Container: EditVocDialog:
+//Main Container: EditLibDialog:
 @Composable
-fun EditVocDialog(
+fun EditLibDialog(
     modifier: Modifier = Modifier,
     title: String,
     headerColor: Color,
@@ -226,7 +226,7 @@ fun EditVocDialog(
         ) {
 
             //TITLE:
-            EditVocHeader(
+            EditLibHeader(
                 title = title,
                 color = headerColor,
                 painter = headerPainter,
@@ -265,9 +265,9 @@ fun EditVocDialog(
 }
 
 
-//EditVoc Header:
+//EditLib Header:
 @Composable
-fun EditVocHeader(
+fun EditLibHeader(
     title: String,
     color: Color,
     icon: ImageVector? = null,
@@ -427,7 +427,7 @@ fun AddLinkDialog(
             usePlatformDefaultWidth = true
         )
     ) {
-        EditVocDialog(
+        EditLibDialog(
             modifier = modifier
                 .fillMaxWidth()
                 .focusRequester(focusRequester),
@@ -440,7 +440,7 @@ fun AddLinkDialog(
             smallHeader = false,
             showRefresh = false,
         ) {
-            EditVocTitle(
+            EditLibTitle(
                 title = textBoxHeader,
                 textHeaderColor = headerColor,
             )

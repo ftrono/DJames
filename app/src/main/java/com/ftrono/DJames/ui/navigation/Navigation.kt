@@ -24,7 +24,7 @@ import com.ftrono.DJames.application.screens.GuideScreen
 import com.ftrono.DJames.application.screens.HistoryScreen
 import com.ftrono.DJames.application.screens.HomeScreen
 import com.ftrono.DJames.application.screens.SettingsScreen
-import com.ftrono.DJames.application.screens.VocabularyScreen
+import com.ftrono.DJames.application.screens.LibraryScreen
 import com.ftrono.DJames.ui.theme.NavigationItem
 
 
@@ -84,9 +84,9 @@ fun Navigation(navController: NavHostController) {
             GuideScreen(navController)
         }
 
-        //2 -> VOCABULARY:
+        //2 -> LIBRARY:
         composable(
-            NavigationItem.Vocabulary.route,
+            NavigationItem.Library.route,
             enterTransition = {
                 fadeIn(
                     animationSpec = tween(
@@ -104,7 +104,7 @@ fun Navigation(navController: NavHostController) {
             curNavId = 2
             innerNavOpen.postValue(false)
             settingsOpen.postValue(false)
-            VocabularyScreen()
+            LibraryScreen()
         }
 
         //3 -> HISTORY:

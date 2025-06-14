@@ -11,11 +11,11 @@ import kotlin.math.roundToInt
 class NLPMatcher (private val context: Context) {
     private val TAG = NLPMatcher::class.java.simpleName
 
-    //Match item from user query against user vocabulary:
-    fun matchVocabulary(filter: String, text: String, threshold: Int = midThreshold): Long {
+    //Match item from user query against user library:
+    fun matchLibrary(filter: String, text: String, threshold: Int = midThreshold): Long {
         var matchId = -1L
-        val vocMap = libUtils.getAliasesMap(filter)
-        if (text != "" && vocMap.isNotEmpty()) {
+        val libMap = libUtils.getAliasesMap(filter)
+        if (text != "" && libMap.isNotEmpty()) {
             //Init:
             var score = 0
             val listEvalued = text.split(", ")
@@ -25,10 +25,10 @@ class NLPMatcher (private val context: Context) {
             //Check each evaluated item:
             for (eval in listEvalued) {
                 //Check each artist id:
-                for (curId in vocMap.keys) {
+                for (curId in libMap.keys) {
                     val aliasScores = mutableListOf<Int>()
                     //Check each alias:
-                    for (curAlias in vocMap[curId]!!) {
+                    for (curAlias in libMap[curId]!!) {
                         if (filter == "playlist") {
                             val namePartial = FuzzySearch.partialRatio(curAlias, eval.lowercase())
                             val nameFull = FuzzySearch.ratio(curAlias, eval.lowercase())
@@ -36,7 +36,7 @@ class NLPMatcher (private val context: Context) {
                         } else {
                             score = FuzzySearch.ratio(curAlias, eval.lowercase())
                         }
-                        Log.d(TAG, "VOC CONFIRMATION: COMPARING $curAlias WITH ${eval.lowercase()}, MATCH: $score")
+                        Log.d(TAG, "LIB CONFIRMATION: COMPARING $curAlias WITH ${eval.lowercase()}, MATCH: $score")
                         aliasScores.add(score)
                     }
                     //Get Max alias score and add globally only if high enough:
@@ -50,14 +50,14 @@ class NLPMatcher (private val context: Context) {
                     val sortedScores = scoresMap.toList().sortedByDescending { it.second }.toMap()
                     Log.d(TAG, "SORTED MAP FOR $eval: $sortedScores")
                     listConfirmed.add(sortedScores.keys.toList()[0])
-                    lastLog.keyInfo.vocScore = sortedScores.values.toList()[0]
+                    lastLog.keyInfo.libScore = sortedScores.values.toList()[0]
                 }
             }
             //Final:
             if (listConfirmed.isNotEmpty()) {
                 Log.d(TAG, "listConfirmed: $listConfirmed")
                 matchId = listConfirmed[0]
-                Log.d(TAG, "VOCABULARY MATCH ID: $matchId, ALIASES: ${vocMap[matchId]!!}")
+                Log.d(TAG, "LIBRARY MATCH ID: $matchId, ALIASES: ${libMap[matchId]!!}")
             }
         }
         return matchId

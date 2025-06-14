@@ -246,11 +246,11 @@ class SpotifyFulfillment (private var context: Context) {
         var contextExtracted = extractorInfo.contextExtracted
 
         if (artistExtracted != "") {
-            //Confirm artists with vocabulary check:
+            //Confirm artists with library check:
             artistConfirmed = nlpExtractor.checkArtists(resultsNLP.artists, artistExtracted, reqLangCode)
-            val vocMatchId = nlpMatcher.matchVocabulary("artist", artistConfirmed)
-            if (vocMatchId > -1) {
-                artistConfirmed = libUtils.getItemName("artist", vocMatchId)
+            val libMatchId = nlpMatcher.matchLibrary("artist", artistConfirmed)
+            if (libMatchId > -1) {
+                artistConfirmed = libUtils.getItemName("artist", libMatchId)
             }
             extractorInfo.artistConfirmed = artistConfirmed
         }
@@ -282,14 +282,14 @@ class SpotifyFulfillment (private var context: Context) {
                 playable.contextUri = likedSongsUri.replace("replaceUserId", prefs.spotUserId)
 
             } else if (playType == "track" && contextExtracted != "") {
-                //Confirm context playlist with vocabulary check:
+                //Confirm context playlist with library check:
                 val nlpMatcher = NLPMatcher(context)
-                val vocMatchId = nlpMatcher.matchVocabulary("playlist", contextExtracted)
+                val libMatchId = nlpMatcher.matchLibrary("playlist", contextExtracted)
 
-                if (vocMatchId > -1) {
-                    Log.d(TAG, "Context -> Playlist in voc")
+                if (libMatchId > -1) {
+                    Log.d(TAG, "Context -> Playlist in lib")
                     //Get playlist URL:
-                    val itemInfo = libUtils.getItemInfoUse("playlist", vocMatchId)
+                    val itemInfo = libUtils.getItemInfoUse("playlist", libMatchId)
                     playable.contextType = "playlist"
                     playable.contextName = itemInfo.name
                     extractorInfo.contextConfirmed = itemInfo.name
@@ -365,13 +365,13 @@ class SpotifyFulfillment (private var context: Context) {
 
         // A) ARTIST:
         if (playType == "artist") {
-            //Confirm artists with vocabulary check:
+            //Confirm artists with library check:
             val artistExtracted = nlpExtractor.checkArtists(resultsNLP.artists, matchName, reqLangCode)
-            val vocMatchId = nlpMatcher.matchVocabulary("artist", artistExtracted)
+            val libMatchId = nlpMatcher.matchLibrary("artist", artistExtracted)
 
-            if (vocMatchId > -1) {
+            if (libMatchId > -1) {
                 //Build playable:
-                val itemInfo = libUtils.getItemInfoUse("artist", vocMatchId)
+                val itemInfo = libUtils.getItemInfoUse("artist", libMatchId)
                 //Match playLinkName:
                 val playLinks = itemInfo.playLinks
                 val matchedPlayName = if (playLinks.containsKey(reqPlayLinkName)) reqPlayLinkName else itemInfo.defaultKey
@@ -381,7 +381,7 @@ class SpotifyFulfillment (private var context: Context) {
                     playable.id = spotifyUtils.getSpotifyID(itemInfo.url)
                     playable.name = itemInfo.name
                 } else {
-                    Log.d(TAG, "PLAY -> Artist playlist in voc")
+                    Log.d(TAG, "PLAY -> Artist playlist in lib")
                     val playLink = itemInfo.playLinks[matchedPlayName]!!
                     playType = "playlist"
                     playable.type = playType
@@ -393,14 +393,14 @@ class SpotifyFulfillment (private var context: Context) {
 
         //B) PLAYLIST:
         } else if (playType == "playlist") {
-            //Check playlist in vocabulary:
+            //Check playlist in library:
             val nlpMatcher = NLPMatcher(context)
-            val vocMatchId = nlpMatcher.matchVocabulary(playType, matchName)
+            val libMatchId = nlpMatcher.matchLibrary(playType, matchName)
 
-            if (vocMatchId > -1) {
+            if (libMatchId > -1) {
                 //Build playable:
-                Log.d(TAG, "PLAY -> Playlist in voc")
-                val itemInfo = libUtils.getItemInfoUse(playType, vocMatchId)
+                Log.d(TAG, "PLAY -> Playlist in lib")
+                val itemInfo = libUtils.getItemInfoUse(playType, libMatchId)
                 playable.name = itemInfo.name
                 playable.owner = itemInfo.detail
                 playable.id = spotifyUtils.getSpotifyID(itemInfo.url)
@@ -507,11 +507,11 @@ class SpotifyFulfillment (private var context: Context) {
 
 
         //PODCAST:
-        val vocMatchId = nlpMatcher.matchVocabulary(playType, matchName)
-        if (vocMatchId > -1) {
-            Log.d(TAG, "PLAY -> Podcast in voc")
+        val libMatchId = nlpMatcher.matchLibrary(playType, matchName)
+        if (libMatchId > -1) {
+            Log.d(TAG, "PLAY -> Podcast in lib")
             //1) Context -> Podcast:
-            val itemInfo = libUtils.getItemInfoUse(playType, vocMatchId)
+            val itemInfo = libUtils.getItemInfoUse(playType, libMatchId)
             val podcastId = spotifyUtils.getSpotifyID(itemInfo.url)
             playable.contextType = "podcast"
             playable.contextUri = "$spotIntroUri:$podcastId:$podcastId"

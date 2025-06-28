@@ -9,9 +9,7 @@ import android.net.Uri
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.recFileName
-import com.ftrono.DJames.application.recordingDir
 import java.io.File
-import androidx.core.net.toUri
 
 
 fun sendSMS(context: Context, contactPhone: String, contactName: String, reqLangCode: String): String {
@@ -57,7 +55,7 @@ fun sendWhatsappText(context: Context, contactPhone: String, contactName: String
 
 fun sendWhatsappAudio(context: Context, contactName: String): String {
     //SEND WHATSAPP AUDIO:
-    val audioFile = File(recordingDir, "$recFileName.mp3")
+    val audioFile = File(context.cacheDir, "$recFileName.mp3")
     val uri = FileProvider.getUriForFile(context, "com.ftrono.DJames.provider", audioFile)
 
     val intent = Intent(Intent.ACTION_SEND).apply {

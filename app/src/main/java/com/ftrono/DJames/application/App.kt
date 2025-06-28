@@ -7,7 +7,6 @@ import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.util.Log
 import android.net.Uri
-import android.os.Environment
 import net.openid.appauth.AuthorizationServiceConfiguration
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.application.App.ObjectBox.store
@@ -95,7 +94,6 @@ val maxThreshold = 70
 val midThreshold = 60
 val recSamplingRate = 44100
 val queryTimeout = 5   //seconds
-val recordingDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 val recFileName = "DJames_request"
 var enablePlayerInfo = false
 

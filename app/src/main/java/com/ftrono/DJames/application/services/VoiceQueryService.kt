@@ -12,7 +12,6 @@ import android.graphics.Color
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.ToneGenerator
-import android.os.Environment
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -28,7 +27,6 @@ import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recordingMode
 import com.ftrono.DJames.application.reqPlayLinkName
-import com.ftrono.DJames.application.recordingDir
 import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.application.searchFail
 import com.ftrono.DJames.application.silenceInitPatience
@@ -39,7 +37,6 @@ import com.ftrono.DJames.be.models.DispatcherInfo
 import com.ftrono.DJames.be.nlp.NLPDispatcher
 import com.ftrono.DJames.be.recorder.AndroidAudioRecorder
 import com.ftrono.DJames.be.recorder.AudioRecorder
-import com.google.gson.JsonObject
 import java.io.File
 
 
@@ -180,10 +177,10 @@ class VoiceQueryService: Service() {
                 toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
             }
 
-            //Start recording (default: cacheDir, alternative: recordingDir):
+            //Start recording (default: cacheDir):
             recordingMode = true
             rec_time = 0
-            MyRecorder.start(recordingDir)
+            MyRecorder.start(applicationContext.cacheDir)
 
             //Start rec Thread:
             var recThread = Thread {

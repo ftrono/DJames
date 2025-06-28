@@ -20,6 +20,7 @@ data class DispatcherInfo(
     var playAcknowledge: Boolean = false,   //play the acknowledge tone
     var followUp: Boolean = false,   //generic
     var messageMode: Boolean = false,   //specific for messages only
+    var messageType: String = "",
     var toastText: String = "",
     var intentName: String = "Fallback",
     var reqLanguage: String = "",

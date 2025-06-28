@@ -2,7 +2,6 @@ package com.ftrono.DJames.be.nlp
 
 import android.content.Context
 import android.content.Intent
-import android.telephony.SmsManager
 import android.util.Log
 import com.ftrono.DJames.application.ACTION_MAKE_CALL
 import com.ftrono.DJames.application.ACTION_TOASTER
@@ -22,7 +21,9 @@ import com.ftrono.DJames.be.database.ExtractorInfo
 import com.ftrono.DJames.be.database.ItemInfoUse
 import com.ftrono.DJames.be.database.NlpQueryModel
 import com.ftrono.DJames.be.models.DispatcherInfo
-import com.google.gson.JsonObject
+import com.ftrono.DJames.be.tools.sendSMS
+import com.ftrono.DJames.be.tools.sendWhatsappAudio
+import com.ftrono.DJames.be.tools.sendWhatsappText
 
 
 class GenericFulfillment (private var context: Context) {
@@ -128,8 +129,15 @@ class GenericFulfillment (private var context: Context) {
                     }
                 }
 
+                //Extract message type:
+                dispatcherInfo.messageType = nlpExtractor.extractMessageType(nlp_queryText)
+
                 //Read:
-                var ttsToRead = "Please, dictate the message for ${itemInfo.name} in $reqLangName."
+                var ttsToRead = if (dispatcherInfo.messageType == "voice") {
+                    "Please, record the voice message for ${itemInfo.name}."
+                } else {
+                    "Please, dictate the ${dispatcherInfo.messageType} message for ${itemInfo.name} in $reqLangName."
+                }
                 val itemsToRead = listOf(
                     mapOf(
                         "language" to prefs.queryLanguage,
@@ -168,36 +176,42 @@ class GenericFulfillment (private var context: Context) {
             var itemInfo = prevDispatch.usable
             val defaultPhoneSet = itemInfo.phoneSets[itemInfo.defaultKey]!!   //TODO: add multiple phones
             val contactPhone = "${defaultPhoneSet.prefix}${defaultPhoneSet.phone}"
+            var ttsToRead = ""
+            var toastText = ""
 
-            //Send SMS:
-            val smsManager: SmsManager = SmsManager.getDefault()
-            var messageText = fulfillmentUtils.replaceEmojis(context=context, text=nlp_queryText, reqLanguage=reqLangCode)
-
-            val parts = smsManager.divideMessage(messageText)
-            smsManager.sendMultipartTextMessage(contactPhone, null, parts, null, null)
-            //smsManager.sendTextMessage(phone, null, messageText, null, null)
+            if (prevDispatch.messageType == "voice") {
+                //SEND WHATSAPP AUDIO:
+                ttsToRead = sendWhatsappAudio(context, itemInfo.name)
+                toastText = "Voice message ready: use Whatsapp to SEND!"
+            } else if (prevDispatch.messageType == "whatsapp") {
+                //SEND WHATSAPP TEXT:
+                ttsToRead = sendWhatsappText(context, contactPhone, itemInfo.name, reqLangCode)
+                toastText = "Text message ready: use Whatsapp to SEND!"
+            } else {
+                //SEND SMS:
+                ttsToRead = sendSMS(context, contactPhone, itemInfo.name, reqLangCode)
+                toastText = "SMS sent to ${itemInfo.name.uppercase()}!"
+            }
 
             //TOAST -> Send broadcast:
             Intent().also { intent ->
                 intent.setAction(ACTION_TOASTER)
-                intent.putExtra("toastText", "SMS sent to ${itemInfo.name.uppercase()}")
+                intent.putExtra("toastText", ttsToRead)
                 context.sendBroadcast(intent)
             }
 
             //Read:
-            var ttsToRead = "Message sent to ${itemInfo.name}!"
             val itemsToRead = listOf(
                 mapOf(
                     "language" to prefs.queryLanguage,
-                    "text" to ttsToRead
+                    "text" to ttsToRead.lowercase()
                 )
             )
             fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
 
-
         } catch (e: Exception) {
             Log.w(TAG, "sendMessage2: EXCEPTION: ", e)
-            return fulfillmentUtils.fallback("ERROR: SMS not sent!")
+            return fulfillmentUtils.fallback("ERROR: Message not sent!")
         }
 
         dispatcherInfo.end = true

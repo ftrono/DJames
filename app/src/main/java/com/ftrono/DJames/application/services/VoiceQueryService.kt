@@ -23,10 +23,12 @@ import com.ftrono.DJames.application.audioFocusChangeListener
 import com.ftrono.DJames.application.audioFocusRequest
 import com.ftrono.DJames.application.audioManager
 import com.ftrono.DJames.application.fulfillmentUtils
+import com.ftrono.DJames.application.maxAudioRecTimeout
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recordingMode
 import com.ftrono.DJames.application.reqPlayLinkName
+import com.ftrono.DJames.application.recordingDir
 import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.application.searchFail
 import com.ftrono.DJames.application.silenceInitPatience
@@ -45,7 +47,6 @@ class VoiceQueryService: Service() {
 
     //Main:
     private val TAG = VoiceQueryService::class.java.simpleName
-    private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
     
     //Recorder:
@@ -179,10 +180,10 @@ class VoiceQueryService: Service() {
                 toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
             }
 
-            //Start recording (default: cacheDir, alternative: saveDir):
+            //Start recording (default: cacheDir, alternative: recordingDir):
             recordingMode = true
             rec_time = 0
-            MyRecorder.start(saveDir)
+            MyRecorder.start(recordingDir)
 
             //Start rec Thread:
             var recThread = Thread {
@@ -222,7 +223,6 @@ class VoiceQueryService: Service() {
                     }
 
                     AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {
-
                         //START RECORDING:
                         record()
                     }
@@ -367,7 +367,9 @@ class VoiceQueryService: Service() {
             var std = 0
             var curAmpl = 0
             var maxTime = prefs.recTimeout.toLong()
-            if (messageMode) {
+            if (messageMode && dispatcherInfo.messageType == "voice") {
+                maxTime = maxAudioRecTimeout
+            } else if (messageMode) {
                 maxTime = prefs.messageTimeout.toLong()
             }
 

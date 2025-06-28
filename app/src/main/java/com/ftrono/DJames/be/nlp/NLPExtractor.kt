@@ -217,6 +217,19 @@ class NLPExtractor (private val context: Context) {
     }
 
 
+    //SendMessage: Extract type of message to send:
+    fun extractMessageType(queryText: String): String {
+        //TODO: Provisional:
+        var messageType = ""
+        if (queryText.contains("voice") || queryText.contains("vocal") || queryText.contains("audio")) {
+            messageType = "voice"
+        } else if (queryText.contains("whatsapp")) {
+            messageType = "whatsapp"
+        }
+        return messageType
+    }
+
+
     //PlayArtist: Extract name of playLink to play:
     fun extractPlayLink(queryText: String): String {
         //TODO: Provisional:

@@ -11,6 +11,8 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
+**Version 2.5.2 (2025-06-28)** - Add support for sending Whatsapp audio & text messages.
+
 **Version 2.5.1 (2025-06-14)** - Add library import / export from/to file. Finalize renaming of all "Vocabulary" references into "Library".
 
 **Version 2.5.0 (2025-06-09)** - Fulfillment overhaul: replaced JsonObjects() with data classes. Isolated DialogFlow & manual extractions logic. Add HistoryLog() to ObjectBox DB. Restored ids as Long for Library. Moved Guide out of raw Json.

@@ -39,6 +39,7 @@ import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryLangFull
 import com.ftrono.DJames.application.queryLangCodes
 import com.ftrono.DJames.application.screens.restartOverlay
+import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
 
 
@@ -168,7 +169,11 @@ fun DropdownSpinner(
                     onClick = {
                         //UPDATE SELECTION & STATE:
                         selectedOptionText = selectionOption
-                        if (prefName == "overlayPosition") {
+                        if (prefName == "userGender") {
+                            prefs.userGender = selectionOption
+                            state.value = selectionOption
+                            userGender.postValue(selectionOption)
+                        } else if (prefName == "overlayPosition") {
                             prefs.overlayPosition = selectionOption
                             state.value = selectionOption
                             restartOverlay(context)

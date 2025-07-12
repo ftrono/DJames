@@ -9,8 +9,10 @@ import androidx.core.content.FileProvider
 import com.ftrono.DJames.application.ACTION_LOG_REFRESH
 import com.ftrono.DJames.application.appVersion
 import com.ftrono.DJames.application.curHistorySize
+import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.historyBox
 import com.ftrono.DJames.application.lastLog
+import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.be.samples.testHistory
 import io.objectbox.query.QueryBuilder
 import kotlinx.serialization.json.Json
@@ -85,6 +87,10 @@ class HistoryUtils {
         lastLog = HistoryLog()
         lastLog.datetime = now
         lastLog.appVersion = appVersion
+        fulfillmentUtils.saveMessage(
+            type = "ai",
+            text = "Tell me, ${prefs.userGender}!"
+        )
     }
 
 

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.util.Log
 import com.ftrono.DJames.application.ACTION_MAKE_CALL
 import com.ftrono.DJames.application.ACTION_TOASTER
+import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.lastLog
 import com.ftrono.DJames.application.libUtils
@@ -41,6 +42,11 @@ class GenericFulfillment (private var context: Context) {
         //Log:
         logUtils.openLog()
         lastLog.nlpQueries.add(resultsNLP)
+        fulfillmentUtils.saveMessage(
+            type = "user",
+            text = nlp_queryText,
+            langCode = resultsNLP.language
+        )
 
         //Extract contact:
         var extractorInfo = ExtractorInfo()
@@ -54,16 +60,12 @@ class GenericFulfillment (private var context: Context) {
 
         if (libMatchId < 0 || !voiceQueryOn) {
             //Fallback:
-            return fulfillmentUtils.fallback("Sorry, I did not understand!")
+            return fulfillmentUtils.fallback()
 
         } else {
             //Get contact:
             itemInfo = libUtils.getItemInfoUse(filter, libMatchId)
-
-            //Log:
             extractorInfo.matchConfirmed = itemInfo.name
-            lastLog.nlpExtractor = extractorInfo
-            lastLog.usable = itemInfo
 
             //Prepare toast text with actual contact name:
             var toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
@@ -86,7 +88,7 @@ class GenericFulfillment (private var context: Context) {
                 val contactPhone = "${defaultPhoneSet.prefix}${defaultPhoneSet.phone}"
 
                 //Read:
-                var ttsToRead = "Calling ${itemInfo.name}..."
+                val ttsToRead = defaultReplies.replyCalling(itemInfo.name)
                 val itemsToRead = listOf(
                     mapOf(
                         "language" to prefs.queryLanguage,
@@ -95,6 +97,10 @@ class GenericFulfillment (private var context: Context) {
                 )
                 fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio = false)
                 fulfillmentUtils.releaseAudioFocus()
+                fulfillmentUtils.saveMessage(
+                    type = "ai",
+                    text = ttsToRead
+                )
 
                 //dispatcherInfo:
                 dispatcherInfo.end = true
@@ -128,15 +134,16 @@ class GenericFulfillment (private var context: Context) {
                         Log.d(TAG, "Messaging in default language: $reqLangCode")
                     }
                 }
+                extractorInfo.reqLanguage = reqLangCode
 
                 //Extract message type:
                 dispatcherInfo.messageType = nlpExtractor.extractMessageType(nlp_queryText)
 
                 //Read:
                 var ttsToRead = if (dispatcherInfo.messageType == "voice") {
-                    "Please, record the voice message for ${itemInfo.name}."
+                    defaultReplies.replyMessageRecord(itemInfo.name)
                 } else {
-                    "Please, dictate the ${dispatcherInfo.messageType} message for ${itemInfo.name} in $reqLangName."
+                    defaultReplies.replyMessageDictate(itemInfo.name, dispatcherInfo.messageType, reqLangName)
                 }
                 val itemsToRead = listOf(
                     mapOf(
@@ -145,6 +152,10 @@ class GenericFulfillment (private var context: Context) {
                     )
                 )
                 fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
+                fulfillmentUtils.saveMessage(
+                    type = "ai",
+                    text = ttsToRead
+                )
 
                 //dispatcherInfo:
                 dispatcherInfo.usable = itemInfo
@@ -154,10 +165,12 @@ class GenericFulfillment (private var context: Context) {
 
             } else {
                 //Fallback:
-                return fulfillmentUtils.fallback("Sorry, I did not understand!")
+                return fulfillmentUtils.fallback()
             }
 
             //Close log:
+            lastLog.nlpExtractor = extractorInfo
+            lastLog.usable = itemInfo
             logUtils.storeLog(context)
 
             return dispatcherInfo
@@ -208,6 +221,10 @@ class GenericFulfillment (private var context: Context) {
                 )
             )
             fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
+            fulfillmentUtils.saveMessage(
+                type = "ai",
+                text = ttsToRead
+            )
 
         } catch (e: Exception) {
             Log.w(TAG, "sendMessage2: EXCEPTION: ", e)
@@ -228,6 +245,11 @@ class GenericFulfillment (private var context: Context) {
         var dispatcherInfo = DispatcherInfo()
         logUtils.openLog()
         lastLog.nlpQueries.add(resultsNLP)
+        fulfillmentUtils.saveMessage(
+            type = "user",
+            text = nlp_queryText,
+            langCode = resultsNLP.language
+        )
 
         //Detect & process requested languages:
         var detLanguage = resultsNLP.reqLanguage
@@ -248,7 +270,7 @@ class GenericFulfillment (private var context: Context) {
         var ttsToRead = ""
 
         //Read:
-        ttsToRead = "Tell me the route you need in ${reqLangName}."
+        ttsToRead = defaultReplies.replyRouteRequest(reqLangName)
         val itemsToRead = listOf(
             mapOf(
                 "language" to prefs.queryLanguage,
@@ -256,6 +278,10 @@ class GenericFulfillment (private var context: Context) {
             )
         )
         fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
+        fulfillmentUtils.saveMessage(
+            type = "ai",
+            text = ttsToRead
+        )
 
         //dispatcherInfo:
         dispatcherInfo.intentName = resultsNLP.intentName
@@ -294,6 +320,7 @@ class GenericFulfillment (private var context: Context) {
 
         var nlpExtractor = NLPExtractor(context)
         var extractorInfo = ExtractorInfo()
+        extractorInfo.reqLanguage = reqLangCode
 
         //Check route in library:
         val nlpMatcher = NLPMatcher(context)
@@ -328,23 +355,23 @@ class GenericFulfillment (private var context: Context) {
             Thread.sleep(1000)
 
             //Read TTS:
-            var ttsToRead = ""
-            if (itemInfo.detail == "") {
-                ttsToRead = "${itemInfo.name}!"
-            } else {
-                ttsToRead = "${itemInfo.name}, ${itemInfo.detail}!"
-            }
+            var introText = defaultReplies.replyRouteShowIntro()
+            var detailText = defaultReplies.replyRouteShowDetail(itemInfo)
             val itemsToRead = listOf(
                 mapOf(
                     "language" to prefs.queryLanguage,
-                    "text" to "Here's the route to: "
+                    "text" to introText
                 ),
                 mapOf(
                     "language" to routeLanguage,
-                    "text" to ttsToRead
+                    "text" to detailText
                 )
             )
             fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=true)
+            fulfillmentUtils.saveMessage(
+                type = "ai",
+                text = introText + detailText
+            )
 
             //Player info:
             lastLog.nlpExtractor = extractorInfo

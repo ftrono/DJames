@@ -20,6 +20,7 @@ import com.ftrono.DJames.be.database.Playlist
 import com.ftrono.DJames.be.database.Podcast
 import com.ftrono.DJames.be.database.Route
 import com.ftrono.DJames.be.nlp.FulfillmentUtils
+import com.ftrono.DJames.be.samples.DefaultReplies
 import com.ftrono.DJames.be.spotify.SpotifyUtils
 import com.ftrono.DJames.utilities.Prefs
 import com.ftrono.DJames.utilities.Utilities
@@ -34,7 +35,7 @@ import java.util.concurrent.TimeUnit
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.5.2"
+val appVersion = "2.5.3"
 val copyrightYear = 2024
 
 //DB:
@@ -51,11 +52,13 @@ val libUtils = LibraryUtils()
 val logUtils = HistoryUtils()
 val spotifyUtils = SpotifyUtils()
 val fulfillmentUtils = FulfillmentUtils()
+val defaultReplies = DefaultReplies()
 
 //STATUS VARS:
 var curNavId = 0
 var lastNavRoute = "home"
 var spotifyLoggedIn = MutableLiveData<Boolean>(false)
+var userGender = MutableLiveData<String>("Sir")
 var overlayActive = MutableLiveData<Boolean>(false)
 var overlayStatus = MutableLiveData<String>("ready")
 var clockActive = MutableLiveData<Boolean>(false)
@@ -70,7 +73,6 @@ var currentArtistPlaying = MutableLiveData<String>("You can keep this Clock\nScr
 var clickCounter = MutableLiveData<Int>(0)
 var autoStopQueriesState = MutableLiveData<Boolean>(false)
 var allowVolumeClick = true
-var genderMaleState = MutableLiveData<Boolean>(true)
 var userNicknameState = MutableLiveData<String>("")
 var spotUserImageState = MutableLiveData<String>("")
 var addLinkOn = MutableLiveData<Boolean>(false)
@@ -98,6 +100,7 @@ val recFileName = "DJames_request"
 var enablePlayerInfo = false
 
 //Dropdowns:
+val genders = listOf<String>("Sir", "Madam")
 var queryLangCodes = listOf<String>("en", "it")
 val queryLangFull = listOf<String>("English", "Italian")
 var messLangCodes = listOf<String>("en", "it", "fr", "de", "es")

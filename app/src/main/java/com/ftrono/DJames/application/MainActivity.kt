@@ -115,6 +115,7 @@ class MainActivity : ComponentActivity() {
             spotifyLoggedIn.postValue(false)
         } else {
             spotifyLoggedIn.postValue(true)
+            userGender.postValue(prefs.userGender)
         }
 
         //Start personal Receiver:
@@ -145,7 +146,6 @@ class MainActivity : ComponentActivity() {
         }
         spotUserImageState.postValue(prefs.spotUserImage)
         userNicknameState.postValue(prefs.userNickname)
-        genderMaleState.postValue(prefs.genderMale)
 
         //Prefs:
         autoStopQueriesState.postValue(prefs.silenceEnabledQueries)

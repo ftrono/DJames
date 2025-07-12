@@ -8,7 +8,6 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.navigation.NavController
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.client
-import com.ftrono.DJames.application.genderMaleState
 import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.refrTempToken
@@ -63,7 +62,6 @@ class SpotifyLoginUtils {
                         prefs.spotUserEMail = respJSON.get("email").asString
                         prefs.spotCountry = respJSON.get("country").asString
                         prefs.userNickname = utils.cleanString(respJSON.get("display_name").asString)
-                        prefs.genderMale = true
                         //Spotify profile image:
                         try {
                             val images = respJSON.getAsJsonArray("images")
@@ -93,7 +91,6 @@ class SpotifyLoginUtils {
             refrTempToken = ""
             //States:
             showLoggingIn.postValue(false)
-            genderMaleState.postValue(true)
             spotUserImageState.postValue(prefs.spotUserImage)
             userNicknameState.postValue(prefs.userNickname)
             //TOAST -> Send broadcast:
@@ -126,9 +123,7 @@ class SpotifyLoginUtils {
         prefs.spotUserImage = ""
         prefs.spotCountry = ""
         prefs.userNickname = ""
-        prefs.genderMale = true
         prefs.nlpUserId = utils.generateRandomString(12)
-        genderMaleState.postValue(true)
         spotUserImageState.postValue("")
         userNicknameState.postValue("")
         //utils.deleteUserCache(context)

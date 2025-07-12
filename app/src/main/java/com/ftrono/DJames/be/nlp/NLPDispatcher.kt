@@ -6,7 +6,6 @@ import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.be.database.NlpQueryModel
 import com.ftrono.DJames.be.models.DispatcherInfo
@@ -56,7 +55,7 @@ class NLPDispatcher (private var context: Context) {
                     Log.d(TAG, "NLPDispatcher1: detected intent: $intentName")
                 } catch (e: Exception) {
                     Log.w(TAG, "NLPDispatcher1: no NLP results!")
-                    return fulfillmentUtils.fallback()
+                    return fulfillmentUtils.fallback(saveMessage = false)
                 }
 
 
@@ -73,10 +72,10 @@ class NLPDispatcher (private var context: Context) {
                         "PlayPodcast" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback("Not logged in to Spotify!")
                         "PlayCollection" -> if (spotifyLoggedIn.value!!) return spotify.playCollection(resultsNLP) else return fulfillmentUtils.fallback("Not logged in to Spotify!")
                         "Cancel" -> return fulfillmentUtils.fallback()
-                        else -> return fulfillmentUtils.fallback("Sorry, I did not understand!")
+                        else -> return fulfillmentUtils.fallback()
                     }
                 } else {
-                    return fulfillmentUtils.fallback("Sorry, I did not understand!")
+                    return fulfillmentUtils.fallback()
                 }
 
             } else {
@@ -106,15 +105,13 @@ class NLPDispatcher (private var context: Context) {
                 //Query NLP:
                 if (messageMode) {
                     Log.d(TAG, "MESSAGE FOLLOWUP: TEXT MESSAGE.")
-                    resultsNLP =
-                        nlpQuery.queryNLP(recFile, messageMode = true, reqLanguage = reqLangCode)
+                    resultsNLP = nlpQuery.queryNLP(recFile, messageMode = true, reqLanguage = reqLangCode)
 
                 } else {
                     Log.d(TAG, "GENERIC FOLLOWUP.")
                     //Store previous information:
                     prevIntent = prevDispatch.intentName
-                    resultsNLP =
-                        nlpQuery.queryNLP(recFile, messageMode = false, reqLanguage = reqLangCode)
+                    resultsNLP = nlpQuery.queryNLP(recFile, messageMode = false, reqLanguage = reqLangCode)
                 }
 
                 //Process request:
@@ -123,8 +120,19 @@ class NLPDispatcher (private var context: Context) {
                     try {
                         //Get relevant results:
                         nlp_queryText = resultsNLP.queryText
-                        if (!messageMode) {
+                        if (messageMode) {
+                            fulfillmentUtils.saveMessage(
+                                type = "user",
+                                text = "(test message hidden)",
+                                langCode = resultsNLP.language
+                            )
+                        } else {
                             nlp_queryText = fulfillmentUtils.replaceNums(nlp_queryText)
+                            fulfillmentUtils.saveMessage(
+                                type = "user",
+                                text = nlp_queryText,
+                                langCode = resultsNLP.language
+                            )
                         }
                         intentName = resultsNLP.intentName
                         Log.d(TAG, "NLPDispatcher2: detected intent: $intentName")

@@ -11,16 +11,21 @@ import com.ftrono.DJames.application.audioAttributes
 import com.ftrono.DJames.application.audioFocusChangeListener
 import com.ftrono.DJames.application.audioFocusRequest
 import com.ftrono.DJames.application.audioManager
+import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.gMapsLinkFormat
+import com.ftrono.DJames.application.lastLog
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.ItemInfoUse
+import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.be.database.Route
 import com.ftrono.DJames.be.models.DispatcherInfo
 import com.google.gson.JsonParser
 import kotlinx.coroutines.runBlocking
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -29,15 +34,30 @@ import kotlin.coroutines.suspendCoroutine
 class FulfillmentUtils {
     private val TAG = FulfillmentUtils::class.java.simpleName
 
+    // SAVE MESSAGE:
+    fun saveMessage(type: String, text: String, langCode: String = "") {
+        val now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))
+        var message = Message()
+        message.datetime = now
+        message.type = type
+        message.text = text
+        message.langCode = langCode
+        lastLog.messages.add(message)
+    }
+
 
     //FALLBACK:
-    fun fallback(toastText: String = ""): DispatcherInfo {
+    fun fallback(toastText: String = "", saveMessage: Boolean = true): DispatcherInfo {
         var dispatcherInfo = DispatcherInfo()
         dispatcherInfo.fail = true
         if (toastText != "") {
             dispatcherInfo.toastText = toastText
         }
         //Log.d(TAG, "dispatcherInfo: $dispatcherInfo")
+        saveMessage(
+            type = "ai",
+            text = if (toastText != "") toastText else defaultReplies.replyFallback()
+        )
         return dispatcherInfo
     }
 

@@ -33,8 +33,17 @@ data class KeyLogInfo(
 
 
 @Serializable
+data class Message(
+    var datetime: String = "",
+    var type: String = "",   // Either: "ai", "user", "tool"
+    var text: String = "",
+    var langCode: String = "",
+)
+
+
+@Serializable
 data class NlpQueryModel(
-    var language: String = "en",
+    var language: String = "en",   // AudioLanguage
     var queryText: String = "",
     var intentName: String = "Fallback",
     var artists: MutableList<String> = mutableListOf<String>(),
@@ -45,6 +54,7 @@ data class NlpQueryModel(
 
 @Serializable
 data class ExtractorInfo(
+    var reqLanguage: String = "",
     var playType: String = "",
     var matchExtracted: String = "",   //main text
     var matchConfirmed: String = "",   //after match (for contacts / routes)
@@ -131,6 +141,9 @@ data class HistoryLog(
     @Convert(converter = KeyLogInfoConverter::class, dbType = String::class)
     var keyInfo: KeyLogInfo = KeyLogInfo(),
 
+    @Convert(converter = MessageConverter::class, dbType = String::class)
+    var messages: MutableList<Message> = mutableListOf<Message>(),
+
     @Convert(converter = NlpQueryModelConverter::class, dbType = String::class)
     var nlpQueries: MutableList<NlpQueryModel> = mutableListOf<NlpQueryModel>(),
 
@@ -154,6 +167,16 @@ class KeyLogInfoConverter : PropertyConverter<KeyLogInfo, String> {
 
     override fun convertToDatabaseValue(entityProperty: KeyLogInfo?): String {
         return Json.encodeToString(entityProperty ?: KeyLogInfo())
+    }
+}
+
+class MessageConverter : PropertyConverter<MutableList<Message>, String> {
+    override fun convertToEntityProperty(databaseValue: String?): MutableList<Message> {
+        return Json.decodeFromString(databaseValue ?: "[]")
+    }
+
+    override fun convertToDatabaseValue(entityProperty: MutableList<Message>?): String {
+        return Json.encodeToString(entityProperty ?: mutableListOf(Message()))
     }
 }
 

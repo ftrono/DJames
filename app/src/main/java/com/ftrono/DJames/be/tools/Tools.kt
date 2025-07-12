@@ -6,6 +6,7 @@ import android.telephony.SmsManager
 import android.util.Log
 import androidx.core.content.FileProvider
 import android.net.Uri
+import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.recFileName
@@ -24,7 +25,7 @@ fun sendSMS(context: Context, contactPhone: String, contactName: String, reqLang
     val smsManager: SmsManager = SmsManager.getDefault()
     val parts = smsManager.divideMessage(messageText)
     smsManager.sendMultipartTextMessage(contactPhone, null, parts, null, null)
-    val ttsToRead = "SMS sent to $contactName!"
+    val ttsToRead = defaultReplies.replySmsSent(contactName)
     Log.d("Tools", ttsToRead)
     return ttsToRead
 }
@@ -47,7 +48,7 @@ fun sendWhatsappText(context: Context, contactPhone: String, contactName: String
     }
     //Try to send:
     context.startActivity(intent)
-    val ttsToRead = "Message for $contactName ready: please, click on SEND in Whatsapp!"
+    val ttsToRead = defaultReplies.replyWATextSent(contactName)
     Log.d("Tools", "Whatsapp text message ready to be sent!")
     return ttsToRead
 }
@@ -68,7 +69,7 @@ fun sendWhatsappAudio(context: Context, contactName: String): String {
     }
     //Try to send:
     context.startActivity(intent)
-    val ttsToRead = "Voice message for $contactName ready: please, select the contact in Whatsapp and SEND it!"
+    val ttsToRead = defaultReplies.replyWAVoiceSent(contactName)
     Log.d("Tools", "Whatsapp audio message ready to be sent!")
     return ttsToRead
 }

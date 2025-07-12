@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -54,6 +55,7 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.volumeUpEnabled
 import com.ftrono.DJames.application.services.OverlayService
 import com.ftrono.DJames.application.sharedLink
+import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.ui.components.StreetLine
 import com.ftrono.DJames.ui.navigation.navigateTo
 import com.ftrono.DJames.ui.theme.NavigationItem
@@ -64,12 +66,13 @@ import com.ftrono.DJames.ui.theme.NavigationItem
 @Composable
 fun HomeScreenPreview() {
     val navController = rememberNavController()
-    HomeScreen(navController)
+    HomeScreen(navController, preview = true)
 }
 
 @Composable
 fun HomeScreen(
-    navController: NavController
+    navController: NavController,
+    preview: Boolean = false
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
@@ -116,7 +119,7 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    BaloonHome(true, overlayActiveState!!, volumeUpEnabledState!!)
+                    BaloonHome(overlayActiveState!!, volumeUpEnabledState!!)
                     VerticalDivider(
                         modifier = Modifier
                             .offset(x=(-4).dp)
@@ -130,7 +133,7 @@ fun HomeScreen(
                 }
             } else {
                 //DISPLAY VERTICALLY:
-                BaloonHome(false, overlayActiveState!!, volumeUpEnabledState!!)
+                BaloonHome(overlayActiveState!!, volumeUpEnabledState!!)
                 HorizontalDivider(
                     modifier = Modifier
                         .offset(y=(-4).dp)
@@ -162,7 +165,8 @@ fun LogoHome() {
 
 
 @Composable
-fun BaloonHome(isLandscape: Boolean, overlayActive: Boolean, volumeUpEnabled: Boolean) {
+fun BaloonHome(overlayActive: Boolean, volumeUpEnabled: Boolean) {
+    val genderState by userGender.observeAsState()
     Card(
         modifier = Modifier
             .width(320.dp)
@@ -182,9 +186,9 @@ fun BaloonHome(isLandscape: Boolean, overlayActive: Boolean, volumeUpEnabled: Bo
             //Descr main:
             Text(
                 text = if (overlayActive) {
-                    "Hi, Sir!\nHow can I help you? 🚗"
+                    "Hi, ${genderState}!\nHow can I help you? 🚗"
                 } else {
-                    "Hi, Sir!\nTap on START to begin! 🚗"
+                    "Hi, ${genderState}!\nTap on START to begin! 🚗"
                 },
                 fontSize = 16.sp,
                 fontStyle = FontStyle.Italic,

@@ -82,7 +82,6 @@ fun SettingsScreenPreview() {
 fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val mContext = LocalContext.current
     //TODO: STATUSES:
-    val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
     val checkedStartup = remember { mutableStateOf(if (preview) true else prefs.autoStartup) }
     val checkedSilenceQueries by autoStopQueriesState.observeAsState()
     val checkedSilenceMess = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledMess) }

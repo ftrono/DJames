@@ -93,6 +93,11 @@ class NLPDispatcher (private var context: Context) {
 
             if (messageMode && prevDispatch.messageType == "voice") {
                 //Whatsapp audio message -> no NLP query!
+                fulfillmentUtils.saveMessage(
+                    type = "user",
+                    text = "(recorded voice message)",
+                    langCode = resultsNLP.language
+                )
                 try {
                     Log.d(TAG, "MESSAGE FOLLOWUP: AUDIO MESSAGE.")
                     return fulfillment.sendMessage2(prevDispatch)

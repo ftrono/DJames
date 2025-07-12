@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
 
 //Color scheme:
@@ -35,6 +36,8 @@ fun DJamesTheme(
 
         SideEffect {
             val window = (view.context as Activity).window
+            // Ensure edge-to-edge is enabled
+            WindowCompat.setDecorFitsSystemWindows(window, false)
             //SYSTEM BARS COLORS:
             window.statusBarColor = windowBackground.toArgb()
             window.navigationBarColor = windowBackground.toArgb()
@@ -59,6 +62,8 @@ fun ClockTheme(
 
         SideEffect {
             val window = (view.context as Activity).window
+            // Ensure edge-to-edge is enabled
+            WindowCompat.setDecorFitsSystemWindows(window, false)
             //SYSTEM BARS COLORS:
             window.statusBarColor = black.toArgb()
             window.navigationBarColor = black.toArgb()

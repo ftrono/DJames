@@ -263,7 +263,7 @@ class OverlayService : Service() {
 
             //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
             registerReceiver(eventReceiver, filter, RECEIVER_EXPORTED)
-            Log.d(TAG, "Receiver started.")
+            Log.d(TAG, "EventReceiver started.")
 
             //Start personal Receiver:
             val actFilter = IntentFilter()

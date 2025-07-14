@@ -12,6 +12,10 @@ class DefaultReplies() {
         return "Sorry, I did not understand!"
     }
 
+    fun replyError(): String {
+        return "There was a technical issue: I'm sorry for that!"
+    }
+
     // CONTACTS:
     fun replyCalling(contactName: String): String {
         return "Calling $contactName..."

@@ -16,15 +16,13 @@ import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.messLangLower
+import com.ftrono.DJames.application.tools
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.be.database.ExtractorInfo
 import com.ftrono.DJames.be.database.ItemInfoUse
 import com.ftrono.DJames.be.database.NlpQueryModel
 import com.ftrono.DJames.be.models.DispatcherInfo
-import com.ftrono.DJames.be.tools.sendSMS
-import com.ftrono.DJames.be.tools.sendWhatsappAudio
-import com.ftrono.DJames.be.tools.sendWhatsappText
 
 
 class GenericFulfillment (private var context: Context) {
@@ -108,11 +106,7 @@ class GenericFulfillment (private var context: Context) {
                 Log.d(TAG, dispatcherInfo.toString())
 
                 //CALL:
-                Intent().also { intent ->
-                    intent.setAction(ACTION_MAKE_CALL)
-                    intent.putExtra("toCall", "tel:${contactPhone}")
-                    context.sendBroadcast(intent)
-                }
+                tools.makeCall(context, contactPhone)
 
             } else if (resultsNLP.intentName.contains("Message")) {
                 //B) MESSAGE:
@@ -194,15 +188,15 @@ class GenericFulfillment (private var context: Context) {
 
             if (prevDispatch.messageType == "voice") {
                 //SEND WHATSAPP AUDIO:
-                ttsToRead = sendWhatsappAudio(context, itemInfo.name)
+                ttsToRead = tools.sendWhatsappAudio(context, itemInfo.name)
                 toastText = "Voice message ready: use Whatsapp to SEND!"
             } else if (prevDispatch.messageType == "whatsapp") {
                 //SEND WHATSAPP TEXT:
-                ttsToRead = sendWhatsappText(context, contactPhone, itemInfo.name, reqLangCode)
+                ttsToRead = tools.sendWhatsappText(context, contactPhone, itemInfo.name, reqLangCode)
                 toastText = "Text message ready: use Whatsapp to SEND!"
             } else {
                 //SEND SMS:
-                ttsToRead = sendSMS(context, contactPhone, itemInfo.name, reqLangCode)
+                ttsToRead = tools.sendSMS(context, contactPhone, itemInfo.name, reqLangCode)
                 toastText = "SMS sent to ${itemInfo.name.uppercase()}!"
             }
 

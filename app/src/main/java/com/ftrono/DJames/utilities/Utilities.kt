@@ -1,10 +1,15 @@
 package com.ftrono.DJames.utilities
 
+import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.ActivityManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.provider.Settings
 import android.telephony.PhoneNumberUtils
+import android.text.TextUtils
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -70,6 +75,27 @@ class Utilities {
         }
         return false
     }
+
+
+    //Check AccessibilityService permissions:
+    fun isAccessibilityServiceEnabled(context: Context, serviceClass: Class<out AccessibilityService>): Boolean {
+        val expectedComponentName = ComponentName(context, serviceClass)
+        val enabledServicesSetting = Settings.Secure.getString(
+            context.contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        ) ?: return false
+
+        val colonSplitter = TextUtils.SimpleStringSplitter(':')
+        colonSplitter.setString(enabledServicesSetting)
+
+        for (component in colonSplitter) {
+            if (ComponentName.unflattenFromString(component) == expectedComponentName) {
+                return true
+            }
+        }
+        return false
+    }
+
 
 
     //ID creator:

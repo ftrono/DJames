@@ -63,7 +63,6 @@ import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.coroutineScope
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
@@ -191,7 +190,15 @@ class MainActivity : ComponentActivity() {
     @Preview
     @Preview(heightDp = 360, widthDp = 800)
     @Composable
-    fun MainScreen() {
+    fun MainScreenPreview() {
+        MainScreen(preview = true)
+    }
+
+
+    @Composable
+    fun MainScreen(
+        preview: Boolean = false
+    ) {
         val navController = rememberNavController()
         val navItems = listOf(
             NavigationItem.Home,

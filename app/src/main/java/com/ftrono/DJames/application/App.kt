@@ -22,6 +22,7 @@ import com.ftrono.DJames.be.database.Route
 import com.ftrono.DJames.be.nlp.FulfillmentUtils
 import com.ftrono.DJames.be.samples.DefaultReplies
 import com.ftrono.DJames.be.spotify.SpotifyUtils
+import com.ftrono.DJames.be.tools.Tools
 import com.ftrono.DJames.utilities.Prefs
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
@@ -52,6 +53,7 @@ val libUtils = LibraryUtils()
 val logUtils = HistoryUtils()
 val spotifyUtils = SpotifyUtils()
 val fulfillmentUtils = FulfillmentUtils()
+val tools = Tools()
 val defaultReplies = DefaultReplies()
 
 //STATUS VARS:

@@ -11,7 +11,7 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
-**Version 2.6.0 (2025-07-21)** - Rework VoiceQueryService: centralize AudioRequestsManager, TTS & Actions, threads rework, remove toasts.
+**Version 2.6.0 (2025-07-21)** - Rework VoiceQueryService: centralize AudioRequestsManager, TTS & Actions, replaced threads with jobs, remove toasts.
 
 **Version 2.5.3 (2025-07-12)** - Centralize output messages, add Messages to HistoryLog class.
 

@@ -32,6 +32,11 @@ import com.ftrono.DJames.be.audio.AndroidAudioRecorder
 import com.ftrono.DJames.be.audio.AudioRequestsManager
 import com.ftrono.DJames.be.audio.TTSReader
 import com.ftrono.DJames.be.tools.Actions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.io.File
 
 
@@ -39,6 +44,7 @@ class VoiceQueryService: Service() {
 
     //Main:
     private val TAG = VoiceQueryService::class.java.simpleName
+    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
     private val audioRequestsManager = AudioRequestsManager()
     private lateinit var tts: TTSReader
@@ -53,9 +59,9 @@ class VoiceQueryService: Service() {
     private var messageMode = false
     private var dispatcherInfo = DispatcherInfo()
 
-    //THREADS:
-    private var recordingThread: Thread? = null
-    private var processingThread: Thread? = null
+    //JOBS:
+    private var recordingJob: Job? = null
+    private var processingJob: Job? = null
 
     // SERVICE:
     override fun onBind(intent: Intent?): IBinder? {
@@ -94,9 +100,9 @@ class VoiceQueryService: Service() {
         } catch (e: Exception) {
             Log.w(TAG, "Recorder not available.")
         }
-        //Stop threads:
-        stopThread(recordingThread, "recordingThread")
-        stopThread(processingThread, "processingThread")
+        //Stop jobs:
+        cancelJob(recordingJob, "recordingJob")
+        cancelJob(processingJob, "processingJob")
 
         //Stop recorder:
         if (recordingMode || overlayStatus.value != "ready") {
@@ -154,15 +160,12 @@ class VoiceQueryService: Service() {
     }
 
 
-    fun stopThread(thread: Thread?, threadName: String) {
+    fun cancelJob(job: Job?, jobName: String) {
         try {
-            if (thread!!.isAlive()) {
-                thread.interrupt()
-                Log.d(TAG, "Stopped $threadName!")
-            }
-            Log.d(TAG, "$threadName not active.")
+            job?.cancel()
+            Log.d(TAG, "Stopped $jobName!")
         } catch (e: Exception) {
-            Log.w(TAG, "$threadName not active.")
+            Log.w(TAG, "$jobName not active.")
         }
     }
 
@@ -180,32 +183,32 @@ class VoiceQueryService: Service() {
         Log.d(TAG, "startVoiceRecording() triggered!")
         recordingTime = 0
         try {
-            stopThread(processingThread, "processingThread")
-            //Start rec Thread:
-            recordingThread = Thread {
-                synchronized(this) {
-                    // 1) SPEAK INTRO:
-                    if (speakIntro) {
-                        audioRequestsManager.requestDuckedFocus(
-                            onGranted = {
-                                overlayStatus.postValue("processing")
-                                Thread.sleep(500)
-                                //Read TTS:
-                                tts.speak(
-                                    listOf(
-                                        AiReply(
-                                            langCode = prefs.queryLanguage,
-                                            text = defaultReplies.speakIntro()
-                                        )
+            cancelJob(processingJob, "processingJob")
+            //Start rec Job:
+            recordingJob = coroutineScope.launch {
+                // 1) SPEAK INTRO:
+                if (voiceQueryOn && speakIntro) {
+                    audioRequestsManager.requestDuckedFocus(
+                        onGranted = {
+                            overlayStatus.postValue("processing")
+                            Thread.sleep(500)
+                            //Read TTS:
+                            tts.speak(
+                                listOf(
+                                    AiReply(
+                                        langCode = prefs.queryLanguage,
+                                        text = defaultReplies.speakIntro()
                                     )
                                 )
-                            },
-                            onFail = { failSilently() }
-                        )
-                        audioRequestsManager.releaseDuckedFocus()
-                    }
+                            )
+                        },
+                        onFail = { failSilently() }
+                    )
+                    audioRequestsManager.releaseDuckedFocus()
+                }
 
-                    // 2) RECORD:
+                // 2) RECORD:
+                if (voiceQueryOn) {
                     audioRequestsManager.requestExclusiveFocus(
                         onGranted = {
                             //Set overlay BUSY color:
@@ -228,7 +231,6 @@ class VoiceQueryService: Service() {
                     )
                 }
             }
-            recordingThread!!.start()
 
         } catch (e: Exception) {
             Log.w(TAG, "VQSERVICE: EXCEPTION: ", e)
@@ -244,11 +246,11 @@ class VoiceQueryService: Service() {
             var recFile = MyRecorder.stop()
             recordingMode = false
             Log.d(TAG, "RECORDING STOPPED.")
-            stopThread(recordingThread, "recordingThread")
+            cancelJob(recordingJob, "recordingJob")
 
 
             //2) RECORDING RESULT:
-            if (recordingFail) {
+            if (!voiceQueryOn || recordingFail) {
                 //A) RECORDING FAIL -> END:
                 failSilently()
 
@@ -263,12 +265,9 @@ class VoiceQueryService: Service() {
                             //Set overlay PROCESSING color & icon:
                             overlayStatus.postValue("processing")
                             //PROCESS QUERY:
-                            processingThread = Thread {
-                                synchronized(this) {
-                                    processQuery(recFile)
-                                }
+                            processingJob = coroutineScope.launch {
+                                processQuery(recFile)
                             }
-                            processingThread!!.start()
                         }
                     },
                     onFail = { failSilently() }

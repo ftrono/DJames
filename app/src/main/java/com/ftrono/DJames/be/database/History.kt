@@ -33,7 +33,7 @@ data class KeyLogInfo(
 
 
 @Serializable
-data class Message(
+data class LogMessage(
     var datetime: String = "",
     var type: String = "",   // Either: "ai", "user", "tool"
     var text: String = "",
@@ -141,8 +141,8 @@ data class HistoryLog(
     @Convert(converter = KeyLogInfoConverter::class, dbType = String::class)
     var keyInfo: KeyLogInfo = KeyLogInfo(),
 
-    @Convert(converter = MessageConverter::class, dbType = String::class)
-    var messages: MutableList<Message> = mutableListOf<Message>(),
+    @Convert(converter = LogMessageConverter::class, dbType = String::class)
+    var messages: MutableList<LogMessage> = mutableListOf<LogMessage>(),
 
     @Convert(converter = NlpQueryModelConverter::class, dbType = String::class)
     var nlpQueries: MutableList<NlpQueryModel> = mutableListOf<NlpQueryModel>(),
@@ -170,13 +170,13 @@ class KeyLogInfoConverter : PropertyConverter<KeyLogInfo, String> {
     }
 }
 
-class MessageConverter : PropertyConverter<MutableList<Message>, String> {
-    override fun convertToEntityProperty(databaseValue: String?): MutableList<Message> {
+class LogMessageConverter : PropertyConverter<MutableList<LogMessage>, String> {
+    override fun convertToEntityProperty(databaseValue: String?): MutableList<LogMessage> {
         return Json.decodeFromString(databaseValue ?: "[]")
     }
 
-    override fun convertToDatabaseValue(entityProperty: MutableList<Message>?): String {
-        return Json.encodeToString(entityProperty ?: mutableListOf(Message()))
+    override fun convertToDatabaseValue(entityProperty: MutableList<LogMessage>?): String {
+        return Json.encodeToString(entityProperty ?: mutableListOf(LogMessage()))
     }
 }
 

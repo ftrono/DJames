@@ -8,7 +8,7 @@ import com.ftrono.DJames.application.gMapsLinkFormat
 import com.ftrono.DJames.application.lastLog
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.be.database.ItemInfoUse
-import com.ftrono.DJames.be.database.Message
+import com.ftrono.DJames.be.database.LogMessage
 import com.ftrono.DJames.be.database.Route
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
@@ -25,7 +25,7 @@ class FulfillmentUtils {
     // SAVE MESSAGE:
     fun saveMessage(type: String, text: String, langCode: String = "") {
         val now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))
-        var message = Message()
+        var message = LogMessage()
         message.datetime = now
         message.type = type
         message.text = text

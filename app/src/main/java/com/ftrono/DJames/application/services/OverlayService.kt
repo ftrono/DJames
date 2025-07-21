@@ -554,15 +554,17 @@ class OverlayService : Service() {
         //unregister receivers:
         try {
             unregisterReceiver(eventReceiver)
+            Log.d(TAG, "eventReceiver stopped.")
         } catch (e: Exception) {
             Log.w(TAG, "eventReceiver: cannot unregister. ", e)
         }
         try {
             unregisterReceiver(overlayReceiver)
+            Log.d(TAG, "overlayReceiver stopped.")
         } catch (e: Exception) {
             Log.w(TAG, "overlayReceiver: cannot unregister. ", e)
         }
-        Log.d(TAG, "Receivers stopped.")
+
         if (!restarting) {
             //End Clock Screen():
             Intent().also { intent ->

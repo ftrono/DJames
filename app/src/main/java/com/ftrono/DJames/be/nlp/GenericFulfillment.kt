@@ -1,10 +1,7 @@
 package com.ftrono.DJames.be.nlp
 
 import android.content.Context
-import android.content.Intent
 import android.util.Log
-import com.ftrono.DJames.application.ACTION_MAKE_CALL
-import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.lastLog
@@ -16,12 +13,13 @@ import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.messLangLower
-import com.ftrono.DJames.application.tools
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.be.database.ExtractorInfo
 import com.ftrono.DJames.be.database.ItemInfoUse
 import com.ftrono.DJames.be.database.NlpQueryModel
+import com.ftrono.DJames.be.models.ActionType
+import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
 
 
@@ -58,55 +56,34 @@ class GenericFulfillment (private var context: Context) {
 
         if (libMatchId < 0 || !voiceQueryOn) {
             //Fallback:
-            return fulfillmentUtils.fallback()
+            return fulfillmentUtils.fallback(notUnderstood=true)
 
         } else {
             //Get contact:
             itemInfo = libUtils.getItemInfoUse(filter, libMatchId)
             extractorInfo.matchConfirmed = itemInfo.name
-
-            //Prepare toast text with actual contact name:
-            var toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
-            toastText = toastText.replace(
-                contactExtracted,
-                itemInfo.name.uppercase()
-            )
-
-            //TOAST -> Send broadcast:
-            Intent().also { intent ->
-                intent.setAction(ACTION_TOASTER)
-                intent.putExtra("toastText", toastText)
-                context.sendBroadcast(intent)
-            }
+            //Store usable details:
+            itemInfo.detail = itemInfo.defaultKey   //TODO: add multiple phones
 
             //CASES:
             if (resultsNLP.intentName.contains("Call")) {
                 //A) CALL:
-                val defaultPhoneSet = itemInfo.phoneSets[itemInfo.defaultKey]!!   //TODO: add multiple phones
-                val contactPhone = "${defaultPhoneSet.prefix}${defaultPhoneSet.phone}"
-
-                //Read:
+                //Reply:
                 val ttsToRead = defaultReplies.replyCalling(itemInfo.name)
-                val itemsToRead = listOf(
-                    mapOf(
-                        "language" to prefs.queryLanguage,
-                        "text" to ttsToRead
+                val aiReplies = listOf(
+                    AiReply(
+                        langCode = prefs.queryLanguage,
+                        text = ttsToRead
                     )
-                )
-                fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio = false)
-                fulfillmentUtils.releaseAudioFocus()
-                fulfillmentUtils.saveMessage(
-                    type = "ai",
-                    text = ttsToRead
                 )
 
                 //dispatcherInfo:
+                dispatcherInfo.aiReplies = aiReplies
+                dispatcherInfo.actionType = ActionType.CALL
                 dispatcherInfo.end = true
                 dispatcherInfo.playAcknowledge = true
+                dispatcherInfo.usable = itemInfo
                 Log.d(TAG, dispatcherInfo.toString())
-
-                //CALL:
-                tools.makeCall(context, contactPhone)
 
             } else if (resultsNLP.intentName.contains("Message")) {
                 //B) MESSAGE:
@@ -133,40 +110,34 @@ class GenericFulfillment (private var context: Context) {
                 //Extract message type:
                 dispatcherInfo.messageType = nlpExtractor.extractMessageType(nlp_queryText)
 
-                //Read:
+                //Reply:
                 var ttsToRead = if (dispatcherInfo.messageType == "voice") {
                     defaultReplies.replyMessageRecord(itemInfo.name)
                 } else {
                     defaultReplies.replyMessageDictate(itemInfo.name, dispatcherInfo.messageType, reqLangName)
                 }
-                val itemsToRead = listOf(
-                    mapOf(
-                        "language" to prefs.queryLanguage,
-                        "text" to ttsToRead
+                val aiReplies = listOf(
+                    AiReply(
+                        langCode = prefs.queryLanguage,
+                        text = ttsToRead
                     )
-                )
-                fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
-                fulfillmentUtils.saveMessage(
-                    type = "ai",
-                    text = ttsToRead
                 )
 
                 //dispatcherInfo:
-                dispatcherInfo.usable = itemInfo
+                dispatcherInfo.aiReplies = aiReplies
                 dispatcherInfo.messageMode = true
                 dispatcherInfo.reqLanguage = reqLangCode
+                dispatcherInfo.usable = itemInfo
                 Log.d(TAG, dispatcherInfo.toString())
 
             } else {
                 //Fallback:
-                return fulfillmentUtils.fallback()
+                return fulfillmentUtils.fallback(notUnderstood=true)
             }
 
             //Close log:
             lastLog.nlpExtractor = extractorInfo
             lastLog.usable = itemInfo
-            logUtils.storeLog(context)
-
             return dispatcherInfo
         }
     }
@@ -181,54 +152,31 @@ class GenericFulfillment (private var context: Context) {
             //Recover info:
             var reqLangCode = prevDispatch.reqLanguage
             var itemInfo = prevDispatch.usable
-            val defaultPhoneSet = itemInfo.phoneSets[itemInfo.defaultKey]!!   //TODO: add multiple phones
-            val contactPhone = "${defaultPhoneSet.prefix}${defaultPhoneSet.phone}"
-            var ttsToRead = ""
-            var toastText = ""
 
+            //Store usable details:
+            itemInfo.language = reqLangCode
+
+            // Select action to take:
             if (prevDispatch.messageType == "voice") {
-                //SEND WHATSAPP AUDIO:
-                ttsToRead = tools.sendWhatsappAudio(context, itemInfo.name)
-                toastText = "Voice message ready: use Whatsapp to SEND!"
+                dispatcherInfo.actionType = ActionType.WA_VOICE
             } else if (prevDispatch.messageType == "whatsapp") {
-                //SEND WHATSAPP TEXT:
-                ttsToRead = tools.sendWhatsappText(context, contactPhone, itemInfo.name, reqLangCode)
-                toastText = "Text message ready: use Whatsapp to SEND!"
+                dispatcherInfo.actionType = ActionType.WA_TEXT
             } else {
-                //SEND SMS:
-                ttsToRead = tools.sendSMS(context, contactPhone, itemInfo.name, reqLangCode)
-                toastText = "SMS sent to ${itemInfo.name.uppercase()}!"
+                dispatcherInfo.actionType = ActionType.SMS
             }
 
-            //TOAST -> Send broadcast:
-            Intent().also { intent ->
-                intent.setAction(ACTION_TOASTER)
-                intent.putExtra("toastText", ttsToRead)
-                context.sendBroadcast(intent)
-            }
-
-            //Read:
-            val itemsToRead = listOf(
-                mapOf(
-                    "language" to prefs.queryLanguage,
-                    "text" to ttsToRead.lowercase()
-                )
-            )
-            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
-            fulfillmentUtils.saveMessage(
-                type = "ai",
-                text = ttsToRead
-            )
+            //dispatcherInfo:
+            dispatcherInfo.usable = itemInfo
+            dispatcherInfo.aiReplies = listOf()   //populate after action
 
         } catch (e: Exception) {
             Log.w(TAG, "sendMessage2: EXCEPTION: ", e)
-            return fulfillmentUtils.fallback("ERROR: Message not sent!")
+            return fulfillmentUtils.fallback()   //Error
         }
 
         dispatcherInfo.end = true
         dispatcherInfo.playAcknowledge = true
         Log.d(TAG, dispatcherInfo.toString())
-        fulfillmentUtils.releaseAudioFocus()
 
         return dispatcherInfo
     }
@@ -250,34 +198,18 @@ class GenericFulfillment (private var context: Context) {
         var reqLangCode = utils.getLanguageCode(detLanguage, prefs.routeLanguage)
         var reqLangName = utils.getLanguageName(reqLangCode)
 
-        //Prepare toast text:
-        var toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
-
-        //TOAST -> Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_TOASTER)
-            intent.putExtra("toastText", toastText)
-            context.sendBroadcast(intent)
-        }
-
-        //Distinguish by intent & build voice response:
+        //Reply:
         var ttsToRead = ""
-
-        //Read:
         ttsToRead = defaultReplies.replyRouteRequest(reqLangName)
-        val itemsToRead = listOf(
-            mapOf(
-                "language" to prefs.queryLanguage,
-                "text" to ttsToRead
+        val aiReplies = listOf(
+            AiReply(
+                langCode = prefs.queryLanguage,
+                text = ttsToRead
             )
-        )
-        fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
-        fulfillmentUtils.saveMessage(
-            type = "ai",
-            text = ttsToRead
         )
 
         //dispatcherInfo:
+        dispatcherInfo.aiReplies = aiReplies
         dispatcherInfo.intentName = resultsNLP.intentName
         dispatcherInfo.followUp = true
         dispatcherInfo.reqLanguage = reqLangCode
@@ -292,17 +224,6 @@ class GenericFulfillment (private var context: Context) {
         var dispatcherInfo = DispatcherInfo()
         var reqLangCode = prevDispatch.reqLanguage
         lastLog.nlpQueries.add(resultsNLP)
-
-        //Prepare toast text:
-        var toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
-
-        //TOAST -> Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_TOASTER)
-            intent.putExtra("toastText", toastText)
-            context.sendBroadcast(intent)
-        }
-
 
         //PROCESS ROUTE INFO:
         //item:
@@ -337,50 +258,39 @@ class GenericFulfillment (private var context: Context) {
         }
 
         if (itemInfo.url == "") {
-            //Close log:
-            //logUtils.storeLog(context)
-            return fulfillmentUtils.fallback()
+            return fulfillmentUtils.fallback()   //Error
 
         } else {
             //NAVIGATE:
-            fulfillmentUtils.releaseAudioFocus()
-
             //Wait 1 sec:
             Thread.sleep(1000)
 
-            //Read TTS:
+            //Reply:
             var introText = defaultReplies.replyRouteShowIntro()
             var detailText = defaultReplies.replyRouteShowDetail(itemInfo)
-            val itemsToRead = listOf(
-                mapOf(
-                    "language" to prefs.queryLanguage,
-                    "text" to introText
+            val aiReplies = listOf(
+                AiReply(
+                    langCode = prefs.queryLanguage,
+                    text = introText
                 ),
-                mapOf(
-                    "language" to routeLanguage,
-                    "text" to detailText
-                )
+                AiReply(
+                    langCode = routeLanguage,
+                    text = detailText
+                ),
             )
-            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=true)
-            fulfillmentUtils.saveMessage(
-                type = "ai",
-                text = introText + detailText
-            )
+
+            //dispatcherInfo:
+            dispatcherInfo.aiReplies = aiReplies
+            dispatcherInfo.actionType = ActionType.OPEN_URL
 
             //Player info:
             lastLog.nlpExtractor = extractorInfo
             lastLog.usable = itemInfo
-
-            //DRIVE TO ROUTE:
-            utils.openLink(context, url = itemInfo.url, fromService = true)
         }
 
         //Build return
         dispatcherInfo.end = true
         Log.d(TAG, dispatcherInfo.toString())
-
-        //Close log:
-        logUtils.storeLog(context)
         return dispatcherInfo
     }
 

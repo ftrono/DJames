@@ -1,34 +1,22 @@
 package com.ftrono.DJames.be.nlp
 
 import android.content.Context
-import android.media.AudioFocusRequest
-import android.media.AudioManager
-import android.speech.tts.TextToSpeech
-import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.audioAttributes
-import com.ftrono.DJames.application.audioFocusChangeListener
-import com.ftrono.DJames.application.audioFocusRequest
-import com.ftrono.DJames.application.audioManager
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.gMapsLinkFormat
 import com.ftrono.DJames.application.lastLog
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.ItemInfoUse
 import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.be.database.Route
+import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
 import com.google.gson.JsonParser
-import kotlinx.coroutines.runBlocking
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Locale
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 
 class FulfillmentUtils {
@@ -47,124 +35,27 @@ class FulfillmentUtils {
 
 
     //FALLBACK:
-    fun fallback(toastText: String = "", saveMessage: Boolean = true): DispatcherInfo {
+    fun fallback(
+        notUnderstood: Boolean = false,
+        notLoggedIn: Boolean = false,
+        nevermind: Boolean = false
+    ): DispatcherInfo {
+        //Build fallback response:
         var dispatcherInfo = DispatcherInfo()
         dispatcherInfo.fail = true
-        if (toastText != "") {
-            dispatcherInfo.toastText = toastText
-        }
-        //Log.d(TAG, "dispatcherInfo: $dispatcherInfo")
-        saveMessage(
-            type = "ai",
-            text = if (toastText != "") toastText else defaultReplies.replyFallback()
+        dispatcherInfo.aiReplies = listOf(
+            AiReply(
+                langCode = prefs.queryLanguage,
+                text = if (notLoggedIn)
+                    defaultReplies.replyNotLoggedIn()
+                else if (notUnderstood)
+                    defaultReplies.replyFallback()
+                else if (nevermind)
+                    defaultReplies.replyNevermind()
+                else defaultReplies.replyError()
+            )
         )
         return dispatcherInfo
-    }
-
-
-    //Release AudioFocus
-    fun releaseAudioFocus() {
-        try {
-            audioManager!!.abandonAudioFocusRequest(audioFocusRequest!!)
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: AudioFocus already released.")
-        }
-    }
-
-
-    //HELPER: TTS directly read:
-    private suspend fun ttsReadNoFocus(context: Context, item: Map<String, String>): Unit = suspendCoroutine { continuation ->
-        //SET UP TTS:
-        val langCode = item["language"]
-        val text = item["text"]
-        //Set Locale:
-        var locale = Locale.UK
-        if (langCode == "it") {
-            locale = Locale.ITALY
-        }
-        var tts: TextToSpeech? = null
-        tts = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                val result = tts!!.setLanguage(locale)
-                if (result == TextToSpeech.LANG_MISSING_DATA ||
-                    result == TextToSpeech.LANG_NOT_SUPPORTED
-                ) {
-                    Log.e(TAG, "Language ${langCode} not supported!")
-                } else {
-                    tts!!.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                        override fun onStart(utteranceId: String) {
-                        }
-
-                        override fun onDone(utteranceId: String) {
-                            continuation.resume(Unit)
-                        }
-
-                        override fun onError(utteranceId: String) {
-                            Log.e(TAG, "Error on $utteranceId")
-                            //continuation.resume(Unit)
-                        }
-                    })
-                    tts!!.speak(text, TextToSpeech.QUEUE_FLUSH, null, utils.generateRandomString(8))
-                }
-            } else {
-                Log.e(TAG, "Initialization Failed!")
-                continuation.resume(Unit)
-            }
-        }
-    }
-
-
-    //HELPER: TTS read with audio dimming:
-    private fun ttsReadWithFocus(
-        context: Context,
-        audioFocusRequest: AudioFocusRequest,
-        items: List<Map<String, String>>
-    ) {
-        //BUILD FOCUS REQUEST:
-        val focusRequest = audioManager!!.requestAudioFocus(audioFocusRequest)
-        when (focusRequest) {
-            AudioManager.AUDIOFOCUS_REQUEST_FAILED -> {
-                Log.d(TAG, "Cannot gain audio focus! Try again.")
-            }
-
-            AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {
-                runBlocking {
-                    for (item in items) {
-                        ttsReadNoFocus(context, item)
-                    }
-                }
-                audioManager!!.abandonAudioFocusRequest(audioFocusRequest)
-            }
-
-            AudioManager.AUDIOFOCUS_REQUEST_DELAYED -> {
-                //mAudioFocusPlaybackDelayed = true
-            }
-        }
-    }
-
-    //TTS READER: MAIN FUNCTION:
-    fun ttsRead(context: Context, items: List<Map<String, String>>, dimAudio: Boolean = false) {
-        try {
-            Thread.sleep(1000)
-            if (dimAudio) {
-                //Build AudioFocus dim request:
-                audioFocusRequest =
-                    AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
-                        .setAudioAttributes(audioAttributes!!)
-                        .setAcceptsDelayedFocusGain(true)
-                        .setOnAudioFocusChangeListener(audioFocusChangeListener)
-                        .build()
-                ttsReadWithFocus(context, audioFocusRequest!!, items)
-            } else {
-                runBlocking {
-                    for (item in items) {
-                        ttsReadNoFocus(context, item)
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "ttsRead: cannot read TTS. EXCEPTION: ", e)
-        }
     }
 
 

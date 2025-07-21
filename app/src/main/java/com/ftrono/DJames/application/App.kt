@@ -2,10 +2,7 @@ package com.ftrono.DJames.application
 
 import android.app.Application
 import android.content.Context
-import android.media.AudioAttributes
-import android.media.AudioFocusRequest
 import android.media.AudioManager
-import android.util.Log
 import android.net.Uri
 import net.openid.appauth.AuthorizationServiceConfiguration
 import androidx.lifecycle.MutableLiveData
@@ -22,7 +19,7 @@ import com.ftrono.DJames.be.database.Route
 import com.ftrono.DJames.be.nlp.FulfillmentUtils
 import com.ftrono.DJames.be.samples.DefaultReplies
 import com.ftrono.DJames.be.spotify.SpotifyUtils
-import com.ftrono.DJames.be.tools.Tools
+import com.ftrono.DJames.be.tools.Actions
 import com.ftrono.DJames.utilities.Prefs
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
@@ -36,7 +33,7 @@ import java.util.concurrent.TimeUnit
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.5.3"
+val appVersion = "2.6.0"
 val copyrightYear = 2024
 
 //DB:
@@ -53,7 +50,6 @@ val libUtils = LibraryUtils()
 val logUtils = HistoryUtils()
 val spotifyUtils = SpotifyUtils()
 val fulfillmentUtils = FulfillmentUtils()
-val tools = Tools()
 val defaultReplies = DefaultReplies()
 
 //STATUS VARS:
@@ -119,7 +115,8 @@ var vol_initialized: Boolean = false
 var voiceQueryOn: Boolean = false
 var recordingMode: Boolean = false
 var callMode: Boolean = false
-var searchFail: Boolean = false
+var recordingFail: Boolean = false
+var recordingTime = 0
 
 //Audio Managers:
 var audioManager: AudioManager? = null
@@ -130,7 +127,6 @@ var lastLog: HistoryLog = HistoryLog()
 
 //Player info:
 var nlp_queryText = ""
-var reqPlayLinkName = ""
 var currentTrackId: String = ""
 var songName: String = ""
 var artistName: String = ""
@@ -190,59 +186,6 @@ const val PHONE_STATE_ACTION = "android.intent.action.PHONE_STATE"
 
 //Voice Query receiver:
 const val ACTION_REC_STOP = "com.ftrono.DJames.eventReceiver.ACTION_REC_STOP"
-
-//AUDIOFOCUS:
-//AudioFocus:
-var focusState: Boolean = false
-var audioFocusRequest: AudioFocusRequest? = null
-
-//var mAudioFocusPlaybackDelayed: Boolean = false
-//var mAudioFocusResumeOnFocusGained: Boolean = false
-
-var audioAttributes = AudioAttributes.Builder()
-    .setUsage(AudioAttributes.USAGE_MEDIA)
-    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-    .build()
-
-val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
-    when (focusChange) {
-        AudioManager.AUDIOFOCUS_GAIN -> {
-            focusState = true
-            Log.d("DJames", "Audio focus gained!")
-            /*
-            if (mAudioFocusPlaybackDelayed || mAudioFocusResumeOnFocusGained) {
-                mAudioFocusPlaybackDelayed = false
-                mAudioFocusResumeOnFocusGained = false
-            }
-            */
-        }
-
-        AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE -> {
-            focusState = true
-            Log.d("DJames", "Audio focus transient exclusive gained!")
-            /*
-            if (mAudioFocusPlaybackDelayed || mAudioFocusResumeOnFocusGained) {
-                mAudioFocusPlaybackDelayed = false
-                mAudioFocusResumeOnFocusGained = false
-            }
-            */
-        }
-
-        AudioManager.AUDIOFOCUS_LOSS -> {
-            focusState = false
-            Log.d("DJames", "Audio focus lost.")
-            // mAudioFocusResumeOnFocusGained = false
-            // mAudioFocusPlaybackDelayed = false
-        }
-
-        AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-            focusState = false
-            Log.d("DJames", "Audio focus transient lost.")
-            // mAudioFocusResumeOnFocusGained = false
-            // mAudioFocusPlaybackDelayed = false
-        }
-    }
-}
 
 
 class App: Application()

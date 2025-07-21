@@ -7,13 +7,54 @@ import com.ftrono.DJames.be.database.SpotifyPlayable
 
 
 class DefaultReplies() {
+    //INTRO:
+    fun speakIntro(): String {
+        val defaultSents = listOf(
+            "Tell me ${prefs.userGender}!",
+            "Ask me ${prefs.userGender}!",
+            "Hi ${prefs.userGender}! Tell me.",
+            "${prefs.userGender}? Tell me!",
+            "Ready ${prefs.userGender}!",
+            "Listening ${prefs.userGender}!",
+            "${prefs.userGender}, here to help!",
+        )
+        return defaultSents.random()
+    }
+
     // FALLBACK:
     fun replyFallback(): String {
-        return "Sorry, I did not understand!"
+        val defaultSents = listOf(
+            "Sorry ${prefs.userGender}, I did not understand!",
+            "I'm sorry ${prefs.userGender}, I could not understand!",
+            "Sorry ${prefs.userGender}, I didn't get that!"
+        )
+        return defaultSents.random()
+    }
+
+    fun replyNotLoggedIn(): String {
+        val defaultSents = listOf(
+            "Sorry ${prefs.userGender}, you need to be logged in to Spotify!",
+            "I'm sorry ${prefs.userGender}, you need to be logged in to Spotify first!",
+        )
+        return defaultSents.random()
     }
 
     fun replyError(): String {
-        return "There was a technical issue: I'm sorry for that!"
+        val defaultSents = listOf(
+            "There was a technical issue: I'm sorry for that!",
+            "Sorry, there was a problem!",
+            "My apologies, there was an issue!"
+        )
+        return defaultSents.random()
+    }
+
+    fun replyNevermind(): String {
+        val defaultSents = listOf(
+            "No problem ${prefs.userGender}!",
+            "Nevermind ${prefs.userGender}!",
+            "Anytime ${prefs.userGender}!"
+        )
+        return defaultSents.random()
     }
 
     // CONTACTS:
@@ -34,11 +75,11 @@ class DefaultReplies() {
     }
 
     fun replyWATextSent(contactName: String): String {
-        return "Message for $contactName ready: please, click on SEND in Whatsapp!"
+        return "Message for $contactName ready: please, click on Send in Whatsapp!"
     }
 
     fun replyWAVoiceSent(contactName: String): String {
-        return "Voice message for $contactName ready: please, select the contact in Whatsapp and SEND it!"
+        return "Voice message for $contactName ready: please, select the contact in Whatsapp and Send it!"
     }
 
     // ROUTES:

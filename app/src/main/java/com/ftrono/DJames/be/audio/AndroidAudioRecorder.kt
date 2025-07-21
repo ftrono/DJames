@@ -127,7 +127,7 @@ class AndroidAudioRecorder(private val context: Context) {
                 } else if ((messageMode && prefs.silenceEnabledMess) || (!messageMode && prefs.silenceEnabledQueries)) {
                     //Get max amplitude detected (in %):
                     if (recordingTime > 1) {
-                        curAmpl = mediaRecorder!!.getMaxAmplitude()
+                        curAmpl = getMaxAmplitude()
                         amplitudes.add(curAmpl)
                         Log.d(TAG, "CURRENT: $curAmpl")
                     }

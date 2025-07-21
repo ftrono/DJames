@@ -340,14 +340,13 @@ class VoiceQueryService: Service() {
                 startVoiceRecording()
 
             } else {
+                // END:
                 overlayStatus.postValue("ready")
                 Thread.sleep(200)
-                // END:
                 if (dispatcherInfo.fail) {
                     toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                 } else {
-                    //Close log:
-                    logUtils.storeLog(applicationContext)
+                    if (dispatcherInfo.end) logUtils.storeLog(applicationContext)   //Close log
                     if (dispatcherInfo.playAcknowledge) toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                 }
                 stopSelf()

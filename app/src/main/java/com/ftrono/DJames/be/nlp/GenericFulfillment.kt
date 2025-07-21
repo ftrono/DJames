@@ -282,6 +282,8 @@ class GenericFulfillment (private var context: Context) {
             //dispatcherInfo:
             dispatcherInfo.aiReplies = aiReplies
             dispatcherInfo.actionType = ActionType.OPEN_URL
+            dispatcherInfo.usable = itemInfo
+            dispatcherInfo.playAcknowledge = true
 
             //Player info:
             lastLog.nlpExtractor = extractorInfo

@@ -129,7 +129,7 @@ class NLPDispatcher (private var context: Context) {
                         if (messageMode) {
                             fulfillmentUtils.saveMessage(
                                 type = "user",
-                                text = "(test message hidden)",
+                                text = "(message text hidden)",
                                 langCode = resultsNLP.language
                             )
                         } else {

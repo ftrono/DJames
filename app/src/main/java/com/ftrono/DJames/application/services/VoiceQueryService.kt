@@ -9,34 +9,34 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Color
-import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.ToneGenerator
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.application.ACTION_REC_STOP
-import com.ftrono.DJames.application.ACTION_TOASTER
-import com.ftrono.DJames.application.audioAttributes
-import com.ftrono.DJames.application.audioFocusChangeListener
-import com.ftrono.DJames.application.audioFocusRequest
-import com.ftrono.DJames.application.audioManager
-import com.ftrono.DJames.application.fulfillmentUtils
-import com.ftrono.DJames.application.maxAudioRecTimeout
+import com.ftrono.DJames.application.defaultReplies
+import com.ftrono.DJames.application.lastLog
+import com.ftrono.DJames.application.logUtils
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recordingMode
-import com.ftrono.DJames.application.reqPlayLinkName
 import com.ftrono.DJames.application.voiceQueryOn
-import com.ftrono.DJames.application.searchFail
-import com.ftrono.DJames.application.silenceInitPatience
-import com.ftrono.DJames.application.silencePatience
+import com.ftrono.DJames.application.recordingFail
+import com.ftrono.DJames.application.recordingTime
 import com.ftrono.DJames.application.sourceIsVolume
-import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
 import com.ftrono.DJames.be.nlp.NLPDispatcher
-import com.ftrono.DJames.be.recorder.AndroidAudioRecorder
-import com.ftrono.DJames.be.recorder.AudioRecorder
+import com.ftrono.DJames.be.audio.AndroidAudioRecorder
+import com.ftrono.DJames.be.audio.AudioRequestsManager
+import com.ftrono.DJames.be.audio.TTSReader
+import com.ftrono.DJames.be.tools.Actions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.io.File
 
 
@@ -44,91 +44,92 @@ class VoiceQueryService: Service() {
 
     //Main:
     private val TAG = VoiceQueryService::class.java.simpleName
+    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
-    
+    private val audioRequestsManager = AudioRequestsManager()
+    private lateinit var tts: TTSReader
+
     //Recorder:
-    private var rec_time = 0
     private val MyRecorder by lazy {
         AndroidAudioRecorder(applicationContext)
     }
-    private var allThreads = mutableListOf<Thread>()
-    private var processing = false
 
     //Status:
     private var followUp = false
     private var messageMode = false
     private var dispatcherInfo = DispatcherInfo()
 
+    //JOBS:
+    private var recordingJob: Job? = null
+    private var processingJob: Job? = null
 
+    // SERVICE:
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
-
 
     override fun onCreate() {
         super.onCreate()
         try {
             startForeground()
             voiceQueryOn = true
+            tts = TTSReader(applicationContext)
             Log.d(TAG, "VOICE QUERY SERVICE STARTED.")
 
             val actFilter = IntentFilter()
-            //actFilter.addAction(ACTION_REC_START)
             actFilter.addAction(ACTION_REC_STOP)
 
             //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
             registerReceiver(VQReceiver, actFilter, RECEIVER_EXPORTED)
             Log.d(TAG, "VQReceiver started.")
 
-            //Start recording immediately:
-            startRecording()
+            //Start recording:
+            startVoiceRecording(speakIntro = true)
 
 
         } catch (e: Exception) {
             Log.w(TAG, "Exception: ", e)
-            overlayStatus.postValue("ready")
             stopSelf()
         }
     }
 
-
     override fun onDestroy() {
         super.onDestroy()
-        followUp = false
-        messageMode = false
-        reqPlayLinkName = ""
-        //Stop:
-        Intent().also { intent ->
-            intent.setAction(ACTION_REC_STOP)
-            applicationContext.sendBroadcast(intent)
-        }
         try {
             MyRecorder.stop()
         } catch (e: Exception) {
-            Log.w(TAG, "MyRecorder not available.")
+            Log.w(TAG, "Recorder not available.")
         }
-        //Stop threads:
-        utils.stopThreadsInList(allThreads)
+        //Stop jobs:
+        cancelJob(recordingJob, "recordingJob")
+        cancelJob(processingJob, "processingJob")
+
         //Stop recorder:
-        if (recordingMode || processing) {
+        if (recordingMode || overlayStatus.value != "ready") {
             //Play FAIL tone:
             toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
         }
         //Abandon audio focus:
-        fulfillmentUtils.releaseAudioFocus()
+        audioRequestsManager.releaseDuckedFocus()
+        audioRequestsManager.releaseExclusiveFocus()
+
         //unregister receiver:
         try {
             unregisterReceiver(VQReceiver)
+            Log.d(TAG, "VQReceiver unregistered.")
         } catch (e: Exception) {
             Log.d(TAG, "VQReceiver already unregistered.")
         }
+
         //Reset:
-        searchFail = false
+        followUp = false
+        messageMode = false
+        recordingFail = false
         recordingMode = false
         voiceQueryOn = false
         sourceIsVolume.postValue(false)
-        processing = false
         dispatcherInfo = DispatcherInfo()
+
         //Set overlay READY color:
         overlayStatus.postValue("ready")
         Log.d(TAG, "VOICE QUERY SERVICE TERMINATED.")
@@ -159,313 +160,216 @@ class VoiceQueryService: Service() {
     }
 
 
-    //FUNCTIONS:
-    //Helper:
-    private fun record() {
+    fun cancelJob(job: Job?, jobName: String) {
         try {
-            //START VOICE RECORDER:
-            Log.d(TAG, "RECORDING STARTED.")
-
-            //Set overlay BUSY color:
-            overlayStatus.postValue("busy")
-
-            if (followUp || messageMode) {
-                //Play FOLLOW UP tone:
-                toneGen.startTone(ToneGenerator.TONE_CDMA_ONE_MIN_BEEP)   //FOLLOW UP
-            } else {
-                //Play START tone:
-                toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
-            }
-
-            //Start recording (default: cacheDir):
-            recordingMode = true
-            rec_time = 0
-            MyRecorder.start(applicationContext.cacheDir)
-
-            //Start rec Thread:
-            var recThread = Thread {
-                whileRecording(MyRecorder, messageMode=messageMode)
-            }
-            recThread.start()
-            allThreads.add(recThread)
+            job?.cancel()
+            Log.d(TAG, "Stopped $jobName!")
         } catch (e: Exception) {
-            Log.w(TAG, "VQSERVICE: EXCEPTION: ", e)
-            fail("Sorry, there was a problem!")
+            Log.w(TAG, "$jobName not active.")
         }
     }
 
+    private fun failSilently() {
+        toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+        stopSelf()
+    }
 
-    //Start recording:
-    private fun startRecording() {
+
+    // INTERACTION FLOW:
+    // START RECORDING:
+    private fun startVoiceRecording(
+        speakIntro: Boolean = false
+    ) {
+        Log.d(TAG, "startVoiceRecording() triggered!")
+        recordingTime = 0
         try {
-            if (followUp && voiceQueryOn) {
-                //START RECORDING with no new audiofocus request:
-                record()
+            cancelJob(processingJob, "processingJob")
+            //Start rec Job:
+            recordingJob = coroutineScope.launch {
+                // 1) SPEAK INTRO:
+                if (voiceQueryOn && speakIntro) {
+                    audioRequestsManager.requestDuckedFocus(
+                        onGranted = {
+                            overlayStatus.postValue("processing")
+                            Thread.sleep(500)
+                            //Read TTS:
+                            tts.speak(
+                                listOf(
+                                    AiReply(
+                                        langCode = prefs.queryLanguage,
+                                        text = defaultReplies.speakIntro()
+                                    )
+                                )
+                            )
+                        },
+                        onFail = { failSilently() }
+                    )
+                    audioRequestsManager.releaseDuckedFocus()
+                }
 
-            } else if (voiceQueryOn) {
-                //PREPARE AUDIOFOCUS REQUEST:
-                //Focus request:
-                audioFocusRequest =
-                    AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
-                        .setAudioAttributes(audioAttributes!!)
-                        .setAcceptsDelayedFocusGain(true)
-                        .setOnAudioFocusChangeListener(audioFocusChangeListener)
-                        .build()
+                // 2) RECORD:
+                if (voiceQueryOn) {
+                    audioRequestsManager.requestExclusiveFocus(
+                        onGranted = {
+                            //Set overlay BUSY color:
+                            overlayStatus.postValue("busy")
 
-                //REQUEST AUDIO FOCUS:
-                val focusRequest = audioManager!!.requestAudioFocus(audioFocusRequest!!)
-                when (focusRequest) {
-                    AudioManager.AUDIOFOCUS_REQUEST_FAILED -> {
-                        Log.d(TAG, "Cannot gain audio focus! Try again.")
-                    }
+                            //Play START tone:
+                            toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
+                            // toneGen.startTone(ToneGenerator.TONE_CDMA_ONE_MIN_BEEP)   //FOLLOW UP
 
-                    AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {
-                        //START RECORDING:
-                        record()
-                    }
+                            //Start recording (default: cacheDir):
+                            recordingMode = true
+                            MyRecorder.start()
 
-                    AudioManager.AUDIOFOCUS_REQUEST_DELAYED -> {
-                        //mAudioFocusPlaybackDelayed = true
-                    }
+                            MyRecorder.whileRecording(
+                                messageMode,
+                                dispatcherInfo.messageType,
+                            )
+                        },
+                        onFail = { failSilently() }
+                    )
                 }
             }
+
         } catch (e: Exception) {
             Log.w(TAG, "VQSERVICE: EXCEPTION: ", e)
-            fail("Sorry, there was a problem!")
+            failSilently()
         }
     }
 
 
-    //Stop recording & process request:
-    private fun stopAndProcess(followUp: Boolean = false) {
+    // STOP RECORDING:
+    fun stopVoiceRecording() {
+        Log.d(TAG, "stopVoiceRecording() triggered")
         try {
-            //Stop recording:
-            recordingMode = false
             var recFile = MyRecorder.stop()
+            recordingMode = false
             Log.d(TAG, "RECORDING STOPPED.")
+            cancelJob(recordingJob, "recordingJob")
 
-            //TODO: Check:
-//            //Lower volume if maximum (to enable Receiver):
-//            if (sourceIsVolume.value!! && audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {
-//                audioManager!!.setStreamVolume(AudioManager.STREAM_MUSIC, streamMaxVolume - 1, AudioManager.FLAG_PLAY_SOUND)
-//                Log.d(TAG, "Countdown stopped. Volume lowered.")
-//            }
 
             //2) RECORDING RESULT:
-            if (searchFail) {
+            if (!voiceQueryOn || recordingFail) {
                 //A) RECORDING FAIL -> END:
-                fail()
+                failSilently()
 
             } else {
                 //B) RECORDING SUCCESS:
                 //Play STOP tone:
                 toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
-
-                if (voiceQueryOn) {
-                    processing = true
-                    //Set overlay PROCESSING color & icon:
-                    overlayStatus.postValue("processing")
-
-                    //PROCESS REQUEST:
-                    var processThread = Thread {
-                        synchronized(this) {
-                            processResults(recFile)
+                audioRequestsManager.releaseExclusiveFocus()
+                audioRequestsManager.requestDuckedFocus(
+                    onGranted = {
+                        if (voiceQueryOn) {
+                            //Set overlay PROCESSING color & icon:
+                            overlayStatus.postValue("processing")
+                            //PROCESS QUERY:
+                            processingJob = coroutineScope.launch {
+                                processQuery(recFile)
+                            }
                         }
-                    }
-                    processThread.start()
-                    allThreads.add(processThread)
-                }
+                    },
+                    onFail = { failSilently() }
+                )
+
             }
 
         } catch (e: Exception) {
             Log.w(TAG, "VQSERVICE: EXCEPTION: ", e)
-            fail("Sorry, there was a problem!")
+            failSilently()
         }
     }
 
 
-    private fun processResults(recFile: File) {
+    // PROCESS QUERY:
+    private fun processQuery(recFile: File) {
+        Log.d(TAG, "PROCESSING JOB STARTED!")
         try {
-            //CALL NLP DISPATCHER:
+            //PROCESS REQUEST:
             var nlpDispatcher = NLPDispatcher(applicationContext)
             dispatcherInfo = nlpDispatcher.dispatch(recFile, dispatcherInfo, followUp, messageMode)
-            processing = false
+            messageMode = dispatcherInfo.messageMode
+            followUp = dispatcherInfo.followUp
+            val actions = Actions(applicationContext)
+            var newReplies = listOf<AiReply>()
 
-            if (dispatcherInfo.intentName == "" || dispatcherInfo.fail) {
-                var toastText = ""
-                if (dispatcherInfo.toastText != "") {
-                    toastText = dispatcherInfo.toastText
-                }
-                fail(toastText)
+            if (dispatcherInfo.fail && dispatcherInfo.aiReplies.isEmpty()) {
+                // Default fail replies:
+                newReplies = listOf(
+                    AiReply(
+                        langCode = prefs.queryLanguage,
+                        text = defaultReplies.replyError()
+                    )
+                )
+            }
 
-            } else if (dispatcherInfo.end) {
-                if (dispatcherInfo.playAcknowledge) {
-                    //SUCCESS -> Play ACKNOWLEDGE tone:
-                    toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+            // Speak & execute:
+            val intentName = lastLog.nlpQueries.first().intentName
+            if (intentName.contains("Play") || intentName.contains("Call")) {
+                // A) First speak, then execute action:
+                // Read:
+                if (dispatcherInfo.aiReplies.isNotEmpty()) {
+                    tts.speak(dispatcherInfo.aiReplies)
                 }
-                //Gracefully stop the service:
-                stopSelf()
-
-            } else if (dispatcherInfo.messageMode) {
-                //SUPPOSED TO BE TRUE:
-                messageMode = true
-                try {
-                    startRecording()
-                } catch (e: Exception) {
-                    Log.w(TAG, "VQRECEIVER: recording not started. ", e)
-                    fail()
+                audioRequestsManager.releaseDuckedFocus()
+                // Execute:
+                if (dispatcherInfo.actionType != null) {
+                    actions.execute(dispatcherInfo)
                 }
 
-            } else if (dispatcherInfo.followUp) {
-                //SUPPOSED TO BE TRUE:
-                followUp = true
-                try {
-                    startRecording()
-                } catch (e: Exception) {
-                    Log.w(TAG, "VQRECEIVER: recording not started. ", e)
-                    fail()
-                }
             } else {
-                //TEMP:
+                // B) First execute action, then speak:
+                // Execute:
+                if (dispatcherInfo.actionType != null) {
+                    newReplies = actions.execute(dispatcherInfo)
+                }
+                // If received updated replies: replace!
+                if (newReplies.isNotEmpty()) {
+                    dispatcherInfo.aiReplies = newReplies
+                }
+                // Read:
+                if (dispatcherInfo.aiReplies.isNotEmpty()) {
+                    tts.speak(dispatcherInfo.aiReplies)
+                }
+                audioRequestsManager.releaseDuckedFocus()
+            }
+
+            if (messageMode || followUp) {
+                // START FOLLOWUP INTERACTION:
+                startVoiceRecording()
+
+            } else {
+                // END:
+                overlayStatus.postValue("ready")
+                Thread.sleep(200)
+                if (dispatcherInfo.fail) {
+                    toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                } else {
+                    if (dispatcherInfo.end) logUtils.storeLog(applicationContext)   //Close log
+                    if (dispatcherInfo.playAcknowledge) toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                }
                 stopSelf()
             }
         } catch (e: Exception) {
             Log.e(TAG, "VQSERVICE: EXCEPTION: ", e)
-            fail("Sorry, there was a problem!")
+            failSilently()
         }
     }
 
 
-    private fun fail(toastText: String = "") {
-        //Play FAIL tone:
-        toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-        if (toastText != "") {
-            //TOAST -> Send broadcast:
-            Intent().also { intent ->
-                intent.setAction(ACTION_TOASTER)
-                intent.putExtra("toastText", toastText)
-                sendBroadcast(intent)
-            }
-        }
-        followUp = false
-        messageMode = false
-        stopSelf()
-    }
-
-
-    //While recording:
-    private fun whileRecording(recorder: AudioRecorder, messageMode: Boolean = false) {
-        try {
-            var c = 0
-            var deltaThreshold = 5
-            var amplitudes = mutableListOf<Int>()
-            var min = 0
-            var max = 0
-            var std = 0
-            var curAmpl = 0
-            var maxTime = prefs.recTimeout.toLong()
-            if (messageMode && dispatcherInfo.messageType == "voice") {
-                maxTime = maxAudioRecTimeout
-            } else if (messageMode) {
-                maxTime = prefs.messageTimeout.toLong()
-            }
-
-            //ONCE EVERY SECOND:
-            while (rec_time < maxTime) {
-
-                if (!recordingMode && rec_time > 0) {
-                    //Recording is over:
-                    break
-
-                } else if ((messageMode && prefs.silenceEnabledMess) || (!messageMode && prefs.silenceEnabledQueries)) {
-                    //Get max amplitude detected (in %):
-                    curAmpl = recorder.getMaxAmplitude()
-                    amplitudes.add(curAmpl)
-                    Log.d(TAG, "CURRENT: $curAmpl")
-
-                    try {
-                        min = amplitudes.filter { it > 0 }.min()
-                        max = amplitudes.max()
-                        std = utils.getStDev(amplitudes.filter { it > 0 })
-                    } catch (e: Exception) {
-                        Log.w(TAG, "No min/max.")
-                    }
-
-                    //Tolerance period ended:
-                    if (rec_time == silenceInitPatience) {
-
-                        if ((max - min) <= deltaThreshold) {
-                            //Early stop!
-                            Log.d(TAG, "RECORDER: SILENCE DETECTED! -> EARLY STOP")
-                            Intent().also { intent ->
-                                intent.setAction(ACTION_REC_STOP)
-                                applicationContext.sendBroadcast(intent)
-                            }
-                            break
-
-                        } else {
-                            c = 0
-                        }
-
-                    } else if (rec_time > silencePatience) {
-
-                        if ((max - curAmpl) <= std) {
-                            //Go on:
-                            c = 0
-
-                        } else if (c >= silencePatience) {
-                            //Early stop!
-                            Log.d(TAG, "RECORDER: SILENCE DETECTED! -> EARLY STOP")
-                            Intent().also { intent ->
-                                intent.setAction(ACTION_REC_STOP)
-                                applicationContext.sendBroadcast(intent)
-                            }
-                            break
-
-                        } else {
-                            //Speaking -> go on:
-                            c++
-                        }
-                    }
-                }
-                Thread.sleep(500)
-                rec_time ++
-            }
-
-            Log.d(TAG, "AMPLITUDES: $amplitudes")
-            Log.d(TAG, "MIN: $min")
-            Log.d(TAG, "MAX: $max")
-            Log.d(TAG, "STD: $std")
-
-            if (recordingMode) {
-                //STOP recording:
-                Intent().also { intent ->
-                    intent.setAction(ACTION_REC_STOP)
-                    sendBroadcast(intent)
-                }
-            }
-
-        } catch (e: InterruptedException) {
-            Log.w(TAG, "Interrupted: exception.", e)
-        }
-    }
-
-    
     //PERSONAL RECEIVER:
     private var VQReceiver = object: BroadcastReceiver() {
 
         override fun onReceive(context: Context?, intent: Intent?) {
 
             //Stop Recording:
-            if (intent!!.action == ACTION_REC_STOP && recordingMode && rec_time >= 1) {
+            if (intent!!.action == ACTION_REC_STOP && recordingMode && recordingTime >= 1) {
                 Log.d(TAG, "VQRECEIVER: ACTION_REC_STOP.")
-                try {
-                    stopAndProcess()
-                } catch (e: Exception) {
-                    Log.d(TAG, "VQRECEIVER: recording not stopped. ", e)
-                }
+                stopVoiceRecording()
             }
 
         }
     }
+
 }

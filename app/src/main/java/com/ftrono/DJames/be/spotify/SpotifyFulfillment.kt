@@ -1,9 +1,7 @@
 package com.ftrono.DJames.be.spotify
 
 import android.content.Context
-import android.content.Intent
 import android.util.Log
-import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.lastLog
@@ -12,13 +10,14 @@ import com.ftrono.DJames.application.likedSongsUri
 import com.ftrono.DJames.application.logUtils
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.reqPlayLinkName
 import com.ftrono.DJames.application.spotIntroUri
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.NlpQueryModel
 import com.ftrono.DJames.be.database.ExtractorInfo
 import com.ftrono.DJames.be.database.SpotifyPlayable
+import com.ftrono.DJames.be.models.ActionType
+import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
 import com.ftrono.DJames.be.nlp.NLPExtractor
 import com.ftrono.DJames.be.nlp.NLPMatcher
@@ -45,16 +44,6 @@ class SpotifyFulfillment (private var context: Context) {
         var reqLangCode = utils.getLanguageCode(detLanguage, prefs.queryLanguage)
         var reqLangName = utils.getLanguageName(reqLangCode)
 
-        //Prepare toast text:
-        var toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
-
-        //TOAST -> Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_TOASTER)
-            intent.putExtra("toastText", toastText)
-            context.sendBroadcast(intent)
-        }
-
         //Distinguish by intent & build voice response:
         var playType = ""
         var contextType = ""
@@ -74,7 +63,7 @@ class SpotifyFulfillment (private var context: Context) {
             val nlpExtractor = NLPExtractor(context)
             playType = "artist"
             contextType = "playlist"
-            reqPlayLinkName = nlpExtractor.extractPlayLink(nlp_queryText)
+            dispatcherInfo.reqPlayLinkName = nlpExtractor.extractPlayLink(nlp_queryText)
 
         } else if (intentName == "PlayAlbum") {
             //ALBUM:
@@ -96,21 +85,17 @@ class SpotifyFulfillment (private var context: Context) {
             }
         }
 
-        //Read:
+        //Reply:
         val ttsToRead = defaultReplies.replyPlayRequest(intentName, reqLangName, contextType)
-        val itemsToRead = listOf(
-            mapOf(
-                "language" to prefs.queryLanguage,
-                "text" to ttsToRead
+        val aiReplies = listOf(
+            AiReply(
+                langCode = prefs.queryLanguage,
+                text = ttsToRead
             )
-        )
-        fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=false)
-        fulfillmentUtils.saveMessage(
-            type = "ai",
-            text = ttsToRead
         )
 
         //dispatcherInfo:
+        dispatcherInfo.aiReplies = aiReplies
         dispatcherInfo.intentName = resultsNLP.intentName
         dispatcherInfo.followUp = true
         dispatcherInfo.reqLanguage = reqLangCode
@@ -139,40 +124,21 @@ class SpotifyFulfillment (private var context: Context) {
         //PLAY -> Liked Songs:
         Log.d(TAG, "PLAY -> Liked Songs")
 
-        //Read & dim:
-        fulfillmentUtils.releaseAudioFocus()
-
         //Log:
         lastLog.nlpQueries.add(resultsNLP)
 
-        //Prepare toast text:
-        var toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
-
-        //TOAST -> Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_TOASTER)
-            intent.putExtra("toastText", toastText)
-            context.sendBroadcast(intent)
-        }
-
-        //Read:
+        //Reply:
         val ttsToRead = defaultReplies.replyPlayIntro(playable)
-        val itemsToRead = listOf(
-            mapOf(
-                "language" to prefs.queryLanguage,
-                "text" to ttsToRead
+        val aiReplies = listOf(
+            AiReply(
+                langCode = prefs.queryLanguage,
+                text = ttsToRead
             )
         )
-        fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=true)
-        fulfillmentUtils.saveMessage(
-            type = "ai",
-            text = ttsToRead
-        )
 
-
-        //PLAY:
-        val spotifyPlayer = SpotifyPlayer(context)
-        spotifyPlayer.spotifyPlay(playable)
+        //dispatcherInfo:
+        dispatcherInfo.aiReplies = aiReplies
+        dispatcherInfo.actionType = ActionType.PLAY
 
         //dispatcherInfo:
         dispatcherInfo.end = true
@@ -180,7 +146,7 @@ class SpotifyFulfillment (private var context: Context) {
 
         //Close log:
         lastLog.spotifyPlay = playable
-        logUtils.storeLog(context)
+        dispatcherInfo.playable = playable
         return dispatcherInfo
     }
 
@@ -196,16 +162,6 @@ class SpotifyFulfillment (private var context: Context) {
 
         //Log:
         lastLog.nlpQueries.add(resultsNLP)
-
-        //Prepare toast text:
-        var toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
-
-        //TOAST -> Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_TOASTER)
-            intent.putExtra("toastText", toastText)
-            context.sendBroadcast(intent)
-        }
 
         //Extract play info:
         val nlpMatcher = NLPMatcher(context)
@@ -235,13 +191,10 @@ class SpotifyFulfillment (private var context: Context) {
         //A) EMPTY QUERY RESULT:
         if (playable.id == "") {
             //Close log:
-            logUtils.storeLog(context)
-            return fulfillmentUtils.fallback()
+            return fulfillmentUtils.fallback(notUnderstood=true)
 
         } else {
             //B) SPOTIFY RESULT RECEIVED!
-            fulfillmentUtils.releaseAudioFocus()
-
             //Wait 1 sec:
             Thread.sleep(1000)
 
@@ -270,33 +223,29 @@ class SpotifyFulfillment (private var context: Context) {
                 }
             }
 
-            //Read TTS:
+            //Reply:
             val introText = defaultReplies.replyPlayIntro(playable)
             val detailText = defaultReplies.replyPlayDetail(playable)
-            val itemsToRead = listOf(
-                mapOf(
-                    "language" to prefs.queryLanguage,
-                    "text" to introText
+            val aiReplies = listOf(
+                AiReply(
+                    langCode = prefs.queryLanguage,
+                    text = introText
                 ),
-                mapOf(
-                    "language" to reqLangCode,
-                    "text" to detailText
+                AiReply(
+                    langCode = reqLangCode,
+                    text = detailText
                 )
             )
-            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=true)
-            fulfillmentUtils.saveMessage(
-                type = "ai",
-                text = introText + detailText
-            )
+
+            //dispatcherInfo:
+            dispatcherInfo.aiReplies = aiReplies
+            dispatcherInfo.actionType = ActionType.PLAY
 
             //Player info:
             extractorInfo.reqLanguage = reqLangCode
             lastLog.nlpExtractor = extractorInfo
             lastLog.spotifyPlay = playable
-
-            //PLAY:
-            val spotifyPlayer = SpotifyPlayer(context)
-            spotifyPlayer.spotifyPlay(playable)
+            dispatcherInfo.playable = playable
         }
 
         //Build return
@@ -304,7 +253,6 @@ class SpotifyFulfillment (private var context: Context) {
         Log.d(TAG, dispatcherInfo.toString())
 
         //Close log:
-        logUtils.storeLog(context)
         return dispatcherInfo
     }
 
@@ -322,16 +270,6 @@ class SpotifyFulfillment (private var context: Context) {
 
         //Log:
         lastLog.nlpQueries.add(resultsNLP)
-
-        //Prepare toast text:
-        var toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
-
-        //TOAST -> Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_TOASTER)
-            intent.putExtra("toastText", toastText)
-            context.sendBroadcast(intent)
-        }
 
         //Extractor:
         var nlpExtractor = NLPExtractor(context)
@@ -351,7 +289,9 @@ class SpotifyFulfillment (private var context: Context) {
                 val itemInfo = libUtils.getItemInfoUse("artist", libMatchId)
                 //Match playLinkName:
                 val playLinks = itemInfo.playLinks
-                val matchedPlayName = if (playLinks.containsKey(reqPlayLinkName)) reqPlayLinkName else itemInfo.defaultKey
+                val matchedPlayName = if (
+                    prevStatus.reqPlayLinkName != "" && playLinks.containsKey(prevStatus.reqPlayLinkName)
+                    ) prevStatus.reqPlayLinkName else itemInfo.defaultKey
                 Log.d(TAG, "Matched PlayName: $matchedPlayName")
                 if (matchedPlayName == "artist") {
                     Log.d(TAG, "PLAY -> Artist Top Tracks")
@@ -395,44 +335,37 @@ class SpotifyFulfillment (private var context: Context) {
         if (playable.id == "") {
             Log.d(TAG, "PLAY -> Artist / Playlist not found!")
             //Close log:
-            //logUtils.storeLog(context)
-            return fulfillmentUtils.fallback()
+            return fulfillmentUtils.fallback(notUnderstood=true)
 
         } else {
             //B) SPOTIFY RESULT RECEIVED!
             Log.d(TAG, "PLAY -> Artist / Playlist found!")
-            fulfillmentUtils.releaseAudioFocus()
-
             //Wait 1 sec:
             Thread.sleep(1000)
 
-            //TTS:
+            //Reply:
             var introText = defaultReplies.replyPlayIntro(playable)
             var detailText = defaultReplies.replyPlayDetail(playable)
-            val itemsToRead = listOf(
-                mapOf(
-                    "language" to prefs.queryLanguage,
-                    "text" to introText
+            val aiReplies = listOf(
+                AiReply(
+                    langCode = prefs.queryLanguage,
+                    text = introText
                 ),
-                mapOf(
-                    "language" to reqLangCode,
-                    "text" to detailText
+                AiReply(
+                    langCode = reqLangCode,
+                    text = detailText
                 )
             )
-            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=true)
-            fulfillmentUtils.saveMessage(
-                type = "ai",
-                text = introText + detailText
-            )
+
+            //dispatcherInfo:
+            dispatcherInfo.aiReplies = aiReplies
+            dispatcherInfo.actionType = ActionType.PLAY
 
             //Player info:
             extractorInfo.reqLanguage = reqLangCode
             lastLog.nlpExtractor = extractorInfo
             lastLog.spotifyPlay = playable
-
-            //PLAY:
-            val spotifyPlayer = SpotifyPlayer(context)
-            spotifyPlayer.spotifyPlay(playable)
+            dispatcherInfo.playable = playable
         }
 
         //Build return
@@ -440,7 +373,6 @@ class SpotifyFulfillment (private var context: Context) {
         Log.d(TAG, dispatcherInfo.toString())
 
         //Close log:
-        logUtils.storeLog(context)
         return dispatcherInfo
     }
 
@@ -458,16 +390,6 @@ class SpotifyFulfillment (private var context: Context) {
 
         //Log:
         lastLog.nlpQueries.add(resultsNLP)
-
-        //Prepare toast text:
-        var toastText = nlp_queryText.replaceFirstChar { it.uppercase() }
-
-        //TOAST -> Send broadcast:
-        Intent().also { intent ->
-            intent.setAction(ACTION_TOASTER)
-            intent.putExtra("toastText", toastText)
-            context.sendBroadcast(intent)
-        }
 
         //Extractor:
         val nlpMatcher = NLPMatcher(context)
@@ -513,52 +435,41 @@ class SpotifyFulfillment (private var context: Context) {
         //A) EMPTY QUERY RESULT:
         if (playable.id == "") {
             Log.d(TAG, "PLAY -> Podcast not found!")
-            //Close log:
-            //logUtils.storeLog(context)
-            return fulfillmentUtils.fallback()
+            return fulfillmentUtils.fallback(notUnderstood=true)
 
         } else {
             //B) SPOTIFY RESULT RECEIVED!
-            fulfillmentUtils.releaseAudioFocus()
-
             //Wait 1 sec:
             Thread.sleep(1000)
 
-            //Read TTS:
+            //Reply:
             var introText = defaultReplies.replyPlayIntro(playable)
-            var detailText = defaultReplies.replyPlayDetail(playable)
-            val itemsToRead = listOf(
-                mapOf(
-                    "language" to prefs.queryLanguage,
-                    "text" to introText
+            var detailText = utils.cleanString(defaultReplies.replyPlayDetail(playable), emojiOnly = true)
+            val aiReplies = listOf(
+                AiReply(
+                    langCode = prefs.queryLanguage,
+                    text = introText
                 ),
-                mapOf(
-                    "language" to reqLangCode,
-                    "text" to utils.cleanString(detailText, emojiOnly = true)
+                AiReply(
+                    langCode = reqLangCode,
+                    text = detailText
                 )
             )
-            fulfillmentUtils.ttsRead(context, itemsToRead, dimAudio=true)
-            fulfillmentUtils.saveMessage(
-                type = "ai",
-                text = introText + detailText
-            )
+
+            //dispatcherInfo:
+            dispatcherInfo.aiReplies = aiReplies
+            dispatcherInfo.actionType = ActionType.PLAY
 
             //Player info:
             extractorInfo.reqLanguage = reqLangCode
             lastLog.nlpExtractor = extractorInfo
             lastLog.spotifyPlay = playable
-
-            //PLAY:
-            val spotifyPlayer = SpotifyPlayer(context)
-            spotifyPlayer.spotifyPlay(playable)
+            dispatcherInfo.playable = playable
         }
 
         //Build return
         dispatcherInfo.end = true
         Log.d(TAG, dispatcherInfo.toString())
-
-        //Close log:
-        logUtils.storeLog(context)
         return dispatcherInfo
     }
 

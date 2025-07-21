@@ -56,7 +56,7 @@ data class ItemInfoView(
 data class ItemInfoUse(
     var type: String = "",
     var name: String = "",
-    var detail: String = "",   //playlist owner or podcast publisher
+    var detail: String = "",   // (usable) phoneset key / address / readables; (info) owner, publisher, address
     var language: String = "",
     var url: String = "",
     var defaultKey: String = "",

@@ -12,18 +12,26 @@ import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.addLinkOn
 import com.ftrono.DJames.application.artistUrlIntro
 import com.ftrono.DJames.application.currentTrackId
+import com.ftrono.DJames.application.episodeUrlIntro
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.playlistUrlIntro
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.showUrlIntro
 import com.ftrono.DJames.application.spotifyUtils
+import com.ftrono.DJames.application.trackUrlIntro
 import com.ftrono.DJames.be.database.Artist
 import com.ftrono.DJames.be.database.Playlist
 import com.ftrono.DJames.be.database.Podcast
 import com.ftrono.DJames.be.database.SpotifyPlayable
+import com.ftrono.DJames.be.models.HttpResponse
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 class SpotifyUtils {
@@ -73,6 +81,12 @@ class SpotifyUtils {
         else if (
             urlTest && url.contains(showUrlIntro)
         ) "podcast"
+        else if (
+            urlTest && url.contains(trackUrlIntro)
+        ) "track"
+        else if (
+            urlTest && url.contains(episodeUrlIntro)
+        ) "episode"
         else ""
     }
 
@@ -88,19 +102,38 @@ class SpotifyUtils {
     ) {
         loadingDialogOn.value = true
         var urlToCheck = if (sharedLink.value != "") sharedLink.value!!.trim() else (addLinkState.value)
-        val goto = spotifyUtils.disambiguateSpotifyURL(urlToCheck)
+        var goto = spotifyUtils.disambiguateSpotifyURL(urlToCheck)
         if (goto != "") {
             addLinkOn.postValue(false)
-            currentCatState.value = goto
-            val urlMap = libUtils.getUrlMap(goto)
-            val foundId = urlMap.getOrDefault(urlToCheck, -1L)
-            if (foundId > -1) {
-                idState.value = foundId
-                loadingDialogOn.value = false
-            } else {
-                addLinkState.value = urlToCheck
+            //Check extract parent:
+            if (goto == "track" || goto == "episode") {
+                val parentId = getParentIdFromChildUrl(context, goto, urlToCheck)
+                if (parentId == "") {
+                    loadingDialogOn.value = false
+                    Toast.makeText(context, "Invalid Spotify Artist, Playlist or Podcast link!", Toast.LENGTH_SHORT).show()
+                    urlToCheck = ""
+                } else if (goto == "track") {
+                    goto = "artist"
+                    urlToCheck = artistUrlIntro + parentId
+                } else {
+                    goto = "podcast"
+                    urlToCheck = showUrlIntro + parentId
+                }
+                Log.d(TAG, urlToCheck)
             }
-            editLibOn.value = true
+            if (urlToCheck != "") {
+                //Go to right Edit Lib dialog:
+                currentCatState.value = goto
+                val urlMap = libUtils.getUrlMap(goto)
+                val foundId = urlMap.getOrDefault(urlToCheck, -1L)
+                if (foundId > -1) {
+                    idState.value = foundId
+                    loadingDialogOn.value = false
+                } else {
+                    addLinkState.value = urlToCheck
+                }
+                editLibOn.value = true
+            }
         } else {
             loadingDialogOn.value = false
             Toast.makeText(context, "Invalid Spotify Artist, Playlist or Podcast link!", Toast.LENGTH_SHORT).show()
@@ -173,6 +206,49 @@ class SpotifyUtils {
         }
         overlayStatus.postValue("ready")
         Log.d(TAG, "SaveTrack: job end!")
+    }
+
+
+    //Get Parent ID from Child URL:
+    fun getParentIdFromChildUrl(context: Context, childCat: String, url: String): String {
+        Log.d(TAG, "getParentIdFromChildUrl: job start!")
+        var childId = ""
+        var parentCat = ""
+        //Extract:
+        try {
+            val spotifyCalls = SpotifyCalls(context)
+            var resp = HttpResponse(
+                code = -1,  // -1 to indicate failure
+                body = ""
+            )
+            //Select parent:
+            if (childCat == "track") {
+                parentCat = "artist"
+                resp = spotifyCalls.getSpotifyTrack(getSpotifyID(url))
+            } else if (childCat == "episode") {
+                parentCat = "show"
+                resp = spotifyCalls.getSpotifyEpisode(getSpotifyID(url))
+            }
+            //PROCESS RESPONSE:
+            if (resp.code == 200) {
+                //SUCCESS -> Extract Parent ID:
+                Log.d(TAG, "getParentIdFromChildUrl: results received!")
+                val respJson = JsonParser.parseString(resp.body).asJsonObject
+                if (parentCat == "artist") {
+                    // Track -> Artist:
+                    childId = respJson.get("artists").asJsonArray.get(0).asJsonObject.get("id").asString   //take 1st artist by default
+                } else {
+                    // Episode -> Show:
+                    childId = respJson.get("show").asJsonObject.get("id").asString
+                }
+            } else {
+                Log.w(TAG, "ERROR: Could not extract $parentCat from $childCat!")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: Could not extract $parentCat from $childCat! ", e)
+        }
+        Log.d(TAG, "getParentIdFromChildUrl: job end!")
+        return childId
     }
 
 

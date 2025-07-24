@@ -48,6 +48,21 @@ class SpotifyCalls(private val context: Context) {
     }
 
 
+    //GET SPOTIFY TRACK:
+    fun getSpotifyTrack(id: String): HttpResponse {
+        var url = "https://api.spotify.com/v1/tracks/$id"
+
+        //Headers:
+        var jsonHeads = JsonObject()
+        jsonHeads.addProperty("Authorization", "Bearer ${prefs.spotifyToken}")
+
+        //GET REQUEST:
+        var response = query.querySpotify(type = "get", url = url, jsonHeads = jsonHeads)
+        Log.d(TAG, "getSpotifyTrack: response code: ${response.code}")
+        return response
+    }
+
+
     //GET SPOTIFY ARTIST:
     fun getSpotifyArtist(id: String): HttpResponse {
         var url = "https://api.spotify.com/v1/artists/$id"
@@ -77,6 +92,21 @@ class SpotifyCalls(private val context: Context) {
         //GET REQUEST:
         var response = query.querySpotify(type = "get", url = url, jsonHeads = jsonHeads)
         Log.d(TAG, "getSpotifyPlaylist: response code: ${response.code}")
+        return response
+    }
+
+
+    //GET SPOTIFY EPISODE:
+    fun getSpotifyEpisode(id: String): HttpResponse {
+        var url = "https://api.spotify.com/v1/episodes/$id"
+
+        //Headers:
+        var jsonHeads = JsonObject()
+        jsonHeads.addProperty("Authorization", "Bearer ${prefs.spotifyToken}")
+
+        //GET REQUEST:
+        var response = query.querySpotify(type = "get", url = url, jsonHeads = jsonHeads)
+        Log.d(TAG, "getSpotifyEpisode: response code: ${response.code}")
         return response
     }
 

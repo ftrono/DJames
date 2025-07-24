@@ -142,10 +142,9 @@ class NLPDispatcher (private var context: Context) {
                             // Store fully:
                             nlp_queryText = fulfillmentUtils.replaceNums(resultsNLP.queryText)
                             storedText = nlp_queryText
+                            lastLog.nlpQueries.add(resultsNLP)
                         }
                         // Update & store user Message:
-                        // v2:
-                        lastLog.nlpQueries.add(resultsNLP)
                         fulfillmentUtils.saveLogMessage(
                             type = "user",
                             text = storedText,

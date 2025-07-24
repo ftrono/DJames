@@ -307,6 +307,7 @@ class VoiceQueryService: Service() {
 
             // Speak & execute:
             val intentName = lastLog.nlpQueries.first().intentName
+            Thread.sleep(300)
             if (intentName.contains("Play") || intentName.contains("Call")) {
                 // A) First speak, then execute action:
                 // Read:

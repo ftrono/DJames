@@ -1,9 +1,11 @@
 package com.ftrono.DJames.application
 
+import android.Manifest
 import android.app.Application
 import android.content.Context
 import android.media.AudioManager
 import android.net.Uri
+import android.os.Build
 import net.openid.appauth.AuthorizationServiceConfiguration
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.application.App.ObjectBox.store
@@ -51,9 +53,31 @@ val spotifyUtils = SpotifyUtils()
 val fulfillmentUtils = FulfillmentUtils()
 val defaultReplies = DefaultReplies()
 
+//Permissions:
+val runtimePermissions = buildList {
+    add(Manifest.permission.RECORD_AUDIO)
+    add(Manifest.permission.CALL_PHONE)
+    add(Manifest.permission.SEND_SMS)
+    add(Manifest.permission.READ_PHONE_STATE)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        add(Manifest.permission.POST_NOTIFICATIONS)   // Android 13+
+    }
+}
+val permissionDescriptions = buildMap {
+    put(Manifest.permission.RECORD_AUDIO, "DJames needs access to your microphone to record audio.\n\nHe will only use it when you click the Overlay button.")
+    put(Manifest.permission.CALL_PHONE, "DJames needs the permission to make phone calls. He will only make calls when you ask for it.")
+    put(Manifest.permission.READ_PHONE_STATE, "DJames needs the permission to access your phone's state for managing calls & audio features.")
+    put(Manifest.permission.SEND_SMS, "DJames needs the permission to send SMS messages. He will only send SMSs when you ask for it.")
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        put(Manifest.permission.POST_NOTIFICATIONS, "DJames needs the permission to post notifications.\n\nHe ONLY needs them to inform you when it is active (he won't EVER send you any other notification).")
+    }
+}
+val overlayPermissionDescription = "DJames needs your permission to show its Overlay button over other apps! Through this button, you will be able to record voice requests.\n\nPlease tap 'Yes' and enable DJames from the app list!"
+
 //STATUS VARS:
 var curNavId = 0
 var lastNavRoute = "home"
+var permsRequested = MutableLiveData<Boolean>(false)
 var spotifyLoggedIn = MutableLiveData<Boolean>(false)
 var userGender = MutableLiveData<String>("Sir")
 var overlayActive = MutableLiveData<Boolean>(false)

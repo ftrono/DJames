@@ -1,19 +1,15 @@
 package com.ftrono.DJames.utilities
 
-import android.accessibilityservice.AccessibilityService
-import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.ActivityManager
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
+import android.content.pm.PackageManager
 import android.telephony.PhoneNumberUtils
-import android.text.TextUtils
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import com.ftrono.DJames.application.*
@@ -77,25 +73,10 @@ class Utilities {
     }
 
 
-    //Check AccessibilityService permissions:
-    fun isAccessibilityServiceEnabled(context: Context, serviceClass: Class<out AccessibilityService>): Boolean {
-        val expectedComponentName = ComponentName(context, serviceClass)
-        val enabledServicesSetting = Settings.Secure.getString(
-            context.contentResolver,
-            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-        ) ?: return false
-
-        val colonSplitter = TextUtils.SimpleStringSplitter(':')
-        colonSplitter.setString(enabledServicesSetting)
-
-        for (component in colonSplitter) {
-            if (ComponentName.unflattenFromString(component) == expectedComponentName) {
-                return true
-            }
-        }
-        return false
+    //Check Manifest permission:
+    fun checkPermission(context: Context, permission: String): Boolean {
+        return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
     }
-
 
 
     //ID creator:

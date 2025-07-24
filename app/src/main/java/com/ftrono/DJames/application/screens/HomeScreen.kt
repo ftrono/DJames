@@ -1,8 +1,11 @@
 package com.ftrono.DJames.application.screens
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -47,6 +50,8 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.ClockActivity
+import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
+import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.prefs
@@ -122,7 +127,7 @@ fun HomeScreen(
                     BaloonHome(overlayActiveState!!, volumeUpEnabledState!!)
                     VerticalDivider(
                         modifier = Modifier
-                            .offset(x=(-4).dp)
+                            .offset(x = (-4).dp)
                             .height(54.dp)
                             .zIndex(1f),
                         color = colorResource(id = R.color.dark_grey_background),
@@ -136,7 +141,7 @@ fun HomeScreen(
                 BaloonHome(overlayActiveState!!, volumeUpEnabledState!!)
                 HorizontalDivider(
                     modifier = Modifier
-                        .offset(y=(-4).dp)
+                        .offset(y = (-4).dp)
                         .width(54.dp)
                         .zIndex(1f),
                     color = colorResource(id = R.color.dark_grey_background),
@@ -246,6 +251,24 @@ fun BaloonArrowHome(isLandscape: Boolean) {
 @Composable
 fun StartButton(overlayActiveState: Boolean) {
     val mContext = LocalContext.current
+    //Overlay permission management:
+    val requestOverlayOn = rememberSaveable { mutableStateOf(false) }
+    if (requestOverlayOn.value) {
+        DialogRequestOverlay(
+            mContext = mContext,
+            dialogOnState = requestOverlayOn
+        )
+    }
+    // Mic permissions management:
+    val requestPermissions = rememberSaveable { mutableStateOf(false) }
+    if (requestPermissions.value) {
+        SinglePermissionHandler(
+            context = mContext,
+            dialogOnState = requestPermissions,
+            permission = Manifest.permission.RECORD_AUDIO
+        )
+    }
+
     Button(
         modifier = Modifier
             .padding(top = 20.dp)
@@ -273,25 +296,46 @@ fun StartButton(overlayActiveState: Boolean) {
         },
         onClick = {
             if (overlayActive.value == false) {
-                //START:
-                overlayActive.postValue(true)
-                //Overlay service:
-                if (!utils.isMyServiceRunning(OverlayService::class.java, mContext)) {
-                    var intentOS = Intent(mContext, OverlayService::class.java)
-                    mContext.startService(intentOS)
-                    if (prefs.volumeUpEnabled) {
-                        Toast.makeText(mContext, "Use the OVERLAY or VOLUME UP / SHUTTER button to speak!", Toast.LENGTH_LONG).show()
-                    } else {
-                        Toast.makeText(mContext, "Use the OVERLAY button to speak!", Toast.LENGTH_LONG).show()
-                    }
+                if (!Settings.canDrawOverlays(mContext)) {
+                    // REQUEST OVERLAY PERMISSION:
+                    requestOverlayOn.value = true
+                    overlayActive.postValue(false)
 
+                } else if (!utils.checkPermission(mContext, Manifest.permission.RECORD_AUDIO)) {
+                    Log.d("Home", "${utils.checkPermission(mContext, Manifest.permission.RECORD_AUDIO)}")
+                    // REQUEST MISSING PERMISSIONS:
+                    requestPermissions.value = true
+
+                } else {
+                    //START DRIVE MODE:
+                    requestOverlayOn.value = false
+                    overlayActive.postValue(true)
+                    //Overlay service:
+                    if (!utils.isMyServiceRunning(OverlayService::class.java, mContext)) {
+                        var intentOS = Intent(mContext, OverlayService::class.java)
+                        mContext.startService(intentOS)
+                        if (prefs.volumeUpEnabled) {
+                            Toast.makeText(
+                                mContext,
+                                "Use the OVERLAY or VOLUME UP / SHUTTER button to speak!",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } else {
+                            Toast.makeText(
+                                mContext,
+                                "Use the OVERLAY button to speak!",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+
+                    }
+                    //Start Clock screen:
+                    val intent1 = Intent(mContext, ClockActivity::class.java)
+                    mContext.startActivity(intent1)
+                    //mContext.finish()
                 }
-                //Start Clock screen:
-                val intent1 = Intent(mContext, ClockActivity::class.java)
-                mContext.startActivity(intent1)
-                //mContext.finish()
             } else {
-                //STOP:
+                //STOP DRIVE MODE:
                 overlayActive.postValue(false)
                 if (utils.isMyServiceRunning(OverlayService::class.java, mContext)) {
                     mContext.stopService(Intent(mContext, OverlayService::class.java))

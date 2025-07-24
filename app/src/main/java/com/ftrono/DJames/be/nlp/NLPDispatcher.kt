@@ -1,5 +1,6 @@
 package com.ftrono.DJames.be.nlp
 
+import android.Manifest
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.fulfillmentUtils
@@ -7,6 +8,7 @@ import com.ftrono.DJames.application.lastLog
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.be.database.NlpQueryModel
 import com.ftrono.DJames.be.models.DispatcherInfo
@@ -71,8 +73,8 @@ class NLPDispatcher (private var context: Context) {
                 //DISPATCH PROCESSING:
                 if (nlp_queryText != "" && intentName != "") {
                     when (intentName) {
-                        "CallRequest" -> return fulfillment.contactRequest(resultsNLP)
-                        "MessageRequest" -> return fulfillment.contactRequest(resultsNLP)
+                        "CallRequest" -> if (utils.checkPermission(context, Manifest.permission.CALL_PHONE)) return fulfillment.contactRequest(resultsNLP) else return fulfillmentUtils.fallback(noPermission=true)
+                        "MessageRequest" -> if (utils.checkPermission(context, Manifest.permission.SEND_SMS)) return fulfillment.contactRequest(resultsNLP) else return fulfillmentUtils.fallback(noPermission=true)
                         "DriveRequest" -> return fulfillment.driveRequest1(resultsNLP)
                         "PlaySong" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback(notLoggedIn=true)
                         "PlayAlbum" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback(notLoggedIn=true)

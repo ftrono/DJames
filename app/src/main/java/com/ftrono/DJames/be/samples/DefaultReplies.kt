@@ -31,6 +31,14 @@ class DefaultReplies() {
         return defaultSents.random()
     }
 
+    fun replyNoPermission(): String {
+        val defaultSents = listOf(
+            "Sorry ${prefs.userGender}, you first need to enable me in Settings! Don't do it while driving.",
+            "I'm sorry ${prefs.userGender}, you first need to enable me in Settings! Don't do it while driving.",
+        )
+        return defaultSents.random()
+    }
+
     fun replyNotLoggedIn(): String {
         val defaultSents = listOf(
             "Sorry ${prefs.userGender}, you need to be logged in to Spotify!",

@@ -38,6 +38,7 @@ class FulfillmentUtils {
     fun fallback(
         notUnderstood: Boolean = false,
         notLoggedIn: Boolean = false,
+        noPermission: Boolean = false,
         nevermind: Boolean = false
     ): DispatcherInfo {
         //Build fallback response:
@@ -48,6 +49,8 @@ class FulfillmentUtils {
                 langCode = prefs.queryLanguage,
                 text = if (notLoggedIn)
                     defaultReplies.replyNotLoggedIn()
+                else if (noPermission)
+                    defaultReplies.replyNoPermission()
                 else if (notUnderstood)
                     defaultReplies.replyFallback()
                 else if (nevermind)

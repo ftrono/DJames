@@ -1,11 +1,14 @@
 package com.ftrono.DJames.be.nlp
 
+import android.Manifest
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.fulfillmentUtils
+import com.ftrono.DJames.application.lastLog
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.be.database.NlpQueryModel
 import com.ftrono.DJames.be.models.DispatcherInfo
@@ -52,6 +55,13 @@ class NLPDispatcher (private var context: Context) {
                     nlp_queryText = resultsNLP.queryText
                     nlp_queryText = fulfillmentUtils.replaceNums(nlp_queryText)
                     intentName = resultsNLP.intentName
+                    // Update & store user message:
+                    lastLog.nlpQueries.add(resultsNLP)
+                    fulfillmentUtils.saveLogMessage(
+                        type = "user",
+                        text = nlp_queryText,
+                        langCode = resultsNLP.language
+                    )
                     Log.d(TAG, "NLPDispatcher1: detected intent: $intentName")
 
                 } catch (e: Exception) {
@@ -63,8 +73,8 @@ class NLPDispatcher (private var context: Context) {
                 //DISPATCH PROCESSING:
                 if (nlp_queryText != "" && intentName != "") {
                     when (intentName) {
-                        "CallRequest" -> return fulfillment.contactRequest(resultsNLP)
-                        "MessageRequest" -> return fulfillment.contactRequest(resultsNLP)
+                        "CallRequest" -> if (utils.checkPermission(context, Manifest.permission.CALL_PHONE)) return fulfillment.contactRequest(resultsNLP) else return fulfillmentUtils.fallback(noPermission=true)
+                        "MessageRequest" -> if (utils.checkPermission(context, Manifest.permission.SEND_SMS)) return fulfillment.contactRequest(resultsNLP) else return fulfillmentUtils.fallback(noPermission=true)
                         "DriveRequest" -> return fulfillment.driveRequest1(resultsNLP)
                         "PlaySong" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback(notLoggedIn=true)
                         "PlayAlbum" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback(notLoggedIn=true)
@@ -94,7 +104,7 @@ class NLPDispatcher (private var context: Context) {
 
             if (messageMode && prevDispatch.messageType == "voice") {
                 //Whatsapp audio message -> no NLP query!
-                fulfillmentUtils.saveMessage(
+                fulfillmentUtils.saveLogMessage(
                     type = "user",
                     text = "(recorded voice message)",
                     langCode = resultsNLP.language
@@ -123,24 +133,25 @@ class NLPDispatcher (private var context: Context) {
                 //Process request:
                 if (resultsNLP.queryText != "") {
                     //A) PROCESS:
+                    var storedText = ""
                     try {
                         //Get relevant results:
-                        nlp_queryText = resultsNLP.queryText
-                        if (messageMode) {
-                            fulfillmentUtils.saveMessage(
-                                type = "user",
-                                text = "(message text hidden)",
-                                langCode = resultsNLP.language
-                            )
-                        } else {
-                            nlp_queryText = fulfillmentUtils.replaceNums(nlp_queryText)
-                            fulfillmentUtils.saveMessage(
-                                type = "user",
-                                text = nlp_queryText,
-                                langCode = resultsNLP.language
-                            )
-                        }
                         intentName = resultsNLP.intentName
+                        if (messageMode) {
+                            // Anonymize:
+                            storedText = "(message text hidden)"
+                        } else {
+                            // Store fully:
+                            nlp_queryText = fulfillmentUtils.replaceNums(resultsNLP.queryText)
+                            storedText = nlp_queryText
+                            lastLog.nlpQueries.add(resultsNLP)
+                        }
+                        // Update & store user Message:
+                        fulfillmentUtils.saveLogMessage(
+                            type = "user",
+                            text = storedText,
+                            langCode = resultsNLP.language
+                        )
                         Log.d(TAG, "NLPDispatcher2: detected intent: $intentName")
                     } catch (e: Exception) {
                         Log.w(TAG, "NLPDispatcher2: no NLP results!")

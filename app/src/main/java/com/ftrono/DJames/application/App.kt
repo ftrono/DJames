@@ -1,9 +1,11 @@
 package com.ftrono.DJames.application
 
+import android.Manifest
 import android.app.Application
 import android.content.Context
 import android.media.AudioManager
 import android.net.Uri
+import android.os.Build
 import net.openid.appauth.AuthorizationServiceConfiguration
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.application.App.ObjectBox.store
@@ -32,7 +34,7 @@ import java.util.concurrent.TimeUnit
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.6.0"
+val appVersion = "2.6.1"
 val copyrightYear = 2024
 
 //DB:
@@ -51,9 +53,31 @@ val spotifyUtils = SpotifyUtils()
 val fulfillmentUtils = FulfillmentUtils()
 val defaultReplies = DefaultReplies()
 
+//Permissions:
+val runtimePermissions = buildList {
+    add(Manifest.permission.RECORD_AUDIO)
+    add(Manifest.permission.CALL_PHONE)
+    add(Manifest.permission.SEND_SMS)
+    add(Manifest.permission.READ_PHONE_STATE)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        add(Manifest.permission.POST_NOTIFICATIONS)   // Android 13+
+    }
+}
+val permissionDescriptions = buildMap {
+    put(Manifest.permission.RECORD_AUDIO, "DJames needs access to your microphone to record audio.\n\nHe will only use it when you click the Overlay button.")
+    put(Manifest.permission.CALL_PHONE, "DJames needs the permission to make phone calls. He will only make calls when you ask for it.")
+    put(Manifest.permission.READ_PHONE_STATE, "DJames needs the permission to access your phone's state for managing calls & audio features.")
+    put(Manifest.permission.SEND_SMS, "DJames needs the permission to send SMS messages. He will only send SMSs when you ask for it.")
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        put(Manifest.permission.POST_NOTIFICATIONS, "DJames needs the permission to post notifications.\n\nHe ONLY needs them to inform you when it is active (he won't EVER send you any other notification).")
+    }
+}
+val overlayPermissionDescription = "DJames needs your permission to show its Overlay button over other apps! Through this button, you will be able to record voice requests.\n\nPlease tap 'Yes' and enable DJames from the app list!"
+
 //STATUS VARS:
 var curNavId = 0
 var lastNavRoute = "home"
+var permsRequested = MutableLiveData<Boolean>(false)
 var spotifyLoggedIn = MutableLiveData<Boolean>(false)
 var userGender = MutableLiveData<String>("Sir")
 var overlayActive = MutableLiveData<Boolean>(false)
@@ -75,12 +99,13 @@ var spotUserImageState = MutableLiveData<String>("")
 var addLinkOn = MutableLiveData<Boolean>(false)
 var sharedLink = MutableLiveData<String>("")
 
-//Library:
+//Library & History:
 var curLibrarySize = MutableLiveData<Int>(0)
 val libHeads = listOf("artist", "playlist", "podcast", "contact", "route")
 val libSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
 var curHistorySize = MutableLiveData<Int>(0)
 var historyItems = MutableLiveData<List<String>>(listOf<String>())
+var lastLog: HistoryLog = HistoryLog()
 
 //Preferences:
 val maxAudioRecTimeout = 120L   //for voice messages
@@ -120,11 +145,8 @@ var recordingTime = 0
 //Audio Managers:
 var audioManager: AudioManager? = null
 
-//JSONs:
-var currently_playing: JsonObject? = null
-var lastLog: HistoryLog = HistoryLog()
-
 //Player info:
+var currently_playing: JsonObject? = null
 var nlp_queryText = ""
 var currentTrackId: String = ""
 var songName: String = ""

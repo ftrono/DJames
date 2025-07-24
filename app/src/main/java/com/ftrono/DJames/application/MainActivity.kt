@@ -1,5 +1,6 @@
 package com.ftrono.DJames.application
 
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -66,6 +67,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.dialogs.MultiPermissionsHandler
 import com.ftrono.DJames.application.services.OverlayService
 import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
 import com.ftrono.DJames.ui.components.OptionsItem
@@ -87,6 +89,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         acts_active.add(TAG)
+        val context = this@MainActivity
 
         installSplashScreen()
         enableEdgeToEdge(
@@ -132,10 +135,10 @@ class MainActivity : ComponentActivity() {
             //delete older logs:
             logUtils.deleteOldLogs()
             //delete older cached Library files:
-            libUtils.cleanLibraryCache(this@MainActivity)
+            libUtils.cleanLibraryCache(context)
             //delete older recFiles in cache:
             if (!overlayActive.value!!) {
-                utils.cleanOlderRecs(this@MainActivity)
+                utils.cleanOlderRecs(context)
             }
         }
 
@@ -150,11 +153,15 @@ class MainActivity : ComponentActivity() {
         autoStopQueriesState.postValue(prefs.silenceEnabledQueries)
 
         //AUTO START-UP:
-        if (prefs.autoStartup && !main_initialized && prefs.spotifyToken != "" && !utils.isMyServiceRunning(
-                OverlayService::class.java, this@MainActivity)) {
+        if (
+            Settings.canDrawOverlays(context)
+            && utils.checkPermission(context, Manifest.permission.RECORD_AUDIO)
+            && prefs.autoStartup && !main_initialized && prefs.spotifyToken != ""
+            && !utils.isMyServiceRunning(OverlayService::class.java, context)
+            ) {
             try {
-                var intentOS = Intent(this@MainActivity, OverlayService::class.java)
-                this@MainActivity.startService(intentOS)
+                var intentOS = Intent(context, OverlayService::class.java)
+                context.startService(intentOS)
             } catch (e: Exception) {
                 Log.w(TAG, "Cannot auto-start Overlay Service. EXCEPTION: ", e)
             }
@@ -167,16 +174,6 @@ class MainActivity : ComponentActivity() {
         main_initialized = true
 
     }
-
-
-//    override fun onResume() {
-//        super.onResume()
-//        //ON RESUME() ONLY:
-//        //Check Login status:
-//        if (!spotifyLoggedIn.value!!) {
-//            setViewLoggedOut()
-//        }
-//    }
 
 
     override fun onDestroy() {
@@ -227,6 +224,14 @@ class MainActivity : ComponentActivity() {
                 mContext,
                 navController,
                 lifecycle.coroutineScope
+            )
+        }
+
+        //PERMISSIONS HANDLER:
+        val permsRequestedState by permsRequested.observeAsState()
+        if (!permsRequestedState!!) {
+            MultiPermissionsHandler(
+                context = mContext,
             )
         }
 

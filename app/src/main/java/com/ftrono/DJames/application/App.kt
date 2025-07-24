@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.6.0"
+val appVersion = "2.6.1"
 val copyrightYear = 2024
 
 //DB:
@@ -75,12 +75,13 @@ var spotUserImageState = MutableLiveData<String>("")
 var addLinkOn = MutableLiveData<Boolean>(false)
 var sharedLink = MutableLiveData<String>("")
 
-//Library:
+//Library & History:
 var curLibrarySize = MutableLiveData<Int>(0)
 val libHeads = listOf("artist", "playlist", "podcast", "contact", "route")
 val libSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
 var curHistorySize = MutableLiveData<Int>(0)
 var historyItems = MutableLiveData<List<String>>(listOf<String>())
+var lastLog: HistoryLog = HistoryLog()
 
 //Preferences:
 val maxAudioRecTimeout = 120L   //for voice messages
@@ -120,11 +121,8 @@ var recordingTime = 0
 //Audio Managers:
 var audioManager: AudioManager? = null
 
-//JSONs:
-var currently_playing: JsonObject? = null
-var lastLog: HistoryLog = HistoryLog()
-
 //Player info:
+var currently_playing: JsonObject? = null
 var nlp_queryText = ""
 var currentTrackId: String = ""
 var songName: String = ""

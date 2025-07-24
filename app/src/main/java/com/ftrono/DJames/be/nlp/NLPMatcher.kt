@@ -50,7 +50,8 @@ class NLPMatcher (private val context: Context) {
                     val sortedScores = scoresMap.toList().sortedByDescending { it.second }.toMap()
                     Log.d(TAG, "SORTED MAP FOR $eval: $sortedScores")
                     listConfirmed.add(sortedScores.keys.toList()[0])
-                    lastLog.keyInfo.libScore = sortedScores.values.toList()[0]
+                    val matchScore = sortedScores.values.toList()[0]
+                    lastLog.keyInfo.libScore = matchScore
                 }
             }
             //Final:

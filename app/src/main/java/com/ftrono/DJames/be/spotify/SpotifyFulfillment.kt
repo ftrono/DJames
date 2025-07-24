@@ -7,7 +7,6 @@ import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.lastLog
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.likedSongsUri
-import com.ftrono.DJames.application.logUtils
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.spotIntroUri
@@ -30,13 +29,6 @@ class SpotifyFulfillment (private var context: Context) {
     //Play a song (with custom context), an album, an artist or a playlist: PART 1:
     fun playItem1(resultsNLP: NlpQueryModel): DispatcherInfo {
         var dispatcherInfo = DispatcherInfo()
-        logUtils.openLog()
-        lastLog.nlpQueries.add(resultsNLP)
-        fulfillmentUtils.saveMessage(
-            type = "user",
-            text = nlp_queryText,
-            langCode = resultsNLP.language
-        )
 
         //Detect & process requested languages:
         var intentName = resultsNLP.intentName
@@ -114,18 +106,9 @@ class SpotifyFulfillment (private var context: Context) {
             type = "collection",
             name = "Liked Songs"
         )
-        logUtils.openLog()
-        fulfillmentUtils.saveMessage(
-            type = "user",
-            text = nlp_queryText,
-            langCode = resultsNLP.language
-        )
 
         //PLAY -> Liked Songs:
         Log.d(TAG, "PLAY -> Liked Songs")
-
-        //Log:
-        lastLog.nlpQueries.add(resultsNLP)
 
         //Reply:
         val ttsToRead = defaultReplies.replyPlayIntro(playable)
@@ -159,9 +142,6 @@ class SpotifyFulfillment (private var context: Context) {
         var contextType = prevStatus.contextType
         // Returns:
         val dispatcherInfo = DispatcherInfo()
-
-        //Log:
-        lastLog.nlpQueries.add(resultsNLP)
 
         //Extract play info:
         val nlpMatcher = NLPMatcher(context)
@@ -267,9 +247,6 @@ class SpotifyFulfillment (private var context: Context) {
         val dispatcherInfo = DispatcherInfo()
         val extractorInfo = ExtractorInfo()
         var playable = SpotifyPlayable(type=playType)
-
-        //Log:
-        lastLog.nlpQueries.add(resultsNLP)
 
         //Extractor:
         var nlpExtractor = NLPExtractor(context)
@@ -387,9 +364,6 @@ class SpotifyFulfillment (private var context: Context) {
         val dispatcherInfo = DispatcherInfo()
         val extractorInfo = ExtractorInfo()
         var playable = SpotifyPlayable(type="episode")   //IMPORTANT!
-
-        //Log:
-        lastLog.nlpQueries.add(resultsNLP)
 
         //Extractor:
         val nlpMatcher = NLPMatcher(context)

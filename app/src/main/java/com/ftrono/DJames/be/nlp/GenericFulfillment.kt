@@ -6,7 +6,6 @@ import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.lastLog
 import com.ftrono.DJames.application.libUtils
-import com.ftrono.DJames.application.logUtils
 import com.ftrono.DJames.application.maxThreshold
 import com.ftrono.DJames.application.messLangFull
 import com.ftrono.DJames.application.nlp_queryText
@@ -33,15 +32,6 @@ class GenericFulfillment (private var context: Context) {
         val filter = "contact"
         var itemInfo = ItemInfoUse(
             type = filter
-        )
-
-        //Log:
-        logUtils.openLog()
-        lastLog.nlpQueries.add(resultsNLP)
-        fulfillmentUtils.saveMessage(
-            type = "user",
-            text = nlp_queryText,
-            langCode = resultsNLP.language
         )
 
         //Extract contact:
@@ -185,13 +175,6 @@ class GenericFulfillment (private var context: Context) {
     //Process Drive request: PART 1:
     fun driveRequest1(resultsNLP: NlpQueryModel): DispatcherInfo {
         var dispatcherInfo = DispatcherInfo()
-        logUtils.openLog()
-        lastLog.nlpQueries.add(resultsNLP)
-        fulfillmentUtils.saveMessage(
-            type = "user",
-            text = nlp_queryText,
-            langCode = resultsNLP.language
-        )
 
         //Detect & process requested languages:
         var detLanguage = resultsNLP.reqLanguage
@@ -223,7 +206,6 @@ class GenericFulfillment (private var context: Context) {
     fun driveRequest2(resultsNLP: NlpQueryModel, prevDispatch: DispatcherInfo): DispatcherInfo {
         var dispatcherInfo = DispatcherInfo()
         var reqLangCode = prevDispatch.reqLanguage
-        lastLog.nlpQueries.add(resultsNLP)
 
         //PROCESS ROUTE INFO:
         //item:

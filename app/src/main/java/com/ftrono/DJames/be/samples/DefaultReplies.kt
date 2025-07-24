@@ -66,7 +66,7 @@ class DefaultReplies() {
         return "Please, record the voice message for $contactName!"
     }
 
-    fun replyMessageDictate(contactName: String, msgType: String, reqLangName: String): String {
+    fun replyMessageDictate(contactName: String, msgType: String = "", reqLangName: String): String {
         return "Please, dictate the $msgType message for $contactName in $reqLangName!"
     }
 

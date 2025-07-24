@@ -22,8 +22,8 @@ import java.time.format.DateTimeFormatter
 class FulfillmentUtils {
     private val TAG = FulfillmentUtils::class.java.simpleName
 
-    // SAVE MESSAGE:
-    fun saveMessage(type: String, text: String, langCode: String = "") {
+    // SAVE MESSAGE (V2):
+    fun saveLogMessage(type: String, text: String, langCode: String = "") {
         val now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))
         var message = LogMessage()
         message.datetime = now

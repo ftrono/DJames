@@ -29,7 +29,7 @@ class TTSReader(private val context: Context) {
             }
         }
         // Save reply:
-        fulfillmentUtils.saveMessage(
+        fulfillmentUtils.saveLogMessage(
             type = "ai",
             text = fullText
         )

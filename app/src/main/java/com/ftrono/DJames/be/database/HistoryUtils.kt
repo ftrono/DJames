@@ -87,7 +87,7 @@ class HistoryUtils {
         lastLog = HistoryLog()
         lastLog.datetime = now
         lastLog.appVersion = appVersion
-        fulfillmentUtils.saveMessage(
+        fulfillmentUtils.saveLogMessage(
             type = "ai",
             text = "Tell me, ${prefs.userGender}!"
         )

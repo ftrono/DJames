@@ -191,6 +191,7 @@ class VoiceQueryService: Service() {
                     audioRequestsManager.requestDuckedFocus(
                         onGranted = {
                             overlayStatus.postValue("processing")
+                            logUtils.openLog()
                             Thread.sleep(500)
                             //Read TTS:
                             tts.speak(

@@ -2,10 +2,7 @@ package com.ftrono.DJames.be.nlp
 
 import android.util.Log
 import com.ftrono.DJames.R
-import com.google.gson.JsonObject
 import android.content.Context
-import com.ftrono.DJames.application.gMapsLinkFormat
-import com.ftrono.DJames.application.lastLog
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.maxThreshold
 import com.ftrono.DJames.application.prefs

@@ -4,7 +4,10 @@ import android.Manifest
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.fulfillmentUtils
-import com.ftrono.DJames.application.lastLog
+import com.ftrono.DJames.application.lastAiMessage
+import com.ftrono.DJames.application.lastRequestIntent
+import com.ftrono.DJames.application.lastUserMessage
+import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
@@ -26,7 +29,7 @@ class NLPDispatcher (private var context: Context) {
         followUp: Boolean = false,
         messageMode: Boolean = false
     ): DispatcherInfo {
-        
+
         //Init:
         var reqLanguage = prefs.queryLanguage
         var intentName = ""
@@ -48,20 +51,21 @@ class NLPDispatcher (private var context: Context) {
             resultsNLP = nlpQuery.queryNLP(recFile, messageMode = false, reqLanguage = reqLanguage)
 
             //Process request:
-            if (resultsNLP.intentName != "Fallback") {
+            if (resultsNLP.queryText != "") {
                 //A) PROCESS:
                 try {
                     //Get relevant results:
+                    messageUtils.createMessage(fromUser = true)
                     nlp_queryText = resultsNLP.queryText
                     nlp_queryText = fulfillmentUtils.replaceNums(nlp_queryText)
                     intentName = resultsNLP.intentName
                     // Update & store user message:
-                    lastLog.nlpQueries.add(resultsNLP)
-                    fulfillmentUtils.saveLogMessage(
-                        type = "user",
-                        text = nlp_queryText,
-                        langCode = resultsNLP.language
-                    )
+                    lastUserMessage.text = nlp_queryText
+                    lastUserMessage.langCode = resultsNLP.language
+                    lastUserMessage.requestIntent = intentName
+                    lastRequestIntent = intentName
+                    lastAiMessage.attachments.nlpQueries.add(resultsNLP)   // TODO: TEMP
+                    messageUtils.storeMessage(context, fromUser = true)
                     Log.d(TAG, "NLPDispatcher1: detected intent: $intentName")
 
                 } catch (e: Exception) {
@@ -104,13 +108,15 @@ class NLPDispatcher (private var context: Context) {
 
             if (messageMode && prevDispatch.messageType == "voice") {
                 //Whatsapp audio message -> no NLP query!
-                fulfillmentUtils.saveLogMessage(
-                    type = "user",
-                    text = "(recorded voice message)",
-                    langCode = resultsNLP.language
-                )
+                val storedText = "(recorded voice message)"
+                lastUserMessage.text = storedText
+                lastUserMessage.requestIntent = lastRequestIntent
+                messageUtils.storeMessage(context, fromUser = true)
                 try {
                     Log.d(TAG, "MESSAGE FOLLOWUP: AUDIO MESSAGE.")
+                    lastUserMessage.text = storedText
+                    lastUserMessage.requestIntent = lastRequestIntent
+                    messageUtils.storeMessage(context, fromUser = true)
                     return fulfillment.sendMessage2(prevDispatch)
                 } catch (e: Exception) {
                     Log.w(TAG, "Error in sending Whatsapp audio message!")
@@ -137,21 +143,21 @@ class NLPDispatcher (private var context: Context) {
                     try {
                         //Get relevant results:
                         intentName = resultsNLP.intentName
+                        nlp_queryText = fulfillmentUtils.replaceNums(resultsNLP.queryText)
                         if (messageMode) {
                             // Anonymize:
                             storedText = "(message text hidden)"
+                            lastUserMessage.text = storedText
                         } else {
                             // Store fully:
-                            nlp_queryText = fulfillmentUtils.replaceNums(resultsNLP.queryText)
                             storedText = nlp_queryText
-                            lastLog.nlpQueries.add(resultsNLP)
+                            lastAiMessage.attachments.nlpQueries.add(resultsNLP)   //TODO: TEMP
                         }
                         // Update & store user Message:
-                        fulfillmentUtils.saveLogMessage(
-                            type = "user",
-                            text = storedText,
-                            langCode = resultsNLP.language
-                        )
+                        lastUserMessage.text = storedText
+                        lastUserMessage.langCode = resultsNLP.language
+                        lastUserMessage.requestIntent = lastRequestIntent
+                        messageUtils.storeMessage(context, fromUser = true)
                         Log.d(TAG, "NLPDispatcher2: detected intent: $intentName")
                     } catch (e: Exception) {
                         Log.w(TAG, "NLPDispatcher2: no NLP results!")
@@ -191,5 +197,5 @@ class NLPDispatcher (private var context: Context) {
         }
         return fulfillmentUtils.fallback()   //Error
     }
-    
+
 }

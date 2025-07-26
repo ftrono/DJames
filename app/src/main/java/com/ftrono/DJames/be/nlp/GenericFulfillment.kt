@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
-import com.ftrono.DJames.application.lastLog
+import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.maxThreshold
 import com.ftrono.DJames.application.messLangFull
@@ -125,9 +125,9 @@ class GenericFulfillment (private var context: Context) {
                 return fulfillmentUtils.fallback(notUnderstood=true)
             }
 
-            //Close log:
-            lastLog.nlpExtractor = extractorInfo
-            lastLog.usable = itemInfo
+            //Update message:
+            lastAiMessage.attachments.nlpExtractor = extractorInfo
+            lastAiMessage.attachments.usable = itemInfo
             return dispatcherInfo
         }
     }
@@ -268,8 +268,8 @@ class GenericFulfillment (private var context: Context) {
             dispatcherInfo.playAcknowledge = true
 
             //Player info:
-            lastLog.nlpExtractor = extractorInfo
-            lastLog.usable = itemInfo
+            lastAiMessage.attachments.nlpExtractor = extractorInfo
+            lastAiMessage.attachments.usable = itemInfo
         }
 
         //Build return

@@ -43,9 +43,9 @@ fun guideIconSelector(
 }
 
 
-//HISTORY:
+//MESSAGES:
 @Composable
-fun historyIconSelector(
+fun messagesIconSelector(
     cat: String
 ): Painter {
     if (cat == "CallRequest") {

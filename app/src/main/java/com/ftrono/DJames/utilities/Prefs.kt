@@ -48,6 +48,11 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getString(KEY_USER_GENDER, "Sir") as String
         set(value) = sharedPrefs.edit().putString(KEY_USER_GENDER, value).apply()
 
+    //Enable v3:
+    var enableV3: Boolean
+        get() = sharedPrefs.getBoolean(KEY_ENABLE_V3, false) as Boolean
+        set(value) = sharedPrefs.edit().putBoolean(KEY_ENABLE_V3, value).apply()
+
     //Auto start-up:
     var autoStartup: Boolean
         get() = sharedPrefs.getBoolean(KEY_AUTO_STARTUP, false) as Boolean
@@ -166,6 +171,7 @@ class Prefs (context: Context) {
         //Shared prefs:
         const val KEY_USER_NICKNAME = ".key.user_nickname"
         const val KEY_USER_GENDER = ".key.user_gender"
+        const val KEY_ENABLE_V3 = ".key.enable_v3"
         const val KEY_AUTO_STARTUP = ".key.auto_startup"
         const val KEY_OVERLAY_POSITION = ".key.overlay_position"
         const val KEY_QUERY_LANGUAGE = ".key.query_language"

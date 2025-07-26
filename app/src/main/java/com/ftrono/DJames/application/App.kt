@@ -11,9 +11,9 @@ import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.application.App.ObjectBox.store
 import com.ftrono.DJames.be.database.Artist
 import com.ftrono.DJames.be.database.Contact
-import com.ftrono.DJames.be.database.HistoryLog
-import com.ftrono.DJames.be.database.HistoryUtils
 import com.ftrono.DJames.be.database.LibraryUtils
+import com.ftrono.DJames.be.database.Message
+import com.ftrono.DJames.be.database.MessageUtils
 import com.ftrono.DJames.be.database.MyObjectBox
 import com.ftrono.DJames.be.database.Playlist
 import com.ftrono.DJames.be.database.Podcast
@@ -34,11 +34,11 @@ import java.util.concurrent.TimeUnit
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.6.2"
+val appVersion = "3.0.a1 (alpha)"
 val copyrightYear = 2024
 
 //DB:
-var historyBox: Box<HistoryLog>? = null
+var messageBox: Box<Message>? = null
 var artistBox: Box<Artist>? = null
 var playlistBox: Box<Playlist>? = null
 var podcastBox: Box<Podcast>? = null
@@ -48,7 +48,7 @@ var routeBox: Box<Route>? = null
 //UTILS:
 val utils = Utilities()
 val libUtils = LibraryUtils()
-val logUtils = HistoryUtils()
+val messageUtils = MessageUtils()
 val spotifyUtils = SpotifyUtils()
 val fulfillmentUtils = FulfillmentUtils()
 val defaultReplies = DefaultReplies()
@@ -99,13 +99,17 @@ var spotUserImageState = MutableLiveData<String>("")
 var addLinkOn = MutableLiveData<Boolean>(false)
 var sharedLink = MutableLiveData<String>("")
 
-//Library & History:
+//Library & Messages:
 var curLibrarySize = MutableLiveData<Int>(0)
 val libHeads = listOf("artist", "playlist", "podcast", "contact", "route")
 val libSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
-var curHistorySize = MutableLiveData<Int>(0)
-var historyItems = MutableLiveData<List<String>>(listOf<String>())
-var lastLog: HistoryLog = HistoryLog()
+var allMessages = MutableLiveData<List<String>>(listOf<String>())
+
+// Conversation tracking:
+var lastAiMessage: Message = Message()
+var lastUserMessage: Message = Message()
+var lastRequestIntent: String = ""
+var lastStarterId: Long = 0
 
 //Preferences:
 val maxAudioRecTimeout = 120L   //for voice messages
@@ -120,6 +124,10 @@ val recSamplingRate = 44100
 val queryTimeout = 5   //seconds
 val recFileName = "DJames_request"
 var enablePlayerInfo = false
+val datetimeExportFormat = "yyyy-MM-dd HH_mm_ss"
+val datetimeFullFormat = "yyyy/MM/dd HH:mm"
+val datetimeShortFormat = "MMMM dd, HH:mm"
+val timeFormat = "HH:mm"
 
 //Dropdowns:
 val genders = listOf<String>("Sir", "Madam")
@@ -192,7 +200,7 @@ const val ACTION_TOASTER = "com.ftrono.DJames.eventReceiver.ACTION_TOASTER"
 
 //Main Act receiver:
 const val ACTION_FINISH_MAIN = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_MAIN"
-const val ACTION_LOG_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_LOG_REFRESH"
+const val ACTION_MESSAGES_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_MESSAGES_REFRESH"
 
 //Clock Act receiver:
 const val ACTION_TIME_TICK = "android.intent.action.TIME_TICK"
@@ -238,7 +246,7 @@ class App: Application()
 
         //DB:
         ObjectBox.init(this)
-        historyBox = store.boxFor(HistoryLog::class.java)
+        messageBox = store.boxFor(Message::class.java)
         artistBox = store.boxFor(Artist::class.java)
         playlistBox = store.boxFor(Playlist::class.java)
         podcastBox = store.boxFor(Podcast::class.java)

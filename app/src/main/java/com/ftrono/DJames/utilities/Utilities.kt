@@ -259,8 +259,8 @@ class Utilities {
     //On Logout: delete user cache files:
     fun deleteUserCache(context: Context) {
         try {
-            logUtils.deleteHistory(context)
-            Log.d(TAG, "Deleted ALL history logs.")
+            messageUtils.deleteAllMessages(context)
+            Log.d(TAG, "Deleted ALL message history.")
             libUtils.deleteLibrary(context, "artists")
             libUtils.deleteLibrary(context, "playlists")
             libUtils.deleteLibrary(context, "contacts")

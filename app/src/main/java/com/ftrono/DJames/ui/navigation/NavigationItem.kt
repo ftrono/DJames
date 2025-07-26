@@ -11,7 +11,7 @@ sealed class NavigationItem(
     object Home : NavigationItem("home", R.drawable.nav_home, "Home")
     object Guide : NavigationItem("guide", R.drawable.sign_info, "Guide")
     object Library : NavigationItem("library", R.drawable.nav_library, "Library")
-    object History : NavigationItem("history", R.drawable.nav_history, "History")
+    object Messages : NavigationItem("messages", R.drawable.nav_message, "Messages")
     //SETTINGS:
     object Settings : NavigationItem("settings", R.drawable.item_settings, "Preferences")
 }

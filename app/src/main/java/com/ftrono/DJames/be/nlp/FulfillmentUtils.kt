@@ -3,12 +3,11 @@ package com.ftrono.DJames.be.nlp
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.datetimeFullFormat
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.gMapsLinkFormat
-import com.ftrono.DJames.application.lastLog
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.be.database.ItemInfoUse
-import com.ftrono.DJames.be.database.LogMessage
 import com.ftrono.DJames.be.database.Route
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
@@ -21,18 +20,6 @@ import java.time.format.DateTimeFormatter
 
 class FulfillmentUtils {
     private val TAG = FulfillmentUtils::class.java.simpleName
-
-    // SAVE MESSAGE (V2):
-    fun saveLogMessage(type: String, text: String, langCode: String = "") {
-        val now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))
-        var message = LogMessage()
-        message.datetime = now
-        message.type = type
-        message.text = text
-        message.langCode = langCode
-        lastLog.messages.add(message)
-    }
-
 
     //FALLBACK:
     fun fallback(

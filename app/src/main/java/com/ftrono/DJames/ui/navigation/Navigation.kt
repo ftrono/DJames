@@ -21,10 +21,10 @@ import com.ftrono.DJames.application.curNavId
 import com.ftrono.DJames.application.innerNavOpen
 import com.ftrono.DJames.application.settingsOpen
 import com.ftrono.DJames.application.screens.GuideScreen
-import com.ftrono.DJames.application.screens.HistoryScreen
 import com.ftrono.DJames.application.screens.HomeScreen
 import com.ftrono.DJames.application.screens.SettingsScreen
 import com.ftrono.DJames.application.screens.LibraryScreen
+import com.ftrono.DJames.application.screens.MessagesScreen
 import com.ftrono.DJames.ui.theme.NavigationItem
 
 
@@ -107,9 +107,9 @@ fun Navigation(navController: NavHostController) {
             LibraryScreen()
         }
 
-        //3 -> HISTORY:
+        //3 -> MESSAGES:
         composable(
-            NavigationItem.History.route,
+            NavigationItem.Messages.route,
             enterTransition = {
                 fadeIn(
                     animationSpec = tween(
@@ -127,7 +127,7 @@ fun Navigation(navController: NavHostController) {
             curNavId = 3
             innerNavOpen.postValue(false)
             settingsOpen.postValue(false)
-            HistoryScreen()
+            MessagesScreen()
         }
 
         //EXTRA:

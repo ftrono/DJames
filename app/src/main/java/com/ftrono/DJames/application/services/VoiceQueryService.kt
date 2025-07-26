@@ -16,8 +16,11 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.application.ACTION_REC_STOP
 import com.ftrono.DJames.application.defaultReplies
-import com.ftrono.DJames.application.lastLog
-import com.ftrono.DJames.application.logUtils
+import com.ftrono.DJames.application.lastAiMessage
+import com.ftrono.DJames.application.lastRequestIntent
+import com.ftrono.DJames.application.lastStarterId
+import com.ftrono.DJames.application.lastUserMessage
+import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recordingMode
@@ -31,6 +34,7 @@ import com.ftrono.DJames.be.nlp.NLPDispatcher
 import com.ftrono.DJames.be.audio.AndroidAudioRecorder
 import com.ftrono.DJames.be.audio.AudioRequestsManager
 import com.ftrono.DJames.be.audio.TTSReader
+import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.be.tools.Actions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -129,7 +133,11 @@ class VoiceQueryService: Service() {
         voiceQueryOn = false
         sourceIsVolume.postValue(false)
         dispatcherInfo = DispatcherInfo()
-
+        //Reset messages:
+        lastUserMessage = Message()
+        lastAiMessage = Message()
+        lastRequestIntent = ""
+        lastStarterId
         //Set overlay READY color:
         overlayStatus.postValue("ready")
         Log.d(TAG, "VOICE QUERY SERVICE TERMINATED.")
@@ -171,6 +179,8 @@ class VoiceQueryService: Service() {
 
     private fun failSilently() {
         toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+        lastAiMessage.text = "(No reply)"
+        messageUtils.storeMessage(applicationContext, fromUser = false)
         stopSelf()
     }
 
@@ -191,7 +201,7 @@ class VoiceQueryService: Service() {
                     audioRequestsManager.requestDuckedFocus(
                         onGranted = {
                             overlayStatus.postValue("processing")
-                            logUtils.openLog()
+                            messageUtils.createMessage(fromUser = false, isStart = true)
                             Thread.sleep(500)
                             //Read TTS:
                             tts.speak(
@@ -200,7 +210,7 @@ class VoiceQueryService: Service() {
                                         langCode = prefs.queryLanguage,
                                         text = defaultReplies.speakIntro()
                                     )
-                                )
+                                ),
                             )
                         },
                         onFail = { failSilently() }
@@ -222,6 +232,7 @@ class VoiceQueryService: Service() {
                             //Start recording (default: cacheDir):
                             recordingMode = true
                             MyRecorder.start()
+                            messageUtils.createMessage(fromUser = true)
 
                             MyRecorder.whileRecording(
                                 messageMode,
@@ -248,7 +259,7 @@ class VoiceQueryService: Service() {
             recordingMode = false
             Log.d(TAG, "RECORDING STOPPED.")
             cancelJob(recordingJob, "recordingJob")
-
+            messageUtils.createMessage(fromUser = false)
 
             //2) RECORDING RESULT:
             if (!voiceQueryOn || recordingFail) {
@@ -306,7 +317,7 @@ class VoiceQueryService: Service() {
             }
 
             // Speak & execute:
-            val intentName = lastLog.nlpQueries.first().intentName
+            val intentName = lastRequestIntent
             Thread.sleep(300)
             if (intentName.contains("Play") || intentName.contains("Call")) {
                 // A) First speak, then execute action:
@@ -348,7 +359,7 @@ class VoiceQueryService: Service() {
                 if (dispatcherInfo.fail) {
                     toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                 } else {
-                    if (dispatcherInfo.end) logUtils.storeLog(applicationContext)   //Close log
+                    //messageUtils.storeMessage(applicationContext, fromUser = false) TODO
                     if (dispatcherInfo.playAcknowledge) toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                 }
                 stopSelf()

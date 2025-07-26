@@ -128,9 +128,27 @@ fun guideColorSelectorLight(
 }
 
 
-//HISTORY:
+//MESSAGES:
 @Composable
-fun historyColorSelectorLight(
+fun messagesColorSelector(
+    cat: String
+): Color {
+    if (cat == "CallRequest") {
+        return colorResource(id = R.color.greenSign)
+    } else if (cat == "MessageRequest") {
+        return colorResource(id = R.color.blueSign)
+    } else if (cat == "DriveRequest") {
+        return colorResource(id = R.color.brownSign)
+    } else if (cat.contains("Play")) {
+        return colorResource(id = R.color.yellowSign)
+    } else {
+        return colorResource(id = R.color.dark_grey)
+    }
+}
+
+
+@Composable
+fun messagesColorSelectorLight(
     cat: String
 ): Color {
     if (cat == "CallRequest") {

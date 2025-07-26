@@ -1,5 +1,6 @@
 package com.ftrono.DJames.be.database
 
+import com.google.protobuf.Timestamp
 import io.objectbox.annotation.Entity
 import io.objectbox.annotation.Id
 import io.objectbox.annotation.Convert
@@ -11,36 +12,6 @@ import kotlinx.serialization.decodeFromString
 
 
 //SUPPORT CLASSES:
-@Serializable
-data class LogViewInfo(
-    var id: Long = 0,
-    var intentName: String = "",
-    var head: String = "",
-    var main: String = "",
-    var detail: String = ""
-)
-
-
-@Serializable
-data class KeyLogInfo(
-    var intentName: String = "",
-    var queryText: String = "",
-    var libScore: Int = 0,
-    var bestScore: Int = 0,
-    var playedExternally: Boolean = false,
-    var contextError: Boolean = false,
-)
-
-
-@Serializable
-data class LogMessage(
-    var datetime: String = "",
-    var type: String = "",   // Either: "ai", "user", "tool"
-    var text: String = "",
-    var langCode: String = "",
-)
-
-
 @Serializable
 data class NlpQueryModel(
     var language: String = "en",   // AudioLanguage
@@ -132,17 +103,30 @@ class SpotifyMatchModelConverter : PropertyConverter<MutableList<SpotifyMatchMod
 //ENTITIES:
 @Serializable
 @Entity
-data class HistoryLog(
+data class Message(
     //Primary key:
     @Id var id: Long = 0,
+    var timestamp: Long = 0,
     var datetime: String = "",
     var appVersion: String = "",
+    var type: String = "",   // Either: "ai", "user", "tool", "starter"
+    var text: String = "",
+    var langCode: String = "",
+    var requestIntent: String = "",   // IntentName from the original request
+    var starterId: Long = 0,
+    //Attachments management:
+    // - requestIntent -> in user message;
+    // - all other -> in the AI reply
+    @Convert(converter = AttachmentsConverter::class, dbType = String::class)
+    var attachments: Attachments = Attachments()
+)
 
-    @Convert(converter = KeyLogInfoConverter::class, dbType = String::class)
-    var keyInfo: KeyLogInfo = KeyLogInfo(),
 
-    @Convert(converter = LogMessageConverter::class, dbType = String::class)
-    var messages: MutableList<LogMessage> = mutableListOf<LogMessage>(),
+@Serializable
+data class Attachments(
+    var matchScore: Int = 0,
+    var playedExternally: Boolean = false,
+    var contextError: Boolean = false,
 
     @Convert(converter = NlpQueryModelConverter::class, dbType = String::class)
     var nlpQueries: MutableList<NlpQueryModel> = mutableListOf<NlpQueryModel>(),
@@ -160,23 +144,13 @@ data class HistoryLog(
     var usable: ItemInfoUse = ItemInfoUse(),
 )
 
-class KeyLogInfoConverter : PropertyConverter<KeyLogInfo, String> {
-    override fun convertToEntityProperty(databaseValue: String?): KeyLogInfo {
+class AttachmentsConverter : PropertyConverter<Attachments, String> {
+    override fun convertToEntityProperty(databaseValue: String?): Attachments {
         return Json.decodeFromString(databaseValue ?: "{}")
     }
 
-    override fun convertToDatabaseValue(entityProperty: KeyLogInfo?): String {
-        return Json.encodeToString(entityProperty ?: KeyLogInfo())
-    }
-}
-
-class LogMessageConverter : PropertyConverter<MutableList<LogMessage>, String> {
-    override fun convertToEntityProperty(databaseValue: String?): MutableList<LogMessage> {
-        return Json.decodeFromString(databaseValue ?: "[]")
-    }
-
-    override fun convertToDatabaseValue(entityProperty: MutableList<LogMessage>?): String {
-        return Json.encodeToString(entityProperty ?: mutableListOf(LogMessage()))
+    override fun convertToDatabaseValue(entityProperty: Attachments?): String {
+        return Json.encodeToString(entityProperty ?: Attachments())
     }
 }
 

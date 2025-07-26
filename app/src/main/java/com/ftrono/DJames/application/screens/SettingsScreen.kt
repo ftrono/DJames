@@ -82,6 +82,7 @@ fun SettingsScreenPreview() {
 fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val mContext = LocalContext.current
     //TODO: STATUSES:
+    val checkedV3 = remember { mutableStateOf(if (preview) true else prefs.enableV3) }
     val checkedStartup = remember { mutableStateOf(if (preview) true else prefs.autoStartup) }
     val checkedSilenceQueries by autoStopQueriesState.observeAsState()
     val checkedSilenceMess = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledMess) }
@@ -214,25 +215,33 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     iconPainter = painterResource(id = R.drawable.icon_speak)
                 ) {
 
-                    //Req language:
-//                    Text(
-//                        modifier = Modifier
-//                            .padding(bottom = 4.dp),
-//                        text = "Voice queries: default language",
-//                        color = colorResource(id = R.color.light_grey),
-//                        textAlign = TextAlign.Start,
-//                        fontSize = 14.sp,
-//                        fontWeight = FontWeight.Bold
-//                    )
-//                    DropdownSpinner(
-//                        context=mContext,
-//                        parentOptions=queryLangFull,
-//                        init=textQueryLangState.value,
-//                        state=textQueryLangState,
-//                        focusColor = colorResource(id = R.color.colorAccentLight),
-//                        prefName="queryLanguage",
-//                        width=200
-//                    )
+                    //Voice queries: Enable v3:
+                    Row(
+                        modifier = Modifier
+                            .padding(bottom = 4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Voice queries: enable v3 (alpha)",
+                            color = colorResource(id = R.color.light_grey),
+                            textAlign = TextAlign.Start,
+                            fontSize = 14.sp,
+                            lineHeight = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.weight(1f))
+                        Switch(
+                            checked = checkedV3.value,
+                            colors = getSwitchColors(
+                                color = colorResource(id = R.color.yellowSign)
+                            ),
+                            onCheckedChange = {
+                                prefs.enableV3 = it
+                            }
+                        )
+                    }
 
                     //Req timeout:
                     Text(

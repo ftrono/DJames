@@ -3,7 +3,7 @@ package com.ftrono.DJames.be.spotify
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.deltaSimilarity
-import com.ftrono.DJames.application.lastLog
+import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.playThreshold
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.spotifyQueryLimit
@@ -160,8 +160,8 @@ class SpotifySearch(private val context: Context) {
                 }
             }
         }
-        lastLog.spotifyQueries = spotifyQueries
-        lastLog.keyInfo.bestScore = bestScore
+        lastAiMessage.attachments.spotifyQueries = spotifyQueries
+        lastAiMessage.attachments.matchScore = bestScore
         Log.d(TAG, "BEST RESULT: $bestResult")
         return bestResult
     }

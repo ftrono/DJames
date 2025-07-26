@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
-import com.ftrono.DJames.application.lastLog
+import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.likedSongsUri
 import com.ftrono.DJames.application.nlp_queryText
@@ -127,8 +127,8 @@ class SpotifyFulfillment (private var context: Context) {
         dispatcherInfo.end = true
         Log.d(TAG, dispatcherInfo.toString())
 
-        //Close log:
-        lastLog.spotifyPlay = playable
+        //Update message:
+        lastAiMessage.attachments.spotifyPlay = playable
         dispatcherInfo.playable = playable
         return dispatcherInfo
     }
@@ -170,7 +170,6 @@ class SpotifyFulfillment (private var context: Context) {
 
         //A) EMPTY QUERY RESULT:
         if (playable.id == "") {
-            //Close log:
             return fulfillmentUtils.fallback(notUnderstood=true)
 
         } else {
@@ -223,16 +222,14 @@ class SpotifyFulfillment (private var context: Context) {
 
             //Player info:
             extractorInfo.reqLanguage = reqLangCode
-            lastLog.nlpExtractor = extractorInfo
-            lastLog.spotifyPlay = playable
+            lastAiMessage.attachments.nlpExtractor = extractorInfo
+            lastAiMessage.attachments.spotifyPlay = playable
             dispatcherInfo.playable = playable
         }
 
         //Build return
         dispatcherInfo.end = true
         Log.d(TAG, dispatcherInfo.toString())
-
-        //Close log:
         return dispatcherInfo
     }
 
@@ -268,7 +265,7 @@ class SpotifyFulfillment (private var context: Context) {
                 val playLinks = itemInfo.playLinks
                 val matchedPlayName = if (
                     prevStatus.reqPlayLinkName != "" && playLinks.containsKey(prevStatus.reqPlayLinkName)
-                    ) prevStatus.reqPlayLinkName else itemInfo.defaultKey
+                ) prevStatus.reqPlayLinkName else itemInfo.defaultKey
                 Log.d(TAG, "Matched PlayName: $matchedPlayName")
                 if (matchedPlayName == "artist") {
                     Log.d(TAG, "PLAY -> Artist Top Tracks")
@@ -311,7 +308,6 @@ class SpotifyFulfillment (private var context: Context) {
         //A) EMPTY QUERY RESULT:
         if (playable.id == "") {
             Log.d(TAG, "PLAY -> Artist / Playlist not found!")
-            //Close log:
             return fulfillmentUtils.fallback(notUnderstood=true)
 
         } else {
@@ -340,16 +336,14 @@ class SpotifyFulfillment (private var context: Context) {
 
             //Player info:
             extractorInfo.reqLanguage = reqLangCode
-            lastLog.nlpExtractor = extractorInfo
-            lastLog.spotifyPlay = playable
+            lastAiMessage.attachments.nlpExtractor = extractorInfo
+            lastAiMessage.attachments.spotifyPlay = playable
             dispatcherInfo.playable = playable
         }
 
         //Build return
         dispatcherInfo.end = true
         Log.d(TAG, dispatcherInfo.toString())
-
-        //Close log:
         return dispatcherInfo
     }
 
@@ -390,7 +384,7 @@ class SpotifyFulfillment (private var context: Context) {
             try {
                 val episodeInfo = spotifyUtils.getPodcastEpisodes(context, podcastId, latestOnly = true)[0]
                 playable.id = episodeInfo.id
-                playable.name = episodeInfo.name
+                playable.name = episodeInfo.name.replace(" - Ep. ", ". Ep ")
                 playable.releaseDate = episodeInfo.releaseDate
                 playable.fullyPlayed = episodeInfo.fullyPlayed
                 playable.resumePositionMs = episodeInfo.resumePositionMs
@@ -436,8 +430,8 @@ class SpotifyFulfillment (private var context: Context) {
 
             //Player info:
             extractorInfo.reqLanguage = reqLangCode
-            lastLog.nlpExtractor = extractorInfo
-            lastLog.spotifyPlay = playable
+            lastAiMessage.attachments.nlpExtractor = extractorInfo
+            lastAiMessage.attachments.spotifyPlay = playable
             dispatcherInfo.playable = playable
         }
 

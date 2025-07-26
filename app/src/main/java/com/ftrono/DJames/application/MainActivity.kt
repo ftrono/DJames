@@ -123,7 +123,7 @@ class MainActivity : ComponentActivity() {
         //Start personal Receiver:
         val actFilter = IntentFilter()
         actFilter.addAction(ACTION_FINISH_MAIN)
-        actFilter.addAction(ACTION_LOG_REFRESH)
+        actFilter.addAction(ACTION_MESSAGES_REFRESH)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
         registerReceiver(mainActReceiver, actFilter, RECEIVER_EXPORTED)
@@ -131,9 +131,9 @@ class MainActivity : ComponentActivity() {
 
         //CLEANING:
         if (!main_initialized) {
-            historyItems.postValue(logUtils.refreshHistory())
+            allMessages.postValue(messageUtils.refreshMessages())
             //delete older logs:
-            logUtils.deleteOldLogs()
+            messageUtils.deleteOldMessages()
             //delete older cached Library files:
             libUtils.cleanLibraryCache(context)
             //delete older recFiles in cache:
@@ -201,7 +201,7 @@ class MainActivity : ComponentActivity() {
             NavigationItem.Home,
             NavigationItem.Guide,
             NavigationItem.Library,
-            NavigationItem.History
+            NavigationItem.Messages
         )
 
         val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
@@ -494,7 +494,7 @@ class MainActivity : ComponentActivity() {
             title = "Logout",
             content = {
                 Text(
-                    text = "You will need to login again to Spotify to use DJames.\n\nDo you want to log out?",   // and you'll lose your saved library & history
+                    text = "You will need to login again to Spotify to use DJames.\n\nDo you want to log out?",   // and you'll lose your saved library & message history
                     color = colorResource(id = R.color.light_grey),
                     fontSize = 14.sp
                 )
@@ -548,10 +548,10 @@ class MainActivity : ComponentActivity() {
                 finishAndRemoveTask()
             }
 
-            //Refresh History list:
-            if (intent.action == ACTION_LOG_REFRESH) {
-                Log.d(TAG, "HISTORY: ACTION_LOG_REFRESH.")
-                historyItems.postValue(logUtils.refreshHistory())   //Refresh list
+            //Refresh Messages list:
+            if (intent.action == ACTION_MESSAGES_REFRESH) {
+                Log.d(TAG, "HISTORY: ACTION_MESSAGES_REFRESH.")
+                allMessages.postValue(messageUtils.refreshMessages())   //Refresh list
             }
         }
     }

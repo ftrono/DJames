@@ -171,7 +171,7 @@ class DefaultReplies() {
     fun replyPlayDetail(playable: SpotifyPlayable): String {
         var ttsToRead = ""
         if (playable.type == "episode" || playable.type == "podcast") {
-            ttsToRead = utils.cleanString(playable.name, emojiOnly = true).replace(" - Ep. ", ". Ep ")
+            ttsToRead = utils.cleanString(playable.name, emojiOnly = true)
 
         } else if (playable.type == "playlist") {
             if (playable.owner == prefs.spotUserName) {

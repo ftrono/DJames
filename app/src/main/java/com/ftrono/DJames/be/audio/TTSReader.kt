@@ -5,6 +5,10 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import com.ftrono.DJames.application.fulfillmentUtils
+import com.ftrono.DJames.application.lastAiMessage
+import com.ftrono.DJames.application.lastRequestIntent
+import com.ftrono.DJames.application.messageUtils
+import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.models.AiReply
 import kotlinx.coroutines.runBlocking
@@ -18,7 +22,8 @@ class TTSReader(private val context: Context) {
     private val TAG = TTSReader::class.java.simpleName
 
     fun speak(
-        aiReplies: List<AiReply>
+        aiReplies: List<AiReply>,
+        isIntro: Boolean = false
     ) {
         var fullText = ""
         // Speak:
@@ -28,11 +33,13 @@ class TTSReader(private val context: Context) {
                 ttsRead(context, reply)
             }
         }
-        // Save reply:
-        fulfillmentUtils.saveLogMessage(
-            type = "ai",
-            text = fullText
-        )
+        if (!isIntro) {
+            // Save reply:
+            lastAiMessage.text = fullText
+            lastAiMessage.langCode = prefs.queryLanguage   //TODO
+            lastAiMessage.requestIntent = lastRequestIntent
+            messageUtils.storeMessage(context, fromUser = false)
+        }
     }
 
     //HELPER: TTS directly read:

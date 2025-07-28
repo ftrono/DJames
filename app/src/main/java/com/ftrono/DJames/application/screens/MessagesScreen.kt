@@ -206,8 +206,15 @@ fun ConvStarter(
                     )
                     .clickable {
                         if (selectedMessageIds.isNotEmpty()) {
-                            selectedMessageIds.addAll(messageUtils.getMessageIDsByStarterId(message.starterId))
+                            // Add entire conversation to selection:
+                            val idsToAdd = messageUtils.getMessageIDsByStarterId(message.starterId)
+                            for (id in idsToAdd) {
+                                if (!selectedMessageIds.contains(id)){
+                                    selectedMessageIds.add(id)
+                                }
+                            }
                         } else {
+                            // Show options:
                             mDisplayMenu.value = !mDisplayMenu.value
                         }
                     },
@@ -225,23 +232,23 @@ fun ConvStarter(
                 ) {
                     Icon(
                         modifier = Modifier
-                            .size(20.dp),
+                            .size(18.dp),
                         painter = painterResource(R.drawable.arrow_down),
                         tint = colorResource(R.color.black),
                         contentDescription = "More"
                     )
                     Text(
                         modifier = Modifier
-                            .padding(6.dp),
+                            .padding(start=4.dp, end=4.dp),
                         color = colorResource(id = R.color.black),
-                        fontSize = 14.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
                         text = messageUtils.convertTimestamp(message.timestamp, datetimeShortFormat)
                     )
                     Icon(
                         modifier = Modifier
-                            .size(20.dp),
+                            .size(18.dp),
                         imageVector = Icons.Default.MoreVert,
                         tint = colorResource(R.color.black),
                         contentDescription = "More"

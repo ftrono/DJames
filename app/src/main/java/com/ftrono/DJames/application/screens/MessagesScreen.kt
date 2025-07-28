@@ -712,7 +712,7 @@ fun buildExtraDetails(message: Message): String {
         }
     }
     //Add confidence:
-    if (message.attachments.matchScore > 0) {
+    if (message.attachments.matchScore > 0 && detailText.trim() != "") {
         detailText = detailText + "\nMatch:  ${message.attachments.matchScore}%"
     }
     return detailText

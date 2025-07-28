@@ -95,7 +95,7 @@ class NLPDispatcher (private var context: Context) {
 
             } else {
                 //B) EMPTY NLP RESULTS:
-                return fulfillmentUtils.fallback()   //Error
+                return fulfillmentUtils.fallback(notUnderstood=true)
             }
 
 
@@ -191,7 +191,7 @@ class NLPDispatcher (private var context: Context) {
 
                 } else {
                     //A) EMPTY NLP RESULTS:
-                    return fulfillmentUtils.fallback()   //Error
+                    return fulfillmentUtils.fallback(notUnderstood=true)
                 }
             }
         }

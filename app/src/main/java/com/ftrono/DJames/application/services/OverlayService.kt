@@ -484,7 +484,7 @@ class OverlayService : Service() {
                 windowManager.removeView(it)
             }
         } catch (e: Exception) {
-            Log.w(TAG, "CloseView: cannot remove. ", e)
+            Log.w(TAG, "CloseView: cannot remove. ")
         }
     }
 
@@ -588,7 +588,7 @@ class OverlayService : Service() {
                 it.setViewTreeSavedStateRegistryOwner(null)
             }
         } catch (e: Exception) {
-            Log.w(TAG, "CloseView: cannot remove. ", e)
+            Log.w(TAG, "CloseView: cannot remove. ")
         }
         //If no activities active -> CLOSE APP:
         Log.d(TAG, "$acts_active")

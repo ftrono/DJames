@@ -311,7 +311,7 @@ fun LibraryScreen(
                     ) {
                         if (!isLandscape) {
                             HeaderWithSign(
-                                iconRes = painterResource(id = R.drawable.sign_fork),
+                                iconPainter = painterResource(id = R.drawable.sign_fork),
                                 pretitle = "Library",
                                 title = if (currentCatState.value == "artist" || currentCatState.value == "route") {
                                     "${utils.capitalizeWords(currentCatState.value)}s   "

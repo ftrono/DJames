@@ -355,13 +355,13 @@ class VoiceQueryService: Service() {
             } else {
                 // END:
                 overlayStatus.postValue("ready")
-                Thread.sleep(200)
                 if (dispatcherInfo.fail) {
                     toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                 } else {
                     //messageUtils.storeMessage(applicationContext, fromUser = false) TODO
                     if (dispatcherInfo.playAcknowledge) toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                 }
+                Thread.sleep(200)
                 stopSelf()
             }
         } catch (e: Exception) {

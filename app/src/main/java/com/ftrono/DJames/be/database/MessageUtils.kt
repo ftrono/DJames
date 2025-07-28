@@ -8,6 +8,7 @@ import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import com.ftrono.DJames.application.ACTION_MESSAGES_REFRESH
 import com.ftrono.DJames.application.appVersion
+import com.ftrono.DJames.application.curMessagesSize
 import com.ftrono.DJames.application.datetimeExportFormat
 import com.ftrono.DJames.application.datetimeFullFormat
 import com.ftrono.DJames.application.lastAiMessage
@@ -41,7 +42,7 @@ class MessageUtils {
     //GET ALL:
     //Get List of Message items:
     fun refreshMessages(preview: Boolean = false): List<String> {
-        //Load messages:
+        //1) Load messages:
         var messages = listOf<String>()
         try {
             messages = if (preview) {
@@ -56,6 +57,9 @@ class MessageUtils {
                 // Cast value to String to allow storing into MutableState:
                 Json.encodeToString( item )
             }
+
+            //2) Update Messages size (IMPORTANT - for signs):
+            curMessagesSize.postValue(messageBox!!.query(Message_.type.notEqual("starter")).build().count().toInt())
             return messages
 
         } catch (e: Exception) {
@@ -77,6 +81,16 @@ class MessageUtils {
             return messageBox!!.query().equal(Message_.starterId, starterId).order(Message_.timestamp).build().find()
         } catch (e: Exception) {
             Log.w(TAG, "getMessagesByStarterId(): ERROR: ", e)
+            return listOf()
+        }
+    }
+
+    //Get message IDs with a given starterId:
+    fun getMessageIDsByStarterId(starterId: Long): List<Long> {
+        try {
+            return messageBox!!.query().equal(Message_.starterId, starterId).order(Message_.timestamp).build().property(Message_.id).findLongs().toList()
+        } catch (e: Exception) {
+            Log.w(TAG, "getMessageIDsByStarterId(): ERROR: ", e)
             return listOf()
         }
     }
@@ -108,6 +122,7 @@ class MessageUtils {
         // Store:
         if (fromUser) {
             lastUserMessage = Message(
+                id = 0,
                 timestamp = now,
                 appVersion = appVersion,
                 type = "user",
@@ -115,6 +130,7 @@ class MessageUtils {
             )
         } else {
             lastAiMessage = Message(
+                id = 0,
                 timestamp = now,
                 appVersion = appVersion,
                 type = "ai",
@@ -129,6 +145,9 @@ class MessageUtils {
     fun storeMessage(context: Context, fromUser: Boolean = false) {
         try {
             val message = if (fromUser) lastUserMessage else lastAiMessage
+            if (!fromUser) {
+                message.timestamp = getCurrentTimestamp()
+            }
             if (message.text == "") {
                 Log.w(TAG, "Empty Message: not saved!")
             } else {

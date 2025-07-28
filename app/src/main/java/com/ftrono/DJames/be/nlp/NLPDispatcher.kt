@@ -108,7 +108,7 @@ class NLPDispatcher (private var context: Context) {
 
             if (messageMode && prevDispatch.messageType == "voice") {
                 //Whatsapp audio message -> no NLP query!
-                val storedText = "(recorded voice message)"
+                val storedText = "(private voice message)"
                 lastUserMessage.text = storedText
                 lastUserMessage.requestIntent = lastRequestIntent
                 messageUtils.storeMessage(context, fromUser = true)
@@ -146,7 +146,7 @@ class NLPDispatcher (private var context: Context) {
                         nlp_queryText = fulfillmentUtils.replaceNums(resultsNLP.queryText)
                         if (messageMode) {
                             // Anonymize:
-                            storedText = "(message text hidden)"
+                            storedText = "(private message text)"
                             lastUserMessage.text = storedText
                         } else {
                             // Store fully:

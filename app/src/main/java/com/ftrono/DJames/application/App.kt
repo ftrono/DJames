@@ -103,6 +103,7 @@ var sharedLink = MutableLiveData<String>("")
 var curLibrarySize = MutableLiveData<Int>(0)
 val libHeads = listOf("artist", "playlist", "podcast", "contact", "route")
 val libSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
+var curMessagesSize = MutableLiveData<Int>(0)
 var allMessages = MutableLiveData<List<String>>(listOf<String>())
 
 // Conversation tracking:

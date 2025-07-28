@@ -75,7 +75,7 @@ fun GuideScreen(navController: NavController) {
     ) {
         //HEADER:
         HeaderWithSign(
-            iconRes = painterResource(id = R.drawable.sign_info),
+            iconPainter = painterResource(id = R.drawable.sign_info),
             title = "Guide",
             subtitle = "What you can ask"
         )

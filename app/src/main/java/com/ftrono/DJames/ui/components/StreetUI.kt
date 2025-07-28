@@ -124,7 +124,7 @@ fun StreetLine(
 @Composable
 fun HeaderPreview() {
     HeaderWithSign(
-        iconRes = painterResource(id = R.drawable.sign_fork),
+        iconPainter = painterResource(id = R.drawable.sign_fork),
         title = "Section Title",
         subtitle = "Section subtitle",
         num = 1
@@ -134,7 +134,9 @@ fun HeaderPreview() {
 
 @Composable
 fun HeaderWithSign(
-    iconRes: Painter,
+    iconPainter: Painter? = null,
+    iconVector: ImageVector? = null,
+    onIconClick: () -> Unit = {},
     pretitle: String? = null,
     title: String,
     subtitle: String? = null,
@@ -158,7 +160,9 @@ fun HeaderWithSign(
                 .padding(10.dp)
                 .weight(1f)
                 .wrapContentSize(align = Alignment.TopStart),
-            iconRes = iconRes,
+            iconPainter = iconPainter,
+            iconVector = iconVector,
+            onIconClick = { onIconClick() },
             pretitle = pretitle,
             title = title,
             subtitle = subtitle,
@@ -179,7 +183,9 @@ fun HeaderWithSign(
 @Composable
 fun HeaderSign(
     modifier: Modifier,
-    iconRes: Painter,
+    iconPainter: Painter? = null,
+    iconVector: ImageVector? = null,
+    onIconClick: () -> Unit = {},
     pretitle: String? = null,
     title: String,
     subtitle: String? = null,
@@ -201,13 +207,25 @@ fun HeaderSign(
             horizontalArrangement = Arrangement.Start
         ) {
             //Sign icon:
-            Icon(
-                modifier = Modifier
-                    .size(40.dp),
-                painter = iconRes,
-                contentDescription = "header",
-                tint = colorResource(id = R.color.light_grey)
-            )
+            if (iconVector != null) {
+                Icon(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clickable { onIconClick() },
+                    imageVector = iconVector,
+                    contentDescription = "header",
+                    tint = colorResource(id = R.color.light_grey)
+                )
+            } else {
+                Icon(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clickable { onIconClick() },
+                    painter = iconPainter!!,
+                    contentDescription = "header",
+                    tint = colorResource(id = R.color.light_grey)
+                )
+            }
             //Headers text:
             Column(
                 modifier = Modifier

@@ -133,7 +133,7 @@ fun SettingsHeader(
                 modifier = Modifier
                     .padding(10.dp)
                     .wrapContentSize(align = Alignment.TopStart),
-                iconRes = iconRes,
+                iconPainter = iconRes,
                 title = title,
                 signColor = signColor
             )

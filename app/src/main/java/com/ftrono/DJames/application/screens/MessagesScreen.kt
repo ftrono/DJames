@@ -98,7 +98,9 @@ fun MessagesScreen(preview: Boolean = false) {
     ) {
         //HEADER:
         HeaderWithSign(
-            iconRes = if (selectedMessageIds.isNotEmpty()) painterResource(id = R.drawable.arrow_down) else painterResource(id = R.drawable.sign_history),
+            iconVector = if (selectedMessageIds.isNotEmpty()) Icons.Default.Clear else null,
+            iconPainter = if (selectedMessageIds.isEmpty()) painterResource(id = R.drawable.sign_history) else null,
+            onIconClick = { if (selectedMessageIds.isNotEmpty()) selectedMessageIds.clear() },
             title = "Messages",
             subtitle = if (selectedMessageIds.isNotEmpty()) "Selected" else "Last 30 days",
             num = if (selectedMessageIds.isNotEmpty()) selectedMessageIds.size else allMessagesState!!.size,
@@ -202,7 +204,13 @@ fun ConvStarter(
                     .padding(
                         top = 2.dp, bottom = 2.dp,
                     )
-                    .clickable { mDisplayMenu.value = !mDisplayMenu.value },
+                    .clickable {
+                        if (selectedMessageIds.isNotEmpty()) {
+                            selectedMessageIds.addAll(messageUtils.getMessageIDsByStarterId(message.starterId))
+                        } else {
+                            mDisplayMenu.value = !mDisplayMenu.value
+                        }
+                    },
                 border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
                 shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(
@@ -321,7 +329,6 @@ fun MessageItem(
     //INFO:
     val mContext = LocalContext.current
     val extraDetails = if (message.type == "ai") buildExtraDetails(message) else ""
-    val sentTime = messageUtils.convertTimestamp(message.timestamp, timeFormat)
 
     //MESSAGE ROW:
     Row (
@@ -357,7 +364,7 @@ fun MessageItem(
                     //MAIN TEXT:
                     Text(
                         modifier = Modifier
-                            .padding(bottom = 2.dp),
+                            .padding(start=2.dp, end=2.dp),
                         color = if (selectedMessageIds.contains(message.id)) {
                             colorResource(R.color.colorPrimaryDark)
                         } else {
@@ -367,19 +374,6 @@ fun MessageItem(
                         lineHeight = 16.sp,
                         textAlign = if (message.type == "ai") TextAlign.Start else TextAlign.End,
                         text = message.text
-                    )
-                    //INTENT + SENT TIME:
-                    Text(
-                        modifier = Modifier
-                            .padding(top = 2.dp),
-                        color = if (selectedMessageIds.contains(message.id)) {
-                            colorResource(R.color.colorPrimaryDark)
-                        } else {
-                            colorResource(id = R.color.light_grey)
-                        },
-                        fontSize = 12.sp,
-                        textAlign = if (message.type == "ai") TextAlign.Start else TextAlign.End,
-                        text = if (message.type == "ai") sentTime else "${message.requestIntent}  •  $sentTime"
                     )
                 }
             }

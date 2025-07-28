@@ -1,16 +1,18 @@
 package com.ftrono.DJames.application.screens
 
+import android.Manifest
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -43,8 +45,8 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -56,16 +58,19 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.allMessages
 import com.ftrono.DJames.application.curMessagesSize
 import com.ftrono.DJames.application.datetimeShortFormat
+import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
+import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.messagesListTriggerGap
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.Message
+import com.ftrono.DJames.ui.components.ChatInputField
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.components.HeaderWithSign
 import com.ftrono.DJames.ui.components.OptionsItem
 import com.ftrono.DJames.ui.components.OptionsMenu
 import com.ftrono.DJames.ui.components.StreetBackground
-import com.ftrono.DJames.ui.selectors.messagesColorSelector
+import com.ftrono.DJames.ui.components.MessageBubble
 import com.ftrono.DJames.ui.selectors.messagesColorSelectorLight
 import com.ftrono.DJames.ui.selectors.messagesIconSelector
 import kotlinx.serialization.decodeFromString
@@ -82,6 +87,27 @@ fun MessagesScreenPreview() {
 @Composable
 fun MessagesScreen(preview: Boolean = false) {
     val mContext = LocalContext.current
+    //Overlay permission management:
+    val requestOverlayOn = rememberSaveable { mutableStateOf(false) }
+    if (requestOverlayOn.value) {
+        DialogRequestOverlay(
+            mContext = mContext,
+            dialogOnState = requestOverlayOn
+        )
+    }
+    // Mic permissions management:
+    val requestPermissions = rememberSaveable { mutableStateOf(false) }
+    if (requestPermissions.value) {
+        SinglePermissionHandler(
+            context = mContext,
+            dialogOnState = requestPermissions,
+            permission = Manifest.permission.RECORD_AUDIO
+        )
+    }
+
+    // States:
+    val focusManager = LocalFocusManager.current
+    val chatText = rememberSaveable { mutableStateOf("") }
     val selectedMessageIds = remember { mutableStateListOf<Long>() }
 
     var hasMore = remember { mutableStateOf(true) }
@@ -105,6 +131,14 @@ fun MessagesScreen(preview: Boolean = false) {
     ) {
         //HEADER:
         HeaderWithSign(
+            modifier = Modifier
+                .clickable(
+                    // This makes the rest of the screen clear focus on tap
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) {
+                    focusManager.clearFocus()
+                },
             iconVector = if (selectedMessageIds.isNotEmpty()) Icons.Default.Clear else null,
             iconPainter = if (selectedMessageIds.isEmpty()) painterResource(id = R.drawable.sign_history) else null,
             onIconClick = { if (selectedMessageIds.isNotEmpty()) selectedMessageIds.clear() },
@@ -138,20 +172,35 @@ fun MessagesScreen(preview: Boolean = false) {
         if (allMessagesState!!.isEmpty()) {
             //MESSAGES EMPTY:
             Text(
-                text = "No messages",
-                textAlign = TextAlign.Center,
-                fontSize = 18.sp,
-                color = colorResource(id = R.color.mid_grey),
                 modifier = Modifier
                     .fillMaxSize()
                     .wrapContentHeight()
                     .wrapContentWidth()
+                    .clickable(
+                        // This makes the rest of the screen clear focus on tap
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        focusManager.clearFocus()
+                    },
+                text = "No messages",
+                textAlign = TextAlign.Center,
+                fontSize = 18.sp,
+                color = colorResource(id = R.color.mid_grey),
             )
         } else {
             //MESSAGES LIST:
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxSize(),
+                    .fillMaxWidth()
+                    .weight(1F)
+                    .clickable(
+                        // This makes the rest of the screen clear focus on tap
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        focusManager.clearFocus()
+                    },
                 state = listState,
                 reverseLayout = true
             ) {
@@ -207,6 +256,26 @@ fun MessagesScreen(preview: Boolean = false) {
                     }
             }
         }
+
+        // CHAT INPUT FIELD:
+        ChatInputField(
+            context = mContext,
+            requestPermissions = requestPermissions,
+            requestOverlayOn = requestOverlayOn,
+            modifier = Modifier
+                .padding(
+                    start = 32.dp,
+                    end = 24.dp,
+                    top = 6.dp,
+                    bottom = 2.dp
+                )
+                .imePadding()
+                .fillMaxWidth(),
+            textState = chatText,
+            placeholder = "Ask me anything...",
+            enableLeftButton = true,
+            onSend = { }   //TODO
+        )
     }
 }
 
@@ -270,6 +339,7 @@ fun ConvStarter(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // SIGN:
                     Icon(
                         modifier = Modifier
                             .size(18.dp),
@@ -277,6 +347,7 @@ fun ConvStarter(
                         tint = colorResource(R.color.black),
                         contentDescription = "More"
                     )
+                    // STARTER DATETIME:
                     Text(
                         modifier = Modifier
                             .padding(start=4.dp, end=4.dp),
@@ -286,6 +357,7 @@ fun ConvStarter(
                         textAlign = TextAlign.Center,
                         text = messageUtils.convertTimestamp(message.timestamp, datetimeShortFormat)
                     )
+                    // "MORE" ICON:
                     Icon(
                         modifier = Modifier
                             .size(18.dp),
@@ -305,66 +377,6 @@ fun ConvStarter(
         }
     }
 
-}
-
-
-@Composable
-fun MessageBubble(
-    mContext: Context,
-    selectedMessageIds: SnapshotStateList<Long>,
-    messageId: Long,
-    fromUser: Boolean,
-    requestIntent: String = "",
-    content: @Composable () -> Unit
-) {
-    // MESSAGE BUBBLE:
-    Card(
-        modifier = Modifier
-            .padding(
-                top = 2.dp,
-                start = if (fromUser) 40.dp else 0.dp,
-                end = if (!fromUser) 40.dp else 0.dp,
-            )
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onLongPress = {
-                        if (!selectedMessageIds.contains(messageId)) {
-                            // Select:
-                            selectedMessageIds.add(messageId)
-                        } else {
-                            // Unselect:
-                            selectedMessageIds.remove(messageId)
-                        }
-                    },
-                    onTap = {
-                        if (selectedMessageIds.isNotEmpty()) {
-                            if (!selectedMessageIds.contains(messageId)) {
-                                // Select:
-                                selectedMessageIds.add(messageId)
-                            } else {
-                                // Unselect:
-                                selectedMessageIds.remove(messageId)
-                            }
-                        } else {
-                            // Open Log file via external app:
-                            val filename = messageUtils.prepareLogFile(mContext, messageId)
-                            messageUtils.openLogViaApp(mContext, filename)
-                        }
-                    }
-                )
-            },
-        border = BorderStroke(1.dp, colorResource(id = R.color.dark_grey)),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (selectedMessageIds.contains(messageId)) {
-                colorResource(R.color.colorAccentLight)
-            } else if (fromUser) {
-                messagesColorSelector(requestIntent)
-            } else {
-                colorResource(id = R.color.dark_grey_background)
-            }
-        )
-    ) { content() }
 }
 
 
@@ -408,7 +420,7 @@ fun MessageItem(
                     horizontalAlignment = if (message.type == "ai") Alignment.Start else Alignment.End,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    //MAIN TEXT:
+                    //MESSAGE TEXT:
                     Text(
                         modifier = Modifier
                             .padding(start=2.dp, end=2.dp),

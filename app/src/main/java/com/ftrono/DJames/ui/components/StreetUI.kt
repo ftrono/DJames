@@ -134,6 +134,7 @@ fun HeaderPreview() {
 
 @Composable
 fun HeaderWithSign(
+    modifier: Modifier = Modifier,
     iconPainter: Painter? = null,
     iconVector: ImageVector? = null,
     onIconClick: () -> Unit = {},
@@ -146,7 +147,7 @@ fun HeaderWithSign(
 ) {
     //HEADER:
     Row(
-        modifier = Modifier
+        modifier = modifier
             .padding(bottom = 6.dp)
             .fillMaxWidth()
             .wrapContentHeight()

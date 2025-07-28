@@ -169,12 +169,38 @@ class MessageUtils {
     }
 
     //DB DELETE:
-    //Delete Messages:
+    //Delete empty starters (starters whose conversation has been fully deleted):
+    fun deleteLeftovers() {
+        try {
+            // Get full list of starterIDs:
+            val allStarterIds = messageBox!!
+                .query(Message_.type.equal("starter"))
+                .build()
+                .property(Message_.starterId).findLongs()
+            for (starterId in allStarterIds) {
+                // Check how many messages are in the conversation:
+                val items = messageBox!!.query().equal(Message_.starterId, starterId).build().find()
+                if (items.size == 1) {
+                    // If 1 -> delete the leftover:
+                    messageBox!!.remove(items)
+                    Log.d(TAG, "Leftovers with starterId $starterId deleted!")
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: cannot delete leftovers!", e)
+        }
+    }
+
+
+    //Delete Messages (+ leftovers):
     fun deleteMessageItems(context: Context, ids: List<Long>) {
         try {
+            // Delete:
             var itemsToDelete = messageBox!!.get(ids)
             messageBox!!.remove(itemsToDelete)
             Log.d(TAG, "Deleted Message items with IDs: $ids!")
+            // Also delete leftovers:
+            deleteLeftovers()
             if (itemsToDelete.size == 1) {
                 Toast.makeText(context, "Message deleted!", Toast.LENGTH_LONG).show()
             } else if (itemsToDelete.size > 1) {

@@ -1,13 +1,16 @@
 package com.ftrono.DJames.utilities
 
+import android.Manifest
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.provider.Settings
 import android.telephony.PhoneNumberUtils
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.startActivity
@@ -15,6 +18,7 @@ import androidx.core.content.FileProvider
 import com.ftrono.DJames.application.*
 import com.ftrono.DJames.be.models.HttpResponse
 import androidx.core.net.toUri
+import com.ftrono.DJames.application.services.OverlayService
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
@@ -62,8 +66,8 @@ class Utilities {
 
 
     //Check service running:
-    fun isMyServiceRunning(serviceClass: Class<*>, mContext: Context): Boolean {
-        val manager = mContext.getSystemService(AppCompatActivity.ACTIVITY_SERVICE) as ActivityManager
+    fun isMyServiceRunning(serviceClass: Class<*>, context: Context): Boolean {
+        val manager = context.getSystemService(AppCompatActivity.ACTIVITY_SERVICE) as ActivityManager
         for (service in manager.getRunningServices(Int.MAX_VALUE)) {
             if (serviceClass.name == service.service.className) {
                 return true
@@ -196,22 +200,59 @@ class Utilities {
     }
 
 
-    //Threads management:
-    fun stopThreadsInList(threads: MutableList<Thread>) {
-        //Stop threads:
-        var t_count = 1
-        var t_max = threads.size
-        for (t in threads) {
-            try {
-                if (t.isAlive()) {
-                    t.interrupt()
-                    Log.d(TAG, "Stopped thread $t_count / $t_max.")
+    //Start/Stop DRIVE Mode:
+    fun startStopDriveMode(
+        context: Context,
+        requestOverlayOn: MutableState<Boolean>,
+        requestPermissions: MutableState<Boolean>,
+        openClock: Boolean = false,
+    ) {
+        if (overlayActive.value == false) {
+            if (!Settings.canDrawOverlays(context)) {
+                // REQUEST OVERLAY PERMISSION:
+                requestOverlayOn.value = true
+                overlayActive.postValue(false)
+
+            } else if (!checkPermission(context, Manifest.permission.RECORD_AUDIO)) {
+                Log.d("Home", "${checkPermission(context, Manifest.permission.RECORD_AUDIO)}")
+                // REQUEST MISSING PERMISSIONS:
+                requestPermissions.value = true
+
+            } else {
+                //START DRIVE MODE:
+                requestOverlayOn.value = false
+                overlayActive.postValue(true)
+                //Overlay service:
+                if (!isMyServiceRunning(OverlayService::class.java, context)) {
+                    var intentOS = Intent(context, OverlayService::class.java)
+                    context.startService(intentOS)
+                    if (prefs.volumeUpEnabled) {
+                        Toast.makeText(
+                            context,
+                            "Use the OVERLAY or VOLUME UP / SHUTTER button to speak!",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Use the OVERLAY button to speak!",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+
                 }
-                Log.d(TAG, "Thread $t_count / $t_max not active.")
-            } catch (e: Exception) {
-                Log.w(TAG, "Thread $t_count / $t_max: EXCEPTION: ", e)
+                //Start Clock screen:
+                if (openClock) {
+                    val intent1 = Intent(context, ClockActivity::class.java)
+                    context.startActivity(intent1)
+                }
             }
-            t_count ++
+        } else {
+            //STOP DRIVE MODE:
+            overlayActive.postValue(false)
+            if (isMyServiceRunning(OverlayService::class.java, context)) {
+                context.stopService(Intent(context, OverlayService::class.java))
+            }
         }
     }
 

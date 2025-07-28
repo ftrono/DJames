@@ -2,10 +2,7 @@ package com.ftrono.DJames.application.screens
 
 import android.Manifest
 import android.content.Context
-import android.content.Intent
 import android.content.res.Configuration
-import android.provider.Settings
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -49,7 +46,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.lastNavRoute
@@ -58,12 +54,12 @@ import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.volumeUpEnabled
-import com.ftrono.DJames.application.services.OverlayService
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.ui.components.StreetLine
 import com.ftrono.DJames.ui.navigation.navigateTo
 import com.ftrono.DJames.ui.theme.NavigationItem
+import kotlin.Boolean
 
 
 @Preview
@@ -295,52 +291,12 @@ fun StartButton(overlayActiveState: Boolean) {
             )
         },
         onClick = {
-            if (overlayActive.value == false) {
-                if (!Settings.canDrawOverlays(mContext)) {
-                    // REQUEST OVERLAY PERMISSION:
-                    requestOverlayOn.value = true
-                    overlayActive.postValue(false)
-
-                } else if (!utils.checkPermission(mContext, Manifest.permission.RECORD_AUDIO)) {
-                    Log.d("Home", "${utils.checkPermission(mContext, Manifest.permission.RECORD_AUDIO)}")
-                    // REQUEST MISSING PERMISSIONS:
-                    requestPermissions.value = true
-
-                } else {
-                    //START DRIVE MODE:
-                    requestOverlayOn.value = false
-                    overlayActive.postValue(true)
-                    //Overlay service:
-                    if (!utils.isMyServiceRunning(OverlayService::class.java, mContext)) {
-                        var intentOS = Intent(mContext, OverlayService::class.java)
-                        mContext.startService(intentOS)
-                        if (prefs.volumeUpEnabled) {
-                            Toast.makeText(
-                                mContext,
-                                "Use the OVERLAY or VOLUME UP / SHUTTER button to speak!",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        } else {
-                            Toast.makeText(
-                                mContext,
-                                "Use the OVERLAY button to speak!",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-
-                    }
-                    //Start Clock screen:
-                    val intent1 = Intent(mContext, ClockActivity::class.java)
-                    mContext.startActivity(intent1)
-                    //mContext.finish()
-                }
-            } else {
-                //STOP DRIVE MODE:
-                overlayActive.postValue(false)
-                if (utils.isMyServiceRunning(OverlayService::class.java, mContext)) {
-                    mContext.stopService(Intent(mContext, OverlayService::class.java))
-                }
-            }
+            utils.startStopDriveMode(
+                context = mContext,
+                requestOverlayOn = requestOverlayOn,
+                requestPermissions = requestPermissions,
+                openClock = true,
+            )
         }
     )
 }

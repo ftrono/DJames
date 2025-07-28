@@ -52,6 +52,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.ftrono.DJames.application.overlayActive
+import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
 
@@ -137,6 +138,7 @@ fun SplitSendButton(
 ) {
     val userTypingChatState by userTypingChat.observeAsState()
     val overlayActiveState by overlayActive.observeAsState()
+    val overlayStatusState by overlayStatus.observeAsState()
 
     Row(
         modifier = Modifier
@@ -147,7 +149,7 @@ fun SplitSendButton(
         horizontalArrangement = Arrangement.Center
     ) {
 
-        // Left button:
+        // LEFT:
         if (enableLeftButton && !userTypingChatState!!) {
             Card(
                 modifier = Modifier
@@ -177,7 +179,7 @@ fun SplitSendButton(
             }
         }
 
-        // Right button:
+        // RIGHT:
         Card(
             modifier = Modifier
                 .padding(start = 1.dp)
@@ -185,7 +187,7 @@ fun SplitSendButton(
             onClick = onRightClick,
             shape = if (!enableLeftButton || userTypingChatState!!) RoundedCornerShape(20.dp) else RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp),
             colors = CardDefaults.cardColors(
-                containerColor = colorResource(id = R.color.colorAccent)
+                containerColor = if (overlayStatusState != "ready") colorResource(id = R.color.faded_grey) else colorResource(id = R.color.colorAccent)
             ),
         ) {
             Row(
@@ -195,13 +197,23 @@ fun SplitSendButton(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    modifier = Modifier
-                        .size(24.dp),
-                    imageVector = Icons.AutoMirrored.Default.Send,
-                    tint = colorResource(R.color.light_grey),
-                    contentDescription = "Send"
-                )
+                if (overlayStatusState == "ready") {
+                    Icon(
+                        modifier = Modifier
+                            .size(24.dp),
+                        imageVector = Icons.AutoMirrored.Default.Send,
+                        tint = colorResource(R.color.light_grey),
+                        contentDescription = "Send"
+                    )
+                } else {
+                    Icon(
+                        modifier = Modifier
+                            .size(24.dp),
+                        painter = painterResource(R.drawable.icon_no_send),
+                        tint = colorResource(R.color.light_grey),
+                        contentDescription = "Send"
+                    )
+                }
             }
         }
     }
@@ -242,6 +254,7 @@ fun ChatInputField(
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
+    val overlayStatusState by overlayStatus.observeAsState()
     val textFieldColors = getTextFieldColors(
         colorLight = colorResource(R.color.colorAccentLight),
         colorDark = colorResource(R.color.colorAccent)
@@ -250,7 +263,7 @@ fun ChatInputField(
     fun onKeyboardDone() {
         focusManager.clearFocus()
         keyboardController!!.hide()
-        onSend()
+        if (overlayStatusState == "ready") onSend()
     }
 
     //Text Field:
@@ -302,7 +315,7 @@ fun ChatInputField(
                         requestPermissions = requestPermissions,
                         openClock = false,
                     )
-                },   //TODO
+                },
                 onRightClick = { onKeyboardDone() },
             )
         }

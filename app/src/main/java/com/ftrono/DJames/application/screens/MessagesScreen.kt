@@ -157,8 +157,8 @@ fun MessagesScreen(preview: Boolean = false) {
                             mDisplayMainMenu.value = !mDisplayMainMenu.value
                         },
                     imageVector = Icons.Default.MoreVert,
-                    contentDescription = "Options",
-                    tint = colorResource(id = R.color.light_grey)
+                    contentDescription = "Add library item",
+                    tint = colorResource(id = R.color.colorAccentLight)
                 )
                 MessagesOptions(
                     mDisplayMenu = mDisplayMainMenu,
@@ -267,7 +267,7 @@ fun MessagesScreen(preview: Boolean = false) {
                     start = 32.dp,
                     end = 24.dp,
                     top = 6.dp,
-                    bottom = 12.dp
+                    bottom = 2.dp
                 )
                 .imePadding()
                 .fillMaxWidth(),

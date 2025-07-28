@@ -20,9 +20,7 @@ import com.ftrono.DJames.be.database.Podcast
 import com.ftrono.DJames.be.database.Route
 import com.ftrono.DJames.be.nlp.FulfillmentUtils
 import com.ftrono.DJames.be.samples.DefaultReplies
-import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
 import com.ftrono.DJames.be.spotify.SpotifyUtils
-import com.ftrono.DJames.ui.theme.NavigationItem
 import com.ftrono.DJames.utilities.Prefs
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
@@ -36,7 +34,7 @@ import java.util.concurrent.TimeUnit
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.0.a2 (alpha)"
+val appVersion = "3.0.a1 (alpha)"
 val copyrightYear = 2024
 
 //DB:
@@ -47,16 +45,7 @@ var podcastBox: Box<Podcast>? = null
 var contactBox: Box<Contact>? = null
 var routeBox: Box<Route>? = null
 
-//NAVIGATION:
-val navItems = listOf(
-    NavigationItem.Home,
-    NavigationItem.Guide,
-    NavigationItem.Library,
-    NavigationItem.Messages
-    )
-
 //UTILS:
-val spotifyLoginUtils = SpotifyLoginUtils()
 val utils = Utilities()
 val libUtils = LibraryUtils()
 val messageUtils = MessageUtils()

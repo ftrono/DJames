@@ -156,7 +156,7 @@ fun SplitSendButton(
                     .padding(end = 1.dp)
                     .fillMaxHeight(),
                 onClick = onLeftClick,
-                shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp),
+                shape = RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = if (testChat || overlayActiveState!!) colorResource(id = R.color.colorStop) else colorResource(id = R.color.colorAccent)
                 ),
@@ -171,7 +171,7 @@ fun SplitSendButton(
                     Icon(
                         modifier = Modifier
                             .size(24.dp),
-                        painter = if (testChat || overlayActiveState!!) painterResource(R.drawable.icon_edit) else painterResource(R.drawable.icon_speak),
+                        painter = if (testChat || overlayActiveState!!) painterResource(R.drawable.sign_message) else painterResource(R.drawable.icon_speak),
                         tint = colorResource(R.color.light_grey),
                         contentDescription = "Drive"
                     )
@@ -182,10 +182,10 @@ fun SplitSendButton(
         // RIGHT:
         Card(
             modifier = Modifier
-                .padding(start = 1.dp, end = 2.dp)
+                .padding(start = 1.dp)
                 .fillMaxHeight(),
             onClick = onRightClick,
-            shape = if (!enableLeftButton || userTypingChatState!!) RoundedCornerShape(16.dp) else RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp),
+            shape = if (!enableLeftButton || userTypingChatState!!) RoundedCornerShape(20.dp) else RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp),
             colors = CardDefaults.cardColors(
                 containerColor = if (overlayStatusState != "ready") colorResource(id = R.color.faded_grey) else colorResource(id = R.color.colorAccent)
             ),
@@ -257,7 +257,7 @@ fun ChatInputField(
     val overlayStatusState by overlayStatus.observeAsState()
     val textFieldColors = getTextFieldColors(
         colorLight = colorResource(R.color.colorAccentLight),
-        colorDark = colorResource(R.color.colorAccent),
+        colorDark = colorResource(R.color.colorAccent)
     )
 
     fun onKeyboardDone() {
@@ -280,7 +280,6 @@ fun ChatInputField(
             .onFocusChanged { focusState ->
                 userTypingChat.postValue(focusState.isFocused)
             },
-        shape = RoundedCornerShape(16.dp),
         colors = textFieldColors,
         value = textState.value,
         interactionSource = interactionSource,

@@ -17,9 +17,7 @@ import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.application.ACTION_REC_STOP
 import com.ftrono.DJames.application.convStarted
 import com.ftrono.DJames.application.defaultReplies
-import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.lastRequestIntent
-import com.ftrono.DJames.application.lastUserMessage
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.prefs
@@ -34,13 +32,7 @@ import com.ftrono.DJames.be.nlp.NLPDispatcher
 import com.ftrono.DJames.be.audio.AndroidAudioRecorder
 import com.ftrono.DJames.be.audio.AudioRequestsManager
 import com.ftrono.DJames.be.audio.TTSReader
-import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.be.tools.Actions
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import java.io.File
 
 
@@ -48,7 +40,6 @@ class VoiceQueryService: Service() {
 
     //Main:
     private val TAG = VoiceQueryService::class.java.simpleName
-    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
     private val audioRequestsManager = AudioRequestsManager()
     private lateinit var tts: TTSReader
@@ -64,8 +55,8 @@ class VoiceQueryService: Service() {
     private var dispatcherInfo = DispatcherInfo()
 
     //JOBS:
-    private var recordingJob: Job? = null
-    private var processingJob: Job? = null
+    private var recordingThread: Thread? = null
+    private var processingThread: Thread? = null
 
     // SERVICE:
     override fun onBind(intent: Intent?): IBinder? {
@@ -105,8 +96,8 @@ class VoiceQueryService: Service() {
             Log.w(TAG, "Recorder not available.")
         }
         //Stop jobs:
-        cancelJob(recordingJob, "recordingJob")
-        cancelJob(processingJob, "processingJob")
+        cancelThread(recordingThread, "recordingThread")
+        cancelThread(processingThread, "processingThread")
 
         //Stop recorder:
         if (recordingMode || overlayStatus.value != "ready") {
@@ -165,20 +156,13 @@ class VoiceQueryService: Service() {
     }
 
 
-    fun cancelJob(job: Job?, jobName: String) {
+    fun cancelThread(thread: Thread?, threadName: String) {
         try {
-            job?.cancel()
-            Log.d(TAG, "Stopped $jobName!")
+            thread?.interrupt()
+            Log.d(TAG, "Stopped $threadName!")
         } catch (e: Exception) {
-            Log.w(TAG, "$jobName not active.")
+            Log.w(TAG, "$threadName not active.")
         }
-    }
-
-    private fun failSilently() {
-        toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-        lastAiMessage.text = "(No reply)"
-        messageUtils.storeMessage(applicationContext, fromUser = false)
-        stopSelf()
     }
 
 
@@ -190,9 +174,9 @@ class VoiceQueryService: Service() {
         Log.d(TAG, "startVoiceRecording() triggered!")
         recordingTime = 0
         try {
-            cancelJob(processingJob, "processingJob")
+            cancelThread(processingThread, "processingThread")
             //Start rec Job:
-            recordingJob = coroutineScope.launch {
+            recordingThread = Thread {
                 // 1) SPEAK INTRO:
                 if (voiceQueryOn && speakIntro) {
                     audioRequestsManager.requestDuckedFocus(
@@ -210,7 +194,7 @@ class VoiceQueryService: Service() {
                                 ),
                             )
                         },
-                        onFail = { failSilently() }
+                        onFail = { stopSelf() }
                     )
                     audioRequestsManager.releaseDuckedFocus()
                 }
@@ -236,14 +220,15 @@ class VoiceQueryService: Service() {
                                 dispatcherInfo.messageType,
                             )
                         },
-                        onFail = { failSilently() }
+                        onFail = { stopSelf() }
                     )
                 }
             }
+            recordingThread!!.start()
 
         } catch (e: Exception) {
             Log.w(TAG, "VQSERVICE: EXCEPTION: ", e)
-            failSilently()
+            stopSelf()
         }
     }
 
@@ -255,13 +240,13 @@ class VoiceQueryService: Service() {
             var recFile = MyRecorder.stop()
             recordingMode = false
             Log.d(TAG, "RECORDING STOPPED.")
-            cancelJob(recordingJob, "recordingJob")
+            cancelThread(recordingThread, "recordingThread")
             messageUtils.createMessage(fromUser = false)
 
             //2) RECORDING RESULT:
             if (!voiceQueryOn || recordingFail) {
                 //A) RECORDING FAIL -> END:
-                failSilently()
+                stopSelf()
 
             } else {
                 //B) RECORDING SUCCESS:
@@ -274,19 +259,20 @@ class VoiceQueryService: Service() {
                             //Set overlay PROCESSING color & icon:
                             overlayStatus.postValue("processing")
                             //PROCESS QUERY:
-                            processingJob = coroutineScope.launch {
+                            processingThread = Thread {
                                 processQuery(recFile)
                             }
+                            processingThread!!.start()
                         }
                     },
-                    onFail = { failSilently() }
+                    onFail = { stopSelf() }
                 )
 
             }
 
         } catch (e: Exception) {
             Log.w(TAG, "VQSERVICE: EXCEPTION: ", e)
-            failSilently()
+            stopSelf()
         }
     }
 
@@ -369,7 +355,7 @@ class VoiceQueryService: Service() {
             }
         } catch (e: Exception) {
             Log.e(TAG, "VQSERVICE: EXCEPTION: ", e)
-            failSilently()
+            stopSelf()
         }
     }
 

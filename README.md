@@ -11,13 +11,13 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
-**Version 3.0.a1 (v3 alpha) (2025-07-26)** - Init reworks for V3. Replaces Logs with Messages. Replaced History with Messages screen.
+**Version 3.0.a1 (v3 alpha) (2025-07-26)** - Init reworks for V3. Replaces Logs with Messages. Replaced History with Messages screen. Re-add Threads to VoiceQueryService.
 
 **Version 2.6.2 (2025-07-24)** - Add get parent Artist / Podcast from Track / Episode URL.
 
 **Version 2.6.1 (2025-07-24)** - Centralized logs opening & init stores. Add permissions requests handling.
 
-**Version 2.6.0 (2025-07-21)** - Rework VoiceQueryService: centralize AudioRequestsManager, TTS & Actions, replaced threads with jobs, remove toasts.
+**Version 2.6.0 (2025-07-21)** - Rework VoiceQueryService: centralize AudioRequestsManager, TTS & Actions, reworked threads / jobs, remove toasts.
 
 **Version 2.5.3 (2025-07-12)** - Centralize output messages, add Messages to HistoryLog class.
 

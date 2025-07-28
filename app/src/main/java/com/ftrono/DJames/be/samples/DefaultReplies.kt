@@ -75,7 +75,7 @@ class DefaultReplies() {
     }
 
     fun replyMessageDictate(contactName: String, msgType: String = "", reqLangName: String): String {
-        return "Please, dictate the $msgType message for $contactName in $reqLangName!"
+        return "Please, dictate the $msgType message for $contactName in $reqLangName!".replace("  ", " ")
     }
 
     fun replySmsSent(contactName: String): String {

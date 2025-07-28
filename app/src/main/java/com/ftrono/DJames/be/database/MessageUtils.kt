@@ -8,11 +8,12 @@ import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import com.ftrono.DJames.application.ACTION_MESSAGES_REFRESH
 import com.ftrono.DJames.application.appVersion
+import com.ftrono.DJames.application.convStarted
 import com.ftrono.DJames.application.curMessagesSize
 import com.ftrono.DJames.application.datetimeExportFormat
 import com.ftrono.DJames.application.datetimeFullFormat
 import com.ftrono.DJames.application.lastAiMessage
-import com.ftrono.DJames.application.lastStarterId
+import com.ftrono.DJames.application.lastStarter
 import com.ftrono.DJames.application.lastUserMessage
 import com.ftrono.DJames.application.messageBox
 import com.ftrono.DJames.application.messagesPageSize
@@ -100,36 +101,28 @@ class MessageUtils {
 
 
     //INSERT NEW:
-    //Insert Starter:
-    fun insertStarter() {
-        try {
-            val now = getCurrentTimestamp()
-            val newStarter = Message(
-                timestamp = now,
-                appVersion = appVersion,
-                type = "starter",
-                starterId = now
-            )
-            messageBox!!.put(newStarter)
-            lastStarterId = now
-            Log.d(TAG, "Starter item ${newStarter.timestamp} inserted!")
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Starter item not inserted!", e)
-        }
+    //Create Starter:
+    fun createStarter() {
+        val now = getCurrentTimestamp()-1
+        lastStarter = Message(
+            timestamp = now,
+            appVersion = appVersion,
+            type = "starter",
+            starterId = now
+        )
     }
 
     // Create new Message:
     fun createMessage(fromUser: Boolean = false, isStart: Boolean = false) {
-        if (isStart) insertStarter()
         val now = getCurrentTimestamp()
-        // Store:
+        if (isStart) createStarter()
         if (fromUser) {
             lastUserMessage = Message(
                 id = 0,
                 timestamp = now,
                 appVersion = appVersion,
                 type = "user",
-                starterId = lastStarterId,
+                starterId = lastStarter.timestamp,
             )
         } else {
             lastAiMessage = Message(
@@ -137,7 +130,7 @@ class MessageUtils {
                 timestamp = now,
                 appVersion = appVersion,
                 type = "ai",
-                starterId = lastStarterId,
+                starterId = lastStarter.timestamp,
             )
         }
 
@@ -153,7 +146,15 @@ class MessageUtils {
             }
             if (message.text == "") {
                 Log.w(TAG, "Empty Message: not saved!")
+            } else if (!fromUser && !convStarted) {
+                Log.w(TAG, "Conversation not started: skipped saving AI message!")
             } else {
+                if (fromUser && !convStarted) {
+                    // Start conversation:
+                    convStarted = true
+                    messageBox!!.put(lastStarter)
+                    Log.d(TAG, "Conversation started!")
+                }
                 messageBox!!.put(message)
                 Log.d(TAG, "Message item ${message.id} saved!")
                 //Send broadcast:

@@ -112,7 +112,8 @@ var messagesListTriggerGap = 10
 var lastAiMessage: Message = Message()
 var lastUserMessage: Message = Message()
 var lastRequestIntent: String = ""
-var lastStarterId: Long = 0
+var lastStarter: Message = Message()
+var convStarted: Boolean = false
 
 //Preferences:
 val maxAudioRecTimeout = 120L   //for voice messages

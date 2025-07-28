@@ -15,10 +15,10 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.application.ACTION_REC_STOP
+import com.ftrono.DJames.application.convStarted
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.lastRequestIntent
-import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.lastUserMessage
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.overlayStatus
@@ -131,13 +131,13 @@ class VoiceQueryService: Service() {
         recordingFail = false
         recordingMode = false
         voiceQueryOn = false
+        convStarted = false
         sourceIsVolume.postValue(false)
         dispatcherInfo = DispatcherInfo()
         //Reset messages:
         lastUserMessage = Message()
         lastAiMessage = Message()
         lastRequestIntent = ""
-        lastStarterId
         //Set overlay READY color:
         overlayStatus.postValue("ready")
         Log.d(TAG, "VOICE QUERY SERVICE TERMINATED.")

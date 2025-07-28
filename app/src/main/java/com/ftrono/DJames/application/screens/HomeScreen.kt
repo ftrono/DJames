@@ -2,7 +2,10 @@ package com.ftrono.DJames.application.screens
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
+import android.net.Uri
+import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -11,17 +14,22 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -46,19 +54,26 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.ftrono.DJames.application.AuthActivity
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.settingsOpen
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.volumeUpEnabled
 import com.ftrono.DJames.application.sharedLink
+import com.ftrono.DJames.application.spotifyLoginUtils
 import com.ftrono.DJames.application.userGender
+import com.ftrono.DJames.ui.components.OptionsItem
+import com.ftrono.DJames.ui.components.OptionsMenu
 import com.ftrono.DJames.ui.components.StreetLine
+import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.navigation.navigateTo
 import com.ftrono.DJames.ui.theme.NavigationItem
+import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
 import kotlin.Boolean
 
 
@@ -82,12 +97,27 @@ fun HomeScreen(
     val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
     val overlayActiveState by overlayActive.observeAsState()
     val volumeUpEnabledState by volumeUpEnabled.observeAsState()
+    val settingsOpenState by settingsOpen.observeAsState()
 
     val sharedLinkState by sharedLink.observeAsState()
     if (sharedLinkState != "") {
         val curNavRoute = NavigationItem.Library.route
         navigateTo(navController, curNavRoute)
         lastNavRoute = curNavRoute
+    }
+
+    val mDisplayMainMenu = rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    val logoutDialogOn = rememberSaveable { mutableStateOf(false) }
+    if (logoutDialogOn.value) {
+        DialogLogout(
+            mContext,
+            logoutDialogOn,
+            navController,
+            settingsOpenState!!
+        )
     }
 
     Box (
@@ -105,48 +135,86 @@ fun HomeScreen(
         //WRAPPER:
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
+                .fillMaxWidth(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            SpotifyLoginStatus(Modifier, spotifyLoggedInState!!, mContext)
-            if (isLandscape) {
-                //DISPLAY HORIZONTALLY:
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    BaloonHome(overlayActiveState!!, volumeUpEnabledState!!)
-                    VerticalDivider(
+            // USER SETTINGS HEADER: (TODO)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+                Box() {
+                    //USER OPTIONS:
+                    Icon(
                         modifier = Modifier
-                            .offset(x = (-4).dp)
-                            .height(54.dp)
+                            .padding(top = 18.dp, end = 18.dp)
+                            .size(35.dp)
+                            .clickable {
+                                mDisplayMainMenu.value = !mDisplayMainMenu.value
+                            },
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Options",
+                        tint = colorResource(id = R.color.light_grey)
+                    )
+                    UserOptions(
+                        context = mContext,
+                        mDisplayMenu = mDisplayMainMenu,
+                        logoutDialogOn = logoutDialogOn,
+                        navController = navController,
+                        spotifyLoggedInState = spotifyLoggedInState!!,
+                        settingsOpenState = settingsOpenState!!
+                    )
+                }
+            }
+            //WRAPPER:
+            Column(
+                modifier = Modifier
+                    .weight(1F)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                SpotifyLoginStatus(Modifier, spotifyLoggedInState!!, mContext)
+                if (isLandscape) {
+                    //DISPLAY HORIZONTALLY:
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        BaloonHome(overlayActiveState!!, volumeUpEnabledState!!)
+                        VerticalDivider(
+                            modifier = Modifier
+                                .offset(x = (-4).dp)
+                                .height(54.dp)
+                                .zIndex(1f),
+                            color = colorResource(id = R.color.dark_grey_background),
+                            thickness = 4.dp
+                        )
+                        BaloonArrowHome(true)
+                        LogoHome()
+                    }
+                } else {
+                    //DISPLAY VERTICALLY:
+                    BaloonHome(overlayActiveState!!, volumeUpEnabledState!!)
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .offset(y = (-4).dp)
+                            .width(54.dp)
                             .zIndex(1f),
                         color = colorResource(id = R.color.dark_grey_background),
                         thickness = 4.dp
                     )
-                    BaloonArrowHome(true)
+                    BaloonArrowHome(false)
                     LogoHome()
                 }
-            } else {
-                //DISPLAY VERTICALLY:
-                BaloonHome(overlayActiveState!!, volumeUpEnabledState!!)
-                HorizontalDivider(
-                    modifier = Modifier
-                        .offset(y = (-4).dp)
-                        .width(54.dp)
-                        .zIndex(1f),
-                    color = colorResource(id = R.color.dark_grey_background),
-                    thickness = 4.dp
-                )
-                BaloonArrowHome(false)
-                LogoHome()
+                StartButton(overlayActiveState!!)
             }
-            StartButton(overlayActiveState!!)
         }
     }
 }
@@ -359,4 +427,112 @@ fun SpotifyLoginStatus(
         )
     }
 
+}
+
+
+@Composable
+fun DialogLogout(
+    mContext: Context,
+    dialogOnState: MutableState<Boolean>,
+    navController: NavController,
+    settingsOpenState: Boolean
+) {
+    GeneralDialog(
+        dialogOnState = dialogOnState,
+        backgroundColor = colorResource(id = R.color.colorPrimaryDark),
+        title = "Logout",
+        content = {
+            Text(
+                text = "You will need to login again to Spotify to use DJames.\n\nDo you want to log out?",   // and you'll lose your saved library & message history
+                color = colorResource(id = R.color.light_grey),
+                fontSize = 14.sp
+            )
+        },
+        dismissText = "No",
+        confirmText = "Yes",
+        onConfirm = {
+            spotifyLoginUtils.logout(
+                mContext,
+                navController,
+                settingsOpenState
+            )
+            dialogOnState.value = false
+        }
+    )
+}
+
+
+//DROPDOWN MENU:
+@Composable
+fun UserOptions(
+    context: Context,
+    mDisplayMenu: MutableState<Boolean>,
+    logoutDialogOn: MutableState<Boolean>,
+    navController: NavController,
+    spotifyLoggedInState: Boolean,
+    settingsOpenState: Boolean
+) {
+    //DROPDOWN MENU:
+    OptionsMenu(
+        expandedState = mDisplayMenu,
+        backgroundColor = colorResource(id = R.color.dark_grey_background),
+        options = {
+            //1) Item: LOGIN/LOGOUT
+            OptionsItem(
+                title = if (!spotifyLoggedInState) "Login to Spotify" else "Logout from Spotify",
+                iconPainter = painterResource(id = R.drawable.item_user),
+                onClick = {
+                    if (!spotifyLoggedInState) {
+                        //Login user -> Open WebView:
+                        val intent1 = Intent(context, AuthActivity::class.java)
+                        context.startActivity(intent1)
+                    } else {
+                        //LOG OUT:
+                        logoutDialogOn.value = true
+                    }
+                    mDisplayMenu.value = false
+                }
+            )
+            //2) Item: APP PREFERENCES
+            OptionsItem(
+                title = "App preferences",
+                iconPainter = painterResource(id = R.drawable.item_settings),
+                onClick = {
+                    //Navigate to App Preferences:
+                    val curNavRoute = NavigationItem.Settings.route
+                    if (curNavRoute == lastNavRoute && (settingsOpenState)) {
+                        navController.popBackStack()
+                    } else {
+                        navigateTo(navController, curNavRoute)
+                    }
+                    lastNavRoute = curNavRoute
+                    mDisplayMenu.value = false
+                }
+            )
+            //2) Item: VOICE SETTINGS
+            OptionsItem(
+                title = "Voice settings",
+                iconPainter = painterResource(id = R.drawable.icon_speak),
+                onClick = {
+                    //Set app preferences:
+                    val intent1 = Intent("com.android.settings.TTS_SETTINGS")
+                    context.startActivity(intent1)
+                    mDisplayMenu.value = false
+                }
+            )
+            //3) Item: PERMISSIONS
+            OptionsItem(
+                title = "Permissions",
+                iconPainter = painterResource(id = R.drawable.item_permissions),
+                onClick = {
+                    //Set app preferences:
+                    val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    val uri = Uri.fromParts("package", context.packageName, null)
+                    intent1.setData(uri)
+                    context.startActivity(intent1)
+                    mDisplayMenu.value = false
+                }
+            )
+        }
+    )
 }

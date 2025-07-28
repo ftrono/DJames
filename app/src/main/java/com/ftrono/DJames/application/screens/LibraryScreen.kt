@@ -333,8 +333,8 @@ fun LibraryScreen(
                                                 mDisplayMainMenu.value = !mDisplayMainMenu.value
                                             },
                                         imageVector = Icons.Default.MoreVert,
-                                        contentDescription = "Add library item",
-                                        tint = colorResource(id = R.color.colorAccentLight)
+                                        contentDescription = "Options",
+                                        tint = colorResource(id = R.color.light_grey)
                                     )
                                     CatOptions(
                                         mContext = mContext,
@@ -379,8 +379,8 @@ fun LibraryScreen(
                                                 mDisplayMainMenu.value = !mDisplayMainMenu.value
                                             },
                                         imageVector = Icons.Default.MoreVert,
-                                        contentDescription = "Library options",
-                                        tint = colorResource(id = R.color.colorAccentLight)
+                                        contentDescription = "Options",
+                                        tint = colorResource(id = R.color.light_grey)
                                     )
 
                                     CatOptions(

@@ -29,11 +29,12 @@ fun getSwitchColors(
 @Composable
 fun getTextFieldColors(
     colorLight: Color,
-    colorDark: Color
+    colorDark: Color,
+    showUnfocusedColor: Boolean = true
 ): TextFieldColors {
     return OutlinedTextFieldDefaults.colors(
         focusedBorderColor = colorLight,
-        unfocusedContainerColor = colorResource(id = R.color.dark_grey),
+        unfocusedContainerColor = if (showUnfocusedColor) colorResource(id = R.color.dark_grey) else colorResource(id = R.color.windowBackground),
         unfocusedBorderColor = colorResource(id = R.color.faded_grey),
         focusedTextColor = colorResource(id = R.color.light_grey),
         unfocusedTextColor = colorResource(id = R.color.light_grey),

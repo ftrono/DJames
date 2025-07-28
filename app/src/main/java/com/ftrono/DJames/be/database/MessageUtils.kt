@@ -15,6 +15,7 @@ import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.lastUserMessage
 import com.ftrono.DJames.application.messageBox
+import com.ftrono.DJames.application.messagesPageSize
 import com.ftrono.DJames.be.samples.testMessages
 import io.objectbox.query.QueryBuilder
 import kotlinx.serialization.json.Json
@@ -41,14 +42,14 @@ class MessageUtils {
 
     //GET ALL:
     //Get List of Message items:
-    fun refreshMessages(preview: Boolean = false): List<String> {
+    fun refreshMessages(offset: Long = 0L, preview: Boolean = false): List<String> {
         //1) Load messages:
         var messages = listOf<String>()
         try {
             messages = if (preview) {
                 testMessages.sortedByDescending { it.timestamp }
             } else {
-                messageBox!!.query().order(Message_.timestamp, QueryBuilder.DESCENDING).build().find()
+                messageBox!!.query().order(Message_.timestamp, QueryBuilder.DESCENDING).build().find(offset, messagesPageSize)
             }.map { item ->
                 // Remove useless attachments:
                 item.attachments.nlpQueries = mutableListOf()

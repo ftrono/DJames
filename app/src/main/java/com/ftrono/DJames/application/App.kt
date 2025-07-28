@@ -105,6 +105,8 @@ val libHeads = listOf("artist", "playlist", "podcast", "contact", "route")
 val libSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
 var curMessagesSize = MutableLiveData<Int>(0)
 var allMessages = MutableLiveData<List<String>>(listOf<String>())
+var messagesPageSize = 20L
+var messagesListTriggerGap = 10
 
 // Conversation tracking:
 var lastAiMessage: Message = Message()

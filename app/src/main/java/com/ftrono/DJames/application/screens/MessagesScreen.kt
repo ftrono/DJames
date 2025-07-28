@@ -27,9 +27,11 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -37,6 +39,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,7 +56,7 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.allMessages
 import com.ftrono.DJames.application.datetimeShortFormat
 import com.ftrono.DJames.application.messageUtils
-import com.ftrono.DJames.application.timeFormat
+import com.ftrono.DJames.application.messagesListTriggerGap
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
@@ -80,8 +83,11 @@ fun MessagesScreen(preview: Boolean = false) {
     val mContext = LocalContext.current
     val selectedMessageIds = remember { mutableStateListOf<Long>() }
 
+    var hasMore = remember { mutableStateOf(true) }
+    val listState = rememberLazyListState()
+    var offset = 0L
     val allMessagesState by allMessages.observeAsState()
-    allMessages.postValue(messageUtils.refreshMessages(preview))
+    allMessages.postValue(messageUtils.refreshMessages(offset, preview))
 
     val mDisplayMainMenu = rememberSaveable {
         mutableStateOf(false)
@@ -145,7 +151,7 @@ fun MessagesScreen(preview: Boolean = false) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize(),
-                state = rememberLazyListState(),
+                state = listState,
                 reverseLayout = true
             ) {
                 itemsIndexed(
@@ -165,6 +171,39 @@ fun MessagesScreen(preview: Boolean = false) {
                         )
                     }
                 }
+
+                // Loader at the bottom
+                if (hasMore.value) {
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .padding(16.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            LaunchedEffect(listState) {
+                snapshotFlow { listState.firstVisibleItemIndex }
+                    .collect {
+                        // If we're near the end and there are more messages:
+                        if (listState.firstVisibleItemIndex >= (allMessages.value!!.size - messagesListTriggerGap) && hasMore.value) {
+                            val newMessages = messageUtils.refreshMessages(offset, preview)
+                            if (newMessages.isNotEmpty()) {
+                                allMessages.postValue(allMessages.value!! + newMessages)
+                                Log.d("MessagesScreen", "Messages list enlarged!")
+                                offset += newMessages.size
+                            } else {
+                                hasMore.value = false
+                            }
+                        }
+                    }
             }
         }
     }
@@ -209,7 +248,7 @@ fun ConvStarter(
                             // Add entire conversation to selection:
                             val idsToAdd = messageUtils.getMessageIDsByStarterId(message.starterId)
                             for (id in idsToAdd) {
-                                if (!selectedMessageIds.contains(id)){
+                                if (!selectedMessageIds.contains(id)) {
                                     selectedMessageIds.add(id)
                                 }
                             }

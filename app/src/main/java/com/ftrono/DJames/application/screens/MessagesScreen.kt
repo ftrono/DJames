@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.allMessages
+import com.ftrono.DJames.application.curMessagesSize
 import com.ftrono.DJames.application.datetimeShortFormat
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.messagesListTriggerGap
@@ -109,7 +110,7 @@ fun MessagesScreen(preview: Boolean = false) {
             onIconClick = { if (selectedMessageIds.isNotEmpty()) selectedMessageIds.clear() },
             title = "Messages",
             subtitle = if (selectedMessageIds.isNotEmpty()) "Selected" else "Last 30 days",
-            num = if (selectedMessageIds.isNotEmpty()) selectedMessageIds.size else allMessagesState!!.size,
+            num = if (selectedMessageIds.isNotEmpty()) selectedMessageIds.size else curMessagesSize.value,
             signColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.faded_grey) else colorResource(R.color.greenSign)
         ) {
             Box() {

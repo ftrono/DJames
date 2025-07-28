@@ -60,7 +60,9 @@ class MessageUtils {
             }
 
             //2) Update Messages size (IMPORTANT - for signs):
-            curMessagesSize.postValue(messageBox!!.query(Message_.type.notEqual("starter")).build().count().toInt())
+            curMessagesSize.postValue(
+                if (preview) testMessages.size else messageBox!!.query(Message_.type.notEqual("starter")).build().count().toInt()
+            )
             return messages
 
         } catch (e: Exception) {

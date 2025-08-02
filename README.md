@@ -11,7 +11,7 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
-**Version 3.0.a2 (v3 alpha) (2025-08-02)** - Replaced NavSuite with NavBar + NavRail, centralized NavUI & Drive icon, add isKeyboardOpen().
+**Version 3.0.a2 (v3 alpha) (2025-08-02)** - Replaced NavSuite with NavBar + NavRail, centralized NavUI & Drive icon, add isKeyboardOpen(). Fixed Messages leftovers deletion.
 
 **Version 3.0.a1 (v3 alpha) (2025-07-26)** - Init reworks for V3. Replaces Logs with Messages. Replaced History with Messages screen. Re-add Threads to VoiceQueryService.
 

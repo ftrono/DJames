@@ -170,16 +170,14 @@ class MessageUtils {
 
     //DB DELETE:
     //Delete empty starters (starters whose conversation has been fully deleted):
-    fun deleteLeftovers() {
+    fun deleteLeftovers(
+        starterIds: List<Long>,
+    ) {
         try {
             // Get full list of starterIDs:
-            val allStarterIds = messageBox!!
-                .query(Message_.type.equal("starter"))
-                .build()
-                .property(Message_.starterId).findLongs()
-            for (starterId in allStarterIds) {
+            for (starterId in starterIds) {
                 // Check how many messages are in the conversation:
-                val items = messageBox!!.query().equal(Message_.starterId, starterId).build().find()
+                val items = messageBox!!.query(Message_.starterId.equal(starterId)).build().find()
                 if (items.size == 1) {
                     // If 1 -> delete the leftover:
                     messageBox!!.remove(items)
@@ -200,7 +198,9 @@ class MessageUtils {
             messageBox!!.remove(itemsToDelete)
             Log.d(TAG, "Deleted Message items with IDs: $ids!")
             // Also delete leftovers:
-            deleteLeftovers()
+            val refStarterIds = itemsToDelete.map { item -> item.starterId }.toMutableList().distinct()
+            deleteLeftovers(refStarterIds)
+            // Toast:
             if (itemsToDelete.size == 1) {
                 Toast.makeText(context, "Message deleted!", Toast.LENGTH_LONG).show()
             } else if (itemsToDelete.size > 1) {
@@ -267,6 +267,9 @@ class MessageUtils {
 
             // Bulk delete
             messageBox!!.remove(itemsToDelete)
+            // Also delete leftovers:
+            val refStarterIds = itemsToDelete.map { item -> item.starterId }.toMutableList().distinct()
+            deleteLeftovers(refStarterIds)
             Log.d(TAG, "Messages cleaned: deleted ${itemsToDelete.size} older messages!")
         } catch (e: Exception) {
             Log.w(TAG, "ERROR in cleaning messages. ", e)

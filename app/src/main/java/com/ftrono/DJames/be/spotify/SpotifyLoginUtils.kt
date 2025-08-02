@@ -29,7 +29,7 @@ class SpotifyLoginUtils {
     private val TAG = SpotifyLoginUtils::class.java.simpleName
 
     fun getSpotifyUserData(
-        mContext: Context,
+        context: Context,
         navController: NavController,
         scope: LifecycleCoroutineScope
     ) {
@@ -76,15 +76,15 @@ class SpotifyLoginUtils {
 
                         sleep(1000)
                         Log.d(TAG, "Spotify.me: success! User is enabled.")
-                        Toast.makeText(mContext, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
                         spotifyLoggedIn.postValue(true)
                     } else {
                         Log.w(TAG, "Spotify.me: PROBLEM -> user not enabled! USER TYPE: $product")
-                        Toast.makeText(mContext, "ERROR: to use DJames, you need to be a Spotify Premium user! :(", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "ERROR: to use DJames, you need to be a Spotify Premium user! :(", Toast.LENGTH_LONG).show()
                     }
                 } catch (e: Exception) {
                     Log.w(TAG, "Profile parsing error: ", e)
-                    Toast.makeText(mContext, "Authentication ERROR: not logged in.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Authentication ERROR: not logged in.", Toast.LENGTH_LONG).show()
                 }
             }
             spotTempToken = ""
@@ -97,7 +97,7 @@ class SpotifyLoginUtils {
             Intent().also { intent ->
                 intent.setAction(ACTION_TOASTER)
                 intent.putExtra("toastText", "Logged in! Please pick a nickname for you!")
-                mContext.sendBroadcast(intent)
+                context.sendBroadcast(intent)
             }
             //Navigate to Settings:
             val curNavRoute = NavigationItem.Settings.route

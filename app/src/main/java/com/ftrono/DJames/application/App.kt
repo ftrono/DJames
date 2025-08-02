@@ -20,7 +20,9 @@ import com.ftrono.DJames.be.database.Podcast
 import com.ftrono.DJames.be.database.Route
 import com.ftrono.DJames.be.nlp.FulfillmentUtils
 import com.ftrono.DJames.be.samples.DefaultReplies
+import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
 import com.ftrono.DJames.be.spotify.SpotifyUtils
+import com.ftrono.DJames.ui.theme.NavigationItem
 import com.ftrono.DJames.utilities.Prefs
 import com.ftrono.DJames.utilities.Utilities
 import com.google.gson.JsonObject
@@ -50,8 +52,17 @@ val utils = Utilities()
 val libUtils = LibraryUtils()
 val messageUtils = MessageUtils()
 val spotifyUtils = SpotifyUtils()
+val spotifyLoginUtils = SpotifyLoginUtils()
 val fulfillmentUtils = FulfillmentUtils()
 val defaultReplies = DefaultReplies()
+
+//Navigation:
+val navigationItems = listOf(
+    NavigationItem.Home,
+    NavigationItem.Guide,
+    NavigationItem.Library,
+    NavigationItem.Messages
+)
 
 //Permissions:
 val runtimePermissions = buildList {
@@ -98,7 +109,6 @@ var userNicknameState = MutableLiveData<String>("")
 var spotUserImageState = MutableLiveData<String>("")
 var addLinkOn = MutableLiveData<Boolean>(false)
 var sharedLink = MutableLiveData<String>("")
-var userTypingChat = MutableLiveData<Boolean>(false)
 
 //Library & Messages:
 var curLibrarySize = MutableLiveData<Int>(0)

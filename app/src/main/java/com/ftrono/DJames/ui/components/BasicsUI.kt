@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +42,15 @@ import com.ftrono.DJames.application.queryLangCodes
 import com.ftrono.DJames.application.screens.restartOverlay
 import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+
+
+@Composable
+fun isKeyboardOpen(): Boolean {
+    val ime = WindowInsets.ime
+    return ime.getBottom(LocalDensity.current) > 0
+}
 
 
 @Composable

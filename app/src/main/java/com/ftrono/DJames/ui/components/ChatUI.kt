@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.messageUtils
-import com.ftrono.DJames.application.userTypingChat
 import com.ftrono.DJames.ui.selectors.messagesColorSelector
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -136,7 +135,6 @@ fun SplitSendButton(
     onRightClick: () -> Unit,
     testChat: Boolean = false,
 ) {
-    val userTypingChatState by userTypingChat.observeAsState()
     val overlayActiveState by overlayActive.observeAsState()
     val overlayStatusState by overlayStatus.observeAsState()
 
@@ -150,7 +148,7 @@ fun SplitSendButton(
     ) {
 
         // LEFT:
-        if (enableLeftButton && !userTypingChatState!!) {
+        if (enableLeftButton && !isKeyboardOpen()) {
             Card(
                 modifier = Modifier
                     .padding(end = 1.dp)
@@ -185,7 +183,7 @@ fun SplitSendButton(
                 .padding(start = 1.dp)
                 .fillMaxHeight(),
             onClick = onRightClick,
-            shape = if (!enableLeftButton || userTypingChatState!!) RoundedCornerShape(20.dp) else RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp),
+            shape = if (!enableLeftButton || isKeyboardOpen()) RoundedCornerShape(20.dp) else RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp),
             colors = CardDefaults.cardColors(
                 containerColor = if (overlayStatusState != "ready") colorResource(id = R.color.faded_grey) else colorResource(id = R.color.colorAccent)
             ),
@@ -276,10 +274,7 @@ fun ChatInputField(
                 focusManager.clearFocus()
                 keyboardController?.hide()
             }
-            .focusRequester(focusRequester)
-            .onFocusChanged { focusState ->
-                userTypingChat.postValue(focusState.isFocused)
-            },
+            .focusRequester(focusRequester),
         colors = textFieldColors,
         value = textState.value,
         interactionSource = interactionSource,

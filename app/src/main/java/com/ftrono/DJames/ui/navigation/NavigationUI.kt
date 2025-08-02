@@ -1,5 +1,6 @@
 package com.ftrono.DJames.ui.navigation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.NavigationBar
@@ -14,6 +15,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -33,20 +37,55 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.innerNavOpen
 import com.ftrono.DJames.application.lastNavRoute
+import com.ftrono.DJames.application.navigationItems
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.settingsOpen
 import com.ftrono.DJames.application.spotifyLoggedIn
 
+
+@Preview
+@Composable
+fun CenteredTopBarPreview() {
+    val navController = rememberNavController()
+    CenteredTopBar(
+        navController = navController,
+        preview = true,
+        actions = {
+            //SETTINGS BUTTON:
+            Icon(
+                modifier = Modifier
+                    .padding(end = 12.dp),
+                painter = painterResource(id = R.drawable.item_settings),
+                contentDescription = "",
+                tint = colorResource(id = R.color.light_grey)
+            )
+
+            //"MORE OPTIONS" BUTTON:
+            Icon(
+                modifier = Modifier
+                    .padding(end = 14.dp),
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = "",
+                tint = colorResource(id = R.color.light_grey)
+            )
+        }
+    )
+}
+
+
 //TOP APP BAR:
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(
+fun CenteredTopBar(
     navController: NavController,
+    preview: Boolean = false,
     actions: @Composable () -> Unit = {}
 ) {
     val mContext = LocalContext.current
@@ -75,10 +114,10 @@ fun TopBar(
                     color = colorResource(id = R.color.light_grey),
                     fontWeight = FontWeight.Bold
                 )
-                if (spotifyLoggedInState!!) {
+                if (preview || spotifyLoggedInState!!) {
                     Text(
                         modifier = Modifier.offset(y = -(2.dp)),
-                        text = "for ${prefs.spotUserName}",
+                        text = if (preview) "for user_name" else "for ${prefs.spotUserName}",
                         fontSize = 16.sp,
                         color = colorResource(id = R.color.light_grey)
                     )
@@ -96,6 +135,17 @@ fun TopBar(
         actions = {
             actions()
         }
+    )
+}
+
+
+@Preview
+@Composable
+fun BottomBarPreview() {
+    val navController = rememberNavController()
+    BottomNavigationBar(
+        items = navigationItems,
+        navController = navController,
     )
 }
 

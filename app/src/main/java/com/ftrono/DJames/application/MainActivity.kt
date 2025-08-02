@@ -42,7 +42,7 @@ import com.ftrono.DJames.ui.components.isKeyboardOpen
 import com.ftrono.DJames.ui.navigation.BottomNavigationBar
 import com.ftrono.DJames.ui.navigation.Navigation
 import com.ftrono.DJames.ui.navigation.SideNavigationRail
-import com.ftrono.DJames.ui.navigation.TopBar
+import com.ftrono.DJames.ui.navigation.CenteredTopBar
 import com.ftrono.DJames.ui.navigation.UserOptions
 import com.ftrono.DJames.ui.theme.DJamesTheme
 import com.ftrono.DJames.ui.theme.windowBackground
@@ -195,7 +195,7 @@ class MainActivity : ComponentActivity() {
                     .weight(1F),
                 containerColor = colorResource(id = R.color.windowBackground),
                 topBar = {
-                    TopBar(
+                    CenteredTopBar(
                         navController = navController,
                         actions = {
                             UserOptions(

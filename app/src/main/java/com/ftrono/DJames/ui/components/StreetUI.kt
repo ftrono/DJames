@@ -422,9 +422,8 @@ fun RoundedSign(
 
 
 @Composable
-fun RoundedLetter(
+fun LetterStarter(
     text: String,
-    signSize: Dp,
     fontSize: TextUnit,
     backgroundColor: Color,
     borderColor: Color,
@@ -433,14 +432,15 @@ fun RoundedLetter(
     //ROUNDED SIGN:
     Box (
         modifier = Modifier
-            .size(signSize)
-            .clip(CircleShape)
+            .clip(RoundedCornerShape(8.dp))
             .background(backgroundColor)
-            .border(1.5.dp, borderColor, CircleShape),
+            .border(1.5.dp, borderColor, RoundedCornerShape(8.dp)),
         contentAlignment = Alignment.Center
     ) {
         //LETTER:
         Text(
+            modifier = Modifier
+                .padding(top=4.dp, bottom=4.dp, start=8.dp, end=8.dp),
             text = text,
             color = fontColor,
             fontSize = fontSize,

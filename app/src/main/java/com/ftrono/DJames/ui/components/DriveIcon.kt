@@ -27,13 +27,13 @@ fun DriveIcon(
                 .size(iconSize),
             painter = painterResource(R.drawable.icon_car),
             contentDescription = if (showForbidden) "Close Drive mode" else "Open Drive mode",
-            tint = colorResource(R.color.light_grey)
+            tint = if (showForbidden) colorResource(R.color.colorPrimaryDark) else colorResource(R.color.light_grey)
         )
         if (showForbidden) {
             Canvas(modifier = Modifier.matchParentSize()) {
                 val strokeWidthPx = lineWidth.toPx()
                 drawLine(
-                    color = Color.White,
+                    color = if (showForbidden) Color.Black else Color.White,
                     start = Offset(0f, 0f),
                     end = Offset(size.width, size.height),
                     strokeWidth = strokeWidthPx

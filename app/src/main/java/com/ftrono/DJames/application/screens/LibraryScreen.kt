@@ -75,7 +75,7 @@ import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.components.OptionsItem
 import com.ftrono.DJames.ui.components.OptionsMenu
-import com.ftrono.DJames.ui.components.RoundedLetter
+import com.ftrono.DJames.ui.components.LetterStarter
 import com.ftrono.DJames.ui.components.LibItemCard
 import com.ftrono.DJames.ui.components.SplitterSign
 import com.ftrono.DJames.ui.components.StreetUIScaffold
@@ -368,6 +368,7 @@ fun LibraryScreen(
                         preview = preview
                     )
                 }
+
                 //CAT OPTIONS:
                 if (isLandscape) {
                     TopBarMenu(
@@ -523,13 +524,12 @@ fun LibLetter(
             .padding(top=4.dp)
     ) {
         //Item id:
-        RoundedLetter(
+        LetterStarter(
             text = letter.uppercase(),
-            signSize = 32.dp,
             fontSize = 16.sp,
-            backgroundColor = colorResource(id = R.color.windowBackground),
+            backgroundColor = colorResource(id = R.color.white),
             borderColor = colorResource(id = R.color.dark_grey),
-            fontColor = colorResource(id = R.color.light_grey)
+            fontColor = colorResource(id = R.color.black)
         )
     }
 }
@@ -571,7 +571,7 @@ fun LibItem(
                 }
             ),
             signBackgroundColor = libColorSelector(cat = currentCatState.value),
-            signBorderColor = colorResource(id = R.color.midfaded_grey),
+            signBorderColor = colorResource(id = R.color.dark_grey),
             signIconColor = colorResource(id = R.color.light_grey),
             signIconPainter = libIconSelector(cat = currentCatState.value),
             circle = currentCatState.value != "playlist" && currentCatState.value != "podcast" && currentCatState.value != "route",

@@ -28,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -161,17 +160,14 @@ fun SplitSendButton(
             ) {
                 Row(
                     modifier = Modifier
-                        .padding(start = 20.dp, end = 20.dp)
+                        .padding(start = 16.dp, end = 16.dp)
                         .fillMaxHeight(),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        modifier = Modifier
-                            .size(24.dp),
-                        painter = if (testChat || overlayActiveState!!) painterResource(R.drawable.sign_message) else painterResource(R.drawable.icon_speak),
-                        tint = colorResource(R.color.light_grey),
-                        contentDescription = "Drive"
+                    DriveIcon(
+                        iconSize = 24.dp,
+                        showForbidden = testChat || overlayActiveState!!
                     )
                 }
             }
@@ -190,7 +186,7 @@ fun SplitSendButton(
         ) {
             Row(
                 modifier = Modifier
-                    .padding(start = 20.dp, end = 20.dp)
+                    .padding(start = 16.dp, end = 16.dp)
                     .fillMaxHeight(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically

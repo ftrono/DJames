@@ -226,20 +226,21 @@ class Utilities {
                 if (!isMyServiceRunning(OverlayService::class.java, context)) {
                     var intentOS = Intent(context, OverlayService::class.java)
                     context.startService(intentOS)
-                    if (prefs.volumeUpEnabled) {
-                        Toast.makeText(
-                            context,
-                            "Use the OVERLAY or VOLUME UP / SHUTTER button to speak!",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    } else {
-                        Toast.makeText(
-                            context,
-                            "Use the OVERLAY button to speak!",
-                            Toast.LENGTH_LONG
-                        ).show()
+                    if (openClock) {
+                        if (prefs.volumeUpEnabled) {
+                            Toast.makeText(
+                                context,
+                                "Use the OVERLAY or VOLUME UP / SHUTTER button to speak!",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Use the OVERLAY button to speak!",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
                     }
-
                 }
                 //Start Clock screen:
                 if (openClock) {

@@ -33,7 +33,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.dialogs.MultiPermissionsHandler
@@ -42,8 +41,6 @@ import com.ftrono.DJames.ui.components.isKeyboardOpen
 import com.ftrono.DJames.ui.navigation.BottomNavigationBar
 import com.ftrono.DJames.ui.navigation.Navigation
 import com.ftrono.DJames.ui.navigation.SideNavigationRail
-import com.ftrono.DJames.ui.navigation.CenteredTopBar
-import com.ftrono.DJames.ui.navigation.UserOptions
 import com.ftrono.DJames.ui.theme.DJamesTheme
 import com.ftrono.DJames.ui.theme.windowBackground
 
@@ -163,7 +160,6 @@ class MainActivity : ComponentActivity() {
         preview: Boolean = false
     ) {
         val mContext = LocalContext.current
-        val lifecycleOwner = LocalLifecycleOwner.current
 
         val navController = rememberNavController()
         val configuration = LocalConfiguration.current
@@ -194,18 +190,6 @@ class MainActivity : ComponentActivity() {
                 modifier = Modifier
                     .weight(1F),
                 containerColor = colorResource(id = R.color.windowBackground),
-                topBar = {
-                    CenteredTopBar(
-                        navController = navController,
-                        actions = {
-                            UserOptions(
-                                context = mContext,
-                                lifecycleOwner = lifecycleOwner,
-                                navController = navController
-                            )
-                        }
-                    )
-                },
                 bottomBar = {
                     if (!isLandscape && !isKeyboardOpen()) {
                         BottomNavigationBar(navigationItems, navController)

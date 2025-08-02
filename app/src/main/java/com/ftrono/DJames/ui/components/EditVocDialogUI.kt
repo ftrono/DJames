@@ -190,10 +190,10 @@ fun EditLibDynamicField(
                                 onKeyboardDone()
                             },
                         signSize = 36.dp,
-                        iconSize = 20.dp,
+                        contentSize = 20,
                         backgroundColor = textFieldColors.textSelectionColors.backgroundColor,
                         borderColor = textFieldColors.textSelectionColors.backgroundColor,
-                        iconColor = colorResource(id = R.color.light_grey),
+                        contentColor = colorResource(id = R.color.light_grey),
                         iconVector = Icons.Default.Done
                     )
                 } else {
@@ -325,10 +325,10 @@ fun EditPhoneDynamicField(
                                 onKeyboardDone()
                             },
                         signSize = 36.dp,
-                        iconSize = 20.dp,
+                        contentSize = 20,
                         backgroundColor = textFieldColors.textSelectionColors.backgroundColor,
                         borderColor = textFieldColors.textSelectionColors.backgroundColor,
-                        iconColor = colorResource(id = R.color.light_grey),
+                        contentColor = colorResource(id = R.color.light_grey),
                         iconVector = Icons.Default.Done
                     )
                 } else {
@@ -450,10 +450,10 @@ fun EditLibDynamicNameSection(
                             onClicked()
                         },
                     signSize = 70.dp,
-                    iconSize = 40.dp,
+                    contentSize = 40,
                     backgroundColor = libColorSelector(cat = filter),
                     borderColor = colorResource(id = R.color.midfaded_grey),
-                    iconColor = colorResource(id = R.color.light_grey),
+                    contentColor = colorResource(id = R.color.light_grey),
                     iconPainter = libIconSelector(cat = filter),
                     imageUrl = imageUrlState.value,
                     circle = filter != "playlist" && filter != "podcast" && filter != "route"
@@ -558,10 +558,10 @@ fun EditLibDynamicNameSection(
                                 isActive.value = false
                             },
                         signSize = 36.dp,
-                        iconSize = 20.dp,
+                        contentSize = 20,
                         backgroundColor = textFieldColors.textSelectionColors.backgroundColor,
                         borderColor = textFieldColors.textSelectionColors.backgroundColor,
-                        iconColor = colorResource(id = R.color.light_grey),
+                        contentColor = colorResource(id = R.color.light_grey),
                         iconVector = Icons.Default.Done
                     )
                 }

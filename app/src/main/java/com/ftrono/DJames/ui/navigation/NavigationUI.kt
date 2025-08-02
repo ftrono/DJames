@@ -1,7 +1,10 @@
 package com.ftrono.DJames.ui.navigation
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.NavigationBar
 import androidx.compose.runtime.Composable
@@ -12,14 +15,13 @@ import com.ftrono.DJames.ui.theme.NavigationItem
 import com.ftrono.DJames.R
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemColors
@@ -27,15 +29,10 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemColors
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarColors
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,35 +42,54 @@ import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.innerNavOpen
 import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.navigationItems
-import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.settingsOpen
-import com.ftrono.DJames.application.spotifyLoggedIn
+import com.ftrono.DJames.ui.components.RoundedSign
+
+
+@Composable
+fun TopBarMenu(
+    backgroundColor: Color? = null,
+    contentText: String = "",
+    imageUrl: String = "",
+    onClick: () -> Unit = {},
+    optionsMenu: @Composable () -> Unit = {}
+) {
+    Box() {
+        // ROUNDED SIGN ICON:
+        RoundedSign(
+            modifier = Modifier
+                .padding(end = 18.dp)
+                .clickable {
+                    onClick()
+                },
+            signSize = 48.dp,
+            contentSize = 24,
+            backgroundColor = backgroundColor ?: colorResource(R.color.dark_grey),
+            borderColor = colorResource(id = R.color.mid_grey),
+            contentColor = colorResource(id = R.color.light_grey),
+            contentText = contentText,
+            imageUrl = imageUrl,
+            iconVector = Icons.Outlined.Person,   //Residual
+        )
+        // OPTIONS MENU:
+        optionsMenu()
+    }
+}
 
 
 @Preview
 @Composable
-fun CenteredTopBarPreview() {
-    val navController = rememberNavController()
-    CenteredTopBar(
-        navController = navController,
-        preview = true,
-        actions = {
-            //SETTINGS BUTTON:
-            Icon(
-                modifier = Modifier
-                    .padding(end = 12.dp),
-                painter = painterResource(id = R.drawable.item_settings),
-                contentDescription = "",
-                tint = colorResource(id = R.color.light_grey)
-            )
-
-            //"MORE OPTIONS" BUTTON:
-            Icon(
-                modifier = Modifier
-                    .padding(end = 14.dp),
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = "",
-                tint = colorResource(id = R.color.light_grey)
+fun TopBarPreview() {
+    StreetUITopBar(
+        pretitle = "",
+        title = "DJames",
+        subtitle = "for user_name",
+        showBack = true,
+        optionButtons = {
+            //TODO
+            TopBarMenu(
+                backgroundColor = colorResource(R.color.blueSign),
+                contentText = "20"
             )
         }
     )
@@ -81,61 +97,72 @@ fun CenteredTopBarPreview() {
 
 
 //TOP APP BAR:
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CenteredTopBar(
-    navController: NavController,
-    preview: Boolean = false,
-    actions: @Composable () -> Unit = {}
+fun StreetUITopBar(
+    pretitle: String = "",
+    title: String,
+    subtitle: String = "",
+    showBack: Boolean = false,
+    onBack: () -> Unit = {},
+    optionButtons: @Composable() (RowScope.() -> Unit) = {}
 ) {
-    val mContext = LocalContext.current
-    val settingsOpenState by settingsOpen.observeAsState()
-    val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
-
-    CenterAlignedTopAppBar(
+    //HEADER:
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(
-                elevation = 4.dp,
-                spotColor = colorResource(id = R.color.mid_grey)
-            ),
-        windowInsets = WindowInsets(
-            top = 0.dp,
-            bottom = 0.dp
-        ),
-        title = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    modifier = Modifier.offset(y = (2.dp)),
-                    text = stringResource(id = R.string.app_title),
-                    fontSize = 22.sp,
-                    color = colorResource(id = R.color.light_grey),
-                    fontWeight = FontWeight.Bold
-                )
-                if (preview || spotifyLoggedInState!!) {
-                    Text(
-                        modifier = Modifier.offset(y = -(2.dp)),
-                        text = if (preview) "for user_name" else "for ${prefs.spotUserName}",
-                        fontSize = 16.sp,
-                        color = colorResource(id = R.color.light_grey)
-                    )
-                }
-            }
-        },
-        colors = TopAppBarColors(
-            containerColor = colorResource(id = R.color.windowBackground),
-            scrolledContainerColor = colorResource(id = R.color.windowBackground),
-            navigationIconContentColor = colorResource(id = R.color.mid_grey),
-            titleContentColor = colorResource(id = R.color.light_grey),
-            actionIconContentColor = colorResource(id = R.color.mid_grey)
-        ),
-        scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
-        actions = {
-            actions()
+            .size(65.dp)
+            .background(colorResource(id = R.color.windowBackground)),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        //BACK:
+        if (showBack) {
+            Icon(
+                modifier = Modifier
+                    .padding(start = 18.dp)
+                    .size(30.dp)
+                    .clickable {
+                        onBack()
+                    },
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                tint = colorResource(id = R.color.light_grey)
+            )
         }
-    )
+
+        //HEADERS TEXT:
+        Column(
+            modifier = Modifier
+                .padding(start = 18.dp, end = 30.dp)
+                .weight(1F)
+        ) {
+            if (pretitle != "") {
+                Text(
+                    text = pretitle,
+                    fontSize = 14.sp,
+                    // fontWeight = FontWeight.Bold,
+                    color = colorResource(id = R.color.light_grey),
+                )
+            }
+            Text(
+                text = title,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = colorResource(id = R.color.light_grey),
+            )
+            if (subtitle != "") {
+                Text(
+                    text = subtitle,
+                    fontSize = 14.sp,
+                    // fontWeight = FontWeight.Bold,
+                    color = colorResource(id = R.color.light_grey),
+                )
+            }
+        }
+
+        //OPTIONS BUTTONS:
+        optionButtons()
+    }
 }
 
 

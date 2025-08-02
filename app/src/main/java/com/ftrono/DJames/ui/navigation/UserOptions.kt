@@ -27,6 +27,7 @@ import androidx.navigation.NavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.AuthActivity
 import com.ftrono.DJames.application.lastNavRoute
+import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.settingsOpen
 import com.ftrono.DJames.application.showLoggingIn
 import com.ftrono.DJames.application.spotifyLoggedIn
@@ -44,6 +45,7 @@ fun UserOptions(
     context: Context,
     lifecycleOwner: LifecycleOwner,
     navController: NavController,
+    preview: Boolean = false
 ) {
     val settingsOpenState by settingsOpen.observeAsState()
     val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
@@ -74,87 +76,76 @@ fun UserOptions(
         )
     }
 
-    //SETTINGS BUTTON:
-    Icon(
-        modifier = Modifier
-            .padding(end = 12.dp)
-            .clickable {
-                //Navigate:
-                val curNavRoute = NavigationItem.Settings.route
-                if (curNavRoute == lastNavRoute && (settingsOpenState!!)) {
-                    navController.popBackStack()
-                } else {
-                    navigateTo(navController, curNavRoute)
-                }
-                lastNavRoute = curNavRoute
-            },
-        painter = painterResource(id = R.drawable.item_settings),
-        contentDescription = "",
-        tint = if (settingsOpenState!!) {
-            colorResource(id = R.color.colorAccentLight)
-        } else {
-            colorResource(id = R.color.light_grey)
-        }
-    )
-
-    //"MORE OPTIONS" BUTTON:
-    Icon(
-        modifier = Modifier
-            .padding(end = 14.dp)
-            .clickable { mDisplayMenu.value = !mDisplayMenu.value },
-        imageVector = Icons.Default.MoreVert,
-        contentDescription = "",
-        tint = colorResource(id = R.color.light_grey)
-    )
-
-    //DROPDOWN MENU:
-    OptionsMenu(
-        expandedState = mDisplayMenu,
-        backgroundColor = colorResource(id = R.color.dark_grey_background),
-        options = {
-            //1) Item: LOGIN/LOGOUT
-            OptionsItem(
-                title = if (!spotifyLoggedInState!!) "Login to Spotify" else "Logout from Spotify",
-                iconPainter = painterResource(id = R.drawable.item_user),
-                onClick = {
-                    if (!spotifyLoggedInState!!) {
-                        //Login user -> Open WebView:
-                        val intent1 =
-                            Intent(context, AuthActivity::class.java)
-                        context.startActivity(intent1)
-                    } else {
-                        //LOG OUT:
-                        logoutDialogOn.value = true
+    // USER OPTIONS MENU:
+    TopBarMenu(
+        imageUrl = if (!preview) prefs.spotUserImage else "",
+        onClick = { mDisplayMenu.value = !mDisplayMenu.value },
+    ) {
+        //DROPDOWN MENU:
+        OptionsMenu(
+            expandedState = mDisplayMenu,
+            backgroundColor = colorResource(id = R.color.dark_grey_background),
+            options = {
+                //1) Item: LOGIN/LOGOUT
+                OptionsItem(
+                    title = if (!spotifyLoggedInState!!) "Login to Spotify" else "Logout from Spotify",
+                    iconPainter = painterResource(id = R.drawable.item_user),
+                    onClick = {
+                        if (!spotifyLoggedInState!!) {
+                            //Login user -> Open WebView:
+                            val intent1 =
+                                Intent(context, AuthActivity::class.java)
+                            context.startActivity(intent1)
+                        } else {
+                            //LOG OUT:
+                            logoutDialogOn.value = true
+                        }
+                        mDisplayMenu.value = false
                     }
-                    mDisplayMenu.value = false
-                }
-            )
-            //2) Item: VOICE SETTINGS
-            OptionsItem(
-                title = "Voice settings",
-                iconPainter = painterResource(id = R.drawable.icon_speak),
-                onClick = {
-                    //Set app preferences:
-                    val intent1 = Intent("com.android.settings.TTS_SETTINGS")
-                    context.startActivity(intent1)
-                    mDisplayMenu.value = false
-                }
-            )
-            //3) Item: PERMISSIONS
-            OptionsItem(
-                title = "Permissions",
-                iconPainter = painterResource(id = R.drawable.item_permissions),
-                onClick = {
-                    //Set app preferences:
-                    val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                    val uri = Uri.fromParts("package", context.packageName, null)
-                    intent1.setData(uri)
-                    context.startActivity(intent1)
-                    mDisplayMenu.value = false
-                }
-            )
-        }
-    )
+                )
+                //2) Item: APP PREFERENCES
+                OptionsItem(
+                    title = "App preferences",
+                    iconPainter = painterResource(id = R.drawable.item_settings),
+                    onClick = {
+                        //Navigate:
+                        val curNavRoute = NavigationItem.Settings.route
+                        if (curNavRoute == lastNavRoute && (settingsOpenState!!)) {
+                            navController.popBackStack()
+                        } else {
+                            navigateTo(navController, curNavRoute)
+                        }
+                        lastNavRoute = curNavRoute
+                        mDisplayMenu.value = false
+                    }
+                )
+                //3) Item: VOICE SETTINGS
+                OptionsItem(
+                    title = "Voice settings",
+                    iconPainter = painterResource(id = R.drawable.icon_speak),
+                    onClick = {
+                        //Set app preferences:
+                        val intent1 = Intent("com.android.settings.TTS_SETTINGS")
+                        context.startActivity(intent1)
+                        mDisplayMenu.value = false
+                    }
+                )
+                //4) Item: PERMISSIONS
+                OptionsItem(
+                    title = "Permissions",
+                    iconPainter = painterResource(id = R.drawable.item_permissions),
+                    onClick = {
+                        //Set app preferences:
+                        val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                        val uri = Uri.fromParts("package", context.packageName, null)
+                        intent1.setData(uri)
+                        context.startActivity(intent1)
+                        mDisplayMenu.value = false
+                    }
+                )
+            }
+        )
+    }
 }
 
 

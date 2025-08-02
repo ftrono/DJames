@@ -25,18 +25,18 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -51,11 +51,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.addLinkOn
 import com.ftrono.DJames.application.curLibrarySize
@@ -72,15 +73,16 @@ import com.ftrono.DJames.application.dialogs.EditLibRoute
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
-import com.ftrono.DJames.ui.components.HeaderWithSign
 import com.ftrono.DJames.ui.components.OptionsItem
 import com.ftrono.DJames.ui.components.OptionsMenu
 import com.ftrono.DJames.ui.components.RoundedLetter
-import com.ftrono.DJames.ui.components.SplitterSign
-import com.ftrono.DJames.ui.components.StreetBackground
 import com.ftrono.DJames.ui.components.LibItemCard
+import com.ftrono.DJames.ui.components.SplitterSign
+import com.ftrono.DJames.ui.components.StreetUIScaffold
 import com.ftrono.DJames.ui.dialogs.AddLinkDialog
 import com.ftrono.DJames.ui.dialogs.DialogLoading
+import com.ftrono.DJames.ui.navigation.StreetUITopBar
+import com.ftrono.DJames.ui.navigation.TopBarMenu
 import com.ftrono.DJames.ui.selectors.libColorSelector
 import com.ftrono.DJames.ui.selectors.libIconSelector
 import kotlinx.serialization.json.Json
@@ -93,12 +95,14 @@ import kotlin.String
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
 fun LibScreenPreview() {
-    LibraryScreen(editPreview="", preview=true)
+    val navController = rememberNavController()
+    LibraryScreen(navController, editPreview="", preview=true)
 }
 
 
 @Composable
 fun LibraryScreen(
+    navController: NavController,
     editPreview: String = "",
     preview: Boolean = false
 ) {
@@ -254,10 +258,41 @@ fun LibraryScreen(
         )
     }
 
-
-    //SCAFFOLD FOR FAB:
-    Scaffold(
-        floatingActionButton = {
+    //SCREEN:
+    StreetUIScaffold(
+        lineDistance = 20.dp,
+        topBar = {
+            if (!isLandscape) {
+                StreetUITopBar(
+                    pretitle = "Library",
+                    title = if (currentCatState.value == "artist" || currentCatState.value == "route") {
+                        "${utils.capitalizeWords(currentCatState.value)}s   "
+                    } else if (currentCatState.value == "podcast") {
+                        "${utils.capitalizeWords(currentCatState.value)}s "
+                    } else {
+                        "${utils.capitalizeWords(currentCatState.value)}s"
+                    },
+                    showBack = true,
+                    onBack = { navController.popBackStack() },
+                    optionButtons = {
+                        TopBarMenu(
+                            contentText = "$curLibrarySizeState",
+                            backgroundColor = libColorSelector(cat = currentCatState.value),
+                            onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
+                        ) {
+                            CatOptions(
+                                mContext = mContext,
+                                libraryItems = libraryItems,
+                                mDisplayMenu = mDisplayMainMenu,
+                                deleteLibOn = deleteLibOn,
+                                head = currentCatState.value
+                            )
+                        }
+                    }
+                )
+            }
+        },
+        fab = {
             //FAB -> ADD NEW ITEM:
             ExtendedFloatingActionButton(
                 containerColor = colorResource(id = R.color.colorAccent),
@@ -286,135 +321,81 @@ fun LibraryScreen(
             )
         }
     ) {
-
-        Box(
+        //CONTENT:
+        Column(
             modifier = Modifier
-                .padding(it)
+                .fillMaxSize()
         ) {
 
-            //BACKGROUND:
-            StreetBackground(
-                startDistance = 20
+            //CAT SELECTORS:
+            Row (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        if (isLandscape) colorResource(R.color.windowBackground) else colorResource(
+                            R.color.transparent_full
+                        )
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .background(colorResource(id = R.color.windowBackground))
-                ) {
-                    //HEADER:
-                    Column(
+                //BACK BUTTON:
+                if (isLandscape) {
+                    Icon(
                         modifier = Modifier
-                            .padding(top = if (isLandscape) 8.dp else 0.dp, bottom = 8.dp)
-                            .fillMaxWidth()
-                        //                .verticalScroll(rememberScrollState())
-                    ) {
-                        if (!isLandscape) {
-                            HeaderWithSign(
-                                iconPainter = painterResource(id = R.drawable.sign_fork),
-                                pretitle = "Library",
-                                title = if (currentCatState.value == "artist" || currentCatState.value == "route") {
-                                    "${utils.capitalizeWords(currentCatState.value)}s   "
-                                } else if (currentCatState.value == "podcast") {
-                                    "${utils.capitalizeWords(currentCatState.value)}s "
-                                } else {
-                                    "${utils.capitalizeWords(currentCatState.value)}s"
-                                },
-                                num = curLibrarySizeState,
-                                signColor = libColorSelector(cat = currentCatState.value)
-                            ){
-                                Box() {
-                                    //1) CAT OPTIONS:
-                                    Icon(
-                                        modifier = Modifier
-                                            .padding(end = 18.dp)
-                                            .size(35.dp)
-                                            .clickable {
-                                                mDisplayMainMenu.value = !mDisplayMainMenu.value
-                                            },
-                                        imageVector = Icons.Default.MoreVert,
-                                        contentDescription = "Add library item",
-                                        tint = colorResource(id = R.color.colorAccentLight)
-                                    )
-                                    CatOptions(
-                                        mContext = mContext,
-                                        libraryItems = libraryItems,
-                                        mDisplayMenu = mDisplayMainMenu,
-                                        deleteLibOn = deleteLibOn,
-                                        head = currentCatState.value
-                                    )
-                                }
-                            }
-                        }
-
-                        //CAT SELECTORS:
-                        Row (
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            //Splitter Sign (bigger weight with margins):
-                            Row (
-                                modifier = Modifier
-                                    .weight(1f),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                SplitterSign(
-                                    libraryItems = libraryItems,
-                                    currentCatState = currentCatState,
-                                    curLibrarySizeState = curLibrarySizeState!!,
-                                    preview = preview
-                                )
-                            }
-                            //CAT OPTIONS:
-                            if (isLandscape) {
-                                Box() {
-                                    Icon(
-                                        modifier = Modifier
-                                            .padding(end = 18.dp)
-                                            .size(30.dp)
-                                            .clickable {
-                                                mDisplayMainMenu.value = !mDisplayMainMenu.value
-                                            },
-                                        imageVector = Icons.Default.MoreVert,
-                                        contentDescription = "Library options",
-                                        tint = colorResource(id = R.color.colorAccentLight)
-                                    )
-
-                                    CatOptions(
-                                        mContext = mContext,
-                                        libraryItems = libraryItems,
-                                        mDisplayMenu = mDisplayMainMenu,
-                                        deleteLibOn = deleteLibOn,
-                                        head = currentCatState.value
-                                    )
-                                }
-                            }
-                        }
-
-                    }
-                }
-
-                //CONTENT:
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
-
-                    //CONTENT:
-                    LibSectionContent(
-                        libraryItems = libraryItems,
-                        currentCatState = currentCatState,
-                        idState = idState,
-                        nameState = nameState,
-                        editLibOn = editLibOn,
-                        deleteLibOn = deleteLibOn,
-                        isLandscape = isLandscape
+                            .padding(start = 18.dp)
+                            .size(30.dp)
+                            .clickable {
+                                navController.popBackStack()
+                            },
+                        imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                        contentDescription = "Back",
+                        tint = colorResource(id = R.color.light_grey)
                     )
                 }
+
+                //SPLITTER SIGN (bigger weight with margins):
+                Row(
+                    modifier = Modifier
+                        .padding(top = 12.dp, bottom = 12.dp)
+                        .weight(1F),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    SplitterSign(
+                        libraryItems = libraryItems,
+                        currentCatState = currentCatState,
+                        preview = preview
+                    )
+                }
+                //CAT OPTIONS:
+                if (isLandscape) {
+                    TopBarMenu(
+                        contentText = "$curLibrarySizeState",
+                        backgroundColor = libColorSelector(cat = currentCatState.value),
+                        onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
+                    ) {
+                        CatOptions(
+                            mContext = mContext,
+                            libraryItems = libraryItems,
+                            mDisplayMenu = mDisplayMainMenu,
+                            deleteLibOn = deleteLibOn,
+                            head = currentCatState.value
+                        )
+                    }
+                }
             }
+
+            //CONTENT:
+            LibSectionContent(
+                libraryItems = libraryItems,
+                currentCatState = currentCatState,
+                idState = idState,
+                nameState = nameState,
+                editLibOn = editLibOn,
+                deleteLibOn = deleteLibOn,
+                isLandscape = isLandscape
+            )
         }
     }
 }

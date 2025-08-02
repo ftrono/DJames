@@ -276,10 +276,10 @@ class ClockActivity: ComponentActivity() {
                 //ARTWORK ICON:
                 RoundedSign(
                     signSize = 50.dp,
-                    iconSize = 30.dp,
+                    contentSize = 30,
                     backgroundColor = colorResource(id = R.color.black),
                     borderColor = colorResource(id = R.color.faded_grey),
-                    iconColor = colorResource(id = R.color.midfaded_grey),
+                    contentColor = colorResource(id = R.color.midfaded_grey),
                     iconPainter = painterResource(id = R.drawable.sign_note)
                 )
                 Column(

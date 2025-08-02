@@ -38,6 +38,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.ui.components.EditLibSectionTitle
 
@@ -46,7 +47,8 @@ import com.ftrono.DJames.ui.components.EditLibSectionTitle
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
 fun DialogEditRoutePreview() {
-    LibraryScreen(editPreview="route", preview=true)
+    val navController = rememberNavController()
+    LibraryScreen(navController, editPreview="route", preview=true)
 }
 
 

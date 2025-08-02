@@ -32,6 +32,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -53,6 +54,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -71,32 +73,42 @@ import com.ftrono.DJames.ui.selectors.libIconSelector
 
 
 // STREET UI LANGUAGE COMPONENTS
-
 @Composable
-fun StreetBackground(
+fun StreetUIScaffold(
     modifier: Modifier = Modifier,
-    startDistance: Int,
-    pageContent:  @Composable() (ColumnScope.() -> Unit) = {},
+    lineDistance: Dp,
+    topBar: @Composable () -> Unit = {},
+    fab: @Composable () -> Unit = {},
+    pageContent:  @Composable () (ColumnScope.() -> Unit) = {},
 ) {
-    //Page container:
-    Box (
+    // Scaffold:
+    Scaffold (
         modifier = modifier
-            .fillMaxSize()
-            .background(colorResource(id = R.color.windowBackground))
+            .fillMaxSize(),
+        topBar = topBar,
+        floatingActionButton = fab,
+        contentColor = colorResource(R.color.windowBackground)
     ) {
-        //Street line canvas:
-        StreetLine (
-            modifier = Modifier
-                .padding(start = startDistance.dp)
-                .matchParentSize()
-                .width(20.dp)
-        )
-        //Content container:
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
+        //Page container:
+        Box (
+            modifier = modifier
+                .padding(it)
+                .background(colorResource(id = R.color.windowBackground))
         ) {
-            pageContent()
+            //Street line canvas:
+            StreetLine (
+                modifier = Modifier
+                    .padding(start = lineDistance)
+                    .matchParentSize()
+                    .width(20.dp)
+            )
+            //Content container:
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                pageContent()
+            }
         }
     }
 }
@@ -116,67 +128,6 @@ fun StreetLine(
             strokeWidth = 20f,
             pathEffect = PathEffect.dashPathEffect(floatArrayOf(160f, 80f), 0f)
         )
-    }
-}
-
-
-@Preview
-@Composable
-fun HeaderPreview() {
-    HeaderWithSign(
-        iconPainter = painterResource(id = R.drawable.sign_fork),
-        title = "Section Title",
-        subtitle = "Section subtitle",
-        num = 1
-    )
-}
-
-
-@Composable
-fun HeaderWithSign(
-    modifier: Modifier = Modifier,
-    iconPainter: Painter? = null,
-    iconVector: ImageVector? = null,
-    onIconClick: () -> Unit = {},
-    pretitle: String? = null,
-    title: String,
-    subtitle: String? = null,
-    num: Int? = null,
-    signColor: Color = colorResource(id = R.color.colorPrimary),
-    optionButtons: @Composable() (RowScope.() -> Unit) = {}
-) {
-    //HEADER:
-    Row(
-        modifier = modifier
-            .padding(bottom = 6.dp)
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .background(colorResource(id = R.color.windowBackground)),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        //Street sign:
-        HeaderSign(
-            modifier = Modifier
-                .padding(10.dp)
-                .weight(1f)
-                .wrapContentSize(align = Alignment.TopStart),
-            iconPainter = iconPainter,
-            iconVector = iconVector,
-            onIconClick = { onIconClick() },
-            pretitle = pretitle,
-            title = title,
-            subtitle = subtitle,
-            num = num,
-            signColor = signColor
-        )
-        //OPTIONS BUTTONS:
-        Row(
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            optionButtons()
-        }
     }
 }
 
@@ -283,7 +234,6 @@ fun SplitterSignPreview() {
     SplitterSign(
         libraryItems = libraryItems,
         currentCatState = currentCatState,
-        curLibrarySizeState = 0,
         preview = true
     )
 }
@@ -293,7 +243,6 @@ fun SplitterSignPreview() {
 fun SplitterSign(
     currentCatState: MutableState<String>,
     libraryItems: MutableState<List<String>>,
-    curLibrarySizeState: Int,
     preview: Boolean
 ) {
     val configuration = LocalConfiguration.current
@@ -324,7 +273,6 @@ fun SplitterSign(
                     title = "${head.replaceFirstChar { it.uppercase() }}s",
                     selected = currentCatState.value == head,
                     isLandscape = isLandscape,
-                    num = if (isLandscape && currentCatState.value == head) curLibrarySizeState else null,
                     preview = preview
                 )
                 //DIVIDERS:
@@ -411,12 +359,13 @@ fun SplitterCat(
 fun RoundedSign(
     modifier: Modifier = Modifier,
     signSize: Dp,
-    iconSize: Dp,
+    contentSize: Int,
     backgroundColor: Color,
     borderColor: Color,
-    iconColor: Color,
+    contentColor: Color,
     iconPainter: Painter? = null,
     iconVector: ImageVector? = null,
+    contentText: String = "",
     imageUrl: String = "",
     circle: Boolean = true
 ) {
@@ -431,21 +380,31 @@ fun RoundedSign(
             contentAlignment = Alignment.Center
         ) {
             //CAT ICON:
-            if (iconVector != null) {
+            if (contentText != "") {
+                //N items:
+                Text(
+                    modifier = Modifier,
+                    text = contentText,
+                    fontSize = if (contentText.length < 3) contentSize.sp else (contentSize-5).sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    color = contentColor
+                )
+            } else if (iconVector != null) {
                 Icon(
                     modifier = Modifier
-                        .size(iconSize),
+                        .size(contentSize.dp),
                     imageVector = iconVector,
                     contentDescription = "Item image",
-                    tint = iconColor
+                    tint = contentColor
                 )
             } else {
                 Icon(
                     modifier = Modifier
-                        .size(iconSize),
+                        .size(contentSize.dp),
                     painter = iconPainter!!,
                     contentDescription = "Item image",
-                    tint = iconColor
+                    tint = contentColor
                 )
             }
         }
@@ -460,6 +419,7 @@ fun RoundedSign(
         )
     }
 }
+
 
 @Composable
 fun RoundedLetter(
@@ -574,10 +534,10 @@ fun SectionTitle(
         //ROUNDED SIGN:
         RoundedSign(
             signSize = 40.dp,
-            iconSize = 20.dp,
+            contentSize = 20,
             backgroundColor = signColor,
             borderColor = colorResource(id = R.color.mid_grey),
-            iconColor = colorResource(id = R.color.light_grey),
+            contentColor = colorResource(id = R.color.light_grey),
             iconPainter = iconPainter
         )
         //CAT TITLE:
@@ -721,10 +681,10 @@ fun LibItemCard(
                 modifier = Modifier
                     .padding(end = 4.dp),
                 signSize = 34.dp,
-                iconSize = 20.dp,
+                contentSize = 20,
                 backgroundColor = signBackgroundColor,
                 borderColor = signBorderColor,
-                iconColor = signIconColor,
+                contentColor = signIconColor,
                 iconPainter = signIconPainter,
                 imageUrl = imageUrl,
                 circle = circle

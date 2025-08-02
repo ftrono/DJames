@@ -35,13 +35,15 @@ import com.ftrono.DJames.ui.selectors.libColorSelectorLight
 import com.ftrono.DJames.ui.selectors.libIconSelector
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.navigation.compose.rememberNavController
 
 
 @Preview
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
 fun DialogEditPlaylistPreview() {
-    LibraryScreen(editPreview="playlist", preview=true)
+    val navController = rememberNavController()
+    LibraryScreen(navController, editPreview="playlist", preview=true)
 }
 
 

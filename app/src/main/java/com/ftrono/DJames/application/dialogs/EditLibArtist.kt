@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.Artist
@@ -39,7 +40,8 @@ import com.ftrono.DJames.ui.selectors.libIconSelector
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
 fun DialogEditArtistPreview() {
-    LibraryScreen(editPreview="artist", preview=true)
+    val navController = rememberNavController()
+    LibraryScreen(navController, editPreview="artist", preview=true)
 }
 
 

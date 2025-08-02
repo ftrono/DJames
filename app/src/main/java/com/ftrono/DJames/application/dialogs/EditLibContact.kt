@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.messLangFull
@@ -45,7 +46,8 @@ import com.ftrono.DJames.ui.selectors.libIconSelector
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
 fun DialogEditContactPreview() {
-    LibraryScreen(editPreview="contact", preview=true)
+    val navController = rememberNavController()
+    LibraryScreen(navController, editPreview="contact", preview=true)
 }
 
 

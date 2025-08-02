@@ -36,6 +36,7 @@ import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.ui.components.EditLibTitle
 
 
@@ -43,7 +44,8 @@ import com.ftrono.DJames.ui.components.EditLibTitle
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
 fun DialogEditPodcastPreview() {
-    LibraryScreen(editPreview="podcast", preview=true)
+    val navController = rememberNavController()
+    LibraryScreen(navController, editPreview="podcast", preview=true)
 }
 
 

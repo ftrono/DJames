@@ -10,13 +10,16 @@ import com.ftrono.DJames.be.database.SpotifyPlayable
 val testMessages = listOf<Message>(
     // Intro:
     Message(
+        id = 0,
         timestamp = System.currentTimeMillis() - (31*60*1000) - 1,
         appVersion = appVersion,
         type = "starter",
     ),
 
     Message(
+        id = 1,
         timestamp = System.currentTimeMillis() - (31*60*1000),
+        starterId = System.currentTimeMillis() - (31*60*1000) - 1,
         appVersion = appVersion,
         type = "ai",
         text = "Tell me, Sir!",
@@ -24,7 +27,9 @@ val testMessages = listOf<Message>(
 
     // Call:
     Message(
+        id = 2,
         timestamp = System.currentTimeMillis() - (30*60*1000),
+        starterId = System.currentTimeMillis() - (31*60*1000) - 1,
         appVersion = appVersion,
         type = "user",
         text = "call Ricky",
@@ -32,7 +37,9 @@ val testMessages = listOf<Message>(
     ),
 
     Message(
+        id = 3,
         timestamp = System.currentTimeMillis() - (29*60*1000),
+        starterId = System.currentTimeMillis() - (31*60*1000) - 1,
         appVersion = appVersion,
         type = "ai",
         text = "Calling Ricky!",
@@ -48,13 +55,17 @@ val testMessages = listOf<Message>(
 
     // Message (SMS):
     Message(
+        id = 4,
         timestamp = System.currentTimeMillis() - (25*60*1000) - 1,
+        starterId = System.currentTimeMillis() - (25*60*1000) - 1,
         appVersion = appVersion,
         type = "starter",
     ),
 
     Message(
+        id = 5,
         timestamp = System.currentTimeMillis() - (25*60*1000),
+        starterId = System.currentTimeMillis() - (25*60*1000) - 1,
         appVersion = appVersion,
         type = "user",
         text = "send a message to Amal",
@@ -62,7 +73,9 @@ val testMessages = listOf<Message>(
     ),
 
     Message(
+        id = 6,
         timestamp = System.currentTimeMillis() - (24*60*1000),
+        starterId = System.currentTimeMillis() - (25*60*1000) - 1,
         appVersion = appVersion,
         type = "ai",
         text = "Please, dictate the SMS for Amal in Italian!",
@@ -78,13 +91,17 @@ val testMessages = listOf<Message>(
 
     // Route:
     Message(
+        id = 7,
         timestamp = System.currentTimeMillis() - (20*60*1000) - 1,
+        starterId = System.currentTimeMillis() - (20*60*1000) - 1,
         appVersion = appVersion,
         type = "starter",
     ),
 
     Message(
+        id = 8,
         timestamp = System.currentTimeMillis() - (20*60*1000),
+        starterId = System.currentTimeMillis() - (20*60*1000) - 1,
         appVersion = appVersion,
         type = "user",
         text = "show me a route! aeroporto di brindisi",
@@ -92,7 +109,9 @@ val testMessages = listOf<Message>(
     ),
 
     Message(
+        id = 9,
         timestamp = System.currentTimeMillis() - (19*60*1000),
+        starterId = System.currentTimeMillis() - (20*60*1000) - 1,
         appVersion = appVersion,
         type = "ai",
         text = "Here's the route to: Aeroporto di Brindisi, Brindisi, Contrada Baroncino!",
@@ -109,13 +128,17 @@ val testMessages = listOf<Message>(
 
     // PLAY: Track from Album:
     Message(
+        id = 10,
         timestamp = System.currentTimeMillis() - (15*60*1000) - 1,
+        starterId = System.currentTimeMillis() - (15*60*1000) - 1,
         appVersion = appVersion,
         type = "starter",
     ),
 
     Message(
+        id = 11,
         timestamp = System.currentTimeMillis() - (15*60*1000),
+        starterId = System.currentTimeMillis() - (15*60*1000) - 1,
         appVersion = appVersion,
         type = "user",
         text = "play lost by linkin park",
@@ -123,7 +146,9 @@ val testMessages = listOf<Message>(
     ),
 
     Message(
+        id = 12,
         timestamp = System.currentTimeMillis() - (14*60*1000),
+        starterId = System.currentTimeMillis() - (15*60*1000) - 1,
         appVersion = appVersion,
         type = "ai",
         text = "Playing the track: Lost, by Linkin Park!",
@@ -143,13 +168,17 @@ val testMessages = listOf<Message>(
 
     // PLAY: Playlist:
     Message(
+        id = 13,
         timestamp = System.currentTimeMillis() - (10*60*1000) - 1,
+        starterId = System.currentTimeMillis() - (10*60*1000) - 1,
         appVersion = appVersion,
         type = "starter",
     ),
 
     Message(
+        id = 14,
         timestamp = System.currentTimeMillis() - (10*60*1000),
+        starterId = System.currentTimeMillis() - (10*60*1000) - 1,
         appVersion = appVersion,
         type = "user",
         text = "play my playlist francis ford",
@@ -157,7 +186,9 @@ val testMessages = listOf<Message>(
     ),
 
     Message(
+        id = 15,
         timestamp = System.currentTimeMillis() - (9*60*1000),
+        starterId = System.currentTimeMillis() - (10*60*1000) - 1,
         appVersion = appVersion,
         type = "ai",
         text = "Playing your playlist: Francis Ford!",
@@ -172,5 +203,4 @@ val testMessages = listOf<Message>(
             )
         )
     ),
-
 )

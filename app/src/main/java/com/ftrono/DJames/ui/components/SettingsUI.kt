@@ -71,86 +71,6 @@ import com.ftrono.DJames.ui.selectors.getTextFieldColors
 
 // SETTINGS UI
 
-@Preview
-@Composable
-fun SettingsHeaderPreview() {
-    SettingsHeader(
-        backClickable = {},
-        iconRes = painterResource(id = R.drawable.sign_preferences),
-        title = "Preferences",
-        options = {
-            //SAVE BUTTON:
-            Icon(
-                modifier = Modifier
-                    .padding(end = 18.dp)
-                    .size(35.dp),
-                imageVector = Icons.Default.Check,
-                contentDescription = "Save",
-                tint = colorResource(id = R.color.colorAccentLight)
-            )
-        }
-    )
-}
-
-
-@Composable
-fun SettingsHeader(
-    backClickable: () -> Unit,
-    iconRes: Painter,
-    title: String,
-    signColor: Color = colorResource(id = R.color.colorPrimary),
-    options: @Composable () -> Unit
-) {
-    //HEADER:
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .background(colorResource(id = R.color.windowBackground)),
-        contentAlignment = Alignment.Center
-    ) {
-        //HEADER CONTENT:
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            //BACK:
-            Icon(
-                modifier = Modifier
-                    .padding(start = 12.dp, end = 4.dp)
-                    .size(32.dp)
-                    .clickable {
-                        backClickable()
-                    },
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint = colorResource(id = R.color.colorAccentLight)
-            )
-            //MAIN HEADER SIGN:
-            HeaderSign(
-                modifier = Modifier
-                    .padding(10.dp)
-                    .wrapContentSize(align = Alignment.TopStart),
-                iconPainter = iconRes,
-                title = title,
-                signColor = signColor
-            )
-            //OPTIONS BUTTONS:
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                options()
-            }
-        }
-    }
-}
-
-
 @Composable
 fun SettingsSection(
     modifier: Modifier = Modifier,
@@ -231,10 +151,6 @@ fun SettingsUserSection(
     preview: Boolean = false,
 ) {
     val headerText = "Write your nickname"
-    val radioButtonColors = RadioButtonDefaults.colors(
-        selectedColor = colorResource(id = R.color.greenSignLight),
-        unselectedColor = colorResource(id = R.color.faded_grey)
-    )
 
     val mContext = LocalContext.current
     val isActive = rememberSaveable { mutableStateOf(false) }
@@ -302,10 +218,10 @@ fun SettingsUserSection(
                             onClicked()
                         },
                     signSize = 70.dp,
-                    iconSize = 40.dp,
+                    contentSize = 40,
                     backgroundColor = colorResource(id = R.color.faded_grey),
                     borderColor = colorResource(id = R.color.midfaded_grey),
-                    iconColor = colorResource(id = R.color.light_grey),
+                    contentColor = colorResource(id = R.color.light_grey),
                     iconVector = Icons.Outlined.Person,
                     imageUrl = userImage!!,
                     circle = true
@@ -419,10 +335,10 @@ fun SettingsUserSection(
                                 isActive.value = false
                             },
                         signSize = 36.dp,
-                        iconSize = 20.dp,
+                        contentSize = 20,
                         backgroundColor = textFieldColors.textSelectionColors.backgroundColor,
                         borderColor = textFieldColors.textSelectionColors.backgroundColor,
-                        iconColor = colorResource(id = R.color.light_grey),
+                        contentColor = colorResource(id = R.color.light_grey),
                         iconVector = Icons.Default.Done
                     )
                 }

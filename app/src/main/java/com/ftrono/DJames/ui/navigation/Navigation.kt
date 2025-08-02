@@ -104,7 +104,7 @@ fun Navigation(navController: NavHostController) {
             curNavId = 2
             innerNavOpen.postValue(false)
             settingsOpen.postValue(false)
-            LibraryScreen()
+            LibraryScreen(navController)
         }
 
         //3 -> MESSAGES:
@@ -127,7 +127,7 @@ fun Navigation(navController: NavHostController) {
             curNavId = 3
             innerNavOpen.postValue(false)
             settingsOpen.postValue(false)
-            MessagesScreen()
+            MessagesScreen(navController)
         }
 
         //EXTRA:

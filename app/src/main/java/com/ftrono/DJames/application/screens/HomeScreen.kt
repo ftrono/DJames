@@ -44,6 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
@@ -57,6 +58,10 @@ import com.ftrono.DJames.application.volumeUpEnabled
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.ui.components.StreetLine
+import com.ftrono.DJames.ui.components.StreetUIScaffold
+import com.ftrono.DJames.ui.navigation.StreetUITopBar
+import com.ftrono.DJames.ui.navigation.TopBarMenu
+import com.ftrono.DJames.ui.navigation.UserOptions
 import com.ftrono.DJames.ui.navigation.navigateTo
 import com.ftrono.DJames.ui.theme.NavigationItem
 import kotlin.Boolean
@@ -79,6 +84,8 @@ fun HomeScreen(
     val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
 
     val mContext = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
     val overlayActiveState by overlayActive.observeAsState()
     val volumeUpEnabledState by volumeUpEnabled.observeAsState()
@@ -90,18 +97,25 @@ fun HomeScreen(
         lastNavRoute = curNavRoute
     }
 
-    Box (
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorResource(id = R.color.windowBackground))
+    StreetUIScaffold(
+        lineDistance = 70.dp,
+        topBar = {
+            StreetUITopBar(
+                pretitle = "",
+                title = "DJames",
+                subtitle = if (preview) "for user_name" else "for ${prefs.spotUserName}",
+                showBack = false,
+                optionButtons = {
+                    UserOptions(
+                        context = mContext,
+                        lifecycleOwner = lifecycleOwner,
+                        navController = navController,
+                        preview = preview,
+                    )
+                }
+            )
+        }
     ) {
-        //Street line canvas:
-        StreetLine(
-            modifier = Modifier
-                .padding(start = 70.dp)
-                .matchParentSize()
-                .width(20.dp)
-        )
         //WRAPPER:
         Column(
             modifier = Modifier

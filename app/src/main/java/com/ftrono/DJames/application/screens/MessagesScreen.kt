@@ -54,6 +54,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.allMessages
 import com.ftrono.DJames.application.curMessagesSize
@@ -66,11 +68,12 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.ui.components.ChatInputField
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
-import com.ftrono.DJames.ui.components.HeaderWithSign
 import com.ftrono.DJames.ui.components.OptionsItem
 import com.ftrono.DJames.ui.components.OptionsMenu
-import com.ftrono.DJames.ui.components.StreetBackground
 import com.ftrono.DJames.ui.components.MessageBubble
+import com.ftrono.DJames.ui.components.StreetUIScaffold
+import com.ftrono.DJames.ui.navigation.StreetUITopBar
+import com.ftrono.DJames.ui.navigation.TopBarMenu
 import com.ftrono.DJames.ui.selectors.messagesColorSelectorLight
 import com.ftrono.DJames.ui.selectors.messagesIconSelector
 import kotlinx.serialization.decodeFromString
@@ -81,11 +84,15 @@ import kotlinx.serialization.json.Json
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
 fun MessagesScreenPreview() {
-    MessagesScreen(preview=true)
+    val navController = rememberNavController()
+    MessagesScreen(navController, preview=true)
 }
 
 @Composable
-fun MessagesScreen(preview: Boolean = false) {
+fun MessagesScreen(
+    navController: NavController,
+    preview: Boolean = false
+) {
     val mContext = LocalContext.current
     //Overlay permission management:
     val requestOverlayOn = rememberSaveable { mutableStateOf(false) }
@@ -115,6 +122,7 @@ fun MessagesScreen(preview: Boolean = false) {
     var offset = 0L
     val allMessagesState by allMessages.observeAsState()
     allMessages.postValue(messageUtils.refreshMessages(offset, preview))
+    val curMessagesSizeState by curMessagesSize.observeAsState()
 
     val mDisplayMainMenu = rememberSaveable {
         mutableStateOf(false)
@@ -125,48 +133,40 @@ fun MessagesScreen(preview: Boolean = false) {
         DialogDeleteMessages(mContext, deleteAllOn, selectedMessageIds)
     }
 
-    //BACKGROUND:
-    StreetBackground(
-        startDistance = 20
-    ) {
-        //HEADER:
-        HeaderWithSign(
-            modifier = Modifier
-                .clickable(
-                    // This makes the rest of the screen clear focus on tap
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ) {
-                    focusManager.clearFocus()
-                },
-            iconVector = if (selectedMessageIds.isNotEmpty()) Icons.Default.Clear else null,
-            iconPainter = if (selectedMessageIds.isEmpty()) painterResource(id = R.drawable.sign_history) else null,
-            onIconClick = { if (selectedMessageIds.isNotEmpty()) selectedMessageIds.clear() },
-            title = "Messages",
-            subtitle = if (selectedMessageIds.isNotEmpty()) "Selected" else "Last 30 days",
-            num = if (selectedMessageIds.isNotEmpty()) selectedMessageIds.size else curMessagesSize.value,
-            signColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.faded_grey) else colorResource(R.color.greenSign)
-        ) {
-            Box() {
-                //1) CAT OPTIONS:
-                Icon(
-                    modifier = Modifier
-                        .padding(end = 18.dp)
-                        .size(35.dp)
-                        .clickable {
-                            mDisplayMainMenu.value = !mDisplayMainMenu.value
-                        },
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "Add library item",
-                    tint = colorResource(id = R.color.colorAccentLight)
-                )
-                MessagesOptions(
-                    mDisplayMenu = mDisplayMainMenu,
-                    deleteOn = deleteAllOn,
-                    selectedMessageIds = selectedMessageIds
-                )
-            }
+    // SCREEN:
+    StreetUIScaffold(
+        modifier = Modifier
+            .clickable(
+                // This makes the rest of the screen clear focus on tap
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                focusManager.clearFocus()
+            },
+        lineDistance = 20.dp,
+        topBar = {
+            StreetUITopBar(
+                pretitle = "",
+                title = "Messages",
+                subtitle = if (selectedMessageIds.isNotEmpty()) "Selected" else "Last 30 days",
+                showBack = true,
+                onBack = { navController.popBackStack() },
+                optionButtons = {
+                    TopBarMenu(
+                        contentText = "${if (selectedMessageIds.isNotEmpty()) selectedMessageIds.size else curMessagesSizeState}",
+                        backgroundColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.faded_grey) else colorResource(R.color.greenSign),
+                        onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
+                    ) {
+                        MessagesOptions(
+                            mDisplayMenu = mDisplayMainMenu,
+                            deleteOn = deleteAllOn,
+                            selectedMessageIds = selectedMessageIds
+                        )
+                    }
+                }
+            )
         }
+    ) {
 
         //CONTENT:
         if (allMessagesState!!.isEmpty()) {

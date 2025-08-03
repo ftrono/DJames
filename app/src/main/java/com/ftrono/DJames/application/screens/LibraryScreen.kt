@@ -570,8 +570,9 @@ fun LibItem(
                     colorResource(id = R.color.dark_grey_background)
                 }
             ),
+            cardBorderColor = colorResource(id = R.color.faded_grey),
             signBackgroundColor = libColorSelector(cat = currentCatState.value),
-            signBorderColor = colorResource(id = R.color.dark_grey),
+            signBorderColor = colorResource(id = R.color.midfaded_grey),
             signIconColor = colorResource(id = R.color.light_grey),
             signIconPainter = libIconSelector(cat = currentCatState.value),
             circle = currentCatState.value != "playlist" && currentCatState.value != "podcast" && currentCatState.value != "route",

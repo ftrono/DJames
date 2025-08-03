@@ -67,6 +67,7 @@ fun TopBarMenu(
             backgroundColor = backgroundColor ?: colorResource(R.color.dark_grey),
             borderColor = colorResource(id = R.color.mid_grey),
             contentColor = colorResource(id = R.color.light_grey),
+            borderWidth = 2.5.dp,
             contentText = contentText,
             imageUrl = imageUrl,
             iconVector = Icons.Outlined.Person,   //Residual

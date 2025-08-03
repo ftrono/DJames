@@ -363,6 +363,7 @@ fun RoundedSign(
     backgroundColor: Color,
     borderColor: Color,
     contentColor: Color,
+    borderWidth: Dp = 1.5.dp,
     iconPainter: Painter? = null,
     iconVector: ImageVector? = null,
     contentText: String = "",
@@ -376,7 +377,7 @@ fun RoundedSign(
                 .size(signSize)
                 .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
                 .background(backgroundColor)
-                .border(1.5.dp, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp)),
+                .border(borderWidth, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp)),
             contentAlignment = Alignment.Center
         ) {
             //CAT ICON:
@@ -413,7 +414,7 @@ fun RoundedSign(
             modifier = modifier
                 .size(signSize)
                 .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
-                .border(1.5.dp, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp)),
+                .border(borderWidth, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp)),
             model = imageUrl,
             contentDescription = "Item image"
         )
@@ -633,8 +634,9 @@ fun LibItemCardPreview() {
         cardColors = CardDefaults.cardColors(
             containerColor = colorResource(id = R.color.dark_grey)
         ),
+        cardBorderColor = colorResource(id = R.color.faded_grey),
         signBackgroundColor = libColorSelector(cat = "artist"),
-        signBorderColor = colorResource(id = R.color.midfaded_grey),
+        signBorderColor = colorResource(id = R.color.faded_grey),
         signIconColor = colorResource(id = R.color.light_grey),
         signIconPainter = libIconSelector(cat = "artist"),
         title = "Item name",
@@ -647,6 +649,7 @@ fun LibItemCardPreview() {
 fun LibItemCard(
     modifier: Modifier = Modifier,
     cardColors: CardColors,
+    cardBorderColor: Color,
     signBackgroundColor: Color,
     signBorderColor: Color,
     signIconColor: Color,
@@ -665,7 +668,7 @@ fun LibItemCard(
                 onClick()
             },
         shape = RoundedCornerShape(14.dp),
-        border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
+        border = BorderStroke(1.dp, cardBorderColor),
         colors = cardColors
     ) {
 

@@ -454,6 +454,7 @@ fun EditLibDynamicNameSection(
                     backgroundColor = libColorSelector(cat = filter),
                     borderColor = colorResource(id = R.color.midfaded_grey),
                     contentColor = colorResource(id = R.color.light_grey),
+                    borderWidth = 2.5.dp,
                     iconPainter = libIconSelector(cat = filter),
                     imageUrl = imageUrlState.value,
                     circle = filter != "playlist" && filter != "podcast" && filter != "route"

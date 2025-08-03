@@ -220,8 +220,9 @@ fun SettingsUserSection(
                     signSize = 70.dp,
                     contentSize = 40,
                     backgroundColor = colorResource(id = R.color.faded_grey),
-                    borderColor = colorResource(id = R.color.midfaded_grey),
+                    borderColor = colorResource(id = R.color.mid_grey),
                     contentColor = colorResource(id = R.color.light_grey),
+                    borderWidth = 2.5.dp,
                     iconVector = Icons.Outlined.Person,
                     imageUrl = userImage!!,
                     circle = true

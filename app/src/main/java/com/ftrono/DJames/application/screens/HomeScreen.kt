@@ -151,12 +151,26 @@ fun HomeScreen(
         ) {
             if (isLandscape) {
                 //DISPLAY HORIZONTALLY:
-                HomeIntroText(
-                    modifier = Modifier
-                        .padding(bottom=20.dp),
-                    isLandscape = isLandscape,
-                    preview = preview,
-                )
+                Row(
+                    modifier = Modifier,
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    LogoHome(
+                        context = mContext,
+                        modifier = Modifier
+                            .padding(bottom = 10.dp, end=20.dp)
+                            .width(60.dp)
+                            .height(60.dp),
+                        spotifyLoggedInState = spotifyLoggedInState!!,
+                    )
+                    HomeIntroText(
+                        modifier = Modifier
+                            .padding(bottom = 10.dp),
+                        isLandscape = isLandscape,
+                        preview = preview,
+                    )
+                }
                 // CHAT INPUT FIELD:
                 HomeChatWrapper(
                     context = mContext,
@@ -168,21 +182,13 @@ fun HomeScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start=62.dp, top=24.dp)
+                        .padding(start = 62.dp, top = 24.dp)
                         .horizontalScroll(rememberScrollState()),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.Center
                 ) {
-
-                    LogoHome(
-                        context = mContext,
-                        modifier = Modifier
-                            .width(100.dp)
-                            .height(100.dp),
-                        spotifyLoggedInState = spotifyLoggedInState!!,
-                    )
                     DriveModeButton(
-                        modifier = Modifier,
+                        modifier = Modifier.padding(end=20.dp),
                         context = mContext,
                         requestPermissions = requestPermissions,
                         requestOverlayOn = requestOverlayOn,
@@ -190,7 +196,7 @@ fun HomeScreen(
                         overlayActiveState = overlayActiveState!!
                     )
                     OpenGuideButton(
-                        modifier = Modifier,
+                        modifier = Modifier.padding(start=20.dp),
                         navController = navController,
                     )
                 }
@@ -199,7 +205,7 @@ fun HomeScreen(
                 LogoHome(
                     context = mContext,
                     modifier = Modifier
-                        .padding(bottom=20.dp)
+                        .padding(bottom = 20.dp)
                         .width(160.dp)
                         .height(160.dp),
                     spotifyLoggedInState = spotifyLoggedInState!!,
@@ -344,8 +350,7 @@ fun DriveModeButton(
         Text(
             modifier = Modifier,
             text = if (overlayActiveState) "Not driving?" else "Are you driving?",
-            fontSize = 16.sp,
-            fontStyle = FontStyle.Italic,
+            fontSize = 14.sp,
             color = colorResource(id = R.color.light_grey),
         )
 
@@ -392,7 +397,11 @@ fun DriveModeButton(
                         color = colorResource(id = R.color.light_grey),
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
-                        text = if (overlayActiveState) "Stop\nDrive mode" else "Open\nDrive mode"
+                        text = if (isLandscape) {
+                            if (overlayActiveState) "Stop Drive mode" else "Open Drive mode"
+                        } else {
+                            if (overlayActiveState) "Stop\nDrive mode" else "Open\nDrive mode"
+                        }
                     )
                 }
                 // GO ICON:

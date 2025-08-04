@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Surface
@@ -182,7 +183,7 @@ class ClockActivity: ComponentActivity() {
                 // RIGHT PLACEHOLDER (HORIZONTAL ONLY):
                 if (isLandscape) {
                     if (overlayPosState!! == "Left") {
-                        CloseButton()
+                        CloseButton(pointForward = true)
                     } else {
                         ClosePlaceholder()
                     }
@@ -308,7 +309,9 @@ class ClockActivity: ComponentActivity() {
 
 
     @Composable
-    fun CloseButton() {
+    fun CloseButton(
+        pointForward: Boolean = false
+    ) {
         RoundedSign(
             modifier = Modifier
                 .padding(start = 20.dp, end = 20.dp)
@@ -324,7 +327,7 @@ class ClockActivity: ComponentActivity() {
             borderColor = colorResource(id = R.color.faded_grey),
             contentColor = colorResource(id = R.color.faded_grey),
             borderWidth = 2.5.dp,
-            iconVector = Icons.AutoMirrored.Default.ArrowBack,
+            iconVector = if (pointForward) Icons.AutoMirrored.Default.ArrowForward else Icons.AutoMirrored.Default.ArrowBack,
         )
     }
 

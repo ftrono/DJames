@@ -86,7 +86,23 @@ fun UserOptions(
             expandedState = mDisplayMenu,
             backgroundColor = colorResource(id = R.color.dark_grey_background),
             options = {
-                //1) Item: LOGIN/LOGOUT
+                //1) Item: PREFERENCES
+                OptionsItem(
+                    title = "Preferences",
+                    iconPainter = painterResource(id = R.drawable.item_settings),
+                    onClick = {
+                        //Navigate:
+                        val curNavRoute = NavigationItem.Settings.route
+                        if (curNavRoute == lastNavRoute && (extraOpenState!!)) {
+                            navController.popBackStack()
+                        } else {
+                            navigateTo(navController, curNavRoute)
+                        }
+                        lastNavRoute = curNavRoute
+                        mDisplayMenu.value = false
+                    }
+                )
+                //2) Item: LOGIN/LOGOUT
                 OptionsItem(
                     title = if (!spotifyLoggedInState!!) "Login to Spotify" else "Logout from Spotify",
                     iconPainter = painterResource(id = R.drawable.item_user),
@@ -100,22 +116,6 @@ fun UserOptions(
                             //LOG OUT:
                             logoutDialogOn.value = true
                         }
-                        mDisplayMenu.value = false
-                    }
-                )
-                //2) Item: PREFERENCES
-                OptionsItem(
-                    title = "Preferences",
-                    iconPainter = painterResource(id = R.drawable.item_settings),
-                    onClick = {
-                        //Navigate:
-                        val curNavRoute = NavigationItem.Settings.route
-                        if (curNavRoute == lastNavRoute && (extraOpenState!!)) {
-                            navController.popBackStack()
-                        } else {
-                            navigateTo(navController, curNavRoute)
-                        }
-                        lastNavRoute = curNavRoute
                         mDisplayMenu.value = false
                     }
                 )

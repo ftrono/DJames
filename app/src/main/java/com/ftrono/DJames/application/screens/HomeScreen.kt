@@ -469,8 +469,8 @@ fun OpenGuideButton(
                     Icon(
                         modifier = Modifier
                             .padding(start=2.dp, end=2.dp),
-                        painter = guideIconSelector("routes"),
-                        tint = guideColorSelectorLight("routes"),
+                        painter = guideIconSelector("car"),
+                        tint = guideColorSelectorLight("car"),
                         contentDescription = "Go"
                     )
                 }

@@ -84,7 +84,6 @@ fun HomeScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
 
     val focusManager = LocalFocusManager.current
-    val chatText = rememberSaveable { mutableStateOf("") }
     val overlayActiveState by overlayActive.observeAsState()
     val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
 
@@ -170,7 +169,6 @@ fun HomeScreen(
                         )
                         .imePadding()
                         .fillMaxWidth(),
-                    textState = chatText,   //TODO: CENTRALIZE!
                     placeholder = "Ask me anything...",
                     enableLeftButton = false,
                     onSend = { }   //TODO
@@ -235,7 +233,6 @@ fun HomeScreen(
                         )
                         .imePadding()
                         .fillMaxWidth(),
-                    textState = chatText,   //TODO: CENTRALIZE!
                     placeholder = "Ask me anything...",
                     enableLeftButton = false,
                     onSend = { }   //TODO

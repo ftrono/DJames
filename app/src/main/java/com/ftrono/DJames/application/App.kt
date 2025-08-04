@@ -109,6 +109,7 @@ var userNicknameState = MutableLiveData<String>("")
 var spotUserImageState = MutableLiveData<String>("")
 var addLinkOn = MutableLiveData<Boolean>(false)
 var sharedLink = MutableLiveData<String>("")
+val chatText = MutableLiveData<String>("")
 
 //Library & Messages:
 var curLibrarySize = MutableLiveData<Int>(0)

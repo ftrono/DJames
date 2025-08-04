@@ -114,7 +114,6 @@ fun MessagesScreen(
 
     // States:
     val focusManager = LocalFocusManager.current
-    val chatText = rememberSaveable { mutableStateOf("") }
     val selectedMessageIds = remember { mutableStateListOf<Long>() }
 
     var hasMore = remember { mutableStateOf(true) }
@@ -271,7 +270,6 @@ fun MessagesScreen(
                 )
                 .imePadding()
                 .fillMaxWidth(),
-            textState = chatText,
             placeholder = "Ask me anything...",
             enableLeftButton = true,
             onSend = { }   //TODO

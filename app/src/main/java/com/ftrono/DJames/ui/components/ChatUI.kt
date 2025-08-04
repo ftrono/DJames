@@ -49,6 +49,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.ftrono.DJames.application.chatText
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.utils
@@ -226,7 +227,6 @@ fun ChatInputPreview() {
         context = mContext,
         requestPermissions = requestPermissions,
         requestOverlayOn = requestOverlayOn,
-        textState = chatText,
         placeholder = "Ask me anything...",
         enableLeftButton = true
     )
@@ -239,7 +239,6 @@ fun ChatInputField(
     modifier: Modifier = Modifier,
     requestOverlayOn: MutableState<Boolean>,
     requestPermissions: MutableState<Boolean>,
-    textState: MutableState<String>,
     placeholder: String,
     enableLeftButton: Boolean = true,
     onSend: () -> Unit = {}
@@ -248,7 +247,8 @@ fun ChatInputField(
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val overlayStatusState by overlayStatus.observeAsState()
+    val overlayStatusState by overlayStatus.observeAsState("")
+    val textState by chatText.observeAsState()
     val textFieldColors = getTextFieldColors(
         colorLight = colorResource(R.color.colorAccentLight),
         colorDark = colorResource(R.color.colorAccent)
@@ -272,10 +272,10 @@ fun ChatInputField(
             }
             .focusRequester(focusRequester),
         colors = textFieldColors,
-        value = textState.value,
+        value = textState!!,
         interactionSource = interactionSource,
         onValueChange = { newText ->
-            textState.value = newText
+            chatText.postValue(newText)
         },
         textStyle = TextStyle(
             fontSize = 16.sp

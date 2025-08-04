@@ -15,6 +15,7 @@ import com.ftrono.DJames.application.showLoggingIn
 import com.ftrono.DJames.application.spotTempToken
 import com.ftrono.DJames.application.spotUserImageState
 import com.ftrono.DJames.application.spotifyLoggedIn
+import com.ftrono.DJames.application.spotUserName
 import com.ftrono.DJames.application.userNicknameState
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.navigation.navigateTo
@@ -58,6 +59,7 @@ class SpotifyLoginUtils {
                         prefs.spotifyToken = spotTempToken
                         prefs.refreshToken = refrTempToken
                         prefs.spotUserName = respJSON.get("display_name").asString
+                        spotUserName.postValue(respJSON.get("display_name").asString)
                         prefs.spotUserId = respJSON.get("id").asString
                         prefs.spotUserEMail = respJSON.get("email").asString
                         prefs.spotCountry = respJSON.get("country").asString
@@ -124,6 +126,7 @@ class SpotifyLoginUtils {
         prefs.spotCountry = ""
         prefs.userNickname = ""
         prefs.nlpUserId = utils.generateRandomString(12)
+        spotUserName.postValue("")
         spotUserImageState.postValue("")
         userNicknameState.postValue("")
         //utils.deleteUserCache(context)

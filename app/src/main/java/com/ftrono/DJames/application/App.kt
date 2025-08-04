@@ -89,6 +89,7 @@ var curNavId = 0
 var lastNavRoute = "home"
 var permsRequested = MutableLiveData<Boolean>(false)
 var spotifyLoggedIn = MutableLiveData<Boolean>(false)
+var spotUserName = MutableLiveData<String>("")
 var userGender = MutableLiveData<String>("Sir")
 var overlayActive = MutableLiveData<Boolean>(false)
 var overlayStatus = MutableLiveData<String>("ready")

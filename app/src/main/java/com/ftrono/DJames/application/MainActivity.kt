@@ -80,6 +80,7 @@ class MainActivity : ComponentActivity() {
             spotifyLoggedIn.postValue(false)
         } else {
             spotifyLoggedIn.postValue(true)
+            spotUserName.postValue(prefs.spotUserName)
             userGender.postValue(prefs.userGender)
         }
 

@@ -37,6 +37,7 @@ fun getTextFieldColors(
         unfocusedBorderColor = colorResource(id = R.color.faded_grey),
         focusedTextColor = colorResource(id = R.color.light_grey),
         unfocusedTextColor = colorResource(id = R.color.light_grey),
+        focusedContainerColor = colorResource(id = R.color.windowBackground),
         focusedPlaceholderColor = colorResource(id = R.color.mid_grey),
         unfocusedPlaceholderColor = colorResource(id = R.color.mid_grey),
         focusedPrefixColor = colorResource(id = R.color.mid_grey),

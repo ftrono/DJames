@@ -6,6 +6,7 @@ import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
@@ -178,7 +179,8 @@ fun HomeScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start=62.dp, top=24.dp),
+                        .padding(start=62.dp, top=24.dp)
+                        .horizontalScroll(rememberScrollState()),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
@@ -240,7 +242,7 @@ fun HomeScreen(
                 )
                 DriveModeButton(
                     modifier = Modifier
-                        .padding(top=24.dp),
+                        .padding(top=28.dp),
                     context = mContext,
                     requestPermissions = requestPermissions,
                     requestOverlayOn = requestOverlayOn,
@@ -249,7 +251,7 @@ fun HomeScreen(
                 )
                 OpenGuideButton(
                     modifier = Modifier
-                        .padding(top=24.dp),
+                        .padding(top=28.dp),
                     navController = navController,
                 )
             }
@@ -336,7 +338,7 @@ fun DriveModeButton(
 
         CardSign(
             modifier = Modifier
-                .padding(top = if (isLandscape) 10.dp else  20.dp)
+                .padding(top = 10.dp)
                 .clickable {
                     utils.startStopDriveMode(
                         context = context,
@@ -424,10 +426,11 @@ fun OpenGuideButton(
             // MAIN:
             Column(
                 modifier = Modifier
-                    .padding(top = 4.dp, bottom = 4.dp, start = 8.dp, end = 8.dp),
+                    .padding(top = 4.dp, bottom = 4.dp, start = 12.dp, end = 8.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // INTRO:
                 Text(
                     modifier = Modifier,
                     color = colorResource(id = R.color.light_grey),
@@ -435,9 +438,10 @@ fun OpenGuideButton(
                     fontSize = 12.sp,
                     text = "❔ What I can do:"
                 )
+                // BUTTONS ROW:
                 Row(
                     modifier = Modifier
-                        .padding(top=8.dp, bottom=2.dp),
+                        .padding(top=8.dp, bottom=4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {

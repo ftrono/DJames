@@ -295,16 +295,27 @@ fun RoundedSign(
     iconVector: ImageVector? = null,
     contentText: String = "",
     imageUrl: String = "",
-    circle: Boolean = true
+    circle: Boolean = true,
+    clickable: Boolean = false,
+    onClick: () -> Unit = {},
 ) {
     //ROUNDED SIGN:
     if (imageUrl == "") {
         Box(
-            modifier = modifier
-                .size(signSize)
-                .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
-                .background(backgroundColor)
-                .border(borderWidth, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp)),
+            modifier = if (clickable) {
+                    modifier
+                        .size(signSize)
+                        .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
+                        .background(backgroundColor)
+                        .border(borderWidth, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp))
+                        .clickable { onClick () }
+                } else {
+                    modifier
+                        .size(signSize)
+                        .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
+                        .background(backgroundColor)
+                        .border(borderWidth, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp))
+                },
             contentAlignment = Alignment.Center
         ) {
             //CAT ICON:

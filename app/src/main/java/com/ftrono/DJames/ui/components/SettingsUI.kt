@@ -416,7 +416,7 @@ fun SettingsUserSection(
             modifier = Modifier
                 .padding(top = 8.dp),
             text = "Refer to yourself as",
-            color = colorResource(id = R.color.greenSignLight),
+            color = textHeaderColor,
             textAlign = TextAlign.Start,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold
@@ -428,6 +428,7 @@ fun SettingsUserSection(
             state = genderState,
             focusColorLight = colorResource(id = R.color.greenSignLight),
             focusColorDark = colorResource(id = R.color.greenSign),
+            optionsBackground = colorResource(id = R.color.dark_grey),
             prefName = "userGender",
             width = 200
         )

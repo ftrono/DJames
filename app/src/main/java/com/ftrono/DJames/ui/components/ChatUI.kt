@@ -281,10 +281,10 @@ fun ChatInputField(
             fontSize = 16.sp
         ),
         keyboardOptions = KeyboardOptions(
-            imeAction = ImeAction.Done
+            imeAction = ImeAction.Send
         ),
         keyboardActions = KeyboardActions(
-            onDone = {
+            onSend = {
                 onKeyboardDone()
             }
         ),

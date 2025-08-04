@@ -107,6 +107,7 @@ fun DropdownSpinner(
     state: MutableState<String>,
     focusColorLight: Color,
     focusColorDark: Color,
+    optionsBackground: Color = colorResource(id = R.color.windowBackground),
     prefName: String = "",
     width: Int = 0,
     start: Int = 0
@@ -172,7 +173,7 @@ fun DropdownSpinner(
                 isExpanded = false
             },
             scrollState = rememberScrollState(),
-            containerColor = colorResource(id = R.color.windowBackground)
+            containerColor = optionsBackground
         ) {
             parentOptions.forEach { selectionOption ->
                 DropdownMenuItem(

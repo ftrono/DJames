@@ -103,9 +103,9 @@ fun UserOptions(
                         mDisplayMenu.value = false
                     }
                 )
-                //2) Item: APP PREFERENCES
+                //2) Item: PREFERENCES
                 OptionsItem(
-                    title = "App preferences",
+                    title = "Preferences",
                     iconPainter = painterResource(id = R.drawable.item_settings),
                     onClick = {
                         //Navigate:
@@ -116,30 +116,6 @@ fun UserOptions(
                             navigateTo(navController, curNavRoute)
                         }
                         lastNavRoute = curNavRoute
-                        mDisplayMenu.value = false
-                    }
-                )
-                //3) Item: VOICE SETTINGS
-                OptionsItem(
-                    title = "Voice settings",
-                    iconPainter = painterResource(id = R.drawable.icon_speak),
-                    onClick = {
-                        //Set app preferences:
-                        val intent1 = Intent("com.android.settings.TTS_SETTINGS")
-                        context.startActivity(intent1)
-                        mDisplayMenu.value = false
-                    }
-                )
-                //4) Item: PERMISSIONS
-                OptionsItem(
-                    title = "Permissions",
-                    iconPainter = painterResource(id = R.drawable.item_permissions),
-                    onClick = {
-                        //Set app preferences:
-                        val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                        val uri = Uri.fromParts("package", context.packageName, null)
-                        intent1.setData(uri)
-                        context.startActivity(intent1)
                         mDisplayMenu.value = false
                     }
                 )

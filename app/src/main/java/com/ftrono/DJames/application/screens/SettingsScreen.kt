@@ -2,6 +2,8 @@ package com.ftrono.DJames.application.screens
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +22,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -62,6 +65,7 @@ import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.services.OverlayService
 import com.ftrono.DJames.ui.components.DropdownSpinner
+import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.components.SettingsSection
 import com.ftrono.DJames.ui.components.SettingsUserSection
 import com.ftrono.DJames.ui.components.StreetUIScaffold
@@ -129,7 +133,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             },
                         imageVector = Icons.Default.Check,
                         contentDescription = "Save",
-                        tint = colorResource(id = R.color.light_grey)
+                        tint = colorResource(R.color.greenSignLight)
                     )
                 }
             )
@@ -149,7 +153,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
             SettingsUserSection(
                 modifier = Modifier
                     .padding(bottom = 4.dp),
-                textHeaderColor = colorResource(id = R.color.greenSignLight),
+                textHeaderColor = colorResource(id = R.color.light_grey),
                 textFieldColors = getTextFieldColors(
                     colorLight = colorResource(id = R.color.greenSignLight),
                     colorDark = colorResource(id = R.color.greenSign)
@@ -190,6 +194,40 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             //UPDATE:
                             checkedStartup.value = it
                             prefs.autoStartup = it
+                        }
+                    )
+                }
+
+                //Go to App Permissions:
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top=12.dp),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Manage app permissions",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.weight(1f))
+                    RoundedSign(
+                        signSize = 40.dp,
+                        contentSize = 20,
+                        backgroundColor = colorResource(id = R.color.greenSign),
+                        borderColor = colorResource(id = R.color.greenSign),
+                        contentColor = colorResource(id = R.color.light_grey),
+                        iconVector = Icons.AutoMirrored.Default.ArrowForward,
+                        clickable = true,
+                        onClick = {
+                            //Open app preferences:
+                            val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                            val uri = Uri.fromParts("package", mContext.packageName, null)
+                            intent1.setData(uri)
+                            mContext.startActivity(intent1)
                         }
                     )
                 }
@@ -324,6 +362,38 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         }
                     )
                 }
+
+                //Go to App Permissions:
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top=12.dp),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Manage system voice",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.weight(1f))
+                    RoundedSign(
+                        signSize = 40.dp,
+                        contentSize = 20,
+                        backgroundColor = colorResource(id = R.color.yellowSign),
+                        borderColor = colorResource(id = R.color.yellowSign),
+                        contentColor = colorResource(id = R.color.light_grey),
+                        iconVector = Icons.AutoMirrored.Default.ArrowForward,
+                        clickable = true,
+                        onClick = {
+                            //Open system voice settings:
+                            val intent1 = Intent("com.android.settings.TTS_SETTINGS")
+                            mContext.startActivity(intent1)
+                        }
+                    )
+                }
             }
 
 
@@ -353,6 +423,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     state = textMessLangState,
                     focusColorLight = colorResource(id = R.color.blueSignLight),
                     focusColorDark = colorResource(id = R.color.blueSign),
+                    optionsBackground = colorResource(id = R.color.dark_grey),
                     prefName = "messageLanguage",
                     width = 200
                 )
@@ -481,6 +552,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     state = textMessLangState,
                     focusColorLight = colorResource(id = R.color.brownSignLight),
                     focusColorDark = colorResource(id = R.color.brownSign),
+                    optionsBackground = colorResource(id = R.color.dark_grey),
                     prefName = "routeLanguage",
                     width = 200
                 )

@@ -173,7 +173,7 @@ fun HomeScreen(
                     enableLeftButton = false,
                     onSend = { }   //TODO
                 )
-                // BUTTONS ROW
+                // BUTTONS ROW:
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()

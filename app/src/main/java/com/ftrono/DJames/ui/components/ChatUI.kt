@@ -247,7 +247,7 @@ fun ChatInputField(
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val overlayStatusState by overlayStatus.observeAsState("")
+    val overlayState by overlayStatus.observeAsState()
     val textState by chatText.observeAsState()
     val textFieldColors = getTextFieldColors(
         colorLight = colorResource(R.color.colorAccentLight),
@@ -257,7 +257,7 @@ fun ChatInputField(
     fun onKeyboardDone() {
         focusManager.clearFocus()
         keyboardController!!.hide()
-        if (overlayStatusState == "ready") onSend()
+        if (overlayState == "ready") onSend()
     }
 
     //Text Field:
@@ -271,6 +271,7 @@ fun ChatInputField(
                 keyboardController?.hide()
             }
             .focusRequester(focusRequester),
+        enabled = overlayState == "ready",
         colors = textFieldColors,
         value = textState!!,
         interactionSource = interactionSource,

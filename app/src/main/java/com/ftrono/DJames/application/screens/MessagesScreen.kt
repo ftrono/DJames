@@ -49,6 +49,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -64,6 +65,7 @@ import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.messagesListTriggerGap
+import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.ui.components.ChatInputField
@@ -72,6 +74,7 @@ import com.ftrono.DJames.ui.components.OptionsItem
 import com.ftrono.DJames.ui.components.OptionsMenu
 import com.ftrono.DJames.ui.components.MessageBubble
 import com.ftrono.DJames.ui.components.StreetUIScaffold
+import com.ftrono.DJames.ui.components.TypingIndicator
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
 import com.ftrono.DJames.ui.selectors.messagesColorSelectorLight
@@ -116,6 +119,7 @@ fun MessagesScreen(
     val focusManager = LocalFocusManager.current
     val selectedMessageIds = remember { mutableStateListOf<Long>() }
 
+    val overlayState by overlayStatus.observeAsState()
     var hasMore = remember { mutableStateOf(true) }
     val listState = rememberLazyListState()
     var offset = 0L
@@ -256,24 +260,52 @@ fun MessagesScreen(
             }
         }
 
-        // CHAT INPUT FIELD:
-        ChatInputField(
-            context = mContext,
-            requestPermissions = requestPermissions,
-            requestOverlayOn = requestOverlayOn,
+        //WRAPPER:
+        Column(
             modifier = Modifier
-                .padding(
-                    start = 32.dp,
-                    end = 24.dp,
-                    top = 6.dp,
-                    bottom = 2.dp
-                )
-                .imePadding()
                 .fillMaxWidth(),
-            placeholder = "Ask me anything...",
-            enableLeftButton = true,
-            onSend = { }   //TODO
-        )
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // TYPING INDICATOR:
+            if (overlayState == "processing") {
+                Row(
+                    modifier = Modifier
+                        .padding(top = 8.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    TypingIndicator()
+                    Text(
+                        modifier = Modifier
+                            .padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                        text = "Typing...",
+                        fontSize = 14.sp,
+                        fontStyle = FontStyle.Italic,
+                        textAlign = TextAlign.Center,
+                        color = colorResource(id = R.color.mid_grey),
+                    )
+                }
+            }
+            // CHAT INPUT FIELD:
+            ChatInputField(
+                context = mContext,
+                requestPermissions = requestPermissions,
+                requestOverlayOn = requestOverlayOn,
+                modifier = Modifier
+                    .padding(
+                        start = 32.dp,
+                        end = 24.dp,
+                        top = 6.dp,
+                        bottom = 2.dp
+                    )
+                    .imePadding()
+                    .fillMaxWidth(),
+                placeholder = "Ask me anything...",
+                enableLeftButton = true,
+                onSend = { }   //TODO
+            )
+        }
     }
 }
 

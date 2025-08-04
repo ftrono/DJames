@@ -1,6 +1,11 @@
 package com.ftrono.DJames.ui.components
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
@@ -19,6 +24,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -39,7 +45,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -209,11 +217,6 @@ fun DJamesButton(
     }
 }
 
-@Composable
-fun Row(content: @Composable () -> Unit) {
-    TODO("Not yet implemented")
-}
-
 
 @Composable
 fun ClockButton(
@@ -346,3 +349,49 @@ fun PulsatingWaveform() {
 fun Dp.toPx(): Float {
     return with(LocalDensity.current) { this@toPx.toPx() }
 }
+
+
+@Preview
+@Composable
+fun TypingIndicator(
+    dotSize: Dp = 8.dp,
+    dotColor: Color = Color.Gray,
+    spaceBetween: Dp = 6.dp,
+    animationDelay: Int = 1000
+) {
+    val dotCount = 3
+    val infiniteTransition = rememberInfiniteTransition()
+
+    val animations = List(dotCount) { index ->
+        infiniteTransition.animateFloat(
+            initialValue = 0.3f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = keyframes {
+                    durationMillis = animationDelay * dotCount
+                    0.3f at (index * animationDelay)
+                    1f at (index * animationDelay + animationDelay / 2)
+                    0.3f at (index * animationDelay + animationDelay)
+                },
+                repeatMode = RepeatMode.Restart
+            )
+        )
+    }
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(spaceBetween),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.wrapContentWidth()
+    ) {
+        animations.forEach { anim ->
+            Box(
+                modifier = Modifier
+                    .size(dotSize)
+                    .scale(anim.value)
+                    .alpha(anim.value)
+                    .background(color = dotColor, shape = CircleShape)
+            )
+        }
+    }
+}
+

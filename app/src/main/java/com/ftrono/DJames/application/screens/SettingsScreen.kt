@@ -636,7 +636,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 modifier = Modifier
                     .padding(end=8.dp, top=16.dp, bottom=4.dp),
                 title = "Advanced",
-                signColor = colorResource(id = R.color.colorStop),
+                signColor = colorResource(id = R.color.redSign),
                 iconPainter = painterResource(id = R.drawable.sign_warning)
             ) {
 
@@ -673,7 +673,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     Switch(
                         checked = checkedVolumeEnabled.value,
                         colors = getSwitchColors(
-                            color = colorResource(id = R.color.colorStop)
+                            color = colorResource(id = R.color.redSign)
                         ),
                         onCheckedChange = {
                             checkedVolumeEnabled.value = it

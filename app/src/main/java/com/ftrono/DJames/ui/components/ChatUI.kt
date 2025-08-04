@@ -155,7 +155,7 @@ fun SplitSendButton(
                 onClick = onLeftClick,
                 shape = RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = if (testChat || overlayActiveState!!) colorResource(id = R.color.colorAccentLight) else colorResource(id = R.color.colorAccent)
+                    containerColor = if (testChat || overlayActiveState!!) colorResource(id = R.color.colorStop) else colorResource(id = R.color.colorAccent)
                 ),
             ) {
                 Row(

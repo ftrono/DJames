@@ -28,7 +28,7 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.AuthActivity
 import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.settingsOpen
+import com.ftrono.DJames.application.extraOpen
 import com.ftrono.DJames.application.showLoggingIn
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.spotifyLoginUtils
@@ -47,7 +47,7 @@ fun UserOptions(
     navController: NavController,
     preview: Boolean = false
 ) {
-    val settingsOpenState by settingsOpen.observeAsState()
+    val extraOpenState by extraOpen.observeAsState()
     val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
 
     var mDisplayMenu = rememberSaveable {
@@ -60,7 +60,7 @@ fun UserOptions(
             context,
             logoutDialogOn,
             navController,
-            settingsOpenState!!
+            extraOpenState!!
         )
     }
 
@@ -110,7 +110,7 @@ fun UserOptions(
                     onClick = {
                         //Navigate:
                         val curNavRoute = NavigationItem.Settings.route
-                        if (curNavRoute == lastNavRoute && (settingsOpenState!!)) {
+                        if (curNavRoute == lastNavRoute && (extraOpenState!!)) {
                             navController.popBackStack()
                         } else {
                             navigateTo(navController, curNavRoute)
@@ -154,7 +154,7 @@ fun DialogLogout(
     context: Context,
     dialogOnState: MutableState<Boolean>,
     navController: NavController,
-    settingsOpenState: Boolean
+    extraOpenState: Boolean
 ) {
     GeneralDialog(
         dialogOnState = dialogOnState,
@@ -173,7 +173,7 @@ fun DialogLogout(
             spotifyLoginUtils.logout(
                 context,
                 navController,
-                settingsOpenState
+                extraOpenState
             )
             dialogOnState.value = false
         }

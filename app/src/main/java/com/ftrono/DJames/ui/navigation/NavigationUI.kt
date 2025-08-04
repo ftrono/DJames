@@ -42,7 +42,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.innerNavOpen
 import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.navigationItems
-import com.ftrono.DJames.application.settingsOpen
+import com.ftrono.DJames.application.extraOpen
 import com.ftrono.DJames.ui.components.RoundedSign
 
 
@@ -186,7 +186,7 @@ fun BottomNavigationBar(
     // States:
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val settingsOpenState by settingsOpen.observeAsState()
+    val extraOpenState by extraOpen.observeAsState()
     val innerNavOpenState by innerNavOpen.observeAsState()
 
     val navBarColors = NavigationBarItemColors(
@@ -205,7 +205,7 @@ fun BottomNavigationBar(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally)
         ) {
             //NAV ITEMS:
             items.forEach { item ->
@@ -227,7 +227,7 @@ fun BottomNavigationBar(
                     onClick = {
                         //Navigate:
                         val curNavRoute = item.route
-                        if (curNavRoute == lastNavRoute && (settingsOpenState!! || innerNavOpenState!!)) {
+                        if (curNavRoute == lastNavRoute && (extraOpenState!! || innerNavOpenState!!)) {
                             navController.popBackStack()
                         } else {
                             navigateTo(navController, curNavRoute)
@@ -249,7 +249,7 @@ fun SideNavigationRail(
     // States:
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val settingsOpenState by settingsOpen.observeAsState()
+    val extraOpenState by extraOpen.observeAsState()
     val innerNavOpenState by innerNavOpen.observeAsState()
 
     val navRailColors = NavigationRailItemColors(
@@ -291,7 +291,7 @@ fun SideNavigationRail(
                     onClick = {
                         //Navigate:
                         val curNavRoute = item.route
-                        if (curNavRoute == lastNavRoute && (settingsOpenState!! || innerNavOpenState!!)) {
+                        if (curNavRoute == lastNavRoute && (extraOpenState!! || innerNavOpenState!!)) {
                             navController.popBackStack()
                         } else {
                             navigateTo(navController, curNavRoute)

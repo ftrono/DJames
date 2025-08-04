@@ -36,7 +36,7 @@ fun guideIconSelector(
     } else if (cat == "messages") {
         return painterResource(id = R.drawable.sign_message)
     } else if (cat == "routes") {
-        return painterResource(id = R.drawable.sign_place)
+        return painterResource(id = R.drawable.icon_car)
     } else {
         return painterResource(id = R.drawable.sign_headphones)
     }

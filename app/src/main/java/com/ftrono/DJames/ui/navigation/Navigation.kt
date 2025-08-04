@@ -19,7 +19,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.ftrono.DJames.application.curNavId
 import com.ftrono.DJames.application.innerNavOpen
-import com.ftrono.DJames.application.settingsOpen
+import com.ftrono.DJames.application.extraOpen
 import com.ftrono.DJames.application.screens.GuideScreen
 import com.ftrono.DJames.application.screens.HomeScreen
 import com.ftrono.DJames.application.screens.SettingsScreen
@@ -48,29 +48,6 @@ fun Navigation(navController: NavHostController) {
                     )
                 ) + slideIntoContainer(
                     animationSpec = tween(300, easing = EaseIn),
-                    towards = if (curNavId > 0) {
-                        AnimatedContentTransitionScope.SlideDirection.End
-                    } else {
-                        AnimatedContentTransitionScope.SlideDirection.Start
-                    }
-                )
-            }) {
-            curNavId = 0
-            innerNavOpen.postValue(false)
-            settingsOpen.postValue(false)
-            HomeScreen(navController)
-        }
-
-        //1 -> GUIDE:
-        composable(
-            NavigationItem.Guide.route,
-            enterTransition = {
-                fadeIn(
-                    animationSpec = tween(
-                        300, easing = LinearEasing
-                    )
-                ) + slideIntoContainer(
-                    animationSpec = tween(300, easing = EaseIn),
                     towards = if (curNavId > 1) {
                         AnimatedContentTransitionScope.SlideDirection.End
                     } else {
@@ -80,8 +57,8 @@ fun Navigation(navController: NavHostController) {
             }) {
             curNavId = 1
             innerNavOpen.postValue(false)
-            settingsOpen.postValue(false)
-            GuideScreen(navController)
+            extraOpen.postValue(false)
+            HomeScreen(navController)
         }
 
         //2 -> LIBRARY:
@@ -94,16 +71,16 @@ fun Navigation(navController: NavHostController) {
                     )
                 ) + slideIntoContainer(
                     animationSpec = tween(300, easing = EaseIn),
-                    towards = if (curNavId >= 2) {
+                    towards = if (curNavId >= 0) {
                         AnimatedContentTransitionScope.SlideDirection.End
                     } else {
                         AnimatedContentTransitionScope.SlideDirection.Start
                     }
                 )
             }) {
-            curNavId = 2
+            curNavId = 0
             innerNavOpen.postValue(false)
-            settingsOpen.postValue(false)
+            extraOpen.postValue(false)
             LibraryScreen(navController)
         }
 
@@ -117,16 +94,16 @@ fun Navigation(navController: NavHostController) {
                     )
                 ) + slideIntoContainer(
                     animationSpec = tween(300, easing = EaseIn),
-                    towards = if (curNavId > 3) {
+                    towards = if (curNavId > 2) {
                         AnimatedContentTransitionScope.SlideDirection.End
                     } else {
                         AnimatedContentTransitionScope.SlideDirection.Start
                     }
                 )
             }) {
-            curNavId = 3
+            curNavId = 2
             innerNavOpen.postValue(false)
-            settingsOpen.postValue(false)
+            extraOpen.postValue(false)
             MessagesScreen(navController)
         }
 
@@ -143,8 +120,24 @@ fun Navigation(navController: NavHostController) {
         ) {
             curNavId = 0
             innerNavOpen.postValue(false)
-            settingsOpen.postValue(true)
+            extraOpen.postValue(true)
             SettingsScreen(navController)
+        }
+
+        //1 -> GUIDE:
+        composable(
+            NavigationItem.Guide.route,
+            enterTransition = {
+                scaleIn() + expandVertically(expandFrom = Alignment.Bottom)
+            },
+            exitTransition = {
+                scaleOut() + shrinkVertically(shrinkTowards = Alignment.Bottom)
+            }
+        ) {
+            curNavId = 0
+            innerNavOpen.postValue(false)
+            extraOpen.postValue(true)
+            GuideScreen(navController)
         }
     }
 }

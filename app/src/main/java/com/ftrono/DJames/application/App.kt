@@ -58,9 +58,8 @@ val defaultReplies = DefaultReplies()
 
 //Navigation:
 val navigationItems = listOf(
-    NavigationItem.Home,
-    NavigationItem.Guide,
     NavigationItem.Library,
+    NavigationItem.Home,
     NavigationItem.Messages
 )
 
@@ -97,7 +96,7 @@ var clockActive = MutableLiveData<Boolean>(false)
 var overlayPos = MutableLiveData<String>("Right")
 var volumeUpEnabled = MutableLiveData<Boolean>(true)
 var sourceIsVolume = MutableLiveData<Boolean>(false)
-var settingsOpen = MutableLiveData<Boolean>(false)
+var extraOpen = MutableLiveData<Boolean>(false)
 var innerNavOpen = MutableLiveData<Boolean>(false)
 var currentPlayingPrefix = MutableLiveData<String>("")
 var currentSongPlaying = MutableLiveData<String>("Don't turn off the screen!")

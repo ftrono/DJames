@@ -1,23 +1,24 @@
 package com.ftrono.DJames.ui.components
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.Person
@@ -25,7 +26,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
@@ -41,6 +41,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -65,7 +67,6 @@ import com.ftrono.DJames.application.spotUserImageState
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.userNicknameState
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.application.screens.SpotifyLoginStatus
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
 
 
@@ -123,6 +124,65 @@ fun CardContainer(
         ) {
             content()
         }
+    }
+}
+
+
+@Composable
+fun SpotifyLoginStatus(
+    modifier: Modifier = Modifier,
+    spotifyLoggedInState: Boolean,
+    mContext: Context
+) {
+    //SPOTIFY LOGIN STATUS:
+    Row (
+        modifier = modifier
+            .padding(bottom = 20.dp)
+            .clickable {
+                if (!spotifyLoggedInState) {
+                    Toast
+                        .makeText(
+                            mContext,
+                            "Log in from Settings to unlock music functions!",
+                            Toast.LENGTH_LONG
+                        )
+                        .show()
+                } else {
+                    Toast
+                        .makeText(
+                            mContext,
+                            "Logged in to Spotify as: ${prefs.spotUserName}!",
+                            Toast.LENGTH_LONG
+                        )
+                        .show()
+                }
+            },
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        //Spotify logo:
+        Image(
+            modifier = Modifier
+                .width(30.dp)
+                .height(30.dp),
+            painter = painterResource(id = R.drawable.logo_spotify),
+            contentDescription = "Spotify logo",
+            colorFilter = if (!spotifyLoggedInState) {
+                ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+            } else {
+                ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(1f) })
+            }
+        )
+        //Logged in text:
+        Text(
+            text = if (spotifyLoggedInState) "LOGGED IN" else "NOT LOGGED IN",
+            fontSize = 12.sp,
+            color = colorResource(id = R.color.light_grey),
+            modifier = Modifier
+                .padding(start = 12.dp)
+                .wrapContentWidth()
+                .wrapContentHeight()
+        )
     }
 }
 

@@ -111,7 +111,7 @@ class SpotifyLoginUtils {
     fun logout(
         context: Context,
         navController: NavController,
-        settingsOpenState: Boolean
+        extraOpenState: Boolean
     ) {
         //Delete tokens & user details:
         spotifyLoggedIn.postValue(false)
@@ -130,7 +130,7 @@ class SpotifyLoginUtils {
         Toast.makeText(context, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()
         //Navigate to Home:
         val curNavRoute = NavigationItem.Home.route
-        if (curNavRoute == lastNavRoute && (settingsOpenState)) {
+        if (curNavRoute == lastNavRoute && (extraOpenState)) {
             navController.popBackStack()
         } else {
             navigateTo(navController, curNavRoute)

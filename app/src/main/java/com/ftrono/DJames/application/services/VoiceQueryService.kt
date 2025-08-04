@@ -32,7 +32,7 @@ import com.ftrono.DJames.be.nlp.NLPDispatcher
 import com.ftrono.DJames.be.audio.AndroidAudioRecorder
 import com.ftrono.DJames.be.audio.AudioRequestsManager
 import com.ftrono.DJames.be.audio.TTSReader
-import com.ftrono.DJames.be.tools.Actions
+import com.ftrono.DJames.be.chat.ActionsExecutor
 import java.io.File
 
 
@@ -288,7 +288,7 @@ class VoiceQueryService: Service() {
                     nlpDispatcher.dispatch(recFile, dispatcherInfo, followUp, messageMode)
                 messageMode = dispatcherInfo.messageMode
                 followUp = dispatcherInfo.followUp
-                val actions = Actions(applicationContext)
+                val actionsExecutor = ActionsExecutor(applicationContext)
                 var newReplies = listOf<AiReply>()
 
                 if (dispatcherInfo.fail && dispatcherInfo.aiReplies.isEmpty()) {
@@ -313,14 +313,14 @@ class VoiceQueryService: Service() {
                     audioRequestsManager.releaseDuckedFocus()
                     // Execute:
                     if (dispatcherInfo.actionType != null) {
-                        actions.execute(dispatcherInfo)
+                        actionsExecutor.execute(dispatcherInfo)
                     }
 
                 } else if (voiceQueryOn) {
                     // B) First execute action, then speak:
                     // Execute:
                     if (dispatcherInfo.actionType != null) {
-                        newReplies = actions.execute(dispatcherInfo)
+                        newReplies = actionsExecutor.execute(dispatcherInfo)
                     }
                     // If received updated replies: replace!
                     if (newReplies.isNotEmpty()) {

@@ -1,4 +1,4 @@
-package com.ftrono.DJames.be.tools
+package com.ftrono.DJames.be.chat
 
 import android.content.Context
 import android.content.Intent
@@ -20,10 +20,10 @@ import com.ftrono.DJames.be.spotify.SpotifyPlayer
 import java.io.File
 
 
-class Actions(
+class ActionsExecutor(
     private val context: Context
 ) {
-    private val TAG = Actions::class.java.simpleName
+    private val TAG = ActionsExecutor::class.java.simpleName
     private var dispatcherInfo = DispatcherInfo()
 
     // MAIN: EXECUTOR:

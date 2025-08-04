@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.ftrono.DJames.application.chatText
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.extraOpen
@@ -51,6 +52,7 @@ import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.spotUserName
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.volumeUpEnabled
+import com.ftrono.DJames.be.chat.ChatManager
 import com.ftrono.DJames.ui.components.CardSign
 import com.ftrono.DJames.ui.components.ChatInputField
 import com.ftrono.DJames.ui.components.DriveIcon
@@ -156,22 +158,11 @@ fun HomeScreen(
                     preview = preview,
                 )
                 // CHAT INPUT FIELD:
-                ChatInputField(
+                HomeChatWrapper(
                     context = mContext,
                     requestPermissions = requestPermissions,
                     requestOverlayOn = requestOverlayOn,
-                    modifier = Modifier
-                        .padding(
-                            start = 32.dp,
-                            end = 24.dp,
-                            top = 6.dp,
-                            bottom = 2.dp
-                        )
-                        .imePadding()
-                        .fillMaxWidth(),
-                    placeholder = "Ask me anything...",
-                    enableLeftButton = false,
-                    onSend = { }   //TODO
+                    navController = navController,
                 )
                 // BUTTONS ROW:
                 Row(
@@ -219,23 +210,11 @@ fun HomeScreen(
                     isLandscape = isLandscape,
                     preview = preview,
                 )
-                // CHAT INPUT FIELD:
-                ChatInputField(
+                HomeChatWrapper(
                     context = mContext,
                     requestPermissions = requestPermissions,
                     requestOverlayOn = requestOverlayOn,
-                    modifier = Modifier
-                        .padding(
-                            start = 32.dp,
-                            end = 24.dp,
-                            top = 6.dp,
-                            bottom = 2.dp
-                        )
-                        .imePadding()
-                        .fillMaxWidth(),
-                    placeholder = "Ask me anything...",
-                    enableLeftButton = false,
-                    onSend = { }   //TODO
+                    navController = navController,
                 )
                 DriveModeButton(
                     modifier = Modifier
@@ -305,6 +284,43 @@ fun HomeIntroText(
         fontWeight = FontWeight.Bold,
         fontStyle = FontStyle.Italic,
         color = colorResource(id = R.color.light_grey),
+    )
+}
+
+
+// CHAT INPUT FIELD:
+@Composable
+fun HomeChatWrapper(
+    context: Context,
+    requestPermissions: MutableState<Boolean>,
+    requestOverlayOn: MutableState<Boolean>,
+    navController: NavController
+) {
+    val chatManager = ChatManager(context)
+
+    ChatInputField(
+        context = context,
+        requestPermissions = requestPermissions,
+        requestOverlayOn = requestOverlayOn,
+        modifier = Modifier
+            .padding(
+                start = 32.dp,
+                end = 24.dp,
+                top = 6.dp,
+                bottom = 2.dp
+            )
+            .imePadding()
+            .fillMaxWidth(),
+        placeholder = "Ask me anything...",
+        enableLeftButton = false,
+        onSend = {
+            if (chatText.value!!.trim() != "") {
+                navigateTo(navController, NavigationItem.Messages.route)
+                val curText = chatText.value!!.trim()
+                chatManager.processQuery(curText)
+                chatText.postValue("")
+            }
+        }
     )
 }
 

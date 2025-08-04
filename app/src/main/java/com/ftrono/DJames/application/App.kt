@@ -18,7 +18,9 @@ import com.ftrono.DJames.be.database.MyObjectBox
 import com.ftrono.DJames.be.database.Playlist
 import com.ftrono.DJames.be.database.Podcast
 import com.ftrono.DJames.be.database.Route
+import com.ftrono.DJames.be.models.DispatcherInfo
 import com.ftrono.DJames.be.nlp.FulfillmentUtils
+import com.ftrono.DJames.be.nlp.NLPDispatcher
 import com.ftrono.DJames.be.samples.DefaultReplies
 import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
 import com.ftrono.DJames.be.spotify.SpotifyUtils
@@ -121,13 +123,20 @@ var messagesPageSize = 20L
 var messagesListTriggerGap = 10
 
 // Conversation tracking:
+var chatReset = true
+var chatFollowUp = false
+var chatMessageMode = false
+var chatLastDispatch = DispatcherInfo()
 var lastAiMessage: Message = Message()
 var lastUserMessage: Message = Message()
 var lastRequestIntent: String = ""
 var lastStarter: Message = Message()
-var convStarted: Boolean = false
+var voiceConvStarted: Boolean = false
+var chatConvStarted: Boolean = false
 
 //Preferences:
+val defaultChatResetTime: Long = 3*60*1000   //minutes
+val defaultChatWait = 2000L
 val maxAudioRecTimeout = 120L   //for voice messages
 val maxClickOptions = 3
 val silenceInitPatience = 6

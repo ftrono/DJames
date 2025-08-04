@@ -38,7 +38,7 @@ class TTSReader(private val context: Context) {
             lastAiMessage.text = fullText
             lastAiMessage.langCode = prefs.queryLanguage   //TODO
             lastAiMessage.requestIntent = lastRequestIntent
-            messageUtils.storeMessage(context, fromUser = false)
+            messageUtils.storeMessage(context, fromUser = false, fromVoice = true)
         }
     }
 

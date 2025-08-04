@@ -3,6 +3,7 @@ package com.ftrono.DJames.be.nlp
 import android.Manifest
 import android.content.Context
 import android.util.Log
+import com.ftrono.DJames.application.defaultChatWait
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.lastRequestIntent
@@ -12,7 +13,6 @@ import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.be.database.NlpQueryModel
 import com.ftrono.DJames.be.models.DispatcherInfo
 import com.ftrono.DJames.be.spotify.SpotifyFulfillment
@@ -24,7 +24,8 @@ class NLPDispatcher (private var context: Context) {
     private val TAG = NLPDispatcher::class.java.simpleName
 
     fun dispatch(
-        recFile: File,
+        text: String = "",
+        recFile: File? = null,
         prevDispatch: DispatcherInfo = DispatcherInfo(),
         followUp: Boolean = false,
         messageMode: Boolean = false
@@ -48,7 +49,7 @@ class NLPDispatcher (private var context: Context) {
         //1ST REQUEST -> always in default request language:
         if (!followUp && !messageMode) {
             Log.d(TAG, "1ST REQUEST.")
-            resultsNLP = nlpQuery.queryNLP(recFile, messageMode = false, reqLanguage = reqLanguage)
+            resultsNLP = nlpQuery.queryNLP(text=text, recFile=recFile, messageMode = false, reqLanguage = reqLanguage)
 
             //Process request:
             if (resultsNLP.queryText != "") {
@@ -65,7 +66,7 @@ class NLPDispatcher (private var context: Context) {
                     lastUserMessage.requestIntent = intentName
                     lastRequestIntent = intentName
                     lastAiMessage.attachments.nlpQueries.add(resultsNLP)   // TODO: TEMP
-                    messageUtils.storeMessage(context, fromUser = true)
+                    messageUtils.storeMessage(context, fromUser = true, fromVoice = text=="")
                     Log.d(TAG, "NLPDispatcher1: detected intent: $intentName")
 
                 } catch (e: Exception) {
@@ -73,6 +74,10 @@ class NLPDispatcher (private var context: Context) {
                     return fulfillmentUtils.fallback()   //Error
                 }
 
+                // Typing delay:
+                if (text != "") {
+                    Thread.sleep(defaultChatWait)
+                }
 
                 //DISPATCH PROCESSING:
                 if (nlp_queryText != "" && intentName != "") {
@@ -100,23 +105,23 @@ class NLPDispatcher (private var context: Context) {
 
 
         //2ND REQUEST:
-        } else if (voiceQueryOn) {
+        } else {
             //FOLLOW UP / MESSAGE MODE:
             //Check prev intent & requested language:
             var prevIntent = ""
             var reqLangCode = prevDispatch.reqLanguage
 
-            if (messageMode && prevDispatch.messageType == "voice") {
+            if (messageMode && prevDispatch.messageType == "voice" && text == "") {
                 //Whatsapp audio message -> no NLP query!
                 val storedText = "(private voice message)"
                 lastUserMessage.text = storedText
                 lastUserMessage.requestIntent = lastRequestIntent
-                messageUtils.storeMessage(context, fromUser = true)
+                messageUtils.storeMessage(context, fromUser = true, fromVoice = true)
                 try {
                     Log.d(TAG, "MESSAGE FOLLOWUP: AUDIO MESSAGE.")
                     lastUserMessage.text = storedText
                     lastUserMessage.requestIntent = lastRequestIntent
-                    messageUtils.storeMessage(context, fromUser = true)
+                    messageUtils.storeMessage(context, fromUser = true, fromVoice = true)
                     return fulfillment.sendMessage2(prevDispatch)
                 } catch (e: Exception) {
                     Log.w(TAG, "Error in sending Whatsapp audio message!")
@@ -127,13 +132,13 @@ class NLPDispatcher (private var context: Context) {
                 //Query NLP:
                 if (messageMode) {
                     Log.d(TAG, "MESSAGE FOLLOWUP: TEXT MESSAGE.")
-                    resultsNLP = nlpQuery.queryNLP(recFile, messageMode = true, reqLanguage = reqLangCode)
+                    resultsNLP = nlpQuery.queryNLP(text=text, recFile=recFile, messageMode = true, reqLanguage = reqLangCode)
 
                 } else {
                     Log.d(TAG, "GENERIC FOLLOWUP.")
                     //Store previous information:
                     prevIntent = prevDispatch.intentName
-                    resultsNLP = nlpQuery.queryNLP(recFile, messageMode = false, reqLanguage = reqLangCode)
+                    resultsNLP = nlpQuery.queryNLP(text=text, recFile=recFile, messageMode = false, reqLanguage = reqLangCode)
                 }
 
                 //Process request:
@@ -157,11 +162,16 @@ class NLPDispatcher (private var context: Context) {
                         lastUserMessage.text = storedText
                         lastUserMessage.langCode = resultsNLP.language
                         lastUserMessage.requestIntent = lastRequestIntent
-                        messageUtils.storeMessage(context, fromUser = true)
+                        messageUtils.storeMessage(context, fromUser = true, fromVoice = text=="")
                         Log.d(TAG, "NLPDispatcher2: detected intent: $intentName")
                     } catch (e: Exception) {
                         Log.w(TAG, "NLPDispatcher2: no NLP results!")
                         return fulfillmentUtils.fallback()   //Error
+                    }
+
+                    // Typing delay:
+                    if (text != "") {
+                        Thread.sleep(defaultChatWait)
                     }
 
                     //DISPATCH PROCESSING:

@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
@@ -59,6 +60,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.allMessages
+import com.ftrono.DJames.application.chatText
 import com.ftrono.DJames.application.curMessagesSize
 import com.ftrono.DJames.application.datetimeShortFormat
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
@@ -67,6 +69,7 @@ import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.messagesListTriggerGap
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.chat.ChatManager
 import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.ui.components.ChatInputField
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
@@ -97,6 +100,8 @@ fun MessagesScreen(
     preview: Boolean = false
 ) {
     val mContext = LocalContext.current
+    val chatManager = ChatManager(mContext)
+
     //Overlay permission management:
     val requestOverlayOn = rememberSaveable { mutableStateOf(false) }
     if (requestOverlayOn.value) {
@@ -303,7 +308,13 @@ fun MessagesScreen(
                     .fillMaxWidth(),
                 placeholder = "Ask me anything...",
                 enableLeftButton = true,
-                onSend = { }   //TODO
+                onSend = {
+                    if (chatText.value!!.trim() != "") {
+                        val curText = chatText.value!!.trim()
+                        chatManager.processQuery(curText)
+                        chatText.postValue("")
+                    }
+                }
             )
         }
     }
@@ -467,75 +478,100 @@ fun MessageItem(
                 }
             }
             if (extraDetails != "") {
-                MessageBubble(
-                    mContext = mContext,
-                    selectedMessageIds = selectedMessageIds,
-                    fromUser = message.type == "user",
-                    messageId = message.id,
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(4.dp),
-                        horizontalAlignment = Alignment.Start,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.Start,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            //CAT ICON:
-                            Icon(
-                                modifier = Modifier
-                                    .padding(
-                                        start = 8.dp,
-                                        end = 2.dp,
-                                        top = 4.dp,
-                                        bottom = 2.dp
-                                    )
-                                    .size(16.dp),
-                                painter = messagesIconSelector(cat = message.requestIntent),
-                                contentDescription = message.requestIntent,
-                                tint = if (selectedMessageIds.contains(message.id)) {
-                                    colorResource(R.color.colorPrimaryDark)
-                                } else {
-                                    messagesColorSelectorLight(cat = message.requestIntent)
-                                }
-                            )
-                            //CAT NAME:
-                            Text(
-                                modifier = Modifier
-                                    .padding(start = 2.dp, end = 8.dp, top = 4.dp, bottom = 2.dp),
-                                color = if (selectedMessageIds.contains(message.id)) {
-                                    colorResource(R.color.colorPrimaryDark)
-                                } else {
-                                    messagesColorSelectorLight(cat = message.requestIntent)
-                                },
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                text = message.requestIntent
-                            )
-                        }
-                        //FULL DETAILS TEXT:
-                        Text(
-                            modifier = Modifier
-                                .padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 8.dp)
-                                .wrapContentWidth()
-                                .wrapContentHeight(),
-                            color = if (selectedMessageIds.contains(message.id)) {
-                                colorResource(R.color.colorPrimaryDark)
-                            } else {
-                                colorResource(id = R.color.mid_grey)
-                            },
-                            fontSize = 12.sp,
-                            lineHeight = 14.sp,
-                            text = extraDetails
-                        )
-                    }
-                }
+                MessageDetail(
+                    message = message,
+                    selectedMessageIds = selectedMessageIds
+                )
             }
         }
     }
 }
+
+
+@Composable
+fun MessageDetail(
+    message: Message,
+    selectedMessageIds: SnapshotStateList<Long>
+) {
+    //INFO:
+    val mContext = LocalContext.current
+    val extraDetails = if (message.type == "ai") buildExtraDetails(message) else ""
+
+    MessageBubble(
+        mContext = mContext,
+        selectedMessageIds = selectedMessageIds,
+        fromUser = message.type == "user",
+        messageId = message.id,
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(4.dp),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Center
+        ) {
+            //HEADER ROW:
+            Row(
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                //CAT ICON:
+                Icon(
+                    modifier = Modifier
+                        .padding(
+                            start = 8.dp,
+                            end = 2.dp,
+                            bottom = 2.dp
+                        )
+                        .size(16.dp),
+                    painter = messagesIconSelector(cat = message.requestIntent),
+                    contentDescription = message.requestIntent,
+                    tint = if (selectedMessageIds.contains(message.id)) {
+                        colorResource(R.color.colorPrimaryDark)
+                    } else {
+                        messagesColorSelectorLight(cat = message.requestIntent)
+                    }
+                )
+                //CAT NAME:
+                Text(
+                    modifier = Modifier
+                        .padding(start = 2.dp, end = 8.dp, bottom = 2.dp),
+                    color = if (selectedMessageIds.contains(message.id)) {
+                        colorResource(R.color.colorPrimaryDark)
+                    } else {
+                        messagesColorSelectorLight(cat = message.requestIntent)
+                    },
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    text = message.requestIntent
+                )
+                // GO ICON:
+                Icon(
+                    modifier = Modifier
+                        .padding(start=2.dp, bottom=2.dp),
+                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                    tint = messagesColorSelectorLight(cat = message.requestIntent),
+                    contentDescription = "Go"
+                )
+            }
+            //FULL DETAILS TEXT:
+            Text(
+                modifier = Modifier
+                    .padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 8.dp)
+                    .wrapContentWidth()
+                    .wrapContentHeight(),
+                color = if (selectedMessageIds.contains(message.id)) {
+                    colorResource(R.color.colorPrimaryDark)
+                } else {
+                    colorResource(id = R.color.mid_grey)
+                },
+                fontSize = 12.sp,
+                lineHeight = 14.sp,
+                text = extraDetails
+            )
+        }
+    }
+}
+
 
 
 //DROPDOWN MENU:

@@ -58,6 +58,7 @@ import com.ftrono.DJames.ui.selectors.getTextFieldColors
 
 @Composable
 fun MessageBubble(
+    modifier: Modifier = Modifier,
     mContext: Context,
     selectedMessageIds: SnapshotStateList<Long>,
     messageId: Long,
@@ -67,7 +68,7 @@ fun MessageBubble(
 ) {
     // MESSAGE BUBBLE:
     Card(
-        modifier = Modifier
+        modifier = modifier
             .padding(
                 top = 2.dp,
                 start = if (fromUser) 40.dp else 0.dp,

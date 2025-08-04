@@ -15,9 +15,8 @@ import com.google.cloud.dialogflow.v2.QueryResult
 import com.google.cloud.dialogflow.v2.SessionName
 import com.google.cloud.dialogflow.v2.SessionsClient
 import com.google.cloud.dialogflow.v2.SessionsSettings
-import com.google.gson.JsonObject
+import com.google.cloud.dialogflow.v2.TextInput
 import com.google.gson.JsonParser
-import com.google.gson.JsonArray
 import com.google.protobuf.ByteString
 import java.io.BufferedReader
 import java.io.File
@@ -78,7 +77,7 @@ class NLPQuery(context: Context) {
     }
 
 
-    fun queryNLP(recFile: File, messageMode: Boolean = false, reqLanguage: String = ""): NlpQueryModel {
+    fun queryNLP(text: String = "", recFile: File? = null, messageMode: Boolean = false, reqLanguage: String = ""): NlpQueryModel {
         var respData = NlpQueryModel()
         try {
             var languageCode = ""
@@ -95,26 +94,47 @@ class NLPQuery(context: Context) {
             } else {
                 languageCode = prefs.queryLanguage
             }
-            val inputAudioConfig: InputAudioConfig = InputAudioConfig.newBuilder()
-                .setAudioEncoding(AudioEncoding.AUDIO_ENCODING_FLAC)
-                .setSampleRateHertz(recSamplingRate)
-                .setLanguageCode(languageCode)
-                .setModel("latest_short")
-                .setSingleUtterance(false)
-                .setEnableAutomaticPunctuation(punct)
-                .build()
 
-            val queryInput: QueryInput = QueryInput.newBuilder()
-                .setAudioConfig(inputAudioConfig)
-                .build()
+            var queryInput: QueryInput? = null
+            var detectIntentRequest: DetectIntentRequest? = null
 
-            val detectIntentRequest = DetectIntentRequest.newBuilder()
-                .setSession(sessionId.toString())
-                .setQueryInput(queryInput)
-                .setInputAudio(ByteString.copyFrom(recFile.readBytes()))
-                .build()
+            if (recFile != null) {
+                //AUDIO REQUEST:
+                val inputAudioConfig: InputAudioConfig = InputAudioConfig.newBuilder()
+                    .setAudioEncoding(AudioEncoding.AUDIO_ENCODING_FLAC)
+                    .setSampleRateHertz(recSamplingRate)
+                    .setLanguageCode(languageCode)
+                    .setModel("latest_short")
+                    .setSingleUtterance(false)
+                    .setEnableAutomaticPunctuation(punct)
+                    .build()
 
-            //Log.d(TAG, "SENT detectIntentRequest REQUEST: ${JsonFormat.printer().print(detectIntentRequest)}")
+                queryInput = QueryInput.newBuilder()
+                    .setAudioConfig(inputAudioConfig)
+                    .build()
+
+
+                detectIntentRequest = DetectIntentRequest.newBuilder()
+                    .setSession(sessionId.toString())
+                    .setQueryInput(queryInput)
+                    .setInputAudio(ByteString.copyFrom(recFile!!.readBytes()))
+                    .build()
+            } else {
+                //TEXT REQUEST:
+                val textInput = TextInput.newBuilder()
+                    .setText(text)
+                    .setLanguageCode(languageCode)
+                    .build()
+
+                queryInput = QueryInput.newBuilder()
+                    .setText(textInput)
+                    .build()
+
+                detectIntentRequest = DetectIntentRequest.newBuilder()
+                    .setSession(sessionId.toString())
+                    .setQueryInput(queryInput)
+                    .build()
+            }
 
             //Run NLP query with handmade timeout:
             if (!sessionThread.isAlive()) {

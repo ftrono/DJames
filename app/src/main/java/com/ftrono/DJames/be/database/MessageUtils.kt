@@ -8,7 +8,8 @@ import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import com.ftrono.DJames.application.ACTION_MESSAGES_REFRESH
 import com.ftrono.DJames.application.appVersion
-import com.ftrono.DJames.application.convStarted
+import com.ftrono.DJames.application.chatConvStarted
+import com.ftrono.DJames.application.voiceConvStarted
 import com.ftrono.DJames.application.curMessagesSize
 import com.ftrono.DJames.application.datetimeExportFormat
 import com.ftrono.DJames.application.datetimeFullFormat
@@ -138,7 +139,7 @@ class MessageUtils {
 
 
     //Store last open log to DB:
-    fun storeMessage(context: Context, fromUser: Boolean = false) {
+    fun storeMessage(context: Context, fromUser: Boolean = false, fromVoice: Boolean = false) {
         try {
             val message = if (fromUser) lastUserMessage else lastAiMessage
             if (!fromUser) {
@@ -146,14 +147,19 @@ class MessageUtils {
             }
             if (message.text == "") {
                 Log.w(TAG, "Empty Message: not saved!")
-            } else if (!fromUser && !convStarted) {
+            } else if (fromVoice && !fromUser && !voiceConvStarted) {
                 Log.w(TAG, "Conversation not started: skipped saving AI message!")
             } else {
-                if (fromUser && !convStarted) {
+                if (fromVoice && fromUser && !voiceConvStarted) {
                     // Start conversation:
-                    convStarted = true
+                    voiceConvStarted = true
                     messageBox!!.put(lastStarter)
-                    Log.d(TAG, "Conversation started!")
+                    Log.d(TAG, "Voice conversation started!")
+                } else if (fromUser && !chatConvStarted) {
+                    // Start conversation:
+                    chatConvStarted = true
+                    messageBox!!.put(lastStarter)
+                    Log.d(TAG, "Chat conversation started!")
                 }
                 messageBox!!.put(message)
                 Log.d(TAG, "Message item ${message.id} saved!")

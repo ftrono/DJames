@@ -15,7 +15,11 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.application.ACTION_REC_STOP
-import com.ftrono.DJames.application.convStarted
+import com.ftrono.DJames.application.chatConvStarted
+import com.ftrono.DJames.application.chatFollowUp
+import com.ftrono.DJames.application.chatLastDispatch
+import com.ftrono.DJames.application.chatMessageMode
+import com.ftrono.DJames.application.voiceConvStarted
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.lastRequestIntent
 import com.ftrono.DJames.application.messageUtils
@@ -52,7 +56,7 @@ class VoiceQueryService: Service() {
     //Status:
     private var followUp = false
     private var messageMode = false
-    private var dispatcherInfo = DispatcherInfo()
+    private var lastDispatch = DispatcherInfo()
 
     //JOBS:
     private var recordingThread: Thread? = null
@@ -122,9 +126,9 @@ class VoiceQueryService: Service() {
         recordingFail = false
         recordingMode = false
         voiceQueryOn = false
-        convStarted = false
+        voiceConvStarted = false
         sourceIsVolume.postValue(false)
-        dispatcherInfo = DispatcherInfo()
+        lastDispatch = DispatcherInfo()
         lastRequestIntent = ""
         //Set overlay READY color:
         overlayStatus.postValue("ready")
@@ -181,6 +185,12 @@ class VoiceQueryService: Service() {
                 if (voiceQueryOn && speakIntro) {
                     audioRequestsManager.requestDuckedFocus(
                         onGranted = {
+                            //End previous chat conversation:
+                            chatConvStarted = false
+                            chatFollowUp = false
+                            chatMessageMode = false
+                            chatLastDispatch = DispatcherInfo()
+                            //Start:
                             overlayStatus.postValue("processing")
                             messageUtils.createMessage(fromUser = false, isStart = true)
                             Thread.sleep(500)
@@ -217,7 +227,7 @@ class VoiceQueryService: Service() {
 
                             MyRecorder.whileRecording(
                                 messageMode,
-                                dispatcherInfo.messageType,
+                                lastDispatch.messageType,
                             )
                         },
                         onFail = { stopSelf() }
@@ -284,14 +294,13 @@ class VoiceQueryService: Service() {
             //PROCESS REQUEST:
             if (voiceQueryOn) {
                 var nlpDispatcher = NLPDispatcher(applicationContext)
-                dispatcherInfo =
-                    nlpDispatcher.dispatch(recFile, dispatcherInfo, followUp, messageMode)
-                messageMode = dispatcherInfo.messageMode
-                followUp = dispatcherInfo.followUp
+                lastDispatch = nlpDispatcher.dispatch(recFile=recFile, prevDispatch=lastDispatch, followUp=followUp, messageMode=messageMode)
+                messageMode = lastDispatch.messageMode
+                followUp = lastDispatch.followUp
                 val actionsExecutor = ActionsExecutor(applicationContext)
                 var newReplies = listOf<AiReply>()
 
-                if (dispatcherInfo.fail && dispatcherInfo.aiReplies.isEmpty()) {
+                if (lastDispatch.fail && lastDispatch.aiReplies.isEmpty()) {
                     // Default fail replies:
                     newReplies = listOf(
                         AiReply(
@@ -307,28 +316,28 @@ class VoiceQueryService: Service() {
                 if (voiceQueryOn && intentName.contains("Play") || intentName.contains("Call")) {
                     // A) First speak, then execute action:
                     // Read:
-                    if (dispatcherInfo.aiReplies.isNotEmpty()) {
-                        tts.speak(dispatcherInfo.aiReplies)
+                    if (lastDispatch.aiReplies.isNotEmpty()) {
+                        tts.speak(lastDispatch.aiReplies)
                     }
                     audioRequestsManager.releaseDuckedFocus()
                     // Execute:
-                    if (dispatcherInfo.actionType != null) {
-                        actionsExecutor.execute(dispatcherInfo)
+                    if (lastDispatch.actionType != null) {
+                        actionsExecutor.execute(lastDispatch)
                     }
 
                 } else if (voiceQueryOn) {
                     // B) First execute action, then speak:
                     // Execute:
-                    if (dispatcherInfo.actionType != null) {
-                        newReplies = actionsExecutor.execute(dispatcherInfo)
+                    if (lastDispatch.actionType != null) {
+                        newReplies = actionsExecutor.execute(lastDispatch)
                     }
                     // If received updated replies: replace!
                     if (newReplies.isNotEmpty()) {
-                        dispatcherInfo.aiReplies = newReplies
+                        lastDispatch.aiReplies = newReplies
                     }
                     // Read:
-                    if (dispatcherInfo.aiReplies.isNotEmpty()) {
-                        tts.speak(dispatcherInfo.aiReplies)
+                    if (lastDispatch.aiReplies.isNotEmpty()) {
+                        tts.speak(lastDispatch.aiReplies)
                     }
                     audioRequestsManager.releaseDuckedFocus()
 
@@ -343,11 +352,11 @@ class VoiceQueryService: Service() {
                 } else {
                     // END:
                     overlayStatus.postValue("ready")
-                    if (dispatcherInfo.fail) {
+                    if (lastDispatch.fail) {
                         toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                     } else {
                         //messageUtils.storeMessage(applicationContext, fromUser = false) TODO
-                        if (dispatcherInfo.playAcknowledge) toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                        if (lastDispatch.playAcknowledge) toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                     }
                     Thread.sleep(200)
                     stopSelf()

@@ -42,7 +42,7 @@ class ChatManager(private val context: Context) {
         if (chatReset) {
            resetConv()
         }
-        messageUtils.createMessage(fromUser = true, isStart = !chatReset)
+        messageUtils.createMessage(fromUser = true, isStart = chatReset)
         //Set overlay PROCESSING color & icon:
         overlayStatus.postValue("processing")
         messageUtils.createMessage(fromUser = false)

@@ -146,21 +146,25 @@ class MessageUtils {
                 message.timestamp = getCurrentTimestamp()
             }
             if (message.text == "") {
+                // Empty message -> nothing to save:
                 Log.w(TAG, "Empty Message: not saved!")
             } else if (fromVoice && !fromUser && !voiceConvStarted) {
+                // (Voice only) System Intro message - conversation not started until the user makes its first voice request:
                 Log.w(TAG, "Conversation not started: skipped saving AI message!")
             } else {
+                // STARTER:
                 if (fromVoice && fromUser && !voiceConvStarted) {
-                    // Start conversation:
-                    voiceConvStarted = true
+                    // (Voice only) User is making its first voice request -> start new conversation now:
+                    voiceConvStarted = true   // conv started
                     messageBox!!.put(lastStarter)
                     Log.d(TAG, "Voice conversation started!")
-                } else if (fromUser && !chatConvStarted) {
-                    // Start conversation:
-                    chatConvStarted = true
+                } else if (fromUser && !chatConvStarted) {   // TODO: replace with "&& resetChatOn" (true)
+                    // (Chat only) User is making its first chat request -> start new conversation now:
+                    chatConvStarted = true   // TODO: replace with resetChatOn=false (turn off)
                     messageBox!!.put(lastStarter)
                     Log.d(TAG, "Chat conversation started!")
                 }
+                // CONTENT: Actually store message:
                 messageBox!!.put(message)
                 Log.d(TAG, "Message item ${message.id} saved!")
                 //Send broadcast:

@@ -27,7 +27,7 @@ class NLPDispatcher (private var context: Context) {
         text: String = "",
         recFile: File? = null,
         prevDispatch: DispatcherInfo = DispatcherInfo(),
-        fromVoice: Boolean,
+        fromVoice: Boolean = false,
         followUp: Boolean = false,
         messageMode: Boolean = false,
     ): DispatcherInfo {

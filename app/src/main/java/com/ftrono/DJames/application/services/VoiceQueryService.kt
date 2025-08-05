@@ -294,7 +294,7 @@ class VoiceQueryService: Service() {
             //PROCESS REQUEST:
             if (voiceQueryOn) {
                 var nlpDispatcher = NLPDispatcher(applicationContext)
-                lastDispatch = nlpDispatcher.dispatch(recFile=recFile, prevDispatch=lastDispatch, followUp=followUp, messageMode=messageMode)
+                lastDispatch = nlpDispatcher.dispatch(recFile=recFile, prevDispatch=lastDispatch, fromVoice=true, followUp=followUp, messageMode=messageMode)
                 messageMode = lastDispatch.messageMode
                 followUp = lastDispatch.followUp
                 val actionsExecutor = ActionsExecutor(applicationContext)

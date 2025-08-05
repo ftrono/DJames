@@ -8,7 +8,6 @@ import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import com.ftrono.DJames.application.ACTION_MESSAGES_REFRESH
 import com.ftrono.DJames.application.appVersion
-import com.ftrono.DJames.application.chatConvStarted
 import com.ftrono.DJames.application.voiceConvStarted
 import com.ftrono.DJames.application.curMessagesSize
 import com.ftrono.DJames.application.datetimeExportFormat
@@ -158,9 +157,9 @@ class MessageUtils {
                     voiceConvStarted = true   // conv started
                     messageBox!!.put(lastStarter)
                     Log.d(TAG, "Voice conversation started!")
-                } else if (fromUser && !chatConvStarted) {   // TODO: replace with "&& resetChatOn" (true)
+                } else if (fromUser && chatReset) {
                     // (Chat only) User is making its first chat request -> start new conversation now:
-                    chatConvStarted = true   // TODO: replace with resetChatOn=false (turn off)
+                    chatReset = false   // conv started
                     messageBox!!.put(lastStarter)
                     Log.d(TAG, "Chat conversation started!")
                 }

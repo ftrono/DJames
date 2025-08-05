@@ -50,7 +50,7 @@ class ChatManager(private val context: Context) {
         // PROCESS:
         coroutineScope.launch {
             var nlpDispatcher = NLPDispatcher(context)
-            chatLastDispatch = nlpDispatcher.dispatch(text=text, prevDispatch=chatLastDispatch, followUp=chatFollowUp, messageMode=chatMessageMode)
+            chatLastDispatch = nlpDispatcher.dispatch(text=text, prevDispatch=chatLastDispatch, fromVoice=false, followUp=chatFollowUp, messageMode=chatMessageMode)
             Log.d(TAG, "LAST DISPATCH: $chatLastDispatch")
             chatMessageMode = chatLastDispatch.messageMode
             chatFollowUp = chatLastDispatch.followUp

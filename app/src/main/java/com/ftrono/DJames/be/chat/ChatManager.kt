@@ -2,7 +2,6 @@ package com.ftrono.DJames.be.chat
 
 import android.content.Context
 import android.util.Log
-import com.ftrono.DJames.application.chatConvStarted
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.chatFollowUp
 import com.ftrono.DJames.application.lastAiMessage
@@ -29,24 +28,21 @@ class ChatManager(private val context: Context) {
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     fun resetConv() {
-        chatConvStarted = false
         chatFollowUp = false
         chatMessageMode = false
         chatLastDispatch = DispatcherInfo()
-        chatReset = false
     }
 
     fun processQuery(text: String) {
-        // Start new conversation if defaultChatResetTime is elapsed:
-        Log.d(TAG, "SUBTR: ${(messageUtils.getCurrentTimestamp() - lastStarter.starterId)}")
-        Log.d(TAG, "DEF: ${defaultChatResetTime}")
-        if (chatReset) {
-            resetConv()
-        } else {
-            chatConvStarted = (messageUtils.getCurrentTimestamp() - lastStarter.starterId) < defaultChatResetTime
-            if (!chatConvStarted) resetConv()
+        // Reset chat anyway if defaultChatResetTime is elapsed:
+        if ((messageUtils.getCurrentTimestamp() - lastStarter.starterId) < defaultChatResetTime) {
+           chatReset = true
         }
-        messageUtils.createMessage(fromUser = true, isStart = !chatConvStarted)
+        // Reset chat when needed:
+        if (chatReset) {
+           resetConv()
+        }
+        messageUtils.createMessage(fromUser = true, isStart = !chatReset)
         //Set overlay PROCESSING color & icon:
         overlayStatus.postValue("processing")
         messageUtils.createMessage(fromUser = false)
@@ -94,7 +90,7 @@ class ChatManager(private val context: Context) {
 //                actionsExecutor.execute(chatLastDispatch)
 //            }
 
-            // Reset:
+            // Reset if end chat:
             if (chatLastDispatch.end) {
                 resetConv()
                 chatReset = true

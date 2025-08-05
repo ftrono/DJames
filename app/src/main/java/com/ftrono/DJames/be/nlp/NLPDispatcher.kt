@@ -27,8 +27,9 @@ class NLPDispatcher (private var context: Context) {
         text: String = "",
         recFile: File? = null,
         prevDispatch: DispatcherInfo = DispatcherInfo(),
+        fromVoice: Boolean,
         followUp: Boolean = false,
-        messageMode: Boolean = false
+        messageMode: Boolean = false,
     ): DispatcherInfo {
 
         //Init:
@@ -66,7 +67,7 @@ class NLPDispatcher (private var context: Context) {
                     lastUserMessage.requestIntent = intentName
                     lastRequestIntent = intentName
                     lastAiMessage.attachments.nlpQueries.add(resultsNLP)   // TODO: TEMP
-                    messageUtils.storeMessage(context, fromUser = true, fromVoice = text=="")
+                    messageUtils.storeMessage(context, fromUser = true, fromVoice = fromVoice)
                     Log.d(TAG, "NLPDispatcher1: detected intent: $intentName")
 
                 } catch (e: Exception) {
@@ -111,7 +112,7 @@ class NLPDispatcher (private var context: Context) {
             var prevIntent = ""
             var reqLangCode = prevDispatch.reqLanguage
 
-            if (messageMode && prevDispatch.messageType == "voice" && text == "") {
+            if (messageMode && prevDispatch.messageType == "voice" && fromVoice) {
                 //Whatsapp audio message -> no NLP query!
                 val storedText = "(private voice message)"
                 lastUserMessage.text = storedText
@@ -162,7 +163,7 @@ class NLPDispatcher (private var context: Context) {
                         lastUserMessage.text = storedText
                         lastUserMessage.langCode = resultsNLP.language
                         lastUserMessage.requestIntent = lastRequestIntent
-                        messageUtils.storeMessage(context, fromUser = true, fromVoice = text=="")
+                        messageUtils.storeMessage(context, fromUser = true, fromVoice = fromVoice)
                         Log.d(TAG, "NLPDispatcher2: detected intent: $intentName")
                     } catch (e: Exception) {
                         Log.w(TAG, "NLPDispatcher2: no NLP results!")
@@ -170,7 +171,7 @@ class NLPDispatcher (private var context: Context) {
                     }
 
                     // Typing delay:
-                    if (text != "") {
+                    if (!fromVoice) {
                         Thread.sleep(defaultChatWait)
                     }
 

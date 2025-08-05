@@ -15,7 +15,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.application.ACTION_REC_STOP
-import com.ftrono.DJames.application.chatConvStarted
+import com.ftrono.DJames.application.chatReset
 import com.ftrono.DJames.application.chatFollowUp
 import com.ftrono.DJames.application.chatLastDispatch
 import com.ftrono.DJames.application.chatMessageMode
@@ -186,10 +186,7 @@ class VoiceQueryService: Service() {
                     audioRequestsManager.requestDuckedFocus(
                         onGranted = {
                             //End previous chat conversation:
-                            chatConvStarted = false
-                            chatFollowUp = false
-                            chatMessageMode = false
-                            chatLastDispatch = DispatcherInfo()
+                            chatReset = true
                             //Start:
                             overlayStatus.postValue("processing")
                             messageUtils.createMessage(fromUser = false, isStart = true)

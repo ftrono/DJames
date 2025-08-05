@@ -132,7 +132,7 @@ var lastUserMessage: Message = Message()
 var lastRequestIntent: String = ""
 var lastStarter: Message = Message()
 var voiceConvStarted: Boolean = false
-var chatConvStarted: Boolean = false
+var chatConvStarted: Boolean = false   // TODO: remove everywhere! Replace with chatReset bool
 
 //Preferences:
 val defaultChatResetTime: Long = 3*60*1000   //minutes

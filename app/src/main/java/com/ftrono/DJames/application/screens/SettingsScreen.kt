@@ -6,6 +6,7 @@ import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -59,6 +60,7 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.appVersion
 import com.ftrono.DJames.application.autoStopQueriesState
 import com.ftrono.DJames.application.copyrightYear
+import com.ftrono.DJames.application.extraOpen
 import com.ftrono.DJames.application.messLangFull
 import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.prefs
@@ -69,6 +71,7 @@ import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.components.SettingsSection
 import com.ftrono.DJames.ui.components.SettingsUserSection
 import com.ftrono.DJames.ui.components.StreetUIScaffold
+import com.ftrono.DJames.ui.navigation.DialogLogout
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.selectors.getSwitchColors
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
@@ -84,7 +87,20 @@ fun SettingsScreenPreview() {
 @Composable
 fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val mContext = LocalContext.current
-    //TODO: STATUSES:
+    val extraOpenState by extraOpen.observeAsState()
+
+    // LOGIN / LOGOUT:
+    val logoutDialogOn = rememberSaveable { mutableStateOf(false) }
+    if (logoutDialogOn.value) {
+        DialogLogout(
+            mContext,
+            logoutDialogOn,
+            navController,
+            extraOpenState!!
+        )
+    }
+
+    // STATUSES:
     val checkedV3 = remember { mutableStateOf(if (preview) true else prefs.enableV3) }
     val checkedStartup = remember { mutableStateOf(if (preview) true else prefs.autoStartup) }
     val checkedSilenceQueries by autoStopQueriesState.observeAsState()
@@ -105,8 +121,12 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     // SCREEN:
     StreetUIScaffold(
         modifier = Modifier
-            .clickable {
-                focusManager.clearFocus()   //TODO
+            .clickable(
+                // This makes the rest of the screen clear focus on tap
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                focusManager.clearFocus()
             },
         lineDistance = 20.dp,
         topBar = {
@@ -158,6 +178,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     colorLight = colorResource(id = R.color.greenSignLight),
                     colorDark = colorResource(id = R.color.greenSign)
                 ),
+                logoutDialogOn = logoutDialogOn,
                 preview = preview
             )
 

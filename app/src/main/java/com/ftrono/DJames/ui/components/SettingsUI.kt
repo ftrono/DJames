@@ -1,6 +1,7 @@
 package com.ftrono.DJames.ui.components
 
 import android.content.Context
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -30,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -61,10 +63,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.AuthActivity
 import com.ftrono.DJames.application.genders
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.spotUserImageState
 import com.ftrono.DJames.application.spotifyLoggedIn
+import com.ftrono.DJames.application.spotifyLoginUtils
 import com.ftrono.DJames.application.userNicknameState
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
@@ -129,60 +133,60 @@ fun CardContainer(
 
 
 @Composable
-fun SpotifyLoginStatus(
+fun SpotifyLoginButton(
     modifier: Modifier = Modifier,
+    context: Context,
     spotifyLoggedInState: Boolean,
-    mContext: Context
+    logoutDialogOn: MutableState<Boolean>,
 ) {
     //SPOTIFY LOGIN STATUS:
-    Row (
+    //Logged in text:
+    CardSign(
         modifier = modifier
             .padding(bottom = 20.dp)
             .clickable {
                 if (!spotifyLoggedInState) {
-                    Toast
-                        .makeText(
-                            mContext,
-                            "Log in from Settings to unlock music functions!",
-                            Toast.LENGTH_LONG
-                        )
-                        .show()
+                    //Login user -> Open WebView:
+                    val intent1 = Intent(context, AuthActivity::class.java)
+                    context.startActivity(intent1)
                 } else {
-                    Toast
-                        .makeText(
-                            mContext,
-                            "Logged in to Spotify as: ${prefs.spotUserName}!",
-                            Toast.LENGTH_LONG
-                        )
-                        .show()
+                    //LOG OUT:
+                    logoutDialogOn.value = true
                 }
             },
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        backgroundColor = if (spotifyLoggedInState) colorResource(R.color.faded_grey) else colorResource(R.color.colorPrimary),
+        borderColor = colorResource(R.color.transparent_full),
+        borderWidth = 0.dp,
     ) {
-        //Spotify logo:
-        Image(
-            modifier = Modifier
-                .width(30.dp)
-                .height(30.dp),
-            painter = painterResource(id = R.drawable.logo_spotify),
-            contentDescription = "Spotify logo",
-            colorFilter = if (!spotifyLoggedInState) {
-                ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
-            } else {
-                ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(1f) })
-            }
-        )
-        //Logged in text:
-        Text(
-            text = if (spotifyLoggedInState) "LOGGED IN" else "NOT LOGGED IN",
-            fontSize = 12.sp,
-            color = colorResource(id = R.color.light_grey),
-            modifier = Modifier
-                .padding(start = 12.dp)
-                .wrapContentWidth()
-                .wrapContentHeight()
-        )
+        Row (
+            modifier = Modifier,
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            //Spotify logo:
+            Image(
+                modifier = Modifier
+                    .padding(12.dp)
+                    .width(20.dp)
+                    .height(20.dp),
+                painter = painterResource(id = R.drawable.logo_spotify),
+                contentDescription = if (!spotifyLoggedInState) "Login to Spotify" else "Logout from Spotify",
+                colorFilter = if (!spotifyLoggedInState) {
+                    ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+                } else {
+                    ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(1f) })
+                }
+            )
+            //Text:
+            Text(
+                text = if (!spotifyLoggedInState) "Login to Spotify" else "Logout from Spotify",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = colorResource(id = R.color.light_grey),
+                modifier = Modifier
+                    .padding(end=12.dp),
+            )
+        }
     }
 }
 
@@ -190,6 +194,7 @@ fun SpotifyLoginStatus(
 @Preview
 @Composable
 fun SettingsUserSectionPreview() {
+    val logoutDialogOn = remember { mutableStateOf(false) }
     SettingsUserSection(
         modifier = Modifier
             .padding(bottom = 4.dp),
@@ -198,6 +203,7 @@ fun SettingsUserSectionPreview() {
             colorLight = colorResource(id = R.color.greenSignLight),
             colorDark = colorResource(id = R.color.greenSign)
         ),
+        logoutDialogOn = logoutDialogOn,
         preview = true
     )
 }
@@ -208,6 +214,7 @@ fun SettingsUserSection(
     modifier: Modifier = Modifier,
     textHeaderColor: Color,
     textFieldColors: TextFieldColors,
+    logoutDialogOn: MutableState<Boolean>,
     preview: Boolean = false,
 ) {
     val headerText = "Write your nickname"
@@ -252,12 +259,19 @@ fun SettingsUserSection(
     ) {
 
         //1) LOGIN STATUS:
-        SpotifyLoginStatus(
+        Row(
             modifier = Modifier
                 .fillMaxWidth(),
-            spotifyLoggedInState!!,
-            mContext
-        )
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SpotifyLoginButton(
+                modifier = Modifier,
+                context = mContext,
+                spotifyLoggedInState = spotifyLoggedInState!!,
+                logoutDialogOn = logoutDialogOn,
+            )
+        }
 
         //2) USER NICKNAME & PROFILE PIC:
         if (!isActive.value) {

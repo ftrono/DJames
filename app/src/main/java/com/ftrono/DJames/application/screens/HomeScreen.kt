@@ -258,9 +258,9 @@ fun LogoHome(
         modifier = modifier
             .clickable {
                 var toastText = if (overlayActiveState!! && volumeUpEnabledState!!) {
-                    "Use the FLOATING button, VOLUME UP, or a remote SHUTTER button!"
+                    "Use the OVERLAY or VOLUME UP / SHUTTER button to speak!"
                 } else if (overlayActiveState!!) {
-                    "Use the FLOATING button to record a voice request!"
+                    "Use the OVERLAY button to speak!"
                 } else if (!spotifyLoggedInState) {
                     "Log in from Settings to unlock music functions!"
                 } else {

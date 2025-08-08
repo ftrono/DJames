@@ -16,9 +16,6 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.application.ACTION_REC_STOP
 import com.ftrono.DJames.application.chatReset
-import com.ftrono.DJames.application.chatFollowUp
-import com.ftrono.DJames.application.chatLastDispatch
-import com.ftrono.DJames.application.chatMessageMode
 import com.ftrono.DJames.application.voiceConvStarted
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.lastRequestIntent

@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
@@ -160,6 +161,20 @@ fun MessagesScreen(
                 showBack = true,
                 onBack = { navController.popBackStack() },
                 optionButtons = {
+                    if (selectedMessageIds.isNotEmpty()) {
+                        //CLEAR SELECTION BUTTON:
+                        Icon(
+                            modifier = Modifier
+                                .padding(end = 12.dp)
+                                .size(35.dp)
+                                .clickable {
+                                    selectedMessageIds.clear()
+                                },
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = "Clear selection",
+                            tint = colorResource(R.color.light_grey)
+                        )
+                    }
                     TopBarMenu(
                         contentText = "${if (selectedMessageIds.isNotEmpty()) selectedMessageIds.size else curMessagesSizeState}",
                         backgroundColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.faded_grey) else colorResource(R.color.greenSign),

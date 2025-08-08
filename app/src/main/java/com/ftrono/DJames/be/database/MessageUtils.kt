@@ -8,6 +8,7 @@ import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import com.ftrono.DJames.application.ACTION_MESSAGES_REFRESH
 import com.ftrono.DJames.application.appVersion
+import com.ftrono.DJames.application.chatReset
 import com.ftrono.DJames.application.voiceConvStarted
 import com.ftrono.DJames.application.curMessagesSize
 import com.ftrono.DJames.application.datetimeExportFormat

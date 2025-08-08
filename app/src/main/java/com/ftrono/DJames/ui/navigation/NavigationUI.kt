@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItem
@@ -43,6 +45,7 @@ import com.ftrono.DJames.application.innerNavOpen
 import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.navigationItems
 import com.ftrono.DJames.application.extraOpen
+import com.ftrono.DJames.application.screens.saveSettings
 import com.ftrono.DJames.ui.components.RoundedSign
 
 
@@ -55,23 +58,37 @@ fun TopBarMenu(
     optionsMenu: @Composable () -> Unit = {}
 ) {
     Box() {
-        // ROUNDED SIGN ICON:
-        RoundedSign(
+        Row(
             modifier = Modifier
-                .padding(end = 18.dp)
+                .padding(end = 12.dp)
                 .clickable {
                     onClick()
                 },
-            signSize = 48.dp,
-            contentSize = 24,
-            backgroundColor = backgroundColor ?: colorResource(R.color.dark_grey),
-            borderColor = colorResource(id = R.color.mid_grey),
-            contentColor = colorResource(id = R.color.light_grey),
-            borderWidth = 2.5.dp,
-            contentText = contentText,
-            imageUrl = imageUrl,
-            iconVector = Icons.Outlined.Person,   //Residual
-        )
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // ROUNDED SIGN ICON:
+            RoundedSign(
+                modifier = Modifier,
+                signSize = 48.dp,
+                contentSize = 24,
+                backgroundColor = backgroundColor ?: colorResource(R.color.dark_grey),
+                borderColor = colorResource(id = R.color.mid_grey),
+                contentColor = colorResource(id = R.color.light_grey),
+                borderWidth = 2.5.dp,
+                contentText = contentText,
+                imageUrl = imageUrl,
+                iconVector = Icons.Outlined.Person,   //Residual
+            )
+            // MORE ICON:
+            Icon(
+                modifier = Modifier
+                    .size(28.dp),
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = "Options",
+                tint = colorResource(R.color.light_grey)
+            )
+        }
         // OPTIONS MENU:
         optionsMenu()
     }

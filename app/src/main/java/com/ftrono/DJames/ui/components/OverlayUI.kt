@@ -16,7 +16,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -30,12 +29,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -275,24 +272,18 @@ fun ClockButton(
 @Composable
 fun OverlayClose(
 ) {
-    OutlinedButton(
+    RoundedSign(
         modifier= Modifier
             .padding(bottom = 25.dp)
-            .size(50.dp)
             .zIndex(1f),  //avoid the oval shape
-        shape = CircleShape,
-        border= BorderStroke(2.dp, colorResource(id = R.color.mid_grey)),
-        contentPadding = PaddingValues(0.dp),  //avoid the little icon
-        colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = colorResource(id = R.color.transparent_grey),
-            contentColor = colorResource(id = R.color.mid_grey)
-        ),
-        onClick = { }
-    ) {
-        Icon(
-            imageVector = Icons.Default.Close,
-            contentDescription = "Close area")
-    }
+        signSize = 60.dp,
+        contentSize = 40,
+        backgroundColor = colorResource(R.color.transparent_grey),
+        borderColor = colorResource(id = R.color.light_grey),
+        contentColor = colorResource(id = R.color.light_grey),
+        borderWidth = 2.5.dp,
+        iconPainter = painterResource(R.drawable.arrow_down),
+    )
 }
 
 

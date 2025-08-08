@@ -66,6 +66,8 @@ import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.services.OverlayService
+import com.ftrono.DJames.application.spotUserName
+import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.ui.components.DropdownSpinner
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.components.SettingsSection
@@ -88,6 +90,9 @@ fun SettingsScreenPreview() {
 fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val mContext = LocalContext.current
     val extraOpenState by extraOpen.observeAsState()
+
+    val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
+    val userNameState by spotUserName.observeAsState()
 
     // LOGIN / LOGOUT:
     val logoutDialogOn = rememberSaveable { mutableStateOf(false) }
@@ -133,7 +138,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
             StreetUITopBar(
                 pretitle = "",
                 title = "Preferences",
-                subtitle = "Profile & settings",
+                subtitle = if (!spotifyLoggedInState!!) "Not logged in" else "for ${prefs.spotUserName}",
                 showBack = true,
                 onBack = { navController.popBackStack() },
                 optionButtons = {
@@ -179,6 +184,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     colorDark = colorResource(id = R.color.greenSign)
                 ),
                 logoutDialogOn = logoutDialogOn,
+                spotifyLoggedInState = spotifyLoggedInState!!,
                 preview = preview
             )
 

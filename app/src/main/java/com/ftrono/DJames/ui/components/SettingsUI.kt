@@ -195,6 +195,7 @@ fun SpotifyLoginButton(
 @Composable
 fun SettingsUserSectionPreview() {
     val logoutDialogOn = remember { mutableStateOf(false) }
+    val spotifyLoggedInState = remember { mutableStateOf(false) }
     SettingsUserSection(
         modifier = Modifier
             .padding(bottom = 4.dp),
@@ -203,6 +204,7 @@ fun SettingsUserSectionPreview() {
             colorLight = colorResource(id = R.color.greenSignLight),
             colorDark = colorResource(id = R.color.greenSign)
         ),
+        spotifyLoggedInState = spotifyLoggedInState.value,
         logoutDialogOn = logoutDialogOn,
         preview = true
     )
@@ -214,6 +216,7 @@ fun SettingsUserSection(
     modifier: Modifier = Modifier,
     textHeaderColor: Color,
     textFieldColors: TextFieldColors,
+    spotifyLoggedInState: Boolean,
     logoutDialogOn: MutableState<Boolean>,
     preview: Boolean = false,
 ) {
@@ -226,7 +229,6 @@ fun SettingsUserSection(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
     val userImage by spotUserImageState.observeAsState()
     val genderState = rememberSaveable { mutableStateOf(if (preview) "Sir" else prefs.userGender) }
 

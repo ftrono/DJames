@@ -42,7 +42,11 @@ import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.ui.selectors.messagesColorSelector
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -59,34 +63,29 @@ import com.ftrono.DJames.ui.selectors.getTextFieldColors
 @Composable
 fun MessageBubble(
     modifier: Modifier = Modifier,
-    mContext: Context,
+    context: Context,
     selectedMessageIds: SnapshotStateList<Long>,
     messageId: Long,
     fromUser: Boolean,
     requestIntent: String = "",
+    showButton: Boolean = false,
+    onClick: () -> Unit = {},
     content: @Composable () -> Unit
 ) {
-    // MESSAGE BUBBLE:
-    Card(
-        modifier = modifier
-            .padding(
-                top = 2.dp,
-                start = if (fromUser) 40.dp else 0.dp,
-                end = if (!fromUser) 40.dp else 0.dp,
-            )
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onLongPress = {
-                        if (!selectedMessageIds.contains(messageId)) {
-                            // Select:
-                            selectedMessageIds.add(messageId)
-                        } else {
-                            // Unselect:
-                            selectedMessageIds.remove(messageId)
-                        }
-                    },
-                    onTap = {
-                        if (selectedMessageIds.isNotEmpty()) {
+    //MESSAGE ROW:
+    Row (
+        modifier = Modifier
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = if (!fromUser) Arrangement.Start else Arrangement.End
+    ) {
+        // MESSAGE BUBBLE:
+        Card(
+            modifier = modifier
+                .widthIn(max = 300.dp)   // sets max width
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onLongPress = {
                             if (!selectedMessageIds.contains(messageId)) {
                                 // Select:
                                 selectedMessageIds.add(messageId)
@@ -94,26 +93,54 @@ fun MessageBubble(
                                 // Unselect:
                                 selectedMessageIds.remove(messageId)
                             }
-                        } else {
-                            // Open Log file via external app:
-                            val filename = messageUtils.prepareLogFile(mContext, messageId)
-                            messageUtils.openLogViaApp(mContext, filename)
+                        },
+                        onTap = {
+                            if (selectedMessageIds.isNotEmpty()) {
+                                if (!selectedMessageIds.contains(messageId)) {
+                                    // Select:
+                                    selectedMessageIds.add(messageId)
+                                } else {
+                                    // Unselect:
+                                    selectedMessageIds.remove(messageId)
+                                }
+                            } else {
+                                onClick()
+                            }
                         }
-                    }
-                )
-            },
-        border = BorderStroke(1.dp, colorResource(id = R.color.dark_grey)),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (selectedMessageIds.contains(messageId)) {
-                colorResource(R.color.colorAccentLight)
-            } else if (fromUser) {
-                messagesColorSelector(requestIntent)
-            } else {
-                colorResource(id = R.color.dark_grey_background)
-            }
-        )
-    ) { content() }
+                    )
+                },
+            border = BorderStroke(1.dp, colorResource(id = R.color.dark_grey)),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = if (selectedMessageIds.contains(messageId)) {
+                    colorResource(R.color.colorAccentLight)
+                } else if (fromUser) {
+                    messagesColorSelector(requestIntent)
+                } else {
+                    colorResource(id = R.color.dark_grey_background)
+                }
+            )
+        ) {
+            content()
+        }
+
+        // ACTION:
+        if (showButton) {
+            RoundedSign(
+                modifier = Modifier
+                    .offset(x = -(20).dp),
+                signSize = 40.dp,
+                contentSize = 25,
+                backgroundColor = messagesColorSelector(cat = requestIntent),
+                borderColor = messagesColorSelector(cat = requestIntent),
+                contentColor = colorResource(R.color.light_grey),
+                iconVector = Icons.AutoMirrored.Rounded.ArrowForward,
+                circle = true,
+                clickable = true,
+                onClick = onClick
+            )
+        }
+    }
 }
 
 

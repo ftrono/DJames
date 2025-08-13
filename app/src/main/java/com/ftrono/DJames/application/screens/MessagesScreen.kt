@@ -23,7 +23,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.offset
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
@@ -77,10 +79,12 @@ import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.components.OptionsItem
 import com.ftrono.DJames.ui.components.OptionsMenu
 import com.ftrono.DJames.ui.components.MessageBubble
+import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.components.StreetUIScaffold
 import com.ftrono.DJames.ui.components.TypingIndicator
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
+import com.ftrono.DJames.ui.selectors.messagesColorSelector
 import com.ftrono.DJames.ui.selectors.messagesColorSelectorLight
 import com.ftrono.DJames.ui.selectors.messagesIconSelector
 import kotlinx.serialization.decodeFromString
@@ -233,15 +237,40 @@ fun MessagesScreen(
                     // STARTER / MESSAGE ITEM:
                     val message = Json.decodeFromString<Message>(item)
                     if (message.type == "starter") {
+                        // STARTER:
                         ConvStarter(
                             message = message,
                             selectedMessageIds = selectedMessageIds
                         )
                     } else  {
-                        MessageItem(
-                            message = message,
-                            selectedMessageIds = selectedMessageIds
-                        )
+                        // MESSAGE ITEM + DETAILS:
+                        val extraDetails = if (message.type == "ai") buildExtraDetails(message) else ""
+                        Column(
+                            modifier = Modifier
+                                .padding(
+                                    start = 32.dp,
+                                    end = 24.dp,
+                                    top = 8.dp,
+                                    bottom = 8.dp
+                                )
+                                .fillMaxWidth(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            MessageItem(
+                                context = mContext,
+                                message = message,
+                                selectedMessageIds = selectedMessageIds
+                            )
+                            if (extraDetails != "") {
+                                MessageDetail(
+                                    context = mContext,
+                                    message = message,
+                                    selectedMessageIds = selectedMessageIds,
+                                    extraDetails = extraDetails,
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -438,66 +467,48 @@ fun ConvStarter(
 
 @Composable
 fun MessageItem(
+    context: Context,
     message: Message,
     selectedMessageIds: SnapshotStateList<Long>
 ) {
-    //INFO:
-    val mContext = LocalContext.current
-    val extraDetails = if (message.type == "ai") buildExtraDetails(message) else ""
-
-    //MESSAGE ROW:
-    Row (
+    MessageBubble(
         modifier = Modifier
             .padding(
-                start = 32.dp,
-                end = 24.dp,
-            )
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = if (message.type == "ai") Arrangement.Start else Arrangement.End
+                top = 2.dp,
+                start = if (message.type == "user") 40.dp else 0.dp,
+                end = if (message.type == "ai") 40.dp else 0.dp,
+            ),
+        context = context,
+        selectedMessageIds = selectedMessageIds,
+        fromUser = message.type == "user",
+        messageId = message.id,
+        requestIntent = message.requestIntent,
+        onClick = {
+            // Open Log file via external app:
+            val filename = messageUtils.prepareLogFile(context, message.id)
+            messageUtils.openLogViaApp(context, filename)
+        }
     ) {
         Column(
             modifier = Modifier
-                .padding(top = 8.dp, bottom = 8.dp),
+                .padding(10.dp),
+            horizontalAlignment = if (message.type == "ai") Alignment.Start else Alignment.End,
+            verticalArrangement = Arrangement.Center
         ) {
-
-            // MESSAGE BUBBLE:
-            MessageBubble(
-                mContext = mContext,
-                selectedMessageIds = selectedMessageIds,
-                fromUser = message.type == "user",
-                messageId = message.id,
-                requestIntent = message.requestIntent
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(10.dp),
-                    horizontalAlignment = if (message.type == "ai") Alignment.Start else Alignment.End,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    //MESSAGE TEXT:
-                    Text(
-                        modifier = Modifier
-                            .padding(start=2.dp, end=2.dp),
-                        color = if (selectedMessageIds.contains(message.id)) {
-                            colorResource(R.color.colorPrimaryDark)
-                        } else {
-                            colorResource(id = R.color.light_grey)
-                        },
-                        fontSize = 16.sp,
-                        lineHeight = 16.sp,
-                        textAlign = if (message.type == "ai") TextAlign.Start else TextAlign.End,
-                        text = message.text
-                    )
-                }
-            }
-            if (extraDetails != "") {
-                MessageDetail(
-                    message = message,
-                    selectedMessageIds = selectedMessageIds
-                )
-            }
+            //MESSAGE TEXT:
+            Text(
+                modifier = Modifier
+                    .padding(start=2.dp, end=2.dp),
+                color = if (selectedMessageIds.contains(message.id)) {
+                    colorResource(R.color.colorPrimaryDark)
+                } else {
+                    colorResource(id = R.color.light_grey)
+                },
+                fontSize = 16.sp,
+                lineHeight = 16.sp,
+                textAlign = if (message.type == "ai") TextAlign.Start else TextAlign.End,
+                text = message.text
+            )
         }
     }
 }
@@ -505,27 +516,32 @@ fun MessageItem(
 
 @Composable
 fun MessageDetail(
+    context: Context,
     message: Message,
-    selectedMessageIds: SnapshotStateList<Long>
+    selectedMessageIds: SnapshotStateList<Long>,
+    extraDetails: String,
 ) {
-    //INFO:
-    val mContext = LocalContext.current
-    val extraDetails = if (message.type == "ai") buildExtraDetails(message) else ""
-
     MessageBubble(
-        mContext = mContext,
+        modifier = Modifier
+            .padding(top=2.dp),
+        context = context,
         selectedMessageIds = selectedMessageIds,
         fromUser = message.type == "user",
         messageId = message.id,
+        requestIntent = message.requestIntent,
+        showButton = true,
+        onClick = { }   //TODO
     ) {
         Column(
             modifier = Modifier
-                .padding(4.dp),
+                .padding(top=4.dp, bottom=4.dp, start=4.dp, end=24.dp),
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Center
         ) {
             //HEADER ROW:
             Row(
+                modifier = Modifier
+                    .padding(top=4.dp, bottom=2.dp),
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -559,21 +575,11 @@ fun MessageDetail(
                     fontWeight = FontWeight.Bold,
                     text = message.requestIntent
                 )
-                // GO ICON:
-                Icon(
-                    modifier = Modifier
-                        .padding(start=2.dp, bottom=2.dp),
-                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                    tint = messagesColorSelectorLight(cat = message.requestIntent),
-                    contentDescription = "Go"
-                )
             }
             //FULL DETAILS TEXT:
             Text(
                 modifier = Modifier
-                    .padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 8.dp)
-                    .wrapContentWidth()
-                    .wrapContentHeight(),
+                    .padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 8.dp),
                 color = if (selectedMessageIds.contains(message.id)) {
                     colorResource(R.color.colorPrimaryDark)
                 } else {

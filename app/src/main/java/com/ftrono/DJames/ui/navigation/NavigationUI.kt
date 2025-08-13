@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
@@ -34,6 +33,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,13 +46,14 @@ import com.ftrono.DJames.application.innerNavOpen
 import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.navigationItems
 import com.ftrono.DJames.application.extraOpen
-import com.ftrono.DJames.application.screens.saveSettings
 import com.ftrono.DJames.ui.components.RoundedSign
 
 
 @Composable
 fun TopBarMenu(
     backgroundColor: Color? = null,
+    iconPainter: Painter? = null,
+    iconVector: ImageVector? = null,
     contentText: String = "",
     imageUrl: String = "",
     onClick: () -> Unit = {},
@@ -78,7 +80,8 @@ fun TopBarMenu(
                 borderWidth = 2.5.dp,
                 contentText = contentText,
                 imageUrl = imageUrl,
-                iconVector = Icons.Outlined.Person,   //Residual
+                iconPainter=iconPainter,
+                iconVector = iconVector ?: Icons.Outlined.Person,   //Residual
             )
             // MORE ICON:
             Icon(

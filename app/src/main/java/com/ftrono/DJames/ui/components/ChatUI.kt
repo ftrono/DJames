@@ -38,7 +38,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.ui.selectors.messagesColorSelector
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -46,7 +45,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -57,6 +55,7 @@ import com.ftrono.DJames.application.chatText
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.ui.selectors.actionsIconSelector
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
 
 
@@ -130,11 +129,11 @@ fun MessageBubble(
                 modifier = Modifier
                     .offset(x = -(20).dp),
                 signSize = 40.dp,
-                contentSize = 25,
+                contentSize = 20,
                 backgroundColor = messagesColorSelector(cat = requestIntent),
                 borderColor = messagesColorSelector(cat = requestIntent),
                 contentColor = colorResource(R.color.light_grey),
-                iconVector = Icons.AutoMirrored.Rounded.ArrowForward,
+                iconVector = actionsIconSelector(requestIntent),
                 circle = true,
                 clickable = true,
                 onClick = onClick

@@ -1,7 +1,14 @@
 package com.ftrono.DJames.ui.selectors
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import com.ftrono.DJames.R
 
@@ -60,5 +67,23 @@ fun messagesIconSelector(
         return painterResource(id = R.drawable.sign_headphones)
     } else {
         return painterResource(id = R.drawable.sign_help)
+    }
+}
+
+//ACTIONS:
+@Composable
+fun actionsIconSelector(
+    cat: String
+): ImageVector {
+    if (cat == "CallRequest") {
+        return Icons.Default.Call
+    } else if (cat == "MessageRequest") {
+        return Icons.Default.Edit
+    } else if (cat == "DriveRequest") {
+        return Icons.AutoMirrored.Filled.ArrowForward
+    } else if (cat.contains("Play")) {
+        return Icons.Default.PlayArrow
+    } else {
+        return Icons.AutoMirrored.Filled.ArrowForward
     }
 }

@@ -130,13 +130,33 @@ fun MessageBubble(
                     .offset(x = -(20).dp),
                 signSize = 40.dp,
                 contentSize = 20,
-                backgroundColor = messagesColorSelector(cat = requestIntent),
-                borderColor = messagesColorSelector(cat = requestIntent),
+                backgroundColor = if (selectedMessageIds.contains(messageId)) {
+                    colorResource(R.color.colorPrimaryDark)
+                } else {
+                    messagesColorSelector(cat = requestIntent)
+                },
+                borderColor = if (selectedMessageIds.contains(messageId)) {
+                    colorResource(R.color.colorPrimaryDark)
+                } else {
+                    messagesColorSelector(cat = requestIntent)
+                },
                 contentColor = colorResource(R.color.light_grey),
                 iconVector = actionsIconSelector(requestIntent),
                 circle = true,
                 clickable = true,
-                onClick = onClick
+                onClick = {
+                    if (selectedMessageIds.isNotEmpty()) {
+                        if (!selectedMessageIds.contains(messageId)) {
+                            // Select:
+                            selectedMessageIds.add(messageId)
+                        } else {
+                            // Unselect:
+                            selectedMessageIds.remove(messageId)
+                        }
+                    } else {
+                        onClick()
+                    }
+                }
             )
         }
     }

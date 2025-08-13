@@ -3,6 +3,7 @@ package com.ftrono.DJames.ui.components
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -44,6 +45,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -291,6 +294,8 @@ fun RoundedSign(
     borderColor: Color,
     contentColor: Color,
     borderWidth: Dp = 1.5.dp,
+    imageRes: Painter? = null,
+    imageBW: Boolean = false,
     iconPainter: Painter? = null,
     iconVector: ImageVector? = null,
     contentText: String = "",
@@ -300,7 +305,30 @@ fun RoundedSign(
     onClick: () -> Unit = {},
 ) {
     //ROUNDED SIGN:
-    if (imageUrl == "") {
+    if (imageRes != null) {
+        Image(
+            modifier = Modifier
+                .size(signSize)
+                .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
+                .border(borderWidth, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp)),
+            painter = imageRes,
+            contentDescription = "Item image",
+            colorFilter = if (imageBW) {
+                ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+            } else {
+                ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(1f) })
+            }
+        )
+    } else if (imageUrl != "") {
+        AsyncImage(
+            modifier = modifier
+                .size(signSize)
+                .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
+                .border(borderWidth, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp)),
+            model = imageUrl,
+            contentDescription = "Item image"
+        )
+    } else {
         Box(
             modifier = if (clickable) {
                     modifier
@@ -347,15 +375,6 @@ fun RoundedSign(
                 )
             }
         }
-    } else {
-        AsyncImage(
-            modifier = modifier
-                .size(signSize)
-                .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
-                .border(borderWidth, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp)),
-            model = imageUrl,
-            contentDescription = "Item image"
-        )
     }
 }
 

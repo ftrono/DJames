@@ -52,10 +52,12 @@ import com.ftrono.DJames.ui.components.RoundedSign
 @Composable
 fun TopBarMenu(
     backgroundColor: Color? = null,
+    imageRes: Painter? = null,
     iconPainter: Painter? = null,
     iconVector: ImageVector? = null,
     contentText: String = "",
     imageUrl: String = "",
+    imageBW: Boolean = false,
     onClick: () -> Unit = {},
     optionsMenu: @Composable () -> Unit = {}
 ) {
@@ -80,7 +82,9 @@ fun TopBarMenu(
                 borderWidth = 2.5.dp,
                 contentText = contentText,
                 imageUrl = imageUrl,
-                iconPainter=iconPainter,
+                imageRes = imageRes,
+                imageBW = imageBW,
+                iconPainter = iconPainter,
                 iconVector = iconVector ?: Icons.Outlined.Person,   //Residual
             )
             // MORE ICON:

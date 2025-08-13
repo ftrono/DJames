@@ -60,7 +60,6 @@ import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.allMessages
 import com.ftrono.DJames.application.chatText
-import com.ftrono.DJames.application.curMessagesSize
 import com.ftrono.DJames.application.datetimeShortFormat
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
@@ -129,7 +128,7 @@ fun MessagesScreen(
     var offset = 0L
     val allMessagesState by allMessages.observeAsState()
     allMessages.postValue(messageUtils.refreshMessages(offset, preview))
-    val curMessagesSizeState by curMessagesSize.observeAsState()
+    // val curMessagesSizeState by curMessagesSize.observeAsState()
 
     val mDisplayMainMenu = rememberSaveable {
         mutableStateOf(false)
@@ -155,7 +154,7 @@ fun MessagesScreen(
             StreetUITopBar(
                 pretitle = "",
                 title = "Messages",
-                subtitle = if (selectedMessageIds.isNotEmpty()) "Selected" else "Last 30 days",
+                subtitle = if (selectedMessageIds.isNotEmpty()) "Selection mode" else "Last 30 days",
                 showBack = true,
                 onBack = { navController.popBackStack() },
                 optionButtons = {
@@ -174,8 +173,10 @@ fun MessagesScreen(
                         )
                     }
                     TopBarMenu(
-                        contentText = "${if (selectedMessageIds.isNotEmpty()) selectedMessageIds.size else curMessagesSizeState}",
-                        backgroundColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.faded_grey) else colorResource(R.color.greenSign),
+                        imageRes = painterResource(R.drawable.app_icon_round),
+                        imageBW = selectedMessageIds.isNotEmpty(),
+                        // contentText = "${if (selectedMessageIds.isNotEmpty()) selectedMessageIds.size else curMessagesSizeState}",
+                        // backgroundColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.faded_grey) else colorResource(R.color.greenSign),
                         onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
                     ) {
                         MessagesOptions(

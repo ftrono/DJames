@@ -10,7 +10,6 @@ import com.ftrono.DJames.application.ACTION_MESSAGES_REFRESH
 import com.ftrono.DJames.application.appVersion
 import com.ftrono.DJames.application.chatReset
 import com.ftrono.DJames.application.voiceConvStarted
-import com.ftrono.DJames.application.curMessagesSize
 import com.ftrono.DJames.application.datetimeExportFormat
 import com.ftrono.DJames.application.datetimeFullFormat
 import com.ftrono.DJames.application.lastAiMessage
@@ -62,9 +61,9 @@ class MessageUtils {
             }
 
             //2) Update Messages size (IMPORTANT - for signs):
-            curMessagesSize.postValue(
-                if (preview) testMessages.size else messageBox!!.query(Message_.type.notEqual("starter")).build().count().toInt()
-            )
+//            curMessagesSize.postValue(
+//                if (preview) testMessages.size else messageBox!!.query(Message_.type.notEqual("starter")).build().count().toInt()
+//            )
             return messages
 
         } catch (e: Exception) {

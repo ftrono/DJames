@@ -267,7 +267,7 @@ fun MessagesScreen(
                 }
 
                 // Loader at the bottom
-                hasMore.value = allMessages.value!!.size > messagesPageSize
+                // hasMore.value = allMessages.value!!.size > messagesPageSize   // TODO
                 if (hasMore.value) {
                     item {
                         Row(

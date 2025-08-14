@@ -26,7 +26,7 @@ class GenericFulfillment (private var context: Context) {
 
 
     //Process a request involving a Contact (Call / Message):
-    fun contactRequest(resultsNLP: NlpQueryModel): DispatcherInfo {
+    fun contactRequest(resultsNLP: NlpQueryModel, fromVoice: Boolean = false): DispatcherInfo {
         var dispatcherInfo = DispatcherInfo()
         val filter = "contact"
         var itemInfo = ItemInfoUse(
@@ -101,6 +101,10 @@ class GenericFulfillment (private var context: Context) {
                 // Select action to take:
                 if (dispatcherInfo.messageType == "voice") {
                     dispatcherInfo.actionType = ActionType.WA_VOICE
+                    if (!fromVoice) {
+                        //Fallback:
+                        return fulfillmentUtils.fallback(cannotRecordWAVoice=true)
+                    }
                 } else if (dispatcherInfo.messageType == "whatsapp") {
                     dispatcherInfo.actionType = ActionType.WA_TEXT
                 } else {

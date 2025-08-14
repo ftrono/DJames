@@ -65,6 +65,10 @@ class DefaultReplies() {
         return defaultSents.random()
     }
 
+    fun replyMessageCannotRecord(): String {
+        return "I'm sorry, I can't record voice messages via chat. Please, enable DRIVE Mode and ask again by voice!"
+    }
+
     // CONTACTS:
     fun replyCalling(contactName: String): String {
         return "Calling $contactName..."

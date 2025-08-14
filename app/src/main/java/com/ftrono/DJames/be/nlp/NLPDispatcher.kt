@@ -82,8 +82,8 @@ class NLPDispatcher (private var context: Context) {
                 //DISPATCH PROCESSING:
                 if (nlp_queryText != "" && intentName != "") {
                     when (intentName) {
-                        "CallRequest" -> if (utils.checkPermission(context, Manifest.permission.CALL_PHONE)) return fulfillment.contactRequest(resultsNLP) else return fulfillmentUtils.fallback(noPermission=true)
-                        "MessageRequest" -> if (utils.checkPermission(context, Manifest.permission.SEND_SMS)) return fulfillment.contactRequest(resultsNLP) else return fulfillmentUtils.fallback(noPermission=true)
+                        "CallRequest" -> if (utils.checkPermission(context, Manifest.permission.CALL_PHONE)) return fulfillment.contactRequest(resultsNLP, fromVoice=fromVoice) else return fulfillmentUtils.fallback(noPermission=true)
+                        "MessageRequest" -> if (utils.checkPermission(context, Manifest.permission.SEND_SMS)) return fulfillment.contactRequest(resultsNLP, fromVoice=fromVoice) else return fulfillmentUtils.fallback(noPermission=true)
                         "DriveRequest" -> return fulfillment.driveRequest1(resultsNLP)
                         "PlaySong" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback(notLoggedIn=true)
                         "PlayAlbum" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback(notLoggedIn=true)

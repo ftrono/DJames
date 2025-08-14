@@ -27,7 +27,8 @@ class FulfillmentUtils {
         notUnderstood: Boolean = false,
         notLoggedIn: Boolean = false,
         noPermission: Boolean = false,
-        nevermind: Boolean = false
+        nevermind: Boolean = false,
+        cannotRecordWAVoice: Boolean = false,
     ): DispatcherInfo {
         //Build fallback response:
         var dispatcherInfo = DispatcherInfo()
@@ -43,6 +44,8 @@ class FulfillmentUtils {
                     defaultReplies.replyFallback()
                 else if (nevermind)
                     defaultReplies.replyNevermind()
+                else if (cannotRecordWAVoice)
+                    defaultReplies.replyMessageCannotRecord()
                 else defaultReplies.replyError()
             )
         )

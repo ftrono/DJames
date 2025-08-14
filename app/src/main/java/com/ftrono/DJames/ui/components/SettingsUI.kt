@@ -298,7 +298,7 @@ fun SettingsUserSection(
                     borderColor = colorResource(id = R.color.mid_grey),
                     contentColor = colorResource(id = R.color.light_grey),
                     borderWidth = 2.5.dp,
-                    iconVector = Icons.Outlined.Person,
+                    iconVector = if (preview || userImage == "") Icons.Outlined.Person else null,
                     imageUrl = userImage!!,
                     circle = true
                 )

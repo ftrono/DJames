@@ -58,6 +58,8 @@ import com.ftrono.DJames.ui.components.SplitterSign
 @Composable
 fun TopBarMenu(
     backgroundColor: Color? = null,
+    contentColor: Color = colorResource(id = R.color.light_grey),
+    borderColor: Color = colorResource(id = R.color.mid_grey),
     imageRes: Painter? = null,
     iconPainter: Painter? = null,
     iconVector: ImageVector? = null,
@@ -91,16 +93,16 @@ fun TopBarMenu(
                 RoundedSign(
                     modifier = Modifier,
                     signSize = 48.dp,
-                    contentSize = 24,
+                    contentSize = if (iconPainter != null) 20 else 24,
                     backgroundColor = backgroundColor ?: colorResource(R.color.dark_grey),
-                    borderColor = colorResource(id = R.color.mid_grey),
-                    contentColor = colorResource(id = R.color.light_grey),
+                    borderColor = borderColor,
+                    contentColor = contentColor,
                     borderWidth = 2.5.dp,
                     contentText = contentText,
                     imageUrl = imageUrl,
                     imageRes = imageRes,
                     iconPainter = iconPainter,
-                    iconVector = iconVector ?: Icons.Outlined.Person,   //Residual
+                    iconVector = iconVector,
                 )
                 // MORE ICON:
                 Icon(

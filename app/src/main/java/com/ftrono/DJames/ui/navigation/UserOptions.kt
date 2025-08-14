@@ -8,6 +8,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -79,6 +81,7 @@ fun UserOptions(
     // USER OPTIONS MENU:
     TopBarMenu(
         imageUrl = if (!preview) prefs.spotUserImage else "",
+        iconVector = if (preview || prefs.spotUserImage == "") Icons.Outlined.Person else null,
         onClick = { mDisplayMenu.value = !mDisplayMenu.value },
     ) {
         //DROPDOWN MENU:

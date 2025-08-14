@@ -177,8 +177,10 @@ fun MessagesScreen(
                     }
                     TopBarMenu(
                         // contentText = "${if (selectedMessageIds.isNotEmpty()) selectedMessageIds.size else curMessagesSizeState}",
-                        // backgroundColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.faded_grey) else colorResource(R.color.greenSign),
-                        moreOnly = true,
+                        backgroundColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.colorAccentLight) else colorResource(R.color.colorPrimary),
+                        contentColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.colorPrimaryDark) else colorResource(R.color.light_grey),
+                        borderColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.colorPrimaryDark) else colorResource(R.color.mid_grey),
+                        iconPainter = painterResource(R.drawable.sign_message),
                         onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
                     ) {
                         MessagesOptions(

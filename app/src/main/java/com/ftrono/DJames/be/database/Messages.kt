@@ -1,5 +1,6 @@
 package com.ftrono.DJames.be.database
 
+import com.ftrono.DJames.be.models.ActionType
 import com.google.protobuf.Timestamp
 import io.objectbox.annotation.Entity
 import io.objectbox.annotation.Id
@@ -117,6 +118,8 @@ data class Message(
     //Attachments management:
     // - requestIntent -> in user message;
     // - all other -> in the AI reply
+    @Convert(converter = ActionTypeConverter::class, dbType = String::class)
+    var actionType: ActionType? = null, //"call", ""
     @Convert(converter = AttachmentsConverter::class, dbType = String::class)
     var attachments: Attachments = Attachments()
 )
@@ -151,6 +154,18 @@ class AttachmentsConverter : PropertyConverter<Attachments, String> {
 
     override fun convertToDatabaseValue(entityProperty: Attachments?): String {
         return Json.encodeToString(entityProperty ?: Attachments())
+    }
+}
+
+class ActionTypeConverter : PropertyConverter<ActionType, String> {
+    override fun convertToDatabaseValue(entityProperty: ActionType?): String? {
+        return entityProperty?.name
+    }
+
+    override fun convertToEntityProperty(databaseValue: String?): ActionType? {
+        return databaseValue?.let { value ->
+            ActionType.entries.find { it.name.equals(value, ignoreCase = true) }
+        }
     }
 }
 

@@ -5,6 +5,7 @@ import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.database.ItemInfoUse
 import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.be.database.SpotifyPlayable
+import com.ftrono.DJames.be.models.ActionType
 
 
 val testMessages = listOf<Message>(
@@ -44,6 +45,7 @@ val testMessages = listOf<Message>(
         type = "ai",
         text = "Calling Ricky!",
         requestIntent = "CallRequest",
+        actionType = ActionType.CALL,
         attachments = Attachments(
             matchScore = 100,
             usable = ItemInfoUse(
@@ -80,6 +82,7 @@ val testMessages = listOf<Message>(
         type = "ai",
         text = "Please, dictate the SMS for Amal in Italian!",
         requestIntent = "MessageRequest",
+        actionType = ActionType.SMS,
         attachments = Attachments(
             matchScore = 100,
             usable = ItemInfoUse(
@@ -116,6 +119,7 @@ val testMessages = listOf<Message>(
         type = "ai",
         text = "Here's the route to: Aeroporto di Brindisi, Brindisi, Contrada Baroncino!",
         requestIntent = "DriveRequest",
+        actionType = ActionType.OPEN_URL,
         attachments = Attachments(
             matchScore = 100,
             usable = ItemInfoUse(
@@ -153,6 +157,7 @@ val testMessages = listOf<Message>(
         type = "ai",
         text = "Playing the track: Lost, by Linkin Park!",
         requestIntent = "PlaySong",
+        actionType = ActionType.PLAY,
         attachments = Attachments(
             matchScore = 100,
             spotifyPlay = SpotifyPlayable(
@@ -193,6 +198,7 @@ val testMessages = listOf<Message>(
         type = "ai",
         text = "Playing your playlist: Francis Ford!",
         requestIntent = "PlayPlaylist",
+        actionType = ActionType.PLAY,
         attachments = Attachments(
             matchScore = 100,
             spotifyPlay = SpotifyPlayable(

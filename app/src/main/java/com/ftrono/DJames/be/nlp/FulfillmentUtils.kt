@@ -3,6 +3,7 @@ package com.ftrono.DJames.be.nlp
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.chatLastDispatch
 import com.ftrono.DJames.application.datetimeFullFormat
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.gMapsLinkFormat
@@ -46,6 +47,16 @@ class FulfillmentUtils {
             )
         )
         return dispatcherInfo
+    }
+
+
+    //Join replies:
+    fun joinReplies(replies: List<AiReply>): String {
+        var fullText = ""
+        for (reply in replies) {
+            fullText = fullText + reply.text
+        }
+        return fullText
     }
 
 

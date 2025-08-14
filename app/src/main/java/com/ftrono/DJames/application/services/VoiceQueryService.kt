@@ -314,15 +314,15 @@ class VoiceQueryService: Service() {
                         tts.speak(lastDispatch.aiReplies)
                     }
                     audioRequestsManager.releaseDuckedFocus()
-                    // Execute:
-                    if (lastDispatch.actionType != null) {
+                    // Execute (only if end):
+                    if (lastDispatch.end && lastDispatch.actionType != null) {
                         actionsExecutor.execute(lastDispatch)
                     }
 
                 } else if (voiceQueryOn) {
                     // B) First execute action, then speak:
-                    // Execute:
-                    if (lastDispatch.actionType != null) {
+                    // Execute (only if end):
+                    if (lastDispatch.end && lastDispatch.actionType != null) {
                         newReplies = actionsExecutor.execute(lastDispatch)
                     }
                     // If received updated replies: replace!

@@ -13,7 +13,6 @@ import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.messLangLower
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.be.database.ExtractorInfo
 import com.ftrono.DJames.be.database.ItemInfoUse
 import com.ftrono.DJames.be.database.NlpQueryModel
@@ -44,7 +43,7 @@ class GenericFulfillment (private var context: Context) {
         val nlpMatcher = NLPMatcher(context)
         var libMatchId = nlpMatcher.matchLibrary(filter, text=contactExtracted)
 
-        if (libMatchId < 0 || !voiceQueryOn) {
+        if (libMatchId < 0) {
             //Fallback:
             return fulfillmentUtils.fallback(notUnderstood=true)
 
@@ -99,6 +98,14 @@ class GenericFulfillment (private var context: Context) {
 
                 //Extract message type:
                 dispatcherInfo.messageType = nlpExtractor.extractMessageType(nlp_queryText)
+                // Select action to take:
+                if (dispatcherInfo.messageType == "voice") {
+                    dispatcherInfo.actionType = ActionType.WA_VOICE
+                } else if (dispatcherInfo.messageType == "whatsapp") {
+                    dispatcherInfo.actionType = ActionType.WA_TEXT
+                } else {
+                    dispatcherInfo.actionType = ActionType.SMS
+                }
 
                 //Reply:
                 var ttsToRead = if (dispatcherInfo.messageType == "voice") {
@@ -126,6 +133,7 @@ class GenericFulfillment (private var context: Context) {
             }
 
             //Update message:
+            lastAiMessage.actionType = dispatcherInfo.actionType
             lastAiMessage.attachments.nlpExtractor = extractorInfo
             lastAiMessage.attachments.usable = itemInfo
             return dispatcherInfo
@@ -142,18 +150,10 @@ class GenericFulfillment (private var context: Context) {
             //Recover info:
             var reqLangCode = prevDispatch.reqLanguage
             var itemInfo = prevDispatch.usable
+            dispatcherInfo.actionType = prevDispatch.actionType
 
             //Store usable details:
             itemInfo.language = reqLangCode
-
-            // Select action to take:
-            if (prevDispatch.messageType == "voice") {
-                dispatcherInfo.actionType = ActionType.WA_VOICE
-            } else if (prevDispatch.messageType == "whatsapp") {
-                dispatcherInfo.actionType = ActionType.WA_TEXT
-            } else {
-                dispatcherInfo.actionType = ActionType.SMS
-            }
 
             //dispatcherInfo:
             dispatcherInfo.usable = itemInfo
@@ -267,7 +267,8 @@ class GenericFulfillment (private var context: Context) {
             dispatcherInfo.usable = itemInfo
             dispatcherInfo.playAcknowledge = true
 
-            //Player info:
+            //Update message:
+            lastAiMessage.actionType = dispatcherInfo.actionType
             lastAiMessage.attachments.nlpExtractor = extractorInfo
             lastAiMessage.attachments.usable = itemInfo
         }

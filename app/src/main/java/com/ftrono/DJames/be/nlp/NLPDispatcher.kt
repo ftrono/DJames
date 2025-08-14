@@ -57,7 +57,6 @@ class NLPDispatcher (private var context: Context) {
                 //A) PROCESS:
                 try {
                     //Get relevant results:
-                    messageUtils.createMessage(fromUser = true)
                     nlp_queryText = resultsNLP.queryText
                     nlp_queryText = fulfillmentUtils.replaceNums(nlp_queryText)
                     intentName = resultsNLP.intentName

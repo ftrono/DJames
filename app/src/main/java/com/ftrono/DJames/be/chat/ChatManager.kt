@@ -10,6 +10,7 @@ import com.ftrono.DJames.application.lastRequestIntent
 import com.ftrono.DJames.application.chatMessageMode
 import com.ftrono.DJames.application.chatReset
 import com.ftrono.DJames.application.defaultChatResetTime
+import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.lastStarter
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.overlayStatus
@@ -33,9 +34,13 @@ class ChatManager(private val context: Context) {
         chatLastDispatch = DispatcherInfo()
     }
 
-    fun processQuery(text: String) {
-        // Reset chat anyway if defaultChatResetTime is elapsed:
-        if ((messageUtils.getCurrentTimestamp() - lastStarter.starterId) < defaultChatResetTime) {
+    fun processQuery(text: String, restart: Boolean = false) {
+        // Reset chat anyway if forced "restart" or defaultChatResetTime is elapsed:
+        if (
+            restart
+            || chatLastDispatch.end
+            || chatLastDispatch.fail
+            || ((messageUtils.getCurrentTimestamp() - lastStarter.starterId) > defaultChatResetTime)) {
            chatReset = true
         }
         // Reset chat when needed:
@@ -69,32 +74,28 @@ class ChatManager(private val context: Context) {
 
             // Store message:
             if (chatLastDispatch.aiReplies.isNotEmpty()) {
-                // Join replies:
-                var fullText = ""
-                for (reply in chatLastDispatch.aiReplies) {
-                    fullText = fullText + reply.text
-                }
                 // Save reply:
-                lastAiMessage.text = fullText
-                Log.d(TAG, "FULL TEXT: $fullText")
+                lastAiMessage.text = fulfillmentUtils.joinReplies(chatLastDispatch.aiReplies)
                 lastAiMessage.langCode = prefs.queryLanguage   //TODO
                 lastAiMessage.requestIntent = lastRequestIntent
                 messageUtils.storeMessage(context, fromUser = false, fromVoice = false)
             }
 
-            overlayStatus.postValue("ready")
-
-//            // Execute:
-//            if (chatLastDispatch.actionType != null) {
-//                val actionsExecutor = ActionsExecutor(context)
-//                actionsExecutor.execute(chatLastDispatch)
-//            }
-
-            // Reset if end chat:
-            if (chatLastDispatch.end) {
-                resetConv()
-                chatReset = true
+            // Execute:
+            if (chatLastDispatch.end && chatLastDispatch.actionType != null) {
+                val actionsExecutor = ActionsExecutor(context)
+                newReplies = actionsExecutor.execute(chatLastDispatch)
+                if (newReplies.isNotEmpty()) {
+                    // Save reply:
+                    messageUtils.createMessage(fromUser = false)
+                    lastAiMessage.text = fulfillmentUtils.joinReplies(newReplies)
+                    lastAiMessage.langCode = prefs.queryLanguage   //TODO
+                    lastAiMessage.requestIntent = lastRequestIntent
+                    messageUtils.storeMessage(context, fromUser = false, fromVoice = false)
+                }
             }
+
+            overlayStatus.postValue("ready")
         }
     }
 }

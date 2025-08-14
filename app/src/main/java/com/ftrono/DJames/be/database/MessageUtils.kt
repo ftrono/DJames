@@ -16,7 +16,10 @@ import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.lastStarter
 import com.ftrono.DJames.application.lastUserMessage
 import com.ftrono.DJames.application.messageBox
+import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.messagesPageSize
+import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.models.ActionType
 import com.ftrono.DJames.be.samples.testMessages
 import io.objectbox.query.QueryBuilder
 import kotlinx.serialization.json.Json
@@ -159,7 +162,7 @@ class MessageUtils {
                     Log.d(TAG, "Voice conversation started!")
                 } else if (fromUser && chatReset) {
                     // (Chat only) User is making its first chat request -> start new conversation now:
-                    chatReset = false   // conv started
+                    chatReset = false
                     messageBox!!.put(lastStarter)
                     Log.d(TAG, "Chat conversation started!")
                 }
@@ -345,6 +348,117 @@ class MessageUtils {
         } catch (e: Exception) {
             Log.d("MessagesScreen", "openLogViaApp(): viewer app not found!")
             Toast.makeText(context, "No app to open the selected file!", Toast.LENGTH_LONG).show()
+        }
+    }
+
+
+    //BUILD MESSAGE VIEW INFO:
+    fun buildExtraDetails(message: Message): String {
+        val trimLength = 40
+        val intentName = message.requestIntent
+        var detailText = ""
+
+        if (intentName.contains("Call") || intentName.contains("Message")) {
+            //Calls & Messages:
+            val itemInfo = message.attachments.usable
+            detailText = if (itemInfo.name == "") "" else "Contact:  ${itemInfo.name}"
+
+        } else if (intentName.contains("Drive")) {
+            //Drive:
+            val itemInfo = message.attachments.usable
+            if (itemInfo.detail == "") {
+                detailText = if (itemInfo.name == "") "" else "Route:  ${itemInfo.name}"
+            } else {
+                detailText = if (itemInfo.name == "") "" else "Route:  ${itemInfo.name}\nDetail:  ${itemInfo.detail}"
+            }
+
+        } else if (intentName.contains("Play")) {
+            //Play requests:
+            val playable = message.attachments.spotifyPlay
+
+            if (playable.type == "podcast" || playable.type == "episode") {
+                //Podcast:
+                var podcastName = utils.capitalizeWords(playable.contextName)
+                detailText = if (podcastName == "") "" else "Podcast:  $podcastName"
+                var episodeName = utils.capitalizeWords(playable.name)
+                var episodeDate = utils.capitalizeWords(playable.releaseDate)
+                detailText += if (episodeName == "") "" else "\nEpisode:  ($episodeDate) \"$episodeName\""
+
+            } else if (playable.type == "playlist" || playable.type == "collection") {
+                //Playlist / artist playlist / collection:
+                detailText = if (playable.name == "") "" else "Playlist:  ${utils.capitalizeWords(playable.name)}"
+
+            } else if (playable.type == "artist") {
+                //Artist:
+                detailText = if (playable.name == "") "" else "Artist:  ${utils.capitalizeWords(playable.name)}"
+
+            } else if (playable.type == "album") {
+                //Album:
+                var matchName = utils.trimString(playable.name, trimLength)
+                if (matchName != "") {
+                    var artistName = utils.trimString(playable.artistsNames.joinToString(", "), trimLength)
+                    if (playable.albumType != "album") {
+                        detailText = "Album:  $matchName  (${utils.capitalizeWords(playable.albumType)})\nArtist:  $artistName"
+                    } else {
+                        detailText = "Album:  $matchName\nArtist:  $artistName"
+                    }
+                }
+
+            } else {
+                //Track:
+                var matchName = utils.trimString(playable.name, trimLength)
+                if (matchName != "") {
+                    var artistName = utils.trimString(playable.artistsNames.joinToString(", "), trimLength)
+
+                    //Context:
+                    var contextType = playable.contextType
+                    var contextName = ""
+                    if (contextType == "Playlist" && !message.attachments.contextError && !message.attachments.playedExternally) {
+                        //Use Playlist:
+                        contextName = playable.contextName
+                    } else {
+                        //Default to Album type:
+                        contextType = utils.capitalizeWords(playable.albumType)
+                        contextName = playable.albumName
+                    }
+                    var contextFull = "$contextName  ($contextType)"
+                    if (message.attachments.playedExternally) {
+                        contextFull = "$contextFull [EXT]"
+                    }
+                    detailText = "Track:  $matchName\nArtist:  $artistName\nContext:  $contextFull"
+                }
+            }
+        }
+        //Add confidence:
+        if (message.attachments.matchScore > 0 && detailText.trim() != "") {
+            detailText = detailText + "\nMatch:  ${message.attachments.matchScore}%"
+        }
+        return detailText
+    }
+
+
+    //TODO: TEMP (use only when needed):
+    fun updateExistingMessages() {
+        var messages = messageBox!!.query().order(Message_.timestamp, QueryBuilder.DESCENDING).build().find()
+        for (msg in messages) {
+            val extraDetails = if (msg.type == "ai") messageUtils.buildExtraDetails(msg) else ""
+            if (extraDetails != "") {
+                val action = if (msg.requestIntent.contains("Play")) {
+                    ActionType.PLAY
+                } else {
+                    when (msg.requestIntent) {
+                        "CallRequest" -> ActionType.CALL
+                        "MessageRequest" -> ActionType.SMS
+                        "DriveRequest" -> ActionType.OPEN_URL
+                        else -> null
+                    }
+                }
+                if (action != null) {
+                    msg.actionType = action
+                    messageBox!!.put(msg)
+                    Log.d(TAG, "Updated message with id: ${msg.id}!")
+                }
+            }
         }
     }
 

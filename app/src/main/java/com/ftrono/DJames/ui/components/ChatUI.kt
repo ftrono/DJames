@@ -6,9 +6,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -45,24 +45,130 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.ftrono.DJames.application.chatText
+import com.ftrono.DJames.application.datetimeShortFormat
+import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.overlayStatus
+import com.ftrono.DJames.application.screens.ConvItemOptions
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.ui.selectors.actionsIconSelector
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
+
+
+// CHAT UI
+@Composable
+fun ConvStarterBubble(
+    modifier: Modifier = Modifier,
+    mDisplayMenu: MutableState<Boolean>,
+    selectedMessageIds: SnapshotStateList<Long>,
+    message: Message,
+    options: @Composable () -> Unit = {}
+) {
+    // CONV STARTER:
+    Row (
+        modifier = modifier
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Box() {
+            Card(
+                modifier = Modifier
+                    .padding(
+                        top = 2.dp, bottom = 2.dp,
+                    )
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onLongPress = {
+                                // Add / remove entire conversation to selection:
+                                val idsToAdd = messageUtils.getMessageIDsByStarterId(message.starterId)
+                                for (id in idsToAdd) {
+                                    if (!selectedMessageIds.contains(id)) {
+                                        selectedMessageIds.add(id)
+                                    } else {
+                                        selectedMessageIds.remove(id)
+                                    }
+                                }
+                            },
+                            onTap = {
+                                if (selectedMessageIds.isNotEmpty()) {
+                                    // Add / remove entire conversation to selection:
+                                    val idsToAdd = messageUtils.getMessageIDsByStarterId(message.starterId)
+                                    for (id in idsToAdd) {
+                                        if (!selectedMessageIds.contains(id)) {
+                                            selectedMessageIds.add(id)
+                                        } else {
+                                            selectedMessageIds.remove(id)
+                                        }
+                                    }
+                                } else {
+                                    // Show options:
+                                    mDisplayMenu.value = !mDisplayMenu.value
+                                }
+                            }
+                        )
+                    },
+                border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = colorResource(id = R.color.light_grey)
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(start=4.dp, end=4.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // SIGN:
+                    Icon(
+                        modifier = Modifier
+                            .size(18.dp),
+                        painter = painterResource(R.drawable.arrow_down),
+                        tint = colorResource(R.color.black),
+                        contentDescription = "More"
+                    )
+                    // STARTER DATETIME:
+                    Text(
+                        modifier = Modifier
+                            .padding(start=4.dp, end=4.dp),
+                        color = colorResource(id = R.color.black),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        text = messageUtils.convertTimestamp(message.timestamp, datetimeShortFormat)
+                    )
+                    // "MORE" ICON:
+                    Icon(
+                        modifier = Modifier
+                            .size(18.dp),
+                        imageVector = Icons.Default.MoreVert,
+                        tint = colorResource(R.color.black),
+                        contentDescription = "More"
+                    )
+                }
+            }
+            options()
+        }
+    }
+}
 
 
 @Composable
 fun MessageBubble(
     modifier: Modifier = Modifier,
-    context: Context,
     selectedMessageIds: SnapshotStateList<Long>,
     messageId: Long,
     fromUser: Boolean,

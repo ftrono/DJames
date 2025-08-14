@@ -27,9 +27,14 @@ enum class ActionType {
     PLAY, CALL, SMS, WA_TEXT, WA_VOICE, OPEN_URL
 }
 
-// Map ActionTypes to Strings:
+// Convert String to ActionType:
 fun actionTypeFromString(value: String?): ActionType? {
     return ActionType.entries.find { it.name.equals(value, ignoreCase = true) }
+}
+
+// Convert ActionType to String:
+fun actionTypeToString(actionType: ActionType?): String? {
+    return actionType?.name
 }
 
 @Serializable

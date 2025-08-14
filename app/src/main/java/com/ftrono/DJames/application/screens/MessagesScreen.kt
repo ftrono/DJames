@@ -65,11 +65,14 @@ import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.messagesListTriggerGap
+import com.ftrono.DJames.application.messagesPageSize
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.chat.ActionsExecutor
 import com.ftrono.DJames.be.chat.ChatManager
 import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.ui.components.ChatInputField
+import com.ftrono.DJames.ui.components.ConvStarterBubble
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.components.OptionsItem
 import com.ftrono.DJames.ui.components.OptionsMenu
@@ -154,7 +157,7 @@ fun MessagesScreen(
             StreetUITopBar(
                 pretitle = "",
                 title = "Messages",
-                subtitle = if (selectedMessageIds.isNotEmpty()) "Selection mode" else "Last 30 days",
+                subtitle = if (selectedMessageIds.isNotEmpty()) "SELECTION MODE" else "Last 30 days",
                 showBack = true,
                 onBack = { navController.popBackStack() },
                 optionButtons = {
@@ -225,12 +228,12 @@ fun MessagesScreen(
                     if (message.type == "starter") {
                         // STARTER:
                         ConvStarter(
+                            context = mContext,
                             message = message,
                             selectedMessageIds = selectedMessageIds
                         )
                     } else  {
                         // MESSAGE ITEM + DETAILS:
-                        val extraDetails = if (message.type == "ai") buildExtraDetails(message) else ""
                         Column(
                             modifier = Modifier
                                 .padding(
@@ -248,19 +251,23 @@ fun MessagesScreen(
                                 message = message,
                                 selectedMessageIds = selectedMessageIds
                             )
-                            if (extraDetails != "") {
-                                MessageDetail(
-                                    context = mContext,
-                                    message = message,
-                                    selectedMessageIds = selectedMessageIds,
-                                    extraDetails = extraDetails,
-                                )
+                            if (message.type == "ai" && message.actionType != null) {
+                                val extraDetails = messageUtils.buildExtraDetails(message)
+                                if (extraDetails != "") {
+                                    MessageDetail(
+                                        context = mContext,
+                                        message = message,
+                                        selectedMessageIds = selectedMessageIds,
+                                        extraDetails = extraDetails,
+                                    )
+                                }
                             }
                         }
                     }
                 }
 
                 // Loader at the bottom
+                hasMore.value = allMessages.value!!.size > messagesPageSize
                 if (hasMore.value) {
                     item {
                         Row(
@@ -289,6 +296,7 @@ fun MessagesScreen(
                                 offset += newMessages.size
                             } else {
                                 hasMore.value = false
+                                Log.d("MessagesScreen", "Messages list end!")
                             }
                         }
                     }
@@ -299,9 +307,10 @@ fun MessagesScreen(
         if (overlayState == "processing") {
             Row(
                 modifier = Modifier
-                    .padding(top = 8.dp, bottom = 4.dp),
+                    .padding(top = 8.dp, bottom = 4.dp)
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
+                horizontalArrangement = Arrangement.Center
             ) {
                 TypingIndicator()
                 Text(
@@ -345,100 +354,39 @@ fun MessagesScreen(
 
 @Composable
 fun ConvStarter(
+    context: Context,
     message: Message,
     selectedMessageIds: SnapshotStateList<Long>,
 ) {
     //INFO:
-    val mContext = LocalContext.current
     var mDisplayMenu = rememberSaveable {
         mutableStateOf(false)
     }
     val deleteLogOn = rememberSaveable { mutableStateOf(false) }
     if (deleteLogOn.value) {
-        DialogDeleteMessages(mContext, deleteLogOn, selectedMessageIds, starterId=message.timestamp)
+        DialogDeleteMessages(context, deleteLogOn, selectedMessageIds, starterId=message.timestamp)
     }
 
     // CONV STARTER:
-    Row (
+    ConvStarterBubble(
         modifier = Modifier
             .padding(
                 start = 32.dp,
                 end = 24.dp,
-            )
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Box() {
-            Card(
-                modifier = Modifier
-                    .padding(
-                        top = 2.dp, bottom = 2.dp,
-                    )
-                    .clickable {
-                        if (selectedMessageIds.isNotEmpty()) {
-                            // Add entire conversation to selection:
-                            val idsToAdd = messageUtils.getMessageIDsByStarterId(message.starterId)
-                            for (id in idsToAdd) {
-                                if (!selectedMessageIds.contains(id)) {
-                                    selectedMessageIds.add(id)
-                                }
-                            }
-                        } else {
-                            // Show options:
-                            mDisplayMenu.value = !mDisplayMenu.value
-                        }
-                    },
-                border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = colorResource(id = R.color.light_grey)
-                )
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(start=4.dp, end=4.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // SIGN:
-                    Icon(
-                        modifier = Modifier
-                            .size(18.dp),
-                        painter = painterResource(R.drawable.arrow_down),
-                        tint = colorResource(R.color.black),
-                        contentDescription = "More"
-                    )
-                    // STARTER DATETIME:
-                    Text(
-                        modifier = Modifier
-                            .padding(start=4.dp, end=4.dp),
-                        color = colorResource(id = R.color.black),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        text = messageUtils.convertTimestamp(message.timestamp, datetimeShortFormat)
-                    )
-                    // "MORE" ICON:
-                    Icon(
-                        modifier = Modifier
-                            .size(18.dp),
-                        imageVector = Icons.Default.MoreVert,
-                        tint = colorResource(R.color.black),
-                        contentDescription = "More"
-                    )
-                }
-            }
+            ),
+        mDisplayMenu = mDisplayMenu,
+        selectedMessageIds = selectedMessageIds,
+        message = message,
+        options = {
             //"MORE OPTIONS" BUTTON:
             ConvItemOptions(
-                mContext = mContext,
+                mContext = context,
                 mDisplayMenu = mDisplayMenu,
                 deleteLogOn = deleteLogOn,
                 starterId = message.timestamp
             )
         }
-    }
-
+    )
 }
 
 
@@ -455,7 +403,6 @@ fun MessageItem(
                 start = if (message.type == "user") 40.dp else 0.dp,
                 end = if (message.type == "ai") 40.dp else 0.dp,
             ),
-        context = context,
         selectedMessageIds = selectedMessageIds,
         fromUser = message.type == "user",
         messageId = message.id,
@@ -501,13 +448,21 @@ fun MessageDetail(
     MessageBubble(
         modifier = Modifier
             .padding(top=2.dp),
-        context = context,
         selectedMessageIds = selectedMessageIds,
         fromUser = message.type == "user",
         messageId = message.id,
         requestIntent = message.requestIntent,
         showButton = true,
-        onClick = { }   //TODO
+        onClick = {
+            val actionsExecutor = ActionsExecutor(context)
+                actionsExecutor.launchAction(
+                    action = message.actionType!!,
+                    usable = message.attachments.usable,
+                    playable = message.attachments.spotifyPlay,
+                    reqLanguage = message.langCode,
+                    fromOldChat = true,
+                )
+        }
     ) {
         Column(
             modifier = Modifier
@@ -707,89 +662,4 @@ fun DialogDeleteMessages(
             dialogOnState.value = false
         }
     )
-}
-
-
-//BUILD LOG VIEW INFO:
-fun buildExtraDetails(message: Message): String {
-    val trimLength = 40
-    val intentName = message.requestIntent
-    var detailText = ""
-
-    if (intentName.contains("Call") || intentName.contains("Message")) {
-        //Calls & Messages:
-        val itemInfo = message.attachments.usable
-        detailText = if (itemInfo.name == "") "" else "Contact:  ${itemInfo.name}"
-
-    } else if (intentName.contains("Drive")) {
-        //Drive:
-        val itemInfo = message.attachments.usable
-        if (itemInfo.detail == "") {
-            detailText = if (itemInfo.name == "") "" else "Route:  ${itemInfo.name}"
-        } else {
-            detailText = if (itemInfo.name == "") "" else "Route:  ${itemInfo.name}\nDetail:  ${itemInfo.detail}"
-        }
-
-    } else if (intentName.contains("Play")) {
-        //Play requests:
-        val playable = message.attachments.spotifyPlay
-
-        if (playable.type == "podcast" || playable.type == "episode") {
-            //Podcast:
-            var podcastName = utils.capitalizeWords(playable.contextName)
-            detailText = if (podcastName == "") "" else "Podcast:  $podcastName"
-            var episodeName = utils.capitalizeWords(playable.name)
-            var episodeDate = utils.capitalizeWords(playable.releaseDate)
-            detailText += if (episodeName == "") "" else "\nEpisode:  ($episodeDate) \"$episodeName\""
-
-        } else if (playable.type == "playlist" || playable.type == "collection") {
-            //Playlist / artist playlist / collection:
-            detailText = if (playable.name == "") "" else "Playlist:  ${utils.capitalizeWords(playable.name)}"
-
-        } else if (playable.type == "artist") {
-            //Artist:
-            detailText = if (playable.name == "") "" else "Artist:  ${utils.capitalizeWords(playable.name)}"
-
-        } else if (playable.type == "album") {
-            //Album:
-            var matchName = utils.trimString(playable.name, trimLength)
-            if (matchName != "") {
-                var artistName = utils.trimString(playable.artistsNames.joinToString(", "), trimLength)
-                if (playable.albumType != "album") {
-                    detailText = "Album:  $matchName  (${utils.capitalizeWords(playable.albumType)})\nArtist:  $artistName"
-                } else {
-                    detailText = "Album:  $matchName\nArtist:  $artistName"
-                }
-            }
-
-        } else {
-            //Track:
-            var matchName = utils.trimString(playable.name, trimLength)
-            if (matchName != "") {
-                var artistName = utils.trimString(playable.artistsNames.joinToString(", "), trimLength)
-
-                //Context:
-                var contextType = playable.contextType
-                var contextName = ""
-                if (contextType == "Playlist" && !message.attachments.contextError && !message.attachments.playedExternally) {
-                    //Use Playlist:
-                    contextName = playable.contextName
-                } else {
-                    //Default to Album type:
-                    contextType = utils.capitalizeWords(playable.albumType)
-                    contextName = playable.albumName
-                }
-                var contextFull = "$contextName  ($contextType)"
-                if (message.attachments.playedExternally) {
-                    contextFull = "$contextFull [EXT]"
-                }
-                detailText = "Track:  $matchName\nArtist:  $artistName\nContext:  $contextFull"
-            }
-        }
-    }
-    //Add confidence:
-    if (message.attachments.matchScore > 0 && detailText.trim() != "") {
-        detailText = detailText + "\nMatch:  ${message.attachments.matchScore}%"
-    }
-    return detailText
 }

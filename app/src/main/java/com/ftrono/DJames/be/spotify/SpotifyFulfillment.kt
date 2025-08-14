@@ -128,6 +128,7 @@ class SpotifyFulfillment (private var context: Context) {
         Log.d(TAG, dispatcherInfo.toString())
 
         //Update message:
+        lastAiMessage.actionType = dispatcherInfo.actionType
         lastAiMessage.attachments.spotifyPlay = playable
         dispatcherInfo.playable = playable
         return dispatcherInfo
@@ -220,8 +221,9 @@ class SpotifyFulfillment (private var context: Context) {
             dispatcherInfo.aiReplies = aiReplies
             dispatcherInfo.actionType = ActionType.PLAY
 
-            //Player info:
+            //Update message:
             extractorInfo.reqLanguage = reqLangCode
+            lastAiMessage.actionType = dispatcherInfo.actionType
             lastAiMessage.attachments.nlpExtractor = extractorInfo
             lastAiMessage.attachments.spotifyPlay = playable
             dispatcherInfo.playable = playable
@@ -334,8 +336,9 @@ class SpotifyFulfillment (private var context: Context) {
             dispatcherInfo.aiReplies = aiReplies
             dispatcherInfo.actionType = ActionType.PLAY
 
-            //Player info:
+            //Update message:
             extractorInfo.reqLanguage = reqLangCode
+            lastAiMessage.actionType = dispatcherInfo.actionType
             lastAiMessage.attachments.nlpExtractor = extractorInfo
             lastAiMessage.attachments.spotifyPlay = playable
             dispatcherInfo.playable = playable
@@ -428,8 +431,9 @@ class SpotifyFulfillment (private var context: Context) {
             dispatcherInfo.aiReplies = aiReplies
             dispatcherInfo.actionType = ActionType.PLAY
 
-            //Player info:
+            //Update message:
             extractorInfo.reqLanguage = reqLangCode
+            lastAiMessage.actionType = dispatcherInfo.actionType
             lastAiMessage.attachments.nlpExtractor = extractorInfo
             lastAiMessage.attachments.spotifyPlay = playable
             dispatcherInfo.playable = playable

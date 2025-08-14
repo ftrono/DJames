@@ -157,14 +157,8 @@ fun CardSign(
 @Composable
 fun SplitterSignPreview() {
     val currentCatState = rememberSaveable { mutableStateOf(libHeads[0]) }
-    val libraryItems = rememberSaveable {
-        mutableStateOf(libUtils.refreshLibrary(currentCatState.value, true))
-    }
-
     SplitterSign(
-        libraryItems = libraryItems,
         currentCatState = currentCatState,
-        preview = true
     )
 }
 
@@ -172,8 +166,7 @@ fun SplitterSignPreview() {
 @Composable
 fun SplitterSign(
     currentCatState: MutableState<String>,
-    libraryItems: MutableState<List<String>>,
-    preview: Boolean
+    onNavClick: () -> Unit = {}
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
@@ -195,13 +188,14 @@ fun SplitterSign(
         ) {
             for (head in libHeads) {
                 SplitterCat(
-                    currentCatState = currentCatState,
-                    libraryItems = libraryItems,
                     head = head,
                     title = "${head.replaceFirstChar { it.uppercase() }}s",
                     selected = currentCatState.value == head,
                     isLandscape = isLandscape,
-                    preview = preview
+                    onNavClick = {
+                        currentCatState.value = head
+                        onNavClick()
+                    }
                 )
                 //DIVIDERS:
                 if (head != libHeads.last()) {
@@ -221,21 +215,18 @@ fun SplitterSign(
 
 @Composable
 fun SplitterCat(
-    currentCatState: MutableState<String>,
-    libraryItems: MutableState<List<String>>,
     head: String,
     title: String,
     selected: Boolean,
     num: Int? = null,
     isLandscape: Boolean = false,
-    preview: Boolean = false
+    onNavClick: () -> Unit = {}
 ){
     Row(
         modifier = Modifier
             .padding(start = 10.dp, end = 10.dp, top = 8.dp, bottom = 8.dp)
             .clickable {
-                currentCatState.value = head
-                libraryItems.value = libUtils.refreshLibrary(currentCatState.value, preview)
+                onNavClick()
             },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
@@ -290,7 +281,6 @@ fun RoundedSign(
     contentColor: Color,
     borderWidth: Dp = 1.5.dp,
     imageRes: Painter? = null,
-    imageBW: Boolean = false,
     iconPainter: Painter? = null,
     iconVector: ImageVector? = null,
     contentText: String = "",
@@ -305,21 +295,24 @@ fun RoundedSign(
             modifier = Modifier
                 .size(signSize)
                 .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
-                .border(borderWidth, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp)),
+                .border(
+                    borderWidth,
+                    borderColor,
+                    if (circle) CircleShape else RoundedCornerShape(4.dp)
+                ),
             painter = imageRes,
             contentDescription = "Item image",
-            colorFilter = if (imageBW) {
-                ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
-            } else {
-                ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(1f) })
-            }
         )
     } else if (imageUrl != "") {
         AsyncImage(
             modifier = modifier
                 .size(signSize)
                 .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
-                .border(borderWidth, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp)),
+                .border(
+                    borderWidth,
+                    borderColor,
+                    if (circle) CircleShape else RoundedCornerShape(4.dp)
+                ),
             model = imageUrl,
             contentDescription = "Item image"
         )
@@ -330,14 +323,22 @@ fun RoundedSign(
                         .size(signSize)
                         .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
                         .background(backgroundColor)
-                        .border(borderWidth, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp))
-                        .clickable { onClick () }
+                        .border(
+                            borderWidth,
+                            borderColor,
+                            if (circle) CircleShape else RoundedCornerShape(4.dp)
+                        )
+                        .clickable { onClick() }
                 } else {
                     modifier
                         .size(signSize)
                         .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
                         .background(backgroundColor)
-                        .border(borderWidth, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp))
+                        .border(
+                            borderWidth,
+                            borderColor,
+                            if (circle) CircleShape else RoundedCornerShape(4.dp)
+                        )
                 },
             contentAlignment = Alignment.Center
         ) {

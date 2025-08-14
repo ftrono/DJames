@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -30,8 +31,11 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemColors
 import androidx.compose.material3.Text
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -46,7 +50,9 @@ import com.ftrono.DJames.application.innerNavOpen
 import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.navigationItems
 import com.ftrono.DJames.application.extraOpen
+import com.ftrono.DJames.application.libHeads
 import com.ftrono.DJames.ui.components.RoundedSign
+import com.ftrono.DJames.ui.components.SplitterSign
 
 
 @Composable
@@ -57,7 +63,7 @@ fun TopBarMenu(
     iconVector: ImageVector? = null,
     contentText: String = "",
     imageUrl: String = "",
-    imageBW: Boolean = false,
+    moreOnly: Boolean = false,
     onClick: () -> Unit = {},
     optionsMenu: @Composable () -> Unit = {}
 ) {
@@ -71,30 +77,40 @@ fun TopBarMenu(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // ROUNDED SIGN ICON:
-            RoundedSign(
-                modifier = Modifier,
-                signSize = 48.dp,
-                contentSize = 24,
-                backgroundColor = backgroundColor ?: colorResource(R.color.dark_grey),
-                borderColor = colorResource(id = R.color.mid_grey),
-                contentColor = colorResource(id = R.color.light_grey),
-                borderWidth = 2.5.dp,
-                contentText = contentText,
-                imageUrl = imageUrl,
-                imageRes = imageRes,
-                imageBW = imageBW,
-                iconPainter = iconPainter,
-                iconVector = iconVector ?: Icons.Outlined.Person,   //Residual
-            )
-            // MORE ICON:
-            Icon(
-                modifier = Modifier
-                    .size(28.dp),
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = "Options",
-                tint = colorResource(R.color.light_grey)
-            )
+            if (moreOnly) {
+                // MORE ICON:
+                Icon(
+                    modifier = Modifier
+                        .size(28.dp),
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "Options",
+                    tint = colorResource(R.color.light_grey)
+                )
+            } else {
+                // ROUNDED SIGN ICON:
+                RoundedSign(
+                    modifier = Modifier,
+                    signSize = 48.dp,
+                    contentSize = 24,
+                    backgroundColor = backgroundColor ?: colorResource(R.color.dark_grey),
+                    borderColor = colorResource(id = R.color.mid_grey),
+                    contentColor = colorResource(id = R.color.light_grey),
+                    borderWidth = 2.5.dp,
+                    contentText = contentText,
+                    imageUrl = imageUrl,
+                    imageRes = imageRes,
+                    iconPainter = iconPainter,
+                    iconVector = iconVector ?: Icons.Outlined.Person,   //Residual
+                )
+                // MORE ICON:
+                Icon(
+                    modifier = Modifier
+                        .size(28.dp),
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "Options",
+                    tint = colorResource(R.color.light_grey)
+                )
+            }
         }
         // OPTIONS MENU:
         optionsMenu()
@@ -135,7 +151,7 @@ fun StreetUITopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .size(65.dp)
+            .height(65.dp)
             .background(colorResource(id = R.color.windowBackground)),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
@@ -183,6 +199,77 @@ fun StreetUITopBar(
                     color = colorResource(id = R.color.light_grey),
                 )
             }
+        }
+
+        //OPTIONS BUTTONS:
+        optionButtons()
+    }
+}
+
+
+@Preview(widthDp = 500)
+@Composable
+fun TopSplitterBarPreview() {
+    val currentCatState = rememberSaveable { mutableStateOf(libHeads[0]) }
+    TopSplitterBar(
+        currentCatState = currentCatState,
+        showBack = true,
+        optionButtons = {
+            //TODO
+            TopBarMenu(
+                backgroundColor = colorResource(R.color.blueSign),
+                contentText = "20"
+            )
+        }
+    )
+}
+
+
+
+//TOP SPLITTER BAR:
+@Composable
+fun TopSplitterBar(
+    currentCatState: MutableState<String>,
+    showBack: Boolean = false,
+    onBack: () -> Unit = {},
+    onNavClick: () -> Unit = {},
+    optionButtons: @Composable() (RowScope.() -> Unit) = {}
+) {
+    //HEADER:
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(65.dp)
+            .background(colorResource(id = R.color.windowBackground)),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        //BACK:
+        if (showBack) {
+            Icon(
+                modifier = Modifier
+                    .padding(start = 18.dp)
+                    .size(30.dp)
+                    .clickable {
+                        onBack()
+                    },
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                tint = colorResource(id = R.color.light_grey)
+            )
+        }
+
+        //SPLITTER SIGN (bigger weight with margins):
+        Row(
+            modifier = Modifier
+                .weight(1F),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            SplitterSign(
+                currentCatState = currentCatState,
+                onNavClick = onNavClick,
+            )
         }
 
         //OPTIONS BUTTONS:

@@ -83,6 +83,7 @@ import com.ftrono.DJames.ui.dialogs.AddLinkDialog
 import com.ftrono.DJames.ui.dialogs.DialogLoading
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
+import com.ftrono.DJames.ui.navigation.TopSplitterBar
 import com.ftrono.DJames.ui.selectors.libColorSelector
 import com.ftrono.DJames.ui.selectors.libIconSelector
 import kotlinx.serialization.json.Json
@@ -263,6 +264,7 @@ fun LibraryScreen(
         lineDistance = 20.dp,
         topBar = {
             if (!isLandscape) {
+                // VERTICAL -> TOP APP BAR:
                 StreetUITopBar(
                     pretitle = "Saved items",
                     title = if (currentCatState.value == "artist" || currentCatState.value == "route") {
@@ -275,6 +277,33 @@ fun LibraryScreen(
                     showBack = true,
                     onBack = { navController.popBackStack() },
                     optionButtons = {
+                        // CAT MENU:
+                        TopBarMenu(
+                            contentText = "$curLibrarySizeState",
+                            backgroundColor = libColorSelector(cat = currentCatState.value),
+                            onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
+                        ) {
+                            CatOptions(
+                                mContext = mContext,
+                                libraryItems = libraryItems,
+                                mDisplayMenu = mDisplayMainMenu,
+                                deleteLibOn = deleteLibOn,
+                                head = currentCatState.value
+                            )
+                        }
+                    }
+                )
+            } else {
+                // HORIZONTAL -> TOP SPLITTER BAR:
+                TopSplitterBar(
+                    currentCatState = currentCatState,
+                    showBack = true,
+                    onBack = { navController.popBackStack() },
+                    onNavClick = {
+                        libraryItems.value = libUtils.refreshLibrary(currentCatState.value, preview)
+                    },
+                    optionButtons = {
+                        // CAT MENU:
                         TopBarMenu(
                             contentText = "$curLibrarySizeState",
                             backgroundColor = libColorSelector(cat = currentCatState.value),
@@ -327,63 +356,23 @@ fun LibraryScreen(
                 .fillMaxSize()
         ) {
 
-            //CAT SELECTORS:
-            Row (
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        if (isLandscape) colorResource(R.color.windowBackground) else colorResource(
-                            R.color.transparent_full
-                        )
-                    ),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                //BACK BUTTON:
-                if (isLandscape) {
-                    Icon(
-                        modifier = Modifier
-                            .padding(start = 18.dp)
-                            .size(30.dp)
-                            .clickable {
-                                navController.popBackStack()
-                            },
-                        imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                        contentDescription = "Back",
-                        tint = colorResource(id = R.color.light_grey)
-                    )
-                }
-
-                //SPLITTER SIGN (bigger weight with margins):
-                Row(
+            if (!isLandscape) {
+                // VERTICAL -> TOP SPLITTER:
+                Row (
                     modifier = Modifier
                         .padding(top = 12.dp, bottom = 12.dp)
-                        .weight(1F),
+                        .fillMaxWidth()
+                        .background(colorResource(R.color.transparent_full)
+                        ),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
                     SplitterSign(
-                        libraryItems = libraryItems,
                         currentCatState = currentCatState,
-                        preview = preview
+                        onNavClick = {
+                            libraryItems.value = libUtils.refreshLibrary(currentCatState.value, preview)
+                        },
                     )
-                }
-
-                //CAT OPTIONS:
-                if (isLandscape) {
-                    TopBarMenu(
-                        contentText = "$curLibrarySizeState",
-                        backgroundColor = libColorSelector(cat = currentCatState.value),
-                        onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
-                    ) {
-                        CatOptions(
-                            mContext = mContext,
-                            libraryItems = libraryItems,
-                            mDisplayMenu = mDisplayMainMenu,
-                            deleteLibOn = deleteLibOn,
-                            head = currentCatState.value
-                        )
-                    }
                 }
             }
 
@@ -458,14 +447,21 @@ fun LibSectionContent(
     //CONTENT:
     if (libraryItems.value.isEmpty()) {
         //LIBRARY EMPTY:
-        Text(
-            text = "${currentCatState.value.replaceFirstChar { it.uppercase() }}s library\nis empty",
-            textAlign = TextAlign.Center,
-            fontSize = 18.sp,
-            color = colorResource(id = R.color.mid_grey),
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-        )
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                text = "No saved ${currentCatState.value}s.\nTap on Add!",
+                textAlign = TextAlign.Center,
+                fontSize = 18.sp,
+                color = colorResource(id = R.color.mid_grey),
+            )
+        }
     } else {
         //LIBRARY LIST:
         LazyVerticalGrid(

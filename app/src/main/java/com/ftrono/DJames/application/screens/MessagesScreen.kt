@@ -163,7 +163,7 @@ fun MessagesScreen(
                         Icon(
                             modifier = Modifier
                                 .padding(end = 12.dp)
-                                .size(35.dp)
+                                .size(32.dp)
                                 .clickable {
                                     selectedMessageIds.clear()
                                 },
@@ -173,10 +173,9 @@ fun MessagesScreen(
                         )
                     }
                     TopBarMenu(
-                        imageRes = painterResource(R.drawable.app_icon_round),
-                        imageBW = selectedMessageIds.isNotEmpty(),
                         // contentText = "${if (selectedMessageIds.isNotEmpty()) selectedMessageIds.size else curMessagesSizeState}",
                         // backgroundColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.faded_grey) else colorResource(R.color.greenSign),
+                        moreOnly = true,
                         onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
                     ) {
                         MessagesOptions(
@@ -193,34 +192,28 @@ fun MessagesScreen(
         //CONTENT:
         if (allMessagesState!!.isEmpty()) {
             //MESSAGES EMPTY:
-            Text(
+            Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .clickable(
-                        // This makes the rest of the screen clear focus on tap
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                        focusManager.clearFocus()
-                    },
-                text = "No messages",
-                textAlign = TextAlign.Center,
-                fontSize = 18.sp,
-                color = colorResource(id = R.color.mid_grey),
-            )
+                    .fillMaxWidth()
+                    .weight(1F),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    text = "No messages",
+                    textAlign = TextAlign.Center,
+                    fontSize = 18.sp,
+                    color = colorResource(id = R.color.mid_grey),
+                )
+            }
         } else {
             //MESSAGES LIST:
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1F)
-                    .clickable(
-                        // This makes the rest of the screen clear focus on tap
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                        focusManager.clearFocus()
-                    },
+                    .weight(1F),
                 state = listState,
                 reverseLayout = true
             ) {
@@ -302,58 +295,50 @@ fun MessagesScreen(
             }
         }
 
-        //WRAPPER:
-        Column(
-            modifier = Modifier
-                .fillMaxWidth(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // TYPING INDICATOR:
-            if (overlayState == "processing") {
-                Row(
+        // TYPING INDICATOR:
+        if (overlayState == "processing") {
+            Row(
+                modifier = Modifier
+                    .padding(top = 8.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                TypingIndicator()
+                Text(
                     modifier = Modifier
-                        .padding(top = 8.dp, bottom = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    TypingIndicator()
-                    Text(
-                        modifier = Modifier
-                            .padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-                        text = "Typing...",
-                        fontSize = 14.sp,
-                        fontStyle = FontStyle.Italic,
-                        textAlign = TextAlign.Center,
-                        color = colorResource(id = R.color.mid_grey),
-                    )
+                        .padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                    text = "Typing...",
+                    fontSize = 14.sp,
+                    fontStyle = FontStyle.Italic,
+                    textAlign = TextAlign.Center,
+                    color = colorResource(id = R.color.mid_grey),
+                )
+            }
+        }
+        // CHAT INPUT FIELD:
+        ChatInputField(
+            context = mContext,
+            requestPermissions = requestPermissions,
+            requestOverlayOn = requestOverlayOn,
+            modifier = Modifier
+                .padding(
+                    start = 32.dp,
+                    end = 24.dp,
+                    top = 6.dp,
+                    bottom = 2.dp
+                )
+                .imePadding()
+                .fillMaxWidth(),
+            placeholder = "Ask me anything...",
+            enableLeftButton = true,
+            onSend = {
+                if (chatText.value!!.trim() != "") {
+                    val curText = chatText.value!!.trim()
+                    chatManager.processQuery(curText)
+                    chatText.postValue("")
                 }
             }
-            // CHAT INPUT FIELD:
-            ChatInputField(
-                context = mContext,
-                requestPermissions = requestPermissions,
-                requestOverlayOn = requestOverlayOn,
-                modifier = Modifier
-                    .padding(
-                        start = 32.dp,
-                        end = 24.dp,
-                        top = 6.dp,
-                        bottom = 2.dp
-                    )
-                    .imePadding()
-                    .fillMaxWidth(),
-                placeholder = "Ask me anything...",
-                enableLeftButton = true,
-                onSend = {
-                    if (chatText.value!!.trim() != "") {
-                        val curText = chatText.value!!.trim()
-                        chatManager.processQuery(curText)
-                        chatText.postValue("")
-                    }
-                }
-            )
-        }
+        )
     }
 }
 

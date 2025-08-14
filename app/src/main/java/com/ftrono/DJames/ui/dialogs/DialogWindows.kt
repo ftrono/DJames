@@ -126,8 +126,7 @@ fun DialogLoading(
         //CONTAINER:
         Card(
             modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
+                .fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(
                 containerColor = colorResource(id = R.color.dark_grey_background)
@@ -135,9 +134,7 @@ fun DialogLoading(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(20.dp)
-                    .wrapContentWidth()
-                    .wrapContentHeight(),
+                    .padding(20.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -207,8 +204,7 @@ fun EditLibDialog(
     //EDIT DIALOG CONTAINER:
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
+            .fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         //border = BorderStroke(2.dp, colorResource(id = R.color.faded_grey)),
         colors = CardDefaults.cardColors (
@@ -218,9 +214,7 @@ fun EditLibDialog(
 
         Column(
             modifier = Modifier
-                .padding(20.dp)
-                .wrapContentWidth()
-                .wrapContentHeight(),
+                .padding(20.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start,
         ) {
@@ -244,8 +238,6 @@ fun EditLibDialog(
             Column(
                 modifier = Modifier
                     .padding(8.dp)
-                    .wrapContentWidth()
-                    .wrapContentHeight()
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start,
@@ -284,8 +276,7 @@ fun EditLibHeader(
     Box(
         modifier = Modifier
             .padding(bottom = 12.dp)
-            .fillMaxWidth()
-            .wrapContentHeight(),
+            .fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
         //HEADER CONTENT:
@@ -449,7 +440,6 @@ fun AddLinkDialog(
                 modifier = Modifier
                     .padding(top = 8.dp, bottom = 20.dp)
                     .fillMaxWidth()
-                    .wrapContentHeight()
                     .focusRequester(focusRequester),
                 colors = getTextFieldColors(
                     colorLight = colorResource(id = R.color.mid_grey),

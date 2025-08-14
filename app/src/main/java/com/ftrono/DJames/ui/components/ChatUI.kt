@@ -188,8 +188,7 @@ fun SplitSendButton(
     Row(
         modifier = Modifier
             .padding(2.dp)
-            .height(48.dp)
-            .wrapContentWidth(),
+            .height(48.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {

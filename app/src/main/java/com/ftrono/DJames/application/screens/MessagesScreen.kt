@@ -196,8 +196,6 @@ fun MessagesScreen(
             Text(
                 modifier = Modifier
                     .fillMaxSize()
-                    .wrapContentHeight()
-                    .wrapContentWidth()
                     .clickable(
                         // This makes the rest of the screen clear focus on tap
                         indication = null,
@@ -382,8 +380,7 @@ fun ConvStarter(
                 start = 32.dp,
                 end = 24.dp,
             )
-            .fillMaxWidth()
-            .wrapContentHeight(),
+            .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {

@@ -313,7 +313,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     modifier = Modifier
                         .padding(top = 8.dp, bottom = 20.dp)
                         .width(250.dp)
-                        .wrapContentHeight()
                         .focusRequester(focusRequester),
                     colors = getTextFieldColors(
                         colorLight = colorResource(id = R.color.yellowSignLight),
@@ -469,7 +468,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     modifier = Modifier
                         .padding(top = 8.dp, bottom = 20.dp)
                         .width(250.dp)
-                        .wrapContentHeight()
                         .focusRequester(focusRequester),
                     colors = getTextFieldColors(
                         colorLight = colorResource(id = R.color.blueSignLight),
@@ -671,7 +669,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     OutlinedTextField(
                         modifier = Modifier
                             .width(250.dp)
-                            .wrapContentHeight()
                             .focusRequester(focusRequester),
                         colors = getTextFieldColors(
                             colorLight = colorResource(id = R.color.mid_grey),

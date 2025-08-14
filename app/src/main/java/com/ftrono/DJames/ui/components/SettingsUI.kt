@@ -111,8 +111,7 @@ fun CardContainer(
     //CARD:
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
+            .fillMaxWidth(),
         border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
         shape = RoundedCornerShape(roundedCorners),
         colors = CardDefaults.cardColors (

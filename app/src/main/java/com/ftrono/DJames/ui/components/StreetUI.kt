@@ -180,9 +180,7 @@ fun SplitterSign(
 
     //BUTTONS:
     Card(
-        modifier = Modifier
-            .wrapContentWidth()
-            .wrapContentHeight(),
+        modifier = Modifier,
         border = BorderStroke(2.dp, colorResource(id = R.color.faded_grey)),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors (
@@ -210,8 +208,7 @@ fun SplitterSign(
                     VerticalDivider(
                         modifier = Modifier
                             .padding(start = 4.dp, end = 4.dp)
-                            .height(30.dp)
-                            .wrapContentWidth(),
+                            .height(30.dp),
                         thickness = 2.dp,
                         color = colorResource(id = R.color.faded_grey)
                     )
@@ -236,7 +233,6 @@ fun SplitterCat(
     Row(
         modifier = Modifier
             .padding(start = 10.dp, end = 10.dp, top = 8.dp, bottom = 8.dp)
-            .wrapContentWidth()
             .clickable {
                 currentCatState.value = head
                 libraryItems.value = libUtils.refreshLibrary(currentCatState.value, preview)
@@ -271,8 +267,7 @@ fun SplitterCat(
                 //Number of items:
                 Text(
                     modifier = Modifier
-                        .padding(start = 4.dp, end = 4.dp)
-                        .wrapContentWidth(),
+                        .padding(start = 4.dp, end = 4.dp),
                     text = num.toString(),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
@@ -450,8 +445,7 @@ fun GeneralSectionHeader(
     //CARD:
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
+            .fillMaxWidth(),
         border = if (isExpanded) null else BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors (
@@ -586,7 +580,6 @@ fun OptionsItem(
 fun LibItemCardPreview() {
     LibItemCard(
         modifier = Modifier
-            .wrapContentWidth()
             .height(60.dp),
         cardColors = CardDefaults.cardColors(
             containerColor = colorResource(id = R.color.dark_grey)
@@ -659,9 +652,7 @@ fun LibItemCard(
             ) {
                 //Item key:
                 Text(
-                    modifier = Modifier
-                        .wrapContentWidth()
-                        .wrapContentHeight(),
+                    modifier = Modifier,
                     color = colorResource(id = R.color.light_grey),
                     fontSize = 14.sp,
                     lineHeight = 16.sp,
@@ -677,9 +668,7 @@ fun LibItemCard(
                 if (subtitle != "" && !isMultiline.value) {
                     Text(
                         modifier = Modifier
-                            .padding(top = 2.dp)
-                            .wrapContentWidth()
-                            .wrapContentHeight(),
+                            .padding(top = 2.dp),
                         color = colorResource(id = R.color.mid_grey),
                         fontSize = 12.sp,
                         lineHeight = 14.sp,

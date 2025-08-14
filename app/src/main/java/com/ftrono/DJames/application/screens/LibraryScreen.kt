@@ -465,8 +465,6 @@ fun LibSectionContent(
             color = colorResource(id = R.color.mid_grey),
             modifier = Modifier
                 .fillMaxSize()
-                .wrapContentHeight()
-                .wrapContentWidth()
         )
     } else {
         //LIBRARY LIST:

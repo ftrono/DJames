@@ -247,7 +247,6 @@ fun EditPhoneDynamicField(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .wrapContentHeight()
             .padding(top = 8.dp, bottom = 10.dp),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
@@ -427,8 +426,7 @@ fun EditLibDynamicNameSection(
 
     Column (
         modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
+            .fillMaxWidth(),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {

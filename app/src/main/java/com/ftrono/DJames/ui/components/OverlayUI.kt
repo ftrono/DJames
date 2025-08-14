@@ -227,7 +227,6 @@ fun ClockButton(
         modifier = Modifier
             .padding(bottom = 8.dp)
             .width(round(bubbleSize.toDouble() / 1.5).dp)
-            .wrapContentHeight()
             .pointerInput(Unit) {
                 detectTapGestures(
                     //ON SINGLE TAP:
@@ -372,7 +371,7 @@ fun TypingIndicator(
     Row(
         horizontalArrangement = Arrangement.spacedBy(spaceBetween),
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.wrapContentWidth()
+        modifier = Modifier
     ) {
         animations.forEach { anim ->
             Box(

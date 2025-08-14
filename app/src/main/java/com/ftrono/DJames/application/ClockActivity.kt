@@ -263,9 +263,7 @@ class ClockActivity: ComponentActivity() {
                     iconPainter = painterResource(id = R.drawable.sign_note)
                 )
                 Column(
-                    modifier = Modifier
-                        .wrapContentWidth()
-                        .wrapContentHeight(),
+                    modifier = Modifier,
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.Start
                 ) {
@@ -273,8 +271,7 @@ class ClockActivity: ComponentActivity() {
                         //PREFIX:
                         Text(
                             modifier = Modifier
-                                .padding(start = 14.dp, bottom = 2.dp)
-                                .wrapContentWidth(),
+                                .padding(start = 14.dp, bottom = 2.dp),
                             text = currentPlayingPrefixState!!,
                             lineHeight = 12.sp,
                             color = colorResource(id = R.color.midfaded_grey),
@@ -285,8 +282,7 @@ class ClockActivity: ComponentActivity() {
                     //SONG NAME:
                     Text(
                         modifier = Modifier
-                            .padding(start = 14.dp)
-                            .wrapContentWidth(),
+                            .padding(start = 14.dp),
                         text = currentSongPlayingState!!,
                         color = colorResource(id = R.color.mid_grey),
                         fontSize = 18.sp,
@@ -295,8 +291,7 @@ class ClockActivity: ComponentActivity() {
                     //ARTIST NAME:
                     Text(
                         modifier = Modifier
-                            .padding(start = 14.dp)
-                            .wrapContentWidth(),
+                            .padding(start = 14.dp),
                         text = currentArtistPlayingState!!,
                         lineHeight = 16.sp,
                         color = colorResource(id = R.color.mid_grey),
@@ -369,7 +364,6 @@ class ClockActivity: ComponentActivity() {
                     modifier = Modifier
                         .padding(top = 8.dp, bottom = 8.dp)
                         .fillMaxWidth()
-                        .wrapContentHeight()
                 )
                 //TEXT 2:
                 Text(

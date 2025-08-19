@@ -119,7 +119,7 @@ data class Message(
     var datetime: String = "",
     var appVersion: String = "",
     var fromVoice: Boolean = false,
-    var type: String = "",   // Either: "ai", "user", "tool"
+    var fromUser: Boolean = false,
     var text: String = "",
     var langCode: String = "",
     var requestIntent: String = "",   // IntentName from the original request

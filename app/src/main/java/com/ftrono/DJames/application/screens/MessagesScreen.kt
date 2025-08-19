@@ -237,7 +237,7 @@ fun MessagesScreen(
                             selectedMessageIds = selectedMessageIds
                         )
                         // EXTRA DETAILS:
-                        if (message.type == "ai" && message.actionType != null) {
+                        if (!message.fromUser && message.actionType != null) {
                             val extraDetails = messageUtils.buildExtraDetails(message)
                             if (extraDetails != "") {
                                 MessageDetail(
@@ -352,11 +352,11 @@ fun MessageItem(
         modifier = Modifier
             .padding(
                 top = 2.dp,
-                start = if (message.type == "user") 40.dp else 0.dp,
-                end = if (message.type == "ai") 40.dp else 0.dp,
+                start = if (message.fromUser) 40.dp else 0.dp,
+                end = if (!message.fromUser) 40.dp else 0.dp,
             ),
         selectedMessageIds = selectedMessageIds,
-        fromUser = message.type == "user",
+        fromUser = message.fromUser,
         messageId = message.id,
         requestIntent = message.requestIntent,
         onClick = {
@@ -368,7 +368,7 @@ fun MessageItem(
         Column(
             modifier = Modifier
                 .padding(10.dp),
-            horizontalAlignment = if (message.type == "ai") Alignment.Start else Alignment.End,
+            horizontalAlignment = if (!message.fromUser) Alignment.Start else Alignment.End,
             verticalArrangement = Arrangement.Center
         ) {
             //MESSAGE TEXT:
@@ -382,7 +382,7 @@ fun MessageItem(
                 },
                 fontSize = 16.sp,
                 lineHeight = 16.sp,
-                textAlign = if (message.type == "ai") TextAlign.Start else TextAlign.End,
+                textAlign = if (!message.fromUser) TextAlign.Start else TextAlign.End,
                 text = message.text
             )
         }
@@ -401,7 +401,7 @@ fun MessageDetail(
         modifier = Modifier
             .padding(top=2.dp),
         selectedMessageIds = selectedMessageIds,
-        fromUser = message.type == "user",
+        fromUser = message.fromUser,
         messageId = message.id,
         requestIntent = message.requestIntent,
         showButton = true,

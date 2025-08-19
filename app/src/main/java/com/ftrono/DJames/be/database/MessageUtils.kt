@@ -113,13 +113,13 @@ class MessageUtils {
             lastUserMessage = Message(
                 id = 0,
                 appVersion = appVersion,
-                type = "user",
+                fromUser = true
             )
         } else {
             lastAiMessage = Message(
                 id = 0,
                 appVersion = appVersion,
-                type = "ai",
+                fromUser = false
             )
         }
 
@@ -426,7 +426,7 @@ class MessageUtils {
     fun updateExistingMessages() {
         var messages = messageBox!!.query().order(Message_.timestamp, QueryBuilder.DESCENDING).build().find()
         for (msg in messages) {
-            val extraDetails = if (msg.type == "ai") messageUtils.buildExtraDetails(msg) else ""
+            val extraDetails = if (msg.fromUser) "" else messageUtils.buildExtraDetails(msg)
             if (extraDetails != "") {
                 val action = if (msg.requestIntent.contains("Play")) {
                     ActionType.PLAY

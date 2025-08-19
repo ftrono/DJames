@@ -54,15 +54,21 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import com.ftrono.DJames.application.chatText
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.datetimeShortFormat
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.chat.ChatManager
 import com.ftrono.DJames.be.database.Message
+import com.ftrono.DJames.ui.navigation.SharedViewModel
+import com.ftrono.DJames.ui.navigation.navigateTo
 import com.ftrono.DJames.ui.selectors.actionsIconSelector
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
+import com.ftrono.DJames.ui.theme.NavigationItem
 
 
 // CHAT UI
@@ -141,7 +147,7 @@ fun ConvStarterBubble(
                     // CHANNEL:
                     Icon(
                         modifier = Modifier
-                            .padding(start=4.dp)
+                            .padding(start = 4.dp)
                             .size(12.dp),
                         painter = if (message.fromVoice) painterResource(R.drawable.icon_speak) else painterResource(R.drawable.sign_message),
                         tint = colorResource(R.color.black),
@@ -160,7 +166,7 @@ fun ConvStarterBubble(
                     // "MORE" ICON:
                     Icon(
                         modifier = Modifier
-                            .padding(end=4.dp)
+                            .padding(end = 4.dp)
                             .size(16.dp),
                         imageVector = Icons.Default.MoreVert,
                         tint = colorResource(R.color.black),
@@ -379,12 +385,13 @@ fun SplitSendButton(
 @Composable
 fun ChatInputPreview() {
     val mContext = LocalContext.current
+    val sharedViewModel: SharedViewModel = viewModel()
     val requestPermissions = rememberSaveable { mutableStateOf(false) }
     val requestOverlayOn = rememberSaveable { mutableStateOf(false) }
-    val chatText = rememberSaveable { mutableStateOf("") }
 
     ChatInputField(
         context = mContext,
+        sharedViewModel = sharedViewModel,
         requestPermissions = requestPermissions,
         requestOverlayOn = requestOverlayOn,
         placeholder = "Ask me anything...",
@@ -397,6 +404,7 @@ fun ChatInputPreview() {
 fun ChatInputField(
     context: Context,
     modifier: Modifier = Modifier,
+    sharedViewModel: SharedViewModel,
     requestOverlayOn: MutableState<Boolean>,
     requestPermissions: MutableState<Boolean>,
     placeholder: String,
@@ -408,7 +416,6 @@ fun ChatInputField(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val overlayState by overlayStatus.observeAsState()
-    val textState by chatText.observeAsState()
     val textFieldColors = getTextFieldColors(
         colorLight = colorResource(R.color.colorAccentLight),
         colorDark = colorResource(R.color.colorAccent)
@@ -433,10 +440,10 @@ fun ChatInputField(
             .focusRequester(focusRequester),
         enabled = overlayState == "ready",
         colors = textFieldColors,
-        value = textState!!,
+        value = sharedViewModel.text,
         interactionSource = interactionSource,
         onValueChange = { newText ->
-            chatText.postValue(newText)
+            sharedViewModel.text = newText
         },
         textStyle = TextStyle(
             fontSize = 16.sp

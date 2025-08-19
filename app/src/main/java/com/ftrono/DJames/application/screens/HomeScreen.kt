@@ -37,9 +37,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.ftrono.DJames.application.chatText
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.extraOpen
@@ -57,6 +57,7 @@ import com.ftrono.DJames.ui.components.CardSign
 import com.ftrono.DJames.ui.components.ChatInputField
 import com.ftrono.DJames.ui.components.DriveIcon
 import com.ftrono.DJames.ui.components.StreetUIScaffold
+import com.ftrono.DJames.ui.navigation.SharedViewModel
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.UserOptions
 import com.ftrono.DJames.ui.navigation.navigateTo
@@ -71,12 +72,14 @@ import kotlin.Boolean
 @Composable
 fun HomeScreenPreview() {
     val navController = rememberNavController()
-    HomeScreen(navController, preview = true)
+    val sharedViewModel: SharedViewModel = viewModel()
+    HomeScreen(navController, sharedViewModel, preview = true)
 }
 
 @Composable
 fun HomeScreen(
     navController: NavController,
+    sharedViewModel: SharedViewModel,
     preview: Boolean = false
 ) {
     val configuration = LocalConfiguration.current
@@ -177,6 +180,7 @@ fun HomeScreen(
                     requestPermissions = requestPermissions,
                     requestOverlayOn = requestOverlayOn,
                     navController = navController,
+                    sharedViewModel = sharedViewModel,
                 )
                 // BUTTONS ROW:
                 Row(
@@ -221,6 +225,7 @@ fun HomeScreen(
                     requestPermissions = requestPermissions,
                     requestOverlayOn = requestOverlayOn,
                     navController = navController,
+                    sharedViewModel = sharedViewModel,
                 )
                 DriveModeButton(
                     modifier = Modifier
@@ -300,12 +305,14 @@ fun HomeChatWrapper(
     context: Context,
     requestPermissions: MutableState<Boolean>,
     requestOverlayOn: MutableState<Boolean>,
-    navController: NavController
+    navController: NavController,
+    sharedViewModel: SharedViewModel
 ) {
     val chatManager = ChatManager(context)
 
     ChatInputField(
         context = context,
+        sharedViewModel = sharedViewModel,
         requestPermissions = requestPermissions,
         requestOverlayOn = requestOverlayOn,
         modifier = Modifier
@@ -320,11 +327,11 @@ fun HomeChatWrapper(
         placeholder = "Ask me anything...",
         enableLeftButton = false,
         onSend = {
-            if (chatText.value!!.trim() != "") {
+            val curText = sharedViewModel.text.trim()
+            if (curText != "") {
                 navigateTo(navController, NavigationItem.Messages.route)
-                val curText = chatText.value!!.trim()
                 chatManager.processQuery(curText)
-                chatText.postValue("")
+                sharedViewModel.text = ""
             }
         }
     )

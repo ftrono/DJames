@@ -11,8 +11,13 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -29,8 +34,13 @@ import com.ftrono.DJames.ui.theme.NavigationItem
 
 
 //NAV HOST:
+class SharedViewModel : ViewModel() {
+    var text by mutableStateOf("")
+}
+
 @Composable
 fun Navigation(navController: NavHostController) {
+    val sharedViewModel: SharedViewModel = viewModel()
     NavHost(
         modifier = Modifier
             .fillMaxSize(),
@@ -58,7 +68,7 @@ fun Navigation(navController: NavHostController) {
             curNavId = 1
             innerNavOpen.postValue(false)
             extraOpen.postValue(false)
-            HomeScreen(navController)
+            HomeScreen(navController, sharedViewModel)
         }
 
         //2 -> LIBRARY:
@@ -104,7 +114,7 @@ fun Navigation(navController: NavHostController) {
             curNavId = 2
             innerNavOpen.postValue(false)
             extraOpen.postValue(false)
-            MessagesScreen(navController)
+            MessagesScreen(navController, sharedViewModel)
         }
 
         //EXTRA:

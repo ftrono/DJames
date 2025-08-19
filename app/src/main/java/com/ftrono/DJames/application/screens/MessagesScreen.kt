@@ -43,21 +43,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.allMessageIds
-import com.ftrono.DJames.application.chatText
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
-import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.chat.ActionsExecutor
 import com.ftrono.DJames.be.chat.ChatManager
 import com.ftrono.DJames.be.database.Message
-import com.ftrono.DJames.be.samples.testMessages
 import com.ftrono.DJames.ui.components.ChatInputField
 import com.ftrono.DJames.ui.components.ConvStarterBubble
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
@@ -66,6 +64,7 @@ import com.ftrono.DJames.ui.components.OptionsMenu
 import com.ftrono.DJames.ui.components.MessageBubble
 import com.ftrono.DJames.ui.components.StreetUIScaffold
 import com.ftrono.DJames.ui.components.TypingIndicator
+import com.ftrono.DJames.ui.navigation.SharedViewModel
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
 import com.ftrono.DJames.ui.selectors.messagesColorSelectorLight
@@ -77,12 +76,14 @@ import com.ftrono.DJames.ui.selectors.messagesIconSelector
 @Composable
 fun MessagesScreenPreview() {
     val navController = rememberNavController()
-    MessagesScreen(navController, preview=true)
+    val sharedViewModel: SharedViewModel = viewModel()
+    MessagesScreen(navController, sharedViewModel, preview=true)
 }
 
 @Composable
 fun MessagesScreen(
     navController: NavController,
+    sharedViewModel: SharedViewModel,
     preview: Boolean = false
 ) {
     val mContext = LocalContext.current
@@ -276,6 +277,7 @@ fun MessagesScreen(
         // CHAT INPUT FIELD:
         ChatInputField(
             context = mContext,
+            sharedViewModel = sharedViewModel,
             requestPermissions = requestPermissions,
             requestOverlayOn = requestOverlayOn,
             modifier = Modifier
@@ -290,10 +292,10 @@ fun MessagesScreen(
             placeholder = "Ask me anything...",
             enableLeftButton = true,
             onSend = {
-                if (chatText.value!!.trim() != "") {
-                    val curText = chatText.value!!.trim()
+                val curText = sharedViewModel.text.trim()
+                if (curText != "") {
                     chatManager.processQuery(curText)
-                    chatText.postValue("")
+                    sharedViewModel.text = ""
                 }
             }
         )

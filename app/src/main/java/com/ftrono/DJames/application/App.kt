@@ -117,7 +117,7 @@ val chatText = MutableLiveData<String>("")
 var curLibrarySize = MutableLiveData<Int>(0)
 val libHeads = listOf("artist", "playlist", "podcast", "contact", "route")
 val libSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
-// var curMessagesSize = MutableLiveData<Int>(0)
+var allMessagesSize = MutableLiveData<Int>(0)
 var allMessages = MutableLiveData<List<String>>(listOf<String>())
 var messagesPageSize = 20L
 var messagesListTriggerGap = 10
@@ -130,7 +130,7 @@ var chatLastDispatch = DispatcherInfo()
 var lastAiMessage: Message = Message()
 var lastUserMessage: Message = Message()
 var lastRequestIntent: String = ""
-var lastStarter: Message = Message()
+var lastStarterId: Long = 0L
 var voiceConvStarted: Boolean = false
 
 //Preferences:

@@ -11,7 +11,7 @@ import com.ftrono.DJames.application.chatMessageMode
 import com.ftrono.DJames.application.chatReset
 import com.ftrono.DJames.application.defaultChatResetTime
 import com.ftrono.DJames.application.fulfillmentUtils
-import com.ftrono.DJames.application.lastStarter
+import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.prefs
@@ -40,7 +40,7 @@ class ChatManager(private val context: Context) {
             restart
             || chatLastDispatch.end
             || chatLastDispatch.fail
-            || ((messageUtils.getCurrentTimestamp() - lastStarter.starterId) > defaultChatResetTime)) {
+            || ((messageUtils.getCurrentTimestamp() - lastStarterId) > defaultChatResetTime)) {
            chatReset = true
         }
         // Reset chat when needed:

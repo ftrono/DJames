@@ -3,32 +3,23 @@ package com.ftrono.DJames.application.screens
 import android.Manifest
 import android.content.Context
 import android.util.Log
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -59,13 +50,12 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.allMessages
+import com.ftrono.DJames.application.allMessagesSize
 import com.ftrono.DJames.application.chatText
-import com.ftrono.DJames.application.datetimeShortFormat
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.messagesListTriggerGap
-import com.ftrono.DJames.application.messagesPageSize
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.chat.ActionsExecutor
@@ -131,7 +121,7 @@ fun MessagesScreen(
     var offset = 0L
     val allMessagesState by allMessages.observeAsState()
     allMessages.postValue(messageUtils.refreshMessages(offset, preview))
-    // val curMessagesSizeState by curMessagesSize.observeAsState()
+    val allMessagesSizeState by allMessagesSize.observeAsState()
 
     val mDisplayMainMenu = rememberSaveable {
         mutableStateOf(false)
@@ -157,7 +147,7 @@ fun MessagesScreen(
             StreetUITopBar(
                 pretitle = "",
                 title = "Messages",
-                subtitle = if (selectedMessageIds.isNotEmpty()) "SELECTION MODE" else "Last 30 days",
+                subtitle = if (selectedMessageIds.isNotEmpty()) "Selected" else "Last 30 days",
                 showBack = true,
                 onBack = { navController.popBackStack() },
                 optionButtons = {
@@ -176,11 +166,11 @@ fun MessagesScreen(
                         )
                     }
                     TopBarMenu(
-                        // contentText = "${if (selectedMessageIds.isNotEmpty()) selectedMessageIds.size else curMessagesSizeState}",
-                        backgroundColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.colorAccentLight) else colorResource(R.color.colorPrimary),
-                        contentColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.colorPrimaryDark) else colorResource(R.color.light_grey),
-                        borderColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.colorPrimaryDark) else colorResource(R.color.mid_grey),
-                        iconPainter = painterResource(R.drawable.sign_message),
+                        contentText = "${if (selectedMessageIds.isNotEmpty()) selectedMessageIds.size else allMessagesSizeState}",
+                        backgroundColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.faded_grey) else colorResource(R.color.colorPrimary),
+//                        contentColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.colorPrimaryDark) else colorResource(R.color.light_grey),
+//                        borderColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.colorPrimaryDark) else colorResource(R.color.mid_grey),
+//                        iconPainter = painterResource(R.drawable.sign_message),
                         onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
                     ) {
                         MessagesOptions(
@@ -227,42 +217,41 @@ fun MessagesScreen(
                 ) { index, item ->
                     // STARTER / MESSAGE ITEM:
                     val message = Json.decodeFromString<Message>(item)
-                    if (message.type == "starter") {
-                        // STARTER:
-                        ConvStarter(
-                            context = mContext,
-                            message = message,
-                            selectedMessageIds = selectedMessageIds
-                        )
-                    } else  {
-                        // MESSAGE ITEM + DETAILS:
-                        Column(
-                            modifier = Modifier
-                                .padding(
-                                    start = 32.dp,
-                                    end = 24.dp,
-                                    top = 8.dp,
-                                    bottom = 8.dp
-                                )
-                                .fillMaxWidth(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            MessageItem(
+                    // MESSAGE ITEM + DETAILS:
+                    Column(
+                        modifier = Modifier
+                            .padding(
+                                start = 32.dp,
+                                end = 24.dp,
+                                top = 8.dp,
+                                bottom = 8.dp
+                            )
+                            .fillMaxWidth(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (message.isStart) {
+                            // STARTER:
+                            ConvStarter(
                                 context = mContext,
                                 message = message,
                                 selectedMessageIds = selectedMessageIds
                             )
-                            if (message.type == "ai" && message.actionType != null) {
-                                val extraDetails = messageUtils.buildExtraDetails(message)
-                                if (extraDetails != "") {
-                                    MessageDetail(
-                                        context = mContext,
-                                        message = message,
-                                        selectedMessageIds = selectedMessageIds,
-                                        extraDetails = extraDetails,
-                                    )
-                                }
+                        }
+                        MessageItem(
+                            context = mContext,
+                            message = message,
+                            selectedMessageIds = selectedMessageIds
+                        )
+                        if (message.type == "ai" && message.actionType != null) {
+                            val extraDetails = messageUtils.buildExtraDetails(message)
+                            if (extraDetails != "") {
+                                MessageDetail(
+                                    context = mContext,
+                                    message = message,
+                                    selectedMessageIds = selectedMessageIds,
+                                    extraDetails = extraDetails,
+                                )
                             }
                         }
                     }
@@ -366,7 +355,7 @@ fun ConvStarter(
     }
     val deleteLogOn = rememberSaveable { mutableStateOf(false) }
     if (deleteLogOn.value) {
-        DialogDeleteMessages(context, deleteLogOn, selectedMessageIds, starterId=message.timestamp)
+        DialogDeleteMessages(context, deleteLogOn, selectedMessageIds, starterId=message.starterId)
     }
 
     // CONV STARTER:
@@ -375,6 +364,7 @@ fun ConvStarter(
             .padding(
                 start = 32.dp,
                 end = 24.dp,
+                bottom = 8.dp,
             ),
         mDisplayMenu = mDisplayMenu,
         selectedMessageIds = selectedMessageIds,
@@ -385,7 +375,7 @@ fun ConvStarter(
                 mContext = context,
                 mDisplayMenu = mDisplayMenu,
                 deleteLogOn = deleteLogOn,
-                starterId = message.timestamp
+                starterId = message.starterId
             )
         }
     )

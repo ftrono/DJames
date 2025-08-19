@@ -7,13 +7,14 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import com.ftrono.DJames.application.ACTION_MESSAGES_REFRESH
+import com.ftrono.DJames.application.allMessagesSize
 import com.ftrono.DJames.application.appVersion
 import com.ftrono.DJames.application.chatReset
 import com.ftrono.DJames.application.voiceConvStarted
 import com.ftrono.DJames.application.datetimeExportFormat
 import com.ftrono.DJames.application.datetimeFullFormat
 import com.ftrono.DJames.application.lastAiMessage
-import com.ftrono.DJames.application.lastStarter
+import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.lastUserMessage
 import com.ftrono.DJames.application.messageBox
 import com.ftrono.DJames.application.messageUtils
@@ -45,6 +46,19 @@ class MessageUtils {
     }
 
     //GET ALL:
+    fun countMessages(preview: Boolean = false): Int {
+        try {
+            if (preview) {
+                return testMessages.size
+            } else {
+                return messageBox!!.query().build().count().toInt()
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: cannot count Messages! ", e)
+            return 0
+        }
+    }
+
     //Get List of Message items:
     fun refreshMessages(offset: Long = 0L, preview: Boolean = false): List<String> {
         //1) Load messages:
@@ -64,9 +78,7 @@ class MessageUtils {
             }
 
             //2) Update Messages size (IMPORTANT - for signs):
-//            curMessagesSize.postValue(
-//                if (preview) testMessages.size else messageBox!!.query(Message_.type.notEqual("starter")).build().count().toInt()
-//            )
+            allMessagesSize.postValue(countMessages(preview))
             return messages
 
         } catch (e: Exception) {
@@ -104,28 +116,18 @@ class MessageUtils {
 
 
     //INSERT NEW:
-    //Create Starter:
-    fun createStarter() {
-        val now = getCurrentTimestamp()-1
-        lastStarter = Message(
-            timestamp = now,
-            appVersion = appVersion,
-            type = "starter",
-            starterId = now
-        )
-    }
-
     // Create new Message:
     fun createMessage(fromUser: Boolean = false, isStart: Boolean = false) {
         val now = getCurrentTimestamp()
-        if (isStart) createStarter()
+        lastStarterId = now
         if (fromUser) {
             lastUserMessage = Message(
                 id = 0,
                 timestamp = now,
                 appVersion = appVersion,
                 type = "user",
-                starterId = lastStarter.timestamp,
+                starterId = lastStarterId,
+                isStart = isStart,
             )
         } else {
             lastAiMessage = Message(
@@ -133,7 +135,8 @@ class MessageUtils {
                 timestamp = now,
                 appVersion = appVersion,
                 type = "ai",
-                starterId = lastStarter.timestamp,
+                starterId = lastStarterId,
+                isStart = isStart,
             )
         }
 
@@ -154,16 +157,16 @@ class MessageUtils {
                 // (Voice only) System Intro message - conversation not started until the user makes its first voice request:
                 Log.w(TAG, "Conversation not started: skipped saving AI message!")
             } else {
-                // STARTER:
+                // START CONVERSATION:
                 if (fromVoice && fromUser && !voiceConvStarted) {
                     // (Voice only) User is making its first voice request -> start new conversation now:
                     voiceConvStarted = true   // conv started
-                    messageBox!!.put(lastStarter)
+                    // messageBox!!.put(lastStarter)
                     Log.d(TAG, "Voice conversation started!")
                 } else if (fromUser && chatReset) {
                     // (Chat only) User is making its first chat request -> start new conversation now:
                     chatReset = false
-                    messageBox!!.put(lastStarter)
+                    // messageBox!!.put(lastStarter)
                     Log.d(TAG, "Chat conversation started!")
                 }
                 // CONTENT: Actually store message:
@@ -181,8 +184,8 @@ class MessageUtils {
     }
 
     //DB DELETE:
-    //Delete empty starters (starters whose conversation has been fully deleted):
-    fun deleteLeftovers(
+    //Update Starter ID for conversations whose first message has been deleted:
+    fun updateLeftovers(
         starterIds: List<Long>,
     ) {
         try {
@@ -190,14 +193,16 @@ class MessageUtils {
             for (starterId in starterIds) {
                 // Check how many messages are in the conversation:
                 val items = messageBox!!.query(Message_.starterId.equal(starterId)).build().find()
-                if (items.size == 1) {
-                    // If 1 -> delete the leftover:
-                    messageBox!!.remove(items)
-                    Log.d(TAG, "Leftovers with starterId $starterId deleted!")
+                if (items.isNotEmpty()) {
+                    // New first message must have isStart = true:
+                    val msg = items[0]
+                    msg.isStart = true
+                    messageBox!!.put(msg)
+                    Log.d(TAG, "Leftovers with starterId $starterId updated!")
                 }
             }
         } catch (e: Exception) {
-            Log.w(TAG, "ERROR: cannot delete leftovers!", e)
+            Log.w(TAG, "ERROR: cannot update leftovers!", e)
         }
     }
 
@@ -209,9 +214,9 @@ class MessageUtils {
             var itemsToDelete = messageBox!!.get(ids)
             messageBox!!.remove(itemsToDelete)
             Log.d(TAG, "Deleted Message items with IDs: $ids!")
-            // Also delete leftovers:
+            // Also update leftovers:
             val refStarterIds = itemsToDelete.map { item -> item.starterId }.toMutableList().distinct()
-            deleteLeftovers(refStarterIds)
+            updateLeftovers(refStarterIds)
             // Toast:
             if (itemsToDelete.size == 1) {
                 Toast.makeText(context, "Message deleted!", Toast.LENGTH_LONG).show()
@@ -279,9 +284,9 @@ class MessageUtils {
 
             // Bulk delete
             messageBox!!.remove(itemsToDelete)
-            // Also delete leftovers:
+            // Also update leftovers:
             val refStarterIds = itemsToDelete.map { item -> item.starterId }.toMutableList().distinct()
-            deleteLeftovers(refStarterIds)
+            updateLeftovers(refStarterIds)
             Log.d(TAG, "Messages cleaned: deleted ${itemsToDelete.size} older messages!")
         } catch (e: Exception) {
             Log.w(TAG, "ERROR in cleaning messages. ", e)

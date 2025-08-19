@@ -12,23 +12,17 @@ val testMessages = listOf<Message>(
     // Intro:
     Message(
         id = 0,
-        timestamp = System.currentTimeMillis() - (31*60*1000) - 1,
-        appVersion = appVersion,
-        type = "starter",
-    ),
-
-    Message(
-        id = 1,
         timestamp = System.currentTimeMillis() - (31*60*1000),
         starterId = System.currentTimeMillis() - (31*60*1000) - 1,
         appVersion = appVersion,
         type = "ai",
         text = "Tell me, Sir!",
+        isStart =  true,
     ),
 
     // Call:
     Message(
-        id = 2,
+        id = 1,
         timestamp = System.currentTimeMillis() - (30*60*1000),
         starterId = System.currentTimeMillis() - (31*60*1000) - 1,
         appVersion = appVersion,
@@ -38,7 +32,7 @@ val testMessages = listOf<Message>(
     ),
 
     Message(
-        id = 3,
+        id = 2,
         timestamp = System.currentTimeMillis() - (29*60*1000),
         starterId = System.currentTimeMillis() - (31*60*1000) - 1,
         appVersion = appVersion,
@@ -57,25 +51,18 @@ val testMessages = listOf<Message>(
 
     // Message (SMS):
     Message(
-        id = 4,
-        timestamp = System.currentTimeMillis() - (25*60*1000) - 1,
-        starterId = System.currentTimeMillis() - (25*60*1000) - 1,
-        appVersion = appVersion,
-        type = "starter",
-    ),
-
-    Message(
-        id = 5,
+        id = 3,
         timestamp = System.currentTimeMillis() - (25*60*1000),
         starterId = System.currentTimeMillis() - (25*60*1000) - 1,
         appVersion = appVersion,
         type = "user",
         text = "send a message to Amal",
         requestIntent = "MessageRequest",
+        isStart =  true,
     ),
 
     Message(
-        id = 6,
+        id = 4,
         timestamp = System.currentTimeMillis() - (24*60*1000),
         starterId = System.currentTimeMillis() - (25*60*1000) - 1,
         appVersion = appVersion,
@@ -94,25 +81,18 @@ val testMessages = listOf<Message>(
 
     // Route:
     Message(
-        id = 7,
-        timestamp = System.currentTimeMillis() - (20*60*1000) - 1,
-        starterId = System.currentTimeMillis() - (20*60*1000) - 1,
-        appVersion = appVersion,
-        type = "starter",
-    ),
-
-    Message(
-        id = 8,
+        id = 5,
         timestamp = System.currentTimeMillis() - (20*60*1000),
         starterId = System.currentTimeMillis() - (20*60*1000) - 1,
         appVersion = appVersion,
         type = "user",
         text = "show me a route! aeroporto di brindisi",
         requestIntent = "DriveRequest",
+        isStart =  true,
     ),
 
     Message(
-        id = 9,
+        id = 6,
         timestamp = System.currentTimeMillis() - (19*60*1000),
         starterId = System.currentTimeMillis() - (20*60*1000) - 1,
         appVersion = appVersion,
@@ -132,25 +112,18 @@ val testMessages = listOf<Message>(
 
     // PLAY: Track from Album:
     Message(
-        id = 10,
-        timestamp = System.currentTimeMillis() - (15*60*1000) - 1,
-        starterId = System.currentTimeMillis() - (15*60*1000) - 1,
-        appVersion = appVersion,
-        type = "starter",
-    ),
-
-    Message(
-        id = 11,
+        id = 7,
         timestamp = System.currentTimeMillis() - (15*60*1000),
         starterId = System.currentTimeMillis() - (15*60*1000) - 1,
         appVersion = appVersion,
         type = "user",
         text = "play lost by linkin park",
         requestIntent = "PlaySong",
+        isStart =  true,
     ),
 
     Message(
-        id = 12,
+        id = 8,
         timestamp = System.currentTimeMillis() - (14*60*1000),
         starterId = System.currentTimeMillis() - (15*60*1000) - 1,
         appVersion = appVersion,
@@ -173,25 +146,18 @@ val testMessages = listOf<Message>(
 
     // PLAY: Playlist:
     Message(
-        id = 13,
-        timestamp = System.currentTimeMillis() - (10*60*1000) - 1,
-        starterId = System.currentTimeMillis() - (10*60*1000) - 1,
-        appVersion = appVersion,
-        type = "starter",
-    ),
-
-    Message(
-        id = 14,
+        id = 9,
         timestamp = System.currentTimeMillis() - (10*60*1000),
         starterId = System.currentTimeMillis() - (10*60*1000) - 1,
         appVersion = appVersion,
         type = "user",
         text = "play my playlist francis ford",
         requestIntent = "PlayPlaylist",
+        isStart =  true,
     ),
 
     Message(
-        id = 15,
+        id = 10,
         timestamp = System.currentTimeMillis() - (9*60*1000),
         starterId = System.currentTimeMillis() - (10*60*1000) - 1,
         appVersion = appVersion,

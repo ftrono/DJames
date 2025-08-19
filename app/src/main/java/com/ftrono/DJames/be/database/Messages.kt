@@ -110,10 +110,11 @@ data class Message(
     var timestamp: Long = 0,
     var datetime: String = "",
     var appVersion: String = "",
-    var type: String = "",   // Either: "ai", "user", "tool", "starter"
+    var type: String = "",   // Either: "ai", "user", "tool"
     var text: String = "",
     var langCode: String = "",
     var requestIntent: String = "",   // IntentName from the original request
+    var isStart: Boolean = false,
     var starterId: Long = 0,
     //Attachments management:
     // - requestIntent -> in user message;

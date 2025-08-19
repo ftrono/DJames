@@ -220,7 +220,7 @@
     },
     {
       "id": "8:7287401280690947359",
-      "lastPropertyId": "10:8430158086897636458",
+      "lastPropertyId": "11:7539584089426065849",
       "name": "Message",
       "properties": [
         {
@@ -273,6 +273,11 @@
           "id": "10:8430158086897636458",
           "name": "timestamp",
           "type": 6
+        },
+        {
+          "id": "11:7539584089426065849",
+          "name": "actionType",
+          "type": 9
         }
       ],
       "relations": []

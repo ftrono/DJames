@@ -97,8 +97,8 @@ fun ConvStarterBubble(
                                 for (id in idsToAdd) {
                                     if (!selectedMessageIds.contains(id)) {
                                         selectedMessageIds.add(id)
-                                    } else {
-                                        selectedMessageIds.remove(id)
+//                                    } else {
+//                                        selectedMessageIds.remove(id)
                                     }
                                 }
                             },
@@ -109,8 +109,8 @@ fun ConvStarterBubble(
                                     for (id in idsToAdd) {
                                         if (!selectedMessageIds.contains(id)) {
                                             selectedMessageIds.add(id)
-                                        } else {
-                                            selectedMessageIds.remove(id)
+//                                        } else {
+//                                            selectedMessageIds.remove(id)
                                         }
                                     }
                                 } else {

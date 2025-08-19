@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
         //CLEANING:
         if (!main_initialized) {
             // messageUtils.updateExistingMessages()   //TODO: use only when needed!
-            allMessages.postValue(messageUtils.refreshMessages())
+            allMessageIds.postValue(messageUtils.refreshMessages())
             //delete older logs:
             messageUtils.deleteOldMessages()
             //delete older cached Library files:
@@ -248,7 +248,7 @@ class MainActivity : ComponentActivity() {
             //Refresh Messages list:
             if (intent.action == ACTION_MESSAGES_REFRESH) {
                 Log.d(TAG, "HISTORY: ACTION_MESSAGES_REFRESH.")
-                allMessages.postValue(messageUtils.refreshMessages())   //Refresh list
+                allMessageIds.postValue(messageUtils.refreshMessages())   //Refresh list
             }
         }
     }

@@ -7,7 +7,6 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import com.ftrono.DJames.application.ACTION_MESSAGES_REFRESH
-import com.ftrono.DJames.application.allMessagesSize
 import com.ftrono.DJames.application.appVersion
 import com.ftrono.DJames.application.chatReset
 import com.ftrono.DJames.application.voiceConvStarted
@@ -18,7 +17,6 @@ import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.lastUserMessage
 import com.ftrono.DJames.application.messageBox
 import com.ftrono.DJames.application.messageUtils
-import com.ftrono.DJames.application.messagesPageSize
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.models.ActionType
 import com.ftrono.DJames.be.samples.testMessages
@@ -46,44 +44,34 @@ class MessageUtils {
     }
 
     //GET ALL:
-    fun countMessages(preview: Boolean = false): Int {
+    //Get List of Message IDs:
+    fun refreshMessages(preview: Boolean = false): List<Long> {
+        var messagesIds = listOf<Long>()
         try {
+            //Load message IDs:
             if (preview) {
-                return testMessages.size
+                messagesIds = testMessages.sortedByDescending { it.timestamp }.map { it.id }
             } else {
-                return messageBox!!.query().build().count().toInt()
+                // TODO (TEMP): Cannot sort in ObjectBox directly in PropertyQuery!
+                // SO: First map ids to timestamps, then sort and finally extract sorted ids only:
+                val ids = messageBox!!.query()
+                    .build()
+                    .property(Message_.id)
+                    .findLongs()
+                    .toList()
+                val timestamps = messageBox!!.query()
+                    .build()
+                    .property(Message_.timestamp)
+                    .findLongs()
+                    .toList()
+                val idsMap = ids.zip(timestamps).toMap()
+                messagesIds = idsMap.toList().sortedByDescending { it.second }.toMap().keys.toList()
             }
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: cannot count Messages! ", e)
-            return 0
-        }
-    }
-
-    //Get List of Message items:
-    fun refreshMessages(offset: Long = 0L, preview: Boolean = false): List<String> {
-        //1) Load messages:
-        var messages = listOf<String>()
-        try {
-            messages = if (preview) {
-                testMessages.sortedByDescending { it.timestamp }
-            } else {
-                messageBox!!.query().order(Message_.timestamp, QueryBuilder.DESCENDING).build().find(offset, messagesPageSize)
-            }.map { item ->
-                // Remove useless attachments:
-                item.attachments.nlpQueries = mutableListOf()
-                item.attachments.nlpExtractor = ExtractorInfo()
-                item.attachments.spotifyQueries = mutableListOf()
-                // Cast value to String to allow storing into MutableState:
-                Json.encodeToString( item )
-            }
-
-            //2) Update Messages size (IMPORTANT - for signs):
-            allMessagesSize.postValue(countMessages(preview))
-            return messages
+            return messagesIds
 
         } catch (e: Exception) {
             Log.w(TAG, "ERROR: cannot refresh Messages! ", e)
-            return messages
+            return messagesIds
         }
     }
 

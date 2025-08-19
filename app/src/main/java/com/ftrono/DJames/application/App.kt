@@ -117,10 +117,7 @@ val chatText = MutableLiveData<String>("")
 var curLibrarySize = MutableLiveData<Int>(0)
 val libHeads = listOf("artist", "playlist", "podcast", "contact", "route")
 val libSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
-var allMessagesSize = MutableLiveData<Int>(0)
-var allMessages = MutableLiveData<List<String>>(listOf<String>())
-var messagesPageSize = 20L
-var messagesListTriggerGap = 10
+var allMessageIds = MutableLiveData<List<Long>>(listOf<Long>())
 
 // Conversation tracking:
 var chatReset = true
@@ -151,7 +148,6 @@ var enablePlayerInfo = false
 val datetimeExportFormat = "yyyy-MM-dd HH_mm_ss"
 val datetimeFullFormat = "yyyy/MM/dd HH:mm"
 val datetimeShortFormat = "MMMM dd, HH:mm"
-val timeFormat = "HH:mm"
 
 //Dropdowns:
 val genders = listOf<String>("Sir", "Madam")

@@ -2,7 +2,6 @@ package com.ftrono.DJames.application.screens
 
 import android.Manifest
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -20,11 +19,9 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -32,14 +29,12 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -49,18 +44,17 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.allMessages
-import com.ftrono.DJames.application.allMessagesSize
+import com.ftrono.DJames.application.allMessageIds
 import com.ftrono.DJames.application.chatText
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.messageUtils
-import com.ftrono.DJames.application.messagesListTriggerGap
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.chat.ActionsExecutor
 import com.ftrono.DJames.be.chat.ChatManager
 import com.ftrono.DJames.be.database.Message
+import com.ftrono.DJames.be.samples.testMessages
 import com.ftrono.DJames.ui.components.ChatInputField
 import com.ftrono.DJames.ui.components.ConvStarterBubble
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
@@ -73,8 +67,6 @@ import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
 import com.ftrono.DJames.ui.selectors.messagesColorSelectorLight
 import com.ftrono.DJames.ui.selectors.messagesIconSelector
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 
 
 @Preview
@@ -116,12 +108,8 @@ fun MessagesScreen(
     val selectedMessageIds = remember { mutableStateListOf<Long>() }
 
     val overlayState by overlayStatus.observeAsState()
-    var hasMore = remember { mutableStateOf(true) }
-    val listState = rememberLazyListState()
-    var offset = 0L
-    val allMessagesState by allMessages.observeAsState()
-    allMessages.postValue(messageUtils.refreshMessages(offset, preview))
-    val allMessagesSizeState by allMessagesSize.observeAsState()
+    val allMessageIdsState by allMessageIds.observeAsState()
+    allMessageIds.postValue(messageUtils.refreshMessages(preview))
 
     val mDisplayMainMenu = rememberSaveable {
         mutableStateOf(false)
@@ -166,7 +154,7 @@ fun MessagesScreen(
                         )
                     }
                     TopBarMenu(
-                        contentText = "${if (selectedMessageIds.isNotEmpty()) selectedMessageIds.size else allMessagesSizeState}",
+                        contentText = "${if (selectedMessageIds.isNotEmpty()) selectedMessageIds.size else allMessageIdsState!!.size}",
                         backgroundColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.faded_grey) else colorResource(R.color.colorPrimary),
 //                        contentColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.colorPrimaryDark) else colorResource(R.color.light_grey),
 //                        borderColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.colorPrimaryDark) else colorResource(R.color.mid_grey),
@@ -185,7 +173,7 @@ fun MessagesScreen(
     ) {
 
         //CONTENT:
-        if (allMessagesState!!.isEmpty()) {
+        if (allMessageIdsState!!.isEmpty()) {
             //MESSAGES EMPTY:
             Column(
                 modifier = Modifier
@@ -209,15 +197,18 @@ fun MessagesScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1F),
-                state = listState,
+                state = rememberLazyListState(),
                 reverseLayout = true
             ) {
                 itemsIndexed(
-                    allMessagesState!!
-                ) { index, item ->
-                    // STARTER / MESSAGE ITEM:
-                    val message = Json.decodeFromString<Message>(item)
-                    // MESSAGE ITEM + DETAILS:
+                    allMessageIdsState!!
+                ) { index, id ->
+                    // MESSAGES CONTENT:
+                    val message = if (preview) {
+                        testMessages[testMessages.size - index - 1]   // Reverse order by index
+                    } else {
+                        messageUtils.getMessageById(id)   // Get item
+                    }
                     Column(
                         modifier = Modifier
                             .padding(
@@ -230,19 +221,21 @@ fun MessagesScreen(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        // STARTER:
                         if (message.isStart) {
-                            // STARTER:
                             ConvStarter(
                                 context = mContext,
                                 message = message,
                                 selectedMessageIds = selectedMessageIds
                             )
                         }
+                        // MESSAGE:
                         MessageItem(
                             context = mContext,
                             message = message,
                             selectedMessageIds = selectedMessageIds
                         )
+                        // EXTRA DETAILS:
                         if (message.type == "ai" && message.actionType != null) {
                             val extraDetails = messageUtils.buildExtraDetails(message)
                             if (extraDetails != "") {
@@ -256,41 +249,6 @@ fun MessagesScreen(
                         }
                     }
                 }
-
-                // Loader at the bottom
-                // hasMore.value = allMessages.value!!.size > messagesPageSize   // TODO
-                if (hasMore.value) {
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier
-                                    .padding(16.dp)
-                            )
-                        }
-                    }
-                }
-            }
-
-            LaunchedEffect(listState) {
-                snapshotFlow { listState.firstVisibleItemIndex }
-                    .collect {
-                        // If we're near the end and there are more messages:
-                        if (listState.firstVisibleItemIndex >= (allMessages.value!!.size - messagesListTriggerGap) && hasMore.value) {
-                            val newMessages = messageUtils.refreshMessages(offset, preview)
-                            if (newMessages.isNotEmpty()) {
-                                allMessages.postValue(allMessages.value!! + newMessages)
-                                Log.d("MessagesScreen", "Messages list enlarged!")
-                                offset += newMessages.size
-                            } else {
-                                hasMore.value = false
-                                Log.d("MessagesScreen", "Messages list end!")
-                            }
-                        }
-                    }
             }
         }
 
@@ -650,7 +608,7 @@ fun DialogDeleteMessages(
                 messageUtils.deleteAllMessages(mContext)
             }
             selectedMessageIds.clear()
-            allMessages.postValue(messageUtils.refreshMessages())   //Refresh list
+            allMessageIds.postValue(messageUtils.refreshMessages())   //Refresh list
             dialogOnState.value = false
         }
     )

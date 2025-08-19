@@ -23,7 +23,7 @@ class TTSReader(private val context: Context) {
 
     fun speak(
         aiReplies: List<AiReply>,
-        isIntro: Boolean = false
+        saveMessage: Boolean = true
     ) {
         var fullText = ""
         // Speak:
@@ -33,12 +33,16 @@ class TTSReader(private val context: Context) {
                 ttsRead(context, reply)
             }
         }
-        if (!isIntro) {
+        if (saveMessage) {
             // Save reply:
             lastAiMessage.text = fullText
-            lastAiMessage.langCode = prefs.queryLanguage   //TODO
             lastAiMessage.requestIntent = lastRequestIntent
-            messageUtils.storeMessage(context, fromUser = false, fromVoice = true)
+            messageUtils.storeMessage(
+                context = context,
+                langCode = prefs.queryLanguage,
+                fromUser = false,
+                fromVoice = true
+            )
         }
     }
 

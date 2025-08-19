@@ -120,15 +120,11 @@ val libSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
 var allMessageIds = MutableLiveData<List<Long>>(listOf<Long>())
 
 // Conversation tracking:
-var chatReset = true
-var chatFollowUp = false
-var chatMessageMode = false
 var chatLastDispatch = DispatcherInfo()
 var lastAiMessage: Message = Message()
 var lastUserMessage: Message = Message()
 var lastRequestIntent: String = ""
 var lastStarterId: Long = 0L
-var voiceConvStarted: Boolean = false
 
 //Preferences:
 val defaultChatResetTime: Long = 3*60*1000   //minutes

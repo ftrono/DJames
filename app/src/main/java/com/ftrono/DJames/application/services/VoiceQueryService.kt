@@ -15,8 +15,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.application.ACTION_REC_STOP
-import com.ftrono.DJames.application.chatReset
-import com.ftrono.DJames.application.voiceConvStarted
+import com.ftrono.DJames.application.chatLastDispatch
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.lastRequestIntent
 import com.ftrono.DJames.application.messageUtils
@@ -123,7 +122,6 @@ class VoiceQueryService: Service() {
         recordingFail = false
         recordingMode = false
         voiceQueryOn = false
-        voiceConvStarted = false
         sourceIsVolume.postValue(false)
         lastDispatch = DispatcherInfo()
         lastRequestIntent = ""
@@ -183,10 +181,9 @@ class VoiceQueryService: Service() {
                     audioRequestsManager.requestDuckedFocus(
                         onGranted = {
                             //End previous chat conversation:
-                            chatReset = true
+                            chatLastDispatch = DispatcherInfo()
                             //Start:
                             overlayStatus.postValue("processing")
-                            messageUtils.createMessage(fromUser = false, isStart = true)
                             Thread.sleep(500)
                             //Read TTS:
                             tts.speak(
@@ -196,6 +193,7 @@ class VoiceQueryService: Service() {
                                         text = defaultReplies.speakIntro()
                                     )
                                 ),
+                                saveMessage = false   // intro message!
                             )
                         },
                         onFail = { stopSelf() }
@@ -217,7 +215,7 @@ class VoiceQueryService: Service() {
                             //Start recording (default: cacheDir):
                             recordingMode = true
                             MyRecorder.start()
-                            messageUtils.createMessage(fromUser = true)
+                            messageUtils.resetMessage(fromUser = true)
 
                             MyRecorder.whileRecording(
                                 messageMode,
@@ -245,7 +243,7 @@ class VoiceQueryService: Service() {
             recordingMode = false
             Log.d(TAG, "RECORDING STOPPED.")
             cancelThread(recordingThread, "recordingThread")
-            messageUtils.createMessage(fromUser = false)
+            messageUtils.resetMessage(fromUser = false)
 
             //2) RECORDING RESULT:
             if (!voiceQueryOn || recordingFail) {
@@ -288,7 +286,7 @@ class VoiceQueryService: Service() {
             //PROCESS REQUEST:
             if (voiceQueryOn) {
                 var nlpDispatcher = NLPDispatcher(applicationContext)
-                lastDispatch = nlpDispatcher.dispatch(recFile=recFile, prevDispatch=lastDispatch, fromVoice=true, followUp=followUp, messageMode=messageMode)
+                lastDispatch = nlpDispatcher.dispatch(recFile=recFile, prevDispatch=lastDispatch, fromVoice=true)
                 messageMode = lastDispatch.messageMode
                 followUp = lastDispatch.followUp
                 val actionsExecutor = ActionsExecutor(applicationContext)
@@ -349,7 +347,6 @@ class VoiceQueryService: Service() {
                     if (lastDispatch.fail) {
                         toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                     } else {
-                        //messageUtils.storeMessage(applicationContext, fromUser = false) TODO
                         if (lastDispatch.playAcknowledge) toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                     }
                     Thread.sleep(200)

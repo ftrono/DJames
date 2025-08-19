@@ -154,6 +154,7 @@ val testMessages = listOf<Message>(
         text = "play my playlist francis ford",
         requestIntent = "PlayPlaylist",
         isStart =  true,
+        fromVoice = true,
     ),
 
     Message(
@@ -164,6 +165,7 @@ val testMessages = listOf<Message>(
         type = "ai",
         text = "Playing your playlist: Francis Ford!",
         requestIntent = "PlayPlaylist",
+        fromVoice = true,
         actionType = ActionType.PLAY,
         attachments = Attachments(
             matchScore = 100,

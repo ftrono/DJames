@@ -102,6 +102,14 @@ class SpotifyMatchModelConverter : PropertyConverter<MutableList<SpotifyMatchMod
 
 
 //ENTITIES:
+/*
+************************************
+   ### GOLDEN RULE: ###
+   - User messages are saved by Dispatcher (need NLP results for language recognition!)
+   - AI messages are saved by:
+      - TTSReader (if voice)
+      - ChatManager (if chat)
+*/
 @Serializable
 @Entity
 data class Message(
@@ -110,6 +118,7 @@ data class Message(
     var timestamp: Long = 0,
     var datetime: String = "",
     var appVersion: String = "",
+    var fromVoice: Boolean = false,
     var type: String = "",   // Either: "ai", "user", "tool"
     var text: String = "",
     var langCode: String = "",

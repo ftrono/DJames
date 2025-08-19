@@ -8,8 +8,6 @@ import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import com.ftrono.DJames.application.ACTION_MESSAGES_REFRESH
 import com.ftrono.DJames.application.appVersion
-import com.ftrono.DJames.application.chatReset
-import com.ftrono.DJames.application.voiceConvStarted
 import com.ftrono.DJames.application.datetimeExportFormat
 import com.ftrono.DJames.application.datetimeFullFormat
 import com.ftrono.DJames.application.lastAiMessage
@@ -17,6 +15,7 @@ import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.lastUserMessage
 import com.ftrono.DJames.application.messageBox
 import com.ftrono.DJames.application.messageUtils
+import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.models.ActionType
 import com.ftrono.DJames.be.samples.testMessages
@@ -108,27 +107,19 @@ class MessageUtils {
 
 
     //INSERT NEW:
-    // Create new Message:
-    fun createMessage(fromUser: Boolean = false, isStart: Boolean = false) {
-        val now = getCurrentTimestamp()
-        lastStarterId = now
+    //Reset message:
+    fun resetMessage(fromUser: Boolean = false) {
         if (fromUser) {
             lastUserMessage = Message(
                 id = 0,
-                timestamp = now,
                 appVersion = appVersion,
                 type = "user",
-                starterId = lastStarterId,
-                isStart = isStart,
             )
         } else {
             lastAiMessage = Message(
                 id = 0,
-                timestamp = now,
                 appVersion = appVersion,
                 type = "ai",
-                starterId = lastStarterId,
-                isStart = isStart,
             )
         }
 
@@ -136,32 +127,22 @@ class MessageUtils {
 
 
     //Store last open log to DB:
-    fun storeMessage(context: Context, fromUser: Boolean = false, fromVoice: Boolean = false) {
+    fun storeMessage(context: Context, langCode: String, fromUser: Boolean = false, fromVoice: Boolean = false, isStart: Boolean = false) {
         try {
             val message = if (fromUser) lastUserMessage else lastAiMessage
-            if (!fromUser) {
-                message.timestamp = getCurrentTimestamp()
-            }
             if (message.text == "") {
                 // Empty message -> nothing to save:
                 Log.w(TAG, "Empty Message: not saved!")
-            } else if (fromVoice && !fromUser && !voiceConvStarted) {
-                // (Voice only) System Intro message - conversation not started until the user makes its first voice request:
-                Log.w(TAG, "Conversation not started: skipped saving AI message!")
             } else {
-                // START CONVERSATION:
-                if (fromVoice && fromUser && !voiceConvStarted) {
-                    // (Voice only) User is making its first voice request -> start new conversation now:
-                    voiceConvStarted = true   // conv started
-                    // messageBox!!.put(lastStarter)
-                    Log.d(TAG, "Voice conversation started!")
-                } else if (fromUser && chatReset) {
-                    // (Chat only) User is making its first chat request -> start new conversation now:
-                    chatReset = false
-                    // messageBox!!.put(lastStarter)
-                    Log.d(TAG, "Chat conversation started!")
+                message.timestamp = getCurrentTimestamp()
+                if (isStart) {
+                    // NEW CONVERSATION:
+                    lastStarterId = message.timestamp
+                    message.isStart = true
                 }
                 // CONTENT: Actually store message:
+                message.starterId = lastStarterId
+                message.fromVoice = fromVoice
                 messageBox!!.put(message)
                 Log.d(TAG, "Message item ${message.id} saved!")
                 //Send broadcast:

@@ -3,12 +3,9 @@ package com.ftrono.DJames.be.chat
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.defaultReplies
-import com.ftrono.DJames.application.chatFollowUp
 import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.chatLastDispatch
 import com.ftrono.DJames.application.lastRequestIntent
-import com.ftrono.DJames.application.chatMessageMode
-import com.ftrono.DJames.application.chatReset
 import com.ftrono.DJames.application.defaultChatResetTime
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.lastStarterId
@@ -29,36 +26,30 @@ class ChatManager(private val context: Context) {
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     fun resetConv() {
-        chatFollowUp = false
-        chatMessageMode = false
         chatLastDispatch = DispatcherInfo()
     }
 
     fun processQuery(text: String, restart: Boolean = false) {
-        // Reset chat anyway if forced "restart" or defaultChatResetTime is elapsed:
+        // Reset chat if end, if forced "restart" (only if tap on oldChat action) or defaultChatResetTime is elapsed:
+        Log.d(TAG, "$chatLastDispatch")
         if (
             restart
             || chatLastDispatch.end
             || chatLastDispatch.fail
+            || (!chatLastDispatch.followUp && !chatLastDispatch.messageMode)
             || ((messageUtils.getCurrentTimestamp() - lastStarterId) > defaultChatResetTime)) {
-           chatReset = true
+            resetConv()
         }
-        // Reset chat when needed:
-        if (chatReset) {
-           resetConv()
-        }
-        messageUtils.createMessage(fromUser = true, isStart = chatReset)
         //Set overlay PROCESSING color & icon:
         overlayStatus.postValue("processing")
-        messageUtils.createMessage(fromUser = false)
+        messageUtils.resetMessage(fromUser = true)
+        messageUtils.resetMessage(fromUser = false)
 
         // PROCESS:
         coroutineScope.launch {
             var nlpDispatcher = NLPDispatcher(context)
-            chatLastDispatch = nlpDispatcher.dispatch(text=text, prevDispatch=chatLastDispatch, fromVoice=false, followUp=chatFollowUp, messageMode=chatMessageMode)
+            chatLastDispatch = nlpDispatcher.dispatch(text=text, prevDispatch=chatLastDispatch, fromVoice=false)
             Log.d(TAG, "LAST DISPATCH: $chatLastDispatch")
-            chatMessageMode = chatLastDispatch.messageMode
-            chatFollowUp = chatLastDispatch.followUp
 
             var newReplies = listOf<AiReply>()
 
@@ -76,9 +67,13 @@ class ChatManager(private val context: Context) {
             if (chatLastDispatch.aiReplies.isNotEmpty()) {
                 // Save reply:
                 lastAiMessage.text = fulfillmentUtils.joinReplies(chatLastDispatch.aiReplies)
-                lastAiMessage.langCode = prefs.queryLanguage   //TODO
                 lastAiMessage.requestIntent = lastRequestIntent
-                messageUtils.storeMessage(context, fromUser = false, fromVoice = false)
+                messageUtils.storeMessage(
+                    context = context,
+                    langCode = prefs.queryLanguage,
+                    fromUser = false,
+                    fromVoice = false
+                )
             }
 
             // Execute:
@@ -86,12 +81,16 @@ class ChatManager(private val context: Context) {
                 val actionsExecutor = ActionsExecutor(context)
                 newReplies = actionsExecutor.execute(chatLastDispatch)
                 if (newReplies.isNotEmpty()) {
-                    // Save reply:
-                    messageUtils.createMessage(fromUser = false)
+                    // Save additional AI reply as a new message:
+                    messageUtils.resetMessage(fromUser = false)
                     lastAiMessage.text = fulfillmentUtils.joinReplies(newReplies)
-                    lastAiMessage.langCode = prefs.queryLanguage   //TODO
                     lastAiMessage.requestIntent = lastRequestIntent
-                    messageUtils.storeMessage(context, fromUser = false, fromVoice = false)
+                    messageUtils.storeMessage(
+                        context = context,
+                        langCode = prefs.queryLanguage,
+                        fromUser = false,
+                        fromVoice = false
+                    )
                 }
             }
 

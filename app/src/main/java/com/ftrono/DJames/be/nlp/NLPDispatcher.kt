@@ -27,14 +27,14 @@ class NLPDispatcher (private var context: Context) {
         text: String = "",
         recFile: File? = null,
         prevDispatch: DispatcherInfo = DispatcherInfo(),
-        fromVoice: Boolean = false,
-        followUp: Boolean = false,
-        messageMode: Boolean = false,
+        fromVoice: Boolean = false
     ): DispatcherInfo {
 
         //Init:
         var reqLanguage = prefs.queryLanguage
         var intentName = ""
+        var followUp = prevDispatch.followUp
+        var messageMode = prevDispatch.messageMode
 
         if (prevDispatch.reqLanguage != "") {
             reqLanguage = prevDispatch.reqLanguage
@@ -60,13 +60,18 @@ class NLPDispatcher (private var context: Context) {
                     nlp_queryText = resultsNLP.queryText
                     nlp_queryText = fulfillmentUtils.replaceNums(nlp_queryText)
                     intentName = resultsNLP.intentName
+                    lastRequestIntent = intentName
                     // Update & store user message:
                     lastUserMessage.text = nlp_queryText
-                    lastUserMessage.langCode = resultsNLP.language
                     lastUserMessage.requestIntent = intentName
-                    lastRequestIntent = intentName
-                    lastAiMessage.attachments.nlpQueries.add(resultsNLP)   // TODO: TEMP
-                    messageUtils.storeMessage(context, fromUser = true, fromVoice = fromVoice)
+                    lastUserMessage.attachments.nlpQueries.add(resultsNLP)   // TODO: TEMP
+                    messageUtils.storeMessage(
+                        context = context,
+                        langCode = resultsNLP.language,
+                        fromUser = true,
+                        fromVoice = fromVoice,
+                        isStart = true
+                    )
                     Log.d(TAG, "NLPDispatcher1: detected intent: $intentName")
 
                 } catch (e: Exception) {
@@ -112,16 +117,18 @@ class NLPDispatcher (private var context: Context) {
             var reqLangCode = prevDispatch.reqLanguage
 
             if (messageMode && prevDispatch.messageType == "voice" && fromVoice) {
+                Log.d(TAG, "MESSAGE FOLLOWUP: AUDIO MESSAGE.")
                 //Whatsapp audio message -> no NLP query!
                 val storedText = "(private voice message)"
                 lastUserMessage.text = storedText
                 lastUserMessage.requestIntent = lastRequestIntent
-                messageUtils.storeMessage(context, fromUser = true, fromVoice = true)
+                messageUtils.storeMessage(
+                    context = context,
+                    langCode = prefs.queryLanguage,
+                    fromUser = true,
+                    fromVoice = true
+                )
                 try {
-                    Log.d(TAG, "MESSAGE FOLLOWUP: AUDIO MESSAGE.")
-                    lastUserMessage.text = storedText
-                    lastUserMessage.requestIntent = lastRequestIntent
-                    messageUtils.storeMessage(context, fromUser = true, fromVoice = true)
                     return fulfillment.sendMessage2(prevDispatch)
                 } catch (e: Exception) {
                     Log.w(TAG, "Error in sending Whatsapp audio message!")
@@ -152,17 +159,21 @@ class NLPDispatcher (private var context: Context) {
                         if (messageMode) {
                             // Anonymize:
                             storedText = "(private message text)"
-                            lastUserMessage.text = storedText
+
                         } else {
                             // Store fully:
                             storedText = nlp_queryText
-                            lastAiMessage.attachments.nlpQueries.add(resultsNLP)   //TODO: TEMP
+                            lastUserMessage.attachments.nlpQueries.add(resultsNLP)   //TODO: TEMP
                         }
                         // Update & store user Message:
                         lastUserMessage.text = storedText
-                        lastUserMessage.langCode = resultsNLP.language
                         lastUserMessage.requestIntent = lastRequestIntent
-                        messageUtils.storeMessage(context, fromUser = true, fromVoice = fromVoice)
+                        messageUtils.storeMessage(
+                            context = context,
+                            langCode = resultsNLP.language,
+                            fromUser = true,
+                            fromVoice = fromVoice
+                        )
                         Log.d(TAG, "NLPDispatcher2: detected intent: $intentName")
                     } catch (e: Exception) {
                         Log.w(TAG, "NLPDispatcher2: no NLP results!")

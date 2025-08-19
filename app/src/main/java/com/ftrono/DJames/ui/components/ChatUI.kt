@@ -47,7 +47,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
@@ -60,7 +59,6 @@ import com.ftrono.DJames.application.datetimeShortFormat
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.overlayStatus
-import com.ftrono.DJames.application.screens.ConvItemOptions
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.ui.selectors.actionsIconSelector
@@ -128,15 +126,24 @@ fun ConvStarterBubble(
             ) {
                 Row(
                     modifier = Modifier
-                        .padding(start=4.dp, end=4.dp),
+                        .padding(start=4.dp, end=4.dp, top=1.dp, bottom=1.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // SIGN:
+//                    Icon(
+//                        modifier = Modifier
+//                            .size(18.dp),
+//                        painter = painterResource(R.drawable.arrow_down),
+//                        tint = colorResource(R.color.black),
+//                        contentDescription = "More"
+//                    )
+                    // CHANNEL:
                     Icon(
                         modifier = Modifier
-                            .size(18.dp),
-                        painter = painterResource(R.drawable.arrow_down),
+                            .padding(start=4.dp)
+                            .size(12.dp),
+                        painter = if (message.fromVoice) painterResource(R.drawable.icon_speak) else painterResource(R.drawable.sign_message),
                         tint = colorResource(R.color.black),
                         contentDescription = "More"
                     )
@@ -153,7 +160,8 @@ fun ConvStarterBubble(
                     // "MORE" ICON:
                     Icon(
                         modifier = Modifier
-                            .size(18.dp),
+                            .padding(end=4.dp)
+                            .size(16.dp),
                         imageVector = Icons.Default.MoreVert,
                         tint = colorResource(R.color.black),
                         contentDescription = "More"

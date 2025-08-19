@@ -220,7 +220,7 @@
     },
     {
       "id": "8:7287401280690947359",
-      "lastPropertyId": "11:7539584089426065849",
+      "lastPropertyId": "12:150383736582485804",
       "name": "Message",
       "properties": [
         {
@@ -278,6 +278,11 @@
           "id": "11:7539584089426065849",
           "name": "actionType",
           "type": 9
+        },
+        {
+          "id": "12:150383736582485804",
+          "name": "isStart",
+          "type": 1
         }
       ],
       "relations": []

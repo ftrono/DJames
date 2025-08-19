@@ -78,8 +78,12 @@ class MessageUtils {
 
     //GET MESSAGES:
     //Get single message by ID:
-    fun getMessageById(id: Long): Message {
-        return messageBox!!.get(id)
+    fun getMessageById(id: Long, preview: Boolean = false): Message {
+        return if (preview) {
+            testMessages.filter { it.id == id }[0]
+        } else {
+            messageBox!!.get(id)
+        }
     }
 
     //Get entire items by starterId:

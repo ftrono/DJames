@@ -348,7 +348,7 @@ fun RoundedSign(
                 Text(
                     modifier = Modifier,
                     text = contentText,
-                    fontSize = if (contentText.length < 3) contentSize.sp else (contentSize-5).sp,
+                    fontSize = if (contentText.length < 3) contentSize.sp else (contentSize-7).sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     color = contentColor

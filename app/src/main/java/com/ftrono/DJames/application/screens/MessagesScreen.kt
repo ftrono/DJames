@@ -2,6 +2,7 @@ package com.ftrono.DJames.application.screens
 
 import android.Manifest
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
@@ -48,6 +50,7 @@ import com.ftrono.DJames.application.allMessageIds
 import com.ftrono.DJames.application.chatText
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
+import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.overlayStatus
 import com.ftrono.DJames.application.utils
@@ -162,6 +165,7 @@ fun MessagesScreen(
                         onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
                     ) {
                         MessagesOptions(
+                            context = mContext,
                             mDisplayMenu = mDisplayMainMenu,
                             deleteOn = deleteAllOn,
                             selectedMessageIds = selectedMessageIds
@@ -204,11 +208,7 @@ fun MessagesScreen(
                     allMessageIdsState!!
                 ) { index, id ->
                     // MESSAGES CONTENT:
-                    val message = if (preview) {
-                        testMessages[testMessages.size - index - 1]   // Reverse order by index
-                    } else {
-                        messageUtils.getMessageById(id)   // Get item
-                    }
+                    val message = messageUtils.getMessageById(id, preview)
                     Column(
                         modifier = Modifier
                             .padding(
@@ -480,6 +480,7 @@ fun MessageDetail(
 //DROPDOWN MENU:
 @Composable
 fun MessagesOptions(
+    context: Context,
     mDisplayMenu: MutableState<Boolean>,
     deleteOn: MutableState<Boolean>,
     selectedMessageIds: SnapshotStateList<Long>
@@ -489,6 +490,16 @@ fun MessagesOptions(
         expandedState = mDisplayMenu,
         backgroundColor = colorResource(id = R.color.dark_grey),
         options = {
+            //1) Item: REFRESH MESSAGES
+            OptionsItem(
+                title = "Refresh",
+                iconVector = Icons.Default.Refresh,
+                onClick = {
+                    mDisplayMenu.value = false
+                    allMessageIds.postValue(messageUtils.refreshMessages())
+                    Toast.makeText(context, "Messages updated!", Toast.LENGTH_SHORT).show()
+                }
+            )
             //1) Item: UNSELECT ALL
             if (selectedMessageIds.isNotEmpty()) {
                 OptionsItem(

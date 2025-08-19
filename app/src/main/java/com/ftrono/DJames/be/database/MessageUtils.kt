@@ -361,7 +361,14 @@ class MessageUtils {
         if (intentName.contains("Call") || intentName.contains("Message")) {
             //Calls & Messages:
             val itemInfo = message.attachments.usable
-            detailText = if (itemInfo.name == "") "" else "Contact:  ${itemInfo.name}"
+            val msgType = when (message.actionType) {
+                ActionType.WA_TEXT -> "Whatsapp Text"
+                ActionType.WA_VOICE -> "Whatsapp Voice"
+                ActionType.SMS -> "SMS"
+                else -> ""
+            }
+            detailText = if (msgType == "") "" else "Type:  $msgType\n"
+            detailText += if (itemInfo.name == "") "" else "Contact:  ${itemInfo.name}"
 
         } else if (intentName.contains("Drive")) {
             //Drive:

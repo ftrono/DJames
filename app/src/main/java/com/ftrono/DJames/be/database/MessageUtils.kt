@@ -143,6 +143,7 @@ class MessageUtils {
                 // CONTENT: Actually store message:
                 message.starterId = lastStarterId
                 message.fromVoice = fromVoice
+                message.langCode = langCode
                 messageBox!!.put(message)
                 Log.d(TAG, "Message item ${message.id} saved!")
                 //Send broadcast:

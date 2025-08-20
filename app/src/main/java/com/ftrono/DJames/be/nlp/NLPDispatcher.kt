@@ -137,12 +137,12 @@ class NLPDispatcher (private var context: Context) {
                     try {
                         //Get relevant results:
                         intentName = resultsNLP.intentName
+                        nlp_queryText = fulfillmentUtils.replaceNums(resultsNLP.queryText)
                         if (messageMode) {
                             // Anonymize:
                             storedText = "(message text hidden)"
                         } else {
                             // Store fully:
-                            nlp_queryText = fulfillmentUtils.replaceNums(resultsNLP.queryText)
                             storedText = nlp_queryText
                             lastLog.nlpQueries.add(resultsNLP)
                         }

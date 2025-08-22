@@ -10,7 +10,7 @@ import com.ftrono.DJames.application.defaultChatResetTime
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.messageUtils
-import com.ftrono.DJames.application.overlayStatus
+import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
@@ -41,7 +41,7 @@ class ChatManager(private val context: Context) {
             resetConv()
         }
         //Set overlay PROCESSING color & icon:
-        overlayStatus.postValue("processing")
+        queryStatus.postValue("processing")
         messageUtils.resetMessage(fromUser = true)
         messageUtils.resetMessage(fromUser = false)
 
@@ -94,7 +94,7 @@ class ChatManager(private val context: Context) {
                 }
             }
 
-            overlayStatus.postValue("ready")
+            queryStatus.postValue("ready")
         }
     }
 }

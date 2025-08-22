@@ -71,7 +71,7 @@ import com.ftrono.DJames.application.clickCounter
 import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.overlayPos
-import com.ftrono.DJames.application.overlayStatus
+import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recordingMode
 import com.ftrono.DJames.application.sourceIsVolume
@@ -417,7 +417,7 @@ class OverlayService : Service() {
             }
             DJamesButton(
                 bubbleSize = bubbleSize,
-                overlayStatus = overlayStatus,
+                queryStatus = queryStatus,
                 clickCounterState = clickCounterState!!,
                 onTap = {
                     if (!voiceQueryOn) {
@@ -638,7 +638,7 @@ class OverlayService : Service() {
                 }
             } else if (clickCounter.value!! == 2) {
                 //TRIGGER SAVE TRACK:
-                overlayStatus.postValue("processing")
+                queryStatus.postValue("processing")
                 //Play STOP tone:
                 toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
                 Intent().also { intent ->

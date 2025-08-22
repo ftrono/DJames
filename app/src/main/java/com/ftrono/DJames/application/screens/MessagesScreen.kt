@@ -51,7 +51,7 @@ import com.ftrono.DJames.application.allMessageIds
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.messageUtils
-import com.ftrono.DJames.application.overlayStatus
+import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.chat.ActionsExecutor
 import com.ftrono.DJames.be.chat.ChatManager
@@ -111,7 +111,7 @@ fun MessagesScreen(
     val focusManager = LocalFocusManager.current
     val selectedMessageIds = remember { mutableStateListOf<Long>() }
 
-    val overlayState by overlayStatus.observeAsState()
+    val queryState by queryStatus.observeAsState()
     val allMessageIdsState by allMessageIds.observeAsState()
     allMessageIds.postValue(messageUtils.refreshMessages(preview))
 
@@ -254,7 +254,7 @@ fun MessagesScreen(
         }
 
         // TYPING INDICATOR:
-        if (overlayState == "processing") {
+        if (queryState == "processing") {
             Row(
                 modifier = Modifier
                     .padding(top = 8.dp, bottom = 4.dp)

@@ -60,7 +60,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.datetimeShortFormat
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.overlayActive
-import com.ftrono.DJames.application.overlayStatus
+import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.chat.ChatManager
 import com.ftrono.DJames.be.database.Message
@@ -303,7 +303,7 @@ fun SplitSendButton(
     testChat: Boolean = false,
 ) {
     val overlayActiveState by overlayActive.observeAsState()
-    val overlayStatusState by overlayStatus.observeAsState()
+    val queryStatusState by queryStatus.observeAsState()
 
     Row(
         modifier = Modifier
@@ -348,7 +348,7 @@ fun SplitSendButton(
             onClick = onRightClick,
             shape = if (!enableLeftButton || isKeyboardOpen()) RoundedCornerShape(20.dp) else RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp),
             colors = CardDefaults.cardColors(
-                containerColor = if (overlayStatusState != "ready") colorResource(id = R.color.faded_grey) else colorResource(id = R.color.colorAccent)
+                containerColor = if (queryStatusState != "ready") colorResource(id = R.color.faded_grey) else colorResource(id = R.color.colorAccent)
             ),
         ) {
             Row(
@@ -358,7 +358,7 @@ fun SplitSendButton(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (overlayStatusState == "ready") {
+                if (queryStatusState == "ready") {
                     Icon(
                         modifier = Modifier
                             .size(24.dp),
@@ -415,7 +415,7 @@ fun ChatInputField(
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val overlayState by overlayStatus.observeAsState()
+    val queryState by queryStatus.observeAsState()
     val textFieldColors = getTextFieldColors(
         colorLight = colorResource(R.color.colorAccentLight),
         colorDark = colorResource(R.color.colorAccent)
@@ -424,7 +424,7 @@ fun ChatInputField(
     fun onKeyboardDone() {
         focusManager.clearFocus()
         keyboardController!!.hide()
-        if (overlayState == "ready") onSend()
+        if (queryState == "ready") onSend()
     }
 
     //Text Field:
@@ -438,7 +438,7 @@ fun ChatInputField(
                 keyboardController?.hide()
             }
             .focusRequester(focusRequester),
-        enabled = overlayState == "ready",
+        enabled = queryState == "ready",
         colors = textFieldColors,
         value = sharedViewModel.text,
         interactionSource = interactionSource,

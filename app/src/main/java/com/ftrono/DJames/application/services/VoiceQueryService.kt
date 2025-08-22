@@ -19,7 +19,7 @@ import com.ftrono.DJames.application.chatLastDispatch
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.lastRequestIntent
 import com.ftrono.DJames.application.messageUtils
-import com.ftrono.DJames.application.overlayStatus
+import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recordingMode
 import com.ftrono.DJames.application.voiceQueryOn
@@ -100,7 +100,7 @@ class VoiceQueryService: Service() {
         cancelThread(processingThread, "processingThread")
 
         //Stop recorder:
-        if (recordingMode || overlayStatus.value != "ready") {
+        if (recordingMode || queryStatus.value != "ready") {
             //Play FAIL tone:
             toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
         }
@@ -126,7 +126,7 @@ class VoiceQueryService: Service() {
         lastDispatch = DispatcherInfo()
         lastRequestIntent = ""
         //Set overlay READY color:
-        overlayStatus.postValue("ready")
+        queryStatus.postValue("ready")
         Log.d(TAG, "VOICE QUERY SERVICE TERMINATED.")
     }
 
@@ -183,7 +183,7 @@ class VoiceQueryService: Service() {
                             //End previous chat conversation:
                             chatLastDispatch = DispatcherInfo()
                             //Start:
-                            overlayStatus.postValue("processing")
+                            queryStatus.postValue("processing")
                             Thread.sleep(500)
                             //Read TTS:
                             tts.speak(
@@ -206,7 +206,7 @@ class VoiceQueryService: Service() {
                     audioRequestsManager.requestExclusiveFocus(
                         onGranted = {
                             //Set overlay BUSY color:
-                            overlayStatus.postValue("busy")
+                            queryStatus.postValue("busy")
 
                             //Play START tone:
                             toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
@@ -259,7 +259,7 @@ class VoiceQueryService: Service() {
                     onGranted = {
                         if (voiceQueryOn) {
                             //Set overlay PROCESSING color & icon:
-                            overlayStatus.postValue("processing")
+                            queryStatus.postValue("processing")
                             //PROCESS QUERY:
                             processingThread = Thread {
                                 processQuery(recFile)
@@ -343,7 +343,7 @@ class VoiceQueryService: Service() {
 
                 } else {
                     // END:
-                    overlayStatus.postValue("ready")
+                    queryStatus.postValue("ready")
                     if (lastDispatch.fail) {
                         toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                     } else {

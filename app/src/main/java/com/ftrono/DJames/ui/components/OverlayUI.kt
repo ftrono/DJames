@@ -85,7 +85,7 @@ fun ClockButtonPreview() {
 fun DJamesButtonPreview() {
     DJamesButton(
         bubbleSize = 100,
-        overlayStatus = MutableLiveData<String>("ready"),
+        queryStatus = MutableLiveData<String>("ready"),
         clickCounterState = 2,
         onTap = {offset -> }
     )
@@ -96,11 +96,11 @@ fun DJamesButtonPreview() {
 @Composable
 fun DJamesButton(
     bubbleSize: Int,
-    overlayStatus: MutableLiveData<String>,
+    queryStatus: MutableLiveData<String>,
     clickCounterState: Int,
     onTap: (Offset) -> Unit
 ) {
-    val overlayState by overlayStatus.observeAsState()
+    val queryState by queryStatus.observeAsState()
     val autoStopQueriesState by autoStopQueriesState.observeAsState()
     //OVERLAY BUTTON:
     Box(
@@ -111,7 +111,7 @@ fun DJamesButton(
                 color = if (clickCounterState > 0) {
                     colorResource(id = R.color.greenSignLight)
                 } else {
-                    when (overlayState) {
+                    when (queryState) {
                         "busy" -> {
                             colorResource(id = R.color.colorBusy)
                         }
@@ -190,7 +190,7 @@ fun DJamesButton(
                         contentDescription = "Voice request"
                     )
                 }
-            } else if (overlayState == "processing") {
+            } else if (queryState == "processing") {
                 //PROCESSING:
                 CircularProgressIndicator(
                     modifier = Modifier.width(40.dp),
@@ -198,7 +198,7 @@ fun DJamesButton(
                     trackColor = colorResource(id = R.color.dark_grey),
                     strokeWidth = 8.dp
                 )
-            } else if (overlayState == "busy") {
+            } else if (queryState == "busy") {
                 //BUSY:
                 PulsatingWaveform()
             } else {

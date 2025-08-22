@@ -14,7 +14,7 @@ import com.ftrono.DJames.application.artistUrlIntro
 import com.ftrono.DJames.application.currentTrackId
 import com.ftrono.DJames.application.episodeUrlIntro
 import com.ftrono.DJames.application.libUtils
-import com.ftrono.DJames.application.overlayStatus
+import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.playlistUrlIntro
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.showUrlIntro
@@ -204,7 +204,7 @@ class SpotifyUtils {
             intent.putExtra("toastText", toastText)
                 context.sendBroadcast(intent)
         }
-        overlayStatus.postValue("ready")
+        queryStatus.postValue("ready")
         Log.d(TAG, "SaveTrack: job end!")
     }
 

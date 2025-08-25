@@ -233,6 +233,7 @@ fun DJamesPads(
                     colorInactive = colorIconInactive,
                     currentTimeState = currentTimeState!!,
                     autoStopQueriesState = autoStopQueriesState!!,
+                    short = overlayPosState == "Right" && sourceIsVolumeState!!,
                 )
 
                 Row(
@@ -325,8 +326,8 @@ fun QuickActionDescription(
         Text(
             modifier = Modifier
                 .padding(
-                    start = 24.dp,
-                    end = 24.dp,
+                    start = 20.dp,
+                    end = 20.dp,
                     top = 8.dp,
                     bottom = 8.dp
                 ),

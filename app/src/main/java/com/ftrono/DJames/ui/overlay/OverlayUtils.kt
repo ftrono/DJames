@@ -128,7 +128,8 @@ fun getQuickAction(
     colorActive: Color,
     colorInactive: Color,
     currentTimeState: String,
-    autoStopQueriesState: Boolean
+    autoStopQueriesState: Boolean,
+    short: Boolean = false,
 ): QuickAction {
     return if (name == "speak") {
         QuickAction(
@@ -145,7 +146,7 @@ fun getQuickAction(
         )
     } else if (name == "save") {
         QuickAction(
-            description = "save track",
+            description = if (short) "save" else "save track",
             content = {
                 Row(
                     modifier = Modifier
@@ -174,7 +175,7 @@ fun getQuickAction(
         )
     } else if (name == "clock") {
         QuickAction(
-            description = "open clock",
+            description = if (short) "open" else "open clock",
             content = {
                 Column(
                     modifier = Modifier
@@ -203,7 +204,7 @@ fun getQuickAction(
         )
     } else if (name == "volume") {
         QuickAction(
-            description = "raise volume",
+            description = if (short) "volume up" else "raise volume",
             content = {
                 Row(
                     modifier = Modifier

@@ -114,9 +114,6 @@ class MainActivity : ComponentActivity() {
         spotUserImageState.postValue(prefs.spotUserImage)
         userNicknameState.postValue(prefs.userNickname)
 
-        //Prefs:
-        autoStopQueriesState.postValue(prefs.silenceEnabledQueries)
-
         //AUTO START-UP:
         if (
             Settings.canDrawOverlays(context)

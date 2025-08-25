@@ -1,6 +1,7 @@
 package com.ftrono.DJames.be.models
 
 
+import androidx.compose.runtime.Composable
 import com.ftrono.DJames.be.database.ItemInfoUse
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import kotlinx.serialization.Serializable
@@ -14,6 +15,13 @@ data class HttpResponse(
     val code: Int,
     val body: String
 )
+
+
+data class QuickAction(
+    var description: String,
+    var content: @Composable () -> Unit,
+)
+
 
 @Serializable
 data class AiReply(

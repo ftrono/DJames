@@ -178,11 +178,13 @@ class VoiceQueryService: Service() {
             recordingThread = Thread {
                 // 1) SPEAK INTRO:
                 if (voiceQueryOn && speakIntro) {
+
                     audioRequestsManager.requestDuckedFocus(
                         onGranted = {
                             //End previous chat conversation:
                             chatLastDispatch = DispatcherInfo()
-                            //Start:
+                            //START -> Play ACKNOWLEDGE tone:
+                            toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                             queryStatus.postValue("processing")
                             Thread.sleep(500)
                             //Read TTS:

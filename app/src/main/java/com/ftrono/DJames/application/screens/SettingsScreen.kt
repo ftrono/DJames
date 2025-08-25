@@ -58,7 +58,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.appVersion
-import com.ftrono.DJames.application.autoStopQueriesState
 import com.ftrono.DJames.application.copyrightYear
 import com.ftrono.DJames.application.extraOpen
 import com.ftrono.DJames.application.messLangFull
@@ -108,7 +107,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     // STATUSES:
     val checkedV3 = remember { mutableStateOf(if (preview) true else prefs.enableV3) }
     val checkedStartup = remember { mutableStateOf(if (preview) true else prefs.autoStartup) }
-    val checkedSilenceQueries by autoStopQueriesState.observeAsState()
+    val checkedSilenceQueries = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledQueries) }
     val checkedSilenceMess = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledMess) }
     val checkedAutoClock = remember { mutableStateOf(if (preview) true else prefs.autoClock) }
     val checkedClockRedirect = remember { mutableStateOf(if (preview) true else prefs.clockRedirectEnabled) }
@@ -378,12 +377,12 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     )
                     Spacer(Modifier.weight(1f))
                     Switch(
-                        checked = checkedSilenceQueries!!,
+                        checked = checkedSilenceQueries.value,
                         colors = getSwitchColors(
                             color = colorResource(id = R.color.yellowSign)
                         ),
                         onCheckedChange = {
-                            autoStopQueriesState.postValue(it)
+                            checkedSilenceQueries.value = it
                             prefs.silenceEnabledQueries = it
                         }
                     )

@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.0.a3 (alpha)"
+val appVersion = "3.0.a4 (alpha)"
 val copyrightYear = 2024
 
 //DB:
@@ -104,8 +104,8 @@ var innerNavOpen = MutableLiveData<Boolean>(false)
 var currentPlayingPrefix = MutableLiveData<String>("")
 var currentSongPlaying = MutableLiveData<String>("Don't turn off the screen!")
 var currentArtistPlaying = MutableLiveData<String>("You can keep this Clock\nScreen on to save battery")
+val overlayOptionsStr = MutableLiveData<String>("speak, save, clock, volume")
 var clickCounter = MutableLiveData<Int>(0)
-var autoStopQueriesState = MutableLiveData<Boolean>(false)
 var allowVolumeClick = true
 var userNicknameState = MutableLiveData<String>("")
 var spotUserImageState = MutableLiveData<String>("")
@@ -129,7 +129,9 @@ var lastStarterId: Long = 0L
 val defaultChatResetTime: Long = 3*60*1000   //minutes
 val defaultChatWait = 2000L
 val maxAudioRecTimeout = 120L   //for voice messages
-val maxClickOptions = 3
+val clickAnimationCountdownTime: Int = 4000   //ms
+val clickCountdownTime: Long = 3000   //ms
+val clickSleepInterval: Long = 100   //ms
 val silenceInitPatience = 6
 val silencePatience = 2
 val deltaSimilarity = 10   //5

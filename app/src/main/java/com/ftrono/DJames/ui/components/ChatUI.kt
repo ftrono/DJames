@@ -55,20 +55,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.datetimeShortFormat
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.chat.ChatManager
 import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.ui.navigation.SharedViewModel
-import com.ftrono.DJames.ui.navigation.navigateTo
 import com.ftrono.DJames.ui.selectors.actionsIconSelector
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
-import com.ftrono.DJames.ui.theme.NavigationItem
 
 
 // CHAT UI

@@ -111,7 +111,7 @@ fun PadsPreview1() {
 @Composable
 fun PadsPreview2() {
     val overlayPosState by remember { mutableStateOf("Right") }
-    val clickCounterState by remember { mutableStateOf(5) }
+    val clickCounterState by remember { mutableStateOf(2) }
     val clockActiveState by remember { mutableStateOf(false) }
     DJamesPads(
         queryStatus = MutableLiveData<String>("ready"),
@@ -331,7 +331,7 @@ fun QuickActionDescription(
                     bottom = 8.dp
                 ),
             text = curAction.description.uppercase(),
-            fontSize = 16.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             color = textColor

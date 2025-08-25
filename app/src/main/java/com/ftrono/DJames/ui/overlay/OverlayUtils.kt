@@ -145,7 +145,7 @@ fun getQuickAction(
         )
     } else if (name == "save") {
         QuickAction(
-            description = "save",
+            description = "save track",
             content = {
                 Row(
                     modifier = Modifier
@@ -174,7 +174,7 @@ fun getQuickAction(
         )
     } else if (name == "clock") {
         QuickAction(
-            description = "open",
+            description = "open clock",
             content = {
                 Column(
                     modifier = Modifier
@@ -203,7 +203,7 @@ fun getQuickAction(
         )
     } else if (name == "volume") {
         QuickAction(
-            description = "volume up",
+            description = "raise volume",
             content = {
                 Row(
                     modifier = Modifier
@@ -232,7 +232,7 @@ fun getQuickAction(
         )
     } else {
         QuickAction(
-            description = "silence",
+            description = "detect silence",
             content = {
                 Icon(
                     modifier = Modifier

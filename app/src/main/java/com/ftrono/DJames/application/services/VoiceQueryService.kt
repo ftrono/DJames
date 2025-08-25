@@ -26,6 +26,7 @@ import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.application.recordingFail
 import com.ftrono.DJames.application.recordingTime
 import com.ftrono.DJames.application.sourceIsVolume
+import com.ftrono.DJames.application.voiceConvStarted
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
 import com.ftrono.DJames.be.nlp.NLPDispatcher
@@ -125,6 +126,7 @@ class VoiceQueryService: Service() {
         sourceIsVolume.postValue(false)
         lastDispatch = DispatcherInfo()
         lastRequestIntent = ""
+        voiceConvStarted = false
         //Set overlay READY color:
         queryStatus.postValue("ready")
         Log.d(TAG, "VOICE QUERY SERVICE TERMINATED.")
@@ -181,7 +183,8 @@ class VoiceQueryService: Service() {
 
                     audioRequestsManager.requestDuckedFocus(
                         onGranted = {
-                            //End previous chat conversation:
+                            //End previous conversations:
+                            voiceConvStarted = false
                             chatLastDispatch = DispatcherInfo()
                             //START -> Play ACKNOWLEDGE tone:
                             toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE

@@ -17,6 +17,7 @@ import com.ftrono.DJames.application.messageBox
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.application.voiceConvStarted
 import com.ftrono.DJames.be.models.ActionType
 import com.ftrono.DJames.be.samples.testMessages
 import io.objectbox.query.QueryBuilder
@@ -133,6 +134,9 @@ class MessageUtils {
             if (message.text == "") {
                 // Empty message -> nothing to save:
                 Log.w(TAG, "Empty Message: not saved!")
+            } else if (fromVoice && !voiceConvStarted) {
+                // Voice conv not started -> don't save:
+                Log.w(TAG, "Voice conv not started: message not saved!")
             } else {
                 message.timestamp = getCurrentTimestamp()
                 if (isStart) {

@@ -1,4 +1,4 @@
-package com.ftrono.DJames.ui.components
+package com.ftrono.DJames.ui.overlay
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
@@ -75,14 +75,13 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.autoStopQueriesState
 import com.ftrono.DJames.application.clickAnimationCountdownTime
 import com.ftrono.DJames.application.clickCounter
 import com.ftrono.DJames.application.overlayOptionsStr
 import com.ftrono.DJames.application.sourceIsVolume
 import com.ftrono.DJames.be.models.QuickAction
-import com.ftrono.DJames.ui.selectors.getQuickAction
-import com.ftrono.DJames.ui.selectors.getQuickActionOnTap
-import com.ftrono.DJames.ui.selectors.getToesPositions
+import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.theme.light_grey
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -163,6 +162,7 @@ fun DJamesPads(
     val sourceIsVolumeState by sourceIsVolume.observeAsState()
     val overlayOptionsState by overlayOptionsStr.observeAsState()
     val overlayOptions = overlayOptionsState!!.split(", ")
+    val autoStopQueriesState by autoStopQueriesState.observeAsState()
 
     // Colours:
     val colorBgActive = colorResource(R.color.colorAccentMid)
@@ -235,6 +235,7 @@ fun DJamesPads(
                     colorActive = colorIconActive,
                     colorInactive = colorIconInactive,
                     currentTimeState = currentTimeState!!,
+                    autoStopQueriesState = autoStopQueriesState!!,
                 )
 
                 Row(
@@ -262,8 +263,8 @@ fun DJamesPads(
                         bubbleSize = toeSize.dp,
                         timeoutWidth = 7.dp,
                         onTap = {
+                            clickCounter.postValue(isState)
                             if (clickCounterState != isState) {
-                                clickCounter.postValue(isState)
                                 Log.d("OverlayUI", "I'M HERE! $clickCounterState - $isState - $isActive")
                                 onToesTapCommon(it)
                             }
@@ -354,7 +355,6 @@ fun TimeoutButton(
     backgroundColor: Color,
     timeoutColor: Color,
     isCenter: Boolean = false,
-    onTimeout: () -> Unit = {},
     onTap: (Offset) -> Unit = { offset -> },
     icon: @Composable () -> Unit = {}
 ) {
@@ -378,10 +378,6 @@ fun TimeoutButton(
                         easing = LinearEasing
                     )
                 )
-
-                // when finished, mark as stopped
-                // clickCounter.postValue(0)
-                // onTimeout()
             }
         } else {
             // Cancel if set to false externally

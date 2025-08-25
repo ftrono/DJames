@@ -13,6 +13,7 @@ import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.application.voiceConvStarted
 import com.ftrono.DJames.be.database.NlpQueryModel
 import com.ftrono.DJames.be.models.DispatcherInfo
 import com.ftrono.DJames.be.spotify.SpotifyFulfillment
@@ -57,6 +58,7 @@ class NLPDispatcher (private var context: Context) {
                 //A) PROCESS:
                 try {
                     //Get relevant results:
+                    voiceConvStarted = true
                     nlp_queryText = resultsNLP.queryText
                     nlp_queryText = fulfillmentUtils.replaceNums(nlp_queryText)
                     intentName = resultsNLP.intentName

@@ -63,7 +63,7 @@ import com.ftrono.DJames.ui.components.OptionsItem
 import com.ftrono.DJames.ui.components.OptionsMenu
 import com.ftrono.DJames.ui.components.MessageBubble
 import com.ftrono.DJames.ui.components.StreetUIScaffold
-import com.ftrono.DJames.ui.components.TypingIndicator
+import com.ftrono.DJames.ui.overlay.TypingIndicator
 import com.ftrono.DJames.ui.navigation.SharedViewModel
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu

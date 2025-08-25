@@ -104,7 +104,8 @@ var innerNavOpen = MutableLiveData<Boolean>(false)
 var currentPlayingPrefix = MutableLiveData<String>("")
 var currentSongPlaying = MutableLiveData<String>("Don't turn off the screen!")
 var currentArtistPlaying = MutableLiveData<String>("You can keep this Clock\nScreen on to save battery")
-val overlayOptionsStr = MutableLiveData<String>("speak, save, clock, volume")
+val overlayOptionsStr = MutableLiveData<String>("speak, save, clock, silence")   //volume
+var autoStopQueriesState = MutableLiveData<Boolean>(false)
 var clickCounter = MutableLiveData<Int>(0)
 var allowVolumeClick = true
 var userNicknameState = MutableLiveData<String>("")
@@ -124,6 +125,7 @@ var lastAiMessage: Message = Message()
 var lastUserMessage: Message = Message()
 var lastRequestIntent: String = ""
 var lastStarterId: Long = 0L
+var voiceConvStarted: Boolean = false   // avoids saving AI fallback messages after empty user voice messages
 
 //Preferences:
 val defaultChatResetTime: Long = 3*60*1000   //minutes

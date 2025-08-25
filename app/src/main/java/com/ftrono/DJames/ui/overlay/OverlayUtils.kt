@@ -1,4 +1,4 @@
-package com.ftrono.DJames.ui.selectors
+package com.ftrono.DJames.ui.overlay
 
 import android.content.Context
 import android.content.Intent
@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,12 +27,12 @@ import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_FINISH_MAIN
 import com.ftrono.DJames.application.ACTION_SAVE_TRACK
+import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.ClockActivity
-import com.ftrono.DJames.application.allowVolumeClick
-import com.ftrono.DJames.application.clickCounter
+import com.ftrono.DJames.application.autoStopQueriesState
+import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.services.VoiceQueryService
-import com.ftrono.DJames.application.sourceIsVolume
 import com.ftrono.DJames.be.models.QuickAction
 
 
@@ -63,7 +62,8 @@ fun getToesPositions(size: Int, interval: Float, posRight: Boolean = false): Lis
 
 fun getQuickActionOnTap(
     context: Context,
-    name: String
+    name: String,
+    toneGen: ToneGenerator? = null
 ): () -> Unit {
     val TAG = "OverlayService"
     return if (name == "speak") {
@@ -104,6 +104,21 @@ fun getQuickActionOnTap(
         {
             //TODO: Raise Volume!
         }
+    } else if (name == "silence" && toneGen != null) {
+        {
+            //TRIGGER ENABLE/DISABLE SILENCE DETECTION:
+            val silenceModeToTrigger = if (prefs.silenceEnabledQueries) "OFF" else "ON"
+            prefs.silenceEnabledQueries = !prefs.silenceEnabledQueries
+            autoStopQueriesState.postValue(!autoStopQueriesState.value!!)
+            //SUCCESS -> Play ACKNOWLEDGE tone:
+            toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+            //TOAST -> Send broadcast:
+            Intent().also { intent ->
+                intent.setAction(ACTION_TOASTER)
+                intent.putExtra("toastText", "Silence detection $silenceModeToTrigger")
+                context.sendBroadcast(intent)
+            }
+        }
     } else {
         { }   // Do nothing
     }
@@ -117,6 +132,7 @@ fun getQuickAction(
     colorActive: Color,
     colorInactive: Color,
     currentTimeState: String,
+    autoStopQueriesState: Boolean
 ): QuickAction {
     return if (name == "speak") {
         QuickAction(
@@ -189,7 +205,7 @@ fun getQuickAction(
                 }
             },
         )
-    } else {
+    } else if (name == "volume") {
         QuickAction(
             description = "volume up",
             content = {
@@ -217,6 +233,19 @@ fun getQuickAction(
                     )
                 }
             },
+        )
+    } else {
+        QuickAction(
+            description = "silence",
+            content = {
+                Icon(
+                    modifier = Modifier
+                        .size(34.dp),
+                    painter = if (!autoStopQueriesState) painterResource(id = R.drawable.icon_hearing_off) else painterResource(id = R.drawable.icon_hearing),
+                    tint = if (isActive) colorActive else colorInactive,
+                    contentDescription = "Voice request"
+                )
+            }
         )
     }
 }

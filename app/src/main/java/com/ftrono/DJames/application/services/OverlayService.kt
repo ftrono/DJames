@@ -74,7 +74,7 @@ import com.ftrono.DJames.application.sourceIsVolume
 import com.ftrono.DJames.application.streamMaxVolume
 import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.application.vol_initialized
-import com.ftrono.DJames.ui.components.OverlayClose
+import com.ftrono.DJames.ui.overlay.OverlayClose
 import com.ftrono.DJames.ui.defaults.OverlayLifecycleOwner
 import com.ftrono.DJames.ui.defaults.OverlaySavedStateRegistryOwner
 import kotlinx.coroutines.launch
@@ -90,8 +90,8 @@ import com.ftrono.DJames.application.clickSleepInterval
 import com.ftrono.DJames.application.overlayOptionsStr
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.ui.components.DJamesPads
-import com.ftrono.DJames.ui.selectors.getQuickActionOnTap
+import com.ftrono.DJames.ui.overlay.DJamesPads
+import com.ftrono.DJames.ui.overlay.getQuickActionOnTap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -645,11 +645,11 @@ class OverlayService : Service() {
                     "speak" -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                     "clock" -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                     "save" -> toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
-                    "volume" -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                    "silence" -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                     else -> toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                 }
                 //TRIGGER ACTION:
-                getQuickActionOnTap(applicationContext, actionName)()
+                getQuickActionOnTap(applicationContext, actionName, toneGen)()
             }
             //Reset counter:
             clickCounter.postValue(0)

@@ -2,7 +2,6 @@ package com.ftrono.DJames.ui.overlay
 
 import android.content.Context
 import android.content.Intent
-import android.media.ToneGenerator
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -62,8 +61,7 @@ fun getToesPositions(size: Int, interval: Float, posRight: Boolean = false): Lis
 
 fun getQuickActionOnTap(
     context: Context,
-    name: String,
-    toneGen: ToneGenerator? = null
+    name: String
 ): () -> Unit {
     val TAG = "OverlayService"
     return if (name == "speak") {
@@ -104,14 +102,12 @@ fun getQuickActionOnTap(
         {
             //TODO: Raise Volume!
         }
-    } else if (name == "silence" && toneGen != null) {
+    } else if (name == "silence") {
         {
             //TRIGGER ENABLE/DISABLE SILENCE DETECTION:
             val silenceModeToTrigger = if (prefs.silenceEnabledQueries) "OFF" else "ON"
             prefs.silenceEnabledQueries = !prefs.silenceEnabledQueries
             autoStopQueriesState.postValue(!autoStopQueriesState.value!!)
-            //SUCCESS -> Play ACKNOWLEDGE tone:
-            toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
             //TOAST -> Send broadcast:
             Intent().also { intent ->
                 intent.setAction(ACTION_TOASTER)

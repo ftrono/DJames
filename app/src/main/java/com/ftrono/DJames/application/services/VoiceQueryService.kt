@@ -186,8 +186,7 @@ class VoiceQueryService: Service() {
                             //End previous conversations:
                             voiceConvStarted = false
                             chatLastDispatch = DispatcherInfo()
-                            //START -> Play ACKNOWLEDGE tone:
-                            toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                            //START:
                             queryStatus.postValue("processing")
                             Thread.sleep(500)
                             //Read TTS:

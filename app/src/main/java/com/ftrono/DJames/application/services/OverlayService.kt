@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -409,12 +410,12 @@ class OverlayService : Service() {
                 centerSize = centerSize,
                 toeSize = toeSize,
                 onToesTapCommon = {
-                    onToesPadClick(fromVolume = false)
+                    onToesPadClick()
                 },
                 onCenterTap = {
                     if (!voiceQueryOn) {
                         // CENTER TAP:
-                        onCenterPadClick(enable = clickCounterState == 0, fromVolume = false)
+                        onCenterPadClick(enable = clickCounterState == 0)
                     } else if (recordingMode) {
                         //EARLY STOP RECORDING:
                         Intent().also { intent ->
@@ -581,16 +582,16 @@ class OverlayService : Service() {
 
 
     // COUNTDOWN FUNCTIONS:
-    fun onToesPadClick(fromVolume: Boolean = false) {
-        //CLICK -> Play ALERT tone:
-        sourceIsVolume.postValue(fromVolume)
+    fun onToesPadClick() {
+        //CLICK ONLY -> Play ALERT tone:
+        sourceIsVolume.postValue(false)
         restartCountdown()
         toneGen.startTone(ToneGenerator.TONE_CDMA_KEYPAD_VOLUME_KEY_LITE)   //ALERT
     }
 
-    fun onCenterPadClick(enable: Boolean, fromVolume: Boolean = false) {
-        //CLICK -> Play ALERT tone:
-        sourceIsVolume.postValue(fromVolume)
+    fun onCenterPadClick(enable: Boolean) {
+        //CLICK ONLY -> Play ALERT tone:
+        sourceIsVolume.postValue(false)
         restartCountdown()
         if (enable) {
             clickCounter.postValue(1)
@@ -603,7 +604,7 @@ class OverlayService : Service() {
     }
 
     fun loopPads(fromVolume: Boolean = false) {
-        //CLICK -> Play ALERT tone:
+        //VOLUME UP ONLY -> Play ALERT tone:
         sourceIsVolume.postValue(fromVolume)
         restartCountdown()
         val maxClickOptions = 1 + overlayOptionsStr.value!!.split(", ").size
@@ -649,7 +650,7 @@ class OverlayService : Service() {
                     else -> toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                 }
                 //TRIGGER ACTION:
-                getQuickActionOnTap(applicationContext, actionName, toneGen)()
+                getQuickActionOnTap(applicationContext, actionName)()
             }
             //Reset counter:
             clickCounter.postValue(0)

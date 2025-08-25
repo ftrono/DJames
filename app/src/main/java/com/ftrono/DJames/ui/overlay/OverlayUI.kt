@@ -97,7 +97,6 @@ import kotlin.math.sin
 fun PadsPreview1() {
     val overlayPosState by remember { mutableStateOf("Right") }
     val clickCounterState by remember { mutableStateOf(1) }
-    val sourceIsVolumeState by sourceIsVolume.observeAsState()
     val clockActiveState by remember { mutableStateOf(false) }
     DJamesPads(
         queryStatus = MutableLiveData<String>("ready"),
@@ -113,7 +112,6 @@ fun PadsPreview1() {
 fun PadsPreview2() {
     val overlayPosState by remember { mutableStateOf("Right") }
     val clickCounterState by remember { mutableStateOf(5) }
-    val sourceIsVolumeState by sourceIsVolume.observeAsState()
     val clockActiveState by remember { mutableStateOf(false) }
     DJamesPads(
         queryStatus = MutableLiveData<String>("ready"),
@@ -129,7 +127,6 @@ fun PadsPreview2() {
 fun PadsPreview3() {
     val overlayPosState by remember { mutableStateOf("Right") }
     val clickCounterState by remember { mutableStateOf(0) }
-    val sourceIsVolumeState by sourceIsVolume.observeAsState()
     val clockActiveState by remember { mutableStateOf(false) }
     DJamesPads(
         queryStatus = MutableLiveData<String>("ready"),
@@ -264,10 +261,7 @@ fun DJamesPads(
                         timeoutWidth = 7.dp,
                         onTap = {
                             clickCounter.postValue(isState)
-                            if (clickCounterState != isState) {
-                                Log.d("OverlayUI", "I'M HERE! $clickCounterState - $isState - $isActive")
-                                onToesTapCommon(it)
-                            }
+                            onToesTapCommon(it)
                         }
                     ) {
                         curAction.content()

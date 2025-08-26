@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.0.a4 (alpha)"
+val appVersion = "3.0.a5 (alpha)"
 val copyrightYear = 2024
 
 //DB:

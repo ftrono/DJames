@@ -194,8 +194,8 @@ fun DropdownSpinner(
                         } else if (prefName == "messageLanguage") {
                             prefs.messageLanguage = messLangCodes[messLangFull.indexOf(selectionOption)]
                             state.value = selectionOption
-                        } else if (prefName == "routeLanguage") {
-                            prefs.routeLanguage = messLangCodes[messLangFull.indexOf(selectionOption)]
+                        } else if (prefName == "placeLanguage") {
+                            prefs.placeLanguage = messLangCodes[messLangFull.indexOf(selectionOption)]
                             state.value = selectionOption
                         } else {
                             state.value = selectionOption

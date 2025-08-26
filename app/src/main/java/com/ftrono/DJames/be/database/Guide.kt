@@ -49,15 +49,15 @@ val fullGuide = listOf<GuideCategory>(
         )
     ),
 
-    //ROUTES:
+    //PLACES:
     GuideCategory(
-        category = "routes",
-        header = "Routes",
+        category = "places",
+        header = "Places",
         requests = listOf(
             GuideRequest(
                 intro = "Show a Google Maps route",
                 sentence = "\uD83D\uDDE3\uFE0F  \"Drive me to a place in <language>\"",
-                description = "Shows any navigation route in Google Maps. Language MUST be told if the name is not in the default routes language (edit in Settings).\n\n*NOTE: list your favourite routes in your Saved Items, in the Routes tab!"
+                description = "Shows the navigation route to a place in Google Maps. Language MUST be told if the name is not in the default places language (edit in Settings).\n\n*NOTE: list your favourite places in your Saved Items, in the Places tab!"
             ),
         )
     ),

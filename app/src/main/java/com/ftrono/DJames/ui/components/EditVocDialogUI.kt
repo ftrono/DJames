@@ -402,7 +402,7 @@ fun EditLibDynamicNameSection(
     textFieldColors: TextFieldColors,
     filter: String,
     textState: MutableState<String>,
-    subtitleState: MutableState<String>,
+    subtitleState: MutableState<String>? = null,
     imageUrlState: MutableState<String>,
     initActive: Boolean = false,
     showEditIcon: Boolean = false
@@ -455,7 +455,7 @@ fun EditLibDynamicNameSection(
                     borderWidth = 2.5.dp,
                     iconPainter = libIconSelector(cat = filter),
                     imageUrl = imageUrlState.value,
-                    circle = filter != "playlist" && filter != "podcast" && filter != "route"
+                    circle = filter != "playlist" && filter != "podcast" && filter != "place"
                 )
 
                 Column(
@@ -477,7 +477,7 @@ fun EditLibDynamicNameSection(
                         fontWeight = FontWeight.Bold,
                         color = colorResource(id = R.color.light_grey)
                     )
-                    if (subtitleState.value != "") {
+                    if (subtitleState != null && subtitleState.value != "") {
                         //Subtitle:
                         Text(
                             modifier = Modifier

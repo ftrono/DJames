@@ -55,7 +55,6 @@ class SpotifyFulfillment (private var context: Context) {
             val nlpExtractor = NLPExtractor(context)
             playType = "artist"
             contextType = "playlist"
-            dispatcherInfo.reqPlayLinkName = nlpExtractor.extractPlayLink(nlp_queryText)
 
         } else if (intentName == "PlayAlbum") {
             //ALBUM:
@@ -159,7 +158,7 @@ class SpotifyFulfillment (private var context: Context) {
             artistConfirmed = nlpExtractor.checkArtists(resultsNLP.artists, artistExtracted, reqLangCode)
             val libMatchId = nlpMatcher.matchLibrary("artist", artistConfirmed)
             if (libMatchId > -1) {
-                artistConfirmed = libUtils.getItemName("artist", libMatchId)
+                artistConfirmed = libUtils.getLibItemName(libMatchId)
             }
             extractorInfo.artistConfirmed = artistConfirmed
         }
@@ -194,7 +193,7 @@ class SpotifyFulfillment (private var context: Context) {
                 if (libMatchId > -1) {
                     Log.d(TAG, "Context -> Playlist in lib")
                     //Get playlist URL:
-                    val itemInfo = libUtils.getItemInfoUse("playlist", libMatchId)
+                    val itemInfo = libUtils.getLibItemById(libMatchId)
                     playable.contextType = "playlist"
                     playable.contextName = itemInfo.name
                     extractorInfo.contextConfirmed = itemInfo.name
@@ -261,27 +260,11 @@ class SpotifyFulfillment (private var context: Context) {
             val libMatchId = nlpMatcher.matchLibrary("artist", artistExtracted)
 
             if (libMatchId > -1) {
+                Log.d(TAG, "PLAY -> Artist Top Tracks")
                 //Build playable:
-                val itemInfo = libUtils.getItemInfoUse("artist", libMatchId)
-                //Match playLinkName:
-                val playLinks = itemInfo.playLinks
-                val matchedPlayName = if (
-                    prevStatus.reqPlayLinkName != "" && playLinks.containsKey(prevStatus.reqPlayLinkName)
-                ) prevStatus.reqPlayLinkName else itemInfo.defaultKey
-                Log.d(TAG, "Matched PlayName: $matchedPlayName")
-                if (matchedPlayName == "artist") {
-                    Log.d(TAG, "PLAY -> Artist Top Tracks")
-                    playable.id = spotifyUtils.getSpotifyID(itemInfo.url)
-                    playable.name = itemInfo.name
-                } else {
-                    Log.d(TAG, "PLAY -> Artist playlist in lib")
-                    val playLink = itemInfo.playLinks[matchedPlayName]!!
-                    playType = "playlist"
-                    playable.type = playType
-                    playable.name = playLink.name
-                    playable.owner = playLink.owner
-                    playable.id = spotifyUtils.getSpotifyID(playLink.spotifyUrl)
-                }
+                val itemInfo = libUtils.getLibItemById(libMatchId)
+                playable.id = spotifyUtils.getSpotifyID(itemInfo.url)
+                playable.name = itemInfo.name
             }
 
         //B) PLAYLIST:
@@ -293,7 +276,7 @@ class SpotifyFulfillment (private var context: Context) {
             if (libMatchId > -1) {
                 //Build playable:
                 Log.d(TAG, "PLAY -> Playlist in lib")
-                val itemInfo = libUtils.getItemInfoUse(playType, libMatchId)
+                val itemInfo = libUtils.getLibItemById(libMatchId)
                 playable.name = itemInfo.name
                 playable.owner = itemInfo.detail
                 playable.id = spotifyUtils.getSpotifyID(itemInfo.url)
@@ -374,7 +357,7 @@ class SpotifyFulfillment (private var context: Context) {
         if (libMatchId > -1) {
             Log.d(TAG, "PLAY -> Podcast in lib")
             //1) Context -> Podcast:
-            val itemInfo = libUtils.getItemInfoUse(playType, libMatchId)
+            val itemInfo = libUtils.getLibItemById(libMatchId)
             val podcastId = spotifyUtils.getSpotifyID(itemInfo.url)
             playable.contextType = "podcast"
             playable.contextUri = "$spotIntroUri:$podcastId:$podcastId"

@@ -2,7 +2,7 @@ package com.ftrono.DJames.be.samples
 
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.database.ItemInfoUse
+import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.SpotifyPlayable
 
 
@@ -94,16 +94,16 @@ class DefaultReplies() {
         return "Voice message for $contactName ready: please, select the contact in Whatsapp and Send it!"
     }
 
-    // ROUTES:
-    fun replyRouteRequest(reqLangName: String): String {
-        return "Tell me the route you need in ${reqLangName}!"
+    // PLACES:
+    fun replyPlaceRequest(reqLangName: String): String {
+        return "Tell me the place you need in ${reqLangName}!"
     }
 
-    fun replyRouteShowIntro(): String {
+    fun replyPlaceShowIntro(): String {
         return "Here's the route to: "
     }
 
-    fun replyRouteShowDetail(itemInfo: ItemInfoUse): String {
+    fun replyPlaceShowDetail(itemInfo: LibraryItem): String {
         var ttsToRead = ""
         if (itemInfo.detail == "") {
             ttsToRead = "${itemInfo.name}!"

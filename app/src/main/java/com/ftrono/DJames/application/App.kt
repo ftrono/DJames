@@ -9,18 +9,13 @@ import android.os.Build
 import net.openid.appauth.AuthorizationServiceConfiguration
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.application.App.ObjectBox.store
-import com.ftrono.DJames.be.database.Artist
-import com.ftrono.DJames.be.database.Contact
 import com.ftrono.DJames.be.database.LibraryUtils
 import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.be.database.MessageUtils
 import com.ftrono.DJames.be.database.MyObjectBox
-import com.ftrono.DJames.be.database.Playlist
-import com.ftrono.DJames.be.database.Podcast
-import com.ftrono.DJames.be.database.Route
+import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.models.DispatcherInfo
 import com.ftrono.DJames.be.nlp.FulfillmentUtils
-import com.ftrono.DJames.be.nlp.NLPDispatcher
 import com.ftrono.DJames.be.samples.DefaultReplies
 import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
 import com.ftrono.DJames.be.spotify.SpotifyUtils
@@ -42,12 +37,8 @@ val appVersion = "3.0.a4 (alpha)"
 val copyrightYear = 2024
 
 //DB:
+var libraryBox: Box<LibraryItem>? = null
 var messageBox: Box<Message>? = null
-var artistBox: Box<Artist>? = null
-var playlistBox: Box<Playlist>? = null
-var podcastBox: Box<Podcast>? = null
-var contactBox: Box<Contact>? = null
-var routeBox: Box<Route>? = null
 
 //UTILS:
 val utils = Utilities()
@@ -115,7 +106,7 @@ var sharedLink = MutableLiveData<String>("")
 
 //Library & Messages:
 var curLibrarySize = MutableLiveData<Int>(0)
-val libHeads = listOf("artist", "playlist", "podcast", "contact", "route")
+val libHeads = listOf("artist", "playlist", "podcast", "contact", "place")
 val libSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
 var allMessageIds = MutableLiveData<List<Long>>(listOf<Long>())
 
@@ -265,11 +256,7 @@ class App: Application()
 
         //DB:
         ObjectBox.init(this)
+        libraryBox = store.boxFor(LibraryItem::class.java)
         messageBox = store.boxFor(Message::class.java)
-        artistBox = store.boxFor(Artist::class.java)
-        playlistBox = store.boxFor(Playlist::class.java)
-        podcastBox = store.boxFor(Podcast::class.java)
-        contactBox = store.boxFor(Contact::class.java)
-        routeBox = store.boxFor(Route::class.java)
     }
 }

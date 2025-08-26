@@ -3,20 +3,19 @@ package com.ftrono.DJames.be.nlp
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.chatLastDispatch
-import com.ftrono.DJames.application.datetimeFullFormat
 import com.ftrono.DJames.application.defaultReplies
-import com.ftrono.DJames.application.gMapsLinkFormat
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.be.database.ItemInfoUse
-import com.ftrono.DJames.be.database.Route
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
+import com.ftrono.DJames.be.models.LinkPreview
 import com.google.gson.JsonParser
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.jsoup.Jsoup
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 
 class FulfillmentUtils {
@@ -133,49 +132,6 @@ class FulfillmentUtils {
             textReplaced = textReplaced.replace("emoji $sent", emojiMap.get(sent).asString, ignoreCase=true)
         }
         return textReplaced
-    }
-
-
-    //Route: build navigation URL from Library Route item:
-    fun buildRouteUrlFromLibraryItem(item: Route): String {
-        var url = gMapsLinkFormat
-        //Via:
-        var fullVia = listOf(
-                item.via.placeName,
-                item.via.address,
-                item.via.number,
-                item.via.zip,
-                item.via.town,
-                item.via.province
-            ).joinToString(" ").trim()
-        if (fullVia != "") {
-            fullVia = fullVia + "/"
-        }
-
-        //Destination:
-        var fullDestination = listOf(
-            item.destination.placeName,
-            item.destination.address,
-            item.destination.number,
-            item.destination.zip,
-            item.destination.town,
-            item.destination.province
-        ).joinToString(" ").trim()
-
-        return url + fullVia.replace(" ", "+") + fullDestination.replace(" ", "+")
-
-    }
-
-
-    //Route: build navigation URL from temp ItemInfo item:
-    fun buildRouteUrlFromItemInfo(item: ItemInfoUse): String {
-        var url = gMapsLinkFormat
-        var viaUrl = ""
-        if (item.detail != "") {
-            viaUrl = item.detail.replace(" ", "+") + "/"
-        }
-        url = url + viaUrl + item.name.replace(" ", "+").trim() + "/"
-        return url
     }
 
 }

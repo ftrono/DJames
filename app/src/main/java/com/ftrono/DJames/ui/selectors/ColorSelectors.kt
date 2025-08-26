@@ -75,7 +75,7 @@ fun libColorSelector(
         return colorResource(id = R.color.yellowSign)
     } else if (cat == "podcast") {
         return colorResource(id = R.color.redSign)
-    } else if (cat == "route") {
+    } else if (cat == "place") {
         return colorResource(id = R.color.brownSign)
     } else {
         return colorResource(id = R.color.blueSign)
@@ -93,7 +93,7 @@ fun libColorSelectorLight(
         return colorResource(id = R.color.yellowSignLight)
     } else if (cat == "podcast") {
         return colorResource(id = R.color.redSignLight)
-    } else if (cat == "route") {
+    } else if (cat == "place") {
         return colorResource(id = R.color.brownSignLight)
     } else {
         return colorResource(id = R.color.blueSignLight)
@@ -110,7 +110,7 @@ fun guideColorSelector(
         return colorResource(id = R.color.greenSign)
     } else if (cat == "messages") {
         return colorResource(id = R.color.blueSign)
-    } else if (cat == "routes") {
+    } else if (cat == "places") {
         return colorResource(id = R.color.brownSign)
     } else if (cat == "car") {
         return colorResource(id = R.color.brownSign)
@@ -128,7 +128,7 @@ fun guideColorSelectorLight(
         return colorResource(id = R.color.greenSignLight)
     } else if (cat == "messages") {
         return colorResource(id = R.color.blueSignLight)
-    } else if (cat == "routes") {
+    } else if (cat == "places") {
         return colorResource(id = R.color.brownSignLight)
     } else if (cat == "car") {
         return colorResource(id = R.color.brownSignLight)

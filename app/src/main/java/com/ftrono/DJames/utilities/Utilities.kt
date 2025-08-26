@@ -298,17 +298,15 @@ class Utilities {
     }
 
 
-    //On Logout: delete user cache files:
-    fun deleteUserCache(context: Context) {
+    //On Logout: delete user Library & Messages files:
+    fun deleteUserData(context: Context) {
         try {
             messageUtils.deleteAllMessages(context)
-            Log.d(TAG, "Deleted ALL message history.")
-            libUtils.deleteLibrary(context, "artists")
-            libUtils.deleteLibrary(context, "playlists")
-            libUtils.deleteLibrary(context, "contacts")
-            Log.d(TAG, "User library deleted.")
+            for (head in libHeads) {
+                libUtils.deleteLibrary(context, head)
+            }
         } catch (e: Exception) {
-            Log.w(TAG, "User cache not completely deleted.")
+            Log.w(TAG, "User data not completely deleted.")
         }
     }
 

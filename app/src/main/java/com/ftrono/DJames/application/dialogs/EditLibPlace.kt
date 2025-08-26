@@ -12,18 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.ftrono.DJames.R
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.database.Route
 import com.ftrono.DJames.application.screens.LibraryScreen
-import com.ftrono.DJames.be.samples.testRoutes
-import com.ftrono.DJames.ui.components.CustomCheckbox
 import com.ftrono.DJames.ui.dialogs.DialogRequestDetail
 import com.ftrono.DJames.ui.dialogs.EditLibDialog
 import com.ftrono.DJames.ui.components.EditLibDynamicField
@@ -39,21 +34,23 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
-import com.ftrono.DJames.application.fulfillmentUtils
+import com.ftrono.DJames.be.database.Address
+import com.ftrono.DJames.be.database.LibraryItem
+import com.ftrono.DJames.be.samples.testLibrary
 import com.ftrono.DJames.ui.components.EditLibSectionTitle
 
 
 @Preview
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
-fun DialogEditRoutePreview() {
+fun DialogEditPlacePreview() {
     val navController = rememberNavController()
-    LibraryScreen(navController, editPreview="route", preview=true)
+    LibraryScreen(navController, editPreview="place", preview=true)
 }
 
 
 @Composable
-fun EditLibRoute(
+fun EditLibPlace(
     context: Context,
     libraryItems: MutableState<List<String>>,
     idState: MutableState<Long>,
@@ -68,52 +65,42 @@ fun EditLibRoute(
     val id: Long = idState.value
 
     //Pre-populate:
-    // val itemRoute = Route()
-    var itemRoute = if (preview) {
-        testRoutes[0]
+    var itemPlace = if (preview) {
+        testLibrary.filter{ it.type == "place" }[0]
     } else if (id > -1) {
-        libUtils.getRoute(idState.value)
+        libUtils.getLibItemById(idState.value)
     } else {
-        Route()
+        LibraryItem(
+            source = "maps",
+            type = "place",
+            address = Address(),
+        )
     }
 
     //Init aliases:
-    val initAliases = itemRoute.aliases.toMutableList()
+    val initAliases = itemPlace.aliases.toMutableList()
     initAliases.removeAt(0)
 
     //States:
-    val textName = rememberSaveable { mutableStateOf(itemRoute.name) }
-    val textSubtitle = rememberSaveable { mutableStateOf(itemRoute.destination.town) }
+    val textName = rememberSaveable { mutableStateOf(itemPlace.name) }
+    val textSubtitle = rememberSaveable { mutableStateOf(itemPlace.address!!.town) }
     val textAliases = rememberSaveable { mutableStateOf(initAliases.joinToString(", ")) }
     val imageUrlState = rememberSaveable { mutableStateOf("") }
-    //Destination:
-    val textDestAddress = rememberSaveable { mutableStateOf(itemRoute.destination.address) }
-    val textDestNumber = rememberSaveable { mutableStateOf(itemRoute.destination.number) }
-    val textDestPlaceName = rememberSaveable { mutableStateOf(itemRoute.destination.placeName) }
-    val textDestTown = rememberSaveable { mutableStateOf(itemRoute.destination.town) }
-    val textDestZip = rememberSaveable { mutableStateOf(itemRoute.destination.zip) }
-    val textDestProvince = rememberSaveable { mutableStateOf(itemRoute.destination.province) }
-    val textDestCountry = rememberSaveable { mutableStateOf(if (itemRoute.destination.country == "") "Italy" else itemRoute.destination.country) }
-    //Via:
-    val checkedVia = remember { mutableStateOf(itemRoute.via.address != "") }
-    val textViaAddress = rememberSaveable { mutableStateOf(itemRoute.via.address) }
-    val textViaNumber = rememberSaveable { mutableStateOf(itemRoute.via.number) }
-    val textViaPlaceName = rememberSaveable { mutableStateOf(itemRoute.via.placeName) }
-    val textViaTown = rememberSaveable { mutableStateOf(itemRoute.via.town) }
-    val textViaZip = rememberSaveable { mutableStateOf(itemRoute.via.zip) }
-    val textViaProvince = rememberSaveable { mutableStateOf(itemRoute.via.province) }
-    val textViaCountry = rememberSaveable { mutableStateOf(if (itemRoute.via.country == "") "Italy" else itemRoute.via.country) }
+    //Address:
+    val textDestAddress = rememberSaveable { mutableStateOf(itemPlace.address!!.street) }
+    val textDestNumber = rememberSaveable { mutableStateOf(itemPlace.address!!.number) }
+    val textDestPlaceName = rememberSaveable { mutableStateOf(itemPlace.address!!.placeName) }
+    val textDestTown = rememberSaveable { mutableStateOf(itemPlace.address!!.town) }
+    val textDestZip = rememberSaveable { mutableStateOf(itemPlace.address!!.zip) }
+    val textDestProvince = rememberSaveable { mutableStateOf(itemPlace.address!!.province) }
+    val textDestCountry = rememberSaveable { mutableStateOf(if (itemPlace.address!!.country == "") "Italy" else itemPlace.address!!.country) }
 
     val requestDetailOn = rememberSaveable { mutableStateOf(false) }
     if (requestDetailOn.value) {
         DialogRequestDetail(
             dialogOnState = requestDetailOn,
-            title = "Route URL",
-            message = if (checkedVia.value) {
-                "Please enter a valid Destination or Pass Through address for the current Route!"
-            } else {
-                "Please enter a valid Destination address for the current Route!"
-            }
+            title = "Address",
+            message = "Please enter a valid address for the current place!",
         )
     }
 
@@ -143,8 +130,8 @@ fun EditLibRoute(
             showRefresh = false,
             showGo = true,
             onGo = {
-                if (itemRoute.destination.town != "") {
-                    utils.openLink(mContext, url = fulfillmentUtils.buildRouteUrlFromLibraryItem(itemRoute), fromService = false)
+                if (itemPlace.address != null) {
+                    utils.openLink(mContext, url = libUtils.buildPlaceUrlFromLibraryItem(itemPlace.address), fromService = false)
                 }
             },
             onDismiss = {
@@ -152,20 +139,17 @@ fun EditLibRoute(
             },
             onSave = {
                 //CHECK & BUILD:
-                //1) Validate Route:
-                requestDetailOn.value = textDestAddress.value == "" ||
-                    textDestTown.value == "" ||
-                    checkedVia.value && (
-                        textViaAddress.value == "" ||
-                        textViaTown.value == ""
-                    )
+                //1) Validate Place:
+                requestDetailOn.value =
+                    textDestAddress.value == "" ||
+                    textDestTown.value == ""
 
                 if (!requestDetailOn.value && textName.value != "") {
                     //2) Update object:
                     val aliasesList = mutableListOf(
                         utils.cleanString(textName.value).lowercase()
                     )
-                    Log.d("EditLibRoute", "$aliasesList")
+                    Log.d("EditLibPlace", "$aliasesList")
                     if (textAliases.value != "") {
                         for (alias in textAliases.value.split(",")) {
                             val temp = utils.cleanString(alias).lowercase()
@@ -174,28 +158,22 @@ fun EditLibRoute(
                             }
                         }
                     }
-                    itemRoute.name = utils.capitalizeWords(textName.value).trim()
-                    itemRoute.aliases = aliasesList
-                    //Destination:
-                    itemRoute.destination.address = utils.capitalizeWords(textDestAddress.value.trim())
-                    itemRoute.destination.number = textDestNumber.value.uppercase().trim()
-                    itemRoute.destination.placeName = utils.capitalizeWords(textDestPlaceName.value.trim())
-                    itemRoute.destination.town = utils.capitalizeWords(textDestTown.value.trim())
-                    itemRoute.destination.zip = textDestZip.value.uppercase().trim()
-                    itemRoute.destination.province = textDestProvince.value.uppercase().trim()
-                    itemRoute.destination.country = utils.capitalizeWords(textDestCountry.value.trim())
-                    //Via:
-                    itemRoute.via.address = if (!checkedVia.value) "" else utils.capitalizeWords(textViaAddress.value.trim())
-                    itemRoute.via.number = if (!checkedVia.value) "" else textViaNumber.value.uppercase().trim()
-                    itemRoute.via.placeName = if (!checkedVia.value) "" else utils.capitalizeWords(textViaPlaceName.value.trim())
-                    itemRoute.via.town = if (!checkedVia.value) "" else utils.capitalizeWords(textViaTown.value.trim())
-                    itemRoute.via.zip = if (!checkedVia.value) "" else textViaZip.value.uppercase().trim()
-                    itemRoute.via.province = if (!checkedVia.value) "" else textViaProvince.value.uppercase().trim()
-                    itemRoute.via.country = if (!checkedVia.value) "" else utils.capitalizeWords(textViaCountry.value.trim())
+                    itemPlace.name = utils.capitalizeWords(textName.value).trim()
+                    itemPlace.aliases = aliasesList
+                    //Address:
+                    itemPlace.address = Address(
+                        street = utils.capitalizeWords(textDestAddress.value.trim()),
+                        number = textDestNumber.value.uppercase().trim(),
+                        placeName = utils.capitalizeWords(textDestPlaceName.value.trim()),
+                        town = utils.capitalizeWords(textDestTown.value.trim()),
+                        zip = textDestZip.value.uppercase().trim(),
+                        province = textDestProvince.value.uppercase().trim(),
+                        country = utils.capitalizeWords(textDestCountry.value.trim()),
+                    )
 
 
                     //3) Update / store to DB:
-                    libUtils.storeRoute(context, itemRoute)
+                    libUtils.storeLibItem(context, itemPlace)
 
                     //4) End & close:
                     libraryItems.value = libUtils.refreshLibrary(filter)   //Refresh list
@@ -204,7 +182,7 @@ fun EditLibRoute(
             }
         ) {
             //CONTENT:
-            //ROUTE NAME:
+            //PLACE NAME:
             EditLibDynamicNameSection(
                 textHeaderColor = libColorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
@@ -219,7 +197,7 @@ fun EditLibRoute(
                 showEditIcon = true
             )
 
-            //ROUTE ALIASES:
+            //PLACE ALIASES:
             EditLibDynamicField(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -234,9 +212,9 @@ fun EditLibRoute(
                 textState = textAliases
             )
 
-            //DESTINATION ADDRESS:
+            //ADDRESS:
             AddressGroup(
-                title = "Destination address",
+                title = "Address",
                 placeNameState = textDestPlaceName,
                 addressState = textDestAddress,
                 numberState = textDestNumber,
@@ -245,30 +223,6 @@ fun EditLibRoute(
                 provinceState = textDestProvince,
                 countryState = textDestCountry
             )
-
-            //VIA: CHECKBOX:
-            CustomCheckbox(
-                modifier = Modifier
-                    .padding(bottom = 5.dp),
-                checkedState = checkedVia,
-                checkedColor = libColorSelectorLight(cat = filter),
-                textColor = colorResource(id = R.color.light_grey),
-                text = "Use a Pass Through address"
-            )
-
-            if (checkedVia.value) {
-                //VIA ADDRESS:
-                AddressGroup(
-                    title = "Pass Through address",
-                    placeNameState = textViaPlaceName,
-                    addressState = textViaAddress,
-                    numberState = textViaNumber,
-                    zipState = textViaZip,
-                    townState = textViaTown,
-                    provinceState = textViaProvince,
-                    countryState = textViaCountry
-                )
-            }
         }
     }
 }
@@ -285,7 +239,7 @@ fun AddressGroup(
     provinceState: MutableState<String>,
     countryState: MutableState<String>,
 ) {
-    val filter = "route"
+    val filter = "place"
 
     //Section:
     EditLibSectionTitle(

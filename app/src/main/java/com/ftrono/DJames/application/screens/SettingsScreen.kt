@@ -550,20 +550,20 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
             }
 
 
-            //SECTION: ROUTES:
+            //SECTION: PLACES:
             SettingsSection(
                 modifier = Modifier
                     .padding(end=8.dp, top=16.dp, bottom=4.dp),
-                title = "Routes",
+                title = "Places",
                 signColor = colorResource(id = R.color.brownSign),
                 iconPainter = painterResource(id = R.drawable.sign_place)
             ) {
 
-                //Routes language:
+                //Places language:
                 Text(
                     modifier = Modifier
                         .padding(bottom = 4.dp),
-                    text = "Routes: default language",
+                    text = "Places: default language",
                     color = colorResource(id = R.color.light_grey),
                     textAlign = TextAlign.Start,
                     fontSize = 14.sp,
@@ -577,7 +577,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     focusColorLight = colorResource(id = R.color.brownSignLight),
                     focusColorDark = colorResource(id = R.color.brownSign),
                     optionsBackground = colorResource(id = R.color.dark_grey),
-                    prefName = "routeLanguage",
+                    prefName = "placeLanguage",
                     width = 200
                 )
             }

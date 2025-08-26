@@ -8,7 +8,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,18 +17,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
@@ -65,11 +59,9 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.libHeads
 import com.ftrono.DJames.application.libSectionIdentifier
 import com.ftrono.DJames.be.database.ItemInfoView
-import com.ftrono.DJames.application.dialogs.EditLibArtist
 import com.ftrono.DJames.application.dialogs.EditLibContact
-import com.ftrono.DJames.application.dialogs.EditLibPlaylist
-import com.ftrono.DJames.application.dialogs.EditLibPodcast
-import com.ftrono.DJames.application.dialogs.EditLibRoute
+import com.ftrono.DJames.application.dialogs.EditLibPlace
+import com.ftrono.DJames.application.dialogs.EditLibSpotify
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
@@ -136,8 +128,8 @@ fun LibraryScreen(
     }
 
     if (editLibOn.value) {
-        when (editCat) {
-            "artist" -> EditLibArtist(
+        if (editCat == "artist" || editCat == "playlist" || editCat == "podcast") {
+            EditLibSpotify(
                 context = mContext,
                 libraryItems = libraryItems,
                 idState = idState,
@@ -153,39 +145,8 @@ fun LibraryScreen(
                 },
                 preview = preview
             )
-            "playlist" -> EditLibPlaylist(
-                context = mContext,
-                libraryItems = libraryItems,
-                idState = idState,
-                filter = editCat,
-                initLinkState = addLinkState,
-                loadingDialogOn = loadingDialogOn,
-                onDismiss = {
-                    //cancelable -> true
-                    editLibOn.value = false
-                    idState.value = -1
-                    addLinkState.value = ""
-                    sharedLink.postValue("")
-                },
-                preview = preview
-            )
-            "podcast" -> EditLibPodcast(
-                context = mContext,
-                libraryItems = libraryItems,
-                idState = idState,
-                filter = editCat,
-                initLinkState = addLinkState,
-                loadingDialogOn = loadingDialogOn,
-                onDismiss = {
-                    //cancelable -> true
-                    editLibOn.value = false
-                    idState.value = -1
-                    addLinkState.value = ""
-                    sharedLink.postValue("")
-                },
-                preview = preview
-            )
-            "route" -> EditLibRoute(
+        } else if (editCat == "contact") {
+            EditLibContact(
                 context = mContext,
                 libraryItems = libraryItems,
                 idState = idState,
@@ -199,7 +160,8 @@ fun LibraryScreen(
                 },
                 preview = preview
             )
-            "contact" -> EditLibContact(
+        } else if (editCat == "place") {
+            EditLibPlace(
                 context = mContext,
                 libraryItems = libraryItems,
                 idState = idState,
@@ -267,7 +229,7 @@ fun LibraryScreen(
                 // VERTICAL -> TOP APP BAR:
                 StreetUITopBar(
                     pretitle = "Saved items",
-                    title = if (currentCatState.value == "artist" || currentCatState.value == "route") {
+                    title = if (currentCatState.value == "artist" || currentCatState.value == "place") {
                         "${utils.capitalizeWords(currentCatState.value)}s   "
                     } else if (currentCatState.value == "podcast") {
                         "${utils.capitalizeWords(currentCatState.value)}s "
@@ -341,7 +303,7 @@ fun LibraryScreen(
                 },
                 onClick = {
                     idState.value = -1
-                    if (currentCatState.value == "contact" || currentCatState.value == "route") {
+                    if (currentCatState.value == "contact" || currentCatState.value == "place") {
                         editLibOn.value = true
                     } else {
                         addLinkOn.postValue(true)
@@ -362,7 +324,8 @@ fun LibraryScreen(
                     modifier = Modifier
                         .padding(top = 12.dp, bottom = 12.dp)
                         .fillMaxWidth()
-                        .background(colorResource(R.color.transparent_full)
+                        .background(
+                            colorResource(R.color.transparent_full)
                         ),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
@@ -569,9 +532,9 @@ fun LibItem(
             signBorderColor = colorResource(id = R.color.midfaded_grey),
             signIconColor = colorResource(id = R.color.light_grey),
             signIconPainter = libIconSelector(cat = currentCatState.value),
-            circle = currentCatState.value != "playlist" && currentCatState.value != "podcast" && currentCatState.value != "route",
+            circle = currentCatState.value != "playlist" && currentCatState.value != "podcast" && currentCatState.value != "place",
             title = utils.trimString(itemName, 24),
-            subtitle = if (currentCatState.value != "route" && itemAliases.isNotEmpty()) {
+            subtitle = if (currentCatState.value != "place" && itemAliases.isNotEmpty()) {
                     utils.trimString("\"" + itemAliases.joinToString("\", \"") + "\"", 16)
                 } else if (itemInfo.detail != "") {
                     utils.trimString(itemInfo.detail, 16)
@@ -728,7 +691,7 @@ fun DialogDeleteLibrary(
         confirmText = "Yes",
         onConfirm = {
             if (id > -1) {
-                libUtils.deleteLibraryItem(mContext, filter, id)
+                libUtils.deleteLibItem(mContext, filter, id)
             } else {
                 //Delete all:
                 libUtils.deleteLibrary(mContext, filter)

@@ -20,18 +20,11 @@ import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.showUrlIntro
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.trackUrlIntro
-import com.ftrono.DJames.be.database.Artist
-import com.ftrono.DJames.be.database.Playlist
-import com.ftrono.DJames.be.database.Podcast
+import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.models.HttpResponse
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 
 class SpotifyUtils {
@@ -251,77 +244,49 @@ class SpotifyUtils {
         return childId
     }
 
-
-    //Get Artist info:
-    fun getArtistInfo(context: Context, url: String, initArtist: Artist = Artist(), init: Boolean): Artist {
+    //Get Spotify info:
+    fun getSpotifyInfo(context: Context, filter: String, url: String, initItem: LibraryItem, init: Boolean): LibraryItem {
         Log.d(TAG, "getArtistInfo: job start!")
         var toastText = ""
-        var itemArtist = initArtist
+        var spotifyItem = initItem
         try {
             val spotifyCalls = SpotifyCalls(context)
-            val resp = spotifyCalls.getSpotifyArtist(getSpotifyID(url))
+            // TODO: TEMP!
+            val resp = if (filter == "artist") {
+                spotifyCalls.getSpotifyArtist(getSpotifyID(url))
+            } else if (filter == "playlist") {
+                spotifyCalls.getSpotifyPlaylist(getSpotifyID(url), detailsOnly = true)
+            } else if (filter == "podcast") {
+                spotifyCalls.getSpotifyPodcast(getSpotifyID(url))
+            } else (
+                HttpResponse(
+                    code = -1,
+                    body = ""
+                )
+            )
             //PROCESS RESPONSE:
             if (resp.code == 200) {
                 //SUCCESS -> Extract info:
-                Log.d(TAG, "getArtistInfo: results received!")
+                Log.d(TAG, "getSpotifyInfo: results received!")
                 val respJson = JsonParser.parseString(resp.body).asJsonObject
-                itemArtist.name = respJson.get("name").asString
-                itemArtist.spotifyUrl = url
-                //Genres:
-                var genres = mutableListOf<String>()
-                for (genre in respJson.get("genres").asJsonArray){
-                    genres.add(genre.asString)
-                }
-                itemArtist.genres = genres
+                spotifyItem.name = respJson.get("name").asString
+                spotifyItem.url = url
                 //Image URL:
                 try {
-                    itemArtist.imageUrl = respJson.get("images").asJsonArray.get(0).asJsonObject.get("url").asString
-                    Log.d(TAG, itemArtist.imageUrl)
+                    spotifyItem.imageUrl = respJson.get("images").asJsonArray.get(0).asJsonObject.get("url").asString
+                    Log.d(TAG, spotifyItem.imageUrl)
                 } catch (e: Exception) {
-                    itemArtist.imageUrl = ""
+                    spotifyItem.imageUrl = ""
                 }
-                toastText = if (!init) "Refreshed!" else "Please fill in additional information!"
-            } else {
-                Log.w(TAG, "ERROR: Could not extract info from Spotify!")
-                toastText = if (!init) "Cannot refresh now!" else "Please fill in missing information!"
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Could not extract info from Spotify! ", e)
-            toastText = if (!init) "Cannot refresh now!" else "Please fill in missing information!"
-        }
-        //TOAST:
-        Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
-        Log.d(TAG, "getArtistInfo: job end!")
-        return itemArtist
-    }
-
-
-    //Get Playlist info:
-    fun getPlaylistInfo(context: Context, url: String, initPlaylist: Playlist = Playlist(), init: Boolean): Playlist {
-        Log.d(TAG, "getPlaylistInfo: job start!")
-        var toastText = ""
-        var itemPlaylist = initPlaylist
-        try {
-            val spotifyCalls = SpotifyCalls(context)
-            val resp = spotifyCalls.getSpotifyPlaylist(getSpotifyID(url), detailsOnly=true)
-            //PROCESS RESPONSE:
-            if (resp.code == 200) {
-                //SUCCESS -> Extract info:
-                Log.d(TAG, "getPlaylistInfo: results received!")
-                val respJson = JsonParser.parseString(resp.body).asJsonObject
-                itemPlaylist.name = respJson.get("name").asString
-                itemPlaylist.spotifyUrl = url
                 //Owner:
-                try {
-                    itemPlaylist.owner = respJson.get("owner").asJsonObject.get("display_name").asString
-                } catch (e: Exception) {
-                    itemPlaylist.owner = ""
-                }
-                //Image URL:
-                try {
-                    itemPlaylist.imageUrl = respJson.get("images").asJsonArray.get(0).asJsonObject.get("url").asString
-                } catch (e: Exception) {
-                    itemPlaylist.imageUrl = ""
+                if (filter == "playlist") {
+                    try {
+                        spotifyItem.detail = respJson.get("owner").asJsonObject.get("display_name").asString
+                    } catch (e: Exception) {
+                        spotifyItem.detail = ""
+                    }
+                } else if (filter == "podcast") {
+                    spotifyItem.detail = respJson.get("publisher").asString
                 }
                 toastText = if (!init) "Refreshed!" else "Please fill in additional information!"
             } else {
@@ -334,53 +299,8 @@ class SpotifyUtils {
         }
         //TOAST:
         Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
-        Log.d(TAG, "getPlaylistInfo: job end!")
-        return itemPlaylist
-    }
-
-
-    //Get Podcast info:
-    fun getPodcastInfo(context: Context, url: String, initPodcast: Podcast = Podcast(), init: Boolean): Podcast {
-        Log.d(TAG, "getPodcastInfo: job start!")
-        var toastText = ""
-        var itemPodcast = initPodcast
-        try {
-            val spotifyCalls = SpotifyCalls(context)
-            val resp = spotifyCalls.getSpotifyPodcast(getSpotifyID(url))
-            //PROCESS RESPONSE:
-            if (resp.code == 200) {
-                //SUCCESS -> Extract info:
-                Log.d(TAG, "getPodcastInfo: results received!")
-                val respJson = JsonParser.parseString(resp.body).asJsonObject
-                itemPodcast.name = respJson.get("name").asString
-                itemPodcast.spotifyUrl = url
-                itemPodcast.publisher = respJson.get("publisher").asString
-                itemPodcast.description = respJson.get("description").asString
-                //Languages:
-                var itemLanguages = mutableListOf<String>()
-                for (obj in respJson.get("languages").asJsonArray) {
-                    itemLanguages.add(obj.asString)
-                }
-                itemPodcast.languages = itemLanguages
-                //Image URL:
-                try {
-                    itemPodcast.imageUrl = respJson.get("images").asJsonArray.get(0).asJsonObject.get("url").asString
-                } catch (e: Exception) {
-                    itemPodcast.imageUrl = ""
-                }
-                toastText = if (!init) "Refreshed!" else "Please fill in additional information!"
-            } else {
-                Log.w(TAG, "ERROR: Could not extract info from Spotify!")
-                toastText = if (!init) "Cannot refresh now!" else "Please fill in missing information!"
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Could not extract info from Spotify! ", e)
-            toastText = if (!init) "Cannot refresh now!" else "Please fill in missing information!"
-        }
-        //TOAST:
-        Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
-        Log.d(TAG, "getPodcastInfo: job end!")
-        return itemPodcast
+        Log.d(TAG, "getSpotifyInfo: job end!")
+        return spotifyItem
     }
 
 

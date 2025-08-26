@@ -11,6 +11,8 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
+**Version 3.0.a5 (v3 alpha) (2025-08-26)** - Simplify Library DB management: new unified LibraryItem data class, remove PlayLinks & PhoneSets.
+
 **Version 3.0.a4 (v3 alpha) (2025-08-25)** - Reworked Overlay functionality: new DJames Paw pads.
 
 **Version 3.0.a3 (v3 alpha) (2025-08-14)** - ChatManager finalized & ActionsExecutor re-adapted! Reworked Messages refresh, booleans, conv starters & starting, text states.
@@ -37,7 +39,7 @@ DJames is supported by **Android >= 10**.
 
 **Version 2.4.2 (2025-05-05)** - Add support to Podcasts playing (WIP: latest episode only). Fixed annoying audioFocus bug after call end.
 
-**Version 2.4.1 (2025-05-03)** - Add support to Driving directions (Routes). Introduce multi-language TTS read.
+**Version 2.4.1 (2025-05-03)** - Add support to Driving directions (Places). Introduce multi-language TTS read.
 
 **Version 2.4.0 (2025-04-14)** - Repo refactor. Add Library images & AddLink basic Dialog (WIP), with direct external share links. Minor UI refinements.
 

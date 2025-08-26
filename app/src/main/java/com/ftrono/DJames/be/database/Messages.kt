@@ -29,7 +29,7 @@ data class ExtractorInfo(
     var reqLanguage: String = "",
     var playType: String = "",
     var matchExtracted: String = "",   //main text
-    var matchConfirmed: String = "",   //after match (for contacts / routes)
+    var matchConfirmed: String = "",   //after match (for contacts / places)
     var artistExtracted: String = "",   //original
     var artistConfirmed: String = "",   //after match (store to search Spotify)
     var contextType: String = "",
@@ -154,7 +154,7 @@ data class Attachments(
     var spotifyPlay: SpotifyPlayable = SpotifyPlayable(),
 
     @Convert(converter = ItemInfoUseConverter::class, dbType = String::class)
-    var usable: ItemInfoUse = ItemInfoUse(),
+    var usable: LibraryItem = LibraryItem(),
 )
 
 class AttachmentsConverter : PropertyConverter<Attachments, String> {
@@ -219,12 +219,12 @@ class SpotifyPlayableConverter : PropertyConverter<SpotifyPlayable, String> {
     }
 }
 
-class ItemInfoUseConverter : PropertyConverter<ItemInfoUse, String> {
-    override fun convertToEntityProperty(databaseValue: String?): ItemInfoUse {
+class ItemInfoUseConverter : PropertyConverter<LibraryItem, String> {
+    override fun convertToEntityProperty(databaseValue: String?): LibraryItem {
         return Json.decodeFromString(databaseValue ?: "{}")
     }
 
-    override fun convertToDatabaseValue(entityProperty: ItemInfoUse?): String {
-        return Json.encodeToString(entityProperty ?: ItemInfoUse())
+    override fun convertToDatabaseValue(entityProperty: LibraryItem?): String {
+        return Json.encodeToString(entityProperty ?: LibraryItem())
     }
 }

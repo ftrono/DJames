@@ -25,10 +25,10 @@ import com.ftrono.DJames.application.messLangFull
 import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.database.Contact
 import com.ftrono.DJames.be.database.PhoneSet
 import com.ftrono.DJames.application.screens.LibraryScreen
-import com.ftrono.DJames.be.samples.testContacts
+import com.ftrono.DJames.be.database.LibraryItem
+import com.ftrono.DJames.be.samples.testLibrary
 import com.ftrono.DJames.ui.components.CustomCheckbox
 import com.ftrono.DJames.ui.components.DropdownSpinner
 import com.ftrono.DJames.ui.dialogs.DialogRequestDetail
@@ -68,11 +68,15 @@ fun EditLibContact(
     //Pre-populate:
     // val itemContact = Contact()
     val itemContact = if (preview) {
-        testContacts[0]
+        testLibrary.filter{ it.type == "contact" }[0]
     } else if (id > -1) {
-        libUtils.getContact(idState.value)
+        libUtils.getLibItemById(idState.value)
     } else {
-        Contact()
+        LibraryItem(
+            source = "local",
+            type = "contact",
+            phoneSet = PhoneSet(),
+        )
     }
     val checkedLang = remember { mutableStateOf(false) }
 
@@ -90,19 +94,14 @@ fun EditLibContact(
         checkedLang.value = true
     }
 
-    val phoneSets = itemContact.phoneSets
-    val initPersPrefix = if (phoneSets["personal"] == null) "" else phoneSets["personal"]!!.prefix   //TODO: TEMP
-    val initPersPhone = if (phoneSets["personal"] == null) "" else phoneSets["personal"]!!.phone   //TODO: TEMP
-
     //States:
     val textName = rememberSaveable { mutableStateOf(itemContact.name) }
     val textSubtitle = rememberSaveable { mutableStateOf("") }
     val textAliases = rememberSaveable { mutableStateOf(initAliases.joinToString(", ")) }
     val imageUrlState = rememberSaveable { mutableStateOf("") }
     val textLanguage = rememberSaveable { mutableStateOf(messLangFull[messLangCodes.indexOf(initLanguage)]) }
-    val textDefaultPhone = rememberSaveable { mutableStateOf(itemContact.defaultPhone) }   //TODO
-    val textPrefix = rememberSaveable { mutableStateOf(initPersPrefix) }
-    val textPhone = rememberSaveable { mutableStateOf(initPersPhone) }
+    val textPrefix = rememberSaveable { mutableStateOf(itemContact.phoneSet!!.prefix) }
+    val textPhone = rememberSaveable { mutableStateOf(itemContact.phoneSet!!.phone) }
 
     val requestDetailOn = rememberSaveable { mutableStateOf(false) }
     if (requestDetailOn.value) {
@@ -168,15 +167,13 @@ fun EditLibContact(
                     } else {
                         itemContact.language = ""
                     }
-                    itemContact.defaultPhone = "personal"
-                    phoneSets["personal"] = PhoneSet(
+                    itemContact.phoneSet = PhoneSet(
                         prefix = textPrefix.value.replace(" ", ""),
                         phone = textPhone.value.replace(" ", "")
                     )
-                    itemContact.phoneSets = phoneSets
 
                     //3) Update / store to DB:
-                    libUtils.storeContact(context, itemContact)
+                    libUtils.storeLibItem(context, itemContact)
 
                     //4) End & close:
                     libraryItems.value = libUtils.refreshLibrary(filter)   //Refresh list

@@ -10,30 +10,16 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
 
 
-//INTERFACE:
-interface LibraryItem {
-    var id: Long
-    var name: String
-    var aliases: MutableList<String>
-}
-
 //SUPPORT CLASSES:
 @Serializable
-data class PlayLink(
-    var name: String,
-    var owner: String,
-    var spotifyUrl: String
-)
-
-@Serializable
 data class PhoneSet(
-    var prefix: String,
-    var phone: String
+    var prefix: String = "",
+    var phone: String = ""
 )
 
 @Serializable
 data class Address(
-    var address: String = "",
+    var street: String = "",
     var number: String = "",
     var placeName: String = "",
     var town: String = "",
@@ -52,142 +38,42 @@ data class ItemInfoView(
     var detail: String = "",
 )
 
-@Serializable
-data class ItemInfoUse(
-    var type: String = "",
-    var name: String = "",
-    var detail: String = "",   // (usable) phoneset key / address / readables; (info) owner, publisher, address
-    var language: String = "",
-    var url: String = "",
-    var defaultKey: String = "",
-    var playLinks: MutableMap<String, PlayLink> = mutableMapOf<String, PlayLink>(),
-    var phoneSets: MutableMap<String, PhoneSet> = mutableMapOf<String, PhoneSet>(),
-)
-
 //ENTITIES:
-
-// ARTIST:
-val defaultPlayLinkStr = "{\"spotify_this_is\": {\"name\": \"\", \"owner\": \"\", \"spotifyUrl\": \"\"}}"
-val defaultPlayLinkObj = mutableMapOf(
-    "spotify_this_is" to PlayLink(
-        name = "",
-        owner = "Spotify",
-        spotifyUrl = ""
-    )
-)
-
 @Serializable
 @Entity
-data class Artist(
+data class LibraryItem(
     //Primary key:
-    @Id override var id: Long = 0,
-    override var name: String = "",
-    override var aliases: MutableList<String> = mutableListOf(""),
-    var spotifyUrl: String = "",
-    var country: String = "",
-    var genres: MutableList<String> = mutableListOf(""),
+    @Id var id: Long = 0,
+    var name: String = "",
+    var aliases: MutableList<String> = mutableListOf(""),
+    var source: String = "",   // i.e.: "local", "spotify", "youtube", "maps", ...
+    var type: String = "",   // i.e.: "artist", "playlist", "podcast", "episode", ...
+    var url: String = "",
     var imageUrl: String = "",
-    var defaultPlay: String = "artist",
-    @Convert(converter = PlayLinkConverter::class, dbType = String::class)
-    var playLinks: MutableMap<String, PlayLink> = defaultPlayLinkObj
-): LibraryItem
-
-class PlayLinkConverter : PropertyConverter<MutableMap<String, PlayLink>, String> {
-    override fun convertToEntityProperty(databaseValue: String?): MutableMap<String, PlayLink> {
-        return Json.decodeFromString(databaseValue ?: defaultPlayLinkStr)
-    }
-
-    override fun convertToDatabaseValue(entityProperty: MutableMap<String, PlayLink>?): String {
-        return Json.encodeToString(entityProperty ?: defaultPlayLinkObj)
-    }
-}
-
-
-// PLAYLIST:
-@Serializable
-@Entity
-data class Playlist(
-    //Primary key:
-    @Id override var id: Long = 0,
-    override var name: String = "",
-    override var aliases: MutableList<String> = mutableListOf(""),
-    var owner: String = "",
-    var imageUrl: String = "",
-    var spotifyUrl: String = "",
-): LibraryItem
-
-
-// PODCAST:
-@Serializable
-@Entity
-data class Podcast(
-    //Primary key:
-    @Id override var id: Long = 0,
-    override var name: String = "",
-    override var aliases: MutableList<String> = mutableListOf(""),
-    var publisher: String = "",
-    var description: String = "",
-    var imageUrl: String = "",
-    var spotifyUrl: String = "",
-    var languages: MutableList<String> = mutableListOf(""),
-): LibraryItem
-
-
-// CONTACT:
-val defaultPhoneSetStr = "{\"personal\": {\"prefix\": \"\", \"phone\": \"\"}}"
-val defaultPhoneSetObj = mutableMapOf(
-    "personal" to PhoneSet(
-        prefix = "+39",
-        phone = ""
-    )
-)
-
-@Serializable
-@Entity
-data class Contact(
-    //Primary key:
-    @Id override var id: Long = 0,
-    override var name: String = "",
-    override var aliases: MutableList<String> = mutableListOf(""),
+    var detail: String = "",   // i.e. detail, publisher, ...
     var language: String = "",
-    var defaultPhone: String = "personal",
-    @Convert(converter = PhoneSetsConverter::class, dbType = String::class)
-    var phoneSets: MutableMap<String, PhoneSet> = defaultPhoneSetObj
-): LibraryItem
+    @Convert(converter = PhoneSetConverter::class, dbType = String::class)
+    var phoneSet: PhoneSet? = null,
+    @Convert(converter = AddressConverter::class, dbType = String::class)
+    var address: Address? = null,
+)
 
-class PhoneSetsConverter : PropertyConverter<MutableMap<String, PhoneSet>, String> {
-    override fun convertToEntityProperty(databaseValue: String?): MutableMap<String, PhoneSet> {
-        return Json.decodeFromString(databaseValue ?: defaultPhoneSetStr)
+class PhoneSetConverter : PropertyConverter<PhoneSet?, String> {
+    override fun convertToEntityProperty(databaseValue: String?): PhoneSet? {
+        return databaseValue?.let { Json.decodeFromString(it) }
     }
 
-    override fun convertToDatabaseValue(entityProperty: MutableMap<String, PhoneSet>?): String {
-        return Json.encodeToString(entityProperty ?: defaultPhoneSetObj)
+    override fun convertToDatabaseValue(entityProperty: PhoneSet?): String? {
+        return entityProperty?.let { Json.encodeToString(it) }
     }
 }
 
-
-// ROUTE:
-@Serializable
-@Entity
-data class Route(
-    //Primary key:
-    @Id override var id: Long = 0,
-    override var name: String = "",
-    override var aliases: MutableList<String> = mutableListOf(""),
-
-    @Convert(converter = AddressConverter::class, dbType = String::class)
-    var destination: Address = Address(),
-
-    @Convert(converter = AddressConverter::class, dbType = String::class)
-    var via: Address = Address(),
-): LibraryItem
-
-class AddressConverter : PropertyConverter<Address, String> {
-    override fun convertToEntityProperty(databaseValue: String?): Address {
-        return Json.decodeFromString(databaseValue ?: "{}")
+class AddressConverter : PropertyConverter<Address?, String> {
+    override fun convertToEntityProperty(databaseValue: String?): Address? {
+        return databaseValue?.let { Json.decodeFromString(it) }
     }
 
-    override fun convertToDatabaseValue(entityProperty: Address?): String {
-        return Json.encodeToString(entityProperty ?: Address())
+    override fun convertToDatabaseValue(entityProperty: Address?): String? {
+        return entityProperty?.let { Json.encodeToString(it) }
     }
 }

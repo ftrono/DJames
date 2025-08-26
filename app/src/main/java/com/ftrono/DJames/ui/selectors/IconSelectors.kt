@@ -25,7 +25,7 @@ fun libIconSelector(
         return painterResource(id = R.drawable.sign_disc)
     } else if (cat == "podcast") {
         return painterResource(id = R.drawable.sign_headphones)
-    } else if (cat == "route") {
+    } else if (cat == "place") {
         return painterResource(id = R.drawable.sign_place)
     } else {
         return painterResource(id = R.drawable.sign_people)
@@ -42,7 +42,7 @@ fun guideIconSelector(
         return painterResource(id = R.drawable.sign_phone)
     } else if (cat == "messages") {
         return painterResource(id = R.drawable.sign_message)
-    } else if (cat == "routes") {
+    } else if (cat == "places") {
         return painterResource(id = R.drawable.sign_place)
     } else if (cat == "car") {
         return painterResource(id = R.drawable.icon_car)

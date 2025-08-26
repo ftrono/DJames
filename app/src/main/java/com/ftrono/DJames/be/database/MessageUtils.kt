@@ -213,8 +213,8 @@ class MessageUtils {
     //Delete Conversation:
     fun deleteConversation(context: Context, starterId: Long = 0) {
         try {
-            var itemsToDelete = messageBox!!.query()
-                .equal(Message_.starterId, starterId)
+            var itemsToDelete = messageBox!!
+                .query(Message_.starterId.equal(starterId))
                 .build()
                 .find()
             messageBox!!.remove(itemsToDelete)
@@ -357,9 +357,9 @@ class MessageUtils {
             //Drive:
             val itemInfo = message.attachments.usable
             if (itemInfo.detail == "") {
-                detailText = if (itemInfo.name == "") "" else "Route:  ${itemInfo.name}"
+                detailText = if (itemInfo.name == "") "" else "Place:  ${itemInfo.name}"
             } else {
-                detailText = if (itemInfo.name == "") "" else "Route:  ${itemInfo.name}\nDetail:  ${itemInfo.detail}"
+                detailText = if (itemInfo.name == "") "" else "Place:  ${itemInfo.name}\nDetail:  ${itemInfo.detail}"
             }
 
         } else if (intentName.contains("Play")) {

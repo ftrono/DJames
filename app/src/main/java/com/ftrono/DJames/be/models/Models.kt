@@ -2,18 +2,33 @@ package com.ftrono.DJames.be.models
 
 
 import androidx.compose.runtime.Composable
-import com.ftrono.DJames.be.database.ItemInfoUse
+import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import kotlinx.serialization.Serializable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.jsoup.Jsoup
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+
 
 // MODEL CLASSES:
 @Serializable
 data class HttpResponse(
     val code: Int,
     val body: String
+)
+
+
+data class LinkPreview(
+    var source: String = "",
+    var title: String = "",
+    var description: String = "",
+    var imageUrl: String = "",
+    var url: String = ""
 )
 
 
@@ -57,9 +72,8 @@ data class DispatcherInfo(
     var messageType: String = "",
     var intentName: String = "Fallback",
     var reqLanguage: String = "",
-    var reqPlayLinkName: String = "",
     var playType: String = "",
     var contextType: String = "",
-    var usable: ItemInfoUse = ItemInfoUse(),
+    var usable: LibraryItem = LibraryItem(),
     var playable: SpotifyPlayable = SpotifyPlayable()
 )

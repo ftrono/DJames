@@ -2,7 +2,7 @@ package com.ftrono.DJames.be.samples
 
 import com.ftrono.DJames.application.appVersion
 import com.ftrono.DJames.be.database.Attachments
-import com.ftrono.DJames.be.database.ItemInfoUse
+import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.models.ActionType
@@ -45,7 +45,7 @@ val testMessages = listOf<Message>(
         actionType = ActionType.CALL,
         attachments = Attachments(
             matchScore = 100,
-            usable = ItemInfoUse(
+            usable = LibraryItem(
                 type = "contact",
                 name = "Ricky"
             )
@@ -77,14 +77,14 @@ val testMessages = listOf<Message>(
         actionType = ActionType.SMS,
         attachments = Attachments(
             matchScore = 100,
-            usable = ItemInfoUse(
+            usable = LibraryItem(
                 type = "contact",
                 name = "Amal"
             )
         )
     ),
 
-    // Route:
+    // Place:
     Message(
         id = 5,
         timestamp = System.currentTimeMillis() - (20*60*1000),
@@ -92,7 +92,7 @@ val testMessages = listOf<Message>(
         appVersion = appVersion,
         fromVoice = false,
         fromUser = true,
-        text = "show me a route! aeroporto di brindisi",
+        text = "drive me to a place! aeroporto di brindisi",
         requestIntent = "DriveRequest",
         isStart =  true,
     ),
@@ -109,8 +109,8 @@ val testMessages = listOf<Message>(
         actionType = ActionType.OPEN_URL,
         attachments = Attachments(
             matchScore = 100,
-            usable = ItemInfoUse(
-                type = "route",
+            usable = LibraryItem(
+                type = "place",
                 name = "Aeroporto di Brindisi",
                 detail = "Brindisi, Contrada Baroncino"
             )

@@ -14,7 +14,7 @@ import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.messLangLower
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.ExtractorInfo
-import com.ftrono.DJames.be.database.ItemInfoUse
+import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.NlpQueryModel
 import com.ftrono.DJames.be.models.ActionType
 import com.ftrono.DJames.be.models.AiReply
@@ -29,7 +29,7 @@ class GenericFulfillment (private var context: Context) {
     fun contactRequest(resultsNLP: NlpQueryModel, fromVoice: Boolean = false): DispatcherInfo {
         var dispatcherInfo = DispatcherInfo()
         val filter = "contact"
-        var itemInfo = ItemInfoUse(
+        var itemInfo = LibraryItem(
             type = filter
         )
 
@@ -49,10 +49,8 @@ class GenericFulfillment (private var context: Context) {
 
         } else {
             //Get contact:
-            itemInfo = libUtils.getItemInfoUse(filter, libMatchId)
+            itemInfo = libUtils.getLibItemById(libMatchId)
             extractorInfo.matchConfirmed = itemInfo.name
-            //Store usable details:
-            itemInfo.detail = itemInfo.defaultKey   //TODO: add multiple phones
 
             //CASES:
             if (resultsNLP.intentName.contains("Call")) {
@@ -182,12 +180,12 @@ class GenericFulfillment (private var context: Context) {
 
         //Detect & process requested languages:
         var detLanguage = resultsNLP.reqLanguage
-        var reqLangCode = utils.getLanguageCode(detLanguage, prefs.routeLanguage)
+        var reqLangCode = utils.getLanguageCode(detLanguage, prefs.placeLanguage)
         var reqLangName = utils.getLanguageName(reqLangCode)
 
         //Reply:
         var ttsToRead = ""
-        ttsToRead = defaultReplies.replyRouteRequest(reqLangName)
+        ttsToRead = defaultReplies.replyPlaceRequest(reqLangName)
         val aiReplies = listOf(
             AiReply(
                 langCode = prefs.queryLanguage,
@@ -211,33 +209,35 @@ class GenericFulfillment (private var context: Context) {
         var dispatcherInfo = DispatcherInfo()
         var reqLangCode = prevDispatch.reqLanguage
 
-        //PROCESS ROUTE INFO:
+        //PROCESS PLACE INFO:
         //item:
         var matchName = nlp_queryText
-        var routeLanguage = reqLangCode   //TODO
-        var itemInfo = ItemInfoUse(
-            type = "route"
+        var placeLanguage = reqLangCode   //TODO
+        var itemInfo = LibraryItem(
+            type = "place"
         )
 
         var nlpExtractor = NLPExtractor(context)
         var extractorInfo = ExtractorInfo()
         extractorInfo.reqLanguage = reqLangCode
 
-        //Check route in library:
+        //Check place in library:
         val nlpMatcher = NLPMatcher(context)
-        val libMatchId = nlpMatcher.matchLibrary("route", matchName, maxThreshold)
+        val libMatchId = nlpMatcher.matchLibrary("place", matchName, maxThreshold)
         if (libMatchId < 0) {
-            //Route NOT found:
-            Log.d(TAG, "DRIVE -> Route from Message")
-            itemInfo = nlpExtractor.extractRoute(nlp_queryText, reqLangCode)
-            itemInfo.url = fulfillmentUtils.buildRouteUrlFromItemInfo(itemInfo)
+            //Place NOT found:
+            Log.d(TAG, "DRIVE -> Place from Message")
+            itemInfo = nlpExtractor.extractPlace(nlp_queryText, reqLangCode)
+            itemInfo.url = libUtils.buildPlaceUrlFromItemInfo(itemInfo)
             extractorInfo.matchExtracted = itemInfo.name
             extractorInfo.contextExtracted = itemInfo.detail
 
         } else {
-            //Route found:
-            Log.d(TAG, "DRIVE -> Route from Library")
-            itemInfo = libUtils.getItemInfoUse("route", libMatchId)
+            //Place found:
+            Log.d(TAG, "DRIVE -> Place from Library")
+            itemInfo = libUtils.getLibItemById(libMatchId)
+            itemInfo.detail = itemInfo.address!!.town + ", " + itemInfo.address!!.street + itemInfo.address!!.number
+            itemInfo.url = libUtils.buildPlaceUrlFromLibraryItem(itemInfo.address)
             extractorInfo.matchExtracted = nlp_queryText
             extractorInfo.matchConfirmed = itemInfo.name
             extractorInfo.contextConfirmed = itemInfo.detail
@@ -252,15 +252,15 @@ class GenericFulfillment (private var context: Context) {
             Thread.sleep(1000)
 
             //Reply:
-            var introText = defaultReplies.replyRouteShowIntro()
-            var detailText = defaultReplies.replyRouteShowDetail(itemInfo)
+            var introText = defaultReplies.replyPlaceShowIntro()
+            var detailText = defaultReplies.replyPlaceShowDetail(itemInfo)
             val aiReplies = listOf(
                 AiReply(
                     langCode = prefs.queryLanguage,
                     text = introText
                 ),
                 AiReply(
-                    langCode = routeLanguage,
+                    langCode = placeLanguage,
                     text = detailText
                 ),
             )

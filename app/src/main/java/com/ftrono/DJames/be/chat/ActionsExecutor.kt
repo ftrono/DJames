@@ -13,7 +13,7 @@ import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recFileName
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.database.ItemInfoUse
+import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.models.ActionType
 import com.ftrono.DJames.be.models.AiReply
@@ -31,7 +31,7 @@ class ActionsExecutor(
     // HELPER: LAUNCHER ONLY:
     fun launchAction(
         action: ActionType,
-        usable: ItemInfoUse? = null,
+        usable: LibraryItem? = null,
         playable: SpotifyPlayable? = null,
         reqLanguage: String = "",
         fromOldChat: Boolean = false,
@@ -83,12 +83,12 @@ class ActionsExecutor(
 
     //CALL:
     fun makeCall(
-        usable: ItemInfoUse,
+        usable: LibraryItem,
         fromOldChat: Boolean = false,
     ): String {
         try {
-            val defaultPhoneSet = usable.phoneSets[usable.detail]!!
-            val contactPhone = "${defaultPhoneSet.prefix}${defaultPhoneSet.phone}"
+            val phoneSet = usable.phoneSet!!
+            val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
             if (fromOldChat) {
                 val callIntent = Intent(Intent.ACTION_CALL).apply {
                     data = Uri.parse("tel:$contactPhone")
@@ -110,15 +110,15 @@ class ActionsExecutor(
 
     //SEND SMS:
     fun sendSMS(
-        usable: ItemInfoUse,
+        usable: LibraryItem,
         reqLanguage: String,
         fromOldChat: Boolean = false,
     ): String {
         try {
             var ttsToRead = ""
             val contactName = usable.name
-            val defaultPhoneSet = usable.phoneSets[usable.detail]!!
-            val contactPhone = "${defaultPhoneSet.prefix}${defaultPhoneSet.phone}"
+            val phoneSet = usable.phoneSet!!
+            val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
             if (fromOldChat) {
                 // START NEW:
                 val curText = "Send an SMS to $contactName"
@@ -149,15 +149,15 @@ class ActionsExecutor(
 
     //SEND WHATSAPP TEXT:
     fun sendWhatsappText(
-        usable: ItemInfoUse,
+        usable: LibraryItem,
         reqLanguage: String,
         fromOldChat: Boolean = false,
     ): String {
         try {
             var ttsToRead = ""
             val contactName = usable.name
-            val defaultPhoneSet = usable.phoneSets[usable.detail]!!
-            val contactPhone = "${defaultPhoneSet.prefix}${defaultPhoneSet.phone}"
+            val phoneSet = usable.phoneSet!!
+            val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
             if (fromOldChat) {
                 // START NEW:
                 val curText = "Send a Whatsapp message to $contactName"
@@ -200,7 +200,7 @@ class ActionsExecutor(
 
     //SEND WHATSAPP AUDIO:
     fun sendWhatsappAudio(
-        usable: ItemInfoUse,
+        usable: LibraryItem,
         fromOldChat: Boolean = false,
     ): String {
         try {
@@ -241,7 +241,7 @@ class ActionsExecutor(
 
     // OPEN LINK:
     fun openLink(
-        usable: ItemInfoUse
+        usable: LibraryItem
     ): String {
         val urlToOpen = usable.url
         utils.openLink(context, url = urlToOpen, fromService = true)

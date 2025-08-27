@@ -212,7 +212,7 @@ fun ExpandableGuideItem(
                 }
                 utils.updateStatesMap(expandedStates, target = currentExpanded.value)
             },
-        border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
+        border = BorderStroke(1.dp, colorResource(id = R.color.dark_grey)),
         colors = CardDefaults.cardColors(
             containerColor = colorResource(id = R.color.dark_grey_background)
         )

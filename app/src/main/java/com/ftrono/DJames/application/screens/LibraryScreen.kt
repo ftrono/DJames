@@ -105,7 +105,6 @@ fun LibraryScreen(
     //Statuses:
     val idState = rememberSaveable { mutableStateOf<Long>(if (editPreview != "") 0L else -1L) }
     val nameState = rememberSaveable { mutableStateOf("") }
-    val currentSourceState = rememberSaveable { mutableStateOf("spotify") }
     val currentCatState = rememberSaveable { mutableStateOf(libHeads[0]) }
     val sharedLinkState by sharedLink.observeAsState()
     val addLinkState = rememberSaveable { mutableStateOf(sharedLinkState!!) }

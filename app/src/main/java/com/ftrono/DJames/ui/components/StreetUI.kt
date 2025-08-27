@@ -178,7 +178,7 @@ fun SplitterSign(
     //BUTTONS:
     Card(
         modifier = Modifier,
-        border = BorderStroke(2.dp, colorResource(id = R.color.faded_grey)),
+        border = BorderStroke(2.dp, colorResource(id = R.color.dark_grey)),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors (
             containerColor = colorResource(id = R.color.dark_grey_background)
@@ -208,7 +208,7 @@ fun SplitterSign(
                             .padding(start = 4.dp, end = 4.dp)
                             .height(30.dp),
                         thickness = 2.dp,
-                        color = colorResource(id = R.color.faded_grey)
+                        color = colorResource(id = R.color.dark_grey)
                     )
                 }
             }
@@ -609,7 +609,7 @@ fun LibItemCard(
     onClick: () -> Unit = {}
 ) {
     val isMultiline = rememberSaveable { mutableStateOf(false) }
-    val cardBorderColor = colorResource(id = R.color.faded_grey)
+    val cardBorderColor = colorResource(id = R.color.dark_grey)
     val signBackgroundColor = libColorSelector(cat = currentCatState.value)
     val signBorderColor = colorResource(id = R.color.midfaded_grey)
     val signIconColor = colorResource(id = R.color.light_grey)

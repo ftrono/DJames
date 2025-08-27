@@ -27,6 +27,7 @@ import com.ftrono.DJames.ui.selectors.libColorSelector
 import com.ftrono.DJames.ui.selectors.libColorSelectorLight
 import com.ftrono.DJames.ui.selectors.libIconSelector
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
@@ -126,6 +127,7 @@ fun EditLibSpotify(
             headerPainter = libIconSelector(cat = filter),
             showRefresh = true,
             onRefresh = {
+                Toast.makeText(mContext, "Refreshing info...", Toast.LENGTH_LONG).show()
                 textPlayUrl.value = spotifyUtils.trimSpotifyUrl(textPlayUrl.value)
                 itemSpotify = linkExtractor.extractSpotifyInfo(mContext, itemSpotify, new=false)
                 textName.value = itemSpotify.name

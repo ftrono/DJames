@@ -105,6 +105,7 @@ fun LibraryScreen(
     //Statuses:
     val idState = rememberSaveable { mutableStateOf<Long>(if (editPreview != "") 0L else -1L) }
     val nameState = rememberSaveable { mutableStateOf("") }
+    val currentSourceState = rememberSaveable { mutableStateOf("spotify") }
     val currentCatState = rememberSaveable { mutableStateOf(libHeads[0]) }
     val sharedLinkState by sharedLink.observeAsState()
     val addLinkState = rememberSaveable { mutableStateOf(sharedLinkState!!) }
@@ -193,6 +194,7 @@ fun LibraryScreen(
                 sharedLink.postValue("")
             },
             onSave = {
+                //TODO: Spotify only!
                 addLinkState.value = spotifyUtils.extractUrl(addLinkState.value)
                 Toast.makeText(mContext, "Extracting link info...", Toast.LENGTH_LONG).show()
                 spotifyUtils.checkAndEditLib(
@@ -213,6 +215,7 @@ fun LibraryScreen(
     }
 
     if (sharedLinkState != "") {
+        // TODO: Spotify only!
         Toast.makeText(mContext, "Extracting link info...", Toast.LENGTH_LONG).show()
         spotifyUtils.checkAndEditLib(
             context = mContext,
@@ -352,7 +355,8 @@ fun LibraryScreen(
                 nameState = nameState,
                 editLibOn = editLibOn,
                 deleteLibOn = deleteLibOn,
-                isLandscape = isLandscape
+                isLandscape = isLandscape,
+                preview = preview,
             )
         }
     }
@@ -409,7 +413,8 @@ fun LibSectionContent(
     nameState: MutableState<String>,
     editLibOn: MutableState<Boolean>,
     deleteLibOn: MutableState<Boolean>,
-    isLandscape: Boolean
+    isLandscape: Boolean,
+    preview: Boolean = false,
 ) {
 
     //CONTENT:
@@ -457,14 +462,14 @@ fun LibSectionContent(
                     //ITEM:
                     item {
                         LibItem(
-                            modifier = Modifier
-                                .height(60.dp),
+                            modifier = Modifier,
                             currentCatState = currentCatState,
                             idState = idState,
                             nameState = nameState,
                             itemJson = item,
                             editLibOn = editLibOn,
-                            deleteLibOn = deleteLibOn
+                            deleteLibOn = deleteLibOn,
+                            preview = preview,
                         )
                         if (item == libraryItems.value.last()) Spacer(modifier = Modifier.padding(60.dp))
                     }
@@ -505,7 +510,8 @@ fun LibItem(
     nameState: MutableState<String>,
     itemJson: String,
     editLibOn: MutableState<Boolean>,
-    deleteLibOn: MutableState<Boolean>
+    deleteLibOn: MutableState<Boolean>,
+    preview: Boolean = false,
 ) {
     val mDisplayMenu = rememberSaveable { mutableStateOf(false) }
     val itemInfo = Json.decodeFromString<ItemInfoView>(itemJson)
@@ -524,7 +530,8 @@ fun LibItem(
 
         //Card:
         LibItemCard(
-            modifier = modifier,
+            modifier = modifier
+                .height(74.dp),
             cardColors = CardDefaults.cardColors(
                 containerColor = if (mDisplayMenu.value) {
                     colorResource(id = R.color.dark_grey)
@@ -532,19 +539,14 @@ fun LibItem(
                     colorResource(id = R.color.dark_grey_background)
                 }
             ),
-            cardBorderColor = colorResource(id = R.color.faded_grey),
-            signBackgroundColor = libColorSelector(cat = currentCatState.value),
-            signBorderColor = colorResource(id = R.color.midfaded_grey),
-            signIconColor = colorResource(id = R.color.light_grey),
-            signIconPainter = libIconSelector(cat = currentCatState.value),
-            circle = currentCatState.value != "playlist" && currentCatState.value != "podcast" && currentCatState.value != "place",
+            currentCatState = currentCatState,
             title = utils.trimString(itemName, 24),
             subtitle = if (currentCatState.value != "place" && itemAliases.isNotEmpty()) {
-                    utils.trimString("\"" + itemAliases.joinToString("\", \"") + "\"", 16)
-                } else if (itemInfo.detail != "") {
-                    utils.trimString(itemInfo.detail, 16)
-                } else "",
-            imageUrl = itemImage,
+                utils.trimString("\"" + itemAliases.joinToString("\", \"") + "\"", 16)
+            } else if (itemInfo.detail != "") {
+                utils.trimString(itemInfo.detail, 16)
+            } else "",
+            imageUrl = if (preview) "" else itemImage,
             onClick = {
                 mDisplayMenu.value = !mDisplayMenu.value
             }

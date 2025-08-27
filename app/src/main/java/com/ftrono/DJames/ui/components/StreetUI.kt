@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -64,12 +65,15 @@ import coil3.compose.AsyncImage
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.libHeads
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.selectors.guideColorSelector
 import com.ftrono.DJames.ui.selectors.guideColorSelectorLight
 import com.ftrono.DJames.ui.selectors.guideIconSelector
 import com.ftrono.DJames.ui.selectors.libColorSelector
 import com.ftrono.DJames.ui.selectors.libColorSelectorLight
 import com.ftrono.DJames.ui.selectors.libIconSelector
+import com.ftrono.DJames.ui.selectors.messagesColorSelectorLight
+import com.ftrono.DJames.ui.selectors.messagesIconSelector
 
 
 // STREET UI LANGUAGE COMPONENTS
@@ -579,17 +583,15 @@ fun OptionsItem(
 @Preview
 @Composable
 fun LibItemCardPreview() {
+    val currentCatState = remember { mutableStateOf("artist") }
     LibItemCard(
         modifier = Modifier
-            .height(60.dp),
+            .height(74.dp)
+            .width(180.dp),
         cardColors = CardDefaults.cardColors(
-            containerColor = colorResource(id = R.color.dark_grey)
+            containerColor = colorResource(id = R.color.dark_grey_background)
         ),
-        cardBorderColor = colorResource(id = R.color.faded_grey),
-        signBackgroundColor = libColorSelector(cat = "artist"),
-        signBorderColor = colorResource(id = R.color.faded_grey),
-        signIconColor = colorResource(id = R.color.light_grey),
-        signIconPainter = libIconSelector(cat = "artist"),
+        currentCatState =  currentCatState,
         title = "Item name",
         subtitle = "subtitle",
     )
@@ -600,18 +602,19 @@ fun LibItemCardPreview() {
 fun LibItemCard(
     modifier: Modifier = Modifier,
     cardColors: CardColors,
-    cardBorderColor: Color,
-    signBackgroundColor: Color,
-    signBorderColor: Color,
-    signIconColor: Color,
-    signIconPainter: Painter,
-    circle: Boolean = true,
+    currentCatState: MutableState<String>,
     title: String,
     subtitle: String = "",
     imageUrl: String = "",
     onClick: () -> Unit = {}
 ) {
     val isMultiline = rememberSaveable { mutableStateOf(false) }
+    val cardBorderColor = colorResource(id = R.color.faded_grey)
+    val signBackgroundColor = libColorSelector(cat = currentCatState.value)
+    val signBorderColor = colorResource(id = R.color.midfaded_grey)
+    val signIconColor = colorResource(id = R.color.light_grey)
+    val signIconPainter = libIconSelector(cat = currentCatState.value)
+    val circle = currentCatState.value != "playlist" && currentCatState.value != "podcast" && currentCatState.value != "place"
 
     Card(
         modifier = modifier
@@ -623,35 +626,56 @@ fun LibItemCard(
         colors = cardColors
     ) {
 
+        // ROW: INFO + SIGN:
         Row (
             modifier = Modifier
-                .padding(start = 8.dp, end = 8.dp, top = 12.dp, bottom = 12.dp)
+                .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
                 .fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
         ){
-            //CHIP ICON:
-            RoundedSign(
-                modifier = Modifier
-                    .padding(end = 4.dp),
-                signSize = 34.dp,
-                contentSize = 20,
-                backgroundColor = signBackgroundColor,
-                borderColor = signBorderColor,
-                contentColor = signIconColor,
-                iconPainter = signIconPainter,
-                imageUrl = imageUrl,
-                circle = circle
-            )
-            //TEXT LABEL:
+
+            // INFO COLUMN:
             Column(
                 modifier = Modifier
-                    .padding(start = 4.dp, end = 6.dp)
-                    .fillMaxSize(),
+                    .padding(start = 4.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
+                    .fillMaxHeight()   // Vertical
+                    .weight(1F),   // Horizontal
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Center
             ) {
-                //Item key:
+                if (false && currentCatState.value != "contact" && currentCatState.value != "place") {   //TODO
+                    //CAT ROW:
+                    Row(
+                        modifier = Modifier
+                            .padding(bottom = 2.dp),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        //CAT ICON:
+                        Icon(
+                            modifier = Modifier
+                                .padding(end = 2.dp)
+                                .size(12.dp),
+                            painter = libIconSelector(currentCatState.value),
+                            contentDescription = currentCatState.value,
+                            tint = libColorSelectorLight(currentCatState.value)
+                        )
+                        //CAT NAME:
+                        Text(
+                            modifier = Modifier
+                                .padding(start = 2.dp, end = 8.dp),
+                            color = libColorSelectorLight(cat = currentCatState.value),
+                            fontSize = 10.sp,
+                            lineHeight = 12.sp,
+                            // fontWeight = FontWeight.Bold,
+                            text = utils.capitalizeWords((currentCatState.value)),
+                        )
+                    }
+                }
+
+                //ITEM INFO:
+                //Item name:
                 Text(
                     modifier = Modifier,
                     color = colorResource(id = R.color.light_grey),
@@ -660,9 +684,8 @@ fun LibItemCard(
                     maxLines = 2,
                     text = title,
                     fontWeight = FontWeight.Bold,
-                    //fontStyle = FontStyle.Italic,
                     onTextLayout = { textLayoutResult ->
-                        isMultiline.value = textLayoutResult.lineCount > 1
+                        isMultiline.value = textLayoutResult.lineCount > if (currentCatState.value != "contact" && currentCatState.value != "place") 1 else 2
                     }
                 )
                 //Item detail:
@@ -671,14 +694,30 @@ fun LibItemCard(
                         modifier = Modifier
                             .padding(top = 2.dp),
                         color = colorResource(id = R.color.mid_grey),
-                        fontSize = 12.sp,
-                        lineHeight = 14.sp,
+                        fontSize = 10.sp,
                         maxLines = 1,
+                        lineHeight = 12.sp,
                         fontStyle = FontStyle.Italic,
                         text = subtitle
                     )
                 }
+
             }
+
+            //SIGN: ITEM ARTWORK / ICON:
+            RoundedSign(
+                modifier = Modifier
+                    .padding(end=8.dp),
+                signSize = 48.dp,
+                contentSize = 20,
+                backgroundColor = signBackgroundColor,
+                borderColor = signBorderColor,
+                borderWidth = 1.5.dp,
+                contentColor = signIconColor,
+                iconPainter = signIconPainter,
+                imageUrl = imageUrl,
+                circle = circle
+            )
         }
     }
 }

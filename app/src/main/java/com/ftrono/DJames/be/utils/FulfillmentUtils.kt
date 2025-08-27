@@ -1,4 +1,4 @@
-package com.ftrono.DJames.be.nlp
+package com.ftrono.DJames.be.utils
 
 import android.content.Context
 import android.util.Log
@@ -7,13 +7,7 @@ import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
-import com.ftrono.DJames.be.models.LinkPreview
 import com.google.gson.JsonParser
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.jsoup.Jsoup
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -113,9 +107,11 @@ class FulfillmentUtils {
         }
         //language:
         if (messLanguage == "it") {
-            reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents_ita)))   //"ita"
+            reader =
+                BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents_ita)))   //"ita"
         } else {
-            reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents_eng)))   //"eng"
+            reader =
+                BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.match_sents_eng)))   //"eng"
         }
 
         //Load map:

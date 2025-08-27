@@ -28,9 +28,12 @@ import com.ftrono.DJames.ui.selectors.libColorSelectorLight
 import com.ftrono.DJames.ui.selectors.libIconSelector
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.samples.testLibrary
+import com.ftrono.DJames.be.utils.LinkExtractors
 
 
 @Preview
@@ -54,6 +57,8 @@ fun EditLibSpotify(
     preview: Boolean = false
 ) {
     val focusRequester = remember { FocusRequester() }
+    val mContext = LocalContext.current
+    val linkExtractor = LinkExtractors()
 
     //Init:
     val id: Long = idState.value
@@ -71,7 +76,8 @@ fun EditLibSpotify(
     }
 
     if (initLinkState.value != "") {
-        itemSpotify = spotifyUtils.getSpotifyInfo(context, filter, initLinkState.value, itemSpotify, init=true)   //TODO
+        itemSpotify.url = spotifyUtils.trimSpotifyUrl(initLinkState.value)
+        itemSpotify = linkExtractor.extractSpotifyInfo(mContext, itemSpotify, new=true)
         loadingDialogOn.value = false
     }
 
@@ -120,7 +126,8 @@ fun EditLibSpotify(
             headerPainter = libIconSelector(cat = filter),
             showRefresh = true,
             onRefresh = {
-                itemSpotify = spotifyUtils.getSpotifyInfo(context, filter, textPlayUrl.value, itemSpotify, init=false)   // TODO
+                textPlayUrl.value = spotifyUtils.trimSpotifyUrl(textPlayUrl.value)
+                itemSpotify = linkExtractor.extractSpotifyInfo(mContext, itemSpotify, new=false)
                 textName.value = itemSpotify.name
                 textDetail.value = itemSpotify.detail
                 imageUrlState.value = itemSpotify.imageUrl

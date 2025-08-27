@@ -117,6 +117,7 @@ class SpotifyUtils {
             if (urlToCheck != "") {
                 //Go to right Edit Lib dialog:
                 currentCatState.value = goto
+
                 val urlMap = libUtils.getUrlMap(goto)
                 val foundId = urlMap.getOrDefault(urlToCheck, -1L)
                 if (foundId > -1) {

@@ -1,4 +1,4 @@
-package com.ftrono.DJames.utilities
+package com.ftrono.DJames.application.prefs
 
 import android.content.Context
 import android.content.SharedPreferences

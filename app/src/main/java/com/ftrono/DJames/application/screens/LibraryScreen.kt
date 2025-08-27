@@ -202,6 +202,7 @@ fun LibraryScreen(
                     editLibOn = editLibOn,
                     loadingDialogOn = loadingDialogOn
                 )
+                libraryItems.value = libUtils.refreshLibrary(currentCatState.value, preview)
             }
         )
     }
@@ -219,6 +220,8 @@ fun LibraryScreen(
             editLibOn = editLibOn,
             loadingDialogOn = loadingDialogOn
         )
+        libraryItems.value = libUtils.refreshLibrary(currentCatState.value, preview)
+
     }
 
     //SCREEN:

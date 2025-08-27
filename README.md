@@ -11,7 +11,7 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
-**Version 3.0.a5 (v3 alpha) (2025-08-26)** - Simplify Library DB management: new unified LibraryItem data class, remove PlayLinks & PhoneSets.
+**Version 3.0.a5 (v3 alpha) (2025-08-26)** - Simplify Library DB management: new unified LibraryItem data class, remove PlayLinks & PhoneSets. Add info extraction from Link Previews.
 
 **Version 3.0.a4 (v3 alpha) (2025-08-25)** - Reworked Overlay functionality: new DJames Paw pads.
 

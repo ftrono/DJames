@@ -15,13 +15,13 @@ import com.ftrono.DJames.be.database.MessageUtils
 import com.ftrono.DJames.be.database.MyObjectBox
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.models.DispatcherInfo
-import com.ftrono.DJames.be.nlp.FulfillmentUtils
+import com.ftrono.DJames.be.utils.FulfillmentUtils
 import com.ftrono.DJames.be.samples.DefaultReplies
 import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
 import com.ftrono.DJames.be.spotify.SpotifyUtils
 import com.ftrono.DJames.ui.theme.NavigationItem
-import com.ftrono.DJames.utilities.Prefs
-import com.ftrono.DJames.utilities.Utilities
+import com.ftrono.DJames.application.prefs.Prefs
+import com.ftrono.DJames.be.utils.Utilities
 import com.google.gson.JsonObject
 import io.objectbox.Box
 import io.objectbox.BoxStore

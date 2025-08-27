@@ -23,8 +23,7 @@ data class HttpResponse(
 )
 
 
-data class LinkPreview(
-    var source: String = "",
+data class RawLinkPreview(
     var title: String = "",
     var description: String = "",
     var imageUrl: String = "",

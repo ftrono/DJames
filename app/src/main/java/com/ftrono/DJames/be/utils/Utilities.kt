@@ -1,4 +1,4 @@
-package com.ftrono.DJames.utilities
+package com.ftrono.DJames.be.utils
 
 import android.Manifest
 import android.app.ActivityManager
@@ -13,12 +13,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
-import com.ftrono.DJames.application.*
-import com.ftrono.DJames.be.models.HttpResponse
 import androidx.core.net.toUri
+import com.ftrono.DJames.application.ClockActivity
+import com.ftrono.DJames.application.libHeads
+import com.ftrono.DJames.application.libUtils
+import com.ftrono.DJames.application.messageUtils
+import com.ftrono.DJames.application.overlayActive
+import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.recFileName
 import com.ftrono.DJames.application.services.OverlayService
+import com.ftrono.DJames.be.models.HttpResponse
+import com.ftrono.DJames.be.models.languageNamesMap
+import com.ftrono.DJames.be.models.languageWordsMap
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
@@ -33,36 +40,35 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.streams.asSequence
-import com.ftrono.DJames.be.models.languageNamesMap
-import com.ftrono.DJames.be.models.languageWordsMap
 
 
 class Utilities {
     private val TAG = Utilities::class.java.simpleName
 
     //OkHTTP: make HTTP request:
-    suspend fun makeRequest(client: OkHttpClient, request: Request): HttpResponse = suspendCoroutine { continuation ->
-        client.newCall(request).enqueue(object: Callback {
-            override fun onResponse(call: Call, response: Response) {
-                continuation.resume(
-                    HttpResponse(
-                        code = response.code,
-                        body = response.body!!.string()
+    suspend fun makeRequest(client: OkHttpClient, request: Request): HttpResponse =
+        suspendCoroutine { continuation ->
+            client.newCall(request).enqueue(object : Callback {
+                override fun onResponse(call: Call, response: Response) {
+                    continuation.resume(
+                        HttpResponse(
+                            code = response.code,
+                            body = response.body!!.string()
+                        )
                     )
-                )
-            }
+                }
 
-            override fun onFailure(call: Call, e: IOException) {
-                continuation.resume(
-                    HttpResponse(
-                        code = -1,  // -1 to indicate failure
-                        body = ""
+                override fun onFailure(call: Call, e: IOException) {
+                    continuation.resume(
+                        HttpResponse(
+                            code = -1,  // -1 to indicate failure
+                            body = ""
+                        )
                     )
-                )
-                Log.d("TAG", "RESPONSE ERROR: ", e)
-            }
-        })
-    }
+                    Log.d("TAG", "RESPONSE ERROR: ", e)
+                }
+            })
+        }
 
 
     //Check service running:
@@ -273,7 +279,7 @@ class Utilities {
             var chooserIntent = Intent.createChooser(sendIntent, null)
             chooserIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             chooserIntent.putExtra("fromwhere", "ser")
-            startActivity(context, chooserIntent, null)
+            ContextCompat.startActivity(context, chooserIntent, null)
         } else {
             Toast.makeText(context, "ERROR: cannot send the requested file!", Toast.LENGTH_LONG).show()
         }
@@ -284,13 +290,13 @@ class Utilities {
     //Clean cached recordings:
     fun cleanOlderRecs(context: Context) {
         try {
-            File(context.cacheDir, "$recFileName.mp3").delete()
+            File(context.cacheDir, "${recFileName}.mp3").delete()
             Log.d(TAG, "Recording mp3 deleted.")
         } catch (e: Exception) {
             Log.w(TAG, "Recording mp3 not deleted.")
         }
         try {
-            File(context.cacheDir, "$recFileName.flac").delete()
+            File(context.cacheDir, "${recFileName}.flac").delete()
             Log.d(TAG, "Recording flac deleted.")
         } catch (e: Exception) {
             Log.w(TAG, "Recording flac not deleted.")

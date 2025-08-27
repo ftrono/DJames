@@ -194,6 +194,7 @@ fun LibraryScreen(
             },
             onSave = {
                 addLinkState.value = spotifyUtils.extractUrl(addLinkState.value)
+                Toast.makeText(mContext, "Extracting link info...", Toast.LENGTH_LONG).show()
                 spotifyUtils.checkAndEditLib(
                     context = mContext,
                     idState = idState,
@@ -212,6 +213,7 @@ fun LibraryScreen(
     }
 
     if (sharedLinkState != "") {
+        Toast.makeText(mContext, "Extracting link info...", Toast.LENGTH_LONG).show()
         spotifyUtils.checkAndEditLib(
             context = mContext,
             idState = idState,

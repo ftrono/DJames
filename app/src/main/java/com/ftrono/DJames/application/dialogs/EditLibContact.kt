@@ -73,7 +73,7 @@ fun EditLibContact(
         libUtils.getLibItemById(idState.value)
     } else {
         LibraryItem(
-            source = "local",
+            source = "contact",
             type = "contact",
             phoneSet = PhoneSet(),
         )

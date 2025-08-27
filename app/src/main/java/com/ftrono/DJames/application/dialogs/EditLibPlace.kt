@@ -71,7 +71,7 @@ fun EditLibPlace(
         libUtils.getLibItemById(idState.value)
     } else {
         LibraryItem(
-            source = "maps",
+            source = "place",
             type = "place",
             address = Address(),
         )

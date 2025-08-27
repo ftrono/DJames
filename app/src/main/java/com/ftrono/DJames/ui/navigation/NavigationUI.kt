@@ -1,5 +1,7 @@
 package com.ftrono.DJames.ui.navigation
 
+import android.content.res.Configuration
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,10 +22,12 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemColors
@@ -31,14 +35,17 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemColors
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,7 +59,8 @@ import com.ftrono.DJames.application.navigationItems
 import com.ftrono.DJames.application.extraOpen
 import com.ftrono.DJames.application.libHeads
 import com.ftrono.DJames.ui.components.RoundedSign
-import com.ftrono.DJames.ui.components.SplitterSign
+import com.ftrono.DJames.ui.selectors.libColorSelectorLight
+import com.ftrono.DJames.ui.selectors.libIconSelector
 
 
 @Composable
@@ -276,6 +284,114 @@ fun TopSplitterBar(
 
         //OPTIONS BUTTONS:
         optionButtons()
+    }
+}
+
+
+@Composable
+fun SplitterSign(
+    currentCatState: MutableState<String>,
+    onNavClick: () -> Unit = {}
+) {
+    val configuration = LocalConfiguration.current
+    val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
+
+    //BUTTONS:
+    Card(
+        modifier = Modifier,
+        border = BorderStroke(2.dp, colorResource(id = R.color.dark_grey)),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors (
+            containerColor = colorResource(id = R.color.dark_grey_background)
+        )
+    ) {
+        Row (
+            modifier = Modifier
+                .padding(top=4.dp, bottom=4.dp, start=12.dp, end=12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            for (head in libHeads) {
+                SplitterCat(
+                    head = head,
+                    title = "${head.replaceFirstChar { it.uppercase() }}s",
+                    selected = currentCatState.value == head,
+                    isLandscape = isLandscape,
+                    onNavClick = {
+                        currentCatState.value = head
+                        onNavClick()
+                    }
+                )
+                //DIVIDERS:
+                if (head != libHeads.last()) {
+                    VerticalDivider(
+                        modifier = Modifier
+                            .padding(start = 4.dp, end = 4.dp)
+                            .height(30.dp),
+                        thickness = 2.dp,
+                        color = colorResource(id = R.color.dark_grey)
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun SplitterCat(
+    head: String,
+    title: String,
+    selected: Boolean,
+    num: Int? = null,
+    isLandscape: Boolean = false,
+    onNavClick: () -> Unit = {}
+){
+    Row(
+        modifier = Modifier
+            .padding(start = 10.dp, end = 10.dp, top = 4.dp, bottom = 4.dp)   // Before: 8.dp
+            .clickable {
+                onNavClick()
+            },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        //Sign icon:
+        Icon(
+            modifier = Modifier
+                .padding(
+                    start = if (isLandscape && selected) 4.dp else 6.dp,
+                    end = if (isLandscape && selected) 4.dp else 6.dp
+                )
+                .size(if (selected) 26.dp else 18.dp),
+            painter = libIconSelector(head),
+            contentDescription = "category",
+            tint = if (selected) libColorSelectorLight(head) else colorResource(id = R.color.light_grey)
+        )
+        //Title:
+        if (isLandscape && selected) {
+            Text(
+                modifier = Modifier
+                    .padding(start = 4.dp, end = 6.dp),
+                text = title,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = libColorSelectorLight(head),
+                maxLines = 1
+            )
+            if (num != null) {
+                //Number of items:
+                Text(
+                    modifier = Modifier
+                        .padding(start = 4.dp, end = 4.dp),
+                    text = num.toString(),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = libColorSelectorLight(head),
+                    maxLines = 1
+                )
+            }
+        }
     }
 }
 

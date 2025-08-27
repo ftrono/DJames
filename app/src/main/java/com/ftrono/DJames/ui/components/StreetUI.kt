@@ -1,6 +1,5 @@
 package com.ftrono.DJames.ui.components
 
-import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -19,8 +18,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,10 +31,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -46,12 +41,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -63,8 +55,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.libUtils
-import com.ftrono.DJames.application.libHeads
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.selectors.guideColorSelector
 import com.ftrono.DJames.ui.selectors.guideColorSelectorLight
@@ -72,8 +62,6 @@ import com.ftrono.DJames.ui.selectors.guideIconSelector
 import com.ftrono.DJames.ui.selectors.libColorSelector
 import com.ftrono.DJames.ui.selectors.libColorSelectorLight
 import com.ftrono.DJames.ui.selectors.libIconSelector
-import com.ftrono.DJames.ui.selectors.messagesColorSelectorLight
-import com.ftrono.DJames.ui.selectors.messagesIconSelector
 
 
 // STREET UI LANGUAGE COMPONENTS
@@ -153,124 +141,6 @@ fun CardSign(
         )
     ) {
         content()
-    }
-}
-
-
-@Preview
-@Composable
-fun SplitterSignPreview() {
-    val currentCatState = rememberSaveable { mutableStateOf(libHeads[0]) }
-    SplitterSign(
-        currentCatState = currentCatState,
-    )
-}
-
-
-@Composable
-fun SplitterSign(
-    currentCatState: MutableState<String>,
-    onNavClick: () -> Unit = {}
-) {
-    val configuration = LocalConfiguration.current
-    val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
-
-    //BUTTONS:
-    Card(
-        modifier = Modifier,
-        border = BorderStroke(2.dp, colorResource(id = R.color.dark_grey)),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors (
-            containerColor = colorResource(id = R.color.dark_grey_background)
-        )
-    ) {
-        Row (
-            modifier = Modifier
-                .padding(top=4.dp, bottom=4.dp, start=12.dp, end=12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            for (head in libHeads) {
-                SplitterCat(
-                    head = head,
-                    title = "${head.replaceFirstChar { it.uppercase() }}s",
-                    selected = currentCatState.value == head,
-                    isLandscape = isLandscape,
-                    onNavClick = {
-                        currentCatState.value = head
-                        onNavClick()
-                    }
-                )
-                //DIVIDERS:
-                if (head != libHeads.last()) {
-                    VerticalDivider(
-                        modifier = Modifier
-                            .padding(start = 4.dp, end = 4.dp)
-                            .height(30.dp),
-                        thickness = 2.dp,
-                        color = colorResource(id = R.color.dark_grey)
-                    )
-                }
-            }
-        }
-    }
-}
-
-
-@Composable
-fun SplitterCat(
-    head: String,
-    title: String,
-    selected: Boolean,
-    num: Int? = null,
-    isLandscape: Boolean = false,
-    onNavClick: () -> Unit = {}
-){
-    Row(
-        modifier = Modifier
-            .padding(start = 10.dp, end = 10.dp, top = 8.dp, bottom = 8.dp)
-            .clickable {
-                onNavClick()
-            },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        //Sign icon:
-        Icon(
-            modifier = Modifier
-                .padding(
-                    start = if (isLandscape && selected) 4.dp else 6.dp,
-                    end = if (isLandscape && selected) 4.dp else 6.dp
-                )
-                .size(if (selected) 26.dp else 18.dp),
-            painter = libIconSelector(head),
-            contentDescription = "category",
-            tint = if (selected) libColorSelectorLight(head) else colorResource(id = R.color.light_grey)
-        )
-        //Title:
-        if (isLandscape && selected) {
-            Text(
-                modifier = Modifier
-                    .padding(start = 4.dp, end = 6.dp),
-                text = title,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = libColorSelectorLight(head),
-                maxLines = 1
-            )
-            if (num != null) {
-                //Number of items:
-                Text(
-                    modifier = Modifier
-                        .padding(start = 4.dp, end = 4.dp),
-                    text = num.toString(),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = libColorSelectorLight(head),
-                    maxLines = 1
-                )
-            }
-        }
     }
 }
 
@@ -388,12 +258,13 @@ fun LetterStarter(
     fontColor: Color,
 ) {
     //ROUNDED SIGN:
-    Box (
-        modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(backgroundColor)
-            .border(1.5.dp, borderColor, RoundedCornerShape(8.dp)),
-        contentAlignment = Alignment.Center
+    Card(
+        modifier = Modifier,
+        border = BorderStroke(1.5.dp, borderColor),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors (
+            containerColor = backgroundColor
+        )
     ) {
         //LETTER:
         Text(
@@ -586,7 +457,7 @@ fun LibItemCardPreview() {
     val currentCatState = remember { mutableStateOf("artist") }
     LibItemCard(
         modifier = Modifier
-            .height(74.dp)
+            .height(70.dp)
             .width(180.dp),
         cardColors = CardDefaults.cardColors(
             containerColor = colorResource(id = R.color.dark_grey_background)
@@ -708,7 +579,7 @@ fun LibItemCard(
             RoundedSign(
                 modifier = Modifier
                     .padding(end=8.dp),
-                signSize = 48.dp,
+                signSize = 46.dp,
                 contentSize = 20,
                 backgroundColor = signBackgroundColor,
                 borderColor = signBorderColor,

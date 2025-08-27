@@ -69,15 +69,14 @@ import com.ftrono.DJames.ui.components.OptionsItem
 import com.ftrono.DJames.ui.components.OptionsMenu
 import com.ftrono.DJames.ui.components.LetterStarter
 import com.ftrono.DJames.ui.components.LibItemCard
-import com.ftrono.DJames.ui.components.SplitterSign
 import com.ftrono.DJames.ui.components.StreetUIScaffold
 import com.ftrono.DJames.ui.dialogs.AddLinkDialog
 import com.ftrono.DJames.ui.dialogs.DialogLoading
+import com.ftrono.DJames.ui.navigation.SplitterSign
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
 import com.ftrono.DJames.ui.navigation.TopSplitterBar
 import com.ftrono.DJames.ui.selectors.libColorSelector
-import com.ftrono.DJames.ui.selectors.libIconSelector
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.decodeFromString
 import kotlin.Boolean
@@ -530,7 +529,7 @@ fun LibItem(
         //Card:
         LibItemCard(
             modifier = modifier
-                .height(74.dp),
+                .height(70.dp),
             cardColors = CardDefaults.cardColors(
                 containerColor = if (mDisplayMenu.value) {
                     colorResource(id = R.color.dark_grey)

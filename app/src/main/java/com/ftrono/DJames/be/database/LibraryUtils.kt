@@ -6,8 +6,9 @@ import android.widget.Toast
 import com.ftrono.DJames.application.curLibrarySize
 import com.ftrono.DJames.application.gMapsLinkFormat
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.application.libHeads
+import com.ftrono.DJames.application.libCats
 import com.ftrono.DJames.application.libSectionIdentifier
+import com.ftrono.DJames.application.libSubcats
 import com.ftrono.DJames.application.libraryBox
 import com.ftrono.DJames.be.samples.testLibrary
 import io.objectbox.Property
@@ -23,20 +24,57 @@ class LibraryUtils {
     private val TAG = LibraryUtils::class.java.simpleName
 
     // COMMON:
-    fun getAll(filter: String): List<LibraryItem> {
+    // Get library name:
+    fun getLibName(cat: String, subcat: String = "", plural: Boolean = false, lowercase: Boolean = false): String {
+        return if (cat == "spotify") {
+            if (subcat == "") {
+                if (plural) "Spotify links" else "Spotify link"
+            } else {
+                if (plural) "Spotify ${subcat}s" else "Spotify ${subcat}"
+            }
+        } else if (lowercase) {
+            if (plural) "${cat}s" else cat
+        } else {
+            if (plural) "${utils.capitalizeWords(cat)}s" else utils.capitalizeWords(cat)
+        }
+    }
+
+    fun getAll(cat: String = "", subcat: String = "", preview: Boolean = false): List<LibraryItem> {
         try {
-            // TODO: Add Source filter:
-            return libraryBox!!.query(LibraryItem_.type.equal(filter)).order(LibraryItem_.name).build().find()
+            if (preview) {
+                if (subcat == "") {
+                    return testLibrary.filter { it.source == cat }.sortedBy { it.name }
+                } else {
+                    return testLibrary.filter { it.source == cat && it.type == subcat }.sortedBy { it.name }
+                }
+            } else {
+                if (cat == "") {
+                    return libraryBox!!.query(LibraryItem_.type.equal(subcat))
+                        .order(LibraryItem_.name)
+                        .build().find()
+                } else if (subcat == "") {
+                    return libraryBox!!.query(LibraryItem_.source.equal(cat))
+                        .order(LibraryItem_.name)
+                        .build().find()
+                } else {
+                    return libraryBox!!.query(LibraryItem_.source.equal(cat).and(LibraryItem_.type.equal(subcat)))
+                        .order(LibraryItem_.name)
+                        .build().find()
+                }
+            }
         } catch (e: Exception) {
-            Log.w(TAG, "ERROR: cannot get All ${filter}s! ", e)
+            Log.w(TAG, "ERROR: cannot get All items with cat: $cat and subcat: $subcat! ", e)
             return listOf()
         }
     }
 
-    fun getCollectionSize(filter: String): Long {
+    fun getCollectionSize(filter: String, subcat: String = ""): Long {
         try {
-            // TODO: Add Source filter:
-            return libraryBox!!.query(LibraryItem_.type.equal(filter)).build().count()
+            if (subcat == "") {
+                return libraryBox!!.query(LibraryItem_.source.equal(filter)).build().count()
+            } else {
+                return libraryBox!!.query(LibraryItem_.source.equal(filter).and(LibraryItem_.type.equal(subcat))).build().count()
+            }
         } catch (e: Exception) {
             Log.w(TAG, "ERROR: cannot count ${filter}s! ", e)
             return 0
@@ -46,8 +84,12 @@ class LibraryUtils {
 
     //GET SINGLE:
     //Get single by ID:
-    fun getLibItemById(id: Long): LibraryItem {
-        return libraryBox!!.get(id)
+    fun getLibItemById(id: Long, preview: Boolean = false): LibraryItem {
+        if (preview) {
+            return testLibrary.filter { it.id == id }[0]
+        } else {
+            return libraryBox!!.get(id)
+        }
     }
 
     //Get single item name:
@@ -62,79 +104,123 @@ class LibraryUtils {
 
     // REFRESH:
     //Get List of ItemInfoView items:
-    fun refreshLibrary(filter: String, preview: Boolean = false, addHeaders: Boolean = true): List<String> {
-        //1) Load library:
-        var library = listOf<String>()
+    fun refreshLibrary(cat: String, subcat: String = "", preview: Boolean = false): List<String> {
         try {
-            library = if (preview) {
-                testLibrary.filter { it.type == filter }.sortedBy { it.name }
-            } else {
-                getAll(filter)
-            }.map { item ->
-                //Cast value to String to allow storing into MutableState:
-                Json.encodeToString(
-                    ItemInfoView(
-                        id = item.id,
-                        name = item.name,
-                        imageUrl = item.imageUrl,
-                        aliases = item.aliases,
-                        detail = if (filter == "contact") {
-                            item.phoneSet!!.phone
-                        } else if (filter == "place") {
-                            item.address!!.town
-                        } else ""
-                    )
-                )
-            }
+            //1) LOAD LIBRARY:
+            var idsMap = mapOf<Long, String>()
+            var filtered = listOf<LibraryItem>()
+            var ids = listOf<Long>()
+            var names = listOf<String>()
 
-            //2) Update Library size (IMPORTANT - for signs):
-            curLibrarySize.postValue(library.size)
+            //Load library IDs:
+            if (preview) {
+                if (subcat == "") {
+                    filtered = testLibrary.filter { it.source == cat }.sortedBy { it.name }
+                } else {
+                    filtered = testLibrary.filter { it.source == cat && it.type == subcat }.sortedBy { it.name }
+                }
+                ids = filtered.map { it.id }
+                names = filtered.map { it.name }
 
-            //3) Build library map & add headers:
-            if (addHeaders) {
-                return addLetterHeaders(library)
             } else {
-                return library
+                // TODO (TEMP): Cannot sort in ObjectBox directly in PropertyQuery!
+                // SO: First map ids to names, then sort and finally extract sorted ids only:
+                val queryCond = if (subcat == "") {
+                    LibraryItem_.source.equal(cat)
+                } else {
+                    LibraryItem_.source.equal(cat).and(LibraryItem_.type.equal(subcat))
+                }
+
+                ids = libraryBox!!.query(queryCond)
+                    .build()
+                    .property(LibraryItem_.id)
+                    .findLongs()
+                    .toList()
+                names = libraryBox!!.query(queryCond)
+                    .build()
+                    .property(LibraryItem_.name)
+                    .findStrings()
+                    .toList()
             }
+            // Sort:
+            idsMap = ids.zip(names).sortedBy { it.second }.toMap()
+
+            //2) UPDATE LIBRARY SIZE (IMPORTANT - for signs):
+            curLibrarySize.postValue(idsMap.size)
+
+            //3) ADD HEADERS & CONVERT TO IDS LIST:
+            return addLetterHeaders(idsMap)
 
         } catch (e: Exception) {
-            Log.w(TAG, "ERROR: cannot refresh Library for $filter! ", e)
+            Log.w(TAG, "ERROR: cannot refresh Library for items with cat: $cat and subcat: $subcat! ", e)
             curLibrarySize.postValue(0)
-            return library
+            return listOf<String>()
         }
     }
 
     //Get key List with headers:
-    fun addLetterHeaders(library: List<String>): List<String> {
-        val listWithHeaders = mutableListOf<String>()
-        //Add Letter headers:
+    fun addLetterHeaders(idsMap: Map<Long, String>): List<String> {
+        val fullStringList = mutableListOf<String>()
+        // 1) PARTITION MAP: separate items that start
+        val regex = Regex("^[a-zA-Z].*")   // Regex: matches if the first character is a-z or A-Z
+        val (alphaPairs, nonAlphaPairs) = idsMap.entries.partition { it.value.matches(regex) }
+        val alphaMap = alphaPairs
+            .sortedBy { it.value.lowercase() } // sort alphabetically (case-insensitive)
+            .associate { it.toPair() }   // Contains names whose first character is a-z or A-Z
+        val nonAlphaMap = nonAlphaPairs
+            .sortedBy { it.value.lowercase() } // sort alphabetically (case-insensitive)
+            .associate { it.toPair() }   // Contains all the remaining items
+
+        // 2) ADD HEADERS:
         var letter = ""
-        for (itemJson in library) {
-            //get first alias:
-            val item = Json.decodeFromString<ItemInfoView>(itemJson)
-            val curFirst = item.name.uppercase().first().toString()
-            //extend List with letter header:
+        // First A-Z:
+        for (item in alphaMap) {
+            val curFirst = item.value.uppercase().first().toString()
+            // store letter header:
             if (curFirst != letter) {
                 letter = if (utils.isLetters(curFirst)) curFirst.uppercase() else "#"
-                listWithHeaders.add("$libSectionIdentifier$letter")
+                fullStringList.add(libSectionIdentifier + letter)
             }
-            listWithHeaders.add(itemJson)
+            // store item:
+            fullStringList.add(item.key.toString())
         }
-        return listWithHeaders.toImmutableList()
+        // Then, non A-Z:
+        if (nonAlphaMap.isNotEmpty()) {
+            fullStringList.add(libSectionIdentifier + "#")
+            fullStringList.addAll(nonAlphaMap.keys.map { it.toString() } )
+        }
+        return fullStringList.toImmutableList()
     }
 
     //Get aliases Map in format {"id": ["aliases", ...]}:
     fun getAliasesMap(filter: String): Map<Long, List<String>> {
-        return getAll(filter).associate { item ->
+        return getAll(subcat=filter).associate { item ->
             item.id to (item.aliases ?: emptyList()) // Ensures no null values
         }
     }
 
     //Get URL Map in format {"url": "id"}:
     fun getUrlMap(filter: String): Map<String, Long> {
-        return getAll(filter).associate { item ->
+        return getAll(subcat=filter).associate { item ->
             item.url.toString() to item.id // Ensures no null values
         }
+    }
+
+    //Get detail:
+    fun getDetail(item: LibraryItem): String {
+        //Init aliases:
+        val itemAliases = item.aliases.toMutableList()
+        itemAliases.removeAt(0)
+
+        return if (item.source == "place") {
+            item.address!!.town
+        } else if (itemAliases.isNotEmpty()) {
+            "\"" + itemAliases.joinToString("\", \"") + "\""
+        } else if (item.source == "contact") {
+            item.phoneSet!!.phone
+        } else if (item.type == "podcast") {
+            item.detail
+        } else ""
     }
 
     //Place: build navigation URL from Library Place item:
@@ -179,70 +265,98 @@ class LibraryUtils {
 
     //DB DELETE:
     //Delete single item:
-    fun deleteLibItem(context: Context, filter: String, id: Long) {
+    fun deleteLibItem(context: Context, id: Long) {
         try {
             libraryBox!!.remove(id)
-            Log.d(TAG, "Deleted $filter item $id!")
-            Toast.makeText(context, "${utils.capitalizeWords(filter)} deleted!", Toast.LENGTH_LONG).show()
+            Log.d(TAG, "Deleted item: $id!")
+            Toast.makeText(context, "Item deleted!", Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
-            Toast.makeText(context, "ERROR in deleting $filter item!", Toast.LENGTH_LONG).show()
-            Log.w(TAG, "ERROR in deleting ${utils.capitalizeWords(filter)}: $id. ", e)
+            Toast.makeText(context, "ERROR in deleting item!", Toast.LENGTH_LONG).show()
+            Log.w(TAG, "ERROR in deleting item: $id. ", e)
         }
     }
 
     //Delete all:
-    fun deleteLibrary(context: Context, filter: String) {
+    fun deleteLibrary(context: Context, cat: String, subcat: String = "") {
+        val detailStr = getLibName(cat, subcat, plural=true)
         try {
-            // TODO: add Source to filter:
-            var itemsToDelete = libraryBox!!
-                .query(LibraryItem_.type.equal(filter))
-                .build()
-                .find()
+            var itemsToDelete = listOf<LibraryItem>()
+            if (subcat == "") {
+                itemsToDelete = libraryBox!!
+                    .query(LibraryItem_.source.equal(cat))
+                    .build()
+                    .find()
+            } else {
+                itemsToDelete = libraryBox!!
+                    .query(LibraryItem_.source.equal(cat).and(LibraryItem_.type.equal(subcat)))
+                    .build()
+                    .find()
+            }
             libraryBox!!.remove(itemsToDelete)
-            Log.d(TAG, "Deleted ${filter} library!")
-            Toast.makeText(context, "${utils.capitalizeWords(filter)} library deleted!", Toast.LENGTH_LONG).show()
+            Log.d(TAG, "Deleted $detailStr library!")
+            Toast.makeText(context, "$detailStr library deleted!", Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
-            Log.w(TAG, "ERROR in deleting $filter library. ", e)
-            Toast.makeText(context, "ERROR in deleting ${utils.capitalizeWords(filter)} library!", Toast.LENGTH_LONG).show()
+            Log.w(TAG, "ERROR in deleting $detailStr library. ", e)
+            Toast.makeText(context, "ERROR in deleting $detailStr library!", Toast.LENGTH_LONG).show()
         }
     }
 
 
     // SEND:
+    //Get export file name:
+    fun getExportFileName(cat: String, subcat: String = ""): String {
+        return if (cat == "spotify") {
+            if (subcat == "") {
+                "library_${cat}.json"
+            } else {
+                "library_${cat}s.json"
+            }
+        } else {
+            "library_${cat}s.json"
+        }
+    }
+
     //Prepare Library JSON string for export:
-    fun serializeLibrary(filter: String): String {
+    fun serializeLibrary(cat: String, subcat: String): String {
         var jsonContent = ""
         try {
             //Populate cached array & store to cached file:
-            jsonContent = Json.encodeToString(getAll(filter))
-            Log.d(TAG, "Successfully serialized Library for ${filter}s.")
+            jsonContent = Json.encodeToString(getAll(cat, subcat))
+            Log.d(TAG, "Successfully serialized Library for cat: $cat, subcat: $subcat.")
         } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Cannot serialize Library for ${filter}s!, ", e)
+            Log.w(TAG, "ERROR: Cannot serialize Library for cat: $cat, subcat: $subcat! ", e)
         }
         return jsonContent
     }
 
     //Prepare cached Library file to send:
-    fun buildFileToSend(context: Context, filter: String, jsonContent: String): String {
+    fun buildFileToSend(context: Context, cat: String, subcat: String = "", jsonContent: String): String {
         var filename = ""
         try {
-            filename = "library_${filter}s.json"
+            filename = getExportFileName(cat, subcat)
             val cachedFile = File(context.cacheDir, filename)
             cachedFile.writeText(jsonContent)
-            Log.d(TAG, "Successfully prepared and cached Library for ${filter}s.")
+            Log.d(TAG, "Successfully prepared and cached Library for cat: $cat, subcat: $subcat.")
         } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Cannot prepare or cache Library for ${filter}s!, ", e)
+            Log.w(TAG, "ERROR: Cannot prepare or cache Library for cat: $cat, subcat: $subcat! ", e)
         }
         return filename
     }
 
     //Clean consolidated export cache (from directory, no DB):
     fun cleanLibraryCache(context: Context) {
-        for (head in libHeads) {
+        for (cat in libCats) {
             try {
-                File(context.cacheDir, "library_${head}s.json").delete()
+                if (cat == "spotify") {
+                    File(context.cacheDir, getExportFileName(cat)).delete()
+                    for (subcat in libSubcats) {
+                        File(context.cacheDir, getExportFileName(cat, subcat)).delete()
+                    }
+                } else {
+                    File(context.cacheDir, getExportFileName(cat)).delete()
+                }
             } catch (e: Exception) {
-                Log.w(TAG, "No cached library_$head.json file to delete!")
+                Log.w(TAG, "No cached library $cat.json file to delete!")
             }
         }
     }
@@ -276,15 +390,15 @@ class LibraryUtils {
     }
 
     //Import Library from file:
-    fun importLibrary(context: Context, filter: String, jsonContent: String) {
+    fun importLibrary(context: Context, jsonContent: String) {
         try {
             var c = 0
             var tot = 0
             val items = Json.decodeFromString<List<LibraryItem>>(jsonContent)
             tot = items.size
             c = importItems(items, LibraryItem_.name, TAG)
-            Log.d(TAG, "Imported $c / $tot ${filter}s!")
-            Toast.makeText(context, "Imported $c / $tot ${filter}s!", Toast.LENGTH_LONG).show()
+            Log.d(TAG, "Imported $c / $tot items!")
+            Toast.makeText(context, "Imported $c / $tot items!", Toast.LENGTH_LONG).show()
 
         } catch (e: Exception) {
             Log.w(TAG, "ERROR: Invalid file! ", e)

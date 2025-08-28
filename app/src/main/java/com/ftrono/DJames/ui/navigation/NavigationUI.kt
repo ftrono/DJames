@@ -57,7 +57,8 @@ import com.ftrono.DJames.application.innerNavOpen
 import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.navigationItems
 import com.ftrono.DJames.application.extraOpen
-import com.ftrono.DJames.application.libHeads
+import com.ftrono.DJames.application.libCats
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.selectors.libColorSelectorLight
 import com.ftrono.DJames.ui.selectors.libIconSelector
@@ -220,9 +221,11 @@ fun StreetUITopBar(
 @Preview(widthDp = 500)
 @Composable
 fun TopSplitterBarPreview() {
-    val currentCatState = rememberSaveable { mutableStateOf(libHeads[0]) }
+    val currentCatState = rememberSaveable { mutableStateOf(libCats[0]) }
+    val currentSubCatState = rememberSaveable { mutableStateOf("") }
     TopSplitterBar(
         currentCatState = currentCatState,
+        currentSubCatState = currentSubCatState,
         showBack = true,
         optionButtons = {
             //TODO
@@ -240,6 +243,7 @@ fun TopSplitterBarPreview() {
 @Composable
 fun TopSplitterBar(
     currentCatState: MutableState<String>,
+    currentSubCatState: MutableState<String>,
     showBack: Boolean = false,
     onBack: () -> Unit = {},
     onNavClick: () -> Unit = {},
@@ -278,6 +282,7 @@ fun TopSplitterBar(
         ) {
             SplitterSign(
                 currentCatState = currentCatState,
+                currentSubCatState = currentSubCatState,
                 onNavClick = onNavClick,
             )
         }
@@ -291,6 +296,7 @@ fun TopSplitterBar(
 @Composable
 fun SplitterSign(
     currentCatState: MutableState<String>,
+    currentSubCatState: MutableState<String>,
     onNavClick: () -> Unit = {}
 ) {
     val configuration = LocalConfiguration.current
@@ -311,19 +317,20 @@ fun SplitterSign(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            for (head in libHeads) {
+            for (cat in libCats) {
                 SplitterCat(
-                    head = head,
-                    title = "${head.replaceFirstChar { it.uppercase() }}s",
-                    selected = currentCatState.value == head,
+                    head = cat,
+                    title = if (cat == "spotify") "Spotify" else "${utils.capitalizeWords(cat)}s",
+                    selected = currentCatState.value == cat,
                     isLandscape = isLandscape,
                     onNavClick = {
-                        currentCatState.value = head
+                        currentCatState.value = cat
+                        if (cat == "spotify") currentSubCatState.value = "" else currentSubCatState.value = cat
                         onNavClick()
                     }
                 )
                 //DIVIDERS:
-                if (head != libHeads.last()) {
+                if (cat != libCats.last()) {
                     VerticalDivider(
                         modifier = Modifier
                             .padding(start = 4.dp, end = 4.dp)

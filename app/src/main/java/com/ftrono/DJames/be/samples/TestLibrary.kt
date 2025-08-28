@@ -103,7 +103,7 @@ val testLibrary = listOf<LibraryItem>(
     // LOCAL - CONTACTS:
     LibraryItem(
         id = 10,
-        source = "local",
+        source = "contact",
         type = "contact",
         name = "Amal",
         aliases = mutableListOf("amal"),
@@ -115,7 +115,7 @@ val testLibrary = listOf<LibraryItem>(
     ),
     LibraryItem(
         id = 11,
-        source = "local",
+        source = "contact",
         type = "contact",
         name = "Mammut",
         aliases = mutableListOf("mammut", "mammood"),
@@ -127,7 +127,7 @@ val testLibrary = listOf<LibraryItem>(
     ),
     LibraryItem(
         id = 12,
-        source = "local",
+        source = "contact",
         type = "contact",
         name = "Rick",
         aliases = mutableListOf("rick"),
@@ -141,7 +141,7 @@ val testLibrary = listOf<LibraryItem>(
     // MAPS - PLACES:
     LibraryItem(
         id = 13,
-        source = "maps",
+        source = "place",
         type = "place",
         name = "Casa Amal",
         aliases = mutableListOf("casa amal", "via alcide de gasperi lecce"),
@@ -157,7 +157,7 @@ val testLibrary = listOf<LibraryItem>(
     ),
     LibraryItem(
         id = 14,
-        source = "maps",
+        source = "place",
         type = "place",
         name = "Links Academy",
         aliases = mutableListOf("links academy", "via masseria caldare lecce"),
@@ -173,7 +173,7 @@ val testLibrary = listOf<LibraryItem>(
     ),
     LibraryItem(
         id = 15,
-        source = "maps",
+        source = "place",
         type = "place",
         name = "Links Scotellaro",
         aliases = mutableListOf("links scotellaro", "via rocco scotellaro 55 lecce"),

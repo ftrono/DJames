@@ -56,6 +56,13 @@ import com.ftrono.DJames.ui.selectors.libIconSelector
 
 //EDIT LIB COMPONENTS:
 @Composable
+fun getAliasFieldDescription(
+    filter: String
+): String {
+    return "💡 You can write here alternative names to refer to this ${if (filter == "" || filter == "spotify") "link" else filter} via voice, especially if the original name is hard to understand or to spell. This will help!"
+}
+
+@Composable
 fun EditLibTitle(
     modifier: Modifier = Modifier,
     textHeaderColor: Color = colorResource(id = R.color.light_grey),
@@ -107,10 +114,12 @@ fun EditLibDynamicField(
     textHeaderColor: Color = colorResource(id = R.color.light_grey),
     textFieldColors: TextFieldColors,
     title: String,
+    description: String = "",
     placeholder: String,
     italic: Boolean = false,
     textState: MutableState<String>,
-    charLimit: Int = 0
+    charLimit: Int = 0,
+    onClick: () -> Unit = {},
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isActive by interactionSource.collectIsFocusedAsState()
@@ -127,6 +136,7 @@ fun EditLibDynamicField(
     fun onKeyboardDone() {
         focusManager.clearFocus()
         keyboardController!!.hide()
+        onClick()
     }
 
     Column (
@@ -146,6 +156,20 @@ fun EditLibDynamicField(
                 )
             ) else title,
         )
+
+        //Description:
+        if (description != "") {
+            Text(
+                modifier = modifier
+                    .padding(top=6.dp, bottom=6.dp)
+                    .clickable {
+                        onClicked()
+                    },
+                text = description,
+                color = colorResource(R.color.light_grey),
+                fontSize = 14.sp,
+            )
+        }
 
         //Text Field:
         OutlinedTextField(
@@ -389,7 +413,7 @@ fun EditLibDynamicNameSectionPreview() {
         subtitleState = subtitle,
         imageUrlState = imageUrlState,
         initActive = false,
-        showEditIcon = true
+        showEditIcon = true,
     )
 }
 
@@ -404,7 +428,8 @@ fun EditLibDynamicNameSection(
     subtitleState: MutableState<String>? = null,
     imageUrlState: MutableState<String>,
     initActive: Boolean = false,
-    showEditIcon: Boolean = false
+    showEditIcon: Boolean = false,
+    preview: Boolean = false,
 ) {
     val isActive = rememberSaveable { mutableStateOf(initActive) }
     var textFieldState by remember { mutableStateOf(TextFieldValue(textState.value)) }
@@ -453,7 +478,7 @@ fun EditLibDynamicNameSection(
                     contentColor = colorResource(id = R.color.light_grey),
                     borderWidth = 2.0.dp,
                     iconPainter = libIconSelector(cat = filter),
-                    imageUrl = imageUrlState.value,
+                    imageUrl = if (preview) "" else imageUrlState.value,
                     circle = filter != "playlist" && filter != "podcast" && filter != "place"
                 )
 
@@ -471,7 +496,7 @@ fun EditLibDynamicNameSection(
                 ) {
                     //Name:
                     Text(
-                        text = if (textState.value == "") "${utils.capitalizeWords(filter)} Name" else textState.value,
+                        text = if (textState.value == "") "${if (filter == "spotify") "Spotify Link" else utils.capitalizeWords(filter)} Name" else textState.value,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = colorResource(id = R.color.light_grey)
@@ -541,7 +566,7 @@ fun EditLibDynamicNameSection(
                 ),
                 placeholder = {
                     Text(
-                        text = "Write $filter name...",
+                        text = "Write ${if (filter == "spotify") "link" else filter} name...",
                         fontSize = 16.sp,
                         fontStyle = FontStyle.Italic
                     )

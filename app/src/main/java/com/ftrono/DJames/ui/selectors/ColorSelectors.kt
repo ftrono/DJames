@@ -69,7 +69,9 @@ fun getTextFieldColors(
 fun libColorSelector(
     cat: String
 ): Color {
-    if (cat == "contact") {
+    if (cat == "spotify") {
+        return colorResource(id = R.color.colorAccentMid)
+    } else if (cat == "contact") {
         return colorResource(id = R.color.greenSign)
     } else if (cat == "playlist") {
         return colorResource(id = R.color.yellowSign)
@@ -87,7 +89,9 @@ fun libColorSelector(
 fun libColorSelectorLight(
     cat: String
 ): Color {
-    if (cat == "contact") {
+    if (cat == "spotify") {
+        return colorResource(id = R.color.colorAccentMid)
+    } else if (cat == "contact") {
         return colorResource(id = R.color.greenSignLight)
     } else if (cat == "playlist") {
         return colorResource(id = R.color.yellowSignLight)

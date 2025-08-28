@@ -12,6 +12,7 @@ import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
 import com.ftrono.DJames.be.nlp.NLPDispatcher
@@ -37,7 +38,7 @@ class ChatManager(private val context: Context) {
             || chatLastDispatch.end
             || chatLastDispatch.fail
             || (!chatLastDispatch.followUp && !chatLastDispatch.messageMode)
-            || ((messageUtils.getCurrentTimestamp() - lastStarterId) > defaultChatResetTime)) {
+            || ((utils.getCurrentTimestamp() - lastStarterId) > defaultChatResetTime)) {
             resetConv()
         }
         //Set overlay PROCESSING color & icon:

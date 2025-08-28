@@ -19,7 +19,9 @@ import com.ftrono.DJames.R
 fun libIconSelector(
     cat: String
 ): Painter {
-    if (cat == "contact") {
+    if (cat == "spotify") {
+        return painterResource(id = R.drawable.logo_spotify)
+    } else if (cat == "contact") {
         return painterResource(id = R.drawable.sign_phone)
     } else if (cat == "playlist") {
         return painterResource(id = R.drawable.sign_disc)

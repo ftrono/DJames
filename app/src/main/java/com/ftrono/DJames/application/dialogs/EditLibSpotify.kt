@@ -29,12 +29,16 @@ import com.ftrono.DJames.ui.selectors.libIconSelector
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
+import com.ftrono.DJames.application.spotIntroUrl
 import com.ftrono.DJames.be.database.LibraryItem
+import com.ftrono.DJames.be.database.LibraryItem_
 import com.ftrono.DJames.be.samples.testLibrary
 import com.ftrono.DJames.be.utils.LinkExtractors
+import com.ftrono.DJames.ui.components.getAliasFieldDescription
 
 
 @Preview
@@ -42,18 +46,17 @@ import com.ftrono.DJames.be.utils.LinkExtractors
 @Composable
 fun DialogEditSpotifyPreview() {
     val navController = rememberNavController()
-    LibraryScreen(navController, editPreview="artist", preview=true)
+    LibraryScreen(navController, editPreview="spotify", preview=true)
 }
 
 
 @Composable
 fun EditLibSpotify(
     context: Context,
-    libraryItems: MutableState<List<String>>,
+    snapshot: MutableState<Long>,
     idState: MutableState<Long>,
     initLinkState: MutableState<String>,
     loadingDialogOn: MutableState<Boolean>,
-    filter: String,
     onDismiss: () -> Unit = {},
     preview: Boolean = false
 ) {
@@ -66,13 +69,16 @@ fun EditLibSpotify(
 
     //Pre-populate:
     var itemSpotify = if (preview) {
+//        LibraryItem(
+//            source = "spotify",
+//        )
+        val filter = "artist"
         testLibrary.filter{ it.type == filter && it.source == "spotify" }[0]
     } else if (id > -1) {
         libUtils.getLibItemById(idState.value)
     } else {
         LibraryItem(
             source = "spotify",
-            type = filter,
         )
     }
 
@@ -87,6 +93,7 @@ fun EditLibSpotify(
     initAliases.removeAt(0)
 
     //States:
+    val textType = rememberSaveable { mutableStateOf(itemSpotify.type) }
     val textName = rememberSaveable { mutableStateOf(itemSpotify.name) }
     val textDetail = rememberSaveable { mutableStateOf(itemSpotify.detail) }
     val textAliases = rememberSaveable { mutableStateOf(initAliases.joinToString(", ")) }
@@ -97,9 +104,13 @@ fun EditLibSpotify(
     if (requestDetailOn.value) {
         DialogRequestDetail(
             dialogOnState = requestDetailOn,
-            title = "${utils.capitalizeWords(filter)} URL",
-            message = "Please enter a valid URL for the current ${utils.capitalizeWords(filter)}!\n\nPlease copy it from Spotify -> $filter page -> Share -> Copy link."
+            title = "Spotify URL",
+            message = "Please enter a valid Spotify URL!\n\nPlease copy it from Spotify -> item page -> Share -> Copy link."
         )
+    }
+
+    LaunchedEffect(textType) {
+        if (textType.value == "") textType.value = "spotify"
     }
 
     //EDIT DIALOG:
@@ -122,14 +133,15 @@ fun EditLibSpotify(
                 .clickable {
                     focusManager.clearFocus()
                 },
-            title = filter,
-            headerColor = libColorSelectorLight(cat = filter),
-            headerPainter = libIconSelector(cat = filter),
+            title = if (textType.value == "spotify") "${textType.value} link" else utils.capitalizeWords(textType.value),
+            headerColor = libColorSelectorLight(cat = textType.value),
+            headerPainter = libIconSelector(cat = "spotify"),
             showRefresh = true,
             onRefresh = {
                 Toast.makeText(mContext, "Refreshing info...", Toast.LENGTH_LONG).show()
                 textPlayUrl.value = spotifyUtils.trimSpotifyUrl(textPlayUrl.value)
                 itemSpotify = linkExtractor.extractSpotifyInfo(mContext, itemSpotify, new=false)
+                textType.value = itemSpotify.type
                 textName.value = itemSpotify.name
                 textDetail.value = itemSpotify.detail
                 imageUrlState.value = itemSpotify.imageUrl
@@ -140,7 +152,7 @@ fun EditLibSpotify(
             onSave = {
                 //CHECK & BUILD:
                 //1) Validate Spotify URL:
-                requestDetailOn.value = spotifyUtils.disambiguateSpotifyURL(textPlayUrl.value.replace(" ", "")) != filter
+                requestDetailOn.value = !textPlayUrl.value.replace(" ", "").contains(spotIntroUrl)
 
                 if (!requestDetailOn.value && textName.value != "") {
                     //2) Update object:
@@ -163,7 +175,7 @@ fun EditLibSpotify(
                     libUtils.storeLibItem(context, itemSpotify)
 
                     //4) End & close:
-                    libraryItems.value = libUtils.refreshLibrary(filter)   //Refresh list
+                    snapshot.value = utils.getCurrentTimestamp()   //Refresh list
                     onDismiss()
                 }
             }
@@ -171,29 +183,31 @@ fun EditLibSpotify(
             //CONTENT:
             //SPOTIFY NAME:
             EditLibDynamicNameSection(
-                textHeaderColor = libColorSelectorLight(cat = filter),
+                textHeaderColor = libColorSelectorLight(cat = textType.value),
                 textFieldColors = getTextFieldColors(
-                    colorLight = libColorSelectorLight(cat = filter),
-                    colorDark = libColorSelector(cat = filter)
+                    colorLight = libColorSelectorLight(cat = textType.value),
+                    colorDark = libColorSelector(cat = textType.value)
                 ),
-                filter = filter,
+                filter = textType.value,
                 textState = textName,
                 subtitleState = textDetail,
                 imageUrlState = imageUrlState,
                 initActive = textName.value == "",
-                showEditIcon = textName.value == ""
+                showEditIcon = textName.value == "",
+                preview = preview,
             )
 
             //SPOTIFY ALIASES:
             EditLibDynamicField(
                 modifier = Modifier
                     .fillMaxWidth(),
-                textHeaderColor = libColorSelectorLight(cat = filter),
+                textHeaderColor = libColorSelectorLight(cat = textType.value),
                 textFieldColors = getTextFieldColors(
-                    colorLight = libColorSelectorLight(cat = filter),
-                    colorDark = libColorSelector(cat = filter)
+                    colorLight = libColorSelectorLight(cat = textType.value),
+                    colorDark = libColorSelector(cat = textType.value)
                 ),
                 title = "Aliases (separate with commas)",
+                description = getAliasFieldDescription(textType.value),
                 placeholder = "Write aliases here...",
                 italic = true,
                 textState = textAliases
@@ -203,14 +217,23 @@ fun EditLibSpotify(
             EditLibDynamicField(
                 modifier = Modifier
                     .fillMaxWidth(),
-                textHeaderColor = libColorSelectorLight(cat = filter),
+                textHeaderColor = libColorSelectorLight(cat = textType.value),
                 textFieldColors = getTextFieldColors(
-                    colorLight = libColorSelectorLight(cat = filter),
-                    colorDark = libColorSelector(cat = filter)
+                    colorLight = libColorSelectorLight(cat = textType.value),
+                    colorDark = libColorSelector(cat = textType.value)
                 ),
                 title = "Spotify Link",
                 placeholder = "Paste Spotify link...",
-                textState = textPlayUrl
+                textState = textPlayUrl,
+                onClick = {
+                    Toast.makeText(mContext, "Refreshing info...", Toast.LENGTH_LONG).show()
+                    textPlayUrl.value = spotifyUtils.trimSpotifyUrl(textPlayUrl.value)
+                    itemSpotify = linkExtractor.extractSpotifyInfo(mContext, itemSpotify, new=false)
+                    textType.value = itemSpotify.type
+                    textName.value = itemSpotify.name
+                    textDetail.value = itemSpotify.detail
+                    imageUrlState.value = itemSpotify.imageUrl
+                }
             )
         }
     }

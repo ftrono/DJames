@@ -156,7 +156,7 @@ fun ConvStarterBubble(
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
-                        text = messageUtils.convertTimestamp(message.timestamp, datetimeShortFormat)
+                        text = utils.convertTimestamp(message.timestamp, datetimeShortFormat)
                     )
                     // "MORE" ICON:
                     Icon(

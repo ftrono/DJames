@@ -36,6 +36,7 @@ import com.ftrono.DJames.ui.components.EditPhoneDynamicField
 import com.ftrono.DJames.ui.dialogs.EditLibDialog
 import com.ftrono.DJames.ui.components.EditLibDynamicField
 import com.ftrono.DJames.ui.components.EditLibDynamicNameSection
+import com.ftrono.DJames.ui.components.getAliasFieldDescription
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
 import com.ftrono.DJames.ui.selectors.libColorSelector
 import com.ftrono.DJames.ui.selectors.libColorSelectorLight
@@ -54,9 +55,8 @@ fun DialogEditContactPreview() {
 @Composable
 fun EditLibContact(
     context: Context,
-    libraryItems: MutableState<List<String>>,
+    snapshot: MutableState<Long>,
     idState: MutableState<Long>,
-    filter: String,
     onDismiss: () -> Unit = {},
     preview: Boolean = false
 ) {
@@ -64,17 +64,18 @@ fun EditLibContact(
 
     //Init:
     val id: Long = idState.value
+    val filter = "contact"
 
     //Pre-populate:
     // val itemContact = Contact()
     val itemContact = if (preview) {
-        testLibrary.filter{ it.type == "contact" }[0]
+        testLibrary.filter{ it.type == filter }[0]
     } else if (id > -1) {
         libUtils.getLibItemById(idState.value)
     } else {
         LibraryItem(
-            source = "contact",
-            type = "contact",
+            source = filter,
+            type = filter,
             phoneSet = PhoneSet(),
         )
     }
@@ -176,7 +177,7 @@ fun EditLibContact(
                     libUtils.storeLibItem(context, itemContact)
 
                     //4) End & close:
-                    libraryItems.value = libUtils.refreshLibrary(filter)   //Refresh list
+                    snapshot.value = utils.getCurrentTimestamp()   //Refresh list
                     onDismiss()
                 }
             }
@@ -193,7 +194,8 @@ fun EditLibContact(
                 subtitleState = textSubtitle,
                 imageUrlState = imageUrlState,
                 initActive = textName.value == "",
-                showEditIcon = true
+                showEditIcon = true,
+                preview = preview,
             )
 
             //CONTACT ALIASES:
@@ -206,6 +208,7 @@ fun EditLibContact(
                     colorDark = libColorSelector(cat = filter)
                 ),
                 title = "Aliases (separate with commas)",
+                description = getAliasFieldDescription(filter),
                 placeholder = "Write aliases here...",
                 italic = true,
                 textState = textAliases

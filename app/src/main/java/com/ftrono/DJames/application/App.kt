@@ -106,7 +106,13 @@ var sharedLink = MutableLiveData<String>("")
 
 //Library & Messages:
 var curLibrarySize = MutableLiveData<Int>(0)
-val libHeads = listOf("artist", "playlist", "podcast", "contact", "place")
+val sourceToCatMap = mapOf(
+    "spotify" to listOf("artist", "playlist", "podcast"),
+    "contact" to listOf("contact"),
+    "place" to listOf("place")
+)
+val libCats = listOf("spotify", "contact", "place")
+val libSubcats = listOf("", "artist", "playlist", "podcast")
 val libSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
 var allMessageIds = MutableLiveData<List<Long>>(listOf<Long>())
 

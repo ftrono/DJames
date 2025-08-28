@@ -462,7 +462,8 @@ fun LibItemCardPreview() {
         cardColors = CardDefaults.cardColors(
             containerColor = colorResource(id = R.color.dark_grey_background)
         ),
-        currentCatState =  currentCatState,
+        source = "spotify",
+        type = "artist",
         title = "Item name",
         subtitle = "subtitle",
     )
@@ -473,7 +474,8 @@ fun LibItemCardPreview() {
 fun LibItemCard(
     modifier: Modifier = Modifier,
     cardColors: CardColors,
-    currentCatState: MutableState<String>,
+    source: String,
+    type: String,
     title: String,
     subtitle: String = "",
     imageUrl: String = "",
@@ -481,11 +483,11 @@ fun LibItemCard(
 ) {
     val isMultiline = rememberSaveable { mutableStateOf(false) }
     val cardBorderColor = colorResource(id = R.color.dark_grey)
-    val signBackgroundColor = libColorSelector(cat = currentCatState.value)
+    val signBackgroundColor = libColorSelector(cat = type)
     val signBorderColor = colorResource(id = R.color.midfaded_grey)
     val signIconColor = colorResource(id = R.color.light_grey)
-    val signIconPainter = libIconSelector(cat = currentCatState.value)
-    val circle = currentCatState.value != "playlist" && currentCatState.value != "podcast" && currentCatState.value != "place"
+    val signIconPainter = libIconSelector(cat = type)
+    val circle = type != "playlist" && type != "podcast" && source != "place"
 
     Card(
         modifier = modifier
@@ -515,7 +517,7 @@ fun LibItemCard(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Center
             ) {
-                if (false && currentCatState.value != "contact" && currentCatState.value != "place") {   //TODO
+                if (source == "spotify") {
                     //CAT ROW:
                     Row(
                         modifier = Modifier
@@ -528,19 +530,19 @@ fun LibItemCard(
                             modifier = Modifier
                                 .padding(end = 2.dp)
                                 .size(12.dp),
-                            painter = libIconSelector(currentCatState.value),
-                            contentDescription = currentCatState.value,
-                            tint = libColorSelectorLight(currentCatState.value)
+                            painter = libIconSelector(type),
+                            contentDescription = type,
+                            tint = libColorSelectorLight(type)
                         )
                         //CAT NAME:
                         Text(
                             modifier = Modifier
                                 .padding(start = 2.dp, end = 8.dp),
-                            color = libColorSelectorLight(cat = currentCatState.value),
+                            color = libColorSelectorLight(cat = type),
                             fontSize = 10.sp,
                             lineHeight = 12.sp,
                             // fontWeight = FontWeight.Bold,
-                            text = utils.capitalizeWords((currentCatState.value)),
+                            text = utils.capitalizeWords((type)),
                         )
                     }
                 }
@@ -556,7 +558,7 @@ fun LibItemCard(
                     text = title,
                     fontWeight = FontWeight.Bold,
                     onTextLayout = { textLayoutResult ->
-                        isMultiline.value = textLayoutResult.lineCount > if (currentCatState.value != "contact" && currentCatState.value != "place") 1 else 2
+                        isMultiline.value = textLayoutResult.lineCount > if (source == "spotify") 1 else 2
                     }
                 )
                 //Item detail:

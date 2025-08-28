@@ -38,6 +38,7 @@ import com.ftrono.DJames.be.database.Address
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.samples.testLibrary
 import com.ftrono.DJames.ui.components.EditLibSectionTitle
+import com.ftrono.DJames.ui.components.getAliasFieldDescription
 
 
 @Preview
@@ -52,9 +53,8 @@ fun DialogEditPlacePreview() {
 @Composable
 fun EditLibPlace(
     context: Context,
-    libraryItems: MutableState<List<String>>,
+    snapshot: MutableState<Long>,
     idState: MutableState<Long>,
-    filter: String,
     onDismiss: () -> Unit = {},
     preview: Boolean = false
 ) {
@@ -63,16 +63,17 @@ fun EditLibPlace(
 
     //Init:
     val id: Long = idState.value
+    val filter = "place"
 
     //Pre-populate:
     var itemPlace = if (preview) {
-        testLibrary.filter{ it.type == "place" }[0]
+        testLibrary.filter{ it.type == filter }[0]
     } else if (id > -1) {
         libUtils.getLibItemById(idState.value)
     } else {
         LibraryItem(
-            source = "place",
-            type = "place",
+            source = filter,
+            type = filter,
             address = Address(),
         )
     }
@@ -176,7 +177,7 @@ fun EditLibPlace(
                     libUtils.storeLibItem(context, itemPlace)
 
                     //4) End & close:
-                    libraryItems.value = libUtils.refreshLibrary(filter)   //Refresh list
+                    snapshot.value = utils.getCurrentTimestamp()   //Refresh list
                     onDismiss()
                 }
             }
@@ -194,7 +195,8 @@ fun EditLibPlace(
                 subtitleState = textSubtitle,
                 imageUrlState = imageUrlState,
                 initActive = textName.value == "",
-                showEditIcon = true
+                showEditIcon = true,
+                preview = preview,
             )
 
             //PLACE ALIASES:
@@ -207,6 +209,7 @@ fun EditLibPlace(
                     colorDark = libColorSelector(cat = filter)
                 ),
                 title = "Aliases (separate with commas)",
+                description = getAliasFieldDescription(filter),
                 placeholder = "Write aliases here...",
                 italic = true,
                 textState = textAliases

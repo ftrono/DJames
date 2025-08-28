@@ -61,7 +61,6 @@ class LinkExtractors {
 
     // Main Spotify Extractor:
     fun extractSpotifyInfo(context: Context, initLibItem: LibraryItem, new: Boolean): LibraryItem {
-        val filter = initLibItem.type
         var updLibItem = initLibItem
         var linkPreview = RawLinkPreview()
         var toastText = ""
@@ -75,23 +74,18 @@ class LinkExtractors {
             }
             Log.d(TAG, "Description: ${linkPreview.description}")
             val descrSplits = linkPreview.description.split(" · ")
-            if (filter != descrSplits[0].lowercase()) {
-                toastText = "ERROR: Invalid link!"
-                Log.w(TAG, toastText)
-                return@runBlocking initLibItem
-            } else {
-                if (linkPreview.title == "") {
-                    Log.w(TAG, "ERROR: Could not extract info from Spotify!")
-                    toastText = if (new) "Cannot extract link info!" else "Cannot refresh info now!"
-                    Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
-                }
-                updLibItem.name = if (linkPreview.title != "") linkPreview.title else initLibItem.name
-                updLibItem.detail = if (filter != "artist" && descrSplits.size > 1) descrSplits[1] else initLibItem.detail
-                updLibItem.imageUrl = if (linkPreview.imageUrl != "") linkPreview.imageUrl else initLibItem.imageUrl
-                toastText = if (new) "Link info extracted!" else "Info refreshed!"
+            if (linkPreview.title == "") {
+                Log.w(TAG, "ERROR: Could not extract info from Spotify!")
+                toastText = if (new) "Cannot extract link info!" else "Cannot refresh info now!"
                 Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
-                return@runBlocking updLibItem
             }
+            updLibItem.type = descrSplits[0].lowercase()
+            updLibItem.name = if (linkPreview.title != "") linkPreview.title else initLibItem.name
+            updLibItem.detail = if (updLibItem.type != "artist" && descrSplits.size > 1) descrSplits[1] else initLibItem.detail
+            updLibItem.imageUrl = if (linkPreview.imageUrl != "") linkPreview.imageUrl else initLibItem.imageUrl
+            toastText = if (new) "Link info extracted!" else "Info refreshed!"
+            Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
+            return@runBlocking updLibItem
         }
         return updLibItem
     }

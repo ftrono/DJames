@@ -16,7 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import com.ftrono.DJames.application.ClockActivity
-import com.ftrono.DJames.application.libHeads
+import com.ftrono.DJames.application.libCats
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.overlayActive
@@ -33,6 +33,9 @@ import okhttp3.Request
 import okhttp3.Response
 import java.io.File
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.Random
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -44,6 +47,16 @@ import kotlin.streams.asSequence
 
 class Utilities {
     private val TAG = Utilities::class.java.simpleName
+
+    //Timestamps:
+    fun getCurrentTimestamp(): Long {
+        return System.currentTimeMillis()
+    }
+
+    fun convertTimestamp(timestamp: Long, formatStr: String): String {
+        val datetimeStr = SimpleDateFormat(formatStr, Locale.getDefault()).format(Date(timestamp))
+        return datetimeStr
+    }
 
     //OkHTTP: make HTTP request:
     suspend fun makeRequest(client: OkHttpClient, request: Request): HttpResponse =
@@ -308,8 +321,8 @@ class Utilities {
     fun deleteUserData(context: Context) {
         try {
             messageUtils.deleteAllMessages(context)
-            for (head in libHeads) {
-                libUtils.deleteLibrary(context, head)
+            for (cat in libCats) {
+                libUtils.deleteLibrary(context, cat)
             }
         } catch (e: Exception) {
             Log.w(TAG, "User data not completely deleted.")

@@ -89,7 +89,7 @@ class SpotifyUtils {
         context: Context,
         idState: MutableState<Long>,
         addLinkState: MutableState<String>,
-        currentCatState: MutableState<String>,
+        currentSubCatState: MutableState<String>,
         editLibOn: MutableState<Boolean>,
         loadingDialogOn: MutableState<Boolean>
     ) {
@@ -116,7 +116,7 @@ class SpotifyUtils {
             }
             if (urlToCheck != "") {
                 //Go to right Edit Lib dialog:
-                currentCatState.value = goto
+                currentSubCatState.value = goto
 
                 val urlMap = libUtils.getUrlMap(goto)
                 val foundId = urlMap.getOrDefault(urlToCheck, -1L)

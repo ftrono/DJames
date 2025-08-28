@@ -33,16 +33,6 @@ import java.util.Locale
 class MessageUtils {
     private val TAG = MessageUtils::class.java.simpleName
 
-    //UTILS:
-    fun getCurrentTimestamp(): Long {
-        return System.currentTimeMillis()
-    }
-
-    fun convertTimestamp(timestamp: Long, formatStr: String): String {
-        val datetimeStr = SimpleDateFormat(formatStr, Locale.getDefault()).format(Date(timestamp))
-        return datetimeStr
-    }
-
     //GET ALL:
     //Get List of Message IDs:
     fun refreshMessages(preview: Boolean = false): List<Long> {
@@ -138,7 +128,7 @@ class MessageUtils {
                 // Voice conv not started -> don't save:
                 Log.w(TAG, "Voice conv not started: message not saved!")
             } else {
-                message.timestamp = getCurrentTimestamp()
+                message.timestamp = utils.getCurrentTimestamp()
                 if (isStart) {
                     // NEW CONVERSATION:
                     lastStarterId = message.timestamp
@@ -278,8 +268,8 @@ class MessageUtils {
             if (id > 0) {
                 // Prepare single message:
                 val single = getMessageById(id)
-                single.datetime = convertTimestamp(single.timestamp, datetimeFullFormat)
-                val filename = "log_${convertTimestamp(single.timestamp, datetimeExportFormat)}.json"
+                single.datetime = utils.convertTimestamp(single.timestamp, datetimeFullFormat)
+                val filename = "log_${utils.convertTimestamp(single.timestamp, datetimeExportFormat)}.json"
                 val cachedFile = File(context.cacheDir, filename)
                 cachedFile.writeText(Json.encodeToString(single))
                 return filename
@@ -289,11 +279,11 @@ class MessageUtils {
                 if (conv.size > 0) {
                     var starterTimestamp = 0L
                     for (mess in conv) {
-                        mess.datetime = convertTimestamp(mess.timestamp, datetimeFullFormat)
+                        mess.datetime = utils.convertTimestamp(mess.timestamp, datetimeFullFormat)
                         starterTimestamp = mess.timestamp
                     }
                     val filename =
-                        "log_${convertTimestamp(starterTimestamp, datetimeExportFormat)}.json"
+                        "log_${utils.convertTimestamp(starterTimestamp, datetimeExportFormat)}.json"
                     val cachedFile = File(context.cacheDir, filename)
                     cachedFile.writeText(Json.encodeToString(conv))
                     return filename

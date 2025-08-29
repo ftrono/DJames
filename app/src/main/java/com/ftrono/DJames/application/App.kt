@@ -106,6 +106,7 @@ var sharedLink = MutableLiveData<String>("")
 
 //Library & Messages:
 var curLibrarySize = MutableLiveData<Int>(0)
+val aliasFieldDescription = "💡 Add simpler, alternative names to use with voice, if the original is hard to say or spell:"
 val sourceToCatMap = mapOf(
     "spotify" to listOf("artist", "album", "playlist", "podcast", "track", "episode"),
     "contact" to listOf("contact"),

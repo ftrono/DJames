@@ -20,6 +20,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.aliasFieldDescription
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.messLangFull
 import com.ftrono.DJames.application.messLangCodes
@@ -36,11 +37,9 @@ import com.ftrono.DJames.ui.components.EditPhoneDynamicField
 import com.ftrono.DJames.ui.dialogs.EditLibDialog
 import com.ftrono.DJames.ui.components.EditLibDynamicField
 import com.ftrono.DJames.ui.components.EditLibDynamicNameSection
-import com.ftrono.DJames.ui.components.getAliasFieldDescription
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
 import com.ftrono.DJames.ui.selectors.libColorSelector
 import com.ftrono.DJames.ui.selectors.libColorSelectorLight
-import com.ftrono.DJames.ui.selectors.libIconSelector
 
 
 @Preview
@@ -207,7 +206,7 @@ fun EditLibContact(
                     colorDark = libColorSelector(cat = filter)
                 ),
                 title = "Aliases (separate with commas)",
-                description = getAliasFieldDescription(filter),
+                description = aliasFieldDescription,
                 placeholder = "Write aliases here...",
                 italic = true,
                 textState = textAliases

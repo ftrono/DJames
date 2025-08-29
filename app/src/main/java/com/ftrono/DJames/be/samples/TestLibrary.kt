@@ -1,5 +1,6 @@
 package com.ftrono.DJames.be.samples
 
+import com.ftrono.DJames.application.spotIntroUrl
 import com.ftrono.DJames.be.database.Address
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.PhoneSet
@@ -7,6 +8,20 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 
 
+// DEFAULT: COLLECTION -> ID == -2L!
+val defaultCollection = LibraryItem(
+    id = -2L,
+    source = "spotify",
+    type = "playlist",
+    name = "Liked Songs",
+    aliases = mutableListOf("liked songs", "saved tracks", "collection"),
+    detail = "Spotify",
+    url = "$spotIntroUrl/collection/tracks",
+    imageUrl = "",
+)
+
+
+// TEST LIBRARY:
 val testLibrary = listOf<LibraryItem>(
     // SPOTIFY - ARTISTS:
     LibraryItem(

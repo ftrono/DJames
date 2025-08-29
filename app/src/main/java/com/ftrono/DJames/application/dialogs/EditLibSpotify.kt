@@ -25,20 +25,18 @@ import com.ftrono.DJames.ui.components.EditLibDynamicNameSection
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
 import com.ftrono.DJames.ui.selectors.libColorSelector
 import com.ftrono.DJames.ui.selectors.libColorSelectorLight
-import com.ftrono.DJames.ui.selectors.libIconSelector
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
+import com.ftrono.DJames.application.aliasFieldDescription
 import com.ftrono.DJames.application.spotIntroUrl
 import com.ftrono.DJames.be.database.LibraryItem
-import com.ftrono.DJames.be.database.LibraryItem_
+import com.ftrono.DJames.be.samples.defaultCollection
 import com.ftrono.DJames.be.samples.testLibrary
 import com.ftrono.DJames.be.utils.LinkExtractors
-import com.ftrono.DJames.ui.components.getAliasFieldDescription
 
 
 @Preview
@@ -63,12 +61,15 @@ fun EditLibSpotify(
     val focusRequester = remember { FocusRequester() }
     val mContext = LocalContext.current
     val linkExtractor = LinkExtractors()
+    val isDefault = idState.value == -2L   //Default
 
     //Init:
     val id: Long = idState.value
 
     //Pre-populate:
-    var itemSpotify = if (preview) {
+    var itemSpotify = if (idState.value == -2L) {
+        defaultCollection
+    } else if (preview) {
 //        LibraryItem(
 //            source = "spotify",
 //        )
@@ -136,7 +137,7 @@ fun EditLibSpotify(
             title = if (textType.value == "spotify") "${textType.value} link" else utils.capitalizeWords(textType.value),
             cat = "spotify",
             subcat = textType.value,
-            showRefresh = true,
+            showRefresh = !isDefault,
             onRefresh = {
                 Toast.makeText(mContext, "Refreshing info...", Toast.LENGTH_LONG).show()
                 textPlayUrl.value = spotifyUtils.trimSpotifyUrl(textPlayUrl.value)
@@ -194,6 +195,7 @@ fun EditLibSpotify(
                 imageUrlState = imageUrlState,
                 initActive = textName.value == "",
                 showEditIcon = textName.value == "",
+                isCollection = isDefault,
                 preview = preview,
             )
 
@@ -207,7 +209,7 @@ fun EditLibSpotify(
                     colorDark = libColorSelector(cat = textType.value)
                 ),
                 title = "Aliases (separate with commas)",
-                description = getAliasFieldDescription(textType.value),
+                description = aliasFieldDescription,
                 placeholder = "Write aliases here...",
                 italic = true,
                 textState = textAliases
@@ -225,15 +227,7 @@ fun EditLibSpotify(
                 title = "Spotify Link",
                 placeholder = "Paste Spotify link...",
                 textState = textPlayUrl,
-                onClick = {
-                    Toast.makeText(mContext, "Refreshing info...", Toast.LENGTH_LONG).show()
-                    textPlayUrl.value = spotifyUtils.trimSpotifyUrl(textPlayUrl.value)
-                    itemSpotify = linkExtractor.extractSpotifyInfo(mContext, itemSpotify, new=false)
-                    textType.value = itemSpotify.type
-                    textName.value = itemSpotify.name
-                    textDetail.value = itemSpotify.detail
-                    imageUrlState.value = itemSpotify.imageUrl
-                }
+                disabled = isDefault
             )
         }
     }

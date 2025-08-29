@@ -375,7 +375,7 @@ fun ChipOptions(
         options = {
             //1) Item: EDIT LIB ITEM
             OptionsItem(
-                title = "Edit",
+                title = if (id == -2L) "View" else "Edit",   //Default
                 iconVector = Icons.Default.Edit,
                 onClick = {
                     idState.value = id
@@ -384,16 +384,18 @@ fun ChipOptions(
                 }
             )
             //2) Item: DELETE LIB ITEM
-            OptionsItem(
-                title = "Delete",
-                iconVector = Icons.Default.Delete,
-                onClick = {
-                    idState.value = id
-                    nameState.value = name
-                    mDisplayMenu.value = false
-                    deleteLibOn.value = true
-                }
-            )
+            if (id != -2L) {   //Default
+                OptionsItem(
+                    title = "Delete",
+                    iconVector = Icons.Default.Delete,
+                    onClick = {
+                        idState.value = id
+                        nameState.value = name
+                        mDisplayMenu.value = false
+                        deleteLibOn.value = true
+                    }
+                )
+            }
         }
     )
 }
@@ -554,6 +556,7 @@ fun LibItem(
             title = utils.trimString(item.name, 20),
             subtitle = utils.trimString(libUtils.getDetail(item), 16),
             imageUrl = if (preview) "" else item.imageUrl,
+            isCollection = item.id == -2L,
             onClick = {
                 mDisplayMenu.value = !mDisplayMenu.value
             }

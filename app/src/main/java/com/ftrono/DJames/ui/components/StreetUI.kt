@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.Card
@@ -479,14 +480,15 @@ fun LibItemCard(
     title: String,
     subtitle: String = "",
     imageUrl: String = "",
+    isCollection: Boolean = false,
     onClick: () -> Unit = {}
 ) {
     val isMultiline = rememberSaveable { mutableStateOf(false) }
     val cardBorderColor = colorResource(id = R.color.dark_grey)
-    val signBackgroundColor = libColorSelector(cat = type)
+    val signBackgroundColor = if (isCollection) colorResource(R.color.violetSign) else libColorSelector(cat = type)
     val signBorderColor = colorResource(id = R.color.midfaded_grey)
     val signIconColor = colorResource(id = R.color.light_grey)
-    val signIconPainter = libIconSelector(cat = type)
+    val signIconPainter = if (isCollection) null else libIconSelector(cat = type)
     val circle = type == "artist" || source == "contact"
 
     Card(
@@ -597,6 +599,7 @@ fun LibItemCard(
                 borderWidth = 1.5.dp,
                 contentColor = signIconColor,
                 iconPainter = signIconPainter,
+                iconVector = if (isCollection) Icons.Default.Favorite else null,
                 imageUrl = imageUrl,
                 circle = circle
             )

@@ -9,6 +9,7 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.libCats
 import com.ftrono.DJames.application.libraryBox
 import com.ftrono.DJames.application.sourceToCatMap
+import com.ftrono.DJames.be.samples.defaultCollection
 import com.ftrono.DJames.be.samples.testLibrary
 import io.objectbox.Property
 import io.objectbox.query.QueryBuilder.StringOrder
@@ -41,27 +42,35 @@ class LibraryUtils {
     // GET ALL ITEMS:
     fun getAll(cat: String = "", subcat: String = "", preview: Boolean = false): List<LibraryItem> {
         try {
+            var libraryItems = mutableListOf<LibraryItem>()
+            if (cat == "spotify" && (subcat == "" || subcat == "playlist")) {
+                libraryItems.add(defaultCollection)
+            }
             if (preview) {
                 if (subcat == "") {
-                    return testLibrary.filter { it.source == cat }.sortedBy { it.name }
+                    libraryItems.addAll(testLibrary.filter { it.source == cat })
                 } else {
-                    return testLibrary.filter { it.source == cat && it.type == subcat }.sortedBy { it.name }
+                    libraryItems.addAll(testLibrary.filter { it.source == cat && it.type == subcat })
                 }
             } else {
                 if (cat == "") {
-                    return libraryBox!!.query(LibraryItem_.type.equal(subcat))
-                        .order(LibraryItem_.name)
+                    libraryItems.addAll(
+                        libraryBox!!.query(LibraryItem_.type.equal(subcat))
                         .build().find()
+                    )
                 } else if (subcat == "") {
-                    return libraryBox!!.query(LibraryItem_.source.equal(cat))
-                        .order(LibraryItem_.name)
+                    libraryItems.addAll(
+                        libraryBox!!.query(LibraryItem_.source.equal(cat))
                         .build().find()
+                    )
                 } else {
-                    return libraryBox!!.query(LibraryItem_.source.equal(cat).and(LibraryItem_.type.equal(subcat)))
-                        .order(LibraryItem_.name)
+                    libraryItems.addAll(
+                        libraryBox!!.query(LibraryItem_.source.equal(cat).and(LibraryItem_.type.equal(subcat)))
                         .build().find()
+                    )
                 }
             }
+            return libraryItems.sortedBy { it.name }
         } catch (e: Exception) {
             Log.w(TAG, "ERROR: cannot get All items with cat: $cat and subcat: $subcat! ", e)
             return listOf()
@@ -72,9 +81,9 @@ class LibraryUtils {
     fun getCollectionSize(filter: String, subcat: String = ""): Long {
         try {
             if (subcat == "") {
-                return libraryBox!!.query(LibraryItem_.source.equal(filter)).build().count()
+                return libraryBox!!.query(LibraryItem_.source.equal(filter)).build().count() + if (filter == "spotify") 1 else 0
             } else {
-                return libraryBox!!.query(LibraryItem_.source.equal(filter).and(LibraryItem_.type.equal(subcat))).build().count()
+                return libraryBox!!.query(LibraryItem_.source.equal(filter).and(LibraryItem_.type.equal(subcat))).build().count() + if (filter == "spotify" && subcat == "playlist") 1 else 0
             }
         } catch (e: Exception) {
             Log.w(TAG, "ERROR: cannot count ${filter}s! ", e)
@@ -87,11 +96,14 @@ class LibraryUtils {
         if (preview) {
             return sourceToCatMap[cat]!!
         } else {
-            return libraryBox!!.query(LibraryItem_.source.equal(cat))
+            val libCats = mutableListOf<String>()
+                libraryBox!!.query(LibraryItem_.source.equal(cat))
                 .build()
                 .property(LibraryItem_.type)
                 .distinct()
-                .findStrings().toList().sorted()
+                .findStrings().toList()
+            if (!libCats.contains("playlist")) libCats.add("playlist")
+            return libCats.sorted()
         }
     }
 

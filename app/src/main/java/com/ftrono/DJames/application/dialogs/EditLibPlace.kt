@@ -26,7 +26,6 @@ import com.ftrono.DJames.ui.components.EditLibDynamicNameSection
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
 import com.ftrono.DJames.ui.selectors.libColorSelector
 import com.ftrono.DJames.ui.selectors.libColorSelectorLight
-import com.ftrono.DJames.ui.selectors.libIconSelector
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,11 +33,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
+import com.ftrono.DJames.application.aliasFieldDescription
 import com.ftrono.DJames.be.database.Address
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.samples.testLibrary
 import com.ftrono.DJames.ui.components.EditLibSectionTitle
-import com.ftrono.DJames.ui.components.getAliasFieldDescription
 
 
 @Preview
@@ -208,7 +207,7 @@ fun EditLibPlace(
                     colorDark = libColorSelector(cat = filter)
                 ),
                 title = "Aliases (separate with commas)",
-                description = getAliasFieldDescription(filter),
+                description = aliasFieldDescription,
                 placeholder = "Write aliases here...",
                 italic = true,
                 textState = textAliases

@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -55,13 +56,6 @@ import com.ftrono.DJames.ui.selectors.libIconSelector
 
 
 //EDIT LIB COMPONENTS:
-@Composable
-fun getAliasFieldDescription(
-    filter: String
-): String {
-    return "💡 You can write here alternative names to refer to this ${if (filter == "" || filter == "spotify") "link" else filter} via voice, especially if the original name is hard to understand or to spell. This will help!"
-}
-
 @Composable
 fun EditLibTitle(
     modifier: Modifier = Modifier,
@@ -119,6 +113,7 @@ fun EditLibDynamicField(
     italic: Boolean = false,
     textState: MutableState<String>,
     charLimit: Int = 0,
+    disabled: Boolean = false,
     onClick: () -> Unit = {},
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -161,7 +156,7 @@ fun EditLibDynamicField(
         if (description != "") {
             Text(
                 modifier = modifier
-                    .padding(top=6.dp, bottom=6.dp)
+                    .padding(top = 6.dp, bottom = 6.dp)
                     .clickable {
                         onClicked()
                     },
@@ -176,6 +171,7 @@ fun EditLibDynamicField(
             modifier = Modifier
                 .padding(top = 8.dp, bottom = 20.dp)
                 .focusRequester(focusRequester),
+            enabled = !disabled,
             colors = textFieldColors,
             value = textState.value,
             interactionSource = interactionSource,
@@ -220,10 +216,12 @@ fun EditLibDynamicField(
                         iconVector = Icons.Default.Done
                     )
                 } else {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit"
-                    )
+                    if (!disabled) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit"
+                        )
+                    }
                 }
 
             }
@@ -429,6 +427,7 @@ fun EditLibDynamicNameSection(
     imageUrlState: MutableState<String>,
     initActive: Boolean = false,
     showEditIcon: Boolean = false,
+    isCollection: Boolean = false,
     preview: Boolean = false,
 ) {
     val isActive = rememberSaveable { mutableStateOf(initActive) }
@@ -455,7 +454,7 @@ fun EditLibDynamicNameSection(
         verticalArrangement = Arrangement.Top
     ) {
 
-        if (!isActive.value) {
+        if (!isActive.value || isCollection) {
             Row(
                 modifier = Modifier
                     .padding(bottom = 20.dp)
@@ -473,12 +472,13 @@ fun EditLibDynamicNameSection(
                         },
                     signSize = 70.dp,
                     contentSize = 40,
-                    backgroundColor = libColorSelector(cat = filter),
+                    backgroundColor = if (isCollection) colorResource(R.color.violetSign) else libColorSelector(cat = filter),
                     borderColor = colorResource(id = R.color.midfaded_grey),
                     contentColor = colorResource(id = R.color.light_grey),
                     borderWidth = 2.0.dp,
-                    iconPainter = libIconSelector(cat = filter),
-                    imageUrl = if (preview) "" else imageUrlState.value,
+                    iconVector = if (isCollection) Icons.Default.Favorite else null,
+                    iconPainter = if (isCollection) null else libIconSelector(cat = filter),
+                    imageUrl = if (preview || isCollection) "" else imageUrlState.value,
                     circle = filter == "artist" || filter == "contact"
                 )
 
@@ -515,7 +515,7 @@ fun EditLibDynamicNameSection(
 
                 }
 
-                if (showEditIcon) {
+                if (showEditIcon && !isCollection) {
                     //Edit icon:
                     Icon(
                         modifier = Modifier

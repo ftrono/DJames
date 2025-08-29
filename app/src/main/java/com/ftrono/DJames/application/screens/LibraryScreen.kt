@@ -64,8 +64,6 @@ import com.ftrono.DJames.application.curLibrarySize
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.libCats
-import com.ftrono.DJames.application.libSectionIdentifier
-import com.ftrono.DJames.be.database.ItemInfoView
 import com.ftrono.DJames.application.dialogs.EditLibContact
 import com.ftrono.DJames.application.dialogs.EditLibPlace
 import com.ftrono.DJames.application.dialogs.EditLibSpotify
@@ -73,6 +71,7 @@ import com.ftrono.DJames.application.libSubcats
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.sourceToCatMap
 import com.ftrono.DJames.application.spotifyUtils
+import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.components.OptionsItem
 import com.ftrono.DJames.ui.components.OptionsMenu
@@ -86,9 +85,6 @@ import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
 import com.ftrono.DJames.ui.navigation.TopSplitterBar
 import com.ftrono.DJames.ui.selectors.libColorSelector
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.decodeFromString
-import kotlin.Boolean
 import kotlin.String
 
 
@@ -190,8 +186,8 @@ fun LibraryScreen(
         AddLinkDialog(
             textState = addLinkState,
             dialogHeader = "New",
-            textBoxHeader = "Spotify: Artist, Playlist or Podcast URL",
-            headerIcon = Icons.Default.Add,
+            textBoxHeader = "Save a Spotify link",
+            cat = "spotify",   //TODO
             onDismiss = {
                 //cancelable -> true
                 addLinkOn.postValue(false)
@@ -503,14 +499,15 @@ fun LibSectionContent(
     preview: Boolean = false,
 ) {
 
-    var libraryIds = libUtils.refreshLibrary(currentCatState.value, currentSubCatState.value, preview)
+    var libraryItems = libUtils.refreshLibrary(currentCatState.value, currentSubCatState.value, preview)
 
+    // When snapshot changes, reload data
     LaunchedEffect(snapshot) {
-        libraryIds = libUtils.refreshLibrary(currentCatState.value, currentSubCatState.value, preview)
+        libraryItems = libUtils.refreshLibrary(currentCatState.value, currentSubCatState.value, preview)
     }
 
     //CONTENT:
-    if (libraryIds.isEmpty()) {
+    if (libraryItems.isEmpty()) {
         //LIBRARY EMPTY:
         Column(
             modifier = Modifier
@@ -540,15 +537,15 @@ fun LibSectionContent(
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             //ITEMS:
-            libraryIds.forEach { idStr ->
+            libraryItems.forEach { item ->
 
-                if (idStr.contains(libSectionIdentifier)) {
+                if (item.type == "header") {
                     //HEADER:
                     item(
                         span = { GridItemSpan(maxLineSpan) }
                     ) {
                         LibLetter(
-                            letter = idStr.replace(libSectionIdentifier, "")
+                            letter = item.name
                         )
                     }
 
@@ -557,15 +554,14 @@ fun LibSectionContent(
                     item {
                         LibItem(
                             modifier = Modifier,
-                            currentCatState = currentCatState,
                             idState = idState,
                             nameState = nameState,
-                            id = idStr.toLong(),
+                            item = item,
                             editLibOn = editLibOn,
                             deleteLibOn = deleteLibOn,
                             preview = preview,
                         )
-                        if (idStr == libraryIds.last()) Spacer(modifier = Modifier.padding(80.dp))
+                        if (item == libraryItems.last()) Spacer(modifier = Modifier.padding(80.dp))
                     }
                 }
 
@@ -599,16 +595,14 @@ fun LibLetter(
 @Composable
 fun LibItem(
     modifier: Modifier,
-    currentCatState: MutableState<String>,
     idState: MutableState<Long>,
     nameState: MutableState<String>,
-    id: Long,
+    item: LibraryItem,
     editLibOn: MutableState<Boolean>,
     deleteLibOn: MutableState<Boolean>,
     preview: Boolean = false,
 ) {
     val mDisplayMenu = rememberSaveable { mutableStateOf(false) }
-    val item = libUtils.getLibItemById(id, preview=preview)
 
     //LIB CHIPS:
     Box(
@@ -637,7 +631,7 @@ fun LibItem(
             }
         )
         //Options menu:
-        ChipOptions(mDisplayMenu, deleteLibOn, editLibOn, idState, nameState, id=id, name=item.name)
+        ChipOptions(mDisplayMenu, deleteLibOn, editLibOn, idState, nameState, id=item.id, name=item.name)
     }
 }
 

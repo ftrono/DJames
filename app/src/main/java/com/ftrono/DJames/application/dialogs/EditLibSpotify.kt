@@ -134,8 +134,8 @@ fun EditLibSpotify(
                     focusManager.clearFocus()
                 },
             title = if (textType.value == "spotify") "${textType.value} link" else utils.capitalizeWords(textType.value),
-            headerColor = libColorSelectorLight(cat = textType.value),
-            headerPainter = libIconSelector(cat = "spotify"),
+            cat = "spotify",
+            subcat = textType.value,
             showRefresh = true,
             onRefresh = {
                 Toast.makeText(mContext, "Refreshing info...", Toast.LENGTH_LONG).show()

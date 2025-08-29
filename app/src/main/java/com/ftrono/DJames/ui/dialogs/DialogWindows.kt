@@ -62,6 +62,7 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.showLoggingIn
 import com.ftrono.DJames.ui.components.EditLibTitle
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
+import com.ftrono.DJames.ui.selectors.libColorSelector
 import com.ftrono.DJames.ui.selectors.libColorSelectorLight
 import com.ftrono.DJames.ui.selectors.libIconSelector
 
@@ -174,8 +175,8 @@ fun DialogEditLibPreview() {
     ) {
         EditLibDialog(
             title = filter,
-            headerColor = libColorSelectorLight(cat = filter),
-            headerPainter = libIconSelector(cat = filter)
+            cat = "spotify",
+            subcat = "artist",
         )
     }
 }
@@ -186,9 +187,8 @@ fun DialogEditLibPreview() {
 fun EditLibDialog(
     modifier: Modifier = Modifier,
     title: String,
-    headerColor: Color,
-    headerIcon: ImageVector? = null,
-    headerPainter: Painter? = null,
+    cat: String,
+    subcat: String = "",
     onDismiss: () -> Unit = {},
     onSave: () -> Unit = {},
     onRefresh: () -> Unit = {},
@@ -222,9 +222,8 @@ fun EditLibDialog(
             //TITLE:
             EditLibHeader(
                 title = title,
-                color = headerColor,
-                painter = headerPainter,
-                icon = headerIcon,
+                cat = cat,
+                subcat = subcat,
                 onCancel = { onDismiss() },
                 onSave = { onSave() },
                 onRefresh = { onRefresh() },
@@ -261,9 +260,8 @@ fun EditLibDialog(
 @Composable
 fun EditLibHeader(
     title: String,
-    color: Color,
-    icon: ImageVector? = null,
-    painter: Painter? = null,
+    cat: String,
+    subcat: String = "",
     onCancel: () -> Unit,
     onSave: () -> Unit,
     onRefresh: () -> Unit,
@@ -286,26 +284,23 @@ fun EditLibHeader(
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            //ICON:
-            if (icon != null) {
-                //ImageVector:
+            //ICONS:
+            Icon(
+                modifier = Modifier
+                    .padding(end = 4.dp)
+                    .size(if (small) 20.dp else 36.dp),
+                painter = libIconSelector(cat=cat),
+                contentDescription = title,
+                tint = if (cat == "spotify") libColorSelector(cat=cat) else libColorSelectorLight(cat=cat),
+            )
+            if (subcat != "") {
                 Icon(
                     modifier = Modifier
                         .padding(end = 4.dp)
                         .size(if (small) 20.dp else 36.dp),
-                    imageVector = icon,
+                    painter = libIconSelector(cat=subcat),
                     contentDescription = title,
-                    tint = color
-                )
-            } else {
-                //Painter:
-                Icon(
-                    modifier = Modifier
-                        .padding(end = 4.dp)
-                        .size(if (small) 20.dp else 36.dp),
-                    painter = painter!!,
-                    contentDescription = title,
-                    tint = color
+                    tint = libColorSelectorLight(cat=subcat),
                 )
             }
             //TITLE:
@@ -330,7 +325,7 @@ fun EditLibHeader(
                         },
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = "Go",
-                    tint = color
+                    tint = libColorSelectorLight(cat = if (subcat != "") subcat else cat),
                 )
             }
             if (showRefresh) {
@@ -344,7 +339,7 @@ fun EditLibHeader(
                         },
                     imageVector = Icons.Filled.Refresh,
                     contentDescription = "Refresh",
-                    tint = color
+                    tint = libColorSelectorLight(cat = if (subcat != "") subcat else cat),
                 )
             }
             //BACK BUTTON:
@@ -357,7 +352,7 @@ fun EditLibHeader(
                     },
                 imageVector = Icons.Filled.Close,
                 contentDescription = "Cancel",
-                tint = color
+                tint = libColorSelectorLight(cat = if (subcat != "") subcat else cat),
             )
             //SAVE BUTTON:
             Icon(
@@ -368,7 +363,7 @@ fun EditLibHeader(
                     },
                 imageVector = Icons.Default.Check,
                 contentDescription = "Save",
-                tint = color
+                tint = libColorSelectorLight(cat = if (subcat != "") subcat else cat),
             )
         }
     }
@@ -386,8 +381,7 @@ fun AddLinkDialogPreview() {
         AddLinkDialog(
             textState = textState,
             dialogHeader = "New",
-            textBoxHeader = "Paste link here",
-            headerIcon = Icons.Default.Add,
+            textBoxHeader = "Save a link",
         )
     }
 }
@@ -397,11 +391,9 @@ fun AddLinkDialogPreview() {
 fun AddLinkDialog(
     modifier: Modifier = Modifier,
     textState: MutableState<String>,
+    cat: String = "spotify",   //TODO
     dialogHeader: String,
     textBoxHeader: String,
-    headerColor: Color = colorResource(R.color.mid_grey),
-    headerIcon: ImageVector? = null,
-    headerPainter: Painter? = null,
     onDismiss: () -> Unit = {},
     onSave: () -> Unit = {}
 ) {
@@ -423,9 +415,7 @@ fun AddLinkDialog(
                 .fillMaxWidth()
                 .focusRequester(focusRequester),
             title = dialogHeader,
-            headerColor = headerColor,
-            headerIcon = headerIcon,
-            headerPainter = headerPainter,
+            cat = cat,
             onDismiss = onDismiss,
             onSave = onSave,
             smallHeader = false,
@@ -433,7 +423,7 @@ fun AddLinkDialog(
         ) {
             EditLibTitle(
                 title = textBoxHeader,
-                textHeaderColor = headerColor,
+                textHeaderColor = libColorSelector(cat = cat),
             )
 
             OutlinedTextField(
@@ -459,7 +449,7 @@ fun AddLinkDialog(
                 ),
                 placeholder = {
                     Text(
-                        text = "Paste Spotify link here...",
+                        text = "Paste link here...",
                         fontSize = 16.sp,
                         fontStyle = FontStyle.Italic
                     )

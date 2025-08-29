@@ -134,8 +134,7 @@ fun EditLibContact(
                     focusManager.clearFocus()
                 },
             title = filter,
-            headerColor = libColorSelectorLight(cat = filter),
-            headerPainter = libIconSelector(cat = filter),
+            cat = filter,
             showRefresh = false,
             onDismiss = {
                 onDismiss()

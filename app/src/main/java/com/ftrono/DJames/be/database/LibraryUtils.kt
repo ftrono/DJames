@@ -7,7 +7,6 @@ import com.ftrono.DJames.application.curLibrarySize
 import com.ftrono.DJames.application.gMapsLinkFormat
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.libCats
-import com.ftrono.DJames.application.libSectionIdentifier
 import com.ftrono.DJames.application.libSubcats
 import com.ftrono.DJames.application.libraryBox
 import com.ftrono.DJames.be.samples.testLibrary
@@ -39,6 +38,7 @@ class LibraryUtils {
         }
     }
 
+    // GET ALL ITEMS:
     fun getAll(cat: String = "", subcat: String = "", preview: Boolean = false): List<LibraryItem> {
         try {
             if (preview) {
@@ -68,6 +68,7 @@ class LibraryUtils {
         }
     }
 
+    // GET SIZE:
     fun getCollectionSize(filter: String, subcat: String = ""): Long {
         try {
             if (subcat == "") {
@@ -104,92 +105,60 @@ class LibraryUtils {
 
     // REFRESH:
     //Get List of ItemInfoView items:
-    fun refreshLibrary(cat: String, subcat: String = "", preview: Boolean = false): List<String> {
+    fun refreshLibrary(cat: String, subcat: String = "", preview: Boolean = false): List<LibraryItem> {
         try {
             //1) LOAD LIBRARY:
-            var idsMap = mapOf<Long, String>()
-            var filtered = listOf<LibraryItem>()
-            var ids = listOf<Long>()
-            var names = listOf<String>()
-
-            //Load library IDs:
-            if (preview) {
-                if (subcat == "") {
-                    filtered = testLibrary.filter { it.source == cat }.sortedBy { it.name }
-                } else {
-                    filtered = testLibrary.filter { it.source == cat && it.type == subcat }.sortedBy { it.name }
-                }
-                ids = filtered.map { it.id }
-                names = filtered.map { it.name }
-
-            } else {
-                // TODO (TEMP): Cannot sort in ObjectBox directly in PropertyQuery!
-                // SO: First map ids to names, then sort and finally extract sorted ids only:
-                val queryCond = if (subcat == "") {
-                    LibraryItem_.source.equal(cat)
-                } else {
-                    LibraryItem_.source.equal(cat).and(LibraryItem_.type.equal(subcat))
-                }
-
-                ids = libraryBox!!.query(queryCond)
-                    .build()
-                    .property(LibraryItem_.id)
-                    .findLongs()
-                    .toList()
-                names = libraryBox!!.query(queryCond)
-                    .build()
-                    .property(LibraryItem_.name)
-                    .findStrings()
-                    .toList()
-            }
-            // Sort:
-            idsMap = ids.zip(names).sortedBy { it.second }.toMap()
+            var libraryItems = getAll(cat, subcat, preview)
 
             //2) UPDATE LIBRARY SIZE (IMPORTANT - for signs):
-            curLibrarySize.postValue(idsMap.size)
+            curLibrarySize.postValue(libraryItems.size)
 
             //3) ADD HEADERS & CONVERT TO IDS LIST:
-            return addLetterHeaders(idsMap)
+            return addLetterHeaders(libraryItems)
 
         } catch (e: Exception) {
             Log.w(TAG, "ERROR: cannot refresh Library for items with cat: $cat and subcat: $subcat! ", e)
             curLibrarySize.postValue(0)
-            return listOf<String>()
+            return listOf<LibraryItem>()
         }
     }
 
     //Get key List with headers:
-    fun addLetterHeaders(idsMap: Map<Long, String>): List<String> {
-        val fullStringList = mutableListOf<String>()
+    fun addLetterHeaders(libraryItems: List<LibraryItem>): List<LibraryItem> {
+        val fullList = mutableListOf<LibraryItem>()
         // 1) PARTITION MAP: separate items that start
         val regex = Regex("^[a-zA-Z].*")   // Regex: matches if the first character is a-z or A-Z
-        val (alphaPairs, nonAlphaPairs) = idsMap.entries.partition { it.value.matches(regex) }
-        val alphaMap = alphaPairs
-            .sortedBy { it.value.lowercase() } // sort alphabetically (case-insensitive)
-            .associate { it.toPair() }   // Contains names whose first character is a-z or A-Z
-        val nonAlphaMap = nonAlphaPairs
-            .sortedBy { it.value.lowercase() } // sort alphabetically (case-insensitive)
-            .associate { it.toPair() }   // Contains all the remaining items
+        var (alphaList, nonAlphaList) = libraryItems.partition { it.name.matches(regex) }
 
         // 2) ADD HEADERS:
         var letter = ""
         // First A-Z:
-        for (item in alphaMap) {
-            val curFirst = item.value.uppercase().first().toString()
+        for (item in alphaList) {
+            val curFirst = item.name.uppercase().first().toString()
             // store letter header:
             if (curFirst != letter) {
-                letter = if (utils.isLetters(curFirst)) curFirst.uppercase() else "#"
-                fullStringList.add(libSectionIdentifier + letter)
+                letter = curFirst.uppercase()
+                fullList.add(
+                    LibraryItem(
+                        type = "header",
+                        name = letter
+                    )
+                )
             }
             // store item:
-            fullStringList.add(item.key.toString())
+            fullList.add(item)
         }
         // Then, non A-Z:
-        if (nonAlphaMap.isNotEmpty()) {
-            fullStringList.add(libSectionIdentifier + "#")
-            fullStringList.addAll(nonAlphaMap.keys.map { it.toString() } )
+        if (nonAlphaList.isNotEmpty()) {
+            fullList.add(
+                LibraryItem(
+                    type = "header",
+                    name = "#"
+                )
+            )
+            fullList.addAll(nonAlphaList )
         }
-        return fullStringList.toImmutableList()
+        return fullList.toImmutableList()
     }
 
     //Get aliases Map in format {"id": ["aliases", ...]}:

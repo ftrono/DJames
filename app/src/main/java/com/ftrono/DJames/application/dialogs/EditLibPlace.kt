@@ -126,8 +126,7 @@ fun EditLibPlace(
                     focusManager.clearFocus()
                 },
             title = filter,
-            headerColor = libColorSelectorLight(cat = filter),
-            headerPainter = libIconSelector(cat = filter),
+            cat = filter,
             showRefresh = false,
             showGo = true,
             onGo = {

@@ -320,7 +320,7 @@ fun SplitterSign(
             for (cat in libCats) {
                 SplitterCat(
                     head = cat,
-                    title = if (cat == "spotify") "Spotify" else "${utils.capitalizeWords(cat)}s",
+                    title = if (cat == "spotify") "Spotify links" else "${utils.capitalizeWords(cat)}s",
                     selected = currentCatState.value == cat,
                     isLandscape = isLandscape,
                     onNavClick = {

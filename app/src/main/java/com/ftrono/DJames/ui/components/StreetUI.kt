@@ -525,6 +525,15 @@ fun LibItemCard(
                         horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        //SOURCE ICON:
+                        Icon(
+                            modifier = Modifier
+                                .padding(end = 4.dp)
+                                .size(12.dp),
+                            painter = libIconSelector(source),
+                            contentDescription = type,
+                            tint = libColorSelector(source)
+                        )
                         //CAT ICON:
                         Icon(
                             modifier = Modifier
@@ -537,7 +546,7 @@ fun LibItemCard(
                         //CAT NAME:
                         Text(
                             modifier = Modifier
-                                .padding(start = 2.dp, end = 8.dp),
+                                .padding(end = 4.dp),
                             color = libColorSelectorLight(cat = type),
                             fontSize = 10.sp,
                             lineHeight = 12.sp,

@@ -17,7 +17,7 @@ DJames is supported by **Android >= 10**.
 
 **Version 3.0.a3 (v3 alpha) (2025-08-14)** - ChatManager finalized & ActionsExecutor re-adapted! Reworked Messages refresh, booleans, conv starters & starting, text states.
 
-**Version 3.0.a2 (v3 alpha) (2025-08-02)** - New FE, add isKeyboardOpen(). Fixed Messages leftovers deletion.
+**Version 3.0.a2 (v3 alpha) (2025-08-02)** - New v3 FE! Add isKeyboardOpen(). Fixed Messages leftovers deletion.
 
 **Version 3.0.a1 (v3 alpha) (2025-07-26)** - Init reworks for V3. Replaces Logs with Messages. Replaced History with Messages screen. Re-add Threads to VoiceQueryService.
 

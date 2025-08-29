@@ -69,18 +69,15 @@ fun getTextFieldColors(
 fun libColorSelector(
     cat: String
 ): Color {
-    if (cat == "spotify") {
-        return colorResource(id = R.color.colorAccentMid)
-    } else if (cat == "contact") {
-        return colorResource(id = R.color.greenSign)
-    } else if (cat == "playlist") {
-        return colorResource(id = R.color.yellowSign)
-    } else if (cat == "podcast") {
-        return colorResource(id = R.color.redSign)
-    } else if (cat == "place") {
-        return colorResource(id = R.color.brownSign)
-    } else {
-        return colorResource(id = R.color.blueSign)
+    return when (cat) {
+        "spotify" -> colorResource(id = R.color.colorAccentMid)
+        "artist" -> colorResource(id = R.color.blueSign)
+        "album" -> colorResource(id = R.color.violetSign)
+        "playlist" -> colorResource(id = R.color.yellowSign)
+        "podcast" -> colorResource(id = R.color.redSign)
+        "contact" -> colorResource(id = R.color.greenSign)
+        "place" -> colorResource(id = R.color.brownSign)
+        else -> colorResource(id = R.color.midfaded_grey)
     }
 }
 
@@ -89,18 +86,15 @@ fun libColorSelector(
 fun libColorSelectorLight(
     cat: String
 ): Color {
-    if (cat == "spotify") {
-        return colorResource(id = R.color.colorAccentMid)
-    } else if (cat == "contact") {
-        return colorResource(id = R.color.greenSignLight)
-    } else if (cat == "playlist") {
-        return colorResource(id = R.color.yellowSignLight)
-    } else if (cat == "podcast") {
-        return colorResource(id = R.color.redSignLight)
-    } else if (cat == "place") {
-        return colorResource(id = R.color.brownSignLight)
-    } else {
-        return colorResource(id = R.color.blueSignLight)
+    return when (cat) {
+        "spotify" -> colorResource(id = R.color.colorAccentMid)
+        "artist" -> colorResource(id = R.color.blueSignLight)
+        "album" -> colorResource(id = R.color.violetSign)
+        "playlist" -> colorResource(id = R.color.yellowSignLight)
+        "podcast" -> colorResource(id = R.color.redSignLight)
+        "contact" -> colorResource(id = R.color.greenSignLight)
+        "place" -> colorResource(id = R.color.brownSignLight)
+        else -> colorResource(id = R.color.mid_grey)
     }
 }
 
@@ -110,16 +104,13 @@ fun libColorSelectorLight(
 fun guideColorSelector(
     cat: String
 ): Color {
-    if (cat == "calls") {
-        return colorResource(id = R.color.greenSign)
-    } else if (cat == "messages") {
-        return colorResource(id = R.color.blueSign)
-    } else if (cat == "places") {
-        return colorResource(id = R.color.brownSign)
-    } else if (cat == "car") {
-        return colorResource(id = R.color.brownSign)
-    } else {
-        return colorResource(id = R.color.yellowSign)
+    return when (cat) {
+        "calls" -> colorResource(id = R.color.greenSign)
+        "messages" -> colorResource(id = R.color.blueSign)
+        "places" -> colorResource(id = R.color.brownSign)
+        "car" -> colorResource(id = R.color.brownSign)
+        "play" -> colorResource(id = R.color.yellowSign)
+        else -> colorResource(id = R.color.midfaded_grey)
     }
 }
 
@@ -128,16 +119,13 @@ fun guideColorSelector(
 fun guideColorSelectorLight(
     cat: String
 ): Color {
-    if (cat == "calls") {
-        return colorResource(id = R.color.greenSignLight)
-    } else if (cat == "messages") {
-        return colorResource(id = R.color.blueSignLight)
-    } else if (cat == "places") {
-        return colorResource(id = R.color.brownSignLight)
-    } else if (cat == "car") {
-        return colorResource(id = R.color.brownSignLight)
-    } else {
-        return colorResource(id = R.color.yellowSignLight)
+    return when (cat) {
+        "calls" -> colorResource(id = R.color.greenSignLight)
+        "messages" -> colorResource(id = R.color.blueSignLight)
+        "places" -> colorResource(id = R.color.brownSignLight)
+        "car" -> colorResource(id = R.color.brownSignLight)
+        "play" -> colorResource(id = R.color.yellowSignLight)
+        else -> colorResource(id = R.color.mid_grey)
     }
 }
 
@@ -147,16 +135,12 @@ fun guideColorSelectorLight(
 fun messagesColorSelector(
     cat: String
 ): Color {
-    if (cat == "CallRequest") {
-        return colorResource(id = R.color.greenSign)
-    } else if (cat == "MessageRequest") {
-        return colorResource(id = R.color.blueSign)
-    } else if (cat == "DriveRequest") {
-        return colorResource(id = R.color.brownSign)
-    } else if (cat.contains("Play")) {
-        return colorResource(id = R.color.yellowSign)
-    } else {
-        return colorResource(id = R.color.dark_grey)
+    return when {
+        cat == "CallRequest" -> colorResource(id = R.color.greenSign)
+        cat == "MessageRequest" -> colorResource(id = R.color.blueSign)
+        cat == "DriveRequest" -> colorResource(id = R.color.brownSign)
+        cat.contains("Play") -> colorResource(id = R.color.yellowSign)
+        else -> colorResource(id = R.color.dark_grey)
     }
 }
 
@@ -165,15 +149,11 @@ fun messagesColorSelector(
 fun messagesColorSelectorLight(
     cat: String
 ): Color {
-    if (cat == "CallRequest") {
-        return colorResource(id = R.color.greenSignLight)
-    } else if (cat == "MessageRequest") {
-        return colorResource(id = R.color.blueSignLight)
-    } else if (cat == "DriveRequest") {
-        return colorResource(id = R.color.brownSignLight)
-    } else if (cat.contains("Play")) {
-        return colorResource(id = R.color.yellowSignLight)
-    } else {
-        return colorResource(id = R.color.mid_grey)
+    return when {
+        cat == "CallRequest" -> colorResource(id = R.color.greenSignLight)
+        cat == "MessageRequest" -> colorResource(id = R.color.blueSignLight)
+        cat == "DriveRequest" -> colorResource(id = R.color.brownSignLight)
+        cat.contains("Play") -> colorResource(id = R.color.yellowSignLight)
+        else -> colorResource(id = R.color.mid_grey)
     }
 }

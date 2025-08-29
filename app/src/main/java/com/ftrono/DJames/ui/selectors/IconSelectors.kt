@@ -5,7 +5,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -19,18 +18,17 @@ import com.ftrono.DJames.R
 fun libIconSelector(
     cat: String
 ): Painter {
-    if (cat == "spotify") {
-        return painterResource(id = R.drawable.logo_spotify)
-    } else if (cat == "contact") {
-        return painterResource(id = R.drawable.sign_phone)
-    } else if (cat == "playlist") {
-        return painterResource(id = R.drawable.sign_disc)
-    } else if (cat == "podcast") {
-        return painterResource(id = R.drawable.sign_headphones)
-    } else if (cat == "place") {
-        return painterResource(id = R.drawable.sign_place)
-    } else {
-        return painterResource(id = R.drawable.sign_people)
+    return when (cat) {
+        "spotify" -> painterResource(R.drawable.logo_spotify)
+        "track" -> painterResource(R.drawable.icon_note)
+        "artist" -> painterResource(R.drawable.icon_people)
+        "album" -> painterResource(R.drawable.icon_disc)
+        "playlist" -> painterResource(R.drawable.icon_headphones)
+        "podcast" -> painterResource(R.drawable.icon_broadcast)
+        "episode" -> painterResource(R.drawable.icon_mic)
+        "contact" -> painterResource(R.drawable.icon_phone)
+        "place" -> painterResource(R.drawable.icon_place)
+        else -> painterResource(R.drawable.icon_help)
     }
 }
 
@@ -40,16 +38,13 @@ fun libIconSelector(
 fun guideIconSelector(
     cat: String
 ): Painter {
-    if (cat == "calls") {
-        return painterResource(id = R.drawable.sign_phone)
-    } else if (cat == "messages") {
-        return painterResource(id = R.drawable.sign_message)
-    } else if (cat == "places") {
-        return painterResource(id = R.drawable.sign_place)
-    } else if (cat == "car") {
-        return painterResource(id = R.drawable.icon_car)
-    } else {
-        return painterResource(id = R.drawable.sign_headphones)
+    return when (cat) {
+        "calls" -> painterResource(R.drawable.icon_phone)
+        "messages" -> painterResource(R.drawable.icon_message)
+        "places" -> painterResource(R.drawable.icon_place)
+        "car" -> painterResource(R.drawable.icon_car)
+        "play" -> painterResource(R.drawable.icon_headphones)
+        else -> painterResource(R.drawable.icon_help)
     }
 }
 
@@ -59,16 +54,12 @@ fun guideIconSelector(
 fun messagesIconSelector(
     cat: String
 ): Painter {
-    if (cat == "CallRequest") {
-        return painterResource(id = R.drawable.sign_phone)
-    } else if (cat == "MessageRequest") {
-        return painterResource(id = R.drawable.sign_message)
-    } else if (cat == "DriveRequest") {
-        return painterResource(id = R.drawable.sign_place)
-    } else if (cat.contains("Play")) {
-        return painterResource(id = R.drawable.sign_headphones)
-    } else {
-        return painterResource(id = R.drawable.sign_help)
+    return when {
+        cat == "CallRequest" -> painterResource(R.drawable.icon_phone)
+        cat == "MessageRequest" -> painterResource(R.drawable.icon_message)
+        cat == "DriveRequest" -> painterResource(R.drawable.icon_place)
+        cat.contains("Play") -> painterResource(R.drawable.icon_headphones)
+        else -> painterResource(R.drawable.icon_help)
     }
 }
 
@@ -77,15 +68,11 @@ fun messagesIconSelector(
 fun actionsIconSelector(
     cat: String
 ): ImageVector {
-    if (cat == "CallRequest") {
-        return Icons.Default.Call
-    } else if (cat == "MessageRequest") {
-        return Icons.Default.Edit
-    } else if (cat == "DriveRequest") {
-        return Icons.AutoMirrored.Filled.ArrowForward
-    } else if (cat.contains("Play")) {
-        return Icons.Default.PlayArrow
-    } else {
-        return Icons.AutoMirrored.Filled.ArrowForward
+    return when {
+        cat == "CallRequest" -> Icons.Default.Call
+        cat == "MessageRequest" -> Icons.Default.Edit
+        cat == "DriveRequest" -> Icons.AutoMirrored.Filled.ArrowForward
+        cat.contains("Play") -> Icons.Default.PlayArrow
+        else -> Icons.AutoMirrored.Filled.ArrowForward
     }
 }

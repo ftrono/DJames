@@ -8,10 +8,10 @@ sealed class NavigationItem(
     var title: String) {
 
     //MAIN NAV:
-    object Home : NavigationItem("home", R.drawable.nav_home, "Home")
-    object Guide : NavigationItem("guide", R.drawable.sign_info, "Guide")
-    object Library : NavigationItem("library", R.drawable.nav_star, "Saved")
-    object Messages : NavigationItem("messages", R.drawable.sign_message, "Messages")
+    object Home : NavigationItem("home", R.drawable.icon_home, "Home")
+    object Guide : NavigationItem("guide", R.drawable.icon_info, "Guide")
+    object Library : NavigationItem("library", R.drawable.icon_star, "Saved")
+    object Messages : NavigationItem("messages", R.drawable.icon_message, "Messages")
     //SETTINGS:
-    object Settings : NavigationItem("settings", R.drawable.item_settings, "Preferences")
+    object Settings : NavigationItem("settings", R.drawable.icon_settings, "Preferences")
 }

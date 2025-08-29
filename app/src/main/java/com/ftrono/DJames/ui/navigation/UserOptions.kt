@@ -2,15 +2,8 @@ package com.ftrono.DJames.ui.navigation
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -18,11 +11,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.coroutineScope
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavController
@@ -92,7 +83,7 @@ fun UserOptions(
                 //1) Item: PREFERENCES
                 OptionsItem(
                     title = "Preferences",
-                    iconPainter = painterResource(id = R.drawable.item_settings),
+                    iconPainter = painterResource(id = R.drawable.icon_settings),
                     onClick = {
                         //Navigate:
                         val curNavRoute = NavigationItem.Settings.route
@@ -108,7 +99,7 @@ fun UserOptions(
                 //2) Item: LOGIN/LOGOUT
                 OptionsItem(
                     title = if (!spotifyLoggedInState!!) "Login to Spotify" else "Logout from Spotify",
-                    iconPainter = painterResource(id = R.drawable.item_user),
+                    iconPainter = painterResource(id = R.drawable.icon_user),
                     onClick = {
                         if (!spotifyLoggedInState!!) {
                             //Login user -> Open WebView:

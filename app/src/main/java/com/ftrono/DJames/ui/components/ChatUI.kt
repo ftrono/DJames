@@ -144,7 +144,7 @@ fun ConvStarterBubble(
                         modifier = Modifier
                             .padding(start = 4.dp)
                             .size(12.dp),
-                        painter = if (message.fromVoice) painterResource(R.drawable.icon_speak) else painterResource(R.drawable.sign_message),
+                        painter = if (message.fromVoice) painterResource(R.drawable.icon_speak) else painterResource(R.drawable.icon_message),
                         tint = colorResource(R.color.black),
                         contentDescription = "More"
                     )

@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -193,7 +192,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     .padding(top=8.dp, end=8.dp, bottom=4.dp),
                 title = "Overlay button",
                 signColor = colorResource(id = R.color.greenSign),
-                iconPainter = painterResource(id = R.drawable.sign_touch)
+                iconPainter = painterResource(id = R.drawable.icon_touch)
             ) {
 
                 //Auto Startup:
@@ -428,7 +427,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     .padding(end=8.dp, top=16.dp, bottom=4.dp),
                 title = "Messaging",
                 signColor = colorResource(id = R.color.blueSign),
-                iconPainter = painterResource(id = R.drawable.sign_message)
+                iconPainter = painterResource(id = R.drawable.icon_message)
             ) {
 
                 //Mess language:
@@ -556,7 +555,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     .padding(end=8.dp, top=16.dp, bottom=4.dp),
                 title = "Places",
                 signColor = colorResource(id = R.color.brownSign),
-                iconPainter = painterResource(id = R.drawable.sign_place)
+                iconPainter = painterResource(id = R.drawable.icon_place)
             ) {
 
                 //Places language:
@@ -732,7 +731,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     .padding(end=8.dp, top=16.dp, bottom=4.dp),
                 title = "Advanced",
                 signColor = colorResource(id = R.color.redSign),
-                iconPainter = painterResource(id = R.drawable.sign_warning)
+                iconPainter = painterResource(id = R.drawable.icon_warning)
             ) {
 
                 //VolumeUp enabled:

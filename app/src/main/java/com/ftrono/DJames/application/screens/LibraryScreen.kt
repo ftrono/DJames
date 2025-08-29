@@ -551,7 +551,7 @@ fun LibItem(
             ),
             source = item.source,
             type = item.type,
-            title = utils.trimString(item.name, 24),
+            title = utils.trimString(item.name, 20),
             subtitle = utils.trimString(libUtils.getDetail(item), 16),
             imageUrl = if (preview) "" else item.imageUrl,
             onClick = {

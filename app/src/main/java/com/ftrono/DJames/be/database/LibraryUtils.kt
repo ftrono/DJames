@@ -200,7 +200,7 @@ class LibraryUtils {
             "\"" + itemAliases.joinToString("\", \"") + "\""
         } else if (item.source == "contact") {
             item.phoneSet!!.phone
-        } else if (item.type == "podcast") {
+        } else if (item.type != "playlist" && item.type != "artist") {
             item.detail
         } else ""
     }

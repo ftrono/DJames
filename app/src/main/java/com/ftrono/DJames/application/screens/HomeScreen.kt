@@ -40,6 +40,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.ftrono.DJames.application.curNavId
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.extraOpen
@@ -93,7 +94,7 @@ fun HomeScreen(
     val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
 
     val sharedLinkState by sharedLink.observeAsState()
-    if (sharedLinkState != "") {
+    if (sharedLinkState != "" && curNavId != 0) {
         val curNavRoute = NavigationItem.Library.route
         navigateTo(navController, curNavRoute)
         lastNavRoute = curNavRoute

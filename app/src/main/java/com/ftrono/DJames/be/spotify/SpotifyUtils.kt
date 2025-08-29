@@ -9,7 +9,6 @@ import android.webkit.URLUtil
 import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import com.ftrono.DJames.application.ACTION_TOASTER
-import com.ftrono.DJames.application.addLinkOn
 import com.ftrono.DJames.application.albumUrlIntro
 import com.ftrono.DJames.application.artistUrlIntro
 import com.ftrono.DJames.application.currentTrackId
@@ -92,23 +91,21 @@ class SpotifyUtils {
     fun checkAndEditLib(
         context: Context,
         idState: MutableState<Long>,
-        addLinkState: MutableState<String>,
         currentCatState: MutableState<String>,
         currentSubCatState: MutableState<String>,
+        addLinkOnState: MutableState<Boolean>,
         editLibOn: MutableState<Boolean>,
-        loadingDialogOn: MutableState<Boolean>,
-        useParent: Boolean = false   //TODO
+        useParent: Boolean = false
     ) {
-        loadingDialogOn.value = true
-        var urlToCheck = if (sharedLink.value != "") sharedLink.value!!.trim() else (addLinkState.value)
+        var urlToCheck = sharedLink.value!!.replace(" ", "")
+        // sharedLink.postValue(urlToCheck)
         var goto = spotifyUtils.disambiguateSpotifyURL(urlToCheck)
         if (goto != "") {
-            addLinkOn.postValue(false)
+            addLinkOnState.value = false
             //Check extract parent:
-            if (useParent && goto == "track" || goto == "episode") {
+            if (useParent && (goto == "track" || goto == "episode")) {
                 val parentId = getParentIdFromChildUrl(context, goto, urlToCheck)
                 if (parentId == "") {
-                    loadingDialogOn.value = false
                     Toast.makeText(context, "Invalid Spotify link!", Toast.LENGTH_SHORT).show()
                     urlToCheck = ""
                 } else if (goto == "track") {
@@ -129,17 +126,14 @@ class SpotifyUtils {
                 val foundId = urlMap.getOrDefault(urlToCheck, -1L)
                 if (foundId > -1) {
                     idState.value = foundId
-                    loadingDialogOn.value = false
-                } else {
-                    addLinkState.value = urlToCheck
                 }
+                Log.d(TAG, "CHECK & EDIT URL: foundID: $foundId, useParent: $useParent, goto: $goto, URL: $urlToCheck")
+                addLinkOnState.value = false
                 editLibOn.value = true
             }
         } else {
-            loadingDialogOn.value = false
             Toast.makeText(context, "Invalid Spotify link!", Toast.LENGTH_SHORT).show()
         }
-        sharedLink.postValue("")
     }
 
 

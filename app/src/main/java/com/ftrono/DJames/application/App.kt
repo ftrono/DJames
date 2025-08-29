@@ -101,7 +101,6 @@ var clickCounter = MutableLiveData<Int>(0)
 var allowVolumeClick = true
 var userNicknameState = MutableLiveData<String>("")
 var spotUserImageState = MutableLiveData<String>("")
-var addLinkOn = MutableLiveData<Boolean>(false)
 var sharedLink = MutableLiveData<String>("")
 
 //Library & Messages:

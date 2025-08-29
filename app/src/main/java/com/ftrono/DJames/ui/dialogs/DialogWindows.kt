@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -31,8 +29,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -59,8 +59,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.showLoggingIn
+import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.ui.components.EditLibTitle
+import com.ftrono.DJames.ui.selectors.getSwitchColors
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
 import com.ftrono.DJames.ui.selectors.libColorSelector
 import com.ftrono.DJames.ui.selectors.libColorSelectorLight
@@ -146,7 +150,7 @@ fun DialogLoading(
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier
-                            .padding(end=16.dp)
+                            .padding(end = 16.dp)
                             .width(40.dp),
                         color = colorResource(id = R.color.light_grey),
                         trackColor = colorResource(id = R.color.dark_grey),
@@ -374,14 +378,14 @@ fun EditLibHeader(
 @Preview
 @Composable
 fun AddLinkDialogPreview() {
-    val textState = rememberSaveable { mutableStateOf("") }
+    val useParentState = rememberSaveable { mutableStateOf(false) }
     Dialog (
         onDismissRequest = {}
     ) {
         AddLinkDialog(
-            textState = textState,
             dialogHeader = "New",
-            textBoxHeader = "Save a link",
+            textBoxHeader = "Save a Spotify link",
+            useParentState = useParentState,
         )
     }
 }
@@ -390,14 +394,27 @@ fun AddLinkDialogPreview() {
 @Composable
 fun AddLinkDialog(
     modifier: Modifier = Modifier,
-    textState: MutableState<String>,
     cat: String = "spotify",   //TODO
     dialogHeader: String,
     textBoxHeader: String,
+    useParentState: MutableState<Boolean>,
     onDismiss: () -> Unit = {},
     onSave: () -> Unit = {}
 ) {
     val focusRequester = remember { FocusRequester() }
+    val textState = rememberSaveable { mutableStateOf(sharedLink.value!!) }
+    val checkboxDescription = rememberSaveable { mutableStateOf("") }
+
+    LaunchedEffect(textState.value) {
+        if (textState.value.contains("/track/")) {
+            checkboxDescription.value = "Save Artist instead"
+        } else if (textState.value.contains("/episode/")) {
+            checkboxDescription.value = "Save Podcast instead"
+        } else {
+            checkboxDescription.value = ""
+            useParentState.value = false
+        }
+    }
 
     //MAIN:
     Dialog(
@@ -417,7 +434,10 @@ fun AddLinkDialog(
             title = dialogHeader,
             cat = cat,
             onDismiss = onDismiss,
-            onSave = onSave,
+            onSave = {
+                sharedLink.postValue(spotifyUtils.extractUrl(textState.value))
+                onSave()
+             },
             smallHeader = false,
             showRefresh = false,
         ) {
@@ -428,12 +448,12 @@ fun AddLinkDialog(
 
             OutlinedTextField(
                 modifier = Modifier
-                    .padding(top = 8.dp, bottom = 20.dp)
+                    .padding(top = 8.dp, bottom = 12.dp)
                     .fillMaxWidth()
                     .focusRequester(focusRequester),
                 colors = getTextFieldColors(
-                    colorLight = colorResource(id = R.color.mid_grey),
-                    colorDark = colorResource(id = R.color.faded_grey)
+                    colorLight = libColorSelectorLight("spotify"),
+                    colorDark = libColorSelector("spotify")
                 ),
                 value = textState.value,
                 textStyle = TextStyle(
@@ -444,6 +464,7 @@ fun AddLinkDialog(
                 ),
                 keyboardActions = KeyboardActions(
                     onDone = {
+                        sharedLink.postValue(spotifyUtils.extractUrl(textState.value))
                         onSave()
                     }
                 ),
@@ -458,6 +479,35 @@ fun AddLinkDialog(
                     textState.value = newText
                 }
             )
+
+            //Use parent:
+            if (checkboxDescription.value != "") {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = checkboxDescription.value,
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Switch(
+                        checked = useParentState.value,
+                        colors = getSwitchColors(
+                            color = libColorSelector(cat = cat),
+                        ),
+                        onCheckedChange = {
+                            //UPDATE:
+                            useParentState.value = it
+                        }
+                    )
+                }
+            }
         }
     }
 }

@@ -53,7 +53,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.addLinkOn
 import com.ftrono.DJames.application.curLibrarySize
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
@@ -106,7 +105,8 @@ fun LibraryScreen(
     val currentCatState = rememberSaveable { mutableStateOf(libCats[0]) }
     val currentSubCatState = rememberSaveable { mutableStateOf("") }
     val sharedLinkState by sharedLink.observeAsState()
-    val addLinkState = rememberSaveable { mutableStateOf(sharedLinkState!!) }
+    val addLinkOn = rememberSaveable { mutableStateOf(false) }
+    val useParentState = rememberSaveable { mutableStateOf(false) }
 
     val snapshot = rememberSaveable { mutableStateOf(0L) }
     val curLibrarySizeState by curLibrarySize.observeAsState()
@@ -119,26 +119,18 @@ fun LibraryScreen(
     val editLibOn = rememberSaveable { mutableStateOf(editPreview != "") }
     var editCat = if (editPreview != "") editPreview else if (editLibOn.value) currentCatState.value else ""
 
-    val loadingDialogOn = rememberSaveable { mutableStateOf(false) }
-    if (loadingDialogOn.value) {
-        DialogLoading(
-            text = "Getting link information..."
-        )
-    }
-
     if (editLibOn.value) {
         if (editCat == "spotify") {
             EditLibSpotify(
                 context = mContext,
                 snapshot = snapshot,
+                addLinkOnState = addLinkOn,
                 idState = idState,
-                initLinkState = addLinkState,
-                loadingDialogOn = loadingDialogOn,
                 onDismiss = {
                     //cancelable -> true
+                    addLinkOn.value = false
                     editLibOn.value = false
                     idState.value = -1
-                    addLinkState.value = ""
                     sharedLink.postValue("")
                 },
                 preview = preview
@@ -152,8 +144,6 @@ fun LibraryScreen(
                     //cancelable -> true
                     editLibOn.value = false
                     idState.value = -1
-                    addLinkState.value = ""
-                    sharedLink.postValue("")
                 },
                 preview = preview
             )
@@ -166,41 +156,42 @@ fun LibraryScreen(
                     //cancelable -> true
                     editLibOn.value = false
                     idState.value = -1
-                    addLinkState.value = ""
-                    sharedLink.postValue("")
                 },
                 preview = preview
             )
         }
     }
 
-    val addLinkOnState by addLinkOn.observeAsState()
-    if (addLinkOnState!!) {
+    if (sharedLinkState != "" && !addLinkOn.value) {
+        addLinkOn.value = true
+    }
+
+    if (addLinkOn.value) {
         AddLinkDialog(
-            textState = addLinkState,
             dialogHeader = "New",
             textBoxHeader = "Save a Spotify link",
             cat = "spotify",   //TODO
+            useParentState = useParentState,
             onDismiss = {
                 //cancelable -> true
-                addLinkOn.postValue(false)
                 idState.value = -1
-                addLinkState.value = ""
+                useParentState.value = false
                 sharedLink.postValue("")
+                addLinkOn.value = false
             },
             onSave = {
                 //TODO: Spotify only!
-                addLinkState.value = spotifyUtils.extractUrl(addLinkState.value)
                 Toast.makeText(mContext, "Extracting link info...", Toast.LENGTH_LONG).show()
                 spotifyUtils.checkAndEditLib(
                     context = mContext,
                     idState = idState,
-                    addLinkState = addLinkState,
                     currentCatState = currentCatState,
                     currentSubCatState = currentSubCatState,
+                    useParent = useParentState.value,
+                    addLinkOnState = addLinkOn,
                     editLibOn = editLibOn,
-                    loadingDialogOn = loadingDialogOn
                 )
+                useParentState.value = false
                 snapshot.value = utils.getCurrentTimestamp()   //Refresh list
             }
         )
@@ -208,22 +199,6 @@ fun LibraryScreen(
 
     var mDisplayMainMenu = rememberSaveable {
         mutableStateOf(false)
-    }
-
-    if (sharedLinkState != "") {
-        // TODO: Spotify only!
-        Toast.makeText(mContext, "Extracting link info...", Toast.LENGTH_LONG).show()
-        spotifyUtils.checkAndEditLib(
-            context = mContext,
-            idState = idState,
-            addLinkState = addLinkState,
-            currentCatState = currentCatState,
-            currentSubCatState = currentSubCatState,
-            editLibOn = editLibOn,
-            loadingDialogOn = loadingDialogOn
-        )
-        snapshot.value = utils.getCurrentTimestamp()   //Refresh list
-
     }
 
     //SCREEN:
@@ -308,7 +283,7 @@ fun LibraryScreen(
                     if (currentCatState.value == "contact" || currentCatState.value == "place") {
                         editLibOn.value = true
                     } else {
-                        addLinkOn.postValue(true)
+                        addLinkOn.value = true
                     }
                 }
             )
@@ -420,7 +395,6 @@ fun LibSectionContent(
 
     // When snapshot changes, reload data
     LaunchedEffect(snapshot.value) {
-        Log.d("LibScreen", "SNAPSHOT CHANGED")
         libraryItems = libUtils.refreshLibrary(currentCatState.value, currentSubCatState.value, preview)
     }
 

@@ -203,13 +203,13 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
+                        modifier = Modifier.weight(1f),
                         text = "Start Overlay when app is opened",
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(Modifier.weight(1f))
                     Switch(
                         checked = checkedStartup.value,
                         colors = getSwitchColors(
@@ -277,6 +277,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
+                        modifier = Modifier.weight(1f),
                         text = "Voice queries: enable v3 (alpha)",
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
@@ -284,7 +285,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         lineHeight = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(Modifier.weight(1f))
                     Switch(
                         checked = checkedV3.value,
                         colors = getSwitchColors(
@@ -367,6 +367,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
+                        modifier = Modifier.weight(1f),
                         text = "Voice queries: Stop recording\nwhen silence is detected",
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
@@ -374,7 +375,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         lineHeight = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(Modifier.weight(1f))
                     Switch(
                         checked = checkedSilenceQueries.value,
                         colors = getSwitchColors(
@@ -527,6 +527,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
+                        modifier = Modifier.weight(1f),
                         text = "Messages: Stop recording\nwhen silence is detected",
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
@@ -534,7 +535,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         lineHeight = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(Modifier.weight(1f))
                     Switch(
                         checked = checkedSilenceMess.value,
                         colors = getSwitchColors(
@@ -599,6 +599,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
+                        modifier = Modifier.weight(1f),
                         text = "Show Clock screen when Overlay\nis started",
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
@@ -606,7 +607,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         lineHeight = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(Modifier.weight(1f))
                     Switch(
                         checked = checkedAutoClock.value,
                         colors = getSwitchColors(
@@ -630,7 +630,8 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     Column(
                         modifier = Modifier
                             .padding(top = 12.dp)
-                            .offset(y = -(8.dp)),
+                            .offset(y = -(8.dp))
+                            .weight(1F),
                         verticalArrangement = Arrangement.Top,
                         horizontalAlignment = Alignment.Start
                     ) {
@@ -649,7 +650,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             lineHeight = 16.sp
                         )
                     }
-                    Spacer(Modifier.weight(1f))
                     Switch(
                         checked = checkedClockRedirect.value,
                         colors = getSwitchColors(
@@ -744,7 +744,8 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     Column(
                         modifier = Modifier
                             .padding(top = 12.dp)
-                            .offset(y = -(8.dp)),
+                            .offset(y = -(8.dp))
+                            .weight(1F),
                         verticalArrangement = Arrangement.Top,
                         horizontalAlignment = Alignment.Start
                     ) {
@@ -763,7 +764,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             lineHeight = 16.sp
                         )
                     }
-                    Spacer(Modifier.weight(1f))
                     Switch(
                         checked = checkedVolumeEnabled.value,
                         colors = getSwitchColors(

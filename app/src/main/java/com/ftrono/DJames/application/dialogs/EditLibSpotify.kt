@@ -29,9 +29,12 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.aliasFieldDescription
+import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotIntroUrl
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.samples.defaultCollection
@@ -52,14 +55,14 @@ fun DialogEditSpotifyPreview() {
 fun EditLibSpotify(
     context: Context,
     snapshot: MutableState<Long>,
+    addLinkOnState: MutableState<Boolean>,
     idState: MutableState<Long>,
-    initLinkState: MutableState<String>,
-    loadingDialogOn: MutableState<Boolean>,
     onDismiss: () -> Unit = {},
     preview: Boolean = false
 ) {
     val focusRequester = remember { FocusRequester() }
     val mContext = LocalContext.current
+    val sharedLinkState by sharedLink.observeAsState()
     val linkExtractor = LinkExtractors()
     val isDefault = idState.value == -2L   //Default
 
@@ -83,10 +86,10 @@ fun EditLibSpotify(
         )
     }
 
-    if (initLinkState.value != "") {
-        itemSpotify.url = spotifyUtils.trimSpotifyUrl(initLinkState.value)
+    if (sharedLinkState != "") {
+        itemSpotify.url = spotifyUtils.trimSpotifyUrl(sharedLinkState!!)
         itemSpotify = linkExtractor.extractSpotifyInfo(mContext, itemSpotify, new=true)
-        loadingDialogOn.value = false
+        addLinkOnState.value = false
     }
 
     //Init aliases:
@@ -99,7 +102,7 @@ fun EditLibSpotify(
     val textDetail = rememberSaveable { mutableStateOf(itemSpotify.detail) }
     val textAliases = rememberSaveable { mutableStateOf(initAliases.joinToString(", ")) }
     val imageUrlState = rememberSaveable { mutableStateOf(itemSpotify.imageUrl) }
-    val textPlayUrl = rememberSaveable { mutableStateOf(if (initLinkState.value != "") initLinkState.value else itemSpotify.url) }
+    val textPlayUrl = rememberSaveable { mutableStateOf(if (sharedLinkState != "") sharedLinkState!! else itemSpotify.url) }
 
     val requestDetailOn = rememberSaveable { mutableStateOf(false) }
     if (requestDetailOn.value) {
@@ -136,7 +139,7 @@ fun EditLibSpotify(
                 },
             title = if (textType.value == "spotify") "${textType.value} link" else utils.capitalizeWords(textType.value),
             cat = "spotify",
-            subcat = textType.value,
+            subcat = if (textType.value == "spotify") "" else textType.value,
             showRefresh = !isDefault,
             onRefresh = {
                 Toast.makeText(mContext, "Refreshing info...", Toast.LENGTH_LONG).show()
@@ -153,6 +156,8 @@ fun EditLibSpotify(
             onSave = {
                 //CHECK & BUILD:
                 //1) Validate Spotify URL:
+                addLinkOnState.value = false
+                sharedLink.postValue("")
                 requestDetailOn.value = !textPlayUrl.value.replace(" ", "").contains(spotIntroUrl)
 
                 if (!requestDetailOn.value && textName.value != "") {

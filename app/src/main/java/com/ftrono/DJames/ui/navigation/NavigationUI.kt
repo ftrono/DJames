@@ -5,6 +5,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,10 +23,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -397,6 +401,84 @@ fun SplitterCat(
                     color = libColorSelectorLight(head),
                     maxLines = 1
                 )
+            }
+        }
+    }
+}
+
+
+// FILTERS ROW:
+@Composable
+fun FiltersRow(
+    snapshot: MutableState<Long>,
+    filters: List<String>,
+    currentState: MutableState<String>,
+) {
+    if (filters.size > 1) {
+        Row(
+            modifier = Modifier
+                .padding(start = 32.dp, end=24.dp, bottom = 8.dp),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // "ALL":
+            AssistChip(
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, colorResource(R.color.dark_grey)),
+                colors = AssistChipDefaults.assistChipColors(
+                    containerColor = if (currentState.value == "") {
+                        colorResource(R.color.midfaded_grey)
+                    } else {
+                        colorResource(R.color.windowBackground)
+                    }
+                ),
+                label = {
+                    Text(
+                        text = "All",
+                        fontSize = 12.sp,
+                        // fontWeight = FontWeight.Bold,
+                        color = colorResource(id = R.color.light_grey)
+                    )
+                },
+                onClick = {
+                    currentState.value = ""
+                    snapshot.value = utils.getCurrentTimestamp()   //Refresh list
+                }
+            )
+
+            //FILTERS:
+            Row(
+                modifier = Modifier
+                    .weight(1F)
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                for (filt in filters) {
+                    AssistChip(
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, colorResource(R.color.dark_grey)),
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = if (currentState.value == filt) {
+                                colorResource(R.color.midfaded_grey)
+                            } else {
+                                colorResource(R.color.windowBackground)
+                            }
+                        ),
+                        label = {
+                            Text(
+                                text = utils.capitalizeWords(filt + "s"),
+                                fontSize = 12.sp,
+                                // fontWeight = FontWeight.Bold,
+                                color = colorResource(id = R.color.light_grey)
+                            )
+                        },
+                        onClick = {
+                            currentState.value = filt
+                            snapshot.value = utils.getCurrentTimestamp()   //Refresh list
+                        }
+                    )
+                }
             }
         }
     }

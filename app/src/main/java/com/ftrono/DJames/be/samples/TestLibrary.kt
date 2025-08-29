@@ -100,9 +100,46 @@ val testLibrary = listOf<LibraryItem>(
         language = "it",
     ),
 
-    // LOCAL - CONTACTS:
+    // SPOTIFY - ALBUMS:
     LibraryItem(
         id = 10,
+        source = "spotify",
+        type = "album",
+        name = "No Sound Without Silence",
+        aliases = mutableListOf("no sound without silence"),
+        detail = "The Script",
+        url = "https://open.spotify.com/show/2lrRJEThluTsQVgEqCeR9X",
+        imageUrl = "https://i.scdn.co/image/ab6765630000ba8aaaea81d4152fb611170f0f7f",
+    ),
+
+    // SPOTIFY - TRACKS:
+    LibraryItem(
+        id = 11,
+        source = "spotify",
+        type = "track",
+        name = "Listen",
+        aliases = mutableListOf("listen"),
+        detail = "Tears For Fears",
+        url = "https://open.spotify.com/show/2lrRJEThluTsQVgEqCeR9X",
+        imageUrl = "https://i.scdn.co/image/ab6765630000ba8aaaea81d4152fb611170f0f7f",
+    ),
+
+    // SPOTIFY - EPISODES:
+    LibraryItem(
+        id = 12,
+        source = "spotify",
+        type = "episode",
+        name = "Notizie: la BCE e i tassi - Ep 10",
+        aliases = mutableListOf("3 fattori"),
+        detail = "3 Fattori",
+        url = "https://open.spotify.com/show/2lrRJEThluTsQVgEqCeR9X",
+        imageUrl = "https://i.scdn.co/image/ab6765630000ba8aaaea81d4152fb611170f0f7f",
+        language = "it",
+    ),
+
+    // LOCAL - CONTACTS:
+    LibraryItem(
+        id = 13,
         source = "contact",
         type = "contact",
         name = "Amal",
@@ -114,7 +151,7 @@ val testLibrary = listOf<LibraryItem>(
         ),
     ),
     LibraryItem(
-        id = 11,
+        id = 14,
         source = "contact",
         type = "contact",
         name = "Mammut",
@@ -126,7 +163,7 @@ val testLibrary = listOf<LibraryItem>(
         ),
     ),
     LibraryItem(
-        id = 12,
+        id = 15,
         source = "contact",
         type = "contact",
         name = "Rick",
@@ -140,7 +177,7 @@ val testLibrary = listOf<LibraryItem>(
 
     // MAPS - PLACES:
     LibraryItem(
-        id = 13,
+        id = 16,
         source = "place",
         type = "place",
         name = "Casa Amal",
@@ -156,7 +193,7 @@ val testLibrary = listOf<LibraryItem>(
         ),
     ),
     LibraryItem(
-        id = 14,
+        id = 17,
         source = "place",
         type = "place",
         name = "Links Academy",
@@ -172,7 +209,7 @@ val testLibrary = listOf<LibraryItem>(
         ),
     ),
     LibraryItem(
-        id = 15,
+        id = 18,
         source = "place",
         type = "place",
         name = "Links Scotellaro",

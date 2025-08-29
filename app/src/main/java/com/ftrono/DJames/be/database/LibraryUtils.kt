@@ -7,8 +7,8 @@ import com.ftrono.DJames.application.curLibrarySize
 import com.ftrono.DJames.application.gMapsLinkFormat
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.libCats
-import com.ftrono.DJames.application.libSubcats
 import com.ftrono.DJames.application.libraryBox
+import com.ftrono.DJames.application.sourceToCatMap
 import com.ftrono.DJames.be.samples.testLibrary
 import io.objectbox.Property
 import io.objectbox.query.QueryBuilder.StringOrder
@@ -79,6 +79,19 @@ class LibraryUtils {
         } catch (e: Exception) {
             Log.w(TAG, "ERROR: cannot count ${filter}s! ", e)
             return 0
+        }
+    }
+
+    //GET SUBCATS PRESENT IN DB:
+    fun getSubcats(cat: String, preview: Boolean = false): List<String> {
+        if (preview) {
+            return sourceToCatMap[cat]!!
+        } else {
+            return libraryBox!!.query(LibraryItem_.source.equal(cat))
+                .build()
+                .property(LibraryItem_.type)
+                .distinct()
+                .findStrings().toList().sorted()
         }
     }
 
@@ -318,7 +331,8 @@ class LibraryUtils {
             try {
                 if (cat == "spotify") {
                     File(context.cacheDir, getExportFileName(cat)).delete()
-                    for (subcat in libSubcats) {
+                    val subcats = sourceToCatMap[cat]!!
+                    for (subcat in subcats) {
                         File(context.cacheDir, getExportFileName(cat, subcat)).delete()
                     }
                 } else {

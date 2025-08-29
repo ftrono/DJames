@@ -487,7 +487,7 @@ fun LibItemCard(
     val signBorderColor = colorResource(id = R.color.midfaded_grey)
     val signIconColor = colorResource(id = R.color.light_grey)
     val signIconPainter = libIconSelector(cat = type)
-    val circle = type != "playlist" && type != "podcast" && source != "place"
+    val circle = type == "artist" || source == "contact"
 
     Card(
         modifier = modifier

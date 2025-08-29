@@ -20,8 +20,8 @@
   <color name="orangeSignLight">#FF9C4B</color>
   <color name="brownSign">#7B4D31</color>
   <color name="brownSignLight">#CF8C63</color>
-  <color name="violetSign">#5D38E4</color>
-  <color name="violetSignLight">#8A6FEB</color>
+  <color name="violetSign">#3D3DDF</color>
+  <color name="violetSignLight">#8888EC</color>
   <color name="redSign">#7E0000</color>
   <color name="redSignLight">#FF6565</color>
   <color name="white">#ffffff</color>

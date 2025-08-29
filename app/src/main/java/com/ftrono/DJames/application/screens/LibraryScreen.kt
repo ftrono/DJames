@@ -7,9 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,8 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.List
@@ -32,8 +28,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -67,9 +61,7 @@ import com.ftrono.DJames.application.libCats
 import com.ftrono.DJames.application.dialogs.EditLibContact
 import com.ftrono.DJames.application.dialogs.EditLibPlace
 import com.ftrono.DJames.application.dialogs.EditLibSpotify
-import com.ftrono.DJames.application.libSubcats
 import com.ftrono.DJames.application.sharedLink
-import com.ftrono.DJames.application.sourceToCatMap
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
@@ -80,6 +72,7 @@ import com.ftrono.DJames.ui.components.LibItemCard
 import com.ftrono.DJames.ui.components.StreetUIScaffold
 import com.ftrono.DJames.ui.dialogs.AddLinkDialog
 import com.ftrono.DJames.ui.dialogs.DialogLoading
+import com.ftrono.DJames.ui.navigation.FiltersRow
 import com.ftrono.DJames.ui.navigation.SplitterSign
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
@@ -111,7 +104,7 @@ fun LibraryScreen(
     val idState = rememberSaveable { mutableStateOf<Long>(if (editPreview != "") 0L else -1L) }
     val nameState = rememberSaveable { mutableStateOf("") }
     val currentCatState = rememberSaveable { mutableStateOf(libCats[0]) }
-    val currentSubCatState = rememberSaveable { mutableStateOf(libSubcats[0]) }
+    val currentSubCatState = rememberSaveable { mutableStateOf("") }
     val sharedLinkState by sharedLink.observeAsState()
     val addLinkState = rememberSaveable { mutableStateOf(sharedLinkState!!) }
 
@@ -347,12 +340,6 @@ fun LibraryScreen(
                 }
             }
 
-            FiltersRow(
-                snapshot = snapshot,
-                currentCatState = currentCatState,
-                currentSubCatState = currentSubCatState,
-            )
-
             //CONTENT:
             LibSectionContent(
                 snapshot = snapshot,
@@ -367,80 +354,6 @@ fun LibraryScreen(
             )
         }
     }
-}
-
-
-// FILTERS ROW:
-@Composable
-fun FiltersRow(
-    snapshot: MutableState<Long>,
-    currentCatState: MutableState<String>,
-    currentSubCatState: MutableState<String>,
-) {
-    val filters = sourceToCatMap[currentCatState.value]!!
-    if (filters.size > 1) {
-        Row(
-            modifier = Modifier
-                .padding(start = 32.dp, end = 24.dp, bottom = 8.dp)
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // "ALL":
-            AssistChip(
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, colorResource(R.color.dark_grey)),
-                colors = AssistChipDefaults.assistChipColors(
-                    containerColor = if (currentSubCatState.value == "") {
-                        colorResource(R.color.midfaded_grey)
-                    } else {
-                        colorResource(R.color.windowBackground)
-                    }
-                ),
-                label = {
-                    Text(
-                        text = "All",
-                        fontSize = 12.sp,
-                        // fontWeight = FontWeight.Bold,
-                        color = colorResource(id = R.color.light_grey)
-                    )
-                },
-                onClick = {
-                    currentSubCatState.value = ""
-                    snapshot.value = utils.getCurrentTimestamp()   //Refresh list
-                }
-            )
-
-            //FILTERS:
-            for (filt in filters) {
-                AssistChip(
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, colorResource(R.color.dark_grey)),
-                    colors = AssistChipDefaults.assistChipColors(
-                        containerColor = if (currentSubCatState.value == filt) {
-                            colorResource(R.color.midfaded_grey)
-                        } else {
-                            colorResource(R.color.windowBackground)
-                        }
-                    ),
-                    label = {
-                        Text(
-                            text = utils.capitalizeWords(filt + "s"),
-                            fontSize = 12.sp,
-                            // fontWeight = FontWeight.Bold,
-                            color = colorResource(id = R.color.light_grey)
-                        )
-                    },
-                    onClick = {
-                        currentSubCatState.value = filt
-                        snapshot.value = utils.getCurrentTimestamp()   //Refresh list
-                    }
-                )
-            }
-        }
-    }
-
 }
 
 
@@ -500,71 +413,86 @@ fun LibSectionContent(
 ) {
 
     var libraryItems = libUtils.refreshLibrary(currentCatState.value, currentSubCatState.value, preview)
+    var subcatList = if (currentCatState.value == "spotify") libUtils.getSubcats(currentCatState.value, preview) else listOf()
 
     // When snapshot changes, reload data
     LaunchedEffect(snapshot) {
         libraryItems = libUtils.refreshLibrary(currentCatState.value, currentSubCatState.value, preview)
+        subcatList = if (currentCatState.value == "spotify") libUtils.getSubcats(currentCatState.value, preview) else listOf()
     }
 
     //CONTENT:
-    if (libraryItems.isEmpty()) {
-        //LIBRARY EMPTY:
-        Column(
-            modifier = Modifier
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        // FILTER ROW:
+        FiltersRow(
+            snapshot = snapshot,
+            filters = subcatList,
+            currentState = currentSubCatState,
+        )
+
+        if (libraryItems.isEmpty()) {
+            //LIBRARY EMPTY:
             Text(
                 modifier = Modifier
                     .fillMaxWidth(),
                 text = "No saved ${
-                    libUtils.getLibName(currentCatState.value, currentSubCatState.value, plural=true, lowercase=true)
+                    libUtils.getLibName(
+                        currentCatState.value,
+                        currentSubCatState.value,
+                        plural = true,
+                        lowercase = true
+                    )
                 }.\nTap on Add!",
                 textAlign = TextAlign.Center,
                 fontSize = 18.sp,
                 color = colorResource(id = R.color.mid_grey),
             )
-        }
-    } else {
-        //LIBRARY LIST:
-        LazyVerticalGrid(
-            modifier = Modifier
-                .padding(start = 32.dp, end = 24.dp, bottom = 12.dp)
-                .fillMaxSize(),
-            columns = GridCells.Fixed(if (isLandscape) 3 else 2),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            //ITEMS:
-            libraryItems.forEach { item ->
+        } else {
+            //LIBRARY LIST:
+            LazyVerticalGrid(
+                modifier = Modifier
+                    .padding(start = 32.dp, end = 24.dp, bottom = 12.dp)
+                    .fillMaxSize(),
+                columns = GridCells.Fixed(if (isLandscape) 3 else 2),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                //ITEMS:
+                libraryItems.forEach { item ->
 
-                if (item.type == "header") {
-                    //HEADER:
-                    item(
-                        span = { GridItemSpan(maxLineSpan) }
-                    ) {
-                        LibLetter(
-                            letter = item.name
-                        )
+                    if (item.type == "header") {
+                        //HEADER:
+                        item(
+                            span = { GridItemSpan(maxLineSpan) }
+                        ) {
+                            LibLetter(
+                                letter = item.name
+                            )
+                        }
+
+                    } else {
+                        //ITEM:
+                        item {
+                            LibItem(
+                                modifier = Modifier,
+                                idState = idState,
+                                nameState = nameState,
+                                item = item,
+                                editLibOn = editLibOn,
+                                deleteLibOn = deleteLibOn,
+                                preview = preview,
+                            )
+                            if (item == libraryItems.last()) Spacer(modifier = Modifier.padding(80.dp))
+                        }
                     }
 
-                } else {
-                    //ITEM:
-                    item {
-                        LibItem(
-                            modifier = Modifier,
-                            idState = idState,
-                            nameState = nameState,
-                            item = item,
-                            editLibOn = editLibOn,
-                            deleteLibOn = deleteLibOn,
-                            preview = preview,
-                        )
-                        if (item == libraryItems.last()) Spacer(modifier = Modifier.padding(80.dp))
-                    }
                 }
-
             }
         }
     }

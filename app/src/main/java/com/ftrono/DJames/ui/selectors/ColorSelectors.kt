@@ -77,7 +77,7 @@ fun libColorSelector(
         "podcast" -> colorResource(id = R.color.redSign)
         "contact" -> colorResource(id = R.color.greenSign)
         "place" -> colorResource(id = R.color.brownSign)
-        else -> colorResource(id = R.color.midfaded_grey)
+        else -> colorResource(id = R.color.faded_grey)
     }
 }
 
@@ -89,7 +89,7 @@ fun libColorSelectorLight(
     return when (cat) {
         "spotify" -> colorResource(id = R.color.colorAccentMid)
         "artist" -> colorResource(id = R.color.blueSignLight)
-        "album" -> colorResource(id = R.color.violetSign)
+        "album" -> colorResource(id = R.color.violetSignLight)
         "playlist" -> colorResource(id = R.color.yellowSignLight)
         "podcast" -> colorResource(id = R.color.redSignLight)
         "contact" -> colorResource(id = R.color.greenSignLight)

@@ -479,7 +479,7 @@ fun EditLibDynamicNameSection(
                     borderWidth = 2.0.dp,
                     iconPainter = libIconSelector(cat = filter),
                     imageUrl = if (preview) "" else imageUrlState.value,
-                    circle = filter != "playlist" && filter != "podcast" && filter != "place"
+                    circle = filter == "artist" || filter == "contact"
                 )
 
                 Column(

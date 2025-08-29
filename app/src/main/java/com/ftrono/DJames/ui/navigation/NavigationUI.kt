@@ -40,6 +40,7 @@ import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemColors
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -62,6 +63,7 @@ import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.navigationItems
 import com.ftrono.DJames.application.extraOpen
 import com.ftrono.DJames.application.libCats
+import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.selectors.libColorSelectorLight
@@ -411,9 +413,17 @@ fun SplitterCat(
 @Composable
 fun FiltersRow(
     snapshot: MutableState<Long>,
-    filters: List<String>,
-    currentState: MutableState<String>,
+    currentCatState: MutableState<String>,
+    currentSubCatState: MutableState<String>,
+    preview: Boolean = false,
 ) {
+    var filters = if (currentCatState.value == "spotify") libUtils.getSubcats(currentCatState.value, preview) else listOf()
+
+    // When snapshot changes, reload data
+    LaunchedEffect(snapshot.value) {
+        filters = if (currentCatState.value == "spotify") libUtils.getSubcats(currentCatState.value, preview) else listOf()
+    }
+
     if (filters.size > 1) {
         Row(
             modifier = Modifier
@@ -426,7 +436,7 @@ fun FiltersRow(
                 shape = RoundedCornerShape(12.dp),
                 border = BorderStroke(1.dp, colorResource(R.color.dark_grey)),
                 colors = AssistChipDefaults.assistChipColors(
-                    containerColor = if (currentState.value == "") {
+                    containerColor = if (currentSubCatState.value == "") {
                         colorResource(R.color.midfaded_grey)
                     } else {
                         colorResource(R.color.windowBackground)
@@ -441,7 +451,7 @@ fun FiltersRow(
                     )
                 },
                 onClick = {
-                    currentState.value = ""
+                    currentSubCatState.value = ""
                     snapshot.value = utils.getCurrentTimestamp()   //Refresh list
                 }
             )
@@ -459,7 +469,7 @@ fun FiltersRow(
                         shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.dp, colorResource(R.color.dark_grey)),
                         colors = AssistChipDefaults.assistChipColors(
-                            containerColor = if (currentState.value == filt) {
+                            containerColor = if (currentSubCatState.value == filt) {
                                 colorResource(R.color.midfaded_grey)
                             } else {
                                 colorResource(R.color.windowBackground)
@@ -474,7 +484,7 @@ fun FiltersRow(
                             )
                         },
                         onClick = {
-                            currentState.value = filt
+                            currentSubCatState.value = filt
                             snapshot.value = utils.getCurrentTimestamp()   //Refresh list
                         }
                     )

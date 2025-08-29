@@ -3,7 +3,9 @@ package com.ftrono.DJames.be.utils
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import com.ftrono.DJames.application.sourceToCatMap
 import com.ftrono.DJames.application.spotifyUtils
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.models.RawLinkPreview
 import kotlinx.coroutines.CoroutineScope
@@ -74,16 +76,48 @@ class LinkExtractors {
             }
             Log.d(TAG, "Description: ${linkPreview.description}")
             val descrSplits = linkPreview.description.split(" · ")
-            if (linkPreview.title == "") {
+
+            // Extract type:
+            val albumTypes = listOf("album", "single", "ep", "compilation")
+            var albumType = "n/a"
+            for (split in descrSplits) {
+                val splitOk = split.lowercase()
+                if (splitOk == "song") {
+                    updLibItem.type = "track"
+                    break
+                } else if (splitOk in sourceToCatMap["spotify"]!!) {
+                    updLibItem.type = splitOk
+                    break
+                } else if (splitOk in albumTypes) {
+                    updLibItem.type = "album"
+                    albumType = utils.capitalizeWords(splitOk)
+                    break
+                }
+            }
+            if (linkPreview.title == "" || updLibItem.type == "") {
                 Log.w(TAG, "ERROR: Could not extract info from Spotify!")
                 toastText = if (new) "Cannot extract link info!" else "Cannot refresh info now!"
                 Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
+                return@runBlocking initLibItem
+
+            } else {
+                updLibItem.name = linkPreview.title.split(" - $albumType by")[0]
+                updLibItem.detail = if (descrSplits.size > 1) {
+                    if (updLibItem.type == "album" || updLibItem.type == "track") {
+                        // Pos 0 -> artist name:
+                        descrSplits[0]
+                    } else if (updLibItem.type == "playlist" || updLibItem.type == "podcast") {
+                        // Pos 1 -> playlist owner or publisher:
+                        descrSplits[1]
+                    }  else {
+                        initLibItem.detail
+                    }
+                } else {
+                    initLibItem.detail
+                }
+                updLibItem.imageUrl = if (linkPreview.imageUrl != "") linkPreview.imageUrl else initLibItem.imageUrl
+                toastText = if (new) "Link info extracted!" else "Info refreshed!"
             }
-            updLibItem.type = descrSplits[0].lowercase()
-            updLibItem.name = if (linkPreview.title != "") linkPreview.title else initLibItem.name
-            updLibItem.detail = if (updLibItem.type != "artist" && descrSplits.size > 1) descrSplits[1] else initLibItem.detail
-            updLibItem.imageUrl = if (linkPreview.imageUrl != "") linkPreview.imageUrl else initLibItem.imageUrl
-            toastText = if (new) "Link info extracted!" else "Info refreshed!"
             Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
             return@runBlocking updLibItem
         }

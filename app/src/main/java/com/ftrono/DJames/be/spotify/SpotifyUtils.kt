@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.addLinkOn
+import com.ftrono.DJames.application.albumUrlIntro
 import com.ftrono.DJames.application.artistUrlIntro
 import com.ftrono.DJames.application.currentTrackId
 import com.ftrono.DJames.application.episodeUrlIntro
@@ -69,6 +70,9 @@ class SpotifyUtils {
             urlTest && url.contains(artistUrlIntro)
         ) "artist"
         else if (
+            urlTest && url.contains(albumUrlIntro)
+        ) "album"
+        else if (
             urlTest && url.contains(playlistUrlIntro)
         ) "playlist"
         else if (
@@ -89,9 +93,11 @@ class SpotifyUtils {
         context: Context,
         idState: MutableState<Long>,
         addLinkState: MutableState<String>,
+        currentCatState: MutableState<String>,
         currentSubCatState: MutableState<String>,
         editLibOn: MutableState<Boolean>,
-        loadingDialogOn: MutableState<Boolean>
+        loadingDialogOn: MutableState<Boolean>,
+        useParent: Boolean = false   //TODO
     ) {
         loadingDialogOn.value = true
         var urlToCheck = if (sharedLink.value != "") sharedLink.value!!.trim() else (addLinkState.value)
@@ -99,11 +105,11 @@ class SpotifyUtils {
         if (goto != "") {
             addLinkOn.postValue(false)
             //Check extract parent:
-            if (goto == "track" || goto == "episode") {
+            if (useParent && goto == "track" || goto == "episode") {
                 val parentId = getParentIdFromChildUrl(context, goto, urlToCheck)
                 if (parentId == "") {
                     loadingDialogOn.value = false
-                    Toast.makeText(context, "Invalid Spotify Artist, Playlist or Podcast link!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Invalid Spotify link!", Toast.LENGTH_SHORT).show()
                     urlToCheck = ""
                 } else if (goto == "track") {
                     goto = "artist"
@@ -116,7 +122,8 @@ class SpotifyUtils {
             }
             if (urlToCheck != "") {
                 //Go to right Edit Lib dialog:
-                currentSubCatState.value = goto
+                currentCatState.value = "spotify"
+                currentSubCatState.value = ""
 
                 val urlMap = libUtils.getUrlMap(goto)
                 val foundId = urlMap.getOrDefault(urlToCheck, -1L)
@@ -130,7 +137,7 @@ class SpotifyUtils {
             }
         } else {
             loadingDialogOn.value = false
-            Toast.makeText(context, "Invalid Spotify Artist, Playlist or Podcast link!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Invalid Spotify link!", Toast.LENGTH_SHORT).show()
         }
         sharedLink.postValue("")
     }

@@ -96,12 +96,12 @@ class LibraryUtils {
         if (preview) {
             return sourceToCatMap[cat]!!
         } else {
-            val libCats = mutableListOf<String>()
-                libraryBox!!.query(LibraryItem_.source.equal(cat))
+            var libCats = mutableListOf<String>()
+            libCats.addAll(libraryBox!!.query(LibraryItem_.source.equal(cat))
                 .build()
                 .property(LibraryItem_.type)
                 .distinct()
-                .findStrings().toList()
+                .findStrings())
             if (!libCats.contains("playlist")) libCats.add("playlist")
             return libCats.sorted()
         }
@@ -275,6 +275,7 @@ class LibraryUtils {
         val detailStr = getLibName(cat, subcat, plural=true)
         try {
             var itemsToDelete = listOf<LibraryItem>()
+            // Keep these queries separate from getAll (don't need default Collection or preview items):
             if (subcat == "") {
                 itemsToDelete = libraryBox!!
                     .query(LibraryItem_.source.equal(cat))

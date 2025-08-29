@@ -196,6 +196,7 @@ fun LibraryScreen(
                     context = mContext,
                     idState = idState,
                     addLinkState = addLinkState,
+                    currentCatState = currentCatState,
                     currentSubCatState = currentSubCatState,
                     editLibOn = editLibOn,
                     loadingDialogOn = loadingDialogOn
@@ -216,6 +217,7 @@ fun LibraryScreen(
             context = mContext,
             idState = idState,
             addLinkState = addLinkState,
+            currentCatState = currentCatState,
             currentSubCatState = currentSubCatState,
             editLibOn = editLibOn,
             loadingDialogOn = loadingDialogOn
@@ -415,12 +417,11 @@ fun LibSectionContent(
 ) {
 
     var libraryItems = libUtils.refreshLibrary(currentCatState.value, currentSubCatState.value, preview)
-    var subcatList = if (currentCatState.value == "spotify") libUtils.getSubcats(currentCatState.value, preview) else listOf()
 
     // When snapshot changes, reload data
-    LaunchedEffect(snapshot) {
+    LaunchedEffect(snapshot.value) {
+        Log.d("LibScreen", "SNAPSHOT CHANGED")
         libraryItems = libUtils.refreshLibrary(currentCatState.value, currentSubCatState.value, preview)
-        subcatList = if (currentCatState.value == "spotify") libUtils.getSubcats(currentCatState.value, preview) else listOf()
     }
 
     //CONTENT:
@@ -434,8 +435,9 @@ fun LibSectionContent(
         // FILTER ROW:
         FiltersRow(
             snapshot = snapshot,
-            filters = subcatList,
-            currentState = currentSubCatState,
+            currentCatState = currentCatState,
+            currentSubCatState = currentSubCatState,
+            preview = preview,
         )
 
         if (libraryItems.isEmpty()) {

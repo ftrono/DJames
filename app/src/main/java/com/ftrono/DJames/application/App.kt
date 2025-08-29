@@ -184,6 +184,7 @@ val spotIntroUri = "spotify"   // spotify:<type>:<id>
 val spotIntroUrl = "https://open.spotify.com"   // .../<type>/<id>
 val trackUrlIntro = "https://open.spotify.com/track/"
 val artistUrlIntro = "https://open.spotify.com/artist/"
+val albumUrlIntro = "https://open.spotify.com/album/"
 val playlistUrlIntro = "https://open.spotify.com/playlist/"
 val showUrlIntro = "https://open.spotify.com/show/"
 val episodeUrlIntro = "https://open.spotify.com/episode/"

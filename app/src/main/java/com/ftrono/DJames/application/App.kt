@@ -124,6 +124,7 @@ var lastStarterId: Long = 0L
 var voiceConvStarted: Boolean = false   // avoids saving AI fallback messages after empty user voice messages
 
 //Preferences:
+val maxHistoryDays: Long = 15L
 val defaultChatResetTime: Long = 3*60*1000   //minutes
 val defaultChatWait = 2000L
 val maxAudioRecTimeout = 120L   //for voice messages

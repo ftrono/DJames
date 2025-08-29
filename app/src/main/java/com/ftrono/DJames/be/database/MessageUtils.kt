@@ -13,6 +13,7 @@ import com.ftrono.DJames.application.datetimeFullFormat
 import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.lastUserMessage
+import com.ftrono.DJames.application.maxHistoryDays
 import com.ftrono.DJames.application.messageBox
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.prefs
@@ -241,7 +242,7 @@ class MessageUtils {
     fun deleteOldMessages() {
         try {
             // Go back 30 days from now (in timestamp):
-            val daysInMillis = 30L * 24 * 60 * 60 * 1000
+            val daysInMillis = maxHistoryDays * 24 * 60 * 60 * 1000
             val thresholdTimestamp = System.currentTimeMillis() - daysInMillis
 
             // Filter items with id (timestamp) before threshold:

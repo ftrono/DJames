@@ -50,6 +50,7 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.allMessageIds
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
+import com.ftrono.DJames.application.maxHistoryDays
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.utils
@@ -139,7 +140,7 @@ fun MessagesScreen(
             StreetUITopBar(
                 pretitle = "",
                 title = "Messages",
-                subtitle = if (selectedMessageIds.isNotEmpty()) "Selected" else "Last 30 days",
+                subtitle = if (selectedMessageIds.isNotEmpty()) "Selected" else "Last $maxHistoryDays days",
                 showBack = true,
                 onBack = { navController.popBackStack() },
                 optionButtons = {

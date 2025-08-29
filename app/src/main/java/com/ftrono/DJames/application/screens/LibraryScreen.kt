@@ -113,7 +113,7 @@ fun LibraryScreen(
 
     val deleteLibOn = rememberSaveable { mutableStateOf(false) }
     if (deleteLibOn.value) {
-        DialogDeleteLibrary(mContext, deleteLibOn, snapshot, idState, nameState, cat=currentCatState.value, subcat=currentSubCatState.value)
+        DialogDeleteLibrary(mContext, deleteLibOn, snapshot, idState, nameState, currentCatState, currentSubCatState)
     }
 
     val editLibOn = rememberSaveable { mutableStateOf(editPreview != "") }
@@ -685,8 +685,8 @@ fun DialogDeleteLibrary(
     snapshot: MutableState<Long>,
     idState: MutableState<Long>,
     nameState: MutableState<String>,
-    cat: String,
-    subcat: String,
+    currentCatState: MutableState<String>,
+    currentSubCatState: MutableState<String>,
 ) {
     val id: Long = idState.value
     // DELETE DIALOG:
@@ -698,7 +698,7 @@ fun DialogDeleteLibrary(
             // if id == -1L -> no specific ID!
             Text(
                 text = if (id == -1L) {
-                    "Do you want to delete all saved ${libUtils.getLibName(cat, subcat, plural=true, lowercase=true)}?"
+                    "Do you want to delete all saved ${libUtils.getLibName(currentCatState.value, currentSubCatState.value, plural=true, lowercase=true)}?"
                 } else {
                     "Do you want to delete this saved item?\n\n${nameState.value}"
                 },
@@ -718,8 +718,9 @@ fun DialogDeleteLibrary(
                 libUtils.deleteLibItem(mContext, id)
             } else {
                 //Delete all:
-                libUtils.deleteLibrary(mContext, cat, subcat)
+                libUtils.deleteLibrary(mContext, currentCatState.value, currentSubCatState.value)
             }
+            currentSubCatState.value = ""
             snapshot.value = utils.getCurrentTimestamp()   //Refresh list
             dialogOnState.value = false
             idState.value = -1

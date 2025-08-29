@@ -104,9 +104,11 @@ fun LibraryScreen(
     val nameState = rememberSaveable { mutableStateOf("") }
     val currentCatState = rememberSaveable { mutableStateOf(libCats[0]) }
     val currentSubCatState = rememberSaveable { mutableStateOf("") }
+
     val sharedLinkState by sharedLink.observeAsState()
     val addLinkOn = rememberSaveable { mutableStateOf(false) }
     val useParentState = rememberSaveable { mutableStateOf(false) }
+    val extractedItemState = rememberSaveable { mutableStateOf("") }
 
     val snapshot = rememberSaveable { mutableStateOf(0L) }
     val curLibrarySizeState by curLibrarySize.observeAsState()
@@ -124,7 +126,7 @@ fun LibraryScreen(
             EditLibSpotify(
                 context = mContext,
                 snapshot = snapshot,
-                addLinkOnState = addLinkOn,
+                extractedItemState = extractedItemState,
                 idState = idState,
                 onDismiss = {
                     //cancelable -> true
@@ -132,6 +134,7 @@ fun LibraryScreen(
                     editLibOn.value = false
                     idState.value = -1
                     sharedLink.postValue("")
+                    extractedItemState.value = ""
                 },
                 preview = preview
             )
@@ -189,6 +192,7 @@ fun LibraryScreen(
                     currentSubCatState = currentSubCatState,
                     useParent = useParentState.value,
                     addLinkOnState = addLinkOn,
+                    extractedItemState = extractedItemState,
                     editLibOn = editLibOn,
                 )
                 useParentState.value = false

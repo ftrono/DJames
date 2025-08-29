@@ -200,6 +200,15 @@ class LibraryUtils {
         }
     }
 
+    // Search if URL already exists:
+    fun getItemIdWithUrl(url: String): Long {
+        val res = libraryBox!!.query(LibraryItem_.url.equal(url))
+            .build()
+            .property(LibraryItem_.id)
+            .findLong()
+        return res ?: -1L
+    }
+
     //Get detail:
     fun getDetail(item: LibraryItem): String {
         //Init aliases:

@@ -40,6 +40,9 @@ import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.samples.defaultCollection
 import com.ftrono.DJames.be.samples.testLibrary
 import com.ftrono.DJames.be.utils.LinkExtractors
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
 
 
 @Preview
@@ -55,7 +58,7 @@ fun DialogEditSpotifyPreview() {
 fun EditLibSpotify(
     context: Context,
     snapshot: MutableState<Long>,
-    addLinkOnState: MutableState<Boolean>,
+    extractedItemState: MutableState<String>,
     idState: MutableState<Long>,
     onDismiss: () -> Unit = {},
     preview: Boolean = false
@@ -68,28 +71,21 @@ fun EditLibSpotify(
 
     //Init:
     val id: Long = idState.value
+    var itemSpotify = LibraryItem(
+        source = "spotify",
+    )
 
     //Pre-populate:
-    var itemSpotify = if (idState.value == -2L) {
-        defaultCollection
+    if (idState.value == -2L) {
+        itemSpotify = defaultCollection
+    } else if (extractedItemState.value != "") {
+        itemSpotify = Json.decodeFromString<LibraryItem>(extractedItemState.value)
+        extractedItemState.value = ""
     } else if (preview) {
-//        LibraryItem(
-//            source = "spotify",
-//        )
         val filter = "artist"
-        testLibrary.filter{ it.type == filter && it.source == "spotify" }[0]
+        itemSpotify = testLibrary.filter{ it.type == filter && it.source == "spotify" }[0]
     } else if (id > -1) {
-        libUtils.getLibItemById(idState.value)
-    } else {
-        LibraryItem(
-            source = "spotify",
-        )
-    }
-
-    if (sharedLinkState != "") {
-        itemSpotify.url = spotifyUtils.trimSpotifyUrl(sharedLinkState!!)
-        itemSpotify = linkExtractor.extractSpotifyInfo(mContext, itemSpotify, new=true)
-        addLinkOnState.value = false
+        itemSpotify = libUtils.getLibItemById(idState.value)
     }
 
     //Init aliases:
@@ -156,7 +152,6 @@ fun EditLibSpotify(
             onSave = {
                 //CHECK & BUILD:
                 //1) Validate Spotify URL:
-                addLinkOnState.value = false
                 sharedLink.postValue("")
                 requestDetailOn.value = !textPlayUrl.value.replace(" ", "").contains(spotIntroUrl)
 

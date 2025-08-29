@@ -23,8 +23,12 @@ import com.ftrono.DJames.application.trackUrlIntro
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.models.HttpResponse
+import com.ftrono.DJames.be.utils.LinkExtractors
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
 
 
 class SpotifyUtils {
@@ -95,9 +99,10 @@ class SpotifyUtils {
         currentSubCatState: MutableState<String>,
         addLinkOnState: MutableState<Boolean>,
         editLibOn: MutableState<Boolean>,
+        extractedItemState: MutableState<String>,
         useParent: Boolean = false
     ) {
-        var urlToCheck = sharedLink.value!!.replace(" ", "")
+        var urlToCheck = trimSpotifyUrl(sharedLink.value!!)
         // sharedLink.postValue(urlToCheck)
         var goto = spotifyUtils.disambiguateSpotifyURL(urlToCheck)
         if (goto != "") {
@@ -122,10 +127,20 @@ class SpotifyUtils {
                 currentCatState.value = "spotify"
                 currentSubCatState.value = ""
 
-                val urlMap = libUtils.getUrlMap(goto)
-                val foundId = urlMap.getOrDefault(urlToCheck, -1L)
+                val foundId = libUtils.getItemIdWithUrl(urlToCheck)
                 if (foundId > -1) {
+                    // Link exists in DB!
                     idState.value = foundId
+                } else {
+                    // New link -> Extract info!
+                    val linkExtractor = LinkExtractors()
+                    var itemSpotify = LibraryItem(
+                        source = "spotify",
+                        url = urlToCheck
+                    )
+                    itemSpotify = linkExtractor.extractSpotifyInfo(context, itemSpotify, new=true)
+                    extractedItemState.value = Json.encodeToString<LibraryItem>(itemSpotify)
+                    sharedLink.postValue("")
                 }
                 Log.d(TAG, "CHECK & EDIT URL: foundID: $foundId, useParent: $useParent, goto: $goto, URL: $urlToCheck")
                 addLinkOnState.value = false

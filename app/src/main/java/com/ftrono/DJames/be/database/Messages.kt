@@ -44,26 +44,29 @@ data class SpotifyPlayable(
     var type: String = "",
     var id: String = "",
     var name: String = "",
+    //Playlists:
+    var owner: String = "",
+    //Other:
+    var saved: Boolean = false,
     //Artists:
     var artistsIds: MutableList<String> = mutableListOf<String>(),
     var artistsNames: MutableList<String> = mutableListOf<String>(),
     //Albums:
+    var albumId: String = "",
     var albumType: String = "",
     var albumName: String = "",
-    var albumId: String = "",
-    //Podcasts or custom:
-    var contextType: String = "",   // only if "playlist" or "podcast"
-    var contextUri: String = "",
-    var contextName: String = "",
     //Episodes:
+    var podcastId: String = "",
+    var podcastName: String = "",
     var publisher: String = "",
     var releaseDate: String = "",
     var languages: MutableList<String> = mutableListOf(""),
     var fullyPlayed: Boolean = false,
     var resumePositionMs: Int = 0,
-    //Various:
-    var owner: String = "",
-    var saved: Boolean = false,
+    //Context:
+    var contextType: String = "",   // only if "playlist" or "podcast"
+    var contextUri: String = "",
+    var contextName: String = "",
 )
 
 

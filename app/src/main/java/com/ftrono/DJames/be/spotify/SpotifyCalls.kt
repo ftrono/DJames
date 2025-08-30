@@ -48,40 +48,11 @@ class SpotifyCalls(private val context: Context) {
     }
 
 
-    //GET SPOTIFY TRACK:
-    fun getSpotifyTrack(id: String): HttpResponse {
-        var url = "https://api.spotify.com/v1/tracks/$id"
-
-        //Headers:
-        var jsonHeads = JsonObject()
-        jsonHeads.addProperty("Authorization", "Bearer ${prefs.spotifyToken}")
-
-        //GET REQUEST:
-        var response = query.querySpotify(type = "get", url = url, jsonHeads = jsonHeads)
-        Log.d(TAG, "getSpotifyTrack: response code: ${response.code}")
-        return response
-    }
-
-
-    //GET SPOTIFY ARTIST:
-    fun getSpotifyArtist(id: String): HttpResponse {
-        var url = "https://api.spotify.com/v1/artists/$id"
-
-        //Headers:
-        var jsonHeads = JsonObject()
-        jsonHeads.addProperty("Authorization", "Bearer ${prefs.spotifyToken}")
-
-        //GET REQUEST:
-        var response = query.querySpotify(type = "get", url = url, jsonHeads = jsonHeads)
-        Log.d(TAG, "getSpotifyArtist: response code: ${response.code}")
-        return response
-    }
-
-
-    //GET SPOTIFY PLAYLIST:
-    fun getSpotifyPlaylist(id: String, detailsOnly: Boolean): HttpResponse {
-        var url = "https://api.spotify.com/v1/playlists/$id"
-        if (detailsOnly) {
+    //GET SPOTIFY ITEM:
+    fun getSpotifyItem(type: String, id: String, detailsOnly: Boolean = true): HttpResponse {
+        val filter = if (type == "podcast") "show" else type
+        var url = "https://api.spotify.com/v1/${filter}s/$id"
+        if (type == "playlist" && detailsOnly) {
             url += "?fields=name%2Cimages%2Cowner%2Csnapshot_id"
         }
 
@@ -91,37 +62,7 @@ class SpotifyCalls(private val context: Context) {
 
         //GET REQUEST:
         var response = query.querySpotify(type = "get", url = url, jsonHeads = jsonHeads)
-        Log.d(TAG, "getSpotifyPlaylist: response code: ${response.code}")
-        return response
-    }
-
-
-    //GET SPOTIFY EPISODE:
-    fun getSpotifyEpisode(id: String): HttpResponse {
-        var url = "https://api.spotify.com/v1/episodes/$id"
-
-        //Headers:
-        var jsonHeads = JsonObject()
-        jsonHeads.addProperty("Authorization", "Bearer ${prefs.spotifyToken}")
-
-        //GET REQUEST:
-        var response = query.querySpotify(type = "get", url = url, jsonHeads = jsonHeads)
-        Log.d(TAG, "getSpotifyEpisode: response code: ${response.code}")
-        return response
-    }
-
-
-    //GET SPOTIFY PODCAST:
-    fun getSpotifyPodcast(id: String): HttpResponse {
-        var url = "https://api.spotify.com/v1/shows/$id"
-
-        //Headers:
-        var jsonHeads = JsonObject()
-        jsonHeads.addProperty("Authorization", "Bearer ${prefs.spotifyToken}")
-
-        //GET REQUEST:
-        var response = query.querySpotify(type = "get", url = url, jsonHeads = jsonHeads)
-        Log.d(TAG, "getSpotifyPodcast: response code: ${response.code}")
+        Log.d(TAG, "getSpotifyItem: response code for get $type: ${response.code}")
         return response
     }
 

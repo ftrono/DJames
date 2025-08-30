@@ -8,9 +8,9 @@ import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.models.RawLinkPreview
-import kotlinx.coroutines.CoroutineScope
+import com.ftrono.DJames.be.spotify.SpotifyCalls
+import com.google.gson.JsonParser
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -61,20 +61,14 @@ class LinkExtractors {
         }
     }
 
-    // Main Spotify Extractor:
-    fun extractSpotifyInfo(context: Context, initLibItem: LibraryItem, new: Boolean): LibraryItem {
+    // Main: Spotify Link Extractor (via HTTP link preview parsing):
+    fun extractSpotifyInfoFromHTTP(context: Context, initLibItem: LibraryItem, new: Boolean): LibraryItem {
         var updLibItem = initLibItem
         var linkPreview = RawLinkPreview()
         var toastText = ""
         runBlocking {
             linkPreview = fetchRawLinkPreview(initLibItem.url)
-            linkPreview.let {
-                println("Title: ${it.title}")
-                println("Description: ${it.description}")
-                println("Image: ${it.imageUrl}")
-                println("URL: ${it.url}")
-            }
-            Log.d(TAG, "Description: ${linkPreview.description}")
+            Log.d(TAG, "Title: ${linkPreview.title} - Description: ${linkPreview.description}")
             val descrSplits = linkPreview.description.split(" · ")
 
             // Extract type:
@@ -122,6 +116,58 @@ class LinkExtractors {
             return@runBlocking updLibItem
         }
         return updLibItem
+    }
+
+
+    // Main: Spotify Link Extractor (via Spotify Web API):
+    fun extractSpotifyInfoFromAPI(context: Context, filter: String, initItem: LibraryItem, new: Boolean): LibraryItem {
+        Log.d(TAG, "extractSpotifyInfoFromAPI: job start!")
+        var toastText = ""
+        var itemSpotify = initItem
+        try {
+            val spotifyCalls = SpotifyCalls(context)
+            val resp = spotifyCalls.getSpotifyItem(type=filter, id=spotifyUtils.getSpotifyID(itemSpotify.url))
+            //PROCESS RESPONSE:
+            if (resp.code == 200) {
+                //SUCCESS -> Extract info:
+                Log.d(TAG, "extractSpotifyInfoFromAPI: results received!")
+                val respJson = JsonParser.parseString(resp.body).asJsonObject
+                itemSpotify.name = respJson.get("name").asString
+                itemSpotify.url = itemSpotify.url
+                //Image URL:
+                try {
+                    itemSpotify.imageUrl = respJson.get("images").asJsonArray.get(0).asJsonObject.get("url").asString
+                    Log.d(TAG, itemSpotify.imageUrl)
+                } catch (e: Exception) {
+                    itemSpotify.imageUrl = ""
+                }
+                //Detail:
+                try {
+                    itemSpotify.detail = when (filter) {
+                        "track" -> respJson.get("artists").asJsonArray.get(0).asJsonObject.get("name").asString
+                        "album" -> respJson.get("artists").asJsonArray.get(0).asJsonObject.get("name").asString
+                        "playlist" -> respJson.get("owner").asJsonObject.get("display_name").asString
+                        "podcast" -> respJson.get("publisher").asString
+                        "episode" -> respJson.get("show").asJsonObject.get("name").asString
+                        else -> ""
+                    }
+                } catch (e: Exception) {
+                    Log.d(TAG, "ERROR: Cannot extract item.detail info! ", e)
+                    itemSpotify.detail = ""
+                }
+                toastText = if (!new) "Refreshed!" else "Please fill in additional information!"
+            } else {
+                Log.w(TAG, "ERROR: Could not extract info from Spotify!")
+                toastText = if (!new) "Cannot refresh now!" else "Please fill in missing information!"
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: Could not extract info from Spotify! ", e)
+            toastText = if (!new) "Cannot refresh now!" else "Please fill in missing information!"
+        }
+        //TOAST:
+        Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
+        Log.d(TAG, "extractSpotifyInfoFromAPI: job end!")
+        return itemSpotify
     }
 
 }

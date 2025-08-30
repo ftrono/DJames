@@ -22,7 +22,6 @@ import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.trackUrlIntro
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.SpotifyPlayable
-import com.ftrono.DJames.be.models.HttpResponse
 import com.ftrono.DJames.be.utils.LinkExtractors
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
@@ -91,8 +90,46 @@ class SpotifyUtils {
     }
 
 
+    //Get Parent ID from Child URL:
+    fun getParentIdFromChildUrl(context: Context, childCat: String, url: String): String {
+        Log.d(TAG, "getParentIdFromChildUrl: job start!")
+        var childId = ""
+        var parentCat = ""
+        //Extract:
+        try {
+            val spotifyCalls = SpotifyCalls(context)
+            var resp = spotifyCalls.getSpotifyItem(type=childCat, id=getSpotifyID(url))
+            //Select parent:
+            if (childCat == "track") {
+                parentCat = "artist"
+            } else if (childCat == "episode") {
+                parentCat = "show"
+            }
+            //PROCESS RESPONSE:
+            if (resp.code == 200) {
+                //SUCCESS -> Extract Parent ID:
+                Log.d(TAG, "getParentIdFromChildUrl: results received!")
+                val respJson = JsonParser.parseString(resp.body).asJsonObject
+                if (parentCat == "artist") {
+                    // Track -> Artist:
+                    childId = respJson.get("artists").asJsonArray.get(0).asJsonObject.get("id").asString   //take 1st artist by default
+                } else {
+                    // Episode -> Show:
+                    childId = respJson.get("show").asJsonObject.get("id").asString
+                }
+            } else {
+                Log.w(TAG, "ERROR: Could not extract $parentCat from $childCat!")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: Could not extract $parentCat from $childCat! ", e)
+        }
+        Log.d(TAG, "getParentIdFromChildUrl: job end!")
+        return childId
+    }
+
+
     //Disambiguate and Open EditLibDialog:
-    fun checkAndEditLib(
+    fun checkLinkAndExtract(
         context: Context,
         idState: MutableState<Long>,
         currentCatState: MutableState<String>,
@@ -127,7 +164,7 @@ class SpotifyUtils {
                 currentCatState.value = "spotify"
                 currentSubCatState.value = ""
 
-                val foundId = libUtils.getItemIdWithUrl(urlToCheck)
+                val foundId = libUtils.getLibIDWithUrl(urlToCheck)
                 if (foundId > -1) {
                     // Link exists in DB!
                     idState.value = foundId
@@ -138,7 +175,8 @@ class SpotifyUtils {
                         source = "spotify",
                         url = urlToCheck
                     )
-                    itemSpotify = linkExtractor.extractSpotifyInfo(context, itemSpotify, new=true)
+                    // itemSpotify = spotifyUtils.getSpotifyInfo(context, goto, itemSpotify, new=true)   //TODO
+                    itemSpotify = linkExtractor.extractSpotifyInfoFromHTTP(context, itemSpotify, new=true)
                     extractedItemState.value = Json.encodeToString<LibraryItem>(itemSpotify)
                     sharedLink.postValue("")
                 }
@@ -153,8 +191,9 @@ class SpotifyUtils {
 
 
     //Get currently playing item:
-    fun getCurrentlyPlayingItem(context: Context){
+    fun getCurrentlyPlayingItem(context: Context): SpotifyPlayable {
         Log.d(TAG, "getCurrentlyPlayingItem: job start!")
+        var playable = SpotifyPlayable()
         try {
             val spotifyCalls = SpotifyCalls(context)
             val resp = spotifyCalls.getCurrentPlayQueue()
@@ -164,9 +203,52 @@ class SpotifyUtils {
                 Log.d(TAG, "getCurrentlyPlayingItem: results received!")
                 val respJson = JsonParser.parseString(resp.body).asJsonObject
                 try {
-                    val playType = respJson.get("currently_playing").asJsonObject.get("type").asString
+                    val curPlaying = respJson.get("currently_playing").asJsonObject
+                    val playType = curPlaying.get("type").asString
                     //TODO: Check item "currently_playing.type", it can be "track" or "episode"
-
+                    if (playType != "track" && playType != "episode") {
+                        Log.w(TAG, "ERROR: getCurrentlyPlayingItem: item not a track or an episode!")
+                        return playable
+                    } else {
+                        playable.type = playType
+                        playable.id = curPlaying.get("id").asString
+                        playable.name = curPlaying.get("name").asString
+                        if (playType == "track") {
+                            // TRACK:
+                            // Extract artists:
+                            var artists = curPlaying.getAsJsonArray("artists")
+                            for (artist in artists) {
+                                playable.artistsIds.add(artist.asJsonObject.get("id").asString)
+                                playable.artistsNames.add(artist.asJsonObject.get("name").asString)
+                            }
+                            // Extract album:
+                            playable.albumId =
+                                curPlaying.get("album").asJsonObject.get("id").asString
+                            playable.albumType =
+                                curPlaying.get("album").asJsonObject.get("album_type").asString
+                            playable.albumName =
+                                curPlaying.get("album").asJsonObject.get("name").asString
+                        } else {
+                            // EPISODE:
+                            // Show info:
+                            val show = curPlaying.get("show").asJsonObject
+                            playable.podcastId = show.get("id").asString
+                            playable.podcastName = show.get("name").asString
+                            playable.publisher = show.get("publisher").asString
+                            //ResumePoint info:
+                            playable.fullyPlayed = false
+                            playable.resumePositionMs = 0
+                            try {
+                                val itemResume = curPlaying.get("resume_point").asJsonObject
+                                playable.fullyPlayed = itemResume.get("fully_played").asBoolean
+                                if (!playable.fullyPlayed) {
+                                    playable.resumePositionMs = itemResume.get("resume_position_ms").asInt
+                                }
+                            } catch (e: Exception) {
+                                Log.d(TAG, "No ResumePoint info in current Episode!")
+                            }
+                        }
+                    }
                 } catch (e: Exception) {
                     Log.w(TAG, "getCurrentlyPlayingItem: Nothing playing now!")
                 }
@@ -177,6 +259,7 @@ class SpotifyUtils {
             Log.w(TAG, "ERROR: Cannot check current play queue!")
         }
         Log.d(TAG, "getCurrentlyPlayingItem: job end!")
+        return playable
     }
 
 
@@ -212,112 +295,10 @@ class SpotifyUtils {
         Intent().also { intent ->
             intent.setAction(ACTION_TOASTER)
             intent.putExtra("toastText", toastText)
-                context.sendBroadcast(intent)
+            context.sendBroadcast(intent)
         }
         queryStatus.postValue("ready")
         Log.d(TAG, "SaveTrack: job end!")
-    }
-
-
-    //Get Parent ID from Child URL:
-    fun getParentIdFromChildUrl(context: Context, childCat: String, url: String): String {
-        Log.d(TAG, "getParentIdFromChildUrl: job start!")
-        var childId = ""
-        var parentCat = ""
-        //Extract:
-        try {
-            val spotifyCalls = SpotifyCalls(context)
-            var resp = HttpResponse(
-                code = -1,  // -1 to indicate failure
-                body = ""
-            )
-            //Select parent:
-            if (childCat == "track") {
-                parentCat = "artist"
-                resp = spotifyCalls.getSpotifyTrack(getSpotifyID(url))
-            } else if (childCat == "episode") {
-                parentCat = "show"
-                resp = spotifyCalls.getSpotifyEpisode(getSpotifyID(url))
-            }
-            //PROCESS RESPONSE:
-            if (resp.code == 200) {
-                //SUCCESS -> Extract Parent ID:
-                Log.d(TAG, "getParentIdFromChildUrl: results received!")
-                val respJson = JsonParser.parseString(resp.body).asJsonObject
-                if (parentCat == "artist") {
-                    // Track -> Artist:
-                    childId = respJson.get("artists").asJsonArray.get(0).asJsonObject.get("id").asString   //take 1st artist by default
-                } else {
-                    // Episode -> Show:
-                    childId = respJson.get("show").asJsonObject.get("id").asString
-                }
-            } else {
-                Log.w(TAG, "ERROR: Could not extract $parentCat from $childCat!")
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Could not extract $parentCat from $childCat! ", e)
-        }
-        Log.d(TAG, "getParentIdFromChildUrl: job end!")
-        return childId
-    }
-
-    //Get Spotify info:
-    fun getSpotifyInfo(context: Context, filter: String, url: String, initItem: LibraryItem, init: Boolean): LibraryItem {
-        Log.d(TAG, "getArtistInfo: job start!")
-        var toastText = ""
-        var spotifyItem = initItem
-        try {
-            val spotifyCalls = SpotifyCalls(context)
-            // TODO: TEMP!
-            val resp = if (filter == "artist") {
-                spotifyCalls.getSpotifyArtist(getSpotifyID(url))
-            } else if (filter == "playlist") {
-                spotifyCalls.getSpotifyPlaylist(getSpotifyID(url), detailsOnly = true)
-            } else if (filter == "podcast") {
-                spotifyCalls.getSpotifyPodcast(getSpotifyID(url))
-            } else (
-                HttpResponse(
-                    code = -1,
-                    body = ""
-                )
-            )
-            //PROCESS RESPONSE:
-            if (resp.code == 200) {
-                //SUCCESS -> Extract info:
-                Log.d(TAG, "getSpotifyInfo: results received!")
-                val respJson = JsonParser.parseString(resp.body).asJsonObject
-                spotifyItem.name = respJson.get("name").asString
-                spotifyItem.url = url
-                //Image URL:
-                try {
-                    spotifyItem.imageUrl = respJson.get("images").asJsonArray.get(0).asJsonObject.get("url").asString
-                    Log.d(TAG, spotifyItem.imageUrl)
-                } catch (e: Exception) {
-                    spotifyItem.imageUrl = ""
-                }
-                //Owner:
-                if (filter == "playlist") {
-                    try {
-                        spotifyItem.detail = respJson.get("owner").asJsonObject.get("display_name").asString
-                    } catch (e: Exception) {
-                        spotifyItem.detail = ""
-                    }
-                } else if (filter == "podcast") {
-                    spotifyItem.detail = respJson.get("publisher").asString
-                }
-                toastText = if (!init) "Refreshed!" else "Please fill in additional information!"
-            } else {
-                Log.w(TAG, "ERROR: Could not extract info from Spotify!")
-                toastText = if (!init) "Cannot refresh now!" else "Please fill in missing information!"
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Could not extract info from Spotify! ", e)
-            toastText = if (!init) "Cannot refresh now!" else "Please fill in missing information!"
-        }
-        //TOAST:
-        Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
-        Log.d(TAG, "getSpotifyInfo: job end!")
-        return spotifyItem
     }
 
 
@@ -341,6 +322,8 @@ class SpotifyUtils {
                         val itemJson = item.asJsonObject
                         var fullyPlayed = false
                         var resumePositionMs = 0
+                        // Show info:
+                        val show = itemJson.get("show").asJsonObject
                         //ResumePoint info:
                         try {
                             var itemResume = itemJson.get("resume_point").asJsonObject
@@ -353,14 +336,21 @@ class SpotifyUtils {
                         }
                         //Languages:
                         var itemLanguages = mutableListOf<String>()
-                        for (obj in itemJson.get("languages").asJsonArray) {
-                            itemLanguages.add(obj.asString)
+                        try {
+                            for (obj in itemJson.get("languages").asJsonArray) {
+                                itemLanguages.add(obj.asString)
+                            }
+                        } catch (e: Exception) {
+                            Log.d(TAG, "No languages info in current Episode!")
                         }
                         episodes.add(
                             SpotifyPlayable(
                                 type = "episode",
                                 id = itemJson.get("id").asString,
                                 name = itemJson.get("name").asString,
+                                podcastId = show.get("id").asString,
+                                podcastName = show.get("name").asString,
+                                publisher = show.get("publisher").asString,
                                 releaseDate = try {
                                     itemJson.get("release_date").asString
                                 } catch (e: Exception) {

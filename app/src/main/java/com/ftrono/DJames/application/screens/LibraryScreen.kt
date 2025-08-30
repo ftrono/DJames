@@ -185,7 +185,7 @@ fun LibraryScreen(
             onSave = {
                 //TODO: Spotify only!
                 Toast.makeText(mContext, "Extracting link info...", Toast.LENGTH_LONG).show()
-                spotifyUtils.checkAndEditLib(
+                spotifyUtils.checkLinkAndExtract(
                     context = mContext,
                     idState = idState,
                     currentCatState = currentCatState,

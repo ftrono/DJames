@@ -193,15 +193,8 @@ class LibraryUtils {
         }
     }
 
-    //Get URL Map in format {"url": "id"}:
-    fun getUrlMap(filter: String): Map<String, Long> {
-        return getAll(subcat=filter).associate { item ->
-            item.url.toString() to item.id // Ensures no null values
-        }
-    }
-
-    // Search if URL already exists:
-    fun getItemIdWithUrl(url: String): Long {
+    // Search if URL already exists -> get item's DB ID:
+    fun getLibIDWithUrl(url: String): Long {
         val res = libraryBox!!.query(LibraryItem_.url.equal(url))
             .build()
             .property(LibraryItem_.id)

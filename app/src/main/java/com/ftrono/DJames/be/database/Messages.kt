@@ -1,13 +1,14 @@
 package com.ftrono.DJames.be.database
 
 import com.ftrono.DJames.be.models.ActionType
-import com.google.protobuf.Timestamp
+import com.ftrono.DJames.be.models.ActionTypeConverter
+import com.ftrono.DJames.be.models.JsonConverter
+import com.ftrono.DJames.be.models.JsonListConverter
 import io.objectbox.annotation.Entity
 import io.objectbox.annotation.Id
 import io.objectbox.annotation.Convert
-import io.objectbox.converter.PropertyConverter
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
 
@@ -93,15 +94,7 @@ data class SpotifyQueryModel(
     var spotifyMatches: MutableList<SpotifyMatchModel> = mutableListOf<SpotifyMatchModel>()
 )
 
-class SpotifyMatchModelConverter : PropertyConverter<MutableList<SpotifyMatchModel>, String> {
-    override fun convertToEntityProperty(databaseValue: String?): MutableList<SpotifyMatchModel> {
-        return Json.decodeFromString(databaseValue ?: "[]")
-    }
-
-    override fun convertToDatabaseValue(entityProperty: MutableList<SpotifyMatchModel>?): String {
-        return Json.encodeToString(entityProperty ?: mutableListOf(SpotifyMatchModel()))
-    }
-}
+class SpotifyMatchModelConverter : JsonListConverter<SpotifyMatchModel>(SpotifyMatchModel.serializer())
 
 
 //ENTITIES:
@@ -132,7 +125,7 @@ data class Message(
     // - requestIntent -> in user message;
     // - all other -> in the AI reply
     @Convert(converter = ActionTypeConverter::class, dbType = String::class)
-    var actionType: ActionType? = null, //"call", ""
+    var actionType: ActionType? = null,   //"call", ""
     @Convert(converter = AttachmentsConverter::class, dbType = String::class)
     var attachments: Attachments = Attachments()
 )
@@ -145,89 +138,24 @@ data class Attachments(
     var contextError: Boolean = false,
 
     @Convert(converter = NlpQueryModelConverter::class, dbType = String::class)
-    var nlpQueries: MutableList<NlpQueryModel> = mutableListOf<NlpQueryModel>(),
+    var nlpQueries: MutableList<NlpQueryModel>? = null,
 
     @Convert(converter = ExtractorInfoConverter::class, dbType = String::class)
-    var nlpExtractor: ExtractorInfo = ExtractorInfo(),
+    var nlpExtractor: ExtractorInfo? = null,
 
     @Convert(converter = SpotifyQueryModelConverter::class, dbType = String::class)
-    var spotifyQueries: MutableList<SpotifyQueryModel> = mutableListOf<SpotifyQueryModel>(),
+    var spotifyQueries: MutableList<SpotifyQueryModel>? = null,
 
     @Convert(converter = SpotifyPlayableConverter::class, dbType = String::class)
-    var spotifyPlay: SpotifyPlayable = SpotifyPlayable(),
+    var spotifyPlay: SpotifyPlayable? = null,
 
-    @Convert(converter = ItemInfoUseConverter::class, dbType = String::class)
-    var usable: LibraryItem = LibraryItem(),
+    @Convert(converter = LibraryItemConverter::class, dbType = String::class)
+    var usable: LibraryItem? = null,
 )
 
-class AttachmentsConverter : PropertyConverter<Attachments, String> {
-    override fun convertToEntityProperty(databaseValue: String?): Attachments {
-        return Json.decodeFromString(databaseValue ?: "{}")
-    }
 
-    override fun convertToDatabaseValue(entityProperty: Attachments?): String {
-        return Json.encodeToString(entityProperty ?: Attachments())
-    }
-}
-
-class ActionTypeConverter : PropertyConverter<ActionType, String> {
-    override fun convertToDatabaseValue(entityProperty: ActionType?): String? {
-        return entityProperty?.name
-    }
-
-    override fun convertToEntityProperty(databaseValue: String?): ActionType? {
-        return databaseValue?.let { value ->
-            ActionType.entries.find { it.name.equals(value, ignoreCase = true) }
-        }
-    }
-}
-
-class NlpQueryModelConverter : PropertyConverter<MutableList<NlpQueryModel>, String> {
-    override fun convertToEntityProperty(databaseValue: String?): MutableList<NlpQueryModel> {
-        return Json.decodeFromString(databaseValue ?: "[]")
-    }
-
-    override fun convertToDatabaseValue(entityProperty: MutableList<NlpQueryModel>?): String {
-        return Json.encodeToString(entityProperty ?: mutableListOf(NlpQueryModel()))
-    }
-}
-
-class ExtractorInfoConverter : PropertyConverter<ExtractorInfo, String> {
-    override fun convertToEntityProperty(databaseValue: String?): ExtractorInfo {
-        return Json.decodeFromString(databaseValue ?: "{}")
-    }
-
-    override fun convertToDatabaseValue(entityProperty: ExtractorInfo?): String {
-        return Json.encodeToString(entityProperty ?: ExtractorInfo())
-    }
-}
-
-class SpotifyQueryModelConverter : PropertyConverter<MutableList<SpotifyQueryModel>, String> {
-    override fun convertToEntityProperty(databaseValue: String?): MutableList<SpotifyQueryModel> {
-        return Json.decodeFromString(databaseValue ?: "[]")
-    }
-
-    override fun convertToDatabaseValue(entityProperty: MutableList<SpotifyQueryModel>?): String {
-        return Json.encodeToString(entityProperty ?: mutableListOf(SpotifyQueryModel()))
-    }
-}
-
-class SpotifyPlayableConverter : PropertyConverter<SpotifyPlayable, String> {
-    override fun convertToEntityProperty(databaseValue: String?): SpotifyPlayable {
-        return Json.decodeFromString(databaseValue ?: "{}")
-    }
-
-    override fun convertToDatabaseValue(entityProperty: SpotifyPlayable?): String {
-        return Json.encodeToString(entityProperty ?: SpotifyPlayable())
-    }
-}
-
-class ItemInfoUseConverter : PropertyConverter<LibraryItem, String> {
-    override fun convertToEntityProperty(databaseValue: String?): LibraryItem {
-        return Json.decodeFromString(databaseValue ?: "{}")
-    }
-
-    override fun convertToDatabaseValue(entityProperty: LibraryItem?): String {
-        return Json.encodeToString(entityProperty ?: LibraryItem())
-    }
-}
+class AttachmentsConverter : JsonConverter<Attachments>(Attachments.serializer())
+class ExtractorInfoConverter : JsonConverter<ExtractorInfo>(ExtractorInfo.serializer())
+class SpotifyPlayableConverter : JsonConverter<SpotifyPlayable>(SpotifyPlayable.serializer())
+class NlpQueryModelConverter : JsonListConverter<NlpQueryModel>(NlpQueryModel.serializer())
+class SpotifyQueryModelConverter : JsonListConverter<SpotifyQueryModel>(SpotifyQueryModel.serializer())

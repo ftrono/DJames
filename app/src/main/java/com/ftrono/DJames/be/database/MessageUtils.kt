@@ -328,34 +328,38 @@ class MessageUtils {
 
     //BUILD MESSAGE VIEW INFO:
     fun buildExtraDetails(message: Message): String {
+        var detailText = ""
         val trimLength = 40
         val intentName = message.requestIntent
-        var detailText = ""
+        val attachments = message.attachments
 
-        if (intentName.contains("Call") || intentName.contains("Message")) {
-            //Calls & Messages:
-            val itemInfo = message.attachments.usable
-            val msgType = when (message.actionType) {
-                ActionType.WA_TEXT -> "Whatsapp Text"
-                ActionType.WA_VOICE -> "Whatsapp Voice"
-                ActionType.SMS -> "SMS"
-                else -> ""
+        if (attachments.usable != null) {
+            if (intentName.contains("Call") || intentName.contains("Message")) {
+                //Calls & Messages:
+                val itemInfo = attachments.usable!!
+                val msgType = when (message.actionType) {
+                    ActionType.WA_TEXT -> "Whatsapp Text"
+                    ActionType.WA_VOICE -> "Whatsapp Voice"
+                    ActionType.SMS -> "SMS"
+                    else -> ""
+                }
+                detailText = if (msgType == "") "" else "Type:  $msgType\n"
+                detailText += if (itemInfo.name == "") "" else "Contact:  ${itemInfo.name}"
+
+            } else if (intentName.contains("Drive")) {
+                //Drive:
+                val itemInfo = attachments.usable!!
+                if (itemInfo.detail == "") {
+                    detailText = if (itemInfo.name == "") "" else "Place:  ${itemInfo.name}"
+                } else {
+                    detailText =
+                        if (itemInfo.name == "") "" else "Place:  ${itemInfo.name}\nDetail:  ${itemInfo.detail}"
+                }
             }
-            detailText = if (msgType == "") "" else "Type:  $msgType\n"
-            detailText += if (itemInfo.name == "") "" else "Contact:  ${itemInfo.name}"
 
-        } else if (intentName.contains("Drive")) {
-            //Drive:
-            val itemInfo = message.attachments.usable
-            if (itemInfo.detail == "") {
-                detailText = if (itemInfo.name == "") "" else "Place:  ${itemInfo.name}"
-            } else {
-                detailText = if (itemInfo.name == "") "" else "Place:  ${itemInfo.name}\nDetail:  ${itemInfo.detail}"
-            }
-
-        } else if (intentName.contains("Play")) {
+        } else if (intentName.contains("Play") && attachments.spotifyPlay != null) {
             //Play requests:
-            val playable = message.attachments.spotifyPlay
+            val playable = attachments.spotifyPlay!!
 
             if (playable.type == "podcast" || playable.type == "episode") {
                 //Podcast:
@@ -367,19 +371,24 @@ class MessageUtils {
 
             } else if (playable.type == "playlist" || playable.type == "collection") {
                 //Playlist / artist playlist / collection:
-                detailText = if (playable.name == "") "" else "Playlist:  ${utils.capitalizeWords(playable.name)}"
+                detailText = if (playable.name == "") "" else "Playlist:  ${
+                    utils.capitalizeWords(playable.name)
+                }"
 
             } else if (playable.type == "artist") {
                 //Artist:
-                detailText = if (playable.name == "") "" else "Artist:  ${utils.capitalizeWords(playable.name)}"
+                detailText =
+                    if (playable.name == "") "" else "Artist:  ${utils.capitalizeWords(playable.name)}"
 
             } else if (playable.type == "album") {
                 //Album:
                 var matchName = utils.trimString(playable.name, trimLength)
                 if (matchName != "") {
-                    var artistName = utils.trimString(playable.artistsNames.joinToString(", "), trimLength)
+                    var artistName =
+                        utils.trimString(playable.artistsNames.joinToString(", "), trimLength)
                     if (playable.albumType != "album") {
-                        detailText = "Album:  $matchName  (${utils.capitalizeWords(playable.albumType)})\nArtist:  $artistName"
+                        detailText =
+                            "Album:  $matchName  (${utils.capitalizeWords(playable.albumType)})\nArtist:  $artistName"
                     } else {
                         detailText = "Album:  $matchName\nArtist:  $artistName"
                     }
@@ -389,12 +398,13 @@ class MessageUtils {
                 //Track:
                 var matchName = utils.trimString(playable.name, trimLength)
                 if (matchName != "") {
-                    var artistName = utils.trimString(playable.artistsNames.joinToString(", "), trimLength)
+                    var artistName =
+                        utils.trimString(playable.artistsNames.joinToString(", "), trimLength)
 
                     //Context:
                     var contextType = playable.contextType
                     var contextName = ""
-                    if (contextType == "Playlist" && !message.attachments.contextError && !message.attachments.playedExternally) {
+                    if (contextType == "Playlist" && !attachments.contextError && !attachments.playedExternally) {
                         //Use Playlist:
                         contextName = playable.contextName
                     } else {
@@ -403,16 +413,17 @@ class MessageUtils {
                         contextName = playable.albumName
                     }
                     var contextFull = "$contextName  ($contextType)"
-                    if (message.attachments.playedExternally) {
+                    if (attachments.playedExternally) {
                         contextFull = "$contextFull [EXT]"
                     }
-                    detailText = "Track:  $matchName\nArtist:  $artistName\nContext:  $contextFull"
+                    detailText =
+                        "Track:  $matchName\nArtist:  $artistName\nContext:  $contextFull"
                 }
             }
         }
         //Add confidence:
-        if (message.attachments.matchScore > 0 && detailText.trim() != "") {
-            detailText = detailText + "\nMatch:  ${message.attachments.matchScore}%"
+        if (attachments.matchScore > 0 && detailText.trim() != "") {
+            detailText = detailText + "\nMatch:  ${attachments.matchScore}%"
         }
         return detailText
     }

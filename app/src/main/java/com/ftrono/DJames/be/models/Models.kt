@@ -5,14 +5,12 @@ import androidx.compose.runtime.Composable
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import kotlinx.serialization.Serializable
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.jsoup.Jsoup
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import io.objectbox.converter.PropertyConverter
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.ListSerializer
 
 
 // MODEL CLASSES:
@@ -44,21 +42,6 @@ data class AiReply(
 )
 
 
-// ENUM:
-enum class ActionType {
-    PLAY, CALL, SMS, WA_TEXT, WA_VOICE, OPEN_URL
-}
-
-// Convert String to ActionType:
-fun actionTypeFromString(value: String?): ActionType? {
-    return ActionType.entries.find { it.name.equals(value, ignoreCase = true) }
-}
-
-// Convert ActionType to String:
-fun actionTypeToString(actionType: ActionType?): String? {
-    return actionType?.name
-}
-
 @Serializable
 data class DispatcherInfo(
     var aiReplies: List<AiReply> = listOf(),
@@ -76,3 +59,68 @@ data class DispatcherInfo(
     var usable: LibraryItem = LibraryItem(),
     var playable: SpotifyPlayable = SpotifyPlayable()
 )
+
+
+// ENUM:
+enum class ActionType {
+    PLAY, CALL, SMS, WA_TEXT, WA_VOICE, OPEN_URL
+}
+
+
+// CONVERTERS:
+open class JsonConverter<T>(
+    private val serializer: KSerializer<T>
+) : PropertyConverter<T?, String> {
+
+    override fun convertToEntityProperty(databaseValue: String?): T? {
+        return databaseValue?.let { Json.decodeFromString(serializer, it) }
+    }
+
+    override fun convertToDatabaseValue(entityProperty: T?): String? {
+        return entityProperty?.let { Json.encodeToString(serializer, it) }
+    }
+}
+
+
+open class JsonListConverter<T>(
+    serializer: KSerializer<T>
+) : PropertyConverter<MutableList<T>?, String> {
+
+    private val listSerializer = ListSerializer(serializer)
+
+    override fun convertToEntityProperty(databaseValue: String?): MutableList<T>? {
+        return databaseValue?.let {
+            Json.decodeFromString(listSerializer, it)
+        }?.toMutableList()
+    }
+
+    override fun convertToDatabaseValue(entityProperty: MutableList<T>?): String? {
+        return entityProperty?.let {
+            Json.encodeToString(listSerializer, it)
+        }
+    }
+}
+
+
+class ActionTypeConverter : PropertyConverter<ActionType, String> {
+    override fun convertToDatabaseValue(entityProperty: ActionType?): String? {
+        return entityProperty?.name
+    }
+
+    override fun convertToEntityProperty(databaseValue: String?): ActionType? {
+        return databaseValue?.let { value ->
+            ActionType.entries.find { it.name.equals(value, ignoreCase = true) }
+        }
+    }
+}
+
+
+// Convert String to ActionType:
+fun actionTypeFromString(value: String?): ActionType? {
+    return ActionType.entries.find { it.name.equals(value, ignoreCase = true) }
+}
+
+// Convert ActionType to String:
+fun actionTypeToString(actionType: ActionType?): String? {
+    return actionType?.name
+}

@@ -52,7 +52,6 @@ class SpotifyFulfillment (private var context: Context) {
 
         } else if (intentName == "PlayArtist") {
             //ARTIST:
-            val nlpExtractor = NLPExtractor(context)
             playType = "artist"
             contextType = "playlist"
 

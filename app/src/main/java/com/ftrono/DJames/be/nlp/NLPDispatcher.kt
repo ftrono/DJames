@@ -66,7 +66,8 @@ class NLPDispatcher (private var context: Context) {
                     // Update & store user message:
                     lastUserMessage.text = nlp_queryText
                     lastUserMessage.requestIntent = intentName
-                    lastUserMessage.attachments.nlpQueries.add(resultsNLP)   // TODO: TEMP
+                    lastUserMessage.attachments.nlpQueries = mutableListOf<NlpQueryModel>()
+                    lastUserMessage.attachments.nlpQueries!!.add(resultsNLP)   // TODO: TEMP
                     messageUtils.storeMessage(
                         context = context,
                         langCode = resultsNLP.language,
@@ -165,7 +166,8 @@ class NLPDispatcher (private var context: Context) {
                         } else {
                             // Store fully:
                             storedText = nlp_queryText
-                            lastUserMessage.attachments.nlpQueries.add(resultsNLP)   //TODO: TEMP
+                            lastUserMessage.attachments.nlpQueries = mutableListOf<NlpQueryModel>()
+                            lastUserMessage.attachments.nlpQueries!!.add(resultsNLP)   //TODO: TEMP
                         }
                         // Update & store user Message:
                         lastUserMessage.text = storedText

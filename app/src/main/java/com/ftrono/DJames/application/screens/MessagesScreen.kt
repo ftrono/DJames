@@ -438,7 +438,7 @@ fun MessageDetail(
                                 end = 2.dp,
                                 bottom = 2.dp
                             )
-                            .size(14.dp),
+                            .size(16.dp),
                         painter = libIconSelector("spotify"),
                         contentDescription = "spotify",
                         tint = libColorSelector("spotify")

@@ -35,7 +35,7 @@ data class LibraryItem(
     //Primary key:
     @Id var id: Long = 0,
     var name: String = "",
-    var aliases: MutableList<String> = mutableListOf(""),
+    var aliases: MutableList<String> = mutableListOf(),
     var source: String = "",   // i.e.: "local", "spotify", "youtube", "maps", ...
     var type: String = "",   // i.e.: "artist", "playlist", "podcast", "episode", ...
     var url: String = "",

@@ -92,7 +92,7 @@ data class SpotifyEpisode(
     var releaseDate: String = "",
     var fullyPlayed: Boolean = false,
     var resumePositionMs: Int = 0,
-    var languages: MutableList<String> = mutableListOf(""),
+    var languages: MutableList<String> = mutableListOf(),
     var podcast: SpotifyPodcast? = null,
 )
 

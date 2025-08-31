@@ -39,36 +39,84 @@ data class ExtractorInfo(
 )
 
 
+// SPOTIFY PLAYABLES:
 @Serializable
-data class SpotifyPlayable(
-    //Main:
-    var type: String = "",
+data class SpotifyContext(
+    var type: String = "",      // Populate only if type is not the original album!
     var id: String = "",
     var name: String = "",
-    //Playlists:
+)
+
+@Serializable
+data class SpotifyArtist(
+    var id: String = "",
+    var name: String = "",
+)
+
+@Serializable
+data class SpotifyAlbum(
+    var id: String = "",
+    var name: String = "",
+    var type: String = "",
+    var artists: MutableList<SpotifyArtist> = mutableListOf<SpotifyArtist>(),
+)
+
+@Serializable
+data class SpotifyPlaylist(
+    var id: String = "",
+    var name: String = "",
     var owner: String = "",
-    //Other:
-    var saved: Boolean = false,
-    //Artists:
-    var artistsIds: MutableList<String> = mutableListOf<String>(),
-    var artistsNames: MutableList<String> = mutableListOf<String>(),
-    //Albums:
-    var albumId: String = "",
-    var albumType: String = "",
-    var albumName: String = "",
-    //Episodes:
-    var podcastId: String = "",
-    var podcastName: String = "",
+)
+
+@Serializable
+data class SpotifyTrack(
+    var id: String = "",
+    var name: String = "",
+    var artists: MutableList<SpotifyArtist> = mutableListOf<SpotifyArtist>(),
+    var album: SpotifyAlbum? = null,
+    var saved: Boolean = false,   // Only for search
+    var context: SpotifyContext? = null,
+)
+
+@Serializable
+data class SpotifyPodcast(
+    var id: String = "",
+    var name: String = "",
     var publisher: String = "",
+)
+
+@Serializable
+data class SpotifyEpisode(
+    var id: String = "",
+    var name: String = "",
     var releaseDate: String = "",
-    var languages: MutableList<String> = mutableListOf(""),
     var fullyPlayed: Boolean = false,
     var resumePositionMs: Int = 0,
-    //Context:
-    var contextType: String = "",   // only if "playlist" or "podcast"
-    var contextUri: String = "",
-    var contextName: String = "",
+    var languages: MutableList<String> = mutableListOf(""),
+    var podcast: SpotifyPodcast? = null,
 )
+
+
+@Serializable
+data class SpotifyPlayable(
+    var id: String = "",
+    var type: String = "",
+    var track: SpotifyTrack? = null,
+    var artist: SpotifyArtist? = null,
+    var artists: MutableList<SpotifyArtist> = mutableListOf<SpotifyArtist>(),
+    var album: SpotifyAlbum? = null,
+    var playlist: SpotifyPlaylist? = null,
+    var episode: SpotifyEpisode? = null,
+    var podcast: SpotifyPodcast? = null,
+)
+
+class SpotifyTrackConverter : JsonConverter<SpotifyTrack>(SpotifyTrack.serializer())
+class SpotifyArtistConverter : JsonListConverter<SpotifyArtist>(SpotifyArtist.serializer())
+class SpotifyAlbumConverter : JsonConverter<SpotifyAlbum>(SpotifyAlbum.serializer())
+class SpotifyPlaylistConverter : JsonConverter<SpotifyPlaylist>(SpotifyPlaylist.serializer())
+class SpotifyPodcastConverter : JsonConverter<SpotifyPodcast>(SpotifyPodcast.serializer())
+class SpotifyEpisodeConverter : JsonConverter<SpotifyEpisode>(SpotifyEpisode.serializer())
+class SpotifyContextConverter : JsonConverter<SpotifyContext>(SpotifyContext.serializer())
 
 
 @Serializable
@@ -78,8 +126,8 @@ data class SpotifyMatchModel(
     var nameSetSimilarity: Int = 0,
     var namePartialSimilarity: Int = 0,
     var nameFullSimilarity: Int = 0,
-    var artistSetSimilarity: Int = 0,
-    var artistPartialSimilarity: Int = 0,
+    var detailSetSimilarity: Int = 0,
+    var detailPartialSimilarity: Int = 0,
     @Convert(converter = SpotifyPlayableConverter::class, dbType = String::class)
     var playable: SpotifyPlayable = SpotifyPlayable()
 )

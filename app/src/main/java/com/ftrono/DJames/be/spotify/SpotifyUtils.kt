@@ -18,9 +18,11 @@ import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.playlistUrlIntro
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.showUrlIntro
+import com.ftrono.DJames.application.spotifyParsers
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.trackUrlIntro
 import com.ftrono.DJames.be.database.LibraryItem
+import com.ftrono.DJames.be.database.SpotifyEpisode
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.utils.LinkExtractors
 import com.google.gson.JsonArray
@@ -212,41 +214,12 @@ class SpotifyUtils {
                     } else {
                         playable.type = playType
                         playable.id = curPlaying.get("id").asString
-                        playable.name = curPlaying.get("name").asString
                         if (playType == "track") {
                             // TRACK:
-                            // Extract artists:
-                            var artists = curPlaying.getAsJsonArray("artists")
-                            for (artist in artists) {
-                                playable.artistsIds.add(artist.asJsonObject.get("id").asString)
-                                playable.artistsNames.add(artist.asJsonObject.get("name").asString)
-                            }
-                            // Extract album:
-                            playable.albumId =
-                                curPlaying.get("album").asJsonObject.get("id").asString
-                            playable.albumType =
-                                curPlaying.get("album").asJsonObject.get("album_type").asString
-                            playable.albumName =
-                                curPlaying.get("album").asJsonObject.get("name").asString
+                            playable.track = spotifyParsers.extractTrack(curPlaying)
                         } else {
                             // EPISODE:
-                            // Show info:
-                            val show = curPlaying.get("show").asJsonObject
-                            playable.podcastId = show.get("id").asString
-                            playable.podcastName = show.get("name").asString
-                            playable.publisher = show.get("publisher").asString
-                            //ResumePoint info:
-                            playable.fullyPlayed = false
-                            playable.resumePositionMs = 0
-                            try {
-                                val itemResume = curPlaying.get("resume_point").asJsonObject
-                                playable.fullyPlayed = itemResume.get("fully_played").asBoolean
-                                if (!playable.fullyPlayed) {
-                                    playable.resumePositionMs = itemResume.get("resume_position_ms").asInt
-                                }
-                            } catch (e: Exception) {
-                                Log.d(TAG, "No ResumePoint info in current Episode!")
-                            }
+                            playable.episode = spotifyParsers.extractEpisodeFromPodcast(curPlaying)
                         }
                     }
                 } catch (e: Exception) {
@@ -302,13 +275,14 @@ class SpotifyUtils {
     }
 
 
-    //Get Podcast info:
-    fun getPodcastEpisodes(context: Context, spotifyId: String, latestOnly: Boolean = true): List<SpotifyPlayable> {
+    //Get Podcast episodes:
+    fun getPodcastEpisodes(context: Context, libItem: LibraryItem, latestOnly: Boolean = true): List<SpotifyEpisode> {
         Log.d(TAG, "getPodcastEpisodes: job start!")
-        var episodes = mutableListOf<SpotifyPlayable>()
+        var episodes = mutableListOf<SpotifyEpisode>()
         try {
+            val podcastId = spotifyUtils.getSpotifyID(libItem.url)
             val spotifyCalls = SpotifyCalls(context)
-            val resp = spotifyCalls.getSpotifyPodcastEpisodes(spotifyId, limit = if (latestOnly) 1 else null)
+            val resp = spotifyCalls.getSpotifyPodcastEpisodes(podcastId, limit = if (latestOnly) 1 else null)
             //PROCESS RESPONSE:
             if (resp.code == 200) {
                 //SUCCESS -> Extract info:
@@ -319,48 +293,7 @@ class SpotifyUtils {
                     Log.w(TAG, "ERROR: Could not get Podcast Episodes from Spotify!")
                 } else {
                     for (item in items) {
-                        val itemJson = item.asJsonObject
-                        var fullyPlayed = false
-                        var resumePositionMs = 0
-                        // Show info:
-                        val show = itemJson.get("show").asJsonObject
-                        //ResumePoint info:
-                        try {
-                            var itemResume = itemJson.get("resume_point").asJsonObject
-                            fullyPlayed = itemResume.get("fully_played").asBoolean
-                            if (!fullyPlayed) {
-                                resumePositionMs = itemResume.get("resume_position_ms").asInt
-                            }
-                        } catch (e: Exception) {
-                            Log.d(TAG, "No ResumePoint info in current Episode!")
-                        }
-                        //Languages:
-                        var itemLanguages = mutableListOf<String>()
-                        try {
-                            for (obj in itemJson.get("languages").asJsonArray) {
-                                itemLanguages.add(obj.asString)
-                            }
-                        } catch (e: Exception) {
-                            Log.d(TAG, "No languages info in current Episode!")
-                        }
-                        episodes.add(
-                            SpotifyPlayable(
-                                type = "episode",
-                                id = itemJson.get("id").asString,
-                                name = itemJson.get("name").asString,
-                                podcastId = show.get("id").asString,
-                                podcastName = show.get("name").asString,
-                                publisher = show.get("publisher").asString,
-                                releaseDate = try {
-                                    itemJson.get("release_date").asString
-                                } catch (e: Exception) {
-                                    ""
-                                },
-                                languages = itemLanguages,
-                                fullyPlayed = fullyPlayed,
-                                resumePositionMs = resumePositionMs,
-                            )
-                        )
+                        episodes.add(spotifyParsers.extractEpisodeFromLibItem(item.asJsonObject, libItem))
                     }
                 }
 
@@ -374,6 +307,5 @@ class SpotifyUtils {
         Log.d(TAG, "getPodcastEpisodes: job end!")
         return episodes
     }
-
 
 }

@@ -21,6 +21,7 @@ import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
 import com.ftrono.DJames.be.spotify.SpotifyUtils
 import com.ftrono.DJames.ui.theme.NavigationItem
 import com.ftrono.DJames.application.prefs.Prefs
+import com.ftrono.DJames.be.spotify.SpotifyParsers
 import com.ftrono.DJames.be.utils.Utilities
 import com.google.gson.JsonObject
 import io.objectbox.Box
@@ -33,7 +34,7 @@ import java.util.concurrent.TimeUnit
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.0.a5 (alpha)"
+val appVersion = "3.0.a6 (alpha)"
 val copyrightYear = 2024
 
 //DB:
@@ -45,6 +46,7 @@ val utils = Utilities()
 val libUtils = LibraryUtils()
 val messageUtils = MessageUtils()
 val spotifyUtils = SpotifyUtils()
+val spotifyParsers = SpotifyParsers()
 val spotifyLoginUtils = SpotifyLoginUtils()
 val fulfillmentUtils = FulfillmentUtils()
 val defaultReplies = DefaultReplies()
@@ -182,13 +184,14 @@ val gMapsLinkFormat = "https://www.google.com/maps/dir//"
 //Spotify formats:
 val spotIntroUri = "spotify"   // spotify:<type>:<id>
 val spotIntroUrl = "https://open.spotify.com"   // .../<type>/<id>
+val spotCollectionUrl = "$spotIntroUrl/collection/tracks"
+val spotCollectionIntUri = "spotify:user:replaceUserId:collection"
 val trackUrlIntro = "https://open.spotify.com/track/"
 val artistUrlIntro = "https://open.spotify.com/artist/"
 val albumUrlIntro = "https://open.spotify.com/album/"
 val playlistUrlIntro = "https://open.spotify.com/playlist/"
 val showUrlIntro = "https://open.spotify.com/show/"
 val episodeUrlIntro = "https://open.spotify.com/episode/"
-val likedSongsUri = "spotify:user:replaceUserId:collection"
 
 //Spotify:
 val spotifyQueryLimit = 10

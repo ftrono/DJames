@@ -4,7 +4,11 @@ import com.ftrono.DJames.application.appVersion
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.Message
+import com.ftrono.DJames.be.database.SpotifyAlbum
+import com.ftrono.DJames.be.database.SpotifyArtist
 import com.ftrono.DJames.be.database.SpotifyPlayable
+import com.ftrono.DJames.be.database.SpotifyPlaylist
+import com.ftrono.DJames.be.database.SpotifyTrack
 import com.ftrono.DJames.be.models.ActionType
 
 
@@ -144,10 +148,18 @@ val testMessages = listOf<Message>(
             matchScore = 100,
             spotifyPlay = SpotifyPlayable(
                 type = "track",
-                name = "Lost",
-                artistsNames = mutableListOf("Linkin Park"),
-                albumType = "single",
-                albumName = "Lost",
+                track = SpotifyTrack(
+                    name = "Lost",
+                    artists = mutableListOf(
+                        SpotifyArtist(
+                            name = "Linkin Park"
+                        )
+                    ),
+                    album = SpotifyAlbum(
+                        type = "single",
+                        name = "Lost",
+                    ),
+                ),
                 //Context Type -> only if "playlist" or "podcast"
             )
         )
@@ -180,9 +192,10 @@ val testMessages = listOf<Message>(
             matchScore = 100,
             spotifyPlay = SpotifyPlayable(
                 type = "playlist",
-                name = "Francis Ford",
-                owner = "francesco_trono"
-                //Context Type -> only if "playlist" or "podcast"
+                playlist = SpotifyPlaylist(
+                    name = "Francis Ford",
+                    owner = "francesco_trono"
+                ),
             )
         )
     ),

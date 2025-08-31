@@ -433,7 +433,7 @@ fun ChatInputField(
                 keyboardController?.hide()
             }
             .focusRequester(focusRequester),
-        enabled = queryState == "ready",
+        // enabled = queryState == "ready",
         colors = textFieldColors,
         value = sharedViewModel.text,
         interactionSource = interactionSource,
@@ -448,7 +448,7 @@ fun ChatInputField(
         ),
         keyboardActions = KeyboardActions(
             onSend = {
-                onKeyboardDone()
+                if (queryState == "ready") onKeyboardDone()
             }
         ),
         placeholder = {

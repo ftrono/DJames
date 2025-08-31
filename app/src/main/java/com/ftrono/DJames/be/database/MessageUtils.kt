@@ -361,56 +361,56 @@ class MessageUtils {
             //Play requests:
             val playable = attachments.spotifyPlay!!
 
-            if (playable.type == "podcast" || playable.type == "episode") {
+            if (playable.type == "episode" && playable.episode != null) {
                 //Podcast:
-                var podcastName = utils.capitalizeWords(playable.contextName)
+                var podcastName = utils.capitalizeWords(playable.episode!!.podcast!!.name)
                 detailText = if (podcastName == "") "" else "Podcast:  $podcastName"
-                var episodeName = utils.capitalizeWords(playable.name)
-                var episodeDate = utils.capitalizeWords(playable.releaseDate)
+                var episodeName = utils.capitalizeWords(playable.episode!!.name)
+                var episodeDate = utils.capitalizeWords(playable.episode!!.releaseDate)
                 detailText += if (episodeName == "") "" else "\nEpisode:  ($episodeDate) \"$episodeName\""
 
-            } else if (playable.type == "playlist" || playable.type == "collection") {
-                //Playlist / artist playlist / collection:
-                detailText = if (playable.name == "") "" else "Playlist:  ${
-                    utils.capitalizeWords(playable.name)
+            } else if (playable.type == "playlist" && playable.playlist != null) {
+                //Playlist / collection:
+                detailText = if (playable.playlist!!.name == "") "" else "Playlist:  ${
+                    utils.capitalizeWords(playable.playlist!!.name)
                 }"
 
-            } else if (playable.type == "artist") {
+            } else if (playable.type == "artist" && playable.artist != null) {
                 //Artist:
                 detailText =
-                    if (playable.name == "") "" else "Artist:  ${utils.capitalizeWords(playable.name)}"
+                    if (playable.artist!!.name == "") "" else "Artist:  ${utils.capitalizeWords(playable.artist!!.name)}"
 
-            } else if (playable.type == "album") {
+            } else if (playable.type == "album" && playable.album != null) {
                 //Album:
-                var matchName = utils.trimString(playable.name, trimLength)
+                var matchName = utils.trimString(playable.album!!.name, trimLength)
                 if (matchName != "") {
                     var artistName =
-                        utils.trimString(playable.artistsNames.joinToString(", "), trimLength)
-                    if (playable.albumType != "album") {
+                        utils.trimString(playable.album!!.artists.joinToString(", ") { it.name }, trimLength)
+                    if (playable.album!!.type != "album") {
                         detailText =
-                            "Album:  $matchName  (${utils.capitalizeWords(playable.albumType)})\nArtist:  $artistName"
+                            "Album:  $matchName  (${utils.capitalizeWords(playable.album!!.type)})\nArtist:  $artistName"
                     } else {
                         detailText = "Album:  $matchName\nArtist:  $artistName"
                     }
                 }
 
-            } else {
+            } else if (playable.type == "track" && playable.track != null) {
                 //Track:
-                var matchName = utils.trimString(playable.name, trimLength)
+                var matchName = utils.trimString(playable.track!!.name, trimLength)
                 if (matchName != "") {
                     var artistName =
-                        utils.trimString(playable.artistsNames.joinToString(", "), trimLength)
+                        utils.trimString(playable.track!!.artists.joinToString(", ") { it.name }, trimLength)
 
                     //Context:
-                    var contextType = playable.contextType
+                    var contextType = if (playable.track!!.context == null) "" else playable.track!!.context!!.type
                     var contextName = ""
-                    if (contextType == "Playlist" && !attachments.contextError && !attachments.playedExternally) {
-                        //Use Playlist:
-                        contextName = playable.contextName
-                    } else {
+                    if (playable.track!!.context != null && !attachments.contextError && !attachments.playedExternally) {
+                        //Use Context name:
+                        contextName = playable.track!!.context!!.name
+                    } else if (playable.track!!.album != null) {
                         //Default to Album type:
-                        contextType = utils.capitalizeWords(playable.albumType)
-                        contextName = playable.albumName
+                        contextType = utils.capitalizeWords(playable.track!!.album!!.type)
+                        contextName = playable.track!!.album!!.name
                     }
                     var contextFull = "$contextName  ($contextType)"
                     if (attachments.playedExternally) {

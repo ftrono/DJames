@@ -68,6 +68,8 @@ import com.ftrono.DJames.ui.overlay.TypingIndicator
 import com.ftrono.DJames.ui.navigation.SharedViewModel
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
+import com.ftrono.DJames.ui.selectors.libColorSelector
+import com.ftrono.DJames.ui.selectors.libIconSelector
 import com.ftrono.DJames.ui.selectors.messagesColorSelectorLight
 import com.ftrono.DJames.ui.selectors.messagesIconSelector
 
@@ -427,11 +429,26 @@ fun MessageDetail(
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                //SOURCE ICON:
+                if (message.attachments.spotifyPlay != null) {
+                    Icon(
+                        modifier = Modifier
+                            .padding(
+                                start = 8.dp,
+                                end = 2.dp,
+                                bottom = 2.dp
+                            )
+                            .size(14.dp),
+                        painter = libIconSelector("spotify"),
+                        contentDescription = "spotify",
+                        tint = libColorSelector("spotify")
+                    )
+                }
                 //CAT ICON:
                 Icon(
                     modifier = Modifier
                         .padding(
-                            start = 8.dp,
+                            start = if (message.attachments.spotifyPlay != null) 2.dp else 8.dp,
                             end = 2.dp,
                             bottom = 2.dp
                         )

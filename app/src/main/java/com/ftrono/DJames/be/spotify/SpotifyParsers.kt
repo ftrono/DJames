@@ -79,7 +79,10 @@ class SpotifyParsers() {
         )
         try {
             for (obj in itemJson.get("languages").asJsonArray) {
-                episode.languages.add(obj.asString)
+                val lang = obj.asString
+                if (lang != "") {
+                    episode.languages.add(lang)
+                }
             }
         } catch (e: Exception) {
             Log.d(TAG, "No languages info in current Episode!")

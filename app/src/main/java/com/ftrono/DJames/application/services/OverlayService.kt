@@ -91,6 +91,7 @@ import com.ftrono.DJames.application.clickSleepInterval
 import com.ftrono.DJames.application.overlayOptionsStr
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.application.volumeUpEnabledUI
 import com.ftrono.DJames.ui.overlay.DJamesPads
 import com.ftrono.DJames.ui.overlay.getQuickActionOnTap
 import kotlinx.coroutines.CoroutineScope
@@ -521,6 +522,10 @@ class OverlayService : Service() {
         overlayActive.postValue(false)
         voiceQueryOn = false
         clickCounter.postValue(0)
+        if (volumeUpEnabledUI.value!!) {
+            // Re-enable volume-up trigger:
+            prefs.volumeUpEnabled = true   //THIS is used by EventReceiver!
+        }
         //Stop Voice Query service:
         if (isMyServiceRunning(VoiceQueryService::class.java)) {
             stopService(Intent(applicationContext, VoiceQueryService::class.java))

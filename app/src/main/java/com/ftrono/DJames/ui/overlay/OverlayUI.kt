@@ -641,7 +641,7 @@ fun RaiseVolumeButton(
         timeoutWidth = 5.dp,
         onTap = {
             if (volumeUpEnabledUI.value!!) {   //THIS must not change!
-                // Disable volume temporarily:
+                // Disable volume-up trigger temporarily:
                 isActive.value = true
                 prefs.volumeUpEnabled = false   //THIS is used by EventReceiver!
                 if (isActive.value) {
@@ -651,7 +651,7 @@ fun RaiseVolumeButton(
         },
         onTimeout = {
             if (volumeUpEnabledUI.value!!) {
-                // Re-enable volume:
+                // Re-enable volume-up trigger:
                 isActive.value = false
                 prefs.volumeUpEnabled = true   //THIS is used by EventReceiver!
             }

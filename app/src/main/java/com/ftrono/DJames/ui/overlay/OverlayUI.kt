@@ -1,6 +1,7 @@
 package com.ftrono.DJames.ui.overlay
 
-import android.util.Log
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -16,7 +17,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -44,15 +44,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -79,67 +82,83 @@ import com.ftrono.DJames.application.autoStopQueriesState
 import com.ftrono.DJames.application.clickAnimationCountdownTime
 import com.ftrono.DJames.application.clickCounter
 import com.ftrono.DJames.application.overlayOptionsStr
+import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.raiseVolumeCountdownTime
 import com.ftrono.DJames.application.sourceIsVolume
+import com.ftrono.DJames.application.volumeUpEnabledUI
 import com.ftrono.DJames.be.models.QuickAction
 import com.ftrono.DJames.ui.components.RoundedSign
+import com.ftrono.DJames.ui.components.VolumeUpIcon
 import com.ftrono.DJames.ui.theme.light_grey
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.String
 import kotlin.math.cos
-import kotlin.math.round
 import kotlin.math.sin
 
 
 @Preview
 @Composable
 fun PadsPreview1() {
+    val mContext = LocalContext.current
     val overlayPosState by remember { mutableStateOf("Right") }
     val clickCounterState by remember { mutableStateOf(1) }
     val clockActiveState by remember { mutableStateOf(false) }
+
     DJamesPads(
+        context = mContext,
         queryStatus = MutableLiveData<String>("ready"),
         overlayPosState = overlayPosState,
         clickCounterState = clickCounterState,
         clockActiveState = clockActiveState,
         currentTime = MutableLiveData<String>("00:00"),
+        preview = true,
     )
 }
 
 @Preview
 @Composable
 fun PadsPreview2() {
+    val mContext = LocalContext.current
     val overlayPosState by remember { mutableStateOf("Right") }
     val clickCounterState by remember { mutableStateOf(2) }
     val clockActiveState by remember { mutableStateOf(false) }
+
     DJamesPads(
+        context = mContext,
         queryStatus = MutableLiveData<String>("ready"),
         overlayPosState = overlayPosState,
         clickCounterState = clickCounterState,
         clockActiveState = clockActiveState,
         currentTime = MutableLiveData<String>("00:00"),
+        preview = true,
     )
 }
 
 @Preview
 @Composable
 fun PadsPreview3() {
+    val mContext = LocalContext.current
     val overlayPosState by remember { mutableStateOf("Right") }
     val clickCounterState by remember { mutableStateOf(0) }
     val clockActiveState by remember { mutableStateOf(false) }
+
     DJamesPads(
+        context = mContext,
         queryStatus = MutableLiveData<String>("ready"),
         overlayPosState = overlayPosState,
         clickCounterState = clickCounterState,
         clockActiveState = clockActiveState,
         currentTime = MutableLiveData<String>("00:00"),
+        preview = true,
     )
 }
 
 
 @Composable
 fun DJamesPads(
+    context: Context,
     modifier: Modifier = Modifier,
     queryStatus: MutableLiveData<String>,
     overlayPosState: String,
@@ -150,6 +169,7 @@ fun DJamesPads(
     toeSize: Int = 70,
     targetRadius: Dp = 40.dp,   // distance from center pad to toes
     interval: Float = 50f,   // distance between each toe angle
+    preview: Boolean = false,
     onToesTapCommon: (Offset) -> Unit = { offset -> },
     onCenterTap: (Offset) -> Unit = { offset -> },
 ) {
@@ -260,6 +280,7 @@ fun DJamesPads(
                         timeoutColor = colorTimeoutActive,
                         bubbleSize = toeSize.dp,
                         timeoutWidth = 7.dp,
+                        enlarge = true,
                         onTap = {
                             clickCounter.postValue(isState)
                             onToesTapCommon(it)
@@ -282,7 +303,10 @@ fun DJamesPads(
 
         // CENTER PAW PAD:
         CenterPad(
+            context = context,
             bubbleSize = centerSize,
+            toeSize = toeSize+4,
+            toeOffset = 22,
             queryStatus = queryStatus,
             clickCounterState = clickCounterState,
             clockActiveState = clockActiveState,
@@ -292,6 +316,7 @@ fun DJamesPads(
             colorBgActive = colorBgActive,
             colorBgInactive = colorBgInactive,
             colorTimeout = colorTimeoutActive,
+            preview = preview,
             onClockTap = {
                 getQuickActionOnTap(context = mContext, name = "clock")()
             },
@@ -349,8 +374,10 @@ fun TimeoutButton(
     timeoutWidth: Dp = 8.dp,
     backgroundColor: Color,
     timeoutColor: Color,
-    isCenter: Boolean = false,
+    timeoutMs: Int = clickAnimationCountdownTime,
+    enlarge: Boolean = false,
     onTap: (Offset) -> Unit = { offset -> },
+    onTimeout: () -> Unit = {},
     icon: @Composable () -> Unit = {}
 ) {
     // States:
@@ -369,22 +396,25 @@ fun TimeoutButton(
                 sweepAngle.animateTo(
                     targetValue = 0f,
                     animationSpec = tween(
-                        durationMillis = clickAnimationCountdownTime,
+                        durationMillis = timeoutMs,
                         easing = LinearEasing
                     )
                 )
+
+                onTimeout()
             }
         } else {
             // Cancel if set to false externally
             countdownJob?.cancel()
             countdownJob = null
+            onTimeout()
         }
     }
 
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .size(if (!isCenter && isActive) bubbleSize + 10.dp else bubbleSize)
+            .size(if (!enlarge && isActive) bubbleSize + 10.dp else bubbleSize)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
@@ -417,7 +447,10 @@ fun TimeoutButton(
 
 @Composable
 fun CenterPad(
+    context: Context,
     bubbleSize: Int,
+    toeSize: Int,
+    toeOffset: Int,
     queryStatus: MutableLiveData<String>,
     clickCounterState: Int,
     clockActiveState: Boolean,
@@ -428,9 +461,12 @@ fun CenterPad(
     colorBgInactive: Color,
     colorTimeout: Color,
     onClockTap: (Offset) -> Unit,
-    onCenterTap: (Offset) -> Unit
+    onCenterTap: (Offset) -> Unit,
+    preview: Boolean = false,
 ) {
     val queryState by queryStatus.observeAsState()
+    val isRaiseVolumeActive = rememberSaveable { mutableStateOf(false) }
+    val volumeUpEnabledUIState by volumeUpEnabledUI.observeAsState()   // Use UI here, not the prefs!
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -440,7 +476,9 @@ fun CenterPad(
         //CLOCK BUTTON:
         if (!clockActiveState && clickCounterState == 0) {
             ClockButton(
-                bubbleSize = bubbleSize,
+                modifier = Modifier
+                    .offset(y=toeOffset.dp),
+                size = toeSize,
                 currentTimeState = currentTimeState,
                 onTap = onClockTap,
             )
@@ -448,9 +486,10 @@ fun CenterPad(
 
         // CENTER PAW PAD:
         TimeoutButton(
+            modifier = Modifier
+                .zIndex(1f),
             isActive = clickCounterState == 1,
             bubbleSize = bubbleSize.dp,
-            isCenter = true,
             timeoutWidth = 8.dp,
             backgroundColor = if (clickCounterState == 1) {
                 colorBgActive   // Center pad active
@@ -511,42 +550,54 @@ fun CenterPad(
                 )
             }
         }
+
+        //CLOCK BUTTON:
+        if (volumeUpEnabledUIState!! && clickCounterState == 0) {
+            RaiseVolumeButton(
+                isActive = isRaiseVolumeActive,
+                context = context,
+                modifier = Modifier
+                    .offset(
+                        y=-(if (isRaiseVolumeActive.value) toeOffset+10 else toeOffset).dp
+                    ),
+                size = toeSize,
+                preview = preview,
+            )
+        }
     }
 }
 
 
 @Composable
 fun ClockButton(
-    bubbleSize: Int,
+    modifier: Modifier = Modifier,
+    size: Int = 70,
     currentTimeState: String,
     onTap: (Offset) -> Unit
 ) {
     //OVERLAY BUTTON:
-    Card(
-        modifier = Modifier
-            .padding(bottom = 8.dp)
-            .width(round(bubbleSize.toDouble() / 1.5).dp)
+    Box (
+        modifier = modifier
+            .size(size.dp)
+            .clip(CircleShape)
+            .background(colorResource(id = R.color.black))
+            //.border(0.5.dp, colorResource(id = R.color.faded_grey), CircleShape)
             .pointerInput(Unit) {
                 detectTapGestures(
                     //ON SINGLE TAP:
                     onTap = onTap
                 )
             },
-        border = BorderStroke(0.5.dp, colorResource(id = R.color.faded_grey)),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors (
-            containerColor = colorResource(id = R.color.black)
-        )
     ) {
         Column(
             modifier = Modifier
+                .padding(top = 14.dp)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text (
-                modifier = Modifier
-                    .padding(top=8.dp),
+                modifier = Modifier,
                 text = currentTimeState,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
@@ -554,8 +605,7 @@ fun ClockButton(
                 color = colorResource(id = R.color.light_grey)
             )
             Text (
-                modifier = Modifier
-                    .padding(bottom=8.dp),
+                modifier = Modifier,
                 text = "CLOCK",
                 fontSize = 8.sp,
                 fontWeight = FontWeight.Bold,
@@ -564,7 +614,71 @@ fun ClockButton(
             )
         }
     }
+}
 
+
+@Composable
+fun RaiseVolumeButton(
+    context: Context,
+    isActive: MutableState<Boolean>,
+    modifier: Modifier = Modifier,
+    size: Int = 70,
+    preview: Boolean = false,
+) {
+
+    // Colours:
+    val colorBgActive = colorResource(R.color.yellowSign)
+    val colorBgInactive = colorResource(R.color.dark_grey)
+    val colorTimeoutActive = colorResource(R.color.light_grey)
+
+    TimeoutButton (
+        modifier = modifier,
+        isActive = isActive.value,
+        backgroundColor = if (isActive.value) colorBgActive else colorBgInactive,
+        timeoutColor = colorTimeoutActive,
+        timeoutMs = raiseVolumeCountdownTime,
+        bubbleSize = size.dp,
+        timeoutWidth = 5.dp,
+        onTap = {
+            if (volumeUpEnabledUI.value!!) {   //THIS must not change!
+                // Disable volume temporarily:
+                isActive.value = true
+                prefs.volumeUpEnabled = false   //THIS is used by EventReceiver!
+                if (isActive.value) {
+                    Toast.makeText(context, "Raise volume now!", Toast.LENGTH_SHORT).show()
+                }
+            }
+        },
+        onTimeout = {
+            if (volumeUpEnabledUI.value!!) {
+                // Re-enable volume:
+                isActive.value = false
+                prefs.volumeUpEnabled = true   //THIS is used by EventReceiver!
+            }
+        },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text (
+                modifier = Modifier,
+                text = "VOLUME UP",
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                color = if (isActive.value) colorResource(id = R.color.light_grey) else colorResource(id = R.color.mid_grey)
+            )
+            VolumeUpIcon(
+                modifier = Modifier
+                    .padding(bottom=12.dp, end=4.dp),
+                iconSize = 24.dp,
+                showForbidden = false,
+            )
+        }
+    }
 }
 
 

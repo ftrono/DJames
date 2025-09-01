@@ -421,6 +421,7 @@ fun OptionsItem(
     title: String,
     iconVector: ImageVector? = null,
     iconPainter: Painter? = null,
+    showIcon: Boolean = true,
     onClick: () -> Unit = {}
 ) {
     DropdownMenuItem(
@@ -435,13 +436,13 @@ fun OptionsItem(
                 Icon(
                     imageVector = iconVector,
                     contentDescription = title,
-                    tint = colorResource(id = R.color.mid_grey)
+                    tint = if (showIcon) colorResource(id = R.color.mid_grey) else colorResource(id = R.color.transparent_full),
                 )
             } else {
                 Icon(
                     painter = iconPainter!!,
                     contentDescription = title,
-                    tint = colorResource(id = R.color.mid_grey)
+                    tint = if (showIcon) colorResource(id = R.color.mid_grey) else colorResource(id = R.color.transparent_full),
                 )
             }
         },

@@ -6,6 +6,7 @@ import android.content.Context
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
+import androidx.compose.runtime.MutableState
 import net.openid.appauth.AuthorizationServiceConfiguration
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.application.App.ObjectBox.store
@@ -90,7 +91,7 @@ var overlayActive = MutableLiveData<Boolean>(false)
 var queryStatus = MutableLiveData<String>("ready")   // MAIN PROCESS STATE FOR BOTH VOICE & CHAT!!!
 var clockActive = MutableLiveData<Boolean>(false)
 var overlayPos = MutableLiveData<String>("Right")
-var volumeUpEnabled = MutableLiveData<Boolean>(true)
+var volumeUpEnabledUI = MutableLiveData<Boolean>(true)
 var sourceIsVolume = MutableLiveData<Boolean>(false)
 var extraOpen = MutableLiveData<Boolean>(false)
 var innerNavOpen = MutableLiveData<Boolean>(false)
@@ -129,6 +130,7 @@ val maxHistoryDays: Long = 15L
 val defaultChatResetTime: Long = 3*60*1000   //minutes
 val defaultChatWait = 2000L
 val maxAudioRecTimeout = 120L   //for voice messages
+val raiseVolumeCountdownTime: Int = 7000   //ms
 val clickAnimationCountdownTime: Int = 4000   //ms
 val clickCountdownTime: Long = 3000   //ms
 val clickSleepInterval: Long = 100   //ms

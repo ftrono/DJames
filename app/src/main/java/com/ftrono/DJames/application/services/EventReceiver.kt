@@ -21,7 +21,7 @@ class EventReceiver: BroadcastReceiver() {
             val newVolume = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_VALUE", 0)
             val oldVolume = intent.getIntExtra("android.media.EXTRA_PREV_VOLUME_STREAM_VALUE", 0)
 
-            if (newVolume >= oldVolume && prefs.volumeUpEnabled) {
+            if (newVolume >= oldVolume && prefs.volumeUpEnabled) {   //USE prefs and NEVER volumeUpEnabledUI!
                 //If volume maximum -> Lower volume (to enable Receiver):
                 if (audioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC) == streamMaxVolume) {
                     audioManager!!.setStreamVolume(AudioManager.STREAM_MUSIC, streamMaxVolume-1, AudioManager.FLAG_PLAY_SOUND)

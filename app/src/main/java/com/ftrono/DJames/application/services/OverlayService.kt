@@ -180,6 +180,7 @@ class OverlayService : Service() {
             bubbleView = ComposeView(this).also {
                 it.setContent {
                     OverlayBubble(
+                        context = applicationContext,
                         centerSize = 100,
                         toeSize = 70,
                         onDrag = { x, y ->
@@ -312,6 +313,7 @@ class OverlayService : Service() {
 
     @Composable
     fun OverlayBubble(
+        context: Context,
         centerSize: Int,
         toeSize: Int,
         onDrag: (Int, Int) -> Unit
@@ -402,6 +404,7 @@ class OverlayService : Service() {
                 }
         ) {
             DJamesPads(
+                context = context,
                 queryStatus = queryStatus,
                 overlayPosState = overlayPosState!!,
                 clickCounterState = clickCounterState!!,

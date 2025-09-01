@@ -66,6 +66,7 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.services.OverlayService
 import com.ftrono.DJames.application.spotUserName
 import com.ftrono.DJames.application.spotifyLoggedIn
+import com.ftrono.DJames.application.volumeUpEnabledUI
 import com.ftrono.DJames.ui.components.DropdownSpinner
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.components.SettingsSection
@@ -772,6 +773,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         onCheckedChange = {
                             checkedVolumeEnabled.value = it
                             prefs.volumeUpEnabled = it
+                            volumeUpEnabledUI.postValue(it)
                             restartOverlay(mContext)
                         }
                     )

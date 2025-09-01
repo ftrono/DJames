@@ -52,7 +52,7 @@ import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.spotUserName
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.application.volumeUpEnabled
+import com.ftrono.DJames.application.volumeUpEnabledUI
 import com.ftrono.DJames.be.chat.ChatManager
 import com.ftrono.DJames.ui.components.CardSign
 import com.ftrono.DJames.ui.components.ChatInputField
@@ -258,7 +258,7 @@ fun LogoHome(
 ) {
     val overlayActiveState by overlayActive.observeAsState()
     val userNameState by spotUserName.observeAsState()
-    val volumeUpEnabledState by volumeUpEnabled.observeAsState()
+    val volumeUpEnabledState by volumeUpEnabledUI.observeAsState()
 
     Image(
         modifier = modifier

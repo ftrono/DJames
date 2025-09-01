@@ -3,6 +3,7 @@ package com.ftrono.DJames.ui.navigation
 import android.content.Context
 import android.content.Intent
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -10,6 +11,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.coroutineScope
 import androidx.compose.ui.res.colorResource
@@ -42,6 +44,7 @@ fun UserOptions(
 ) {
     val extraOpenState by extraOpen.observeAsState()
     val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
+    val checkedV3 = remember { mutableStateOf(if (preview) true else prefs.enableV3) }
 
     var mDisplayMenu = rememberSaveable {
         mutableStateOf(false)
@@ -94,6 +97,17 @@ fun UserOptions(
                         }
                         lastNavRoute = curNavRoute
                         mDisplayMenu.value = false
+                    }
+                )
+                //2) TODO: TEMP: Item: Enable / disable V3 engine:
+                OptionsItem(
+                    title = "Enable v3 engine",
+                    iconVector = Icons.Default.Check,
+                    showIcon = checkedV3.value,
+                    onClick = {
+                        prefs.enableV3 = !checkedV3.value
+                        checkedV3.value = !checkedV3.value
+                        if (checkedV3.value) "Enabled V3 engine!" else "Disabled V3 engine!"
                     }
                 )
                 //2) Item: LOGIN/LOGOUT

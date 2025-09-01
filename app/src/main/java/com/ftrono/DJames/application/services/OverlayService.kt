@@ -174,7 +174,7 @@ class OverlayService : Service() {
             ).apply {
                 gravity = Gravity.TOP or Gravity.START
                 x = if (prefs.overlayPosition == "Right") screenWidth else 0
-                y = round(screenHeight.toDouble()/3).toInt()
+                y = round(screenHeight.toDouble()/4).toInt()
             }
 
             //Compose:
@@ -307,7 +307,7 @@ class OverlayService : Service() {
         screenHeight = resources.displayMetrics.heightPixels
         //Preferred xpos:
         bubbleParams.x = if (prefs.overlayPosition == "Right") screenWidth else 0
-        bubbleParams.y = round(screenHeight.toDouble()/3).toInt()
+        bubbleParams.y = round(screenHeight.toDouble()/4).toInt()
         windowManager.updateViewLayout(bubbleView, bubbleParams)
     }
 

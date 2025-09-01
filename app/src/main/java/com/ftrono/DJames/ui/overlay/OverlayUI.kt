@@ -628,7 +628,7 @@ fun RaiseVolumeButton(
 
     // Colours:
     val colorBgActive = colorResource(R.color.yellowSign)
-    val colorBgInactive = colorResource(R.color.dark_grey)
+    val colorBgInactive = colorResource(R.color.dark_grey_background)
     val colorTimeoutActive = colorResource(R.color.light_grey)
 
     TimeoutButton (

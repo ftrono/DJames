@@ -182,7 +182,7 @@ fun EditLibDynamicNameSection(
                     textState.value = newText
                 },
                 textStyle = TextStyle(
-                    fontSize = if (isActive) 20.sp else 24.sp,
+                    fontSize = 20.sp,
                     fontWeight = if (isActive) null else FontWeight.Bold,
                 ),
                 keyboardOptions = KeyboardOptions(
@@ -196,7 +196,7 @@ fun EditLibDynamicNameSection(
                 placeholder = {
                     Text(
                         text = placeholder,
-                        fontSize = 24.sp,
+                        fontSize = 20.sp,
                         fontStyle = FontStyle.Italic,
                         color = colorResource(R.color.light_grey)
                     )

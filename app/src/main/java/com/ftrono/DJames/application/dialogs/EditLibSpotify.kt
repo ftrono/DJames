@@ -145,7 +145,7 @@ fun EditLibSpotify(
                 itemSpotify = linkExtractor.extractSpotifyInfoFromHTTP(mContext, itemSpotify, new=false)
                 textType.value = itemSpotify.type
                 textName.value = itemSpotify.name
-                textDetail.value = itemSpotify.detail
+                textDetail.value = if (itemSpotify.type == "playlist" && itemSpotify.detail == "") "Spotify" else itemSpotify.detail
                 imageUrlState.value = itemSpotify.imageUrl
             },
             onDismiss = {
@@ -172,6 +172,9 @@ fun EditLibSpotify(
                     itemSpotify.type = textType.value
                     itemSpotify.name = textName.value.trim()
                     itemSpotify.aliases = aliasesList
+                    if (itemSpotify.type == "playlist" && itemSpotify.detail == "") {
+                        itemSpotify.detail = "Spotify"
+                    }
                     itemSpotify.imageUrl = imageUrlState.value
                     itemSpotify.url = spotifyUtils.trimSpotifyUrl(textPlayUrl.value)
 

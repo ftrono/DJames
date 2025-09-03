@@ -180,6 +180,9 @@ class SpotifyUtils {
                     )
                     // itemSpotify = spotifyUtils.getSpotifyInfo(context, goto, itemSpotify, new=true)   //TODO
                     itemSpotify = linkExtractor.extractSpotifyInfoFromHTTP(context, itemSpotify, new=true)
+                    if (itemSpotify.type == "playlist" && itemSpotify.detail == "") {
+                        itemSpotify.detail = "Spotify"
+                    }
                     extractedItemState.value = Json.encodeToString<LibraryItem>(itemSpotify)
                     sharedLink.postValue("")
                 }

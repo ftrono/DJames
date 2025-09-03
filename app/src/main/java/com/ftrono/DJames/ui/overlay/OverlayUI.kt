@@ -17,6 +17,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -465,7 +466,7 @@ fun CenterPad(
     preview: Boolean = false,
 ) {
     val queryState by queryStatus.observeAsState()
-    val isRaiseVolumeActive = rememberSaveable { mutableStateOf(false) }
+    val isRaiseVolumeActive = rememberSaveable { mutableStateOf(false) }   //HERE FOR PREVIEW!
     val volumeUpEnabledUIState by volumeUpEnabledUI.observeAsState()   // Use UI here, not the prefs!
 
     Column(
@@ -556,10 +557,7 @@ fun CenterPad(
             RaiseVolumeButton(
                 isActive = isRaiseVolumeActive,
                 context = context,
-                modifier = Modifier
-                    .offset(
-                        y=-(if (isRaiseVolumeActive.value) toeOffset+10 else toeOffset).dp
-                    ),
+                modifier = Modifier,
                 size = toeSize,
                 preview = preview,
             )
@@ -576,28 +574,31 @@ fun ClockButton(
     onTap: (Offset) -> Unit
 ) {
     //OVERLAY BUTTON:
-    Box (
-        modifier = modifier
-            .size(size.dp)
-            .clip(CircleShape)
-            .background(colorResource(id = R.color.black))
-            //.border(0.5.dp, colorResource(id = R.color.faded_grey), CircleShape)
+    Card(
+        modifier = Modifier
+            .padding(bottom = 8.dp)
+            .width(size.dp)
             .pointerInput(Unit) {
                 detectTapGestures(
                     //ON SINGLE TAP:
                     onTap = onTap
                 )
             },
+        border = BorderStroke(0.5.dp, colorResource(id = R.color.faded_grey)),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors (
+            containerColor = colorResource(id = R.color.black)
+        )
     ) {
         Column(
             modifier = Modifier
-                .padding(top = 14.dp)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text (
-                modifier = Modifier,
+                modifier = Modifier
+                    .padding(top=8.dp),
                 text = currentTimeState,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
@@ -605,7 +606,8 @@ fun ClockButton(
                 color = colorResource(id = R.color.light_grey)
             )
             Text (
-                modifier = Modifier,
+                modifier = Modifier
+                    .padding(bottom=8.dp),
                 text = "CLOCK",
                 fontSize = 8.sp,
                 fontWeight = FontWeight.Bold,
@@ -613,6 +615,36 @@ fun ClockButton(
                 color = colorResource(id = R.color.mid_grey)
             )
         }
+    }
+}
+
+
+@Composable
+fun VolumeContent(
+    isActive: MutableState<Boolean>,
+    iconSize: Dp = 20.dp,
+) {
+    Column(
+        modifier = Modifier
+            .padding(top=8.dp, bottom=8.dp)
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text (
+            modifier = Modifier,
+            text = "VOLUME UP",
+            fontSize = 8.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            color = if (isActive.value) colorResource(id = R.color.light_grey) else colorResource(id = R.color.mid_grey)
+        )
+        VolumeUpIcon(
+            modifier = Modifier
+                .padding(top=2.dp),
+            iconSize = iconSize,
+            locked = !isActive.value,
+        )
     }
 }
 
@@ -631,51 +663,62 @@ fun RaiseVolumeButton(
     val colorBgInactive = colorResource(R.color.dark_grey_background)
     val colorTimeoutActive = colorResource(R.color.light_grey)
 
-    TimeoutButton (
-        modifier = modifier,
-        isActive = isActive.value,
-        backgroundColor = if (isActive.value) colorBgActive else colorBgInactive,
-        timeoutColor = colorTimeoutActive,
-        timeoutMs = raiseVolumeCountdownTime,
-        bubbleSize = size.dp,
-        timeoutWidth = 5.dp,
-        onTap = {
-            if (volumeUpEnabledUI.value!!) {   //THIS must not change!
-                // Disable volume-up trigger temporarily:
-                isActive.value = true
-                prefs.volumeUpEnabled = false   //THIS is used by EventReceiver!
-                if (isActive.value) {
-                    Toast.makeText(context, "Raise volume now!", Toast.LENGTH_SHORT).show()
+    fun onTap() {
+        if (volumeUpEnabledUI.value!!) {   //THIS must not change!
+            // Disable volume-up trigger temporarily:
+            isActive.value = true
+            prefs.volumeUpEnabled = false   //THIS is used by EventReceiver!
+            if (isActive.value) {
+                Toast.makeText(context, "Raise volume now!", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    if (isActive.value) {
+        // ACTIVE UI:
+        TimeoutButton(
+            modifier = modifier
+                .padding(top = 2.dp, bottom = 2.dp),
+            isActive = isActive.value,
+            backgroundColor = if (isActive.value) colorBgActive else colorBgInactive,
+            timeoutColor = colorTimeoutActive,
+            timeoutMs = raiseVolumeCountdownTime,
+            bubbleSize = size.dp,
+            timeoutWidth = 5.dp,
+            onTap = { onTap() },
+            onTimeout = {
+                if (volumeUpEnabledUI.value!!) {
+                    // Re-enable volume-up trigger:
+                    isActive.value = false
+                    prefs.volumeUpEnabled = true   //THIS is used by EventReceiver!
                 }
-            }
-        },
-        onTimeout = {
-            if (volumeUpEnabledUI.value!!) {
-                // Re-enable volume-up trigger:
-                isActive.value = false
-                prefs.volumeUpEnabled = true   //THIS is used by EventReceiver!
-            }
-        },
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Bottom,
-            horizontalAlignment = Alignment.CenterHorizontally,
+            },
         ) {
-            Text (
-                modifier = Modifier,
-                text = "VOLUME UP",
-                fontSize = 8.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                color = if (isActive.value) colorResource(id = R.color.light_grey) else colorResource(id = R.color.mid_grey)
+            VolumeContent(
+                isActive = isActive,
             )
-            VolumeUpIcon(
-                modifier = Modifier
-                    .padding(bottom=12.dp, end=4.dp),
-                iconSize = 24.dp,
-                showForbidden = false,
+        }
+
+    } else {
+        // INACTIVE UI:
+        Card(
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .width(size.dp)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        //ON SINGLE TAP:
+                        onTap = { onTap() }
+                    )
+                },
+            border = BorderStroke(0.5.dp, colorResource(id = R.color.faded_grey)),
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors (
+                containerColor = colorResource(id = R.color.dark_grey_background)
+            )
+        ) {
+            VolumeContent(
+                isActive = isActive,
             )
         }
     }

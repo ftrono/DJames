@@ -187,17 +187,10 @@ fun EditLibSpotify(
             //CONTENT:
             //SPOTIFY NAME:
             EditLibDynamicNameSection(
-                textHeaderColor = libColorSelectorLight(cat = textType.value),
-                textFieldColors = getTextFieldColors(
-                    colorLight = libColorSelectorLight(cat = textType.value),
-                    colorDark = libColorSelector(cat = textType.value)
-                ),
                 filter = textType.value,
                 textState = textName,
                 subtitleState = textDetail,
                 imageUrlState = imageUrlState,
-                initActive = textName.value == "",
-                showEditIcon = textName.value == "",
                 isCollection = isDefault,
                 preview = preview,
             )

@@ -79,6 +79,171 @@ fun EditLibTitle(
 
 
 //COMPOSITIONS:
+@Preview
+@Composable
+fun EditLibDynamicNameSectionPreview() {
+    val textState = remember { mutableStateOf("Ginetto") }
+    val subtitleState = remember { mutableStateOf("Spotify") }
+    val imageUrlState = remember { mutableStateOf("") }
+    EditLibDynamicNameSection(
+        modifier = Modifier,
+        filter = "artist",
+        textState = textState,
+        subtitleState = subtitleState,
+        imageUrlState = imageUrlState,
+        preview = true
+    )
+}
+
+
+@Composable
+fun EditLibDynamicNameSection(
+    modifier: Modifier = Modifier,
+    filter: String,
+    textState: MutableState<String>,
+    subtitleState: MutableState<String>? = null,
+    imageUrlState: MutableState<String>,
+    disabled: Boolean = false,
+    isCollection: Boolean = false,
+    preview: Boolean = false,
+    onClick: () -> Unit = {},
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isActive by interactionSource.collectIsFocusedAsState()
+
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    val placeholder = "${utils.capitalizeWords(filter)} name"
+    val textFieldColors = getTextFieldColors(
+        colorLight = libColorSelectorLight(cat = filter),
+        colorDark = libColorSelector(cat = filter),
+        fullyTransparent = true,
+    )
+
+    fun onClicked() {
+        focusRequester.requestFocus()
+        keyboardController!!.show()
+    }
+
+    fun onKeyboardDone() {
+        focusManager.clearFocus()
+        keyboardController!!.hide()
+        onClick()
+    }
+
+    Row(
+        modifier = Modifier
+            .padding(bottom = 20.dp)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        //CHIP ICON:
+        RoundedSign(
+            modifier = Modifier
+                .focusRequester(focusRequester)
+                .clickable {
+                    onClicked()
+                },
+            signSize = 70.dp,
+            contentSize = 40,
+            backgroundColor = if (isCollection) colorResource(R.color.violetSign) else libColorSelector(
+                cat = filter
+            ),
+            borderColor = colorResource(id = R.color.midfaded_grey),
+            contentColor = colorResource(id = R.color.light_grey),
+            borderWidth = 2.0.dp,
+            iconVector = if (isCollection) Icons.Default.Favorite else null,
+            iconPainter = if (isCollection) null else libIconSelector(cat = filter),
+            imageUrl = if (preview || isCollection) "" else imageUrlState.value,
+            circle = filter == "artist" || filter == "contact"
+        )
+
+        Column(
+            modifier = modifier
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Center
+        ) {
+
+            //Text Field:
+            OutlinedTextField(
+                modifier = Modifier
+                    .padding(start=8.dp)
+                    .focusRequester(focusRequester),
+                enabled = !disabled,
+                colors = textFieldColors,
+                value = textState.value,
+                interactionSource = interactionSource,
+                onValueChange = { newText ->
+                    textState.value = newText
+                },
+                textStyle = TextStyle(
+                    fontSize = if (isActive) 20.sp else 24.sp,
+                    fontWeight = if (isActive) null else FontWeight.Bold,
+                ),
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        onKeyboardDone()
+                    }
+                ),
+                placeholder = {
+                    Text(
+                        text = placeholder,
+                        fontSize = 24.sp,
+                        fontStyle = FontStyle.Italic,
+                        color = colorResource(R.color.light_grey)
+                    )
+                },
+                trailingIcon = {
+                    if (isActive) {
+                        //Button:
+                        RoundedSign(
+                            modifier = Modifier
+                                .padding(end = 4.dp)
+                                .focusRequester(focusRequester)
+                                .clickable {
+                                    onKeyboardDone()
+                                },
+                            signSize = 36.dp,
+                            contentSize = 20,
+                            backgroundColor = textFieldColors.textSelectionColors.backgroundColor,
+                            borderColor = textFieldColors.textSelectionColors.backgroundColor,
+                            contentColor = colorResource(id = R.color.light_grey),
+                            iconVector = Icons.Default.Done
+                        )
+                    } else {
+                        if (!disabled) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Edit"
+                            )
+                        }
+                    }
+
+                }
+            )
+
+            if (subtitleState != null && subtitleState.value != "" && !isActive) {
+                //Subtitle:
+                Text(
+                    modifier = Modifier
+                        .padding(start=22.dp),
+                    text = subtitleState.value,
+                    fontSize = 16.sp,
+                    fontStyle = FontStyle.Italic,
+                    color = colorResource(id = R.color.mid_grey)
+                )
+            }
+        }
+    }
+}
 
 @Preview
 @Composable
@@ -387,213 +552,4 @@ fun EditLibSectionTitle(
         letterSpacing = 2.sp,
         color = colorResource(id = R.color.light_grey)
     )
-}
-
-
-@Preview
-@Composable
-fun EditLibDynamicNameSectionPreview() {
-    val textName = rememberSaveable { mutableStateOf("") }
-    val subtitle = rememberSaveable { mutableStateOf("Alternative Rock") }
-    val imageUrlState = rememberSaveable { mutableStateOf("") }
-    val textHeaderColor = libColorSelectorLight(cat = "artist")
-    val textFieldColors = getTextFieldColors(
-        colorLight = libColorSelectorLight(cat = "artist"),
-        colorDark = libColorSelector(cat = "artist")
-    )
-
-    EditLibDynamicNameSection(
-        modifier = Modifier.fillMaxWidth(),
-        textHeaderColor = textHeaderColor,
-        textFieldColors = textFieldColors,
-        filter = "artist",
-        textState = textName,
-        subtitleState = subtitle,
-        imageUrlState = imageUrlState,
-        initActive = false,
-        showEditIcon = true,
-    )
-}
-
-
-@Composable
-fun EditLibDynamicNameSection(
-    modifier: Modifier = Modifier,
-    textHeaderColor: Color,
-    textFieldColors: TextFieldColors,
-    filter: String,
-    textState: MutableState<String>,
-    subtitleState: MutableState<String>? = null,
-    imageUrlState: MutableState<String>,
-    initActive: Boolean = false,
-    showEditIcon: Boolean = false,
-    isCollection: Boolean = false,
-    preview: Boolean = false,
-) {
-    val isActive = rememberSaveable { mutableStateOf(initActive) }
-    var textFieldState by remember { mutableStateOf(TextFieldValue(textState.value)) }
-
-    val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    fun onClicked() {
-        focusRequester.requestFocus()
-        keyboardController!!.show()
-    }
-
-    fun onKeyboardDone() {
-        focusManager.clearFocus()
-        keyboardController!!.hide()
-    }
-
-    Column (
-        modifier = Modifier
-            .fillMaxWidth(),
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.Top
-    ) {
-
-        if (!isActive.value || isCollection) {
-            Row(
-                modifier = Modifier
-                    .padding(bottom = 20.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                //CHIP ICON:
-                RoundedSign(
-                    modifier = Modifier
-                        .focusRequester(focusRequester)
-                        .clickable {
-                            isActive.value = true
-                            onClicked()
-                        },
-                    signSize = 70.dp,
-                    contentSize = 40,
-                    backgroundColor = if (isCollection) colorResource(R.color.violetSign) else libColorSelector(cat = filter),
-                    borderColor = colorResource(id = R.color.midfaded_grey),
-                    contentColor = colorResource(id = R.color.light_grey),
-                    borderWidth = 2.0.dp,
-                    iconVector = if (isCollection) Icons.Default.Favorite else null,
-                    iconPainter = if (isCollection) null else libIconSelector(cat = filter),
-                    imageUrl = if (preview || isCollection) "" else imageUrlState.value,
-                    circle = filter == "artist" || filter == "contact"
-                )
-
-                Column(
-                    modifier = Modifier
-                        .padding(start = 20.dp)
-                        .weight(1f)
-                        .focusRequester(focusRequester)
-                        .clickable {
-                            isActive.value = true
-                            onClicked()
-                        },
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    //Name:
-                    Text(
-                        text = if (textState.value == "") "${if (filter == "spotify") "Spotify Link" else utils.capitalizeWords(filter)} Name" else textState.value,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = colorResource(id = R.color.light_grey)
-                    )
-                    if (subtitleState != null && subtitleState.value != "") {
-                        //Subtitle:
-                        Text(
-                            modifier = Modifier
-                                .padding(top = 4.dp),
-                            text = subtitleState.value,
-                            fontSize = 16.sp,
-                            fontStyle = FontStyle.Italic,
-                            color = colorResource(id = R.color.mid_grey)
-                        )
-                    }
-
-                }
-
-                if (showEditIcon && !isCollection) {
-                    //Edit icon:
-                    Icon(
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                            .size(30.dp)
-                            .focusRequester(focusRequester)
-                            .clickable {
-                                isActive.value = true
-                                onClicked()
-                            },
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit",
-                        tint = colorResource(id = R.color.mid_grey)
-                    )
-                }
-            }
-        } else {
-            //Title:
-            EditLibTitle(
-                textHeaderColor = textHeaderColor,
-                fontSize = 16.sp,
-                title = "Name",
-            )
-
-            //TextField:
-            OutlinedTextField(
-                modifier = Modifier
-                    .padding(top = 8.dp, bottom = 20.dp)
-                    .focusRequester(focusRequester),
-                colors = textFieldColors,
-                value = textFieldState,
-                onValueChange = { newText ->
-                    val corr = newText.text
-                    textState.value = corr
-                    textFieldState = newText
-                },
-                textStyle = TextStyle(
-                    fontSize = 20.sp
-                ),
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        onKeyboardDone()
-                        isActive.value = false
-                    }
-                ),
-                placeholder = {
-                    Text(
-                        text = "Write ${if (filter == "spotify") "link" else filter} name...",
-                        fontSize = 16.sp,
-                        fontStyle = FontStyle.Italic
-                    )
-                },
-                trailingIcon = {
-                    //Button:
-                    RoundedSign(
-                        modifier = Modifier
-                            .padding(end = 4.dp)
-                            .clickable {
-                                onKeyboardDone()
-                                isActive.value = false
-                            },
-                        signSize = 36.dp,
-                        contentSize = 20,
-                        backgroundColor = textFieldColors.textSelectionColors.backgroundColor,
-                        borderColor = textFieldColors.textSelectionColors.backgroundColor,
-                        contentColor = colorResource(id = R.color.light_grey),
-                        iconVector = Icons.Default.Done
-                    )
-                }
-            )
-            LaunchedEffect(Unit) {
-                onClicked()
-                textFieldState =
-                    textFieldState.copy(selection = TextRange(textFieldState.text.length))
-            }
-        }
-    }
 }

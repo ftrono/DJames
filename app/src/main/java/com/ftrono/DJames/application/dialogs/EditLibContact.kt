@@ -184,17 +184,10 @@ fun EditLibContact(
         ) {
             //CONTACT NAME:
             EditLibDynamicNameSection(
-                textHeaderColor = libColorSelectorLight(cat = filter),
-                textFieldColors = getTextFieldColors(
-                    colorLight = libColorSelectorLight(cat = filter),
-                    colorDark = libColorSelector(cat = filter)
-                ),
                 filter = filter,
                 textState = textName,
                 subtitleState = textSubtitle,
                 imageUrlState = imageUrlState,
-                initActive = textName.value == "",
-                showEditIcon = true,
                 preview = preview,
             )
 

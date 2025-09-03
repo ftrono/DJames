@@ -70,7 +70,7 @@ class LibraryUtils {
                     )
                 }
             }
-            return libraryItems.sortedBy { it.name }
+            return libraryItems.sortedBy { it.name.uppercase() }
         } catch (e: Exception) {
             Log.w(TAG, "ERROR: cannot get All items with cat: $cat and subcat: $subcat! ", e)
             return listOf()

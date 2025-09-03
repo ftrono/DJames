@@ -153,7 +153,9 @@ class LibraryUtils {
         val fullList = mutableListOf<LibraryItem>()
         // 1) PARTITION MAP: separate items that start
         val regex = Regex("^[a-zA-Z].*")   // Regex: matches if the first character is a-z or A-Z
-        var (alphaList, nonAlphaList) = libraryItems.partition { it.name.matches(regex) }
+        var (alphaList, nonAlphaList) = libraryItems.partition { it.name.uppercase().matches(regex) }
+        alphaList.sortedBy { it.name }
+        nonAlphaList.sortedBy { it.name }
 
         // 2) ADD HEADERS:
         var letter = ""
@@ -162,7 +164,7 @@ class LibraryUtils {
             val curFirst = item.name.uppercase().first().toString()
             // store letter header:
             if (curFirst != letter) {
-                letter = curFirst.uppercase()
+                letter = curFirst
                 fullList.add(
                     LibraryItem(
                         type = "header",

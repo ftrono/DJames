@@ -79,7 +79,9 @@ fun EditLibPlace(
 
     //Init aliases:
     val initAliases = itemPlace.aliases.toMutableList()
-    initAliases.removeAt(0)
+    if (initAliases.isNotEmpty()) {
+        initAliases.removeAt(0)
+    }
 
     //States:
     val textName = rememberSaveable { mutableStateOf(itemPlace.name) }

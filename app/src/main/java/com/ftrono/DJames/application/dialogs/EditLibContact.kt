@@ -82,7 +82,9 @@ fun EditLibContact(
 
     //Init aliases:
     val initAliases = itemContact.aliases.toMutableList()
-    initAliases.removeAt(0)
+    if (initAliases.isNotEmpty()) {
+        initAliases.removeAt(0)
+    }
 
     //Init default language:
     var initLanguage = itemContact.language

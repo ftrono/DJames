@@ -90,7 +90,9 @@ fun EditLibSpotify(
 
     //Init aliases:
     val initAliases = itemSpotify.aliases.toMutableList()
-    initAliases.removeAt(0)
+    if (initAliases.isNotEmpty()) {
+        initAliases.removeAt(0)
+    }
 
     //States:
     val textType = rememberSaveable { mutableStateOf(itemSpotify.type) }
@@ -167,6 +169,7 @@ fun EditLibSpotify(
                             }
                         }
                     }
+                    itemSpotify.type = textType.value
                     itemSpotify.name = textName.value.trim()
                     itemSpotify.aliases = aliasesList
                     itemSpotify.imageUrl = imageUrlState.value

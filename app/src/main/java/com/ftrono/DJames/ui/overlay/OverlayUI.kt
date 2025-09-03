@@ -414,7 +414,7 @@ fun TimeoutButton(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .size(if (!enlarge && isActive) bubbleSize + 10.dp else bubbleSize)
+            .size(if (enlarge && isActive) bubbleSize + 10.dp else bubbleSize)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {

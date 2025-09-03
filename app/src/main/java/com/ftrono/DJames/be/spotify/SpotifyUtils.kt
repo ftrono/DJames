@@ -175,6 +175,7 @@ class SpotifyUtils {
                     val linkExtractor = LinkExtractors()
                     var itemSpotify = LibraryItem(
                         source = "spotify",
+                        type = goto,
                         url = urlToCheck
                     )
                     // itemSpotify = spotifyUtils.getSpotifyInfo(context, goto, itemSpotify, new=true)   //TODO

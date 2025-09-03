@@ -641,8 +641,8 @@ fun VolumeContent(
         Text (
             modifier = Modifier
                 .padding(start=4.dp),
-            text = "RAISE\nVOLUME",
-            fontSize = 8.sp,
+            text = "RAISE\nVOLUME" + if (isActive.value) "\nNOW!" else "",
+            fontSize = if (isActive.value) 10.sp else 8.sp,
             fontWeight = FontWeight.Bold,
             //textAlign = TextAlign.Center,
             color = if (isActive.value) colorResource(id = R.color.light_grey) else colorResource(id = R.color.mid_grey)

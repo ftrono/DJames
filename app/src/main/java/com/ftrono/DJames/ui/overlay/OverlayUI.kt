@@ -89,7 +89,6 @@ import com.ftrono.DJames.application.sourceIsVolume
 import com.ftrono.DJames.application.volumeUpEnabledUI
 import com.ftrono.DJames.be.models.QuickAction
 import com.ftrono.DJames.ui.components.RoundedSign
-import com.ftrono.DJames.ui.components.VolumeUpIcon
 import com.ftrono.DJames.ui.theme.light_grey
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -624,26 +623,29 @@ fun VolumeContent(
     isActive: MutableState<Boolean>,
     iconSize: Dp = 20.dp,
 ) {
-    Column(
+    Row (
         modifier = Modifier
             .padding(top=8.dp, bottom=8.dp)
             .fillMaxWidth(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
+        Icon(
+            modifier = Modifier
+                .padding(top=4.dp, bottom=4.dp)
+                .size(if (isActive.value) iconSize+5.dp else iconSize),
+            painter = painterResource(if (isActive.value) R.drawable.icon_unlock else R.drawable.icon_lock),
+            tint = colorResource(id = R.color.light_grey),
+            contentDescription = "Raise Volume"
+        )
         Text (
-            modifier = Modifier,
-            text = "VOLUME UP",
+            modifier = Modifier
+                .padding(start=4.dp),
+            text = "RAISE\nVOLUME",
             fontSize = 8.sp,
             fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
+            //textAlign = TextAlign.Center,
             color = if (isActive.value) colorResource(id = R.color.light_grey) else colorResource(id = R.color.mid_grey)
-        )
-        VolumeUpIcon(
-            modifier = Modifier
-                .padding(top=2.dp),
-            iconSize = iconSize,
-            locked = !isActive.value,
         )
     }
 }
@@ -660,7 +662,7 @@ fun RaiseVolumeButton(
 
     // Colours:
     val colorBgActive = colorResource(R.color.yellowSign)
-    val colorBgInactive = colorResource(R.color.dark_grey_background)
+    val colorBgInactive = colorResource(R.color.colorPrimaryDark)
     val colorTimeoutActive = colorResource(R.color.light_grey)
 
     fun onTap() {
@@ -714,7 +716,7 @@ fun RaiseVolumeButton(
             border = BorderStroke(0.5.dp, colorResource(id = R.color.faded_grey)),
             shape = RoundedCornerShape(18.dp),
             colors = CardDefaults.cardColors (
-                containerColor = colorResource(id = R.color.dark_grey_background)
+                containerColor = colorBgInactive
             )
         ) {
             VolumeContent(

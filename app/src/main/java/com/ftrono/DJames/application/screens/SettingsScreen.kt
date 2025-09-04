@@ -175,13 +175,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
 
             //SECTION: USER NICKNAME:
             SettingsUserSection(
-                modifier = Modifier
-                    .padding(bottom = 4.dp),
-                textHeaderColor = colorResource(id = R.color.light_grey),
-                textFieldColors = getTextFieldColors(
-                    colorLight = colorResource(id = R.color.greenSignLight),
-                    colorDark = colorResource(id = R.color.greenSign)
-                ),
+                modifier = Modifier,
                 logoutDialogOn = logoutDialogOn,
                 spotifyLoggedInState = spotifyLoggedInState!!,
                 preview = preview

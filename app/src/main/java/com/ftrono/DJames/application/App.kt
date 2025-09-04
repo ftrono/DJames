@@ -102,7 +102,7 @@ val overlayOptionsStr = MutableLiveData<String>("speak, save, clock, silence")  
 var autoStopQueriesState = MutableLiveData<Boolean>(false)
 var clickCounter = MutableLiveData<Int>(0)
 var allowVolumeClick = true
-var userNicknameState = MutableLiveData<String>("")
+var userNicknameUI = MutableLiveData<String>("")
 var spotUserImageState = MutableLiveData<String>("")
 var sharedLink = MutableLiveData<String>("")
 
@@ -149,7 +149,7 @@ val datetimeFullFormat = "yyyy/MM/dd HH:mm"
 val datetimeShortFormat = "MMMM dd, HH:mm"
 
 //Dropdowns:
-val genders = listOf<String>("Sir", "Madam")
+val genders = listOf<String>("Sir", "Madam", "Friend")
 var queryLangCodes = listOf<String>("en", "it")
 val queryLangFull = listOf<String>("English", "Italian")
 var messLangCodes = listOf<String>("en", "it", "fr", "de", "es")

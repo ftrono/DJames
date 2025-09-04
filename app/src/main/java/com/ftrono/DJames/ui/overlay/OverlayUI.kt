@@ -687,6 +687,7 @@ fun RaiseVolumeButton(
             timeoutMs = raiseVolumeCountdownTime,
             bubbleSize = size.dp,
             timeoutWidth = 5.dp,
+            enlarge = true,
             onTap = { onTap() },
             onTimeout = {
                 if (volumeUpEnabledUI.value!!) {

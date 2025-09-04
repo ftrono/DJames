@@ -16,7 +16,7 @@ import com.ftrono.DJames.application.spotTempToken
 import com.ftrono.DJames.application.spotUserImageState
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.spotUserName
-import com.ftrono.DJames.application.userNicknameState
+import com.ftrono.DJames.application.userNicknameUI
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.navigation.navigateTo
 import com.ftrono.DJames.ui.theme.NavigationItem
@@ -94,7 +94,7 @@ class SpotifyLoginUtils {
             //States:
             showLoggingIn.postValue(false)
             spotUserImageState.postValue(prefs.spotUserImage)
-            userNicknameState.postValue(prefs.userNickname)
+            userNicknameUI.postValue(prefs.userNickname)
             //TOAST -> Send broadcast:
             Intent().also { intent ->
                 intent.setAction(ACTION_TOASTER)
@@ -128,7 +128,7 @@ class SpotifyLoginUtils {
         prefs.nlpUserId = utils.generateRandomString(12)
         spotUserName.postValue("")
         spotUserImageState.postValue("")
-        userNicknameState.postValue("")
+        userNicknameUI.postValue("")   //TODO
         //utils.deleteUserCache(context)
         Toast.makeText(context, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()
         //Navigate to Home:

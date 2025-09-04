@@ -112,7 +112,7 @@ class MainActivity : ComponentActivity() {
             prefs.nlpUserId = utils.generateRandomString(12)
         }
         spotUserImageState.postValue(prefs.spotUserImage)
-        userNicknameState.postValue(prefs.userNickname)
+        userNicknameUI.postValue(prefs.userNickname)
 
         //AUTO START-UP:
         if (

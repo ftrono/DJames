@@ -187,7 +187,7 @@ fun EditLibContact(
                 filter = filter,
                 textState = textName,
                 subtitleState = textSubtitle,
-                imageUrlState = imageUrlState,
+                imageUrl = imageUrlState.value,
                 preview = preview,
             )
 

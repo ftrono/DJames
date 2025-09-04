@@ -193,7 +193,7 @@ fun EditLibSpotify(
                 filter = textType.value,
                 textState = textName,
                 subtitleState = textDetail,
-                imageUrlState = imageUrlState,
+                imageUrl = imageUrlState.value,
                 isCollection = isDefault,
                 preview = preview,
             )

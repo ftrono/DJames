@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -16,18 +15,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -36,13 +34,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -90,7 +86,7 @@ fun EditLibDynamicNameSectionPreview() {
         filter = "artist",
         textState = textState,
         subtitleState = subtitleState,
-        imageUrlState = imageUrlState,
+        imageUrl = imageUrlState.value,
         preview = true
     )
 }
@@ -102,7 +98,7 @@ fun EditLibDynamicNameSection(
     filter: String,
     textState: MutableState<String>,
     subtitleState: MutableState<String>? = null,
-    imageUrlState: MutableState<String>,
+    imageUrl: String,
     disabled: Boolean = false,
     isCollection: Boolean = false,
     preview: Boolean = false,
@@ -117,8 +113,8 @@ fun EditLibDynamicNameSection(
 
     val placeholder = "${utils.capitalizeWords(filter)} name"
     val textFieldColors = getTextFieldColors(
-        colorLight = libColorSelectorLight(cat = filter),
-        colorDark = libColorSelector(cat = filter),
+        colorLight = libColorSelectorLight(cat = if (filter == "user") "contact" else filter),
+        colorDark = libColorSelector(cat = if (filter == "user") "contact" else filter),
         fullyTransparent = true,
     )
 
@@ -150,16 +146,22 @@ fun EditLibDynamicNameSection(
                 },
             signSize = 70.dp,
             contentSize = 40,
-            backgroundColor = if (isCollection) colorResource(R.color.violetSign) else libColorSelector(
-                cat = filter
-            ),
+            backgroundColor = if (isCollection) {
+                colorResource(R.color.violetSign)
+            } else if (filter == "user") {
+                colorResource(id = R.color.faded_grey)
+            } else {
+                libColorSelector(
+                    cat = filter
+                )
+            },
             borderColor = colorResource(id = R.color.midfaded_grey),
             contentColor = colorResource(id = R.color.light_grey),
             borderWidth = 2.0.dp,
-            iconVector = if (isCollection) Icons.Default.Favorite else null,
-            iconPainter = if (isCollection) null else libIconSelector(cat = filter),
-            imageUrl = if (preview || isCollection) "" else imageUrlState.value,
-            circle = filter == "artist" || filter == "contact"
+            iconVector = if (isCollection) Icons.Default.Favorite else if (filter == "user") Icons.Outlined.Person else null,
+            iconPainter = if (isCollection || filter == "user") null else libIconSelector(cat = filter),
+            imageUrl = if (preview || isCollection) "" else imageUrl,
+            circle = filter == "artist" || filter == "contact" || filter == "user"
         )
 
         Column(
@@ -172,7 +174,7 @@ fun EditLibDynamicNameSection(
             //Text Field:
             OutlinedTextField(
                 modifier = Modifier
-                    .padding(start=8.dp)
+                    .padding(start = 8.dp)
                     .focusRequester(focusRequester),
                 enabled = !disabled,
                 colors = textFieldColors,
@@ -234,7 +236,7 @@ fun EditLibDynamicNameSection(
                 //Subtitle:
                 Text(
                     modifier = Modifier
-                        .padding(start=22.dp),
+                        .padding(start=23.dp),
                     text = subtitleState.value,
                     fontSize = 16.sp,
                     fontStyle = FontStyle.Italic,

@@ -120,10 +120,11 @@ class LinkExtractors {
 
 
     // Main: Spotify Link Extractor (via Spotify Web API):
-    fun extractSpotifyInfoFromAPI(context: Context, filter: String, initItem: LibraryItem, new: Boolean): LibraryItem {
+    fun extractSpotifyInfoFromAPI(context: Context, initItem: LibraryItem, new: Boolean): LibraryItem {
         Log.d(TAG, "extractSpotifyInfoFromAPI: job start!")
         var toastText = ""
         var itemSpotify = initItem
+        val filter = itemSpotify.type
         try {
             val spotifyCalls = SpotifyCalls(context)
             val resp = spotifyCalls.getSpotifyItem(type=filter, id=spotifyUtils.getSpotifyID(itemSpotify.url))
@@ -144,8 +145,21 @@ class LinkExtractors {
                 //Detail:
                 try {
                     itemSpotify.detail = when (filter) {
-                        "track" -> respJson.get("artists").asJsonArray.get(0).asJsonObject.get("name").asString
-                        "album" -> respJson.get("artists").asJsonArray.get(0).asJsonObject.get("name").asString
+                        "track" -> {
+                            respJson.get("artists").asJsonArray.joinToString(", ") {
+                                it.asJsonObject.get("name").asString
+                            }
+                        }
+                        "album" -> {
+                            respJson.get("artists").asJsonArray.joinToString(", ") {
+                                it.asJsonObject.get("name").asString
+                            }
+                        }
+                        "artist" -> {
+                            respJson.get("genres").asJsonArray.joinToString(", ") {
+                                it.asString
+                            }
+                        }
                         "playlist" -> respJson.get("owner").asJsonObject.get("display_name").asString
                         "podcast" -> respJson.get("publisher").asString
                         "episode" -> respJson.get("show").asJsonObject.get("name").asString

@@ -172,17 +172,13 @@ class SpotifyUtils {
                     idState.value = foundId
                 } else {
                     // New link -> Extract info!
-                    val linkExtractor = LinkExtractors()
                     var itemSpotify = LibraryItem(
                         source = "spotify",
                         type = goto,
                         url = urlToCheck
                     )
-                    // itemSpotify = spotifyUtils.getSpotifyInfo(context, goto, itemSpotify, new=true)   //TODO
-                    itemSpotify = linkExtractor.extractSpotifyInfoFromHTTP(context, itemSpotify, new=true)
-                    if (itemSpotify.type == "playlist" && itemSpotify.detail == "") {
-                        itemSpotify.detail = "Spotify"
-                    }
+                    // Main -> use Spotify API:
+                    itemSpotify = callLinkExtractor(context, itemSpotify, new=true)
                     extractedItemState.value = Json.encodeToString<LibraryItem>(itemSpotify)
                     sharedLink.postValue("")
                 }
@@ -193,6 +189,24 @@ class SpotifyUtils {
         } else {
             Toast.makeText(context, "Invalid Spotify link!", Toast.LENGTH_SHORT).show()
         }
+    }
+
+
+    fun callLinkExtractor(context: Context, initItem: LibraryItem, new: Boolean = false): LibraryItem {
+        // Main -> use Spotify API:
+        val linkExtractor = LinkExtractors()
+        var itemSpotify = initItem
+        itemSpotify = linkExtractor.extractSpotifyInfoFromAPI(context, itemSpotify, new)
+        Log.d(TAG, "First link extraction: $itemSpotify")
+        if (itemSpotify.url == "") {
+            // Backup -> use link preview:
+            itemSpotify = linkExtractor.extractSpotifyInfoFromHTTP(context, itemSpotify, new)
+            Log.d(TAG, "Second link extraction: $itemSpotify")
+        }
+        if (itemSpotify.type == "playlist" && itemSpotify.detail == "") {
+            itemSpotify.detail = "Spotify"
+        }
+        return itemSpotify
     }
 
 

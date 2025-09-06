@@ -237,7 +237,7 @@ fun EditLibDynamicNameSection(
                     modifier = Modifier
                         .padding(start=23.dp),
                     text = subtitleState.value,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     fontStyle = FontStyle.Italic,
                     color = colorResource(id = R.color.mid_grey)
                 )

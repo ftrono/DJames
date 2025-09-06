@@ -40,7 +40,6 @@ import com.ftrono.DJames.application.spotIntroUrl
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.samples.defaultCollection
 import com.ftrono.DJames.be.samples.testLibrary
-import com.ftrono.DJames.be.utils.LinkExtractors
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
@@ -67,7 +66,6 @@ fun EditLibSpotify(
     val focusRequester = remember { FocusRequester() }
     val mContext = LocalContext.current
     val sharedLinkState by sharedLink.observeAsState()
-    val linkExtractor = LinkExtractors()
     val isDefault = idState.value == -2L   //Default
 
     //Init:
@@ -147,10 +145,10 @@ fun EditLibSpotify(
             onRefresh = {
                 Toast.makeText(mContext, "Refreshing info...", Toast.LENGTH_LONG).show()
                 textPlayUrl.value = spotifyUtils.trimSpotifyUrl(textPlayUrl.value)
-                itemSpotify = linkExtractor.extractSpotifyInfoFromHTTP(mContext, itemSpotify, new=false)
+                itemSpotify = spotifyUtils.callLinkExtractor(mContext, itemSpotify, new=false)
                 textType.value = itemSpotify.type
                 textName.value = itemSpotify.name
-                textDetail.value = if (itemSpotify.type == "playlist" && itemSpotify.detail == "") "Spotify" else itemSpotify.detail
+                textDetail.value = itemSpotify.detail
                 imageUrlState.value = itemSpotify.imageUrl
             },
             onDismiss = {

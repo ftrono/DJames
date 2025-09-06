@@ -27,6 +27,7 @@ import com.ftrono.DJames.ui.selectors.getTextFieldColors
 import com.ftrono.DJames.ui.selectors.libColorSelector
 import com.ftrono.DJames.ui.selectors.libColorSelectorLight
 import android.util.Log
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Row
@@ -123,7 +124,11 @@ fun EditLibPlace(
         //MAIN:
         EditLibDialog(
             modifier = Modifier
-                .clickable {
+                .clickable(
+                    // This makes the rest of the screen clear focus on tap
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) {
                     focusManager.clearFocus()
                 },
             title = filter,
@@ -161,6 +166,7 @@ fun EditLibPlace(
                     }
                     itemPlace.name = utils.capitalizeWords(textName.value).trim()
                     itemPlace.aliases = aliasesList
+                    itemPlace.detail = utils.capitalizeWords(textDestTown.value.trim())
                     //Address:
                     itemPlace.address = Address(
                         street = utils.capitalizeWords(textDestAddress.value.trim()),

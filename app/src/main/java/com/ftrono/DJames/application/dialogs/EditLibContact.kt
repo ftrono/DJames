@@ -2,6 +2,7 @@ package com.ftrono.DJames.application.dialogs
 
 import android.content.Context
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -131,7 +132,11 @@ fun EditLibContact(
         //MAIN:
         EditLibDialog(
             modifier = Modifier
-                .clickable {
+                .clickable(
+                    // This makes the rest of the screen clear focus on tap
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) {
                     focusManager.clearFocus()
                 },
             title = filter,

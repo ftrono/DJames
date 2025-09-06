@@ -27,6 +27,7 @@ import com.ftrono.DJames.ui.selectors.libColorSelector
 import com.ftrono.DJames.ui.selectors.libColorSelectorLight
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -132,7 +133,11 @@ fun EditLibSpotify(
         //MAIN:
         EditLibDialog(
             modifier = Modifier
-                .clickable {
+                .clickable(
+                    // This makes the rest of the screen clear focus on tap
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) {
                     focusManager.clearFocus()
                 },
             title = if (textType.value == "spotify") "${textType.value} link" else utils.capitalizeWords(textType.value),
@@ -175,6 +180,7 @@ fun EditLibSpotify(
                     if (itemSpotify.type == "playlist" && itemSpotify.detail == "") {
                         itemSpotify.detail = "Spotify"
                     }
+                    itemSpotify.detail = if (itemSpotify.type == "playlist" && textDetail.value == "") "Spotify" else textDetail.value
                     itemSpotify.imageUrl = imageUrlState.value
                     itemSpotify.url = spotifyUtils.trimSpotifyUrl(textPlayUrl.value)
 
@@ -190,11 +196,11 @@ fun EditLibSpotify(
             //CONTENT:
             //SPOTIFY NAME:
             EditLibDynamicNameSection(
-                filter = textType.value,
+                filter = if (isDefault) "collection" else textType.value,
                 textState = textName,
                 subtitleState = textDetail,
                 imageUrl = imageUrlState.value,
-                isCollection = isDefault,
+                disabled = isDefault,
                 preview = preview,
             )
 

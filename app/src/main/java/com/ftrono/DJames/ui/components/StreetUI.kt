@@ -592,7 +592,7 @@ fun LibItemCard(
             //SIGN: ITEM ARTWORK / ICON:
             RoundedSign(
                 modifier = Modifier
-                    .padding(end=8.dp),
+                    .padding(end=4.dp),
                 signSize = 46.dp,
                 contentSize = 20,
                 backgroundColor = signBackgroundColor,

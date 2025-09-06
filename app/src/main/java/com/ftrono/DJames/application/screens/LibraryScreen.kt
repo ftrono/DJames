@@ -219,7 +219,7 @@ fun LibraryScreen(
                     optionButtons = {
                         // CAT MENU:
                         TopBarMenu(
-                            contentText = "$curLibrarySizeState",
+                            contentText = if (curLibrarySizeState!! > 999) "999+" else "$curLibrarySizeState",
                             backgroundColor = libColorSelector(cat = currentCatState.value),
                             onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
                         ) {
@@ -247,7 +247,7 @@ fun LibraryScreen(
                     optionButtons = {
                         // CAT MENU:
                         TopBarMenu(
-                            contentText = "$curLibrarySizeState",
+                            contentText = if (curLibrarySizeState!! > 999) "999+" else "$curLibrarySizeState",
                             backgroundColor = libColorSelector(cat = currentCatState.value),
                             onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
                         ) {
@@ -356,7 +356,7 @@ fun ChipOptions(
         options = {
             //1) Item: EDIT LIB ITEM
             OptionsItem(
-                title = if (id == -2L) "View" else "Edit",   //Default
+                title = "Edit",   //Default
                 iconVector = Icons.Default.Edit,
                 onClick = {
                     idState.value = id

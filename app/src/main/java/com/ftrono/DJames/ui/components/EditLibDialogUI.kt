@@ -100,7 +100,6 @@ fun EditLibDynamicNameSection(
     subtitleState: MutableState<String>? = null,
     imageUrl: String,
     disabled: Boolean = false,
-    isCollection: Boolean = false,
     preview: Boolean = false,
     onClick: () -> Unit = {},
 ) {
@@ -113,8 +112,8 @@ fun EditLibDynamicNameSection(
 
     val placeholder = "${utils.capitalizeWords(filter)} name"
     val textFieldColors = getTextFieldColors(
-        colorLight = libColorSelectorLight(cat = if (filter == "user") "contact" else filter),
-        colorDark = libColorSelector(cat = if (filter == "user") "contact" else filter),
+        colorLight = libColorSelectorLight(cat = if (filter == "user") "contact" else if (filter == "collection") "playlist" else filter),
+        colorDark = libColorSelector(cat = if (filter == "user") "contact" else if (filter == "collection") "playlist" else filter),
         fullyTransparent = true,
     )
 
@@ -146,7 +145,7 @@ fun EditLibDynamicNameSection(
                 },
             signSize = 70.dp,
             contentSize = 40,
-            backgroundColor = if (isCollection) {
+            backgroundColor = if (filter == "collection") {
                 colorResource(R.color.violetSign)
             } else if (filter == "user") {
                 colorResource(id = R.color.faded_grey)
@@ -158,9 +157,9 @@ fun EditLibDynamicNameSection(
             borderColor = colorResource(id = R.color.midfaded_grey),
             contentColor = colorResource(id = R.color.light_grey),
             borderWidth = 2.0.dp,
-            iconVector = if (isCollection) Icons.Default.Favorite else if (filter == "user") Icons.Outlined.Person else null,
-            iconPainter = if (isCollection || filter == "user") null else libIconSelector(cat = filter),
-            imageUrl = if (preview || isCollection) "" else imageUrl,
+            iconVector = if (filter == "collection") Icons.Default.Favorite else if (filter == "user") Icons.Outlined.Person else null,
+            iconPainter = if (filter == "collection" || filter == "user") null else libIconSelector(cat = filter),
+            imageUrl = if (preview || filter == "collection") "" else imageUrl,
             circle = filter == "artist" || filter == "contact" || filter == "user"
         )
 

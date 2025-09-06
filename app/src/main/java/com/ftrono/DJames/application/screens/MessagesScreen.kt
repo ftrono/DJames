@@ -161,7 +161,13 @@ fun MessagesScreen(
                         )
                     }
                     TopBarMenu(
-                        contentText = "${if (selectedMessageIds.isNotEmpty()) selectedMessageIds.size else allMessageIdsState!!.size}",
+                        contentText = "${if (selectedMessageIds.isNotEmpty()) {
+                            selectedMessageIds.size
+                        } else if (allMessageIdsState!!.size > 999) {
+                            "999+"
+                        } else  {
+                            allMessageIdsState!!.size
+                        }}",
                         backgroundColor = if (selectedMessageIds.isNotEmpty()) colorResource(R.color.faded_grey) else colorResource(R.color.colorPrimary),
                         onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
                     ) {

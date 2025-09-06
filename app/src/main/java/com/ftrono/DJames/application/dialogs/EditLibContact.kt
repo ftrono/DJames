@@ -166,6 +166,7 @@ fun EditLibContact(
                     }
                     itemContact.name = utils.capitalizeWords(textName.value).trim()
                     itemContact.aliases = aliasesList
+                    itemContact.lastUpdated = utils.getCurrentTimestamp()
                     //Language:
                     if (checkedLang.value) {
                         itemContact.language =

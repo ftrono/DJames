@@ -166,6 +166,7 @@ fun EditLibPlace(
                     }
                     itemPlace.name = utils.capitalizeWords(textName.value).trim()
                     itemPlace.aliases = aliasesList
+                    itemPlace.lastUpdated = utils.getCurrentTimestamp()
                     itemPlace.detail = utils.capitalizeWords(textDestTown.value.trim())
                     //Address:
                     itemPlace.address = Address(

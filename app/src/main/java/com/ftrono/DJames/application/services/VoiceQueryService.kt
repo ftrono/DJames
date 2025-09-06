@@ -15,28 +15,25 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.application.ACTION_REC_STOP
+import com.ftrono.DJames.application.chatLastDispatch
 import com.ftrono.DJames.application.defaultReplies
-import com.ftrono.DJames.application.lastLog
-import com.ftrono.DJames.application.logUtils
-import com.ftrono.DJames.application.overlayStatus
+import com.ftrono.DJames.application.lastRequestIntent
+import com.ftrono.DJames.application.messageUtils
+import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recordingMode
 import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.application.recordingFail
 import com.ftrono.DJames.application.recordingTime
 import com.ftrono.DJames.application.sourceIsVolume
+import com.ftrono.DJames.application.voiceConvStarted
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
 import com.ftrono.DJames.be.nlp.NLPDispatcher
 import com.ftrono.DJames.be.audio.AndroidAudioRecorder
 import com.ftrono.DJames.be.audio.AudioRequestsManager
 import com.ftrono.DJames.be.audio.TTSReader
-import com.ftrono.DJames.be.tools.Actions
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import com.ftrono.DJames.be.chat.ActionsExecutor
 import java.io.File
 
 
@@ -44,7 +41,6 @@ class VoiceQueryService: Service() {
 
     //Main:
     private val TAG = VoiceQueryService::class.java.simpleName
-    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
     private val audioRequestsManager = AudioRequestsManager()
     private lateinit var tts: TTSReader
@@ -57,11 +53,11 @@ class VoiceQueryService: Service() {
     //Status:
     private var followUp = false
     private var messageMode = false
-    private var dispatcherInfo = DispatcherInfo()
+    private var lastDispatch = DispatcherInfo()
 
     //JOBS:
-    private var recordingJob: Job? = null
-    private var processingJob: Job? = null
+    private var recordingThread: Thread? = null
+    private var processingThread: Thread? = null
 
     // SERVICE:
     override fun onBind(intent: Intent?): IBinder? {
@@ -101,11 +97,11 @@ class VoiceQueryService: Service() {
             Log.w(TAG, "Recorder not available.")
         }
         //Stop jobs:
-        cancelJob(recordingJob, "recordingJob")
-        cancelJob(processingJob, "processingJob")
+        cancelThread(recordingThread, "recordingThread")
+        cancelThread(processingThread, "processingThread")
 
         //Stop recorder:
-        if (recordingMode || overlayStatus.value != "ready") {
+        if (recordingMode || queryStatus.value != "ready") {
             //Play FAIL tone:
             toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
         }
@@ -128,10 +124,11 @@ class VoiceQueryService: Service() {
         recordingMode = false
         voiceQueryOn = false
         sourceIsVolume.postValue(false)
-        dispatcherInfo = DispatcherInfo()
-
+        lastDispatch = DispatcherInfo()
+        lastRequestIntent = ""
+        voiceConvStarted = false
         //Set overlay READY color:
-        overlayStatus.postValue("ready")
+        queryStatus.postValue("ready")
         Log.d(TAG, "VOICE QUERY SERVICE TERMINATED.")
     }
 
@@ -160,18 +157,13 @@ class VoiceQueryService: Service() {
     }
 
 
-    fun cancelJob(job: Job?, jobName: String) {
+    fun cancelThread(thread: Thread?, threadName: String) {
         try {
-            job?.cancel()
-            Log.d(TAG, "Stopped $jobName!")
+            thread?.interrupt()
+            Log.d(TAG, "Stopped $threadName!")
         } catch (e: Exception) {
-            Log.w(TAG, "$jobName not active.")
+            Log.w(TAG, "$threadName not active.")
         }
-    }
-
-    private fun failSilently() {
-        toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-        stopSelf()
     }
 
 
@@ -183,15 +175,19 @@ class VoiceQueryService: Service() {
         Log.d(TAG, "startVoiceRecording() triggered!")
         recordingTime = 0
         try {
-            cancelJob(processingJob, "processingJob")
+            cancelThread(processingThread, "processingThread")
             //Start rec Job:
-            recordingJob = coroutineScope.launch {
+            recordingThread = Thread {
                 // 1) SPEAK INTRO:
                 if (voiceQueryOn && speakIntro) {
+
                     audioRequestsManager.requestDuckedFocus(
                         onGranted = {
-                            overlayStatus.postValue("processing")
-                            logUtils.openLog()
+                            //End previous conversations:
+                            voiceConvStarted = false
+                            chatLastDispatch = DispatcherInfo()
+                            //START:
+                            queryStatus.postValue("processing")
                             Thread.sleep(500)
                             //Read TTS:
                             tts.speak(
@@ -200,10 +196,11 @@ class VoiceQueryService: Service() {
                                         langCode = prefs.queryLanguage,
                                         text = defaultReplies.speakIntro()
                                     )
-                                )
+                                ),
+                                saveMessage = false   // intro message!
                             )
                         },
-                        onFail = { failSilently() }
+                        onFail = { stopSelf() }
                     )
                     audioRequestsManager.releaseDuckedFocus()
                 }
@@ -213,7 +210,7 @@ class VoiceQueryService: Service() {
                     audioRequestsManager.requestExclusiveFocus(
                         onGranted = {
                             //Set overlay BUSY color:
-                            overlayStatus.postValue("busy")
+                            queryStatus.postValue("busy")
 
                             //Play START tone:
                             toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
@@ -222,20 +219,22 @@ class VoiceQueryService: Service() {
                             //Start recording (default: cacheDir):
                             recordingMode = true
                             MyRecorder.start()
+                            messageUtils.resetMessage(fromUser = true)
 
                             MyRecorder.whileRecording(
                                 messageMode,
-                                dispatcherInfo.messageType,
+                                lastDispatch.messageType,
                             )
                         },
-                        onFail = { failSilently() }
+                        onFail = { stopSelf() }
                     )
                 }
             }
+            recordingThread!!.start()
 
         } catch (e: Exception) {
             Log.w(TAG, "VQSERVICE: EXCEPTION: ", e)
-            failSilently()
+            stopSelf()
         }
     }
 
@@ -247,13 +246,13 @@ class VoiceQueryService: Service() {
             var recFile = MyRecorder.stop()
             recordingMode = false
             Log.d(TAG, "RECORDING STOPPED.")
-            cancelJob(recordingJob, "recordingJob")
-
+            cancelThread(recordingThread, "recordingThread")
+            messageUtils.resetMessage(fromUser = false)
 
             //2) RECORDING RESULT:
             if (!voiceQueryOn || recordingFail) {
                 //A) RECORDING FAIL -> END:
-                failSilently()
+                stopSelf()
 
             } else {
                 //B) RECORDING SUCCESS:
@@ -264,21 +263,22 @@ class VoiceQueryService: Service() {
                     onGranted = {
                         if (voiceQueryOn) {
                             //Set overlay PROCESSING color & icon:
-                            overlayStatus.postValue("processing")
+                            queryStatus.postValue("processing")
                             //PROCESS QUERY:
-                            processingJob = coroutineScope.launch {
+                            processingThread = Thread {
                                 processQuery(recFile)
                             }
+                            processingThread!!.start()
                         }
                     },
-                    onFail = { failSilently() }
+                    onFail = { stopSelf() }
                 )
 
             }
 
         } catch (e: Exception) {
             Log.w(TAG, "VQSERVICE: EXCEPTION: ", e)
-            failSilently()
+            stopSelf()
         }
     }
 
@@ -288,74 +288,78 @@ class VoiceQueryService: Service() {
         Log.d(TAG, "PROCESSING JOB STARTED!")
         try {
             //PROCESS REQUEST:
-            var nlpDispatcher = NLPDispatcher(applicationContext)
-            dispatcherInfo = nlpDispatcher.dispatch(recFile, dispatcherInfo, followUp, messageMode)
-            messageMode = dispatcherInfo.messageMode
-            followUp = dispatcherInfo.followUp
-            val actions = Actions(applicationContext)
-            var newReplies = listOf<AiReply>()
+            if (voiceQueryOn) {
+                var nlpDispatcher = NLPDispatcher(applicationContext)
+                lastDispatch = nlpDispatcher.dispatch(recFile=recFile, prevDispatch=lastDispatch, fromVoice=true)
+                messageMode = lastDispatch.messageMode
+                followUp = lastDispatch.followUp
+                val actionsExecutor = ActionsExecutor(applicationContext)
+                var newReplies = listOf<AiReply>()
 
-            if (dispatcherInfo.fail && dispatcherInfo.aiReplies.isEmpty()) {
-                // Default fail replies:
-                newReplies = listOf(
-                    AiReply(
-                        langCode = prefs.queryLanguage,
-                        text = defaultReplies.replyError()
+                if (lastDispatch.fail && lastDispatch.aiReplies.isEmpty()) {
+                    // Default fail replies:
+                    newReplies = listOf(
+                        AiReply(
+                            langCode = prefs.queryLanguage,
+                            text = defaultReplies.replyError()
+                        )
                     )
-                )
-            }
-
-            // Speak & execute:
-            val intentName = lastLog.nlpQueries.first().intentName
-            Thread.sleep(300)
-            if (intentName.contains("Play") || intentName.contains("Call")) {
-                // A) First speak, then execute action:
-                // Read:
-                if (dispatcherInfo.aiReplies.isNotEmpty()) {
-                    tts.speak(dispatcherInfo.aiReplies)
-                }
-                audioRequestsManager.releaseDuckedFocus()
-                // Execute:
-                if (dispatcherInfo.actionType != null) {
-                    actions.execute(dispatcherInfo)
                 }
 
-            } else {
-                // B) First execute action, then speak:
-                // Execute:
-                if (dispatcherInfo.actionType != null) {
-                    newReplies = actions.execute(dispatcherInfo)
-                }
-                // If received updated replies: replace!
-                if (newReplies.isNotEmpty()) {
-                    dispatcherInfo.aiReplies = newReplies
-                }
-                // Read:
-                if (dispatcherInfo.aiReplies.isNotEmpty()) {
-                    tts.speak(dispatcherInfo.aiReplies)
-                }
-                audioRequestsManager.releaseDuckedFocus()
-            }
+                // Speak & execute:
+                val intentName = lastRequestIntent
+                Thread.sleep(300)
+                if (voiceQueryOn && intentName.contains("Play") || intentName.contains("Call")) {
+                    // A) First speak, then execute action:
+                    // Read:
+                    if (lastDispatch.aiReplies.isNotEmpty()) {
+                        tts.speak(lastDispatch.aiReplies)
+                    }
+                    audioRequestsManager.releaseDuckedFocus()
+                    // Execute (only if end):
+                    if (lastDispatch.end && lastDispatch.actionType != null) {
+                        actionsExecutor.execute(lastDispatch)
+                    }
 
-            if (messageMode || followUp) {
-                // START FOLLOWUP INTERACTION:
-                startVoiceRecording()
+                } else if (voiceQueryOn) {
+                    // B) First execute action, then speak:
+                    // Execute (only if end):
+                    if (lastDispatch.end && lastDispatch.actionType != null) {
+                        newReplies = actionsExecutor.execute(lastDispatch)
+                    }
+                    // If received updated replies: replace!
+                    if (newReplies.isNotEmpty()) {
+                        lastDispatch.aiReplies = newReplies
+                    }
+                    // Read:
+                    if (lastDispatch.aiReplies.isNotEmpty()) {
+                        tts.speak(lastDispatch.aiReplies)
+                    }
+                    audioRequestsManager.releaseDuckedFocus()
 
-            } else {
-                // END:
-                overlayStatus.postValue("ready")
-                if (dispatcherInfo.fail) {
-                    toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                 } else {
-                    if (dispatcherInfo.end) logUtils.storeLog(applicationContext)   //Close log
-                    if (dispatcherInfo.playAcknowledge) toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                    stopSelf()
                 }
-                Thread.sleep(200)
-                stopSelf()
+
+                if (voiceQueryOn && (messageMode || followUp)) {
+                    // START FOLLOWUP INTERACTION:
+                    startVoiceRecording()
+
+                } else {
+                    // END:
+                    queryStatus.postValue("ready")
+                    if (lastDispatch.fail) {
+                        toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                    } else {
+                        if (lastDispatch.playAcknowledge) toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                    }
+                    Thread.sleep(200)
+                    stopSelf()
+                }
             }
         } catch (e: Exception) {
             Log.e(TAG, "VQSERVICE: EXCEPTION: ", e)
-            failSilently()
+            stopSelf()
         }
     }
 

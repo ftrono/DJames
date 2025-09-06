@@ -11,11 +11,23 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
+**Version 3.0.a6 (v3 alpha) (2025-08-31)** - New SpotifyPlayable data structure, make Messages DB fields nullable! Add RaiseVolume button to DJames overlay, rework ClockButton's UI.
+
+**Version 3.0.a5 (v3 alpha) (2025-08-26)** - New Library DB management! New unified LibraryItem data class, remove PlayLinks & PhoneSets, updated FE management. Add info extraction from Link Previews.
+
+**Version 3.0.a4 (v3 alpha) (2025-08-25)** - Reworked Overlay functionality: new DJames Paw pads.
+
+**Version 3.0.a3 (v3 alpha) (2025-08-14)** - ChatManager finalized & ActionsExecutor re-adapted! Reworked Messages refresh, booleans, conv starters & starting, text states.
+
+**Version 3.0.a2 (v3 alpha) (2025-08-02)** - New v3 FE! Add isKeyboardOpen(). Fixed Messages leftovers deletion.
+
+**Version 3.0.a1 (v3 alpha) (2025-07-26)** - Init reworks for V3. Replaces Logs with Messages. Replaced History with Messages screen. Re-add Threads to VoiceQueryService.
+
 **Version 2.6.2 (2025-07-24)** - Add get parent Artist / Podcast from Track / Episode URL.
 
 **Version 2.6.1 (2025-07-24)** - Centralized logs opening & init stores. Add permissions requests handling.
 
-**Version 2.6.0 (2025-07-21)** - Rework VoiceQueryService: centralize AudioRequestsManager, TTS & Actions, replaced threads with jobs, remove toasts.
+**Version 2.6.0 (2025-07-21)** - Rework VoiceQueryService: centralize AudioRequestsManager, TTS & Actions, reworked threads / jobs, remove toasts.
 
 **Version 2.5.3 (2025-07-12)** - Centralize output messages, add Messages to HistoryLog class.
 
@@ -29,7 +41,7 @@ DJames is supported by **Android >= 10**.
 
 **Version 2.4.2 (2025-05-05)** - Add support to Podcasts playing (WIP: latest episode only). Fixed annoying audioFocus bug after call end.
 
-**Version 2.4.1 (2025-05-03)** - Add support to Driving directions (Routes). Introduce multi-language TTS read.
+**Version 2.4.1 (2025-05-03)** - Add support to Driving directions (Places). Introduce multi-language TTS read.
 
 **Version 2.4.0 (2025-04-14)** - Repo refactor. Add Library images & AddLink basic Dialog (WIP), with direct external share links. Minor UI refinements.
 

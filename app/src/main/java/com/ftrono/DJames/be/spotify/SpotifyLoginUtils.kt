@@ -15,7 +15,8 @@ import com.ftrono.DJames.application.showLoggingIn
 import com.ftrono.DJames.application.spotTempToken
 import com.ftrono.DJames.application.spotUserImageState
 import com.ftrono.DJames.application.spotifyLoggedIn
-import com.ftrono.DJames.application.userNicknameState
+import com.ftrono.DJames.application.spotUserName
+import com.ftrono.DJames.application.userNicknameUI
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.navigation.navigateTo
 import com.ftrono.DJames.ui.theme.NavigationItem
@@ -29,7 +30,7 @@ class SpotifyLoginUtils {
     private val TAG = SpotifyLoginUtils::class.java.simpleName
 
     fun getSpotifyUserData(
-        mContext: Context,
+        context: Context,
         navController: NavController,
         scope: LifecycleCoroutineScope
     ) {
@@ -58,6 +59,7 @@ class SpotifyLoginUtils {
                         prefs.spotifyToken = spotTempToken
                         prefs.refreshToken = refrTempToken
                         prefs.spotUserName = respJSON.get("display_name").asString
+                        spotUserName.postValue(respJSON.get("display_name").asString)
                         prefs.spotUserId = respJSON.get("id").asString
                         prefs.spotUserEMail = respJSON.get("email").asString
                         prefs.spotCountry = respJSON.get("country").asString
@@ -76,15 +78,15 @@ class SpotifyLoginUtils {
 
                         sleep(1000)
                         Log.d(TAG, "Spotify.me: success! User is enabled.")
-                        Toast.makeText(mContext, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
                         spotifyLoggedIn.postValue(true)
                     } else {
                         Log.w(TAG, "Spotify.me: PROBLEM -> user not enabled! USER TYPE: $product")
-                        Toast.makeText(mContext, "ERROR: to use DJames, you need to be a Spotify Premium user! :(", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "ERROR: to use DJames, you need to be a Spotify Premium user! :(", Toast.LENGTH_LONG).show()
                     }
                 } catch (e: Exception) {
                     Log.w(TAG, "Profile parsing error: ", e)
-                    Toast.makeText(mContext, "Authentication ERROR: not logged in.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Authentication ERROR: not logged in.", Toast.LENGTH_LONG).show()
                 }
             }
             spotTempToken = ""
@@ -92,12 +94,12 @@ class SpotifyLoginUtils {
             //States:
             showLoggingIn.postValue(false)
             spotUserImageState.postValue(prefs.spotUserImage)
-            userNicknameState.postValue(prefs.userNickname)
+            userNicknameUI.postValue(prefs.userNickname)
             //TOAST -> Send broadcast:
             Intent().also { intent ->
                 intent.setAction(ACTION_TOASTER)
                 intent.putExtra("toastText", "Logged in! Please pick a nickname for you!")
-                mContext.sendBroadcast(intent)
+                context.sendBroadcast(intent)
             }
             //Navigate to Settings:
             val curNavRoute = NavigationItem.Settings.route
@@ -111,7 +113,7 @@ class SpotifyLoginUtils {
     fun logout(
         context: Context,
         navController: NavController,
-        settingsOpenState: Boolean
+        extraOpenState: Boolean
     ) {
         //Delete tokens & user details:
         spotifyLoggedIn.postValue(false)
@@ -124,13 +126,14 @@ class SpotifyLoginUtils {
         prefs.spotCountry = ""
         prefs.userNickname = ""
         prefs.nlpUserId = utils.generateRandomString(12)
+        spotUserName.postValue("")
         spotUserImageState.postValue("")
-        userNicknameState.postValue("")
+        userNicknameUI.postValue("")   //TODO
         //utils.deleteUserCache(context)
         Toast.makeText(context, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()
         //Navigate to Home:
         val curNavRoute = NavigationItem.Home.route
-        if (curNavRoute == lastNavRoute && (settingsOpenState)) {
+        if (curNavRoute == lastNavRoute && (extraOpenState)) {
             navController.popBackStack()
         } else {
             navigateTo(navController, curNavRoute)

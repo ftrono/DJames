@@ -1,8 +1,8 @@
 package com.ftrono.DJames.ui.components
 
-import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,19 +11,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.Card
@@ -32,11 +30,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -48,11 +45,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -60,8 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.libUtils
-import com.ftrono.DJames.application.libHeads
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.selectors.guideColorSelector
 import com.ftrono.DJames.ui.selectors.guideColorSelectorLight
 import com.ftrono.DJames.ui.selectors.guideIconSelector
@@ -71,32 +66,42 @@ import com.ftrono.DJames.ui.selectors.libIconSelector
 
 
 // STREET UI LANGUAGE COMPONENTS
-
 @Composable
-fun StreetBackground(
+fun StreetUIScaffold(
     modifier: Modifier = Modifier,
-    startDistance: Int,
-    pageContent:  @Composable() (ColumnScope.() -> Unit) = {},
+    lineDistance: Dp,
+    topBar: @Composable () -> Unit = {},
+    fab: @Composable () -> Unit = {},
+    pageContent:  @Composable () (ColumnScope.() -> Unit) = {},
 ) {
-    //Page container:
-    Box (
+    // Scaffold:
+    Scaffold (
         modifier = modifier
-            .fillMaxSize()
-            .background(colorResource(id = R.color.windowBackground))
+            .fillMaxSize(),
+        topBar = topBar,
+        floatingActionButton = fab,
+        contentColor = colorResource(R.color.windowBackground)
     ) {
-        //Street line canvas:
-        StreetLine (
-            modifier = Modifier
-                .padding(start = startDistance.dp)
-                .matchParentSize()
-                .width(20.dp)
-        )
-        //Content container:
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
+        //Page container:
+        Box (
+            modifier = modifier
+                .padding(it)
+                .background(colorResource(id = R.color.windowBackground))
         ) {
-            pageContent()
+            //Street line canvas:
+            StreetLine (
+                modifier = Modifier
+                    .padding(start = lineDistance)
+                    .matchParentSize()
+                    .width(20.dp)
+            )
+            //Content container:
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                pageContent()
+            }
         }
     }
 }
@@ -120,270 +125,23 @@ fun StreetLine(
 }
 
 
-@Preview
 @Composable
-fun HeaderPreview() {
-    HeaderWithSign(
-        iconRes = painterResource(id = R.drawable.sign_fork),
-        title = "Section Title",
-        subtitle = "Section subtitle",
-        num = 1
-    )
-}
-
-
-@Composable
-fun HeaderWithSign(
-    iconRes: Painter,
-    pretitle: String? = null,
-    title: String,
-    subtitle: String? = null,
-    num: Int? = null,
-    signColor: Color = colorResource(id = R.color.colorPrimary),
-    optionButtons: @Composable() (RowScope.() -> Unit) = {}
-) {
-    //HEADER:
-    Row(
-        modifier = Modifier
-            .padding(bottom = 6.dp)
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .background(colorResource(id = R.color.windowBackground)),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        //Street sign:
-        HeaderSign(
-            modifier = Modifier
-                .padding(10.dp)
-                .weight(1f)
-                .wrapContentSize(align = Alignment.TopStart),
-            iconRes = iconRes,
-            pretitle = pretitle,
-            title = title,
-            subtitle = subtitle,
-            num = num,
-            signColor = signColor
-        )
-        //OPTIONS BUTTONS:
-        Row(
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            optionButtons()
-        }
-    }
-}
-
-
-@Composable
-fun HeaderSign(
+fun CardSign(
     modifier: Modifier,
-    iconRes: Painter,
-    pretitle: String? = null,
-    title: String,
-    subtitle: String? = null,
-    num: Int? = null,
-    signColor: Color = colorResource(id = R.color.colorPrimary)
+    backgroundColor: Color,
+    borderColor: Color,
+    borderWidth: Dp,
+    content: @Composable () -> Unit,
 ) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(20.dp),
-        border = BorderStroke(2.dp, colorResource(id = R.color.mid_grey)),
+        border = BorderStroke(borderWidth, borderColor),
         colors = CardDefaults.cardColors(
-            containerColor = signColor
+            containerColor = backgroundColor
         )
     ) {
-        Row(
-            modifier = Modifier
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
-        ) {
-            //Sign icon:
-            Icon(
-                modifier = Modifier
-                    .size(40.dp),
-                painter = iconRes,
-                contentDescription = "header",
-                tint = colorResource(id = R.color.light_grey)
-            )
-            //Headers text:
-            Column(
-                modifier = Modifier
-                    .padding(start = 8.dp, end = 30.dp)
-            ) {
-                if (pretitle != null) {
-                    Text(
-                        text = pretitle,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = colorResource(id = R.color.light_grey),
-                    )
-                }
-                Text(
-                    text = title,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colorResource(id = R.color.light_grey),
-                )
-                if (subtitle != null) {
-                    Text(
-                        text = subtitle,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = colorResource(id = R.color.light_grey),
-                    )
-                }
-            }
-            if (num != null) {
-                //N items:
-                Text(
-                    modifier = Modifier
-                        .padding(end = 8.dp)
-                        .wrapContentWidth(),
-                    text = "$num",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colorResource(id = R.color.light_grey)
-                )
-            }
-        }
-    }
-}
-
-
-@Preview
-@Composable
-fun SplitterSignPreview() {
-    val currentCatState = rememberSaveable { mutableStateOf(libHeads[0]) }
-    val libraryItems = rememberSaveable {
-        mutableStateOf(libUtils.refreshLibrary(currentCatState.value, true))
-    }
-
-    SplitterSign(
-        libraryItems = libraryItems,
-        currentCatState = currentCatState,
-        curLibrarySizeState = 0,
-        preview = true
-    )
-}
-
-
-@Composable
-fun SplitterSign(
-    currentCatState: MutableState<String>,
-    libraryItems: MutableState<List<String>>,
-    curLibrarySizeState: Int,
-    preview: Boolean
-) {
-    val configuration = LocalConfiguration.current
-    val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
-
-    //BUTTONS:
-    Card(
-        modifier = Modifier
-            .wrapContentWidth()
-            .wrapContentHeight(),
-        border = BorderStroke(2.dp, colorResource(id = R.color.faded_grey)),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors (
-            containerColor = colorResource(id = R.color.dark_grey_background)
-        )
-    ) {
-        Row (
-            modifier = Modifier
-                .padding(top=4.dp, bottom=4.dp, start=12.dp, end=12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            for (head in libHeads) {
-                SplitterCat(
-                    currentCatState = currentCatState,
-                    libraryItems = libraryItems,
-                    head = head,
-                    title = "${head.replaceFirstChar { it.uppercase() }}s",
-                    selected = currentCatState.value == head,
-                    isLandscape = isLandscape,
-                    num = if (isLandscape && currentCatState.value == head) curLibrarySizeState else null,
-                    preview = preview
-                )
-                //DIVIDERS:
-                if (head != libHeads.last()) {
-                    VerticalDivider(
-                        modifier = Modifier
-                            .padding(start = 4.dp, end = 4.dp)
-                            .height(30.dp)
-                            .wrapContentWidth(),
-                        thickness = 2.dp,
-                        color = colorResource(id = R.color.faded_grey)
-                    )
-                }
-            }
-        }
-    }
-}
-
-
-@Composable
-fun SplitterCat(
-    currentCatState: MutableState<String>,
-    libraryItems: MutableState<List<String>>,
-    head: String,
-    title: String,
-    selected: Boolean,
-    num: Int? = null,
-    isLandscape: Boolean = false,
-    preview: Boolean = false
-){
-    Row(
-        modifier = Modifier
-            .padding(start = 10.dp, end = 10.dp, top = 8.dp, bottom = 8.dp)
-            .wrapContentWidth()
-            .clickable {
-                currentCatState.value = head
-                libraryItems.value = libUtils.refreshLibrary(currentCatState.value, preview)
-            },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        //Sign icon:
-        Icon(
-            modifier = Modifier
-                .padding(
-                    start = if (isLandscape && selected) 4.dp else 6.dp,
-                    end = if (isLandscape && selected) 4.dp else 6.dp
-                )
-                .size(if (selected) 26.dp else 18.dp),
-            painter = libIconSelector(head),
-            contentDescription = "category",
-            tint = if (selected) libColorSelectorLight(head) else colorResource(id = R.color.light_grey)
-        )
-        //Title:
-        if (isLandscape && selected) {
-            Text(
-                modifier = Modifier
-                    .padding(start = 4.dp, end = 6.dp),
-                text = title,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = libColorSelectorLight(head),
-                maxLines = 1
-            )
-            if (num != null) {
-                //Number of items:
-                Text(
-                    modifier = Modifier
-                        .padding(start = 4.dp, end = 4.dp)
-                        .wrapContentWidth(),
-                    text = num.toString(),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = libColorSelectorLight(head),
-                    maxLines = 1
-                )
-            }
-        }
+        content()
     }
 }
 
@@ -392,76 +150,127 @@ fun SplitterCat(
 fun RoundedSign(
     modifier: Modifier = Modifier,
     signSize: Dp,
-    iconSize: Dp,
+    contentSize: Int,
     backgroundColor: Color,
     borderColor: Color,
-    iconColor: Color,
+    contentColor: Color,
+    borderWidth: Dp = 1.5.dp,
+    imageRes: Painter? = null,
     iconPainter: Painter? = null,
     iconVector: ImageVector? = null,
+    contentText: String = "",
     imageUrl: String = "",
-    circle: Boolean = true
+    circle: Boolean = true,
+    clickable: Boolean = false,
+    onClick: () -> Unit = {},
 ) {
     //ROUNDED SIGN:
-    if (imageUrl == "") {
-        Box(
-            modifier = modifier
+    if (imageRes != null) {
+        Image(
+            modifier = Modifier
                 .size(signSize)
                 .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
-                .background(backgroundColor)
-                .border(1.5.dp, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            //CAT ICON:
-            if (iconVector != null) {
-                Icon(
-                    modifier = Modifier
-                        .size(iconSize),
-                    imageVector = iconVector,
-                    contentDescription = "Item image",
-                    tint = iconColor
-                )
-            } else {
-                Icon(
-                    modifier = Modifier
-                        .size(iconSize),
-                    painter = iconPainter!!,
-                    contentDescription = "Item image",
-                    tint = iconColor
-                )
-            }
-        }
-    } else {
+                .border(
+                    borderWidth,
+                    borderColor,
+                    if (circle) CircleShape else RoundedCornerShape(4.dp)
+                ),
+            painter = imageRes,
+            contentDescription = "Item image",
+        )
+    } else if (imageUrl != "") {
         AsyncImage(
             modifier = modifier
                 .size(signSize)
                 .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
-                .border(1.5.dp, borderColor, if (circle) CircleShape else RoundedCornerShape(4.dp)),
+                .border(
+                    borderWidth,
+                    borderColor,
+                    if (circle) CircleShape else RoundedCornerShape(4.dp)
+                ),
             model = imageUrl,
             contentDescription = "Item image"
         )
+    } else {
+        Box(
+            modifier = if (clickable) {
+                    modifier
+                        .size(signSize)
+                        .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
+                        .background(backgroundColor)
+                        .border(
+                            borderWidth,
+                            borderColor,
+                            if (circle) CircleShape else RoundedCornerShape(4.dp)
+                        )
+                        .clickable { onClick() }
+                } else {
+                    modifier
+                        .size(signSize)
+                        .clip(if (circle) CircleShape else RoundedCornerShape(4.dp))
+                        .background(backgroundColor)
+                        .border(
+                            borderWidth,
+                            borderColor,
+                            if (circle) CircleShape else RoundedCornerShape(4.dp)
+                        )
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            //CAT ICON:
+            if (contentText != "") {
+                //N items:
+                Text(
+                    modifier = Modifier,
+                    text = contentText,
+                    fontSize = if (contentText.length < 3) contentSize.sp else (contentSize-7).sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    color = contentColor
+                )
+            } else if (iconVector != null) {
+                Icon(
+                    modifier = Modifier
+                        .size(contentSize.dp),
+                    imageVector = iconVector,
+                    contentDescription = "Item image",
+                    tint = contentColor
+                )
+            } else {
+                Icon(
+                    modifier = Modifier
+                        .size(contentSize.dp),
+                    painter = iconPainter!!,
+                    contentDescription = "Item image",
+                    tint = contentColor
+                )
+            }
+        }
     }
 }
 
+
 @Composable
-fun RoundedLetter(
+fun LetterStarter(
     text: String,
-    signSize: Dp,
     fontSize: TextUnit,
     backgroundColor: Color,
     borderColor: Color,
     fontColor: Color,
 ) {
     //ROUNDED SIGN:
-    Box (
-        modifier = Modifier
-            .size(signSize)
-            .clip(CircleShape)
-            .background(backgroundColor)
-            .border(1.5.dp, borderColor, CircleShape),
-        contentAlignment = Alignment.Center
+    Card(
+        modifier = Modifier,
+        border = BorderStroke(1.5.dp, borderColor),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors (
+            containerColor = backgroundColor
+        )
     ) {
         //LETTER:
         Text(
+            modifier = Modifier
+                .padding(top=4.dp, bottom=4.dp, start=8.dp, end=8.dp),
             text = text,
             color = fontColor,
             fontSize = fontSize,
@@ -513,8 +322,7 @@ fun GeneralSectionHeader(
     //CARD:
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
+            .fillMaxWidth(),
         border = if (isExpanded) null else BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors (
@@ -555,10 +363,10 @@ fun SectionTitle(
         //ROUNDED SIGN:
         RoundedSign(
             signSize = 40.dp,
-            iconSize = 20.dp,
+            contentSize = 20,
             backgroundColor = signColor,
             borderColor = colorResource(id = R.color.mid_grey),
-            iconColor = colorResource(id = R.color.light_grey),
+            contentColor = colorResource(id = R.color.light_grey),
             iconPainter = iconPainter
         )
         //CAT TITLE:
@@ -613,6 +421,7 @@ fun OptionsItem(
     title: String,
     iconVector: ImageVector? = null,
     iconPainter: Painter? = null,
+    showIcon: Boolean = true,
     onClick: () -> Unit = {}
 ) {
     DropdownMenuItem(
@@ -627,13 +436,13 @@ fun OptionsItem(
                 Icon(
                     imageVector = iconVector,
                     contentDescription = title,
-                    tint = colorResource(id = R.color.mid_grey)
+                    tint = if (showIcon) colorResource(id = R.color.mid_grey) else colorResource(id = R.color.transparent_full),
                 )
             } else {
                 Icon(
                     painter = iconPainter!!,
                     contentDescription = title,
-                    tint = colorResource(id = R.color.mid_grey)
+                    tint = if (showIcon) colorResource(id = R.color.mid_grey) else colorResource(id = R.color.transparent_full),
                 )
             }
         },
@@ -647,17 +456,16 @@ fun OptionsItem(
 @Preview
 @Composable
 fun LibItemCardPreview() {
+    val currentCatState = remember { mutableStateOf("artist") }
     LibItemCard(
         modifier = Modifier
-            .wrapContentWidth()
-            .height(60.dp),
+            .height(70.dp)
+            .width(180.dp),
         cardColors = CardDefaults.cardColors(
-            containerColor = colorResource(id = R.color.dark_grey)
+            containerColor = colorResource(id = R.color.dark_grey_background)
         ),
-        signBackgroundColor = libColorSelector(cat = "artist"),
-        signBorderColor = colorResource(id = R.color.midfaded_grey),
-        signIconColor = colorResource(id = R.color.light_grey),
-        signIconPainter = libIconSelector(cat = "artist"),
+        source = "spotify",
+        type = "artist",
         title = "Item name",
         subtitle = "subtitle",
     )
@@ -668,17 +476,21 @@ fun LibItemCardPreview() {
 fun LibItemCard(
     modifier: Modifier = Modifier,
     cardColors: CardColors,
-    signBackgroundColor: Color,
-    signBorderColor: Color,
-    signIconColor: Color,
-    signIconPainter: Painter,
-    circle: Boolean = true,
+    source: String,
+    type: String,
     title: String,
     subtitle: String = "",
     imageUrl: String = "",
+    isCollection: Boolean = false,
     onClick: () -> Unit = {}
 ) {
     val isMultiline = rememberSaveable { mutableStateOf(false) }
+    val cardBorderColor = colorResource(id = R.color.dark_grey)
+    val signBackgroundColor = if (isCollection) colorResource(R.color.violetSign) else libColorSelector(cat = type)
+    val signBorderColor = colorResource(id = R.color.midfaded_grey)
+    val signIconColor = colorResource(id = R.color.light_grey)
+    val signIconPainter = if (isCollection) null else libIconSelector(cat = type)
+    val circle = type == "artist" || source == "contact"
 
     Card(
         modifier = modifier
@@ -686,70 +498,112 @@ fun LibItemCard(
                 onClick()
             },
         shape = RoundedCornerShape(14.dp),
-        border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
+        border = BorderStroke(1.dp, cardBorderColor),
         colors = cardColors
     ) {
 
+        // ROW: INFO + SIGN:
         Row (
             modifier = Modifier
-                .padding(start = 8.dp, end = 8.dp, top = 12.dp, bottom = 12.dp)
+                .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
                 .fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
         ){
-            //CHIP ICON:
-            RoundedSign(
-                modifier = Modifier
-                    .padding(end = 4.dp),
-                signSize = 34.dp,
-                iconSize = 20.dp,
-                backgroundColor = signBackgroundColor,
-                borderColor = signBorderColor,
-                iconColor = signIconColor,
-                iconPainter = signIconPainter,
-                imageUrl = imageUrl,
-                circle = circle
-            )
-            //TEXT LABEL:
+
+            // INFO COLUMN:
             Column(
                 modifier = Modifier
-                    .padding(start = 4.dp, end = 6.dp)
-                    .fillMaxSize(),
+                    .padding(start = 4.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
+                    .fillMaxHeight()   // Vertical
+                    .weight(1F),   // Horizontal
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Center
             ) {
-                //Item key:
+                if (source == "spotify") {
+                    //CAT ROW:
+                    Row(
+                        modifier = Modifier
+                            .padding(bottom = 2.dp),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        //SOURCE ICON:
+                        Icon(
+                            modifier = Modifier
+                                .padding(end = 4.dp)
+                                .size(12.dp),
+                            painter = libIconSelector(source),
+                            contentDescription = type,
+                            tint = libColorSelector(source)
+                        )
+                        //CAT ICON:
+                        Icon(
+                            modifier = Modifier
+                                .padding(end = 2.dp)
+                                .size(12.dp),
+                            painter = libIconSelector(type),
+                            contentDescription = type,
+                            tint = libColorSelectorLight(type)
+                        )
+                        //CAT NAME:
+                        Text(
+                            modifier = Modifier
+                                .padding(end = 4.dp),
+                            color = libColorSelectorLight(cat = type),
+                            fontSize = 10.sp,
+                            lineHeight = 12.sp,
+                            // fontWeight = FontWeight.Bold,
+                            text = utils.capitalizeWords((type)),
+                        )
+                    }
+                }
+
+                //ITEM INFO:
+                //Item name:
                 Text(
-                    modifier = Modifier
-                        .wrapContentWidth()
-                        .wrapContentHeight(),
+                    modifier = Modifier,
                     color = colorResource(id = R.color.light_grey),
                     fontSize = 14.sp,
                     lineHeight = 16.sp,
                     maxLines = 2,
                     text = title,
                     fontWeight = FontWeight.Bold,
-                    //fontStyle = FontStyle.Italic,
                     onTextLayout = { textLayoutResult ->
-                        isMultiline.value = textLayoutResult.lineCount > 1
+                        isMultiline.value = textLayoutResult.lineCount > if (source == "spotify") 1 else 2
                     }
                 )
                 //Item detail:
                 if (subtitle != "" && !isMultiline.value) {
                     Text(
                         modifier = Modifier
-                            .padding(top = 2.dp)
-                            .wrapContentWidth()
-                            .wrapContentHeight(),
+                            .padding(top = 2.dp),
                         color = colorResource(id = R.color.mid_grey),
-                        fontSize = 12.sp,
-                        lineHeight = 14.sp,
+                        fontSize = 10.sp,
                         maxLines = 1,
+                        lineHeight = 12.sp,
                         fontStyle = FontStyle.Italic,
                         text = subtitle
                     )
                 }
+
             }
+
+            //SIGN: ITEM ARTWORK / ICON:
+            RoundedSign(
+                modifier = Modifier
+                    .padding(end=4.dp),
+                signSize = 46.dp,
+                contentSize = 20,
+                backgroundColor = signBackgroundColor,
+                borderColor = signBorderColor,
+                borderWidth = 1.5.dp,
+                contentColor = signIconColor,
+                iconPainter = signIconPainter,
+                iconVector = if (isCollection) Icons.Default.Favorite else null,
+                imageUrl = imageUrl,
+                circle = circle
+            )
         }
     }
 }

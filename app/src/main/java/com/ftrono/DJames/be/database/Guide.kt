@@ -31,7 +31,7 @@ val fullGuide = listOf<GuideCategory>(
             GuideRequest(
                 intro = "Call a contact*",
                 sentence = "\uD83D\uDDE3\uFE0F  \"Call <contact name>\"",
-                description = "Starts a phone call to a contact of yours*.\n\n*NOTE: the contact must be listed in DJames' Library, in the Contacts tab!"
+                description = "Starts a phone call to a contact of yours*.\n\n*NOTE: the contact must be listed in your Saved Items, in the Contacts tab!"
             ),
         )
     ),
@@ -44,20 +44,20 @@ val fullGuide = listOf<GuideCategory>(
             GuideRequest(
                 intro = "Send SMS to a contact*",
                 sentence = "\uD83D\uDDE3\uFE0F  \"Send a message to <contact name> in <language>\"",
-                description = "Sends an SMS to a contact of yours*. Messaging language MUST be told if it's different from the contact's default.\n\n*NOTE: the contact must be listed in DJames' Library, in the Contacts tab! Set there also the default messaging language for each contact.\n\nTo use emojis, say:\n\n- \uD83C\uDDEC\uD83C\uDDE7: \"EMOJI\" + smile / happy / grin / kiss / sunglasses / heart / sad / worried.\n\n- \uD83C\uDDEE\uD83C\uDDF9: \"EMOJI\" + sorriso / felice / sorrisino / bacio / occhiali da sole / cuore / triste / preoccupato."
+                description = "Sends an SMS to a contact of yours*. Messaging language MUST be told if it's different from the contact's default.\n\n*NOTE: the contact must be listed in your Saved Items, in the Contacts tab! Set there also the default messaging language for each contact.\n\nTo use emojis, say:\n\n- \uD83C\uDDEC\uD83C\uDDE7: \"EMOJI\" + smile / happy / grin / kiss / sunglasses / heart / sad / worried.\n\n- \uD83C\uDDEE\uD83C\uDDF9: \"EMOJI\" + sorriso / felice / sorrisino / bacio / occhiali da sole / cuore / triste / preoccupato."
             ),
         )
     ),
 
-    //ROUTES:
+    //PLACES:
     GuideCategory(
-        category = "routes",
-        header = "Routes",
+        category = "places",
+        header = "Places",
         requests = listOf(
             GuideRequest(
                 intro = "Show a Google Maps route",
                 sentence = "\uD83D\uDDE3\uFE0F  \"Drive me to a place in <language>\"",
-                description = "Shows any navigation route in Google Maps. Language MUST be told if the name is not in the default routes language (edit in Settings).\n\n*NOTE: list your favourite routes in DJames' Library, in the Routes tab!"
+                description = "Shows the navigation route to a place in Google Maps. Language MUST be told if the name is not in the default places language (edit in Settings).\n\n*NOTE: list your favourite places in your Saved Items, in the Places tab!"
             ),
         )
     ),
@@ -77,7 +77,7 @@ val fullGuide = listOf<GuideCategory>(
             GuideRequest(
                 intro = "Play song within a playlist*",
                 sentence = "\uD83D\uDDE3\uFE0F  \"Play a song in <language> from a playlist\"",
-                description = "Plays a song in Spotify from a playlist of yours*. Language MUST be told if the name is not in English.\n\n*NOTE: the playlist must be listed in DJames' Library, in the Playlists tab!"
+                description = "Plays a song in Spotify from a playlist of yours*. Language MUST be told if the name is not in English.\n\n*NOTE: the playlist must be listed in your Saved Items, in the Playlists tab!"
             ),
 
             GuideRequest(
@@ -95,13 +95,13 @@ val fullGuide = listOf<GuideCategory>(
             GuideRequest(
                 intro = "Play artist collection",
                 sentence = "\uD83D\uDDE3\uFE0F  \"Play an artist in <language>\"",
-                description = "Search & play top tracks for the requested artist, or the default playlist \"This is <artist>\" in Spotify (only if saved in the Library tab). Language MUST be told if the name is not in English.\n\nIf you add the word \"Radio\" or \"Mix\" after the artist name, DJames will play these playlist instead (only if they're saved in the Library tab)."
+                description = "Search & play top tracks for the requested artist, or the default playlist \"This is <artist>\" in Spotify (only if saved in your Saved Items). Language MUST be told if the name is not in English.\n\nIf you add the word \"Radio\" or \"Mix\" after the artist name, DJames will play these playlist instead (only if they're saved in your Saved Items)."
             ),
 
             GuideRequest(
                 intro = "Play playlist",
                 sentence = "\uD83D\uDDE3\uFE0F  \"Play a playlist in <language>\"",
-                description = "Plays any playlist* in Spotify. Language MUST be told if the name is not in English.\n\n*NOTE: list your favourite playlists in DJames' Library, in the Playlists tab! Otherwise, DJames will search for playlist with that name across Spotify."
+                description = "Plays any playlist* in Spotify. Language MUST be told if the name is not in English.\n\n*NOTE: list your favourite playlists in your Saved Items, in the Playlists tab! Otherwise, DJames will search for playlist with that name across Spotify."
             ),
 
             GuideRequest(
@@ -113,7 +113,7 @@ val fullGuide = listOf<GuideCategory>(
             GuideRequest(
                 intro = "Play podcast episode*",
                 sentence = "\uD83D\uDDE3\uFE0F  \"Play a podcast (episode) in <language>\"",
-                description = "Plays the latest episode for a podcast* in Spotify. Language MUST be told if the name is not in English.\n\n*NOTE: the podcast MUST be saved in the Library tab!"
+                description = "Plays the latest episode for a podcast* in Spotify. Language MUST be told if the name is not in English.\n\n*NOTE: the podcast MUST be saved in your Saved Items!"
             ),
 
         )

@@ -2,16 +2,13 @@ package com.ftrono.DJames.be.nlp
 
 import android.util.Log
 import com.ftrono.DJames.R
-import com.google.gson.JsonObject
 import android.content.Context
-import com.ftrono.DJames.application.gMapsLinkFormat
-import com.ftrono.DJames.application.lastLog
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.maxThreshold
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.ExtractorInfo
-import com.ftrono.DJames.be.database.ItemInfoUse
+import com.ftrono.DJames.be.database.LibraryItem
 import com.google.gson.JsonParser
 import me.xdrop.fuzzywuzzy.FuzzySearch
 import java.io.BufferedReader
@@ -230,37 +227,16 @@ class NLPExtractor (private val context: Context) {
     }
 
 
-    //PlayArtist: Extract name of playLink to play:
-    fun extractPlayLink(queryText: String): String {
-        //TODO: Provisional:
-        var playLinkName = ""
-        if (queryText.contains("radio")) {
-            playLinkName = "spotify_radio"
-        } else if (queryText.contains("mix")) {
-            playLinkName = "spotify_mix"
-        }
-        return playLinkName
-    }
-
-
-    //Route: extract Route Info from Message text:
-    fun extractRoute(text: String, language: String): ItemInfoUse {
-        var routeInfo = ItemInfoUse(
-            type = "route"
+    //Place: extract Place Info from Message text:
+    fun extractPlace(text: String, language: String): LibraryItem {
+        var placeInfo = LibraryItem(
+            type = "place"
         )
-        routeInfo.language = language
+        placeInfo.language = language
         //TODO TEMP:
-        var routeComps = text.split(" tramite ")
-        // Comps[0] -> name, Comps[1] -> detail:
-        routeInfo.name = utils.capitalizeWords(routeComps[0])
-        var viaText = ""
-        if (routeComps.size > 1) {
-            if (routeComps[1] != "") {
-                viaText = routeComps[1].trim()
-            }
-        }
-        routeInfo.detail = utils.capitalizeWords(viaText)
-        return routeInfo
+        placeInfo.name = utils.capitalizeWords(text)
+        placeInfo.detail = ""
+        return placeInfo
     }
 
 }

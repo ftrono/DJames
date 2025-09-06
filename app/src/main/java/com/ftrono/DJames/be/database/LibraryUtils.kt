@@ -3,27 +3,14 @@ package com.ftrono.DJames.be.database
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import io.objectbox.Box
-import com.ftrono.DJames.application.artistBox
-import com.ftrono.DJames.application.contactBox
 import com.ftrono.DJames.application.curLibrarySize
-import com.ftrono.DJames.application.fulfillmentUtils
-import com.ftrono.DJames.application.playlistBox
-import com.ftrono.DJames.application.podcastBox
-import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.routeBox
+import com.ftrono.DJames.application.gMapsLinkFormat
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.application.libHeads
-import com.ftrono.DJames.application.libSectionIdentifier
-import com.ftrono.DJames.be.samples.testArtists
-import com.ftrono.DJames.be.samples.testContacts
-import com.ftrono.DJames.be.samples.testPlaylists
-import com.ftrono.DJames.be.database.Artist_
-import com.ftrono.DJames.be.database.Contact_
-import com.ftrono.DJames.be.database.Playlist_
-import com.ftrono.DJames.be.database.Route_
-import com.ftrono.DJames.be.samples.testPodcasts
-import com.ftrono.DJames.be.samples.testRoutes
+import com.ftrono.DJames.application.libCats
+import com.ftrono.DJames.application.libraryBox
+import com.ftrono.DJames.application.sourceToCatMap
+import com.ftrono.DJames.be.samples.defaultCollection
+import com.ftrono.DJames.be.samples.testLibrary
 import io.objectbox.Property
 import io.objectbox.query.QueryBuilder.StringOrder
 import kotlinx.serialization.json.Json
@@ -36,545 +23,340 @@ import java.io.File
 class LibraryUtils {
     private val TAG = LibraryUtils::class.java.simpleName
 
-    //GET ALL:
-    //Get List of ItemInfoView items:
-    fun refreshLibrary(filter: String, preview: Boolean = false, addHeaders: Boolean = true): List<String> {
-        //1) Load library:
-        var library = listOf<String>()
-        try {
-            when (filter) {
-                "artist" -> {
-                    library = if (preview) {
-                        testArtists
-                    } else {
-                        artistBox!!.query().order(Artist_.name).build().find()
-                    }.map { item ->
-                        //Cast value to String to allow storing into MutableState:
-                        Json.encodeToString(
-                            ItemInfoView(
-                                id = item.id,
-                                name = item.name,
-                                imageUrl = item.imageUrl,
-                                aliases = item.aliases
-                            )
-                        )
-                    }
-                }
-
-                "playlist" -> {
-                    library = if (preview) {
-                        testPlaylists
-                    } else {
-                        playlistBox!!.query().order(Playlist_.name).build().find()
-                    }.map { item ->
-                        Json.encodeToString(
-                            ItemInfoView(
-                                id = item.id,
-                                name = item.name,
-                                imageUrl = item.imageUrl,
-                                aliases = item.aliases
-                            )
-                        )
-                    }
-                }
-
-                "podcast" -> {
-                    library = if (preview) {
-                        testPodcasts
-                    } else {
-                        podcastBox!!.query().order(Podcast_.name).build().find()
-                    }.map { item ->
-                        Json.encodeToString(
-                            ItemInfoView(
-                                id = item.id,
-                                name = item.name,
-                                imageUrl = item.imageUrl,
-                                aliases = item.aliases,
-                                detail = item.publisher
-                            )
-                        )
-                    }
-                }
-
-                "contact" -> {
-                    library = if (preview) {
-                        testContacts
-                    } else {
-                        contactBox!!.query().order(Contact_.name).build().find()
-                    }.map { item ->
-                        Json.encodeToString(
-                            ItemInfoView(
-                                id = item.id,
-                                name = item.name,
-                                imageUrl = "",
-                                aliases = item.aliases,
-                                detail = item.phoneSets["personal"]!!.phone
-                            )
-                        )
-                    }
-                }
-
-                "route" -> {
-                    library = if (preview) {
-                        testRoutes
-                    } else {
-                        routeBox!!.query().order(Route_.name).build().find()
-                    }.map { item ->
-                        Json.encodeToString(
-                            ItemInfoView(
-                                id = item.id,
-                                name = item.name,
-                                imageUrl = "",
-                                aliases = item.aliases,
-                                detail = item.destination.town
-                            )
-                        )
-                    }
-                }
-            }
-
-            //2) Update Library size (IMPORTANT - for signs):
-            curLibrarySize.postValue(library.size)
-
-            //3) Build library map & add headers:
-            if (addHeaders) {
-                return addLetterHeaders(library)
+    // COMMON:
+    // Get library name:
+    fun getLibName(cat: String, subcat: String = "", plural: Boolean = false, lowercase: Boolean = false): String {
+        return if (cat == "spotify") {
+            if (subcat == "") {
+                if (plural) "Spotify links" else "Spotify link"
             } else {
-                return library
+                if (plural) "Spotify ${subcat}s" else "Spotify ${subcat}"
             }
-
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: cannot refresh Library for $filter! ", e)
-            curLibrarySize.postValue(0)
-            return library
-        }
-    }
-
-
-    //Route: build subtitle:
-    fun buildRouteSubtitle(item: Route, viewLanguage: String = "en"): String {
-        var subtitle = ""
-        if (item.via.placeName == "" && item.via.address == "") {
-            if (item.destination.town != "" && item.destination.address != "") {
-                subtitle = item.destination.town + ", " + item.destination.address + " " + item.destination.number
-            } else {
-                subtitle = ""
-            }
+        } else if (lowercase) {
+            if (plural) "${cat}s" else cat
         } else {
-            val introStr = if (viewLanguage == "it") "Da " else "By "
-            subtitle = introStr + if (item.via.placeName != "") item.via.placeName else item.via.address + " " + item.via.number
+            if (plural) "${utils.capitalizeWords(cat)}s" else utils.capitalizeWords(cat)
         }
-        return subtitle
     }
 
-
-    //Get key List with headers:
-    fun addLetterHeaders(library: List<String>): List<String> {
-        val listWithHeaders = mutableListOf<String>()
-        //Add Letter headers:
-        var letter = ""
-        for (itemJson in library) {
-            //get first alias:
-            val item = Json.decodeFromString<ItemInfoView>(itemJson)
-            val curFirst = item.name.uppercase().first().toString()
-            //extend List with letter header:
-            if (curFirst != letter) {
-                letter = if (utils.isLetters(curFirst)) curFirst.uppercase() else "#"
-                listWithHeaders.add("$libSectionIdentifier$letter")
+    // GET ALL ITEMS:
+    fun getAll(cat: String = "", subcat: String = "", preview: Boolean = false): List<LibraryItem> {
+        try {
+            var libraryItems = mutableListOf<LibraryItem>()
+            if (cat == "spotify" && (subcat == "" || subcat == "playlist")) {
+                libraryItems.add(defaultCollection)
             }
-            listWithHeaders.add(itemJson)
+            if (preview) {
+                if (subcat == "") {
+                    libraryItems.addAll(testLibrary.filter { it.source == cat })
+                } else {
+                    libraryItems.addAll(testLibrary.filter { it.source == cat && it.type == subcat })
+                }
+            } else {
+                if (cat == "") {
+                    libraryItems.addAll(
+                        libraryBox!!.query(LibraryItem_.type.equal(subcat))
+                        .build().find()
+                    )
+                } else if (subcat == "") {
+                    libraryItems.addAll(
+                        libraryBox!!.query(LibraryItem_.source.equal(cat))
+                        .build().find()
+                    )
+                } else {
+                    libraryItems.addAll(
+                        libraryBox!!.query(LibraryItem_.source.equal(cat).and(LibraryItem_.type.equal(subcat)))
+                        .build().find()
+                    )
+                }
+            }
+            return libraryItems.sortedBy { it.name.uppercase() }
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: cannot get All items with cat: $cat and subcat: $subcat! ", e)
+            return listOf()
         }
-        return listWithHeaders.toImmutableList()
     }
 
-
-    //Get aliases Map in format {"id": ["aliases", ...]}:
-    fun getAliasesMap(filter: String): Map<Long, List<String>> {
-        var libMap = mapOf<Long, List<String>>()
-        when (filter) {
-            "artist" -> {
-                libMap =
-                    artistBox!!.query().order(Artist_.name).build().find().associate { artist ->
-                        artist.id to (artist.aliases ?: emptyList()) // Ensures no null values
-                    }
+    // GET SIZE:
+    fun getCollectionSize(filter: String, subcat: String = ""): Long {
+        try {
+            if (subcat == "") {
+                return libraryBox!!.query(LibraryItem_.source.equal(filter)).build().count() + if (filter == "spotify") 1 else 0
+            } else {
+                return libraryBox!!.query(LibraryItem_.source.equal(filter).and(LibraryItem_.type.equal(subcat))).build().count() + if (filter == "spotify" && subcat == "playlist") 1 else 0
             }
-
-            "playlist" -> {
-                libMap = playlistBox!!.query().order(Playlist_.name).build().find()
-                    .associate { playlist ->
-                        playlist.id to (playlist.aliases ?: emptyList()) // Ensures no null values
-                    }
-            }
-
-            "podcast" -> {
-                libMap = podcastBox!!.query().order(Podcast_.name).build().find()
-                    .associate { podcast ->
-                        podcast.id to (podcast.aliases ?: emptyList()) // Ensures no null values
-                    }
-            }
-
-            "contact" -> {
-                libMap =
-                    contactBox!!.query().order(Contact_.name).build().find().associate { contact ->
-                        contact.id to (contact.aliases ?: emptyList()) // Ensures no null values
-                    }
-            }
-
-            "route" -> {
-                libMap =
-                    routeBox!!.query().order(Route_.name).build().find().associate { route ->
-                        route.id to (route.aliases ?: emptyList()) // Ensures no null values
-                    }
-            }
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: cannot count ${filter}s! ", e)
+            return 0
         }
-        return libMap
     }
 
-
-    //Get URL Map in format {"url": "id"}:
-    fun getUrlMap(filter: String): Map<String, Long> {
-        var urlMap = mapOf<String, Long>()
-        when (filter) {
-            "artist" -> {
-                urlMap =
-                    artistBox!!.query().order(Artist_.name).build().find().associate { artist ->
-                        artist.spotifyUrl.toString() to artist.id // Ensures no null values
-                    }
-            }
-
-            "playlist" -> {
-                urlMap = playlistBox!!.query().order(Playlist_.name).build().find()
-                    .associate { playlist ->
-                        playlist.spotifyUrl.toString() to playlist.id // Ensures no null values
-                    }
-            }
-
-            "podcast" -> {
-                urlMap = podcastBox!!.query().order(Podcast_.name).build().find()
-                    .associate { podcast ->
-                        podcast.spotifyUrl.toString() to podcast.id // Ensures no null values
-                    }
-            }
-
-            else -> { }
+    //GET SUBCATS PRESENT IN DB:
+    fun getSubcats(cat: String, preview: Boolean = false): List<String> {
+        if (preview) {
+            return sourceToCatMap[cat]!!
+        } else {
+            var libCats = mutableListOf<String>()
+            libCats.addAll(libraryBox!!.query(LibraryItem_.source.equal(cat))
+                .build()
+                .property(LibraryItem_.type)
+                .distinct()
+                .findStrings())
+            if (!libCats.contains("playlist")) libCats.add("playlist")
+            return libCats.sorted()
         }
-        return urlMap
-    }
-
-    //Get Phone Map in format {"phone": "id"}:
-    fun getPhoneMap(phoneKey: String = "personal"): Map<String, Long> {
-        var phoneMap = mapOf<String, Long>()
-        phoneMap =
-            contactBox!!.query().order(Contact_.name).build().find().associate { contact ->
-                "${contact.phoneSets["phoneKey"]!!.prefix}${contact.phoneSets["phoneKey"]!!.phone}" to contact.id // Ensures no null values
-            }
-        return phoneMap
     }
 
 
     //GET SINGLE:
-    //Get entire item:
-    fun getArtist(id: Long): Artist {
-        return artistBox!!.get(id)
-    }
-
-    fun getPlaylist(id: Long): Playlist {
-        return playlistBox!!.get(id)
-    }
-
-    fun getPodcast(id: Long): Podcast {
-        return podcastBox!!.get(id)
-    }
-
-    fun getContact(id: Long): Contact {
-        return contactBox!!.get(id)
-    }
-
-    fun getRoute(id: Long): Route {
-        return routeBox!!.get(id)
+    //Get single by ID:
+    fun getLibItemById(id: Long, preview: Boolean = false): LibraryItem {
+        if (preview) {
+            return testLibrary.filter { it.id == id }[0]
+        } else {
+            return libraryBox!!.get(id)
+        }
     }
 
     //Get single item name:
-    fun getItemName(filter: String, id: Long): String {
-        when (filter) {
-            "artist" -> {
-                return artistBox!!.query()
-                    .equal(Artist_.id, id)
-                    .build()
-                    .property(Artist_.name)
-                    .findString()
-            }
-            "playlist" -> {
-                return playlistBox!!.query()
-                    .equal(Playlist_.id, id)
-                    .build()
-                    .property(Playlist_.name)
-                    .findString()
-            }
-            "podcast" -> {
-                return podcastBox!!.query()
-                    .equal(Podcast_.id, id)
-                    .build()
-                    .property(Podcast_.name)
-                    .findString()
-            }
-            "contact" -> {
-                return contactBox!!.query()
-                    .equal(Contact_.id, id)
-                    .build()
-                    .property(Contact_.name)
-                    .findString()
-            }
-            "route" -> {
-                return routeBox!!.query()
-                    .equal(Route_.id, id)
-                    .build()
-                    .property(Route_.name)
-                    .findString()
-            }
-            else -> return ""
-        }
+    fun getLibItemName(id: Long): String {
+        return libraryBox!!.query()
+            .equal(LibraryItem_.id, id)
+            .build()
+            .property(LibraryItem_.name)
+            .findString()
     }
 
 
-    //Get single item, only key ItemInfoUse info:
-    fun getItemInfoUse(filter: String, id: Long): ItemInfoUse {
-        when (filter) {
-            "artist" -> {
-                val item = artistBox!!.get(id)
-                return ItemInfoUse(
-                    type = filter,
-                    name = item.name,
-                    url = item.spotifyUrl,
-                    defaultKey = item.defaultPlay,
-                    playLinks = item.playLinks,
-                )
-            }
+    // REFRESH:
+    //Get List of ItemInfoView items:
+    fun refreshLibrary(cat: String, subcat: String = "", preview: Boolean = false): List<LibraryItem> {
+        try {
+            //1) LOAD LIBRARY:
+            var libraryItems = getAll(cat, subcat, preview)
 
-            "playlist" -> {
-                val item = playlistBox!!.get(id)
-                return ItemInfoUse(
-                    type = filter,
-                    name = item.name,
-                    detail = item.owner,
-                    url = item.spotifyUrl
-                )
-            }
+            //2) UPDATE LIBRARY SIZE (IMPORTANT - for signs):
+            curLibrarySize.postValue(libraryItems.size)
 
-            "podcast" -> {
-                val item = podcastBox!!.get(id)
-                return ItemInfoUse(
-                    type = filter,
-                    name = item.name,
-                    detail = item.publisher,
-                    url = item.spotifyUrl,
-                    language = try {
-                        item.languages[0]
-                    } catch (e: Exception) {
-                        "en"
-                    },
-                )
-            }
+            //3) ADD HEADERS & CONVERT TO IDS LIST:
+            return addLetterHeaders(libraryItems)
 
-            "contact" -> {
-                val item = contactBox!!.get(id)
-                return ItemInfoUse(
-                    type = filter,
-                    name = item.name,
-                    language = item.language,
-                    defaultKey = item.defaultPhone,
-                    phoneSets = item.phoneSets
-                )
-            }
-
-            "route" -> {
-                val item = routeBox!!.get(id)
-                val language = prefs.routeLanguage   //TODO: Default only!
-                return ItemInfoUse(
-                    type = filter,
-                    name = item.name,
-                    detail = buildRouteSubtitle(item, viewLanguage = language),
-                    language = language,
-                    url = fulfillmentUtils.buildRouteUrlFromLibraryItem(item)
-                )
-            }
-
-            else -> return ItemInfoUse()
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: cannot refresh Library for items with cat: $cat and subcat: $subcat! ", e)
+            curLibrarySize.postValue(0)
+            return listOf<LibraryItem>()
         }
+    }
+
+    //Get key List with headers:
+    fun addLetterHeaders(libraryItems: List<LibraryItem>): List<LibraryItem> {
+        val fullList = mutableListOf<LibraryItem>()
+        // 1) PARTITION MAP: separate items that start
+        val regex = Regex("^[a-zA-Z].*")   // Regex: matches if the first character is a-z or A-Z
+        var (alphaList, nonAlphaList) = libraryItems.partition { it.name.uppercase().matches(regex) }
+        alphaList.sortedBy { it.name }
+        nonAlphaList.sortedBy { it.name }
+
+        // 2) ADD HEADERS:
+        var letter = ""
+        // First A-Z:
+        for (item in alphaList) {
+            val curFirst = item.name.uppercase().first().toString()
+            // store letter header:
+            if (curFirst != letter) {
+                letter = curFirst
+                fullList.add(
+                    LibraryItem(
+                        type = "header",
+                        name = letter
+                    )
+                )
+            }
+            // store item:
+            fullList.add(item)
+        }
+        // Then, non A-Z:
+        if (nonAlphaList.isNotEmpty()) {
+            fullList.add(
+                LibraryItem(
+                    type = "header",
+                    name = "#"
+                )
+            )
+            fullList.addAll(nonAlphaList )
+        }
+        return fullList.toImmutableList()
+    }
+
+    //Get aliases Map in format {"id": ["aliases", ...]}:
+    fun getAliasesMap(filter: String): Map<Long, List<String>> {
+        return getAll(subcat=filter).associate { item ->
+            item.id to (item.aliases ?: emptyList()) // Ensures no null values
+        }
+    }
+
+    // Search if URL already exists -> get item's DB ID:
+    fun getLibIDWithUrl(url: String): Long {
+        val res = libraryBox!!.query(LibraryItem_.url.equal(url))
+            .build()
+            .property(LibraryItem_.id)
+            .findLong()
+        return res ?: -1L
+    }
+
+    //Get detail:
+    fun getDetail(item: LibraryItem): String {
+        //Init aliases:
+        val itemAliases = item.aliases.toMutableList()
+        itemAliases.removeAt(0)
+
+        return if (item.source == "place") {
+            item.address!!.town
+        } else if (itemAliases.isNotEmpty()) {
+            "\"" + itemAliases.joinToString("\", \"") + "\""
+        } else if (item.source == "contact") {
+            item.phoneSet!!.phone
+        } else if (item.type != "playlist" && item.type != "artist") {
+            item.detail
+        } else ""
+    }
+
+    //Place: build navigation URL from Library Place item:
+    fun buildPlaceUrlFromLibraryItem(item: Address?): String {
+        var url = gMapsLinkFormat
+        if (item != null) {
+            //Destination:
+            var fullDestination = listOf(
+                item.placeName,
+                item.street,
+                item.number,
+                item.zip,
+                item.town,
+                item.province
+            ).joinToString(" ").trim()
+            return url + fullDestination.replace(" ", "+")
+        } else return ""
+    }
+
+    //Place: build navigation URL from temp ItemInfo item:
+    fun buildPlaceUrlFromItemInfo(item: LibraryItem): String {
+        var url = gMapsLinkFormat
+        url = url + item.name.replace(" ", "+").trim() + "/"
+        return url
     }
 
 
     //DB UPDATE:
-    //Update / store Artist to DB:
-    fun storeArtist(context: Context, item: Artist) {
+    //Update / store item to DB:
+    fun storeLibItem(context: Context, item: LibraryItem) {
+        val type = utils.capitalizeWords(item.type)
         try {
-            artistBox!!.put(item)
-            Log.d(TAG, "Artist ${item.id} saved!")
-            Toast.makeText(context, "Artist saved!", Toast.LENGTH_LONG).show()
+            libraryBox!!.put(item)
+            Log.d(TAG, "$type ${item.id} saved!")
+            Toast.makeText(context, "$type saved!", Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Artist ${item.id} not saved!", e)
-            Toast.makeText(context, "ERROR: Artist not saved!", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    //Update / store Playlist to DB:
-    fun storePlaylist(context: Context, item: Playlist) {
-        try {
-            playlistBox!!.put(item)
-            Log.d(TAG, "Playlist ${item.id} saved!")
-            Toast.makeText(context, "Playlist saved!", Toast.LENGTH_LONG).show()
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Playlist ${item.id} not saved!", e)
-            Toast.makeText(context, "ERROR: Playlist not saved!", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    //Update / store Podcast to DB:
-    fun storePodcast(context: Context, item: Podcast) {
-        try {
-            podcastBox!!.put(item)
-            Log.d(TAG, "Podcast ${item.id} saved!")
-            Toast.makeText(context, "Podcast saved!", Toast.LENGTH_LONG).show()
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Podcast ${item.id} not saved!", e)
-            Toast.makeText(context, "ERROR: Podcast not saved!", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    //Update / store Contact to DB:
-    fun storeContact(context: Context, item: Contact) {
-        try {
-            contactBox!!.put(item)
-            Log.d(TAG, "Contact ${item.id} saved!")
-            Toast.makeText(context, "Contact saved!", Toast.LENGTH_LONG).show()
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Contact ${item.id} not saved!", e)
-            Toast.makeText(context, "ERROR: Contact not saved!", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    //Update / store Route to DB:
-    fun storeRoute(context: Context, item: Route) {
-        try {
-            routeBox!!.put(item)
-            Log.d(TAG, "Route ${item.id} saved!")
-            Toast.makeText(context, "Route saved!", Toast.LENGTH_LONG).show()
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Route ${item.id} not saved!", e)
-            Toast.makeText(context, "ERROR: Route not saved!", Toast.LENGTH_LONG).show()
-        }
-    }
-
-
-    //UTILS:
-    fun getCollectionSize(filter: String): Long {
-        return when (filter) {
-            "artist" -> artistBox!!.count()
-            "playlist" -> playlistBox!!.count()
-            "podcast" -> podcastBox!!.count()
-            "contact" -> contactBox!!.count()
-            "route" -> routeBox!!.count()
-            else -> 0
+            Log.w(TAG, "ERROR: $type ${item.id} not saved!", e)
+            Toast.makeText(context, "ERROR: $type not saved!", Toast.LENGTH_LONG).show()
         }
     }
 
 
     //DB DELETE:
     //Delete single item:
-    fun deleteLibraryItem(context: Context, filter: String, id: Long) {
+    fun deleteLibItem(context: Context, id: Long) {
         try {
-            when (filter) {
-                "artist" -> artistBox!!.remove(id)
-                "playlist" -> playlistBox!!.remove(id)
-                "podcast" -> podcastBox!!.remove(id)
-                "contact" -> contactBox!!.remove(id)
-                "route" -> routeBox!!.remove(id)
-            }
-            Log.d(TAG, "Deleted $filter item $id!")
-            Toast.makeText(context, "${filter.replaceFirstChar { it.uppercase() }} deleted!", Toast.LENGTH_LONG).show()
+            libraryBox!!.remove(id)
+            Log.d(TAG, "Deleted item: $id!")
+            Toast.makeText(context, "Item deleted!", Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
-            Toast.makeText(context, "ERROR in deleting $filter item!", Toast.LENGTH_LONG).show()
-            Log.w(TAG, "ERROR in deleting ${filter.replaceFirstChar { it.uppercase() }}: $id. ", e)
+            Toast.makeText(context, "ERROR in deleting item!", Toast.LENGTH_LONG).show()
+            Log.w(TAG, "ERROR in deleting item: $id. ", e)
         }
     }
 
     //Delete all:
-    fun deleteLibrary(context: Context, filter: String) {
+    fun deleteLibrary(context: Context, cat: String, subcat: String = "") {
+        val detailStr = getLibName(cat, subcat, plural=true)
         try {
-            when (filter) {
-                "artist" -> artistBox!!.removeAll()
-                "playlist" -> playlistBox!!.removeAll()
-                "podcast" -> podcastBox!!.removeAll()
-                "contact" -> contactBox!!.removeAll()
-                "route" -> routeBox!!.removeAll()
+            var itemsToDelete = listOf<LibraryItem>()
+            // Keep these queries separate from getAll (don't need default Collection or preview items):
+            if (subcat == "") {
+                itemsToDelete = libraryBox!!
+                    .query(LibraryItem_.source.equal(cat))
+                    .build()
+                    .find()
+            } else {
+                itemsToDelete = libraryBox!!
+                    .query(LibraryItem_.source.equal(cat).and(LibraryItem_.type.equal(subcat)))
+                    .build()
+                    .find()
             }
-            Log.d(TAG, "Deleted ${filter} library!")
-            Toast.makeText(context, "${filter.replaceFirstChar { it.uppercase() }} library deleted!", Toast.LENGTH_LONG).show()
+            libraryBox!!.remove(itemsToDelete)
+            Log.d(TAG, "Deleted $detailStr library!")
+            Toast.makeText(context, "$detailStr library deleted!", Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
-            Log.w(TAG, "ERROR in deleting $filter library. ", e)
-            Toast.makeText(context, "ERROR in deleting ${filter.replaceFirstChar { it.uppercase() }} library!", Toast.LENGTH_LONG).show()
+            Log.w(TAG, "ERROR in deleting $detailStr library. ", e)
+            Toast.makeText(context, "ERROR in deleting $detailStr library!", Toast.LENGTH_LONG).show()
         }
     }
 
 
     // SEND:
+    //Get export file name:
+    fun getExportFileName(cat: String, subcat: String = ""): String {
+        return if (cat == "spotify") {
+            if (subcat == "") {
+                "library_${cat}.json"
+            } else {
+                "library_${cat}s.json"
+            }
+        } else {
+            "library_${cat}s.json"
+        }
+    }
+
     //Prepare Library JSON string for export:
-    fun serializeLibrary(filter: String): String {
+    fun serializeLibrary(cat: String, subcat: String): String {
         var jsonContent = ""
         try {
             //Populate cached array & store to cached file:
-            when (filter) {
-                "artist" -> {
-                    val libArray = artistBox!!.query().order(Artist_.name).build().find().toList()
-                    jsonContent = Json.encodeToString(libArray)
-                }
-                "playlist" -> {
-                    val libArray = playlistBox!!.query().order(Playlist_.name).build().find().toList()
-                    jsonContent = Json.encodeToString(libArray)
-                }
-                "podcast" -> {
-                    val libArray = podcastBox!!.query().order(Podcast_.name).build().find().toList()
-                    jsonContent = Json.encodeToString(libArray)
-                }
-                "contact" -> {
-                    val libArray = contactBox!!.query().order(Contact_.name).build().find().toList()
-                    jsonContent = Json.encodeToString(libArray)
-                }
-                "route" -> {
-                    val libArray = routeBox!!.query().order(Route_.name).build().find().toList()
-                    jsonContent = Json.encodeToString(libArray)
-                }
-            }
-            Log.d(TAG, "Successfully serialized Library for ${filter}s.")
+            jsonContent = Json.encodeToString(getAll(cat, subcat))
+            Log.d(TAG, "Successfully serialized Library for cat: $cat, subcat: $subcat.")
         } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Cannot serialize Library for ${filter}s!, ", e)
+            Log.w(TAG, "ERROR: Cannot serialize Library for cat: $cat, subcat: $subcat! ", e)
         }
         return jsonContent
     }
 
-
     //Prepare cached Library file to send:
-    fun buildFileToSend(context: Context, filter: String, jsonContent: String): String {
+    fun buildFileToSend(context: Context, cat: String, subcat: String = "", jsonContent: String): String {
         var filename = ""
         try {
-            filename = "library_${filter}s.json"
+            filename = getExportFileName(cat, subcat)
             val cachedFile = File(context.cacheDir, filename)
             cachedFile.writeText(jsonContent)
-            Log.d(TAG, "Successfully prepared and cached Library for ${filter}s.")
+            Log.d(TAG, "Successfully prepared and cached Library for cat: $cat, subcat: $subcat.")
         } catch (e: Exception) {
-            Log.w(TAG, "ERROR: Cannot prepare or cache Library for ${filter}s!, ", e)
+            Log.w(TAG, "ERROR: Cannot prepare or cache Library for cat: $cat, subcat: $subcat! ", e)
         }
         return filename
     }
 
-
-    //Clean consolidated cache (from directory, no DB):
+    //Clean consolidated export cache (from directory, no DB):
     fun cleanLibraryCache(context: Context) {
-        for (head in libHeads) {
+        for (cat in libCats) {
             try {
-                File(context.cacheDir, "library_${head}s.json").delete()
+                if (cat == "spotify") {
+                    File(context.cacheDir, getExportFileName(cat)).delete()
+                    val subcats = sourceToCatMap[cat]!!
+                    for (subcat in subcats) {
+                        File(context.cacheDir, getExportFileName(cat, subcat)).delete()
+                    }
+                } else {
+                    File(context.cacheDir, getExportFileName(cat)).delete()
+                }
             } catch (e: Exception) {
-                Log.w(TAG, "No cached library_$head.json file to delete!")
+                Log.w(TAG, "No cached library $cat.json file to delete!")
             }
         }
     }
@@ -582,24 +364,23 @@ class LibraryUtils {
 
     // IMPORT:
     //Common importer:
-    inline fun <reified T : LibraryItem> importItems(
-        items: List<T>,
-        box: Box<T>,
-        stringProperty: Property<T>,
+    fun importItems(
+        items: List<LibraryItem>,
+        stringProperty: Property<LibraryItem>,
         tag: String
     ): Int {
         var count = 0
         for (item in items) {
             try {
                 //Check duplicates to update:
-                val duplicates = box.query(stringProperty.equal(item.name, StringOrder.CASE_INSENSITIVE)).build().find()
+                val duplicates = libraryBox!!.query(stringProperty.equal(item.name, StringOrder.CASE_INSENSITIVE)).build().find()
                 if (duplicates.isNotEmpty()) {
                     item.id = duplicates[0].id
                 } else {
                     item.id = 0
                 }
                 //Insert / update:
-                box.put(item)
+                libraryBox!!.put(item)
                 count++
             } catch (e: Exception) {
                 Log.w(tag, "Cannot import item!", e)
@@ -609,40 +390,15 @@ class LibraryUtils {
     }
 
     //Import Library from file:
-    fun importLibrary(context: Context, filter: String, jsonContent: String) {
+    fun importLibrary(context: Context, jsonContent: String) {
         try {
             var c = 0
             var tot = 0
-            when (filter) {
-                "artist" -> {
-                    val items = Json.decodeFromString<List<Artist>>(jsonContent)
-                    tot = items.size
-                    c = importItems(items, artistBox!!, Artist_.name, TAG)
-                }
-                "playlist" -> {
-                    val items = Json.decodeFromString<List<Playlist>>(jsonContent)
-                    tot = items.size
-                    c = importItems(items, playlistBox!!, Playlist_.name, TAG)
-                }
-                "podcast" -> {
-                    val items = Json.decodeFromString<List<Podcast>>(jsonContent)
-                    tot = items.size
-                    c = importItems(items, podcastBox!!, Podcast_.name, TAG)
-                }
-                "contact" -> {
-                    val items = Json.decodeFromString<List<Contact>>(jsonContent)
-                    tot = items.size
-                    c = importItems(items, contactBox!!, Contact_.name, TAG)
-                }
-                "route" -> {
-                    val items = Json.decodeFromString<List<Route>>(jsonContent)
-                    tot = items.size
-                    c = importItems(items, routeBox!!, Route_.name, TAG)
-                }
-                else -> {}
-            }
-            Log.d(TAG, "Imported $c / $tot ${filter}s!")
-            Toast.makeText(context, "Imported $c / $tot ${filter}s!", Toast.LENGTH_LONG).show()
+            val items = Json.decodeFromString<List<LibraryItem>>(jsonContent)
+            tot = items.size
+            c = importItems(items, LibraryItem_.name, TAG)
+            Log.d(TAG, "Imported $c / $tot items!")
+            Toast.makeText(context, "Imported $c / $tot items!", Toast.LENGTH_LONG).show()
 
         } catch (e: Exception) {
             Log.w(TAG, "ERROR: Invalid file! ", e)

@@ -6,23 +6,24 @@ import android.content.Context
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
+import androidx.compose.runtime.MutableState
 import net.openid.appauth.AuthorizationServiceConfiguration
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.application.App.ObjectBox.store
-import com.ftrono.DJames.be.database.Artist
-import com.ftrono.DJames.be.database.Contact
-import com.ftrono.DJames.be.database.HistoryLog
-import com.ftrono.DJames.be.database.HistoryUtils
 import com.ftrono.DJames.be.database.LibraryUtils
+import com.ftrono.DJames.be.database.Message
+import com.ftrono.DJames.be.database.MessageUtils
 import com.ftrono.DJames.be.database.MyObjectBox
-import com.ftrono.DJames.be.database.Playlist
-import com.ftrono.DJames.be.database.Podcast
-import com.ftrono.DJames.be.database.Route
-import com.ftrono.DJames.be.nlp.FulfillmentUtils
+import com.ftrono.DJames.be.database.LibraryItem
+import com.ftrono.DJames.be.models.DispatcherInfo
+import com.ftrono.DJames.be.utils.FulfillmentUtils
 import com.ftrono.DJames.be.samples.DefaultReplies
+import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
 import com.ftrono.DJames.be.spotify.SpotifyUtils
-import com.ftrono.DJames.utilities.Prefs
-import com.ftrono.DJames.utilities.Utilities
+import com.ftrono.DJames.ui.theme.NavigationItem
+import com.ftrono.DJames.application.prefs.Prefs
+import com.ftrono.DJames.be.spotify.SpotifyParsers
+import com.ftrono.DJames.be.utils.Utilities
 import com.google.gson.JsonObject
 import io.objectbox.Box
 import io.objectbox.BoxStore
@@ -34,24 +35,29 @@ import java.util.concurrent.TimeUnit
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "2.6.2"
+val appVersion = "3.0.a6 (alpha)"
 val copyrightYear = 2024
 
 //DB:
-var historyBox: Box<HistoryLog>? = null
-var artistBox: Box<Artist>? = null
-var playlistBox: Box<Playlist>? = null
-var podcastBox: Box<Podcast>? = null
-var contactBox: Box<Contact>? = null
-var routeBox: Box<Route>? = null
+var libraryBox: Box<LibraryItem>? = null
+var messageBox: Box<Message>? = null
 
 //UTILS:
 val utils = Utilities()
 val libUtils = LibraryUtils()
-val logUtils = HistoryUtils()
+val messageUtils = MessageUtils()
 val spotifyUtils = SpotifyUtils()
+val spotifyParsers = SpotifyParsers()
+val spotifyLoginUtils = SpotifyLoginUtils()
 val fulfillmentUtils = FulfillmentUtils()
 val defaultReplies = DefaultReplies()
+
+//Navigation:
+val navigationItems = listOf(
+    NavigationItem.Library,
+    NavigationItem.Home,
+    NavigationItem.Messages
+)
 
 //Permissions:
 val runtimePermissions = buildList {
@@ -79,37 +85,55 @@ var curNavId = 0
 var lastNavRoute = "home"
 var permsRequested = MutableLiveData<Boolean>(false)
 var spotifyLoggedIn = MutableLiveData<Boolean>(false)
+var spotUserName = MutableLiveData<String>("")
 var userGender = MutableLiveData<String>("Sir")
 var overlayActive = MutableLiveData<Boolean>(false)
-var overlayStatus = MutableLiveData<String>("ready")
+var queryStatus = MutableLiveData<String>("ready")   // MAIN PROCESS STATE FOR BOTH VOICE & CHAT!!!
 var clockActive = MutableLiveData<Boolean>(false)
 var overlayPos = MutableLiveData<String>("Right")
-var volumeUpEnabled = MutableLiveData<Boolean>(true)
+var volumeUpEnabledUI = MutableLiveData<Boolean>(true)
 var sourceIsVolume = MutableLiveData<Boolean>(false)
-var settingsOpen = MutableLiveData<Boolean>(false)
+var extraOpen = MutableLiveData<Boolean>(false)
 var innerNavOpen = MutableLiveData<Boolean>(false)
 var currentPlayingPrefix = MutableLiveData<String>("")
 var currentSongPlaying = MutableLiveData<String>("Don't turn off the screen!")
 var currentArtistPlaying = MutableLiveData<String>("You can keep this Clock\nScreen on to save battery")
-var clickCounter = MutableLiveData<Int>(0)
+val overlayOptionsStr = MutableLiveData<String>("speak, save, clock, silence")   //volume
 var autoStopQueriesState = MutableLiveData<Boolean>(false)
+var clickCounter = MutableLiveData<Int>(0)
 var allowVolumeClick = true
-var userNicknameState = MutableLiveData<String>("")
+var userNicknameUI = MutableLiveData<String>("")
 var spotUserImageState = MutableLiveData<String>("")
-var addLinkOn = MutableLiveData<Boolean>(false)
 var sharedLink = MutableLiveData<String>("")
 
-//Library & History:
+//Library & Messages:
 var curLibrarySize = MutableLiveData<Int>(0)
-val libHeads = listOf("artist", "playlist", "podcast", "contact", "route")
-val libSectionIdentifier = "%%%SECTIONSECTIONSECTION%%%"
-var curHistorySize = MutableLiveData<Int>(0)
-var historyItems = MutableLiveData<List<String>>(listOf<String>())
-var lastLog: HistoryLog = HistoryLog()
+val aliasFieldDescription = "💡 Add simpler, alternative names to use with voice, if the original is hard to say or spell:"
+val sourceToCatMap = mapOf(
+    "spotify" to listOf("artist", "album", "playlist", "podcast", "track", "episode"),
+    "contact" to listOf("contact"),
+    "place" to listOf("place")
+)
+val libCats = sourceToCatMap.keys.toList()
+var allMessageIds = MutableLiveData<List<Long>>(listOf<Long>())
+
+// Conversation tracking:
+var chatLastDispatch = DispatcherInfo()
+var lastAiMessage: Message = Message()
+var lastUserMessage: Message = Message()
+var lastRequestIntent: String = ""
+var lastStarterId: Long = 0L
+var voiceConvStarted: Boolean = false   // avoids saving AI fallback messages after empty user voice messages
 
 //Preferences:
+val maxHistoryDays: Long = 15L
+val defaultChatResetTime: Long = 3*60*1000   //minutes
+val defaultChatWait = 2000L
 val maxAudioRecTimeout = 120L   //for voice messages
-val maxClickOptions = 3
+val raiseVolumeCountdownTime: Int = 7000   //ms
+val clickAnimationCountdownTime: Int = 4000   //ms
+val clickCountdownTime: Long = 3000   //ms
+val clickSleepInterval: Long = 100   //ms
 val silenceInitPatience = 6
 val silencePatience = 2
 val deltaSimilarity = 10   //5
@@ -120,9 +144,12 @@ val recSamplingRate = 44100
 val queryTimeout = 5   //seconds
 val recFileName = "DJames_request"
 var enablePlayerInfo = false
+val datetimeExportFormat = "yyyy-MM-dd HH_mm_ss"
+val datetimeFullFormat = "yyyy/MM/dd HH:mm"
+val datetimeShortFormat = "MMMM dd, HH:mm"
 
 //Dropdowns:
-val genders = listOf<String>("Sir", "Madam")
+val genders = listOf<String>("Sir", "Madam", "Friend")
 var queryLangCodes = listOf<String>("en", "it")
 val queryLangFull = listOf<String>("English", "Italian")
 var messLangCodes = listOf<String>("en", "it", "fr", "de", "es")
@@ -159,12 +186,14 @@ val gMapsLinkFormat = "https://www.google.com/maps/dir//"
 //Spotify formats:
 val spotIntroUri = "spotify"   // spotify:<type>:<id>
 val spotIntroUrl = "https://open.spotify.com"   // .../<type>/<id>
+val spotCollectionUrl = "$spotIntroUrl/collection/tracks"
+val spotCollectionIntUri = "spotify:user:replaceUserId:collection"
 val trackUrlIntro = "https://open.spotify.com/track/"
 val artistUrlIntro = "https://open.spotify.com/artist/"
+val albumUrlIntro = "https://open.spotify.com/album/"
 val playlistUrlIntro = "https://open.spotify.com/playlist/"
 val showUrlIntro = "https://open.spotify.com/show/"
 val episodeUrlIntro = "https://open.spotify.com/episode/"
-val likedSongsUri = "spotify:user:replaceUserId:collection"
 
 //Spotify:
 val spotifyQueryLimit = 10
@@ -192,7 +221,7 @@ const val ACTION_TOASTER = "com.ftrono.DJames.eventReceiver.ACTION_TOASTER"
 
 //Main Act receiver:
 const val ACTION_FINISH_MAIN = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_MAIN"
-const val ACTION_LOG_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_LOG_REFRESH"
+const val ACTION_MESSAGES_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_MESSAGES_REFRESH"
 
 //Clock Act receiver:
 const val ACTION_TIME_TICK = "android.intent.action.TIME_TICK"
@@ -238,11 +267,7 @@ class App: Application()
 
         //DB:
         ObjectBox.init(this)
-        historyBox = store.boxFor(HistoryLog::class.java)
-        artistBox = store.boxFor(Artist::class.java)
-        playlistBox = store.boxFor(Playlist::class.java)
-        podcastBox = store.boxFor(Podcast::class.java)
-        contactBox = store.boxFor(Contact::class.java)
-        routeBox = store.boxFor(Route::class.java)
+        libraryBox = store.boxFor(LibraryItem::class.java)
+        messageBox = store.boxFor(Message::class.java)
     }
 }

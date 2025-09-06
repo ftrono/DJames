@@ -4,6 +4,7 @@
   <color name="colorPrimaryDark">#002A1F</color>
   <color name="windowBackground">#00100C</color>
   <color name="colorAccent">#00684D</color>
+  <color name="colorAccentMid">#00966F</color>
   <color name="colorAccentLight">#84BAA2</color>
   <color name="colorHeader">#FFC000</color>
   <color name="colorBusy">#ED7D31</color>
@@ -19,6 +20,8 @@
   <color name="orangeSignLight">#FF9C4B</color>
   <color name="brownSign">#7B4D31</color>
   <color name="brownSignLight">#CF8C63</color>
+  <color name="violetSign">#3D3DDF</color>
+  <color name="violetSignLight">#8888EC</color>
   <color name="redSign">#7E0000</color>
   <color name="redSignLight">#FF6565</color>
   <color name="white">#ffffff</color>

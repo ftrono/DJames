@@ -2,7 +2,7 @@ package com.ftrono.DJames.be.nlp
 
 import android.content.Context
 import android.util.Log
-import com.ftrono.DJames.application.lastLog
+import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.midThreshold
 import me.xdrop.fuzzywuzzy.FuzzySearch
@@ -51,7 +51,7 @@ class NLPMatcher (private val context: Context) {
                     Log.d(TAG, "SORTED MAP FOR $eval: $sortedScores")
                     listConfirmed.add(sortedScores.keys.toList()[0])
                     val matchScore = sortedScores.values.toList()[0]
-                    lastLog.keyInfo.libScore = matchScore
+                    lastAiMessage.attachments.matchScore = matchScore
                 }
             }
             //Final:

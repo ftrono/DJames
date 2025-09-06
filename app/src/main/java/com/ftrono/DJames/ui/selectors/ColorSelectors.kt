@@ -29,20 +29,27 @@ fun getSwitchColors(
 @Composable
 fun getTextFieldColors(
     colorLight: Color,
-    colorDark: Color
+    colorDark: Color,
+    fullyTransparent: Boolean = false,
 ): TextFieldColors {
     return OutlinedTextFieldDefaults.colors(
         focusedBorderColor = colorLight,
-        unfocusedContainerColor = colorResource(id = R.color.dark_grey),
-        unfocusedBorderColor = colorResource(id = R.color.faded_grey),
         focusedTextColor = colorResource(id = R.color.light_grey),
-        unfocusedTextColor = colorResource(id = R.color.light_grey),
+        focusedContainerColor = colorResource(id = R.color.windowBackground),
         focusedPlaceholderColor = colorResource(id = R.color.mid_grey),
+        unfocusedContainerColor = colorResource(id = if (fullyTransparent) R.color.transparent_full else R.color.dark_grey),
+        unfocusedBorderColor = colorResource(id = if (fullyTransparent) R.color.transparent_full else R.color.faded_grey),
+        unfocusedTextColor = colorResource(id = R.color.light_grey),
         unfocusedPlaceholderColor = colorResource(id = R.color.mid_grey),
+        disabledTextColor = colorResource(id = if (fullyTransparent) R.color.light_grey else R.color.midfaded_grey),
+        disabledPlaceholderColor = colorResource(id = R.color.midfaded_grey),
+        disabledContainerColor = colorResource(id = if (fullyTransparent) R.color.transparent_full else R.color.dark_grey),
         focusedPrefixColor = colorResource(id = R.color.mid_grey),
         unfocusedPrefixColor = colorResource(id = R.color.mid_grey),
+        disabledPrefixColor = colorResource(id = R.color.midfaded_grey),
         focusedSuffixColor = colorResource(id = R.color.mid_grey),
         unfocusedSuffixColor = colorResource(id = R.color.mid_grey),
+        disabledSuffixColor = colorResource(id = R.color.midfaded_grey),
         focusedSupportingTextColor = colorLight,
         unfocusedSupportingTextColor = colorResource(id = R.color.mid_grey),
         unfocusedLeadingIconColor = colorResource(id = R.color.mid_grey),
@@ -63,16 +70,15 @@ fun getTextFieldColors(
 fun libColorSelector(
     cat: String
 ): Color {
-    if (cat == "contact") {
-        return colorResource(id = R.color.greenSign)
-    } else if (cat == "playlist") {
-        return colorResource(id = R.color.yellowSign)
-    } else if (cat == "podcast") {
-        return colorResource(id = R.color.redSign)
-    } else if (cat == "route") {
-        return colorResource(id = R.color.brownSign)
-    } else {
-        return colorResource(id = R.color.blueSign)
+    return when (cat) {
+        "spotify" -> colorResource(id = R.color.colorAccentMid)
+        "artist" -> colorResource(id = R.color.blueSign)
+        "album" -> colorResource(id = R.color.violetSign)
+        "playlist" -> colorResource(id = R.color.yellowSign)
+        "podcast" -> colorResource(id = R.color.redSign)
+        "contact" -> colorResource(id = R.color.greenSign)
+        "place" -> colorResource(id = R.color.brownSign)
+        else -> colorResource(id = R.color.faded_grey)
     }
 }
 
@@ -81,16 +87,15 @@ fun libColorSelector(
 fun libColorSelectorLight(
     cat: String
 ): Color {
-    if (cat == "contact") {
-        return colorResource(id = R.color.greenSignLight)
-    } else if (cat == "playlist") {
-        return colorResource(id = R.color.yellowSignLight)
-    } else if (cat == "podcast") {
-        return colorResource(id = R.color.redSignLight)
-    } else if (cat == "route") {
-        return colorResource(id = R.color.brownSignLight)
-    } else {
-        return colorResource(id = R.color.blueSignLight)
+    return when (cat) {
+        "spotify" -> colorResource(id = R.color.colorAccentMid)
+        "artist" -> colorResource(id = R.color.blueSignLight)
+        "album" -> colorResource(id = R.color.violetSignLight)
+        "playlist" -> colorResource(id = R.color.yellowSignLight)
+        "podcast" -> colorResource(id = R.color.redSignLight)
+        "contact" -> colorResource(id = R.color.greenSignLight)
+        "place" -> colorResource(id = R.color.brownSignLight)
+        else -> colorResource(id = R.color.mid_grey)
     }
 }
 
@@ -100,14 +105,13 @@ fun libColorSelectorLight(
 fun guideColorSelector(
     cat: String
 ): Color {
-    if (cat == "calls") {
-        return colorResource(id = R.color.greenSign)
-    } else if (cat == "messages") {
-        return colorResource(id = R.color.blueSign)
-    } else if (cat == "routes") {
-        return colorResource(id = R.color.brownSign)
-    } else {
-        return colorResource(id = R.color.yellowSign)
+    return when (cat) {
+        "calls" -> colorResource(id = R.color.greenSign)
+        "messages" -> colorResource(id = R.color.blueSign)
+        "places" -> colorResource(id = R.color.brownSign)
+        "car" -> colorResource(id = R.color.brownSign)
+        "play" -> colorResource(id = R.color.yellowSign)
+        else -> colorResource(id = R.color.midfaded_grey)
     }
 }
 
@@ -116,32 +120,41 @@ fun guideColorSelector(
 fun guideColorSelectorLight(
     cat: String
 ): Color {
-    if (cat == "calls") {
-        return colorResource(id = R.color.greenSignLight)
-    } else if (cat == "messages") {
-        return colorResource(id = R.color.blueSignLight)
-    } else if (cat == "routes") {
-        return colorResource(id = R.color.brownSignLight)
-    } else {
-        return colorResource(id = R.color.yellowSignLight)
+    return when (cat) {
+        "calls" -> colorResource(id = R.color.greenSignLight)
+        "messages" -> colorResource(id = R.color.blueSignLight)
+        "places" -> colorResource(id = R.color.brownSignLight)
+        "car" -> colorResource(id = R.color.brownSignLight)
+        "play" -> colorResource(id = R.color.yellowSignLight)
+        else -> colorResource(id = R.color.mid_grey)
     }
 }
 
 
-//HISTORY:
+//MESSAGES:
 @Composable
-fun historyColorSelectorLight(
+fun messagesColorSelector(
     cat: String
 ): Color {
-    if (cat == "CallRequest") {
-        return colorResource(id = R.color.greenSignLight)
-    } else if (cat == "MessageRequest") {
-        return colorResource(id = R.color.blueSignLight)
-    } else if (cat == "DriveRequest") {
-        return colorResource(id = R.color.brownSignLight)
-    } else if (cat.contains("Play")) {
-        return colorResource(id = R.color.yellowSignLight)
-    } else {
-        return colorResource(id = R.color.mid_grey)
+    return when {
+        cat == "CallRequest" -> colorResource(id = R.color.greenSign)
+        cat == "MessageRequest" -> colorResource(id = R.color.blueSign)
+        cat == "DriveRequest" -> colorResource(id = R.color.brownSign)
+        cat.contains("Play") -> colorResource(id = R.color.yellowSign)
+        else -> colorResource(id = R.color.dark_grey)
+    }
+}
+
+
+@Composable
+fun messagesColorSelectorLight(
+    cat: String
+): Color {
+    return when {
+        cat == "CallRequest" -> colorResource(id = R.color.greenSignLight)
+        cat == "MessageRequest" -> colorResource(id = R.color.blueSignLight)
+        cat == "DriveRequest" -> colorResource(id = R.color.brownSignLight)
+        cat.contains("Play") -> colorResource(id = R.color.yellowSignLight)
+        else -> colorResource(id = R.color.mid_grey)
     }
 }

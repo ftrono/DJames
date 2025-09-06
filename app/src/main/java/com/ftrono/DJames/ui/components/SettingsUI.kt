@@ -1,155 +1,54 @@
 package com.ftrono.DJames.ui.components
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.AuthActivity
 import com.ftrono.DJames.application.genders
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.spotUserImageState
-import com.ftrono.DJames.application.spotifyLoggedIn
-import com.ftrono.DJames.application.userNicknameState
+import com.ftrono.DJames.application.userNicknameUI
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.application.screens.SpotifyLoginStatus
-import com.ftrono.DJames.ui.selectors.getTextFieldColors
 
 
 // SETTINGS UI
-
-@Preview
-@Composable
-fun SettingsHeaderPreview() {
-    SettingsHeader(
-        backClickable = {},
-        iconRes = painterResource(id = R.drawable.sign_preferences),
-        title = "Preferences",
-        options = {
-            //SAVE BUTTON:
-            Icon(
-                modifier = Modifier
-                    .padding(end = 18.dp)
-                    .size(35.dp),
-                imageVector = Icons.Default.Check,
-                contentDescription = "Save",
-                tint = colorResource(id = R.color.colorAccentLight)
-            )
-        }
-    )
-}
-
-
-@Composable
-fun SettingsHeader(
-    backClickable: () -> Unit,
-    iconRes: Painter,
-    title: String,
-    signColor: Color = colorResource(id = R.color.colorPrimary),
-    options: @Composable () -> Unit
-) {
-    //HEADER:
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .background(colorResource(id = R.color.windowBackground)),
-        contentAlignment = Alignment.Center
-    ) {
-        //HEADER CONTENT:
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            //BACK:
-            Icon(
-                modifier = Modifier
-                    .padding(start = 12.dp, end = 4.dp)
-                    .size(32.dp)
-                    .clickable {
-                        backClickable()
-                    },
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint = colorResource(id = R.color.colorAccentLight)
-            )
-            //MAIN HEADER SIGN:
-            HeaderSign(
-                modifier = Modifier
-                    .padding(10.dp)
-                    .wrapContentSize(align = Alignment.TopStart),
-                iconRes = iconRes,
-                title = title,
-                signColor = signColor
-            )
-            //OPTIONS BUTTONS:
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                options()
-            }
-        }
-    }
-}
-
 
 @Composable
 fun SettingsSection(
@@ -186,9 +85,8 @@ fun CardContainer(
     //CARD:
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
+            .fillMaxWidth(),
+        border = BorderStroke(1.dp, colorResource(id = R.color.dark_grey)),
         shape = RoundedCornerShape(roundedCorners),
         colors = CardDefaults.cardColors (
             containerColor = containerColor
@@ -207,17 +105,74 @@ fun CardContainer(
 }
 
 
+@Composable
+fun SpotifyLoginButton(
+    modifier: Modifier = Modifier,
+    context: Context,
+    spotifyLoggedInState: Boolean,
+    logoutDialogOn: MutableState<Boolean>,
+) {
+    //SPOTIFY LOGIN STATUS:
+    //Logged in text:
+    CardSign(
+        modifier = modifier
+            .padding(bottom = 20.dp)
+            .clickable {
+                if (!spotifyLoggedInState) {
+                    //Login user -> Open WebView:
+                    val intent1 = Intent(context, AuthActivity::class.java)
+                    context.startActivity(intent1)
+                } else {
+                    //LOG OUT:
+                    logoutDialogOn.value = true
+                }
+            },
+        backgroundColor = if (spotifyLoggedInState) colorResource(R.color.faded_grey) else colorResource(R.color.colorPrimary),
+        borderColor = colorResource(R.color.transparent_full),
+        borderWidth = 0.dp,
+    ) {
+        Row (
+            modifier = Modifier,
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            //Spotify logo:
+            Image(
+                modifier = Modifier
+                    .padding(12.dp)
+                    .width(20.dp)
+                    .height(20.dp),
+                painter = painterResource(id = R.drawable.logo_spotify),
+                contentDescription = if (!spotifyLoggedInState) "Login to Spotify" else "Logout from Spotify",
+                colorFilter = if (!spotifyLoggedInState) {
+                    ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+                } else {
+                    ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(1f) })
+                }
+            )
+            //Text:
+            Text(
+                text = if (!spotifyLoggedInState) "Login to Spotify" else "Logout from Spotify",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = colorResource(id = R.color.light_grey),
+                modifier = Modifier
+                    .padding(end=12.dp),
+            )
+        }
+    }
+}
+
+
 @Preview
 @Composable
 fun SettingsUserSectionPreview() {
+    val logoutDialogOn = remember { mutableStateOf(false) }
+    val spotifyLoggedInState = remember { mutableStateOf(false) }
     SettingsUserSection(
-        modifier = Modifier
-            .padding(bottom = 4.dp),
-        textHeaderColor = colorResource(id = R.color.greenSignLight),
-        textFieldColors = getTextFieldColors(
-            colorLight = colorResource(id = R.color.greenSignLight),
-            colorDark = colorResource(id = R.color.greenSign)
-        ),
+        modifier = Modifier,
+        spotifyLoggedInState = spotifyLoggedInState.value,
+        logoutDialogOn = logoutDialogOn,
         preview = true
     )
 }
@@ -226,220 +181,83 @@ fun SettingsUserSectionPreview() {
 @Composable
 fun SettingsUserSection(
     modifier: Modifier = Modifier,
-    textHeaderColor: Color,
-    textFieldColors: TextFieldColors,
+    spotifyLoggedInState: Boolean,
+    logoutDialogOn: MutableState<Boolean>,
     preview: Boolean = false,
 ) {
-    val headerText = "Write your nickname"
-    val radioButtonColors = RadioButtonDefaults.colors(
-        selectedColor = colorResource(id = R.color.greenSignLight),
-        unselectedColor = colorResource(id = R.color.faded_grey)
-    )
-
     val mContext = LocalContext.current
-    val isActive = rememberSaveable { mutableStateOf(false) }
-
-    val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
+    val textHeaderColor = colorResource(id = R.color.light_grey)
     val userImage by spotUserImageState.observeAsState()
+    val userNicknameUIState by userNicknameUI.observeAsState()
     val genderState = rememberSaveable { mutableStateOf(if (preview) "Sir" else prefs.userGender) }
-
-    var textFieldState by remember { mutableStateOf(TextFieldValue(userNicknameState.value!!)) }
-    val shownTextState = remember { mutableStateOf(if (userNicknameState.value == "") "User" else userNicknameState.value) }
-    var beforeText = shownTextState.value
+    val textNickName = rememberSaveable { mutableStateOf(if (preview || userNicknameUI.value!! == "") genderState.value else userNicknameUI.value!!) }
 
     fun onClicked() {
-        focusRequester.requestFocus()
-        keyboardController!!.show()
-    }
-
-    fun onKeyboardDone() {
-        if (!preview && textFieldState.text != "") {
-            prefs.userNickname = utils.cleanString(textFieldState.text)
-            userNicknameState.postValue(textFieldState.text)
-            shownTextState.value = textFieldState.text
-            beforeText = textFieldState.text
+        // Store new nickname to prefs!:
+        if (textNickName.value != "") {
+            textNickName.value = utils.cleanString(textNickName.value)
+            userNicknameUI.value = textNickName.value
+            prefs.userNickname = textNickName.value
         } else {
-            shownTextState.value = beforeText
-            userNicknameState.postValue(beforeText)
+            textNickName.value = userNicknameUI.value!!
         }
-        focusManager.clearFocus()
-        keyboardController!!.hide()
+    }
+    
+    LaunchedEffect(userNicknameUIState!!) {
+        if (!preview) {
+            if (userNicknameUI.value!! == "") {
+                textNickName.value = genderState.value
+            } else {
+                textNickName.value = userNicknameUI.value!!
+            }
+        }
     }
 
     SettingsSection(
-        modifier = Modifier
+        modifier = modifier
             .padding(end=8.dp, bottom=4.dp)
     ) {
-
         //1) LOGIN STATUS:
-        SpotifyLoginStatus(
+        Row(
             modifier = Modifier
                 .fillMaxWidth(),
-            spotifyLoggedInState!!,
-            mContext
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SpotifyLoginButton(
+                modifier = Modifier,
+                context = mContext,
+                spotifyLoggedInState = spotifyLoggedInState!!,
+                logoutDialogOn = logoutDialogOn,
+            )
+        }
+
+        //Title:
+        Text(
+            modifier = Modifier
+                .padding(top=4.dp, bottom = 8.dp),
+            text = "Write a nickname for you",
+            color = textHeaderColor,
+            textAlign = TextAlign.Start,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold
         )
 
-        //2) USER NICKNAME & PROFILE PIC:
-        if (!isActive.value) {
-            Row(
-                modifier = Modifier
-                    .padding(bottom = 10.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
-                //CHIP ICON:
-                RoundedSign(
-                    modifier = Modifier
-                        .focusRequester(focusRequester)
-                        .clickable {
-                            isActive.value = true
-                            onClicked()
-                        },
-                    signSize = 70.dp,
-                    iconSize = 40.dp,
-                    backgroundColor = colorResource(id = R.color.faded_grey),
-                    borderColor = colorResource(id = R.color.midfaded_grey),
-                    iconColor = colorResource(id = R.color.light_grey),
-                    iconVector = Icons.Outlined.Person,
-                    imageUrl = userImage!!,
-                    circle = true
-                )
-
-                Column (
-                    modifier = Modifier
-                        .padding(start = 20.dp)
-                        .clickable {
-                            isActive.value = true
-                            onClicked()
-                        },
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Center
-                ) {
-
-                    //Title:
-                    EditLibTitle(
-                        modifier = Modifier
-                            .padding(bottom = 4.dp)
-                            .clickable {
-                                isActive.value = true
-                                onClicked()
-                            },
-                        textHeaderColor = textHeaderColor,
-                        fontSize = 16.sp,
-                        title = headerText,
-                    )
-
-                    Row(
-                        horizontalArrangement = Arrangement.Start,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-
-                        //Name:
-                        Text(
-                            modifier = Modifier
-                                .weight(1f)
-                                .focusRequester(focusRequester)
-                                .clickable {
-                                    isActive.value = true
-                                    onClicked()
-                                },
-                            text = shownTextState.value!!,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = colorResource(id = R.color.light_grey)
-                        )
-
-                        //Edit icon:
-                        Icon(
-                            modifier = Modifier
-                                .padding(start = 8.dp)
-                                .size(30.dp)
-                                .focusRequester(focusRequester)
-                                .clickable {
-                                    isActive.value = true
-                                    onClicked()
-                                },
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Edit",
-                            tint = colorResource(id = R.color.mid_grey)
-                        )
-                    }
-                }
-            }
-        } else {
-            //Title:
-            EditLibTitle(
-                textHeaderColor = textHeaderColor,
-                fontSize = 16.sp,
-                title = headerText,
-            )
-
-            //TextField:
-            OutlinedTextField(
-                modifier = Modifier
-                    .padding(top = 8.dp, bottom = 20.dp)
-                    .focusRequester(focusRequester),
-                colors = textFieldColors,
-                value = textFieldState,
-                onValueChange = { newText ->
-                    textFieldState = newText
-                },
-                textStyle = TextStyle(
-                    fontSize = 20.sp
-                ),
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        onKeyboardDone()
-                        isActive.value = false
-                    }
-                ),
-                placeholder = {
-                    Text(
-                        text = "Write user nickname...",
-                        fontSize = 16.sp,
-                        fontStyle = FontStyle.Italic
-                    )
-                },
-                trailingIcon = {
-                    //Button:
-                    RoundedSign(
-                        modifier = Modifier
-                            .padding(end = 4.dp)
-                            .clickable {
-                                onKeyboardDone()
-                                isActive.value = false
-                            },
-                        signSize = 36.dp,
-                        iconSize = 20.dp,
-                        backgroundColor = textFieldColors.textSelectionColors.backgroundColor,
-                        borderColor = textFieldColors.textSelectionColors.backgroundColor,
-                        iconColor = colorResource(id = R.color.light_grey),
-                        iconVector = Icons.Default.Done
-                    )
-                }
-            )
-            LaunchedEffect(Unit) {
-                onClicked()
-                textFieldState =
-                    textFieldState.copy(selection = TextRange(textFieldState.text.length))
-            }
-        }
+        //USER NICKNAME:
+        EditLibDynamicNameSection(
+            filter = "user",
+            textState = textNickName,
+            imageUrl = userImage!!,
+            preview = preview,
+            onClick = { onClicked() }
+        )
 
         //3) USER GENDER:
         Text(
             modifier = Modifier
                 .padding(top = 8.dp),
             text = "Refer to yourself as",
-            color = colorResource(id = R.color.greenSignLight),
+            color = textHeaderColor,
             textAlign = TextAlign.Start,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold
@@ -451,6 +269,7 @@ fun SettingsUserSection(
             state = genderState,
             focusColorLight = colorResource(id = R.color.greenSignLight),
             focusColorDark = colorResource(id = R.color.greenSign),
+            optionsBackground = colorResource(id = R.color.dark_grey),
             prefName = "userGender",
             width = 200
         )

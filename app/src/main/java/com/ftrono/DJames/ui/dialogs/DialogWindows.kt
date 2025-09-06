@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -31,8 +29,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -59,9 +59,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.showLoggingIn
+import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.ui.components.EditLibTitle
+import com.ftrono.DJames.ui.selectors.getSwitchColors
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
+import com.ftrono.DJames.ui.selectors.libColorSelector
 import com.ftrono.DJames.ui.selectors.libColorSelectorLight
 import com.ftrono.DJames.ui.selectors.libIconSelector
 
@@ -126,8 +131,7 @@ fun DialogLoading(
         //CONTAINER:
         Card(
             modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
+                .fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(
                 containerColor = colorResource(id = R.color.dark_grey_background)
@@ -135,9 +139,7 @@ fun DialogLoading(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(20.dp)
-                    .wrapContentWidth()
-                    .wrapContentHeight(),
+                    .padding(20.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -148,7 +150,7 @@ fun DialogLoading(
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier
-                            .padding(end=16.dp)
+                            .padding(end = 16.dp)
                             .width(40.dp),
                         color = colorResource(id = R.color.light_grey),
                         trackColor = colorResource(id = R.color.dark_grey),
@@ -177,8 +179,8 @@ fun DialogEditLibPreview() {
     ) {
         EditLibDialog(
             title = filter,
-            headerColor = libColorSelectorLight(cat = filter),
-            headerPainter = libIconSelector(cat = filter)
+            cat = "spotify",
+            subcat = "artist",
         )
     }
 }
@@ -189,9 +191,8 @@ fun DialogEditLibPreview() {
 fun EditLibDialog(
     modifier: Modifier = Modifier,
     title: String,
-    headerColor: Color,
-    headerIcon: ImageVector? = null,
-    headerPainter: Painter? = null,
+    cat: String,
+    subcat: String = "",
     onDismiss: () -> Unit = {},
     onSave: () -> Unit = {},
     onRefresh: () -> Unit = {},
@@ -207,8 +208,7 @@ fun EditLibDialog(
     //EDIT DIALOG CONTAINER:
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
+            .fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         //border = BorderStroke(2.dp, colorResource(id = R.color.faded_grey)),
         colors = CardDefaults.cardColors (
@@ -218,9 +218,7 @@ fun EditLibDialog(
 
         Column(
             modifier = Modifier
-                .padding(20.dp)
-                .wrapContentWidth()
-                .wrapContentHeight(),
+                .padding(20.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start,
         ) {
@@ -228,9 +226,8 @@ fun EditLibDialog(
             //TITLE:
             EditLibHeader(
                 title = title,
-                color = headerColor,
-                painter = headerPainter,
-                icon = headerIcon,
+                cat = cat,
+                subcat = subcat,
                 onCancel = { onDismiss() },
                 onSave = { onSave() },
                 onRefresh = { onRefresh() },
@@ -244,8 +241,6 @@ fun EditLibDialog(
             Column(
                 modifier = Modifier
                     .padding(8.dp)
-                    .wrapContentWidth()
-                    .wrapContentHeight()
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start,
@@ -269,9 +264,8 @@ fun EditLibDialog(
 @Composable
 fun EditLibHeader(
     title: String,
-    color: Color,
-    icon: ImageVector? = null,
-    painter: Painter? = null,
+    cat: String,
+    subcat: String = "",
     onCancel: () -> Unit,
     onSave: () -> Unit,
     onRefresh: () -> Unit,
@@ -284,8 +278,7 @@ fun EditLibHeader(
     Box(
         modifier = Modifier
             .padding(bottom = 12.dp)
-            .fillMaxWidth()
-            .wrapContentHeight(),
+            .fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
         //HEADER CONTENT:
@@ -295,26 +288,23 @@ fun EditLibHeader(
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            //ICON:
-            if (icon != null) {
-                //ImageVector:
+            //ICONS:
+            Icon(
+                modifier = Modifier
+                    .padding(end = 4.dp)
+                    .size(if (small) 20.dp else 36.dp),
+                painter = libIconSelector(cat=cat),
+                contentDescription = title,
+                tint = if (cat == "spotify") libColorSelector(cat=cat) else libColorSelectorLight(cat=cat),
+            )
+            if (subcat != "") {
                 Icon(
                     modifier = Modifier
                         .padding(end = 4.dp)
                         .size(if (small) 20.dp else 36.dp),
-                    imageVector = icon,
+                    painter = libIconSelector(cat=subcat),
                     contentDescription = title,
-                    tint = color
-                )
-            } else {
-                //Painter:
-                Icon(
-                    modifier = Modifier
-                        .padding(end = 4.dp)
-                        .size(if (small) 20.dp else 36.dp),
-                    painter = painter!!,
-                    contentDescription = title,
-                    tint = color
+                    tint = libColorSelectorLight(cat=subcat),
                 )
             }
             //TITLE:
@@ -339,7 +329,7 @@ fun EditLibHeader(
                         },
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = "Go",
-                    tint = color
+                    tint = libColorSelectorLight(cat = if (subcat != "") subcat else cat),
                 )
             }
             if (showRefresh) {
@@ -353,7 +343,7 @@ fun EditLibHeader(
                         },
                     imageVector = Icons.Filled.Refresh,
                     contentDescription = "Refresh",
-                    tint = color
+                    tint = libColorSelectorLight(cat = if (subcat != "") subcat else cat),
                 )
             }
             //BACK BUTTON:
@@ -366,7 +356,7 @@ fun EditLibHeader(
                     },
                 imageVector = Icons.Filled.Close,
                 contentDescription = "Cancel",
-                tint = color
+                tint = libColorSelectorLight(cat = if (subcat != "") subcat else cat),
             )
             //SAVE BUTTON:
             Icon(
@@ -377,7 +367,7 @@ fun EditLibHeader(
                     },
                 imageVector = Icons.Default.Check,
                 contentDescription = "Save",
-                tint = color
+                tint = libColorSelectorLight(cat = if (subcat != "") subcat else cat),
             )
         }
     }
@@ -388,15 +378,14 @@ fun EditLibHeader(
 @Preview
 @Composable
 fun AddLinkDialogPreview() {
-    val textState = rememberSaveable { mutableStateOf("") }
+    val useParentState = rememberSaveable { mutableStateOf(false) }
     Dialog (
         onDismissRequest = {}
     ) {
         AddLinkDialog(
-            textState = textState,
             dialogHeader = "New",
-            textBoxHeader = "Paste link here",
-            headerIcon = Icons.Default.Add,
+            textBoxHeader = "Save a Spotify link",
+            useParentState = useParentState,
         )
     }
 }
@@ -405,16 +394,27 @@ fun AddLinkDialogPreview() {
 @Composable
 fun AddLinkDialog(
     modifier: Modifier = Modifier,
-    textState: MutableState<String>,
+    cat: String = "spotify",   //TODO
     dialogHeader: String,
     textBoxHeader: String,
-    headerColor: Color = colorResource(R.color.mid_grey),
-    headerIcon: ImageVector? = null,
-    headerPainter: Painter? = null,
+    useParentState: MutableState<Boolean>,
     onDismiss: () -> Unit = {},
     onSave: () -> Unit = {}
 ) {
     val focusRequester = remember { FocusRequester() }
+    val textState = rememberSaveable { mutableStateOf(sharedLink.value!!) }
+    val checkboxDescription = rememberSaveable { mutableStateOf("") }
+
+    LaunchedEffect(textState.value) {
+        if (textState.value.contains("/track/")) {
+            checkboxDescription.value = "Save Artist instead"
+        } else if (textState.value.contains("/episode/")) {
+            checkboxDescription.value = "Save Podcast instead"
+        } else {
+            checkboxDescription.value = ""
+            useParentState.value = false
+        }
+    }
 
     //MAIN:
     Dialog(
@@ -432,28 +432,28 @@ fun AddLinkDialog(
                 .fillMaxWidth()
                 .focusRequester(focusRequester),
             title = dialogHeader,
-            headerColor = headerColor,
-            headerIcon = headerIcon,
-            headerPainter = headerPainter,
+            cat = cat,
             onDismiss = onDismiss,
-            onSave = onSave,
+            onSave = {
+                sharedLink.postValue(spotifyUtils.extractUrl(textState.value))
+                onSave()
+             },
             smallHeader = false,
             showRefresh = false,
         ) {
             EditLibTitle(
                 title = textBoxHeader,
-                textHeaderColor = headerColor,
+                textHeaderColor = libColorSelector(cat = cat),
             )
 
             OutlinedTextField(
                 modifier = Modifier
-                    .padding(top = 8.dp, bottom = 20.dp)
+                    .padding(top = 8.dp, bottom = 12.dp)
                     .fillMaxWidth()
-                    .wrapContentHeight()
                     .focusRequester(focusRequester),
                 colors = getTextFieldColors(
-                    colorLight = colorResource(id = R.color.mid_grey),
-                    colorDark = colorResource(id = R.color.faded_grey)
+                    colorLight = libColorSelectorLight("spotify"),
+                    colorDark = libColorSelector("spotify")
                 ),
                 value = textState.value,
                 textStyle = TextStyle(
@@ -464,12 +464,13 @@ fun AddLinkDialog(
                 ),
                 keyboardActions = KeyboardActions(
                     onDone = {
+                        sharedLink.postValue(spotifyUtils.extractUrl(textState.value))
                         onSave()
                     }
                 ),
                 placeholder = {
                     Text(
-                        text = "Paste Spotify link here...",
+                        text = "Paste link here...",
                         fontSize = 16.sp,
                         fontStyle = FontStyle.Italic
                     )
@@ -478,6 +479,35 @@ fun AddLinkDialog(
                     textState.value = newText
                 }
             )
+
+            //Use parent:
+            if (checkboxDescription.value != "") {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = checkboxDescription.value,
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Switch(
+                        checked = useParentState.value,
+                        colors = getSwitchColors(
+                            color = libColorSelector(cat = cat),
+                        ),
+                        onCheckedChange = {
+                            //UPDATE:
+                            useParentState.value = it
+                        }
+                    )
+                }
+            }
         }
     }
 }

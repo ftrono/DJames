@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +42,15 @@ import com.ftrono.DJames.application.queryLangCodes
 import com.ftrono.DJames.application.screens.restartOverlay
 import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+
+
+@Composable
+fun isKeyboardOpen(): Boolean {
+    val ime = WindowInsets.ime
+    return ime.getBottom(LocalDensity.current) > 0
+}
 
 
 @Composable
@@ -97,6 +107,7 @@ fun DropdownSpinner(
     state: MutableState<String>,
     focusColorLight: Color,
     focusColorDark: Color,
+    optionsBackground: Color = colorResource(id = R.color.windowBackground),
     prefName: String = "",
     width: Int = 0,
     start: Int = 0
@@ -162,7 +173,7 @@ fun DropdownSpinner(
                 isExpanded = false
             },
             scrollState = rememberScrollState(),
-            containerColor = colorResource(id = R.color.windowBackground)
+            containerColor = optionsBackground
         ) {
             parentOptions.forEach { selectionOption ->
                 DropdownMenuItem(
@@ -183,8 +194,8 @@ fun DropdownSpinner(
                         } else if (prefName == "messageLanguage") {
                             prefs.messageLanguage = messLangCodes[messLangFull.indexOf(selectionOption)]
                             state.value = selectionOption
-                        } else if (prefName == "routeLanguage") {
-                            prefs.routeLanguage = messLangCodes[messLangFull.indexOf(selectionOption)]
+                        } else if (prefName == "placeLanguage") {
+                            prefs.placeLanguage = messLangCodes[messLangFull.indexOf(selectionOption)]
                             state.value = selectionOption
                         } else {
                             state.value = selectionOption

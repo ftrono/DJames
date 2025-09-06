@@ -3,9 +3,10 @@ package com.ftrono.DJames.be.spotify
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.deltaSimilarity
-import com.ftrono.DJames.application.lastLog
+import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.playThreshold
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.spotifyParsers
 import com.ftrono.DJames.application.spotifyQueryLimit
 import com.ftrono.DJames.be.database.ExtractorInfo
 import com.ftrono.DJames.be.database.SpotifyMatchModel
@@ -160,16 +161,16 @@ class SpotifySearch(private val context: Context) {
                 }
             }
         }
-        lastLog.spotifyQueries = spotifyQueries
-        lastLog.keyInfo.bestScore = bestScore
+        lastAiMessage.attachments.spotifyQueries = spotifyQueries
+        lastAiMessage.attachments.matchScore = bestScore
         Log.d(TAG, "BEST RESULT: $bestResult")
         return bestResult
     }
 
 
     //GENERIC SPOTIFY SEARCH -> PLAY WITHIN ALBUM:
-    fun checkSaved(ids: MutableList<String>): JsonArray {
-        var returnArray = JsonArray()
+    fun checkSaved(ids: MutableList<String>): List<Boolean> {
+        var savedList = listOf<Boolean>()
         //BUILD GET REQUEST:
         var url = "https://api.spotify.com/v1/me/tracks/contains?ids="
 
@@ -183,14 +184,13 @@ class SpotifySearch(private val context: Context) {
 
         var response = query.querySpotify(type = "get", url = url, jsonHeads = jsonHeads)
         if (response.body != "") {
-            returnArray = JsonParser.parseString(response.body).asJsonArray
+            savedList = JsonParser.parseString(response.body).asJsonArray.map { it.asBoolean }
         }
-        return returnArray
+        return savedList
     }
 
     //Spotify: get Best Result:
-    fun getBestMatches(items: JsonArray, playType: String, matchName: String, artistName: String, live: Boolean): MutableList<SpotifyMatchModel> {
-        val re = Regex("[^A-Za-z0-9 ]")
+    fun getBestMatches(items: JsonArray, playType: String, matchName: String, detailName: String, live: Boolean): MutableList<SpotifyMatchModel> {
         var c = 0
         var allMatches = mutableListOf<SpotifyMatchModel>()
         var ids = mutableListOf<String>()
@@ -203,44 +203,47 @@ class SpotifySearch(private val context: Context) {
 
                 // Extract key info:
                 curMatch.playable.type = playType
-                curMatch.playable.name = curJson.get("name").asString
-                ids.add(curJson.get("id").asString)
                 curMatch.playable.id = curJson.get("id").asString
-
-                if (playType == "track" || playType == "album") {
-                    // Extract artists:
-                    var artists = curJson.getAsJsonArray("artists")
-                    for (artist in artists) {
-                        curMatch.playable.artistsIds.add(artist.asJsonObject.get("id").asString)
-                        curMatch.playable.artistsNames.add(artist.asJsonObject.get("name").asString)
+                ids.add(curMatch.playable.id)
+                var stringToMatch = curJson.get("name").asString
+                var detailToMatch = ""
+                when (playType) {
+                    "artist" -> {
+                        curMatch.playable.artist = spotifyParsers.extractSingleArtist(curJson)
                     }
-                    // Extract album:
-                    if (playType == "album") {
-                        curMatch.playable.albumType = curJson.get("album_type").asString
-                    } else {
-                        curMatch.playable.albumId =
-                            curJson.get("album").asJsonObject.get("id").asString
-                        curMatch.playable.albumType =
-                            curJson.get("album").asJsonObject.get("album_type").asString
-                        curMatch.playable.albumName =
-                            curJson.get("album").asJsonObject.get("name").asString
+                    "album" -> {
+                        curMatch.playable.album = spotifyParsers.extractAlbum(curJson)
                     }
-
-                } else if (playType == "playlist") {
-                    curMatch.playable.owner = curJson.get("owner").asJsonObject.get("display_name").asString
+                    "track" -> {
+                        curMatch.playable.track = spotifyParsers.extractTrack(curJson)
+                        detailToMatch = curMatch.playable.track!!.artists.joinToString(", ", "", "") { it.name }
+                    }
+                    "playlist" -> {
+                        curMatch.playable.playlist = spotifyParsers.extractPlaylist(curJson)
+                    }
+                    "podcast" -> {
+                        //TODO: add to Fulfillment!
+                        curMatch.playable.podcast = spotifyParsers.extractPodcast(curJson)
+                    }
+                    "episode" -> {
+                        //TODO: add to Fulfillment!
+                        curMatch.playable.episode = spotifyParsers.extractEpisodeFromPodcast(curJson)
+                        detailToMatch = curMatch.playable.episode!!.podcast!!.name
+                    }
                 }
+
+                // Clean strings regex:
+                // \p{L} = any Unicode letter (so you keep accents like é, ñ, ü)
+                // \p{N} = any Unicode digit
+                val re = Regex("[^\\p{L}\\p{N} ]")
 
                 // Calculate similarity:
                 var score = 0
-                if (artistName == "") {
-                    // Match name only:
-                    var stringToMatch = re.replace(
-                        curMatch.playable.name,
-                        ""
-                    ) + " " + re.replace(
-                        curMatch.playable.artistsNames.joinToString(", ", "", ""),
-                        ""
-                    )
+                if (detailName == "") {
+                    // A) Match name & detail together:
+                    // Clean string (remove regex):
+                    stringToMatch = re.replace(stringToMatch, "") +
+                            " " + re.replace(detailToMatch, "")
                     stringToMatch = stringToMatch.lowercase()
                     curMatch.nameSetSimilarity = FuzzySearch.tokenSetRatio(stringToMatch, matchName)
                     curMatch.namePartialSimilarity =
@@ -253,30 +256,29 @@ class SpotifySearch(private val context: Context) {
                     ).average().roundToInt()
 
                 } else {
-                    // Match name and artist:
-                    var tempName = re.replace(curMatch.playable.name.lowercase(), "")
-                    var tempArtists = re.replace(
-                        curMatch.playable.artistsNames.joinToString(", ", "", "").lowercase(), ""
-                    )
-                    curMatch.nameSetSimilarity = FuzzySearch.tokenSetRatio(tempName, matchName)
-                    curMatch.namePartialSimilarity = FuzzySearch.partialRatio(tempName, matchName)
-                    curMatch.nameFullSimilarity = FuzzySearch.ratio(tempName, matchName)
-                    curMatch.artistSetSimilarity =
-                        FuzzySearch.tokenSetRatio(tempArtists, artistName)
-                    curMatch.artistPartialSimilarity =
-                        FuzzySearch.partialRatio(tempArtists, artistName)
+                    // B) Match name and detail separately:
+                    // Clean string (remove regex):
+                    stringToMatch = re.replace(stringToMatch.lowercase(), "")
+                    detailToMatch = re.replace(detailToMatch.lowercase(), "")
+                    curMatch.nameSetSimilarity = FuzzySearch.tokenSetRatio(stringToMatch, matchName)
+                    curMatch.namePartialSimilarity = FuzzySearch.partialRatio(stringToMatch, matchName)
+                    curMatch.nameFullSimilarity = FuzzySearch.ratio(stringToMatch, matchName)
+                    curMatch.detailSetSimilarity =
+                        FuzzySearch.tokenSetRatio(detailToMatch, detailName)
+                    curMatch.detailPartialSimilarity =
+                        FuzzySearch.partialRatio(detailToMatch, detailName)
                     score = listOf<Int>(
                         curMatch.nameSetSimilarity,
                         curMatch.namePartialSimilarity,
                         curMatch.nameFullSimilarity,
-                        curMatch.artistSetSimilarity,
-                        curMatch.artistPartialSimilarity
+                        curMatch.detailSetSimilarity,
+                        curMatch.detailPartialSimilarity
                     ).average().roundToInt()
                 }
 
                 //Check if live:
-                if (playType == "track" || playType == "artist") {
-                    for (tok in curMatch.playable.name.lowercase().split(" ")) {
+                if (playType == "track" || playType == "album") {
+                    for (tok in stringToMatch.split(" ")) {
                         if (!live && tok.lowercase() == "live") {
                             score -= deltaSimilarity
                             break
@@ -300,67 +302,40 @@ class SpotifySearch(private val context: Context) {
         if (playType == "track") {
             var savedIds = checkSaved(ids)
             Log.d(TAG, "Check saved: $savedIds")
-            if (savedIds.size() > 0) {
-                //add Saved info:
-                var i = 0
-                for (cur in allMatches) {
-                    cur.playable.saved = savedIds[i].asBoolean
-                    i ++
-                }
+            // Add isSaved information:
+            savedIds.takeIf { it.isNotEmpty() }?.forEachIndexed { i, isSaved ->
+                allMatches[i].playable.track!!.saved = isSaved
             }
         }
 
         //Sort map:
         Log.d(TAG, "MAP: $scoresMap")
-        val sortedScores = scoresMap.toList().sortedByDescending { it.second }.toMap()
-        Log.d(TAG, "SORTED MAP: $sortedScores")
+        var sortedMatches = allMatches.sortedByDescending { it.score }
+
         //Exclude lower score items:
-        var scoreThreshold = sortedScores.values.elementAt(0) - deltaSimilarity
-        if (scoreThreshold < 0) {
-            scoreThreshold = 0
-        }
-        var bestScores = sortedScores.filter { (key, value) -> value >= scoreThreshold}
-        Log.d(TAG, "FILTERED MAP: $bestScores")
-        //Default best Ind is the first (max score):
-        var bestInd = sortedScores.keys.elementAt(0)
+        var scoreThreshold = sortedMatches.elementAt(0).score - deltaSimilarity
+        scoreThreshold = if (scoreThreshold < 0) 0 else scoreThreshold
 
-        // Find a track saved & from album (if present):
+        // Key is original allMatches index, Value is score:
+        var bestMatches = sortedMatches.filter { it.score >= scoreThreshold}.toMutableList()
+
+        // Sort full score items: priority+similarity if track, else similarity:
         if (playType == "track") {
-            var bestType = ""
-            var albumFound = false
-            for (k in bestScores.keys) {
-                var curMatch = allMatches[k]
-                //0) STORE THE FACT THAT YOU FOUND AN ALBUM:
-                if (curMatch.playable.albumType == "album") {
-                    albumFound = true
+            // Calculate priority-aware combined scores:
+            val scoredMatches = bestMatches.map {
+                // Priority rules (0–3):
+                val priority = when {
+                    it.playable.track!!.saved && it.playable.track!!.album!!.type == "album" -> 3
+                    it.playable.track!!.saved -> 2
+                    it.playable.track!!.album!!.type == "album" -> 1
+                    else -> 0
                 }
-                //A) If SAVED:
-                if (curMatch.playable.saved) {
-                    //PRIORITY 1) If album -> BEST FOUND -> STOP!
-                    if (curMatch.playable.albumType == "album") {
-                        bestInd = k
-                        break
-                        //PRIORITY 2) If just saved & not a best saved track found before -> update best:
-                    } else if (bestInd == 0) {
-                        bestInd = k
-                        bestType = "saved"
-                    }
-                    //PRIORITY 3) If just album & not a saved track found before -> update best:
-                } else if (!albumFound && bestType != "saved" && curMatch.playable.albumType == "album") {
-                    bestInd = k
-                    bestType = "album"
-                }
+                // Balance similarity and priority:
+                val combinedScore = it.score + priority * 100  // tweak weight here
+                Pair(it, combinedScore)
             }
-        }
-
-        var bestMatches = mutableListOf<SpotifyMatchModel>()
-        // Place best item first:
-        bestMatches.add(allMatches[bestInd])
-        // Next, add the other results:
-        for (k in bestScores.keys) {
-            if (k != bestInd) {
-                bestMatches.add(allMatches[k])
-            }
+            // Sort by combined score, highest first:
+            bestMatches = scoredMatches.sortedByDescending { it.second }.map { it.first }.toMutableList()
         }
         return bestMatches
     }

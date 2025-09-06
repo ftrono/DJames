@@ -11,31 +11,25 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,14 +48,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.MainActivity
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.theme.ClockTheme
@@ -143,79 +135,65 @@ class ClockActivity: ComponentActivity() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            //DATE:
-            Text(
-                modifier = Modifier
-                    .padding(bottom = if (!isLandscape) 20.dp else 10.dp)
-                    .fillMaxWidth(),
-                text = currentDateState!!,
-                color = colorResource(id = R.color.faded_grey),
-                textAlign = TextAlign.Center,
-                fontSize = 22.sp
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                //CLOSE BUTTON (HORIZONTAL - OVERLAY ON THE RIGHT):
+                // LEFT PLACEHOLDER (HORIZONTAL ONLY):
                 if (isLandscape) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        if (overlayPosState!! == "Right") {
-                            CloseButton()
-                            MaxiClock(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f),
-                                isLandscape = isLandscape,
-                                currentHourState = currentHourState!!,
-                                currentMinsState = currentMinsState!!
-                            )
-                            ClosePlaceholder()
-                        } else {
-                            ClosePlaceholder()
-                            MaxiClock(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f),
-                                isLandscape = isLandscape,
-                                currentHourState = currentHourState!!,
-                                currentMinsState = currentMinsState!!
-                            )
-                            CloseButton()
-                        }
+                    if (overlayPosState!! == "Right") {
+                        CloseButton()
+                    } else {
+                        ClosePlaceholder()
                     }
-                } else {
-                    MaxiClock(
+                }
+
+                // MAIN:
+                Column(
+                    modifier = Modifier
+                        .weight(1F),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    //DATE:
+                    Text(
                         modifier = Modifier
-                            .fillMaxWidth(),
+                            .padding(bottom = if (!isLandscape) 20.dp else 10.dp),
+                        text = currentDateState!!,
+                        color = colorResource(id = R.color.faded_grey),
+                        textAlign = TextAlign.Center,
+                        fontSize = 22.sp
+                    )
+                    //CLOCK:
+                    MaxiClock(
                         isLandscape = isLandscape,
                         currentHourState = currentHourState!!,
                         currentMinsState = currentMinsState!!
                     )
+                    //PLAYER INFO:
+                    PlayerInfo(isLandscape)
+                    // CLOSE (VERTICAL ONLY):
+                    if (!isLandscape) {
+                        CloseButton()
+                    }
+                }
+
+                // RIGHT PLACEHOLDER (HORIZONTAL ONLY):
+                if (isLandscape) {
+                    if (overlayPosState!! == "Left") {
+                        CloseButton(pointForward = true)
+                    } else {
+                        ClosePlaceholder()
+                    }
                 }
             }
-            //PLAYER INFO:
-            PlayerInfo(isLandscape)
-
-            //CLOSE BUTTON (VERTICAL):
-            if (!isLandscape) {
-                CloseButton()
-            }
         }
-
     }
 
 
     @Composable
     fun MaxiClock(
-        modifier: Modifier,
+        modifier: Modifier = Modifier,
         isLandscape: Boolean,
         currentHourState: String,
         currentMinsState: String
@@ -276,16 +254,14 @@ class ClockActivity: ComponentActivity() {
                 //ARTWORK ICON:
                 RoundedSign(
                     signSize = 50.dp,
-                    iconSize = 30.dp,
+                    contentSize = 30,
                     backgroundColor = colorResource(id = R.color.black),
                     borderColor = colorResource(id = R.color.faded_grey),
-                    iconColor = colorResource(id = R.color.midfaded_grey),
-                    iconPainter = painterResource(id = R.drawable.sign_note)
+                    contentColor = colorResource(id = R.color.midfaded_grey),
+                    iconPainter = painterResource(id = R.drawable.icon_note)
                 )
                 Column(
-                    modifier = Modifier
-                        .wrapContentWidth()
-                        .wrapContentHeight(),
+                    modifier = Modifier,
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.Start
                 ) {
@@ -293,8 +269,7 @@ class ClockActivity: ComponentActivity() {
                         //PREFIX:
                         Text(
                             modifier = Modifier
-                                .padding(start = 14.dp, bottom = 2.dp)
-                                .wrapContentWidth(),
+                                .padding(start = 14.dp, bottom = 2.dp),
                             text = currentPlayingPrefixState!!,
                             lineHeight = 12.sp,
                             color = colorResource(id = R.color.midfaded_grey),
@@ -305,8 +280,7 @@ class ClockActivity: ComponentActivity() {
                     //SONG NAME:
                     Text(
                         modifier = Modifier
-                            .padding(start = 14.dp)
-                            .wrapContentWidth(),
+                            .padding(start = 14.dp),
                         text = currentSongPlayingState!!,
                         color = colorResource(id = R.color.mid_grey),
                         fontSize = 18.sp,
@@ -315,8 +289,7 @@ class ClockActivity: ComponentActivity() {
                     //ARTIST NAME:
                     Text(
                         modifier = Modifier
-                            .padding(start = 14.dp)
-                            .wrapContentWidth(),
+                            .padding(start = 14.dp),
                         text = currentArtistPlayingState!!,
                         lineHeight = 16.sp,
                         color = colorResource(id = R.color.mid_grey),
@@ -329,26 +302,26 @@ class ClockActivity: ComponentActivity() {
 
 
     @Composable
-    fun CloseButton() {
-        OutlinedButton(
-            modifier= Modifier
+    fun CloseButton(
+        pointForward: Boolean = false
+    ) {
+        RoundedSign(
+            modifier = Modifier
                 .padding(start = 20.dp, end = 20.dp)
-                .size(50.dp),
-            shape = CircleShape,
-            border= BorderStroke(2.dp, colorResource(id = R.color.faded_grey)),
-            contentPadding = PaddingValues(0.dp),  //avoid the little icon
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = colorResource(id = R.color.faded_grey)),
-            onClick = {
-                //Start Main:
-                val intent1 = Intent(this, MainActivity::class.java)
-                startActivity(intent1)
-                finish()
-            }
-        ) {
-            Icon(
-                Icons.Default.Close,
-                contentDescription = "content description")
-        }
+                .clickable {
+                    //Start Main:
+                    val intent1 = Intent(this, MainActivity::class.java)
+                    startActivity(intent1)
+                    finish()
+                },
+            signSize = 50.dp,
+            contentSize = 32,
+            backgroundColor = colorResource(R.color.black),
+            borderColor = colorResource(id = R.color.faded_grey),
+            contentColor = colorResource(id = R.color.faded_grey),
+            borderWidth = 2.5.dp,
+            iconVector = if (pointForward) Icons.AutoMirrored.Default.ArrowForward else Icons.AutoMirrored.Default.ArrowBack,
+        )
     }
 
 
@@ -389,7 +362,6 @@ class ClockActivity: ComponentActivity() {
                     modifier = Modifier
                         .padding(top = 8.dp, bottom = 8.dp)
                         .fillMaxWidth()
-                        .wrapContentHeight()
                 )
                 //TEXT 2:
                 Text(
@@ -466,8 +438,8 @@ class ClockActivity: ComponentActivity() {
         if (currentPlayingPrefix.value == "") {
             currentPlayingPrefix.postValue("Last song played")
         }
-        currentSongPlaying.postValue(utils.trimString(songName, 28))
-        currentArtistPlaying.postValue(utils.trimString(artistName, 28))
+        currentSongPlaying.postValue(utils.trimString(songName, 25))
+        currentArtistPlaying.postValue(utils.trimString(artistName, 25))
     }
 
 

@@ -2,7 +2,7 @@ package com.ftrono.DJames.be.samples
 
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.database.ItemInfoUse
+import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.SpotifyPlayable
 
 
@@ -65,6 +65,10 @@ class DefaultReplies() {
         return defaultSents.random()
     }
 
+    fun replyMessageCannotRecord(): String {
+        return "I'm sorry, I can't record voice messages via chat. Please, enable DRIVE Mode and ask again by voice!"
+    }
+
     // CONTACTS:
     fun replyCalling(contactName: String): String {
         return "Calling $contactName..."
@@ -90,16 +94,16 @@ class DefaultReplies() {
         return "Voice message for $contactName ready: please, select the contact in Whatsapp and Send it!"
     }
 
-    // ROUTES:
-    fun replyRouteRequest(reqLangName: String): String {
-        return "Tell me the route you need in ${reqLangName}!"
+    // PLACES:
+    fun replyPlaceRequest(reqLangName: String): String {
+        return "Tell me the place you need in ${reqLangName}!"
     }
 
-    fun replyRouteShowIntro(): String {
+    fun replyPlaceShowIntro(): String {
         return "Here's the route to: "
     }
 
-    fun replyRouteShowDetail(itemInfo: ItemInfoUse): String {
+    fun replyPlaceShowDetail(itemInfo: LibraryItem): String {
         var ttsToRead = ""
         if (itemInfo.detail == "") {
             ttsToRead = "${itemInfo.name}!"
@@ -146,19 +150,21 @@ class DefaultReplies() {
     
     fun replyPlayIntro(playable: SpotifyPlayable): String {
         var ttsToRead = ""
-        if (playable.type == "collection") {
-            ttsToRead = "Playing your Liked Songs collection!"
-
-        } else if (playable.type == "episode" || playable.type == "podcast") {
-            if (playable.releaseDate != "") {
-                ttsToRead = "Playing the latest episode dated ${playable.releaseDate}: "
+        if (playable.type == "episode" && playable.episode != null) {
+            if (playable.episode!!.releaseDate != "") {
+                ttsToRead = "Playing the latest episode dated ${playable.episode!!.releaseDate}: "
             } else {
                 ttsToRead = "Playing the latest episode: "
             }
 
-        } else if (playable.owner == prefs.spotUserName) {
-            ttsToRead = "Playing your playlist: "
-
+        } else if (playable.type == "playlist" && playable.playlist != null) {
+            if (playable.id == "collection") {
+                ttsToRead = "Playing your Liked Songs collection!"
+            } else if (playable.playlist!!.owner == prefs.spotUserName) {
+                ttsToRead = "Playing your playlist: "
+            } else {
+                ttsToRead = "Playing the playlist: "
+            }
         } else if (playable.type == "artist") {
             ttsToRead = "Playing top tracks for the artist: "
 
@@ -170,23 +176,23 @@ class DefaultReplies() {
 
     fun replyPlayDetail(playable: SpotifyPlayable): String {
         var ttsToRead = ""
-        if (playable.type == "episode" || playable.type == "podcast") {
-            ttsToRead = utils.cleanString(playable.name, emojiOnly = true).replace(" - Ep. ", ". Ep ")
+        if (playable.type == "episode" && playable.episode != null) {
+            ttsToRead = utils.cleanString(playable.episode!!.name, emojiOnly = true)
 
-        } else if (playable.type == "playlist") {
-            if (playable.owner == prefs.spotUserName) {
-                ttsToRead = utils.cleanString(playable.name, emojiOnly = true)
+        } else if (playable.playlist != null && playable.type == "playlist") {
+            if (playable.playlist!!.owner == prefs.spotUserName) {
+                ttsToRead = utils.cleanString(playable.playlist!!.name, emojiOnly = true)
             } else {
-                val ownerString = if (playable.owner == "") "" else ", by ${playable.owner}"
-                ttsToRead = utils.cleanString("${playable.name}${ownerString}.", emojiOnly = true)
+                val ownerString = if (playable.playlist!!.owner == "") "" else ", by ${playable.playlist!!.owner}"
+                ttsToRead = utils.cleanString("${playable.playlist!!.name}${ownerString}.", emojiOnly = true)
             }
 
-        } else if (playable.type == "artist") {
-            ttsToRead = utils.cleanString(playable.name, emojiOnly = true)
+        } else if (playable.type == "artist" && playable.artist != null) {
+            ttsToRead = utils.cleanString(playable.artist!!.name, emojiOnly = true)
 
-        } else {
-            var artist = playable.artistsNames.joinToString(" feat. ")
-            ttsToRead = "${playable.name}, by $artist!"
+        } else if (playable.track != null && playable.track!!.artists.isNotEmpty()) {
+            var artist = playable.track!!.artists.joinToString(" feat. ") { it.name }
+            ttsToRead = "${playable.track!!.name}, by $artist!"
         }
         return ttsToRead
     }

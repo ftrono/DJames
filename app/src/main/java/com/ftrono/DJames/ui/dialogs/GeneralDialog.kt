@@ -52,8 +52,7 @@ fun GeneralDialog(
             //CONTAINER:
             Card(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
+                    .fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = backgroundColor
@@ -62,8 +61,6 @@ fun GeneralDialog(
                 Column(
                     modifier = Modifier
                         .padding(20.dp)
-                        .wrapContentWidth()
-                        .wrapContentHeight()
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.Start,

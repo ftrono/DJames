@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -45,17 +46,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.ACTION_FINISH_CLOCK
-import com.ftrono.DJames.application.ACTION_FINISH_MAIN
 import com.ftrono.DJames.application.ACTION_MAKE_CALL
 import com.ftrono.DJames.application.ACTION_REC_STOP
 import com.ftrono.DJames.application.ACTION_SAVE_TRACK
@@ -71,16 +68,14 @@ import com.ftrono.DJames.application.clickCounter
 import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.overlayPos
-import com.ftrono.DJames.application.overlayStatus
+import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recordingMode
 import com.ftrono.DJames.application.sourceIsVolume
 import com.ftrono.DJames.application.streamMaxVolume
 import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.application.vol_initialized
-import com.ftrono.DJames.ui.components.ClockButton
-import com.ftrono.DJames.ui.components.DJamesButton
-import com.ftrono.DJames.ui.components.OverlayClose
+import com.ftrono.DJames.ui.overlay.OverlayClose
 import com.ftrono.DJames.ui.defaults.OverlayLifecycleOwner
 import com.ftrono.DJames.ui.defaults.OverlaySavedStateRegistryOwner
 import kotlinx.coroutines.launch
@@ -91,10 +86,14 @@ import kotlin.math.round
 import kotlin.math.roundToInt
 import com.ftrono.DJames.application.ACTION_OVERLAY_CLICK
 import com.ftrono.DJames.application.allowVolumeClick
-import com.ftrono.DJames.application.autoStopQueriesState
-import com.ftrono.DJames.application.maxClickOptions
+import com.ftrono.DJames.application.clickCountdownTime
+import com.ftrono.DJames.application.clickSleepInterval
+import com.ftrono.DJames.application.overlayOptionsStr
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.application.volumeUpEnabledUI
+import com.ftrono.DJames.ui.overlay.DJamesPads
+import com.ftrono.DJames.ui.overlay.getQuickActionOnTap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -113,8 +112,6 @@ class OverlayService : Service() {
 
     // Coroutine scope to handle countdown
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-    private val countdownTime: Long = 2000   //ms
-    private val sleepInterval: Long = 100   //ms
     private var countdownJob: Job? = null
     private var loadJob: Job? = null
     private var saveTrackJob: Job? = null
@@ -177,14 +174,16 @@ class OverlayService : Service() {
             ).apply {
                 gravity = Gravity.TOP or Gravity.START
                 x = if (prefs.overlayPosition == "Right") screenWidth else 0
-                y = round(screenHeight.toDouble()/3).toInt()
+                y = round(screenHeight.toDouble()/4).toInt()
             }
 
             //Compose:
             bubbleView = ComposeView(this).also {
                 it.setContent {
                     OverlayBubble(
-                        bubbleSize = 100,
+                        context = applicationContext,
+                        centerSize = 100,
+                        toeSize = 70,
                         onDrag = { x, y ->
                             bubbleParams.x += x
                             if (bubbleParams.y + y >= 0) {
@@ -308,28 +307,31 @@ class OverlayService : Service() {
         screenHeight = resources.displayMetrics.heightPixels
         //Preferred xpos:
         bubbleParams.x = if (prefs.overlayPosition == "Right") screenWidth else 0
-        bubbleParams.y = round(screenHeight.toDouble()/3).toInt()
+        bubbleParams.y = round(screenHeight.toDouble()/4).toInt()
         windowManager.updateViewLayout(bubbleView, bubbleParams)
     }
 
 
     @Composable
     fun OverlayBubble(
-        bubbleSize: Int,
+        context: Context,
+        centerSize: Int,
+        toeSize: Int,
         onDrag: (Int, Int) -> Unit
     ) {
         // Coroutine scope for animating drag events
         val configuration = LocalConfiguration.current
         val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
         val coroutineScope = rememberCoroutineScope()
-        val mContext = LocalContext.current
         val clockActiveState by clockActive.observeAsState()
         val clickCounterState by clickCounter.observeAsState()
         val sourceIsVolumeState by sourceIsVolume.observeAsState()
+        val overlayPosState by overlayPos.observeAsState()
         // Animating the horizontal offset based on the state
         val rightPadding by animateDpAsState(targetValue = if (
-            clickCounterState!! > 0 && overlayPos.value == "Right" && sourceIsVolumeState!!
+            clickCounterState!! > 0 && overlayPosState == "Right" && sourceIsVolumeState!!
         ) (70.dp) else 0.dp)
+
 
         //CONTAINER:
         Column(
@@ -342,52 +344,59 @@ class OverlayService : Service() {
                     detectDragGestures(
                         //ON DRAG START:
                         onDragStart = {
-                            //Add close view to the window:
-                            showCloseView()
+                            if (clickCounterState == 0) {
+                                //Add close view to the window:
+                                showCloseView()
+                            }
                         },
                         //ON DRAG:
                         onDrag = { _, dragAmount ->
-                            onDrag(
-                                dragAmount.x.roundToInt(),
-                                dragAmount.y.roundToInt()
-                            )
+                            if (clickCounterState == 0) {
+                                onDrag(
+                                    dragAmount.x.roundToInt(),
+                                    dragAmount.y.roundToInt()
+                                )
+                            }
                         },
                         //ON DRAG END:
                         onDragEnd = {
-                            // Hide close view:
-                            var startClosingRegion = if (isLandscape) screenHeight * 0.5 else screenHeight * 0.7
-                            removeCloseView()
-                            // Check if overlay is in the lower 20% of the screen
-                            if (abs(bubbleParams.y.toFloat()) >= (startClosingRegion)) {
-                                // If SWIPE DOWN -> CLOSE:
-                                stopSelf()
-                            } else {
-                                //ANIMATE TO SCREEN EDGE:
-                                // Calculate target position:
-                                val animatable_X = Animatable(bubbleParams.x.toFloat())
-                                var targetX = 0f
-                                if (animatable_X.value > screenWidth / 2f - bubbleSize.dp.toPx() / 2) {
-                                    //RIGHT:
-                                    targetX = (screenWidth - bubbleSize.dp.toPx())
-                                    overlayPos.postValue("Right")
-                                    prefs.overlayPosition = "Right"
+                            if (clickCounterState == 0) {
+                                // Hide close view:
+                                var startClosingRegion =
+                                    if (isLandscape) screenHeight * 0.5 else screenHeight * 0.7
+                                removeCloseView()
+                                // Check if overlay is in the lower 20% of the screen
+                                if (abs(bubbleParams.y.toFloat()) >= (startClosingRegion)) {
+                                    // If SWIPE DOWN -> CLOSE:
+                                    stopSelf()
                                 } else {
-                                    //LEFT:
-                                    targetX = 0f
-                                    overlayPos.postValue("Left")
-                                    prefs.overlayPosition = "Left"
-                                }
-                                //Move:
-                                coroutineScope.launch {
-                                    animatable_X.animateTo(
-                                        targetValue = targetX,
-                                        animationSpec = tween(
-                                            durationMillis = 300,
-                                            easing = LinearOutSlowInEasing
-                                        )
-                                    ) {
-                                        bubbleParams.x = value.toInt()
-                                        windowManager.updateViewLayout(bubbleView, bubbleParams)
+                                    //ANIMATE TO SCREEN EDGE:
+                                    // Calculate target position:
+                                    val animatable_X = Animatable(bubbleParams.x.toFloat())
+                                    var targetX = 0f
+                                    if (animatable_X.value > screenWidth / 2f - centerSize.dp.toPx() / 2) {
+                                        //RIGHT:
+                                        targetX = (screenWidth - centerSize.dp.toPx())
+                                        overlayPos.postValue("Right")
+                                        prefs.overlayPosition = "Right"
+                                    } else {
+                                        //LEFT:
+                                        targetX = 0f
+                                        overlayPos.postValue("Left")
+                                        prefs.overlayPosition = "Left"
+                                    }
+                                    //Move:
+                                    coroutineScope.launch {
+                                        animatable_X.animateTo(
+                                            targetValue = targetX,
+                                            animationSpec = tween(
+                                                durationMillis = 300,
+                                                easing = LinearOutSlowInEasing
+                                            )
+                                        ) {
+                                            bubbleParams.x = value.toInt()
+                                            windowManager.updateViewLayout(bubbleView, bubbleParams)
+                                        }
                                     }
                                 }
                             }
@@ -395,34 +404,22 @@ class OverlayService : Service() {
                     )
                 }
         ) {
-            if (!clockActiveState!!) {
-                ClockButton(
-                    bubbleSize = bubbleSize,
-                    currentTime = currentTime,
-                    onTap = {
-                        //Start Clock screen:
-                        val intent1 = Intent(mContext, ClockActivity::class.java)
-                        intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        intent1.putExtra("fromwhere", "ser")
-                        startActivity(intent1)
-
-                        //End Main():
-                        //Send broadcast:
-                        Intent().also { intent ->
-                            intent.setAction(ACTION_FINISH_MAIN)
-                            sendBroadcast(intent)
-                        }
-                    }
-                )
-            }
-            DJamesButton(
-                bubbleSize = bubbleSize,
-                overlayStatus = overlayStatus,
+            DJamesPads(
+                context = context,
+                queryStatus = queryStatus,
+                overlayPosState = overlayPosState!!,
                 clickCounterState = clickCounterState!!,
-                onTap = {
+                clockActiveState = clockActiveState!!,
+                currentTime = currentTime,
+                centerSize = centerSize,
+                toeSize = toeSize,
+                onToesTapCommon = {
+                    onToesPadClick()
+                },
+                onCenterTap = {
                     if (!voiceQueryOn) {
-                        // COUNT CLICKS:
-                        onOverlayClick(false)
+                        // CENTER TAP:
+                        onCenterPadClick(enable = clickCounterState == 0)
                     } else if (recordingMode) {
                         //EARLY STOP RECORDING:
                         Intent().also { intent ->
@@ -433,16 +430,6 @@ class OverlayService : Service() {
                 }
             )
         }
-    }
-
-
-    @Preview
-    @Composable
-    fun BubblePreview() {
-        OverlayBubble(
-            bubbleSize = 100,
-            onDrag = {x, y -> }
-        )
     }
 
 
@@ -484,7 +471,7 @@ class OverlayService : Service() {
                 windowManager.removeView(it)
             }
         } catch (e: Exception) {
-            Log.w(TAG, "CloseView: cannot remove. ", e)
+            Log.w(TAG, "CloseView: cannot remove. ")
         }
     }
 
@@ -535,6 +522,10 @@ class OverlayService : Service() {
         overlayActive.postValue(false)
         voiceQueryOn = false
         clickCounter.postValue(0)
+        if (volumeUpEnabledUI.value!!) {
+            // Re-enable volume-up trigger:
+            prefs.volumeUpEnabled = true   //THIS is used by EventReceiver!
+        }
         //Stop Voice Query service:
         if (isMyServiceRunning(VoiceQueryService::class.java)) {
             stopService(Intent(applicationContext, VoiceQueryService::class.java))
@@ -588,7 +579,7 @@ class OverlayService : Service() {
                 it.setViewTreeSavedStateRegistryOwner(null)
             }
         } catch (e: Exception) {
-            Log.w(TAG, "CloseView: cannot remove. ", e)
+            Log.w(TAG, "CloseView: cannot remove. ")
         }
         //If no activities active -> CLOSE APP:
         Log.d(TAG, "$acts_active")
@@ -599,10 +590,32 @@ class OverlayService : Service() {
 
 
     // COUNTDOWN FUNCTIONS:
-    fun onOverlayClick(fromVolume: Boolean = false) {
-        //CLICK -> Play ALERT tone:
+    fun onToesPadClick() {
+        //CLICK ONLY -> Play ALERT tone:
+        sourceIsVolume.postValue(false)
+        restartCountdown()
+        toneGen.startTone(ToneGenerator.TONE_CDMA_KEYPAD_VOLUME_KEY_LITE)   //ALERT
+    }
+
+    fun onCenterPadClick(enable: Boolean) {
+        //CLICK ONLY -> Play ALERT tone:
+        sourceIsVolume.postValue(false)
+        restartCountdown()
+        if (enable) {
+            clickCounter.postValue(1)
+            toneGen.startTone(ToneGenerator.TONE_CDMA_KEYPAD_VOLUME_KEY_LITE)   //ALERT
+        } else {
+            clickCounter.postValue(0)
+            //Play FAIL tone:
+            toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+        }
+    }
+
+    fun loopPads(fromVolume: Boolean = false) {
+        //VOLUME UP ONLY -> Play ALERT tone:
         sourceIsVolume.postValue(fromVolume)
         restartCountdown()
+        val maxClickOptions = 1 + overlayOptionsStr.value!!.split(", ").size
         if (clickCounter.value!! == maxClickOptions) {
             clickCounter.postValue(0)
             //Play FAIL tone:
@@ -622,42 +635,30 @@ class OverlayService : Service() {
         countdownJob = CoroutineScope(Dispatchers.IO).launch {
             Log.d(TAG, "CountdownJob start!")
             //Countdown: ensure interval between clicks:
-            delay(sleepInterval)
+            delay(clickSleepInterval)
             if (!allowVolumeClick) {
                 allowVolumeClick = true
             }
-            delay(countdownTime-sleepInterval)
+            delay(clickCountdownTime-clickSleepInterval)
             //After countdown:
+            val overlayOptions = overlayOptionsStr.value!!.split(", ")
+            var actionName = ""
+
             if (clickCounter.value!! == 1) {
-                //TRIGGER VOICE REQUEST:
-                try {
-                    applicationContext.startService(Intent(applicationContext, VoiceQueryService::class.java))
-                    Log.d(TAG, "OVERLAY SERVICE: VOICE QUERY SERVICE STARTED.")
-                } catch (e:Exception) {
-                    Log.w(TAG, "ERROR: OVERLAY SERVICE: VOICE QUERY SERVICE NOT STARTED. ", e)
+                //Play FAIL tone:
+                toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+            } else if (clickCounter.value!! > 1) {
+                val actionIndex = clickCounter.value!! - 2
+                actionName = overlayOptions[actionIndex]
+                when (actionName) {
+                    "speak" -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                    "clock" -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                    "save" -> toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
+                    "silence" -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                    else -> toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                 }
-            } else if (clickCounter.value!! == 2) {
-                //TRIGGER SAVE TRACK:
-                overlayStatus.postValue("processing")
-                //Play STOP tone:
-                toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
-                Intent().also { intent ->
-                    intent.setAction(ACTION_SAVE_TRACK)
-                    applicationContext.sendBroadcast(intent)
-                }
-            } else if (clickCounter.value!! == 3) {
-                //TRIGGER ENABLE/DISABLE SILENCE DETECTION:
-                val silenceModeToTrigger = if (prefs.silenceEnabledQueries) "OFF" else "ON"
-                prefs.silenceEnabledQueries = !prefs.silenceEnabledQueries
-                autoStopQueriesState.postValue(!autoStopQueriesState.value!!)
-                //SUCCESS -> Play ACKNOWLEDGE tone:
-                toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
-                //TOAST -> Send broadcast:
-                Intent().also { intent ->
-                    intent.setAction(ACTION_TOASTER)
-                    intent.putExtra("toastText", "Silence detection $silenceModeToTrigger")
-                    applicationContext.sendBroadcast(intent)
-                }
+                //TRIGGER ACTION:
+                getQuickActionOnTap(applicationContext, actionName)()
             }
             //Reset counter:
             clickCounter.postValue(0)
@@ -698,7 +699,7 @@ class OverlayService : Service() {
 
             //Trigger overlay click:
             if (intent.action == ACTION_OVERLAY_CLICK) {
-                onOverlayClick(true)
+                loopPads(true)
             }
 
             //Save current track:

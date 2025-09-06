@@ -32,13 +32,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
@@ -46,8 +47,9 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.GuideCategory
 import com.ftrono.DJames.be.database.fullGuide
 import com.ftrono.DJames.ui.components.GeneralSectionHeader
-import com.ftrono.DJames.ui.components.HeaderWithSign
-import com.ftrono.DJames.ui.components.StreetBackground
+import com.ftrono.DJames.ui.components.StreetUIScaffold
+import com.ftrono.DJames.ui.navigation.StreetUITopBar
+import com.ftrono.DJames.ui.navigation.UserOptions
 import com.ftrono.DJames.ui.selectors.guideColorSelector
 import com.ftrono.DJames.ui.selectors.guideColorSelectorLight
 import com.ftrono.DJames.ui.selectors.guideIconSelector
@@ -58,28 +60,43 @@ import com.ftrono.DJames.ui.selectors.guideIconSelector
 @Composable
 fun GuideScreenPreview() {
     val navController = rememberNavController()
-    GuideScreen(navController)
+    GuideScreen(navController, preview = true)
 }
 
 @Composable
-fun GuideScreen(navController: NavController) {
+fun GuideScreen(
+    navController: NavController,
+    preview: Boolean = false
+) {
+    val mContext = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     var guideStateItems = getGuideStateItems(fullGuide)
     val expandedStates = remember {
         mutableStateMapOf(*guideStateItems.map { it to false }.toTypedArray())
     }
     val currentExpanded = rememberSaveable { mutableStateOf(guideStateItems[0]) }
 
-    //BACKGROUND:
-    StreetBackground(
-        startDistance = 20
-    ) {
-        //HEADER:
-        HeaderWithSign(
-            iconRes = painterResource(id = R.drawable.sign_info),
-            title = "Guide",
-            subtitle = "What you can ask"
-        )
-
+    // SCREEN:
+    StreetUIScaffold(
+        lineDistance = 20.dp,
+        topBar = {
+            StreetUITopBar(
+                pretitle = "",
+                title = "Guide",
+                subtitle = "What you can ask",
+                showBack = true,
+                onBack = { navController.popBackStack() },   //TODO
+                optionButtons = {
+                    UserOptions(
+                        context = mContext,
+                        lifecycleOwner = lifecycleOwner,
+                        navController = navController,
+                        preview = preview,
+                    )
+                }
+            )
+        }
+    ){
         //CONTENT:
         Column(
             modifier = Modifier
@@ -195,7 +212,7 @@ fun ExpandableGuideItem(
                 }
                 utils.updateStatesMap(expandedStates, target = currentExpanded.value)
             },
-        border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
+        border = BorderStroke(1.dp, colorResource(id = R.color.dark_grey)),
         colors = CardDefaults.cardColors(
             containerColor = colorResource(id = R.color.dark_grey_background)
         )

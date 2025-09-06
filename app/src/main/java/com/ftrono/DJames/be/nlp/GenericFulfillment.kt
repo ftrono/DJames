@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
-import com.ftrono.DJames.application.lastLog
+import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.maxThreshold
 import com.ftrono.DJames.application.messLangFull
@@ -13,9 +13,8 @@ import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.messLangLower
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.be.database.ExtractorInfo
-import com.ftrono.DJames.be.database.ItemInfoUse
+import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.NlpQueryModel
 import com.ftrono.DJames.be.models.ActionType
 import com.ftrono.DJames.be.models.AiReply
@@ -27,10 +26,10 @@ class GenericFulfillment (private var context: Context) {
 
 
     //Process a request involving a Contact (Call / Message):
-    fun contactRequest(resultsNLP: NlpQueryModel): DispatcherInfo {
+    fun contactRequest(resultsNLP: NlpQueryModel, fromVoice: Boolean = false): DispatcherInfo {
         var dispatcherInfo = DispatcherInfo()
         val filter = "contact"
-        var itemInfo = ItemInfoUse(
+        var itemInfo = LibraryItem(
             type = filter
         )
 
@@ -44,16 +43,14 @@ class GenericFulfillment (private var context: Context) {
         val nlpMatcher = NLPMatcher(context)
         var libMatchId = nlpMatcher.matchLibrary(filter, text=contactExtracted)
 
-        if (libMatchId < 0 || !voiceQueryOn) {
+        if (libMatchId < 0) {
             //Fallback:
             return fulfillmentUtils.fallback(notUnderstood=true)
 
         } else {
             //Get contact:
-            itemInfo = libUtils.getItemInfoUse(filter, libMatchId)
+            itemInfo = libUtils.getLibItemById(libMatchId)
             extractorInfo.matchConfirmed = itemInfo.name
-            //Store usable details:
-            itemInfo.detail = itemInfo.defaultKey   //TODO: add multiple phones
 
             //CASES:
             if (resultsNLP.intentName.contains("Call")) {
@@ -99,6 +96,18 @@ class GenericFulfillment (private var context: Context) {
 
                 //Extract message type:
                 dispatcherInfo.messageType = nlpExtractor.extractMessageType(nlp_queryText)
+                // Select action to take:
+                if (dispatcherInfo.messageType == "voice") {
+                    dispatcherInfo.actionType = ActionType.WA_VOICE
+                    if (!fromVoice) {
+                        //Fallback:
+                        return fulfillmentUtils.fallback(cannotRecordWAVoice=true)
+                    }
+                } else if (dispatcherInfo.messageType == "whatsapp") {
+                    dispatcherInfo.actionType = ActionType.WA_TEXT
+                } else {
+                    dispatcherInfo.actionType = ActionType.SMS
+                }
 
                 //Reply:
                 var ttsToRead = if (dispatcherInfo.messageType == "voice") {
@@ -125,9 +134,10 @@ class GenericFulfillment (private var context: Context) {
                 return fulfillmentUtils.fallback(notUnderstood=true)
             }
 
-            //Close log:
-            lastLog.nlpExtractor = extractorInfo
-            lastLog.usable = itemInfo
+            //Update message:
+            lastAiMessage.actionType = dispatcherInfo.actionType
+            lastAiMessage.attachments.nlpExtractor = extractorInfo
+            lastAiMessage.attachments.usable = itemInfo
             return dispatcherInfo
         }
     }
@@ -142,18 +152,10 @@ class GenericFulfillment (private var context: Context) {
             //Recover info:
             var reqLangCode = prevDispatch.reqLanguage
             var itemInfo = prevDispatch.usable
+            dispatcherInfo.actionType = prevDispatch.actionType
 
             //Store usable details:
             itemInfo.language = reqLangCode
-
-            // Select action to take:
-            if (prevDispatch.messageType == "voice") {
-                dispatcherInfo.actionType = ActionType.WA_VOICE
-            } else if (prevDispatch.messageType == "whatsapp") {
-                dispatcherInfo.actionType = ActionType.WA_TEXT
-            } else {
-                dispatcherInfo.actionType = ActionType.SMS
-            }
 
             //dispatcherInfo:
             dispatcherInfo.usable = itemInfo
@@ -178,12 +180,12 @@ class GenericFulfillment (private var context: Context) {
 
         //Detect & process requested languages:
         var detLanguage = resultsNLP.reqLanguage
-        var reqLangCode = utils.getLanguageCode(detLanguage, prefs.routeLanguage)
+        var reqLangCode = utils.getLanguageCode(detLanguage, prefs.placeLanguage)
         var reqLangName = utils.getLanguageName(reqLangCode)
 
         //Reply:
         var ttsToRead = ""
-        ttsToRead = defaultReplies.replyRouteRequest(reqLangName)
+        ttsToRead = defaultReplies.replyPlaceRequest(reqLangName)
         val aiReplies = listOf(
             AiReply(
                 langCode = prefs.queryLanguage,
@@ -207,33 +209,35 @@ class GenericFulfillment (private var context: Context) {
         var dispatcherInfo = DispatcherInfo()
         var reqLangCode = prevDispatch.reqLanguage
 
-        //PROCESS ROUTE INFO:
+        //PROCESS PLACE INFO:
         //item:
         var matchName = nlp_queryText
-        var routeLanguage = reqLangCode   //TODO
-        var itemInfo = ItemInfoUse(
-            type = "route"
+        var placeLanguage = reqLangCode   //TODO
+        var itemInfo = LibraryItem(
+            type = "place"
         )
 
         var nlpExtractor = NLPExtractor(context)
         var extractorInfo = ExtractorInfo()
         extractorInfo.reqLanguage = reqLangCode
 
-        //Check route in library:
+        //Check place in library:
         val nlpMatcher = NLPMatcher(context)
-        val libMatchId = nlpMatcher.matchLibrary("route", matchName, maxThreshold)
+        val libMatchId = nlpMatcher.matchLibrary("place", matchName, maxThreshold)
         if (libMatchId < 0) {
-            //Route NOT found:
-            Log.d(TAG, "DRIVE -> Route from Message")
-            itemInfo = nlpExtractor.extractRoute(nlp_queryText, reqLangCode)
-            itemInfo.url = fulfillmentUtils.buildRouteUrlFromItemInfo(itemInfo)
+            //Place NOT found:
+            Log.d(TAG, "DRIVE -> Place from Message")
+            itemInfo = nlpExtractor.extractPlace(nlp_queryText, reqLangCode)
+            itemInfo.url = libUtils.buildPlaceUrlFromItemInfo(itemInfo)
             extractorInfo.matchExtracted = itemInfo.name
             extractorInfo.contextExtracted = itemInfo.detail
 
         } else {
-            //Route found:
-            Log.d(TAG, "DRIVE -> Route from Library")
-            itemInfo = libUtils.getItemInfoUse("route", libMatchId)
+            //Place found:
+            Log.d(TAG, "DRIVE -> Place from Library")
+            itemInfo = libUtils.getLibItemById(libMatchId)
+            itemInfo.detail = itemInfo.address!!.town + ", " + itemInfo.address!!.street + itemInfo.address!!.number
+            itemInfo.url = libUtils.buildPlaceUrlFromLibraryItem(itemInfo.address)
             extractorInfo.matchExtracted = nlp_queryText
             extractorInfo.matchConfirmed = itemInfo.name
             extractorInfo.contextConfirmed = itemInfo.detail
@@ -248,15 +252,15 @@ class GenericFulfillment (private var context: Context) {
             Thread.sleep(1000)
 
             //Reply:
-            var introText = defaultReplies.replyRouteShowIntro()
-            var detailText = defaultReplies.replyRouteShowDetail(itemInfo)
+            var introText = defaultReplies.replyPlaceShowIntro()
+            var detailText = defaultReplies.replyPlaceShowDetail(itemInfo)
             val aiReplies = listOf(
                 AiReply(
                     langCode = prefs.queryLanguage,
                     text = introText
                 ),
                 AiReply(
-                    langCode = routeLanguage,
+                    langCode = placeLanguage,
                     text = detailText
                 ),
             )
@@ -267,9 +271,10 @@ class GenericFulfillment (private var context: Context) {
             dispatcherInfo.usable = itemInfo
             dispatcherInfo.playAcknowledge = true
 
-            //Player info:
-            lastLog.nlpExtractor = extractorInfo
-            lastLog.usable = itemInfo
+            //Update message:
+            lastAiMessage.actionType = dispatcherInfo.actionType
+            lastAiMessage.attachments.nlpExtractor = extractorInfo
+            lastAiMessage.attachments.usable = itemInfo
         }
 
         //Build return

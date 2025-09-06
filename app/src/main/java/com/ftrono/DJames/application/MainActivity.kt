@@ -96,6 +96,7 @@ class MainActivity : ComponentActivity() {
         //CLEANING:
         if (!main_initialized) {
             // messageUtils.updateExistingMessages()   //TODO: use only when needed!
+            // libUtils.updateExistingLibrary()   //TODO: use only when needed!
             allMessageIds.postValue(messageUtils.refreshMessages())
             //delete older logs:
             messageUtils.deleteOldMessages()

@@ -405,4 +405,16 @@ class LibraryUtils {
             Toast.makeText(context, "ERROR: Invalid file!", Toast.LENGTH_LONG).show()
         }
     }
+
+    //TODO: Use only for DB updates!
+    fun updateExistingLibrary() {
+        var libItems = libraryBox!!.all
+        for (item in libItems) {
+            //TODO: update as needed!
+            // item.lastUpdated = utils.getCurrentTimestamp()
+            libraryBox!!.put(item)
+        }
+        Log.d(TAG, "Library DB updated!")
+    }
+
 }

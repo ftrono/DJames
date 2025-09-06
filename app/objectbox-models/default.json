@@ -79,7 +79,7 @@
     },
     {
       "id": "9:7098379089276826692",
-      "lastPropertyId": "13:1353089694695338875",
+      "lastPropertyId": "14:8660931637652211698",
       "name": "LibraryItem",
       "properties": [
         {
@@ -137,6 +137,11 @@
           "id": "13:1353089694695338875",
           "name": "address",
           "type": 9
+        },
+        {
+          "id": "14:8660931637652211698",
+          "name": "lastUpdated",
+          "type": 6
         }
       ],
       "relations": []

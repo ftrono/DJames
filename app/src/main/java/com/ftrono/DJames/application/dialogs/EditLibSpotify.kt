@@ -175,10 +175,8 @@ fun EditLibSpotify(
                     itemSpotify.type = textType.value
                     itemSpotify.name = textName.value.trim()
                     itemSpotify.aliases = aliasesList
-                    if (itemSpotify.type == "playlist" && itemSpotify.detail == "") {
-                        itemSpotify.detail = "Spotify"
-                    }
-                    itemSpotify.detail = if (itemSpotify.type == "playlist" && textDetail.value == "") "Spotify" else textDetail.value
+                    itemSpotify.lastUpdated = utils.getCurrentTimestamp()
+                    itemSpotify.detail = textDetail.value
                     itemSpotify.imageUrl = imageUrlState.value
                     itemSpotify.url = spotifyUtils.trimSpotifyUrl(textPlayUrl.value)
 

@@ -137,7 +137,11 @@ class LinkExtractors {
                 itemSpotify.url = itemSpotify.url
                 //Image URL:
                 try {
-                    itemSpotify.imageUrl = respJson.get("images").asJsonArray.get(0).asJsonObject.get("url").asString
+                    itemSpotify.imageUrl = if (filter == "track") {
+                        respJson.get("album").asJsonObject.get("images").asJsonArray.get(0).asJsonObject.get("url").asString
+                    } else {
+                        respJson.get("images").asJsonArray.get(0).asJsonObject.get("url").asString
+                    }
                     Log.d(TAG, itemSpotify.imageUrl)
                 } catch (e: Exception) {
                     itemSpotify.imageUrl = ""

@@ -160,7 +160,7 @@ data class Message(
     //Primary key:
     @Id var id: Long = 0,
     var timestamp: Long = 0,
-    var datetime: String = "",
+    var datetime: String = "",   // NOTE: for export only!
     var appVersion: String = "",
     var fromVoice: Boolean = false,
     var fromUser: Boolean = false,

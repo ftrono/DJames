@@ -25,7 +25,7 @@ class SpotifyQuery(private val context: Context) {
     //REFRESHER:
     fun refreshAuth(context: Context) {
         //GET SPOTIFY DEV CREDENTIALS:
-        val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.spotify_credentials)))
+        val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.env)))
         val credJson = JsonParser.parseReader(reader).asJsonObject
         val clientId = credJson.get("spotify_client").asString
         val clientSct = credJson.get("spotify_sct").asString

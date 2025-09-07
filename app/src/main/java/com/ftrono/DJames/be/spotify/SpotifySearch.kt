@@ -290,7 +290,7 @@ class SpotifySearch(private val context: Context) {
                 curMatch.score = score
                 scoresMap[c] = score
                 allMatches.add(curMatch)
-                Log.d(TAG, curMatch.toString())
+                // Log.d(TAG, curMatch.toString())
 
             } catch (e: Exception) {
                 Log.w(TAG, "Error: Spotify match item skipped. ", e)

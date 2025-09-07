@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.0.a6 (alpha)"
+val appVersion = "3.0.a7 (alpha)"
 val copyrightYear = 2024
 
 //DB:
@@ -134,13 +134,12 @@ val raiseVolumeCountdownTime: Int = 7000   //ms
 val clickAnimationCountdownTime: Int = 4000   //ms
 val clickCountdownTime: Long = 3000   //ms
 val clickSleepInterval: Long = 100   //ms
-val silenceInitPatience = 6
-val silencePatience = 2
 val deltaSimilarity = 10   //5
 val playThreshold = 80
 val maxThreshold = 70
 val midThreshold = 60
-val recSamplingRate = 44100
+val recSamplingRate = 48000 // 44100
+val silencePatienceSecs = 2   //seconds
 val queryTimeout = 5   //seconds
 val recFileName = "DJames_request"
 var enablePlayerInfo = false
@@ -167,7 +166,7 @@ var voiceQueryOn: Boolean = false
 var recordingMode: Boolean = false
 var callMode: Boolean = false
 var recordingFail: Boolean = false
-var recordingTime = 0
+var recordingTime = 0L
 
 //Audio Managers:
 var audioManager: AudioManager? = null
@@ -186,6 +185,7 @@ val gMapsLinkFormat = "https://www.google.com/maps/dir//"
 //Spotify formats:
 val spotIntroUri = "spotify"   // spotify:<type>:<id>
 val spotIntroUrl = "https://open.spotify.com"   // .../<type>/<id>
+val spotCollectionName = "Spotify: Liked Songs"
 val spotCollectionUrl = "$spotIntroUrl/collection/tracks"
 val spotCollectionIntUri = "spotify:user:replaceUserId:collection"
 val trackUrlIntro = "https://open.spotify.com/track/"

@@ -16,7 +16,7 @@ android {
         minSdk = 29
         targetSdk = 35
         versionCode = 1
-        versionName = "3.0.a6"
+        versionName = "3.0.a7"
 
         manifestPlaceholders["appAuthRedirectScheme"] = "djames-oauth"
 
@@ -141,4 +141,6 @@ dependencies {
     //Coil:
     implementation("io.coil-kt.coil3:coil-compose:3.1.0")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.1.0")
+    // WebRTC VAD:
+    implementation("com.github.gkonovalov.android-vad:webrtc:2.0.10")
 }

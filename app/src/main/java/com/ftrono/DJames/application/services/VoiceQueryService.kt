@@ -217,13 +217,11 @@ class VoiceQueryService: Service() {
                             // toneGen.startTone(ToneGenerator.TONE_CDMA_ONE_MIN_BEEP)   //FOLLOW UP
 
                             //Start recording (default: cacheDir):
-                            recordingMode = true
-                            MyRecorder.start()
                             messageUtils.resetMessage(fromUser = true)
-
-                            MyRecorder.whileRecording(
-                                messageMode,
-                                lastDispatch.messageType,
+                            recordingMode = true
+                            MyRecorder.start(
+                                messageMode = messageMode,
+                                messageType = lastDispatch.messageType,
                             )
                         },
                         onFail = { stopSelf() }

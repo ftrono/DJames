@@ -28,7 +28,10 @@ class AndroidAudioRecorder(private val context: Context) {
         } else MediaRecorder()
     }
 
-    fun start() {
+    fun start(
+        messageMode: Boolean = false,
+        messageType: String = "",
+    ) {
         try {
             //Create files:
             val directory = context.cacheDir
@@ -50,6 +53,12 @@ class AndroidAudioRecorder(private val context: Context) {
 
                 mediaRecorder = this
             }
+
+            // Monitor audio:
+            whileRecording(
+                messageMode = messageMode,
+                messageType = messageType,
+            )
 
         } catch (e: Exception) {
             recordingFail = true

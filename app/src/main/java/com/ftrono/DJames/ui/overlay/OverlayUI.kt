@@ -468,6 +468,12 @@ fun CenterPad(
     val isRaiseVolumeActive = rememberSaveable { mutableStateOf(false) }   //HERE FOR PREVIEW!
     val volumeUpEnabledUIState by volumeUpEnabledUI.observeAsState()   // Use UI here, not the prefs!
 
+    LaunchedEffect(queryState) {
+        if (queryState == "busy") {
+            Toast.makeText(context, "Speak now!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -510,6 +516,7 @@ fun CenterPad(
                     }
                 }
             },
+            timeoutMs = clickAnimationCountdownTime,
             timeoutColor = colorTimeout,
             onTap = {
 //            if (clickCounterState != 1) {

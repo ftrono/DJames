@@ -6,20 +6,17 @@ import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.libUtils
-import com.ftrono.DJames.application.spotCollectionIntUri
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.spotIntroUri
+import com.ftrono.DJames.application.spotCollectionName
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.NlpQueryModel
 import com.ftrono.DJames.be.database.ExtractorInfo
-import com.ftrono.DJames.be.database.SpotifyAlbum
 import com.ftrono.DJames.be.database.SpotifyArtist
 import com.ftrono.DJames.be.database.SpotifyContext
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.database.SpotifyPlaylist
-import com.ftrono.DJames.be.database.SpotifyPodcast
 import com.ftrono.DJames.be.models.ActionType
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
@@ -110,7 +107,7 @@ class SpotifyFulfillment (private var context: Context) {
             type = "playlist",
             playlist = SpotifyPlaylist(
                 id = "collection",   // Important!
-                name = "Liked Songs",
+                name = spotCollectionName,
                 owner = "Spotify",
             ),
         )
@@ -194,7 +191,7 @@ class SpotifyFulfillment (private var context: Context) {
                     playable.track!!.context = SpotifyContext(
                         id = "collection",
                         type = "playlist",
-                        name = "Liked Songs"
+                        name = spotCollectionName
                     )
 
                 } else if (contextExtracted != "") {

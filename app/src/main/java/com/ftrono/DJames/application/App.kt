@@ -185,6 +185,7 @@ val gMapsLinkFormat = "https://www.google.com/maps/dir//"
 //Spotify formats:
 val spotIntroUri = "spotify"   // spotify:<type>:<id>
 val spotIntroUrl = "https://open.spotify.com"   // .../<type>/<id>
+val spotCollectionName = "Spotify: Liked Songs"
 val spotCollectionUrl = "$spotIntroUrl/collection/tracks"
 val spotCollectionIntUri = "spotify:user:replaceUserId:collection"
 val trackUrlIntro = "https://open.spotify.com/track/"

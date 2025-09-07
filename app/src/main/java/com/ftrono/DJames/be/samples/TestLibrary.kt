@@ -1,5 +1,6 @@
 package com.ftrono.DJames.be.samples
 
+import com.ftrono.DJames.application.spotCollectionName
 import com.ftrono.DJames.application.spotCollectionUrl
 import com.ftrono.DJames.be.database.Address
 import com.ftrono.DJames.be.database.LibraryItem
@@ -16,7 +17,7 @@ val defaultCollection = LibraryItem(
     id = -2L,
     source = "spotify",
     type = "playlist",
-    name = "Spotify: Liked Songs",
+    name = spotCollectionName,
     aliases = mutableListOf("liked songs", "saved tracks", "collection"),
     detail = "Spotify",
     url = spotCollectionUrl,

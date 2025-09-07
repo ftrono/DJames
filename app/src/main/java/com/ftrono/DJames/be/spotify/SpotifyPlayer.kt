@@ -11,6 +11,7 @@ import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.spotIntroUrl
 import com.ftrono.DJames.application.spotCollectionIntUri
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.spotCollectionUrl
 import com.ftrono.DJames.application.spotIntroUri
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.SpotifyPlayable
@@ -30,7 +31,7 @@ class SpotifyPlayer (private val context: Context) {
     fun spotifyPlay(playable: SpotifyPlayable): Int {
         //Build external URL:
         val playUrl = if (playable.id == "collection") {
-            "$spotIntroUrl/collection/tracks"
+            spotCollectionUrl
         } else {
             "$spotIntroUrl/${playable.type}/${playable.id}"
         }

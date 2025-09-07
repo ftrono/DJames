@@ -54,6 +54,12 @@ class AndroidAudioRecorder(private val context: Context) {
                     prefs.recTimeout.toLong()
                 }*1000
 
+            var silenceEnabled = if (messageMode) {
+                prefs.silenceEnabledMess
+            } else {
+                prefs.silenceEnabledQueries
+            }
+
             //Create recorder:
             audioRecorder = AudioRecord(
                 MediaRecorder.AudioSource.VOICE_RECOGNITION,
@@ -99,10 +105,7 @@ class AndroidAudioRecorder(private val context: Context) {
                             recordingTime += frameDurationMs
 
                             // Run VAD on each frame:
-                            if (vad.isSpeech(frame)) {
-                                // IS SPEECH -> Reset patience countdown:
-                                silenceMs = 0L
-                            } else {
+                            if (silenceEnabled && !vad.isSpeech(frame)) {
                                 // NO SPEECH -> Increase patience countdown:
                                 silenceMs += frameDurationMs
                                 if (silenceMs >= silenceThreshold) {
@@ -111,6 +114,9 @@ class AndroidAudioRecorder(private val context: Context) {
                                     isRecording = false
                                     break
                                 }
+                            } else {
+                                // IS SPEECH or NO SILENCE DETECTION -> Reset patience countdown:
+                                silenceMs = 0L
                             }
 
                             i += chunkSize

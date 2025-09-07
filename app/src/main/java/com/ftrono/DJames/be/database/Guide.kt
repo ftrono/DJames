@@ -64,7 +64,7 @@ val fullGuide = listOf<GuideCategory>(
 
     //SPOTIFY:
     GuideCategory(
-        category = "spotify",
+        category = "play",
         header = "Spotify",
         requests = listOf(
 
@@ -93,9 +93,9 @@ val fullGuide = listOf<GuideCategory>(
             ),
 
             GuideRequest(
-                intro = "Play artist collection",
+                intro = "Play artist",
                 sentence = "\uD83D\uDDE3\uFE0F  \"Play an artist in <language>\"",
-                description = "Search & play top tracks for the requested artist, or the default playlist \"This is <artist>\" in Spotify (only if saved in your Saved Items). Language MUST be told if the name is not in English.\n\nIf you add the word \"Radio\" or \"Mix\" after the artist name, DJames will play these playlist instead (only if they're saved in your Saved Items)."
+                description = "Search & play top tracks for the requested artist*. Language MUST be told if the name is not in English.\n\n*NOTE: list your favourite artists in your Saved Items, in the Artists tab! Otherwise, DJames will search for artists with that name across Spotify."
             ),
 
             GuideRequest(

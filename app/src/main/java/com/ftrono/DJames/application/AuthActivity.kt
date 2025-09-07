@@ -43,7 +43,7 @@ class AuthActivity: ComponentActivity() {
 
     private fun startAuthorizationFlow() {
         //GET SPOTIFY DEV CREDENTIALS:
-        val reader = BufferedReader(InputStreamReader(this@AuthActivity.resources.openRawResource(R.raw.spotify_credentials)))
+        val reader = BufferedReader(InputStreamReader(this@AuthActivity.resources.openRawResource(R.raw.env)))
         val credJson = JsonParser.parseReader(reader).asJsonObject
         val clientId = credJson.get("spotify_client").asString
 

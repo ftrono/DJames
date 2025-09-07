@@ -6,7 +6,6 @@ import android.content.Intent
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
-import android.os.Environment
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import com.arthenica.ffmpegkit.FFmpegKit
@@ -21,17 +20,11 @@ import com.konovalov.vad.webrtc.config.Mode
 
 class AndroidAudioRecorder(private val context: Context) {
     private val TAG = AndroidAudioRecorder::class.java.simpleName
+    // private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
     private lateinit var audioRecorder: AudioRecord
-    // private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
     private var recFilePcm: File? = null
     private var recFileFlac: File? = null
-
-    // NEW:
-    private val channelConfig = AudioFormat.CHANNEL_IN_MONO
-    private val audioFormat = AudioFormat.ENCODING_PCM_16BIT
-    private val bufferSize = AudioRecord.getMinBufferSize(recSamplingRate, channelConfig, audioFormat)
-    private val silenceThreshold = silencePatienceSecs * 1000   // ms
 
 
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
@@ -46,6 +39,12 @@ class AndroidAudioRecorder(private val context: Context) {
             recFileFlac = File(directory, "$recFileName.flac")
 
             // Params:
+            val channelConfig = AudioFormat.CHANNEL_IN_MONO
+            val audioFormat = AudioFormat.ENCODING_PCM_16BIT
+            val bufferSize = AudioRecord.getMinBufferSize(recSamplingRate, channelConfig, audioFormat)
+            val silenceThreshold = silencePatienceSecs * 1000   // ms
+
+            // Max time:
             var maxTime = if (messageMode && messageType == "voice") {
                     maxAudioRecTimeout
                 } else if (messageMode) {
@@ -54,6 +53,7 @@ class AndroidAudioRecorder(private val context: Context) {
                     prefs.recTimeout.toLong()
                 }*1000
 
+            // Silence detection enabled:
             var silenceEnabled = if (messageMode) {
                 prefs.silenceEnabledMess
             } else {
@@ -69,6 +69,7 @@ class AndroidAudioRecorder(private val context: Context) {
                 bufferSize
             )
 
+            // START:
             recordingMode = true
             var isRecording = true
             audioRecorder.startRecording()

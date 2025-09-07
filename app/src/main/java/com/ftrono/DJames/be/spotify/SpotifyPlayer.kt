@@ -83,7 +83,7 @@ class SpotifyPlayer (private val context: Context) {
                         if (playable.type != "track") {
                             openExternally(playUrl, clockWasActive)
                         } else {
-                            var contextUri = "$spotIntroUri:album:${playable.album!!.id}"
+                            var contextUri = "$spotIntroUri:album:${playable.track!!.album!!.id}"
                             val encodedContextUri = URLEncoder.encode(contextUri, "UTF-8")
                             openExternally("$playUrl?context=$encodedContextUri", clockWasActive)
                         }
@@ -98,7 +98,7 @@ class SpotifyPlayer (private val context: Context) {
             if (playable.type != "track") {
                 openExternally(playUrl, clockWasActive)
             } else {
-                var contextUri = "$spotIntroUri:album:${playable.album!!.id}"
+                var contextUri = "$spotIntroUri:album:${playable.track!!.album!!.id}"
                 val encodedContextUri = URLEncoder.encode(contextUri, "UTF-8")
                 openExternally("$playUrl?context=$encodedContextUri", clockWasActive)
             }

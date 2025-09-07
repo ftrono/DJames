@@ -36,7 +36,7 @@ class NLPMatcher (private val context: Context) {
                         } else {
                             score = FuzzySearch.ratio(curAlias, eval.lowercase())
                         }
-                        Log.d(TAG, "LIB CONFIRMATION: COMPARING $curAlias WITH ${eval.lowercase()}, MATCH: $score")
+                        // Log.d(TAG, "LIB CONFIRMATION: COMPARING $curAlias WITH ${eval.lowercase()}, MATCH: $score")
                         aliasScores.add(score)
                     }
                     //Get Max alias score and add globally only if high enough:

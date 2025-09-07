@@ -1,5 +1,6 @@
 package com.ftrono.DJames.application.services
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -8,11 +9,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.media.AudioManager
 import android.media.ToneGenerator
 import android.os.IBinder
 import android.util.Log
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.application.ACTION_REC_STOP
 import com.ftrono.DJames.application.chatLastDispatch
@@ -173,7 +176,7 @@ class VoiceQueryService: Service() {
         speakIntro: Boolean = false
     ) {
         Log.d(TAG, "startVoiceRecording() triggered!")
-        recordingTime = 0
+        recordingTime = 0L
         try {
             cancelThread(processingThread, "processingThread")
             //Start rec Job:
@@ -218,11 +221,14 @@ class VoiceQueryService: Service() {
 
                             //Start recording (default: cacheDir):
                             messageUtils.resetMessage(fromUser = true)
-                            recordingMode = true
-                            MyRecorder.start(
-                                messageMode = messageMode,
-                                messageType = lastDispatch.messageType,
-                            )
+                            if (
+                                ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+                            ) {
+                                MyRecorder.start(
+                                    messageMode = messageMode,
+                                    messageType = lastDispatch.messageType,
+                                )
+                            }
                         },
                         onFail = { stopSelf() }
                     )
@@ -242,7 +248,6 @@ class VoiceQueryService: Service() {
         Log.d(TAG, "stopVoiceRecording() triggered")
         try {
             var recFile = MyRecorder.stop()
-            recordingMode = false
             Log.d(TAG, "RECORDING STOPPED.")
             cancelThread(recordingThread, "recordingThread")
             messageUtils.resetMessage(fromUser = false)
@@ -368,7 +373,7 @@ class VoiceQueryService: Service() {
         override fun onReceive(context: Context?, intent: Intent?) {
 
             //Stop Recording:
-            if (intent!!.action == ACTION_REC_STOP && recordingMode && recordingTime >= 1) {
+            if (intent!!.action == ACTION_REC_STOP && recordingMode && recordingTime >= 1L) {
                 Log.d(TAG, "VQRECEIVER: ACTION_REC_STOP.")
                 stopVoiceRecording()
             }

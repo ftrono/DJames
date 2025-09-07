@@ -11,7 +11,9 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
-**Version 3.0.a6 (v3 alpha) (2025-08-31)** - New SpotifyPlayable data structure, make Messages DB fields nullable! Add RaiseVolume button to DJames overlay, various fixes & debugs.
+**Version 3.0.a7 (v3 alpha) (2025-09-07)** - New AudioRecorder & Silence Detector (WebRTC-VAD).
+
+**Version 3.0.a6 (v3 alpha) (2025-08-31)** - New SpotifyPlayable data structure, make Messages DB fields nullable! Add RaiseVolume button to DJames overlay. Various fixes & debugs, stabilized entire V3 FE & DBs.
 
 **Version 3.0.a5 (v3 alpha) (2025-08-26)** - New Library DB management! New unified LibraryItem data class, remove PlayLinks & PhoneSets, updated FE management. Add info extraction from Link Previews.
 

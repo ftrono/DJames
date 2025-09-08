@@ -34,11 +34,10 @@ class AndroidAudioRecorder(private val context: Context) {
     ) {
         try {
             //Create files:
-            val directory = recDir
             val timestamp = utils.getCurrentTimestamp()
             lastRecordingName = "$timestamp.flac"
-            recFilePcm = File(directory, "$timestamp.pcm")
-            recFileFlac = File(directory, lastRecordingName)
+            recFilePcm = File(recDir, "$timestamp.pcm")
+            recFileFlac = File(recDir, lastRecordingName)
 
             // Params:
             val channelConfig = AudioFormat.CHANNEL_IN_MONO
@@ -53,7 +52,8 @@ class AndroidAudioRecorder(private val context: Context) {
                     prefs.messageTimeout.toLong()
                 } else {
                     prefs.recTimeout.toLong()
-                }*1000
+                }
+            maxTime = maxTime*1000
 
             // Silence detection enabled:
             var silenceEnabled = if (messageMode) {

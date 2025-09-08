@@ -44,6 +44,7 @@ data class AiReply(
 
 @Serializable
 data class DispatcherInfo(
+    var lastRecording: String = "",   //Flac only
     var aiReplies: List<AiReply> = listOf(),
     var actionType: ActionType? = null, //"call", ""
     var end: Boolean = false,   //fulfillment complete

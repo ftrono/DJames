@@ -11,7 +11,7 @@ import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.recFileName
+import com.ftrono.DJames.application.recDir
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.SpotifyPlayable
@@ -35,13 +35,14 @@ class ActionsExecutor(
         playable: SpotifyPlayable? = null,
         reqLanguage: String = "",
         fromOldChat: Boolean = false,
+        lastRecording: String = "",
     ): String {
         return when (action) {
             ActionType.PLAY -> spotifyPlay(playable!!)
             ActionType.CALL -> makeCall(usable!!, fromOldChat)
             ActionType.SMS -> sendSMS(usable!!, reqLanguage, fromOldChat)
             ActionType.WA_TEXT -> sendWhatsappText(usable!!, reqLanguage, fromOldChat)
-            ActionType.WA_VOICE -> sendWhatsappAudio(usable!!, fromOldChat)
+            ActionType.WA_VOICE -> sendWhatsappAudio(usable!!, lastRecording, fromOldChat)
             ActionType.OPEN_URL -> openLink(usable!!)
         }
     }
@@ -57,7 +58,8 @@ class ActionsExecutor(
                 action = latestDispatch.actionType!!,
                 usable = latestDispatch.usable,
                 playable = latestDispatch.playable,
-                reqLanguage = latestDispatch.reqLanguage
+                reqLanguage = latestDispatch.reqLanguage,
+                lastRecording = latestDispatch.lastRecording
             )
         }
         // Update replies:
@@ -201,6 +203,7 @@ class ActionsExecutor(
     //SEND WHATSAPP AUDIO:
     fun sendWhatsappAudio(
         usable: LibraryItem,
+        lastRecording: String,
         fromOldChat: Boolean = false,
     ): String {
         try {
@@ -210,9 +213,9 @@ class ActionsExecutor(
                 // START NEW:
                 val curText = "Send a Whatsapp voice message to $contactName"
                 chatManager.processQuery(curText, restart = true)
-            } else {
+            } else if (lastRecording != "") {
                 //Get audio file:
-                val audioFile = File(context.cacheDir, "$recFileName.mp3")
+                val audioFile = File(recDir, lastRecording)   //Flac
                 val uri =
                     FileProvider.getUriForFile(context, "com.ftrono.DJames.provider", audioFile)
 
@@ -229,6 +232,9 @@ class ActionsExecutor(
                 context.startActivity(intent)
                 ttsToRead = defaultReplies.replyWAVoiceSent(contactName)
                 Log.d(TAG, "Whatsapp audio message ready to be sent!")
+            } else {
+                ttsToRead = defaultReplies.replyError()
+                Log.w(TAG, "sendWhatsappAudio(): message not attached!")
             }
             return ttsToRead
 

@@ -20,6 +20,7 @@ import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.application.ACTION_REC_STOP
 import com.ftrono.DJames.application.chatLastDispatch
 import com.ftrono.DJames.application.defaultReplies
+import com.ftrono.DJames.application.lastRecordingName
 import com.ftrono.DJames.application.lastRequestIntent
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.queryStatus
@@ -129,6 +130,7 @@ class VoiceQueryService: Service() {
         sourceIsVolume.postValue(false)
         lastDispatch = DispatcherInfo()
         lastRequestIntent = ""
+        lastRecordingName = ""
         voiceConvStarted = false
         //Set overlay READY color:
         queryStatus.postValue("ready")
@@ -188,6 +190,7 @@ class VoiceQueryService: Service() {
                         onGranted = {
                             //End previous conversations:
                             voiceConvStarted = false
+                            lastRecordingName = ""
                             chatLastDispatch = DispatcherInfo()
                             //START:
                             queryStatus.postValue("processing")

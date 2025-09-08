@@ -34,9 +34,11 @@ class AndroidAudioRecorder(private val context: Context) {
     ) {
         try {
             //Create files:
-            val directory = context.cacheDir
-            recFilePcm = File(directory, "$recFileName.pcm")
-            recFileFlac = File(directory, "$recFileName.flac")
+            val directory = recDir
+            val timestamp = utils.getCurrentTimestamp()
+            lastRecordingName = "$timestamp.flac"
+            recFilePcm = File(directory, "$timestamp.pcm")
+            recFileFlac = File(directory, lastRecordingName)
 
             // Params:
             val channelConfig = AudioFormat.CHANNEL_IN_MONO

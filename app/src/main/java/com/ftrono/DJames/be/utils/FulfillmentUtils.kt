@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.defaultReplies
+import com.ftrono.DJames.application.lastRecordingName
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
@@ -24,25 +25,26 @@ class FulfillmentUtils {
         cannotRecordWAVoice: Boolean = false,
     ): DispatcherInfo {
         //Build fallback response:
-        var dispatcherInfo = DispatcherInfo()
-        dispatcherInfo.fail = true
-        dispatcherInfo.aiReplies = listOf(
-            AiReply(
-                langCode = prefs.queryLanguage,
-                text = if (notLoggedIn)
-                    defaultReplies.replyNotLoggedIn()
-                else if (noPermission)
-                    defaultReplies.replyNoPermission()
-                else if (notUnderstood)
-                    defaultReplies.replyFallback()
-                else if (nevermind)
-                    defaultReplies.replyNevermind()
-                else if (cannotRecordWAVoice)
-                    defaultReplies.replyMessageCannotRecord()
-                else defaultReplies.replyError()
+        return DispatcherInfo(
+            lastRecording = lastRecordingName,
+            fail = true,
+            aiReplies = listOf(
+                AiReply(
+                    langCode = prefs.queryLanguage,
+                    text = if (notLoggedIn)
+                        defaultReplies.replyNotLoggedIn()
+                    else if (noPermission)
+                        defaultReplies.replyNoPermission()
+                    else if (notUnderstood)
+                        defaultReplies.replyFallback()
+                    else if (nevermind)
+                        defaultReplies.replyNevermind()
+                    else if (cannotRecordWAVoice)
+                        defaultReplies.replyMessageCannotRecord()
+                    else defaultReplies.replyError()
+                )
             )
         )
-        return dispatcherInfo
     }
 
 

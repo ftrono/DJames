@@ -6,7 +6,6 @@ import android.content.Context
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
-import androidx.compose.runtime.MutableState
 import net.openid.appauth.AuthorizationServiceConfiguration
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.application.App.ObjectBox.store
@@ -28,6 +27,7 @@ import com.google.gson.JsonObject
 import io.objectbox.Box
 import io.objectbox.BoxStore
 import okhttp3.OkHttpClient
+import java.io.File
 import java.util.concurrent.TimeUnit
 
 
@@ -41,6 +41,7 @@ val copyrightYear = 2024
 //DB:
 var libraryBox: Box<LibraryItem>? = null
 var messageBox: Box<Message>? = null
+var recDir: File? = null
 
 //UTILS:
 val utils = Utilities()
@@ -141,7 +142,7 @@ val midThreshold = 60
 val recSamplingRate = 48000 // 44100
 val silencePatienceSecs = 2   //seconds
 val queryTimeout = 5   //seconds
-val recFileName = "DJames_request"
+var lastRecordingName = ""
 var enablePlayerInfo = false
 val datetimeExportFormat = "yyyy-MM-dd HH_mm_ss"
 val datetimeFullFormat = "yyyy/MM/dd HH:mm"

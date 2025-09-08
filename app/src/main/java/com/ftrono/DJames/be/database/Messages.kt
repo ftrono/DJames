@@ -16,6 +16,7 @@ import kotlinx.serialization.decodeFromString
 //SUPPORT CLASSES:
 @Serializable
 data class NlpQueryModel(
+    var recFile: String = "",
     var language: String = "en",   // AudioLanguage
     var queryText: String = "",
     var intentName: String = "Fallback",

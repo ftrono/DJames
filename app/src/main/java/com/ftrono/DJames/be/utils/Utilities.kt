@@ -21,7 +21,7 @@ import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.recFileName
+import com.ftrono.DJames.application.recDir
 import com.ftrono.DJames.application.services.OverlayService
 import com.ftrono.DJames.be.models.HttpResponse
 import com.ftrono.DJames.be.models.languageNamesMap
@@ -33,6 +33,7 @@ import okhttp3.Request
 import okhttp3.Response
 import java.io.File
 import java.io.IOException
+import java.nio.file.Paths
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -301,18 +302,16 @@ class Utilities {
 
     //CLEANING:
     //Clean cached recordings:
-    fun cleanOlderRecs(context: Context) {
+    fun cleanRecordingsCache(context: Context) {
         try {
-            File(context.cacheDir, "${recFileName}.mp3").delete()
-            Log.d(TAG, "Recording mp3 deleted.")
+            //Delete all:
+            recDir!!.deleteRecursively()
+            //Re-init recordings directory:
+            recDir = File(context.cacheDir, "recordings")
+            recDir!!.mkdirs()
+            Log.d(TAG, "Recordings cache deleted.")
         } catch (e: Exception) {
-            Log.w(TAG, "Recording mp3 not deleted.")
-        }
-        try {
-            File(context.cacheDir, "${recFileName}.flac").delete()
-            Log.d(TAG, "Recording flac deleted.")
-        } catch (e: Exception) {
-            Log.w(TAG, "Recording flac not deleted.")
+            Log.w(TAG, "Recordings cache not deleted.")
         }
     }
 

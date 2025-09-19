@@ -179,7 +179,7 @@ class DefaultReplies() {
         if (playable.type == "episode" && playable.episode != null) {
             ttsToRead = utils.cleanString(playable.episode!!.name, emojiOnly = true)
 
-        } else if (playable.playlist != null && playable.type == "playlist") {
+        } else if (playable.type == "playlist" && playable.playlist != null) {
             if (playable.playlist!!.owner == prefs.spotUserName) {
                 ttsToRead = utils.cleanString(playable.playlist!!.name, emojiOnly = true)
             } else {
@@ -190,12 +190,15 @@ class DefaultReplies() {
         } else if (playable.type == "artist" && playable.artist != null) {
             ttsToRead = utils.cleanString(playable.artist!!.name, emojiOnly = true)
 
-        } else if (playable.track != null && playable.track!!.artists.isNotEmpty()) {
+        } else if (playable.type == "album" && playable.album != null && playable.album!!.artists.isNotEmpty()) {
+            var artist = playable.album!!.artists.joinToString(" feat. ") { it.name }
+            ttsToRead = "${playable.album!!.name}, by $artist!"
+
+        } else if (playable.type == "track" && playable.track != null && playable.track!!.artists.isNotEmpty()) {
             var artist = playable.track!!.artists.joinToString(" feat. ") { it.name }
             ttsToRead = "${playable.track!!.name}, by $artist!"
         }
         return ttsToRead
     }
-
 
 }

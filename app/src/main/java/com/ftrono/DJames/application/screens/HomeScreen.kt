@@ -416,6 +416,8 @@ fun DriveModeContent(
     isLandscape: Boolean,
     overlayActiveState: Boolean
 ) {
+    val spacer = remember { mutableStateOf( if (isLandscape) " " else "\n" ) }
+
     // DRIVE INTRO TEXT:
     Text(
         modifier = Modifier
@@ -468,11 +470,7 @@ fun DriveModeContent(
                     color = colorResource(id = R.color.light_grey),
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
-                    text = if (isLandscape) {
-                        if (overlayActiveState) "Stop Drive mode" else "Open Drive mode"
-                    } else {
-                        if (overlayActiveState) "Stop\nDrive mode" else "Open\nDrive mode"
-                    }
+                    text = if (overlayActiveState) "Close${spacer.value}Drive mode" else "Open${spacer.value}Drive mode",
                 )
             }
             // GO ICON:

@@ -246,7 +246,6 @@ class GenericFulfillment (private var context: Context) {
             Log.d(TAG, "DRIVE -> Place from Library")
             itemInfo = libUtils.getLibItemById(libMatchId)
             itemInfo.detail = itemInfo.address!!.town + ", " + itemInfo.address!!.street + itemInfo.address!!.number
-            itemInfo.url = libUtils.buildPlaceUrlFromLibraryItem(itemInfo.address)
             extractorInfo.matchExtracted = nlp_queryText
             extractorInfo.matchConfirmed = itemInfo.name
             extractorInfo.contextConfirmed = itemInfo.detail

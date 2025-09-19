@@ -37,7 +37,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.aliasFieldDescription
 import com.ftrono.DJames.be.database.Address
 import com.ftrono.DJames.be.database.LibraryItem
-import com.ftrono.DJames.be.samples.testLibrary
+import com.ftrono.DJames.be.collections.testLibrary
 import com.ftrono.DJames.ui.components.EditLibSectionTitle
 
 
@@ -86,7 +86,13 @@ fun EditLibPlace(
 
     //States:
     val textName = rememberSaveable { mutableStateOf(itemPlace.name) }
-    val textSubtitle = rememberSaveable { mutableStateOf(itemPlace.address!!.town) }
+    val textSubtitle = rememberSaveable { mutableStateOf(
+        if (itemPlace.address!!.province != "") {
+            "(${itemPlace.address!!.province}) ${itemPlace.address!!.town}"
+        } else {
+            itemPlace.address!!.town
+        }
+    ) }
     val textAliases = rememberSaveable { mutableStateOf(initAliases.joinToString(", ")) }
     val imageUrlState = rememberSaveable { mutableStateOf("") }
     //Address:
@@ -167,7 +173,7 @@ fun EditLibPlace(
                     itemPlace.name = utils.capitalizeWords(textName.value).trim()
                     itemPlace.aliases = aliasesList
                     itemPlace.lastUpdated = utils.getCurrentTimestamp()
-                    itemPlace.detail = utils.capitalizeWords(textDestTown.value.trim())
+                    itemPlace.detail = utils.capitalizeWords(textDestTown.value.trim())   // Needed for TTS reading!
                     //Address:
                     itemPlace.address = Address(
                         street = utils.capitalizeWords(textDestAddress.value.trim()),
@@ -178,6 +184,7 @@ fun EditLibPlace(
                         province = textDestProvince.value.uppercase().trim(),
                         country = utils.capitalizeWords(textDestCountry.value.trim()),
                     )
+                    itemPlace.url = libUtils.buildPlaceUrlFromLibraryItem(itemPlace.address!!)
 
 
                     //3) Update / store to DB:

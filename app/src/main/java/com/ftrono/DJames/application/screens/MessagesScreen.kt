@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -48,8 +49,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.allMessageIds
+import com.ftrono.DJames.application.chatInputPlaceholder
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
+import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.maxHistoryDays
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.queryStatus
@@ -68,10 +71,12 @@ import com.ftrono.DJames.ui.overlay.TypingIndicator
 import com.ftrono.DJames.ui.navigation.SharedViewModel
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
+import com.ftrono.DJames.ui.navigation.navigateTo
 import com.ftrono.DJames.ui.selectors.libColorSelector
 import com.ftrono.DJames.ui.selectors.libIconSelector
 import com.ftrono.DJames.ui.selectors.messagesColorSelectorLight
 import com.ftrono.DJames.ui.selectors.messagesIconSelector
+import com.ftrono.DJames.ui.theme.NavigationItem
 
 
 @Preview
@@ -173,6 +178,7 @@ fun MessagesScreen(
                     ) {
                         MessagesOptions(
                             context = mContext,
+                            navController = navController,
                             mDisplayMenu = mDisplayMainMenu,
                             deleteOn = deleteAllOn,
                             selectedMessageIds = selectedMessageIds
@@ -295,7 +301,7 @@ fun MessagesScreen(
                 )
                 .imePadding()
                 .fillMaxWidth(),
-            placeholder = "Ask me anything...",
+            placeholder = chatInputPlaceholder,
             enableLeftButton = true,
             onSend = {
                 val curText = sharedViewModel.text.trim()
@@ -504,6 +510,7 @@ fun MessageDetail(
 @Composable
 fun MessagesOptions(
     context: Context,
+    navController: NavController,
     mDisplayMenu: MutableState<Boolean>,
     deleteOn: MutableState<Boolean>,
     selectedMessageIds: SnapshotStateList<Long>
@@ -523,7 +530,7 @@ fun MessagesOptions(
                     Toast.makeText(context, "Messages updated!", Toast.LENGTH_SHORT).show()
                 }
             )
-            //1) Item: UNSELECT ALL
+            //2) Item: UNSELECT ALL
             if (selectedMessageIds.isNotEmpty()) {
                 OptionsItem(
                     title = "Clear selection",
@@ -534,7 +541,19 @@ fun MessagesOptions(
                     }
                 )
             }
-            //2) Item: DELETE ALL MESSAGES
+            //3) Item: HELP
+            OptionsItem(
+                title = "Help",
+                iconPainter = painterResource(id = R.drawable.icon_help),
+                onClick = {
+                    //Navigate:
+                    val curNavRoute = NavigationItem.Guide.route
+                    navigateTo(navController, curNavRoute)
+                    lastNavRoute = curNavRoute
+                    mDisplayMenu.value = false
+                }
+            )
+            //4) Item: DELETE ALL MESSAGES
             OptionsItem(
                 title =  if (selectedMessageIds.isNotEmpty()) {
                     "Delete selected"

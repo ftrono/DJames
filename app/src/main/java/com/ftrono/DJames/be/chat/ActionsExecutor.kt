@@ -91,24 +91,12 @@ class ActionsExecutor(
         try {
             val phoneSet = usable.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
-            if (fromOldChat) {
-                val callIntent = Intent(Intent.ACTION_CALL).apply {
-                    data = Uri.parse("tel:$contactPhone")
-                }
-                context.startActivity(callIntent)
-            } else {
-                Intent().also { intent ->
-                    intent.setAction(ACTION_MAKE_CALL)
-                    intent.putExtra("toCall", "tel:$contactPhone")
-                    context.sendBroadcast(intent)
-                }
-            }
+            utils.makeCall(context, contactPhone, fromService = !fromOldChat)
         } catch (e: Exception) {
             Log.w(TAG, "makeCall(): TOOL ERROR: ", e)
         }
         return ""
     }
-
 
     //SEND SMS:
     fun sendSMS(
@@ -147,7 +135,6 @@ class ActionsExecutor(
             return defaultReplies.replyError()
         }
     }
-
 
     //SEND WHATSAPP TEXT:
     fun sendWhatsappText(
@@ -199,7 +186,6 @@ class ActionsExecutor(
         }
     }
 
-
     //SEND WHATSAPP AUDIO:
     fun sendWhatsappAudio(
         usable: LibraryItem,
@@ -243,7 +229,6 @@ class ActionsExecutor(
             return defaultReplies.replyError()
         }
     }
-
 
     // OPEN LINK:
     fun openLink(

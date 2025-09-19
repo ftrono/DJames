@@ -99,7 +99,21 @@ fun UserOptions(
                         mDisplayMenu.value = false
                     }
                 )
-                //2) TODO: TEMP: Item: Enable / disable V3 engine:
+                //2) Item: HELP
+                if (navController.currentDestination!!.route != NavigationItem.Guide.route) {
+                    OptionsItem(
+                        title = "Help",
+                        iconPainter = painterResource(id = R.drawable.icon_help),
+                        onClick = {
+                            //Navigate:
+                            val curNavRoute = NavigationItem.Guide.route
+                            navigateTo(navController, curNavRoute)
+                            lastNavRoute = curNavRoute
+                            mDisplayMenu.value = false
+                        }
+                    )
+                }
+                //3) TODO: TEMP: Item: Enable / disable V3 engine:
                 OptionsItem(
                     title = "Enable v3 engine",
                     iconVector = Icons.Default.Check,
@@ -110,7 +124,7 @@ fun UserOptions(
                         if (checkedV3.value) "Enabled V3 engine!" else "Disabled V3 engine!"
                     }
                 )
-                //2) Item: LOGIN/LOGOUT
+                //4) Item: LOGIN/LOGOUT
                 OptionsItem(
                     title = if (!spotifyLoggedInState!!) "Login to Spotify" else "Logout from Spotify",
                     iconPainter = painterResource(id = R.drawable.icon_user),

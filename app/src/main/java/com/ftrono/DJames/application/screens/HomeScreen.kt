@@ -315,7 +315,7 @@ fun HomeIntroText(
         fontStyle = FontStyle.Italic,
         color = colorResource(id = R.color.light_grey),
         textAlign = if (isLandscape) TextAlign.Start else TextAlign.Center,
-        lineHeight = 20.sp,
+        lineHeight = 22.sp,
     )
 }
 
@@ -350,7 +350,6 @@ fun MainGuideInfo(
             fontWeight = FontWeight.Bold,
             color = colorResource(id = R.color.light_grey),
             textAlign = if (isLandscape) TextAlign.Start else TextAlign.Center,
-            lineHeight = 14.sp,
         )
         Text(
             modifier = Modifier
@@ -359,7 +358,7 @@ fun MainGuideInfo(
             fontSize = 14.sp,
             color = colorResource(id = R.color.light_grey),
             textAlign = if (isLandscape) TextAlign.Start else TextAlign.Center,
-            lineHeight = 14.sp,
+            lineHeight = 16.sp,
         )
         // Icons:
         GuideIconsRow(

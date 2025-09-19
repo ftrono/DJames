@@ -38,10 +38,9 @@ import com.ftrono.DJames.application.aliasFieldDescription
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotIntroUrl
 import com.ftrono.DJames.be.database.LibraryItem
-import com.ftrono.DJames.be.samples.defaultCollection
-import com.ftrono.DJames.be.samples.testLibrary
+import com.ftrono.DJames.be.collections.defaultCollection
+import com.ftrono.DJames.be.collections.testLibrary
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
 
 

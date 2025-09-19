@@ -37,7 +37,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.aliasFieldDescription
 import com.ftrono.DJames.be.database.Address
 import com.ftrono.DJames.be.database.LibraryItem
-import com.ftrono.DJames.be.samples.testLibrary
+import com.ftrono.DJames.be.collections.testLibrary
 import com.ftrono.DJames.ui.components.EditLibSectionTitle
 
 

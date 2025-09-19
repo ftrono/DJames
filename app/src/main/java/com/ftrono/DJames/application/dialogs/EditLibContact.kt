@@ -30,7 +30,7 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.PhoneSet
 import com.ftrono.DJames.application.screens.LibraryScreen
 import com.ftrono.DJames.be.database.LibraryItem
-import com.ftrono.DJames.be.samples.testLibrary
+import com.ftrono.DJames.be.collections.testLibrary
 import com.ftrono.DJames.ui.components.CustomCheckbox
 import com.ftrono.DJames.ui.components.DropdownSpinner
 import com.ftrono.DJames.ui.dialogs.DialogRequestDetail

@@ -1,4 +1,4 @@
-package com.ftrono.DJames.be.samples
+package com.ftrono.DJames.be.chat
 
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils

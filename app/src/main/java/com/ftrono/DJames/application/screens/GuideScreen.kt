@@ -44,8 +44,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.database.GuideCategory
-import com.ftrono.DJames.be.database.fullGuide
+import com.ftrono.DJames.be.collections.GuideCategory
+import com.ftrono.DJames.be.collections.fullGuide
 import com.ftrono.DJames.ui.components.GeneralSectionHeader
 import com.ftrono.DJames.ui.components.StreetUIScaffold
 import com.ftrono.DJames.ui.navigation.StreetUITopBar

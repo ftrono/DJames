@@ -1,4 +1,4 @@
-package com.ftrono.DJames.be.samples
+package com.ftrono.DJames.be.collections
 
 import com.ftrono.DJames.application.appVersion
 import com.ftrono.DJames.be.database.Attachments

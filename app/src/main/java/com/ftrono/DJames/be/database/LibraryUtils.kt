@@ -9,8 +9,8 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.libCats
 import com.ftrono.DJames.application.libraryBox
 import com.ftrono.DJames.application.sourceToCatMap
-import com.ftrono.DJames.be.samples.defaultCollection
-import com.ftrono.DJames.be.samples.testLibrary
+import com.ftrono.DJames.be.collections.defaultCollection
+import com.ftrono.DJames.be.collections.testLibrary
 import io.objectbox.Property
 import io.objectbox.query.QueryBuilder.StringOrder
 import kotlinx.serialization.json.Json

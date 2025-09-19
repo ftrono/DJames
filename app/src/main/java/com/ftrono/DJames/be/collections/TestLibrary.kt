@@ -1,12 +1,10 @@
-package com.ftrono.DJames.be.samples
+package com.ftrono.DJames.be.collections
 
 import com.ftrono.DJames.application.spotCollectionName
 import com.ftrono.DJames.application.spotCollectionUrl
 import com.ftrono.DJames.be.database.Address
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.PhoneSet
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
 
 
 // DEFAULT: COLLECTION:

@@ -1,4 +1,4 @@
-package com.ftrono.DJames.be.database
+package com.ftrono.DJames.be.collections
 
 import kotlinx.serialization.Serializable
 

@@ -16,19 +16,14 @@ import com.ftrono.DJames.application.lastUserMessage
 import com.ftrono.DJames.application.maxHistoryDays
 import com.ftrono.DJames.application.messageBox
 import com.ftrono.DJames.application.messageUtils
-import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.voiceConvStarted
 import com.ftrono.DJames.be.models.ActionType
-import com.ftrono.DJames.be.samples.testMessages
+import com.ftrono.DJames.be.collections.testMessages
 import io.objectbox.query.QueryBuilder
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.decodeFromString
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 
 class MessageUtils {

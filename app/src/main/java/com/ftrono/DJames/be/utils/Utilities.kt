@@ -5,6 +5,7 @@ import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.provider.Settings
 import android.telephony.PhoneNumberUtils
 import android.util.Log
@@ -15,6 +16,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import com.ftrono.DJames.application.ACTION_MAKE_CALL
 import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.libCats
 import com.ftrono.DJames.application.libUtils
@@ -169,6 +171,23 @@ class Utilities {
         val mean = numbers.average()
         val variance = numbers.map { (it - mean).pow(2) }.average()
         return sqrt(variance).roundToInt()
+    }
+
+
+    //Make call:
+    fun makeCall(context: Context, contactPhone: String, fromService: Boolean = false) {
+        if (fromService) {
+            Intent().also { intent ->
+                intent.setAction(ACTION_MAKE_CALL)
+                intent.putExtra("toCall", "tel:$contactPhone")
+                context.sendBroadcast(intent)
+            }
+        } else {
+            val callIntent = Intent(Intent.ACTION_CALL).apply {
+                data = Uri.parse("tel:$contactPhone")
+            }
+            context.startActivity(callIntent)
+        }
     }
 
 

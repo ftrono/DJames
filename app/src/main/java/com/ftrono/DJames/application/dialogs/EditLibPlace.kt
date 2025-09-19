@@ -184,6 +184,7 @@ fun EditLibPlace(
                         province = textDestProvince.value.uppercase().trim(),
                         country = utils.capitalizeWords(textDestCountry.value.trim()),
                     )
+                    itemPlace.url = libUtils.buildPlaceUrlFromLibraryItem(itemPlace.address!!)
 
 
                     //3) Update / store to DB:

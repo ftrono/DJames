@@ -21,9 +21,11 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
@@ -323,6 +325,7 @@ fun LibraryScreen(
 
             //CONTENT:
             LibSectionContent(
+                context = mContext,
                 snapshot = snapshot,
                 currentCatState = currentCatState,
                 currentSubCatState = currentSubCatState,
@@ -340,14 +343,14 @@ fun LibraryScreen(
 
 //DROPDOWN MENU:
 @Composable
-fun ChipOptions(
+fun ItemOptions(
+    context: Context,
     mDisplayMenu: MutableState<Boolean>,
     deleteLibOn: MutableState<Boolean>,
     editLibOn: MutableState<Boolean>,
     idState: MutableState<Long>,
     nameState: MutableState<String>,
-    id: Long,
-    name: String
+    item: LibraryItem,
 ) {
     //DROPDOWN MENU:
     OptionsMenu(
@@ -356,22 +359,38 @@ fun ChipOptions(
         options = {
             //1) Item: EDIT LIB ITEM
             OptionsItem(
-                title = "Edit",   //Default
+                title = "Edit",
                 iconVector = Icons.Default.Edit,
                 onClick = {
-                    idState.value = id
+                    idState.value = item.id
                     mDisplayMenu.value = false
                     editLibOn.value = true
                 }
             )
-            //2) Item: DELETE LIB ITEM
-            if (id != -2L) {   //Default
+            //2) Item: OPEN LINK
+            if (item.id != -2L) {
+                OptionsItem(
+                    title = if (item.source == "contact") "Call" else "Open link   ",
+                    iconVector = if (item.source == "contact") Icons.Default.Call else Icons.AutoMirrored.Default.ArrowForward,
+                    onClick = {
+                        mDisplayMenu.value = false
+                        if (item.source == "contact") {
+                            val contactPhone = "${item.phoneSet!!.prefix}${item.phoneSet!!.phone}"
+                            utils.makeCall(context, contactPhone = contactPhone, fromService = false)
+                        } else {
+                            utils.openLink(context, url = item.url, fromService = false)
+                        }
+                    }
+                )
+            }
+            //3) Item: DELETE LIB ITEM
+            if (item.id != -2L) {   //Default
                 OptionsItem(
                     title = "Delete",
                     iconVector = Icons.Default.Delete,
                     onClick = {
-                        idState.value = id
-                        nameState.value = name
+                        idState.value = item.id
+                        nameState.value = item.name
                         mDisplayMenu.value = false
                         deleteLibOn.value = true
                     }
@@ -384,6 +403,7 @@ fun ChipOptions(
 
 @Composable
 fun LibSectionContent(
+    context: Context,
     snapshot: MutableState<Long>,
     currentCatState: MutableState<String>,
     currentSubCatState: MutableState<String>,
@@ -462,6 +482,7 @@ fun LibSectionContent(
                         //ITEM:
                         item {
                             LibItem(
+                                context = context,
                                 modifier = Modifier,
                                 idState = idState,
                                 nameState = nameState,
@@ -504,6 +525,7 @@ fun LibLetter(
 
 @Composable
 fun LibItem(
+    context: Context,
     modifier: Modifier,
     idState: MutableState<Long>,
     nameState: MutableState<String>,
@@ -514,7 +536,6 @@ fun LibItem(
 ) {
     val mDisplayMenu = rememberSaveable { mutableStateOf(false) }
 
-    //LIB CHIPS:
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -542,7 +563,15 @@ fun LibItem(
             }
         )
         //Options menu:
-        ChipOptions(mDisplayMenu, deleteLibOn, editLibOn, idState, nameState, id=item.id, name=item.name)
+        ItemOptions(
+            context = context,
+            mDisplayMenu = mDisplayMenu,
+            deleteLibOn = deleteLibOn,
+            editLibOn = editLibOn,
+            idState = idState,
+            nameState = nameState,
+            item = item,
+        )
     }
 }
 

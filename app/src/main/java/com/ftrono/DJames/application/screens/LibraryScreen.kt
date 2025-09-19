@@ -48,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -62,6 +63,7 @@ import com.ftrono.DJames.application.libCats
 import com.ftrono.DJames.application.dialogs.EditLibContact
 import com.ftrono.DJames.application.dialogs.EditLibPlace
 import com.ftrono.DJames.application.dialogs.EditLibSpotify
+import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.be.database.LibraryItem
@@ -78,7 +80,9 @@ import com.ftrono.DJames.ui.navigation.SplitterSign
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
 import com.ftrono.DJames.ui.navigation.TopSplitterBar
+import com.ftrono.DJames.ui.navigation.navigateTo
 import com.ftrono.DJames.ui.selectors.libColorSelector
+import com.ftrono.DJames.ui.theme.NavigationItem
 import kotlin.String
 
 
@@ -226,7 +230,8 @@ fun LibraryScreen(
                             onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
                         ) {
                             CatOptions(
-                                mContext = mContext,
+                                context = mContext,
+                                navController = navController,
                                 currentCatState = currentCatState,
                                 currentSubCatState = currentSubCatState,
                                 snapshot = snapshot,
@@ -254,7 +259,8 @@ fun LibraryScreen(
                             onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
                         ) {
                             CatOptions(
-                                mContext = mContext,
+                                context = mContext,
+                                navController = navController,
                                 currentCatState = currentCatState,
                                 currentSubCatState = currentSubCatState,
                                 snapshot = snapshot,
@@ -579,7 +585,8 @@ fun LibItem(
 //DROPDOWN MENU:
 @Composable
 fun CatOptions(
-    mContext: Context,
+    context: Context,
+    navController: NavController,
     currentCatState: MutableState<String>,
     currentSubCatState: MutableState<String>,
     snapshot: MutableState<Long>,
@@ -598,15 +605,15 @@ fun CatOptions(
         selectedJsonUri = uri
         uri?.let {
             try {
-                val inputStream = mContext.contentResolver.openInputStream(it)
+                val inputStream = context.contentResolver.openInputStream(it)
                 jsonImport = inputStream?.bufferedReader().use { reader -> reader?.readText() }
                 //Store JSON into Library:
-                libUtils.importLibrary(mContext, jsonImport!!)
+                libUtils.importLibrary(context, jsonImport!!)
                 currentSubCatState.value = ""
                 snapshot.value = utils.getCurrentTimestamp()   //Refresh list
             } catch (e: Exception) {
                 Log.w("LibraryScreen", "ERROR: Cannot read imported document! ", e)
-                Toast.makeText(mContext, "ERROR: Invalid file!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "ERROR: Invalid file!", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -616,7 +623,7 @@ fun CatOptions(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri: Uri? ->
         uri?.let {
-            val outputStream = mContext.contentResolver.openOutputStream(it)
+            val outputStream = context.contentResolver.openOutputStream(it)
             outputStream?.bufferedWriter().use { writer ->
                 writer?.write(jsonExport)
             }
@@ -635,7 +642,7 @@ fun CatOptions(
                 onClick = {
                     mDisplayMenu.value = false
                     snapshot.value = utils.getCurrentTimestamp()   //Refresh list
-                    Toast.makeText(mContext, "Refreshed!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Refreshed!", Toast.LENGTH_SHORT).show()
                 }
             )
             //2) Item: IMPORT CATEGORY ITEMS
@@ -656,7 +663,7 @@ fun CatOptions(
                     jsonExport = libUtils.serializeLibrary(currentCatState.value, currentSubCatState.value)
                     saveLauncher.launch(libUtils.getExportFileName(currentCatState.value, currentSubCatState.value))   // Target filename
                     val detailStr = libUtils.getLibName(currentCatState.value, currentSubCatState.value, plural = true)
-                    Toast.makeText(mContext, "$detailStr library ready for export!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "$detailStr library ready for export!", Toast.LENGTH_SHORT).show()
                 }
             )
             //4) Item: SHARE LIB CATEGORY
@@ -666,12 +673,24 @@ fun CatOptions(
                 onClick = {
                     //Prepare and send cached file:
                     jsonExport = libUtils.serializeLibrary(currentCatState.value, currentSubCatState.value)
-                    val filename = libUtils.buildFileToSend(mContext, currentCatState.value, currentSubCatState.value, jsonExport!!)
-                    utils.sendCachedFile(mContext, filename)
+                    val filename = libUtils.buildFileToSend(context, currentCatState.value, currentSubCatState.value, jsonExport!!)
+                    utils.sendCachedFile(context, filename)
                     mDisplayMenu.value = false
                 }
             )
-            //5) Item: DELETE LIB CATEGORY
+            //5) Item: HELP
+            OptionsItem(
+                title = "Help",
+                iconPainter = painterResource(id = R.drawable.icon_help),
+                onClick = {
+                    //Navigate:
+                    val curNavRoute = NavigationItem.Guide.route
+                    navigateTo(navController, curNavRoute)
+                    lastNavRoute = curNavRoute
+                    mDisplayMenu.value = false
+                }
+            )
+            //6) Item: DELETE LIB CATEGORY
             OptionsItem(
                 title = "Delete all",
                 iconVector = Icons.Default.Delete,

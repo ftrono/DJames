@@ -100,6 +100,7 @@ class NLPQuery(context: Context) {
 
             if (recFile != null) {
                 //AUDIO REQUEST:
+                respData.recFile = lastRecordingName
                 val inputAudioConfig: InputAudioConfig = InputAudioConfig.newBuilder()
                     .setAudioEncoding(AudioEncoding.AUDIO_ENCODING_FLAC)
                     .setSampleRateHertz(recSamplingRate)

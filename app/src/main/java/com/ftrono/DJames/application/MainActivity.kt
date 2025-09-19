@@ -43,6 +43,7 @@ import com.ftrono.DJames.ui.navigation.Navigation
 import com.ftrono.DJames.ui.navigation.SideNavigationRail
 import com.ftrono.DJames.ui.theme.DJamesTheme
 import com.ftrono.DJames.ui.theme.windowBackground
+import java.io.File
 
 
 class MainActivity : ComponentActivity() {
@@ -95,6 +96,9 @@ class MainActivity : ComponentActivity() {
 
         //CLEANING:
         if (!main_initialized) {
+            //Init recordings directory:
+            recDir = File(cacheDir, "recordings")
+            recDir!!.mkdirs()
             // messageUtils.updateExistingMessages()   //TODO: use only when needed!
             // libUtils.updateExistingLibrary()   //TODO: use only when needed!
             allMessageIds.postValue(messageUtils.refreshMessages())
@@ -104,7 +108,7 @@ class MainActivity : ComponentActivity() {
             libUtils.cleanLibraryCache(context)
             //delete older recFiles in cache:
             if (!overlayActive.value!!) {
-                utils.cleanOlderRecs(context)
+                utils.cleanRecordingsCache(context)
             }
         }
 

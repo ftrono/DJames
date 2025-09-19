@@ -8,6 +8,7 @@ import com.ftrono.DJames.application.chatLastDispatch
 import com.ftrono.DJames.application.lastRequestIntent
 import com.ftrono.DJames.application.defaultChatResetTime
 import com.ftrono.DJames.application.fulfillmentUtils
+import com.ftrono.DJames.application.lastRecordingName
 import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.queryStatus
@@ -28,6 +29,7 @@ class ChatManager(private val context: Context) {
 
     fun resetConv() {
         chatLastDispatch = DispatcherInfo()
+        lastRecordingName = ""
     }
 
     fun processQuery(text: String, restart: Boolean = false) {

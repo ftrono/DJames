@@ -5,6 +5,7 @@ import android.util.Log
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.lastAiMessage
+import com.ftrono.DJames.application.lastRecordingName
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.maxThreshold
 import com.ftrono.DJames.application.messLangFull
@@ -27,7 +28,9 @@ class GenericFulfillment (private var context: Context) {
 
     //Process a request involving a Contact (Call / Message):
     fun contactRequest(resultsNLP: NlpQueryModel, fromVoice: Boolean = false): DispatcherInfo {
-        var dispatcherInfo = DispatcherInfo()
+        var dispatcherInfo = DispatcherInfo(
+            lastRecording = lastRecordingName
+        )
         val filter = "contact"
         var itemInfo = LibraryItem(
             type = filter
@@ -145,7 +148,9 @@ class GenericFulfillment (private var context: Context) {
 
     //Send a message: PART 2:
     fun sendMessage2(prevDispatch: DispatcherInfo): DispatcherInfo {
-        var dispatcherInfo = DispatcherInfo()
+        var dispatcherInfo = DispatcherInfo(
+            lastRecording = lastRecordingName
+        )
 
         // MESSAGE SENDER:
         try {
@@ -176,7 +181,9 @@ class GenericFulfillment (private var context: Context) {
 
     //Process Drive request: PART 1:
     fun driveRequest1(resultsNLP: NlpQueryModel): DispatcherInfo {
-        var dispatcherInfo = DispatcherInfo()
+        var dispatcherInfo = DispatcherInfo(
+            lastRecording = lastRecordingName
+        )
 
         //Detect & process requested languages:
         var detLanguage = resultsNLP.reqLanguage
@@ -206,7 +213,9 @@ class GenericFulfillment (private var context: Context) {
 
     //Process Drive request: PART 2:
     fun driveRequest2(resultsNLP: NlpQueryModel, prevDispatch: DispatcherInfo): DispatcherInfo {
-        var dispatcherInfo = DispatcherInfo()
+        var dispatcherInfo = DispatcherInfo(
+            lastRecording = lastRecordingName
+        )
         var reqLangCode = prevDispatch.reqLanguage
 
         //PROCESS PLACE INFO:

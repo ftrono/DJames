@@ -5,6 +5,7 @@ import android.util.Log
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.lastAiMessage
+import com.ftrono.DJames.application.lastRecordingName
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
@@ -30,7 +31,9 @@ class SpotifyFulfillment (private var context: Context) {
 
     //Play a song (with custom context), an album, an artist or a playlist: PART 1:
     fun playItem1(resultsNLP: NlpQueryModel): DispatcherInfo {
-        var dispatcherInfo = DispatcherInfo()
+        var dispatcherInfo = DispatcherInfo(
+            lastRecording = lastRecordingName
+        )
 
         //Detect & process requested languages:
         var intentName = resultsNLP.intentName
@@ -101,7 +104,9 @@ class SpotifyFulfillment (private var context: Context) {
 
     //Play Liked Songs collection:
     fun playCollection(resultsNLP: NlpQueryModel): DispatcherInfo {
-        var dispatcherInfo = DispatcherInfo()
+        var dispatcherInfo = DispatcherInfo(
+            lastRecording = lastRecordingName
+        )
         var playable = SpotifyPlayable(
             id = "collection",   // Important!
             type = "playlist",
@@ -147,7 +152,9 @@ class SpotifyFulfillment (private var context: Context) {
         var reqLangCode = prevStatus.reqLanguage
         var contextType = prevStatus.contextType
         // Returns:
-        val dispatcherInfo = DispatcherInfo()
+        val dispatcherInfo = DispatcherInfo(
+            lastRecording = lastRecordingName
+        )
 
         //Extract play info:
         val nlpMatcher = NLPMatcher(context)
@@ -255,7 +262,9 @@ class SpotifyFulfillment (private var context: Context) {
         var playType = prevStatus.playType
         var reqLangCode = prevStatus.reqLanguage
         // Returns:
-        val dispatcherInfo = DispatcherInfo()
+        val dispatcherInfo = DispatcherInfo(
+            lastRecording = lastRecordingName
+        )
         val extractorInfo = ExtractorInfo()
         var playable = SpotifyPlayable(
             type=playType
@@ -362,7 +371,9 @@ class SpotifyFulfillment (private var context: Context) {
         var playType = prevStatus.playType
         var reqLangCode = prevStatus.reqLanguage
         // Returns:
-        val dispatcherInfo = DispatcherInfo()
+        val dispatcherInfo = DispatcherInfo(
+            lastRecording = lastRecordingName
+        )
         val extractorInfo = ExtractorInfo()
         var playable = SpotifyPlayable(
             type="episode",   //IMPORTANT!

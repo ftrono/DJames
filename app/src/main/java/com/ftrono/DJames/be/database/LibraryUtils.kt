@@ -9,6 +9,7 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.libCats
 import com.ftrono.DJames.application.libraryBox
 import com.ftrono.DJames.application.sourceToCatMap
+import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.be.collections.defaultCollection
 import com.ftrono.DJames.be.collections.testLibrary
 import io.objectbox.Property
@@ -211,7 +212,11 @@ class LibraryUtils {
         itemAliases.removeAt(0)
 
         return if (item.source == "place") {
-            item.address!!.town
+            if (item.address!!.province != "") {
+                "(${item.address!!.province}) ${item.address!!.town}"
+            } else {
+                item.address!!.town
+            }
         } else if (itemAliases.isNotEmpty()) {
             "\"" + itemAliases.joinToString("\", \"") + "\""
         } else if (item.source == "contact") {
@@ -243,6 +248,35 @@ class LibraryUtils {
         var url = gMapsLinkFormat
         url = url + item.name.replace(" ", "+").trim() + "/"
         return url
+    }
+
+
+    // MODEL CONVERTER:
+    // TODO: WIP!
+    fun libItemToPlayable(libItem: LibraryItem): SpotifyPlayable {
+        if (libItem.source != "spotify") {
+            return SpotifyPlayable()
+        } else {
+            var playable = SpotifyPlayable(
+                id = spotifyUtils.getSpotifyID(libItem.url),
+                type = libItem.type
+            )
+            if (libItem.type == "artist") {
+                playable.artist == SpotifyArtist(
+                    id = spotifyUtils.getSpotifyID(libItem.url),
+                    name = libItem.name
+                )
+            } else if (libItem.type == "playlist") {
+                playable.playlist == SpotifyPlaylist(
+                    id = spotifyUtils.getSpotifyID(libItem.url),
+                    name = libItem.name,
+                    owner = libItem.detail
+                )
+            } else {
+                // TODO
+            }
+            return playable
+        }
     }
 
 

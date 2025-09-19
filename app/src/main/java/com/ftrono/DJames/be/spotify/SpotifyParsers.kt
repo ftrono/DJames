@@ -1,6 +1,7 @@
 package com.ftrono.DJames.be.spotify
 
 import android.util.Log
+import com.ftrono.DJames.application.spotifyParsers
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.SpotifyAlbum
 import com.ftrono.DJames.be.database.SpotifyArtist
@@ -122,6 +123,38 @@ class SpotifyParsers() {
             Log.d(TAG, "No ResumePoint info in current Episode!")
         }
         return episode
+    }
+
+    //MAIN: API-to-Playable converter:
+    fun extractPlayableFromJson(playType: String, itemJson: JsonObject): SpotifyPlayable {
+        var playable = SpotifyPlayable(
+            id = itemJson.get("id").asString,
+            type = playType
+        )
+        // Extract key info:
+        when (playType) {
+            "artist" -> {
+                playable.artist = spotifyParsers.extractSingleArtist(itemJson)
+            }
+            "album" -> {
+                playable.album = spotifyParsers.extractAlbum(itemJson)
+            }
+            "track" -> {
+                playable.track = spotifyParsers.extractTrack(itemJson)
+            }
+            "playlist" -> {
+                playable.playlist = spotifyParsers.extractPlaylist(itemJson)
+            }
+            "podcast" -> {
+                //TODO: add to Fulfillment!
+                playable.podcast = spotifyParsers.extractPodcast(itemJson)
+            }
+            "episode" -> {
+                //TODO: add to Fulfillment!
+                playable.episode = spotifyParsers.extractEpisodeFromPodcast(itemJson)
+            }
+        }
+        return playable
     }
 
 }

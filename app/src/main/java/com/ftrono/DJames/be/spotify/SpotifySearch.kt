@@ -202,34 +202,17 @@ class SpotifySearch(private val context: Context) {
                 var curJson = item.asJsonObject
 
                 // Extract key info:
-                curMatch.playable.type = playType
-                curMatch.playable.id = curJson.get("id").asString
+                curMatch.playable = spotifyParsers.extractPlayableFromJson(playType, curJson)
                 ids.add(curMatch.playable.id)
                 var stringToMatch = curJson.get("name").asString
-                var detailToMatch = ""
-                when (playType) {
-                    "artist" -> {
-                        curMatch.playable.artist = spotifyParsers.extractSingleArtist(curJson)
-                    }
-                    "album" -> {
-                        curMatch.playable.album = spotifyParsers.extractAlbum(curJson)
-                    }
+                var detailToMatch = when (playType) {
                     "track" -> {
-                        curMatch.playable.track = spotifyParsers.extractTrack(curJson)
-                        detailToMatch = curMatch.playable.track!!.artists.joinToString(", ", "", "") { it.name }
-                    }
-                    "playlist" -> {
-                        curMatch.playable.playlist = spotifyParsers.extractPlaylist(curJson)
-                    }
-                    "podcast" -> {
-                        //TODO: add to Fulfillment!
-                        curMatch.playable.podcast = spotifyParsers.extractPodcast(curJson)
+                        curMatch.playable.track!!.artists.joinToString(", ", "", "") { it.name }
                     }
                     "episode" -> {
-                        //TODO: add to Fulfillment!
-                        curMatch.playable.episode = spotifyParsers.extractEpisodeFromPodcast(curJson)
-                        detailToMatch = curMatch.playable.episode!!.podcast!!.name
+                        curMatch.playable.episode!!.podcast!!.name
                     }
+                    else -> ""
                 }
 
                 // Clean strings regex:

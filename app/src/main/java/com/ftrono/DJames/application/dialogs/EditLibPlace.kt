@@ -86,7 +86,13 @@ fun EditLibPlace(
 
     //States:
     val textName = rememberSaveable { mutableStateOf(itemPlace.name) }
-    val textSubtitle = rememberSaveable { mutableStateOf(itemPlace.address!!.town) }
+    val textSubtitle = rememberSaveable { mutableStateOf(
+        if (itemPlace.address!!.province != "") {
+            "(${itemPlace.address!!.province}) ${itemPlace.address!!.town}"
+        } else {
+            itemPlace.address!!.town
+        }
+    ) }
     val textAliases = rememberSaveable { mutableStateOf(initAliases.joinToString(", ")) }
     val imageUrlState = rememberSaveable { mutableStateOf("") }
     //Address:
@@ -167,7 +173,7 @@ fun EditLibPlace(
                     itemPlace.name = utils.capitalizeWords(textName.value).trim()
                     itemPlace.aliases = aliasesList
                     itemPlace.lastUpdated = utils.getCurrentTimestamp()
-                    itemPlace.detail = utils.capitalizeWords(textDestTown.value.trim())
+                    itemPlace.detail = utils.capitalizeWords(textDestTown.value.trim())   // Needed for TTS reading!
                     //Address:
                     itemPlace.address = Address(
                         street = utils.capitalizeWords(textDestAddress.value.trim()),

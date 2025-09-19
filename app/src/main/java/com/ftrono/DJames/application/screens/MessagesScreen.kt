@@ -48,6 +48,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.allMessageIds
+import com.ftrono.DJames.application.chatInputPlaceholder
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.maxHistoryDays
@@ -295,7 +296,7 @@ fun MessagesScreen(
                 )
                 .imePadding()
                 .fillMaxWidth(),
-            placeholder = "Ask me anything...",
+            placeholder = chatInputPlaceholder,
             enableLeftButton = true,
             onSend = {
                 val curText = sharedViewModel.text.trim()

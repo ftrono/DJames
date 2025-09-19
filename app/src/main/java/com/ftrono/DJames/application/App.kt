@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.0.a7 (alpha)"
+val appVersion = "3.0.a8 (alpha)"
 val copyrightYear = 2024
 
 //DB:
@@ -119,6 +119,7 @@ val libCats = sourceToCatMap.keys.toList()
 var allMessageIds = MutableLiveData<List<Long>>(listOf<Long>())
 
 // Conversation tracking:
+val chatInputPlaceholder = "Ask via chat..."
 var chatLastDispatch = DispatcherInfo()
 var lastAiMessage: Message = Message()
 var lastUserMessage: Message = Message()

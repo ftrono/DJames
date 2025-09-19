@@ -55,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ftrono.DJames.application.chatInputPlaceholder
 import com.ftrono.DJames.application.datetimeShortFormat
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.overlayActive
@@ -389,7 +390,7 @@ fun ChatInputPreview() {
         sharedViewModel = sharedViewModel,
         requestPermissions = requestPermissions,
         requestOverlayOn = requestOverlayOn,
-        placeholder = "Ask me anything...",
+        placeholder = chatInputPlaceholder,
         enableLeftButton = true
     )
 }

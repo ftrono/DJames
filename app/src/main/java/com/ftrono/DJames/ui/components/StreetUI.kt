@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
@@ -40,7 +42,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.painter.Painter
@@ -128,6 +132,7 @@ fun StreetLine(
 @Composable
 fun CardSign(
     modifier: Modifier,
+    roundedCorners: Dp = 20.dp,
     backgroundColor: Color,
     borderColor: Color,
     borderWidth: Dp,
@@ -135,13 +140,114 @@ fun CardSign(
 ) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(roundedCorners),
         border = BorderStroke(borderWidth, borderColor),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor
         )
     ) {
         content()
+    }
+}
+
+
+@Composable
+fun ZebraSign(
+    modifier: Modifier,
+    isLight: Boolean = false,
+    content: @Composable () -> Unit,
+) {
+    Box(
+        modifier = modifier
+            .background(colorResource(if (isLight) R.color.light_grey else R.color.windowBackground)),
+    ) {
+        content()
+    }
+}
+
+
+@Composable
+fun ClickableSignContent(
+    innerPadding: Dp = 8.dp,
+    isLight: Boolean = false,
+    content: @Composable () -> Unit = {}
+) {
+    Row(
+        modifier = Modifier
+            .padding(innerPadding),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        // CONTENT:
+        Column(
+            modifier = Modifier
+                .padding(end = innerPadding)
+                .weight(1F),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.Start
+        ) {
+            content()
+        }
+        // GO ICON:
+        Icon(
+            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+            tint = colorResource(if (isLight) R.color.black else R.color.light_grey),
+            contentDescription = "Go"
+        )
+    }
+}
+
+
+
+@Composable
+fun ClickableCardSign(
+    modifier: Modifier = Modifier,
+    roundedCorners: Dp = 20.dp,
+    backgroundColor: Color = colorResource(id = R.color.dark_grey),
+    borderColor: Color = colorResource(id = R.color.faded_grey),
+    borderWidth: Dp = 1.5.dp,
+    innerPadding: Dp = 8.dp,
+    onClick: () -> Unit = {},
+    content: @Composable () -> Unit = {},
+) {
+    CardSign(
+        modifier = modifier
+            .clickable {
+                onClick()
+            },
+        roundedCorners = roundedCorners,
+        backgroundColor = backgroundColor,
+        borderColor = borderColor,
+        borderWidth = borderWidth,
+    ) {
+        ClickableSignContent(
+            innerPadding = innerPadding,
+            content = content,
+        )
+    }
+}
+
+
+@Composable
+fun ClickableZebraSign(
+    modifier: Modifier = Modifier,
+    isLight: Boolean = false,
+    innerPadding: Dp = 8.dp,
+    onClick: () -> Unit = {},
+    content: @Composable () -> Unit = {},
+) {
+    ZebraSign (
+        modifier = modifier
+            .clickable {
+                onClick()
+            },
+        isLight = isLight,
+    ) {
+        ClickableSignContent(
+            innerPadding = innerPadding,
+            isLight = isLight,
+            content = content,
+        )
     }
 }
 

@@ -541,19 +541,7 @@ fun MessagesOptions(
                     }
                 )
             }
-            //3) Item: HELP
-            OptionsItem(
-                title = "Help",
-                iconPainter = painterResource(id = R.drawable.icon_help),
-                onClick = {
-                    //Navigate:
-                    val curNavRoute = NavigationItem.Guide.route
-                    navigateTo(navController, curNavRoute)
-                    lastNavRoute = curNavRoute
-                    mDisplayMenu.value = false
-                }
-            )
-            //4) Item: DELETE ALL MESSAGES
+            //3) Item: DELETE ALL MESSAGES
             OptionsItem(
                 title =  if (selectedMessageIds.isNotEmpty()) {
                     "Delete selected"

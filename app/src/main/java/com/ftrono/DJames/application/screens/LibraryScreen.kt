@@ -678,19 +678,7 @@ fun CatOptions(
                     mDisplayMenu.value = false
                 }
             )
-            //5) Item: HELP
-            OptionsItem(
-                title = "Help",
-                iconPainter = painterResource(id = R.drawable.icon_help),
-                onClick = {
-                    //Navigate:
-                    val curNavRoute = NavigationItem.Guide.route
-                    navigateTo(navController, curNavRoute)
-                    lastNavRoute = curNavRoute
-                    mDisplayMenu.value = false
-                }
-            )
-            //6) Item: DELETE LIB CATEGORY
+            //5) Item: DELETE LIB CATEGORY
             OptionsItem(
                 title = "Delete all",
                 iconVector = Icons.Default.Delete,

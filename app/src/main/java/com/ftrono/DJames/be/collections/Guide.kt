@@ -1,9 +1,24 @@
 package com.ftrono.DJames.be.collections
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import com.ftrono.DJames.R
 import kotlinx.serialization.Serializable
 
 
 // CLASSES:
+data class GuideOption(
+    var name: String = "",
+    var text: String = "",
+    var iconPainter: Painter? = null,
+    var background: Color? = null,
+    var tint: Color? = null,
+    var onClick: () -> Unit = {}
+)
+
 @Serializable
 data class GuideCategory(
     var category: String = "",
@@ -20,6 +35,55 @@ data class GuideRequest(
 
 
 // --------------------------------
+
+val guideOptions = listOf("spotify", "youtube", "maps", "calls", "sms", "whatsapp")
+
+@Composable
+fun getGuideOption(name: String): GuideOption {
+    val optionsMap = mapOf(
+        "spotify" to GuideOption(
+            name = "spotify",
+            text = "Play music & podcasts via Spotify",
+            background = colorResource(R.color.colorPrimaryDark),
+            iconPainter = painterResource(R.drawable.logo_spotify),
+        ),
+        "youtube" to GuideOption(
+            name = "youtube",
+            text = "Play music & videos via Youtube",
+            background = colorResource(R.color.redSignDark),
+            iconPainter = painterResource(R.drawable.logo_youtube),
+        ),
+        "maps" to GuideOption(
+            name = "maps",
+            text = "Get driving directions via Google Maps",
+            background = colorResource(R.color.yellowSignDark),
+            iconPainter = painterResource(R.drawable.logo_gmaps),
+        ),
+        "calls" to GuideOption(
+            name = "calls",
+            text = "Call a contact",
+            background = colorResource(R.color.colorPrimaryDark),
+            iconPainter = painterResource(R.drawable.icon_phone),
+            tint = colorResource(R.color.colorAccentMid),
+        ),
+        "sms" to GuideOption(
+            name = "sms",
+            text = "Send an SMS",
+            background = colorResource(R.color.blueSignDark),
+            iconPainter = painterResource(R.drawable.icon_message),
+            tint = colorResource(R.color.blueSignMid),
+        ),
+        "whatsapp" to GuideOption(
+            name = "whatsapp",
+            text = "Send a Whatsapp text or voice",
+            background = colorResource(R.color.colorPrimaryDark),
+            iconPainter = painterResource(R.drawable.logo_whatsapp),
+            tint = colorResource(R.color.greenSignLight),
+        ),
+    )
+    return optionsMap[name]!!
+}
+
 
 // DATA:
 val fullGuide = listOf<GuideCategory>(

@@ -66,7 +66,7 @@ class Prefs (context: Context) {
 
     //Silence detector:
     var silenceDetector: String
-        get() = sharedPrefs.getString(KEY_SILENCE_DETECTOR, "WebRTC") as String
+        get() = sharedPrefs.getString(KEY_SILENCE_DETECTOR, "Silero") as String
         set(value) = sharedPrefs.edit().putString(KEY_SILENCE_DETECTOR, value).apply()
 
     //Voice queries: Default language:

@@ -285,7 +285,8 @@ class ClockActivity: ComponentActivity() {
                                 tint = colorResource(id = R.color.midfaded_grey)
                             )
                             Text(
-                                modifier = Modifier,
+                                modifier = Modifier
+                                    .padding(end = 6.dp),
                                 text = currentPlayingPrefixState!!,
                                 lineHeight = 12.sp,
                                 color = colorResource(id = R.color.midfaded_grey),

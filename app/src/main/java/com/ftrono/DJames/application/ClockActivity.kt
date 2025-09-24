@@ -279,7 +279,7 @@ class ClockActivity: ComponentActivity() {
                             Icon(
                                 modifier = Modifier
                                     .padding(end = 6.dp)
-                                    .size(12.dp),
+                                    .size(16.dp),
                                 painter = painterResource(R.drawable.logo_spotify),
                                 contentDescription = "Spotify",
                                 tint = colorResource(id = R.color.midfaded_grey)

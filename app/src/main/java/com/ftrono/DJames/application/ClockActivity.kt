@@ -30,6 +30,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,6 +57,8 @@ import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.R
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.components.RoundedSign
+import com.ftrono.DJames.ui.selectors.libColorSelector
+import com.ftrono.DJames.ui.selectors.libIconSelector
 import com.ftrono.DJames.ui.theme.ClockTheme
 import com.ftrono.DJames.ui.theme.black
 import java.time.LocalDateTime
@@ -267,15 +270,29 @@ class ClockActivity: ComponentActivity() {
                 ) {
                     if (currentPlayingPrefixState != "") {
                         //PREFIX:
-                        Text(
+                        Row(
                             modifier = Modifier
                                 .padding(start = 14.dp, bottom = 2.dp),
-                            text = currentPlayingPrefixState!!,
-                            lineHeight = 12.sp,
-                            color = colorResource(id = R.color.midfaded_grey),
-                            fontSize = 12.sp,
-                            // fontWeight = FontWeight.Bold
-                        )
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                modifier = Modifier
+                                    .padding(end = 6.dp)
+                                    .size(12.dp),
+                                painter = painterResource(R.drawable.logo_spotify),
+                                contentDescription = "Spotify",
+                                tint = colorResource(id = R.color.midfaded_grey)
+                            )
+                            Text(
+                                modifier = Modifier,
+                                text = currentPlayingPrefixState!!,
+                                lineHeight = 12.sp,
+                                color = colorResource(id = R.color.midfaded_grey),
+                                fontSize = 12.sp,
+                                // fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                     //SONG NAME:
                     Text(

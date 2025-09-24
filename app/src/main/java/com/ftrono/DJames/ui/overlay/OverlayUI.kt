@@ -220,7 +220,7 @@ fun DJamesPads(
             posRight = overlayPosState == "Right"
         )
 
-        // Place 4 toes along a semi-circle on the left:
+        // Place N toes along a semi-circle on the left:
         angles.forEachIndexed { index, angle ->
             val rad = Math.toRadians(angle.toDouble())
             val x = (cos(rad) * animatedRadius.toPx()).dp

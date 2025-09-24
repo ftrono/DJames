@@ -117,6 +117,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     var clockTimeout by rememberSaveable { mutableStateOf(if (preview) "5" else prefs.clockTimeout) }
     //val textQueryLangState = rememberSaveable { mutableStateOf(if (preview) "English" else queryLangFull[queryLangCodes.indexOf(prefs.queryLanguage)]) }
     val textMessLangState = rememberSaveable { mutableStateOf(if (preview) "English" else messLangFull[messLangCodes.indexOf(prefs.messageLanguage)]) }
+    val selDetectorState = rememberSaveable { mutableStateOf(if (preview) "WebRTC" else prefs.silenceDetector) }
 
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -217,6 +218,28 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         }
                     )
                 }
+
+                //Silence detector:
+                Text(
+                    modifier = Modifier
+                        .padding(top = 12.dp, bottom = 4.dp),
+                    text = "Default silence detector",
+                    color = colorResource(id = R.color.light_grey),
+                    textAlign = TextAlign.Start,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                DropdownSpinner(
+                    context = mContext,
+                    parentOptions = listOf("WebRTC", "Silero"),
+                    init = selDetectorState.value,
+                    state = selDetectorState,
+                    focusColorLight = colorResource(id = R.color.greenSignLight),
+                    focusColorDark = colorResource(id = R.color.greenSign),
+                    optionsBackground = colorResource(id = R.color.dark_grey),
+                    prefName = "silenceDetector",
+                    width = 200
+                )
 
                 //Go to App Permissions:
                 Row(

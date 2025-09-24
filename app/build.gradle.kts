@@ -141,6 +141,7 @@ dependencies {
     //Coil:
     implementation("io.coil-kt.coil3:coil-compose:3.1.0")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.1.0")
-    // WebRTC VAD:
+    //VAD:
     implementation("com.github.gkonovalov.android-vad:webrtc:2.0.10")
+    implementation("com.github.gkonovalov.android-vad:silero:2.0.10")
 }

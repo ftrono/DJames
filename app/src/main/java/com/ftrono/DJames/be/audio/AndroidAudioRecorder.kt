@@ -10,12 +10,16 @@ import android.util.Log
 import androidx.annotation.RequiresPermission
 import com.arthenica.ffmpegkit.FFmpegKit
 import com.ftrono.DJames.application.*
+import com.konovalov.vad.webrtc.VadWebRTC
+import com.konovalov.vad.webrtc.config.FrameSize as RtcFrameSize
+import com.konovalov.vad.webrtc.config.Mode as RtcMode
+import com.konovalov.vad.webrtc.config.SampleRate as RtcSampleRate
+import com.konovalov.vad.silero.VadSilero
+import com.konovalov.vad.silero.config.FrameSize as SileroFrameSize
+import com.konovalov.vad.silero.config.Mode as SileroMode
+import com.konovalov.vad.silero.config.SampleRate as SileroSampleRate
 import java.io.File
 import java.io.FileOutputStream
-import com.konovalov.vad.webrtc.VadWebRTC
-import com.konovalov.vad.webrtc.config.FrameSize
-import com.konovalov.vad.webrtc.config.SampleRate
-import com.konovalov.vad.webrtc.config.Mode
 
 
 class AndroidAudioRecorder(private val context: Context) {
@@ -77,64 +81,104 @@ class AndroidAudioRecorder(private val context: Context) {
             audioRecorder.startRecording()
 
             // Monitor:
-            VadWebRTC(
-                sampleRate = SampleRate.SAMPLE_RATE_48K,
-                frameSize = FrameSize.FRAME_SIZE_480,   // 10ms @ 48kHz
-                mode = Mode.VERY_AGGRESSIVE,
-                silenceDurationMs = 0,   // handle silence detection manually
-                speechDurationMs = 0
-            ).use { vad ->
+            lateinit var rtcVad: VadWebRTC
+            lateinit var sileroVad: VadSilero
 
-                // Rec buffers:
-                val chunkSize = vad.frameSize.value * 2 // For VAD: 16-bit PCM → 2 bytes per sample
-                val buffer = ByteArray(bufferSize * 2)  // For Recorder: raw PCM storage
+            if (prefs.silenceDetector == "Silero") {
+                sileroVad = VadSilero(
+                    context = context,
+                    sampleRate = SileroSampleRate.SAMPLE_RATE_16K,
+                    frameSize = SileroFrameSize.FRAME_SIZE_512,
+                    mode = SileroMode.AGGRESSIVE,
+                    silenceDurationMs = 0,   // handle silence detection manually
+                    speechDurationMs = 0
+                )
+            } else {
+                rtcVad = VadWebRTC(
+                    sampleRate = RtcSampleRate.SAMPLE_RATE_48K,
+                    frameSize = RtcFrameSize.FRAME_SIZE_480,   // 10ms @ 48kHz
+                    mode = RtcMode.VERY_AGGRESSIVE,
+                    silenceDurationMs = 0,   // handle silence detection manually
+                    speechDurationMs = 0
+                )
+            }
 
-                // Monitoring:
-                var silenceMs = 0L
-                val frameDurationMs = 10L   // each FRAME_SIZE_480 = 10 ms
+            // Rec buffers -> For VAD: 16-bit PCM → 2 bytes per sample:
+            val chunkSize = if (prefs.silenceDetector == "Silero") {
+                sileroVad.frameSize.value * 2
+            } else {
+                rtcVad.frameSize.value * 2
+            }
+            val buffer = ByteArray(bufferSize * 2)  // For Recorder: raw PCM storage
 
-                FileOutputStream(recFilePcm).use { output ->
-                    while (isRecording && recordingMode && (recordingTime < maxTime)) {
-                        // Reads audio samples from the microphone into raw buffer:
-                        val read = audioRecorder.read(buffer, 0, buffer.size)
-                        if (read <= 0) continue   // Skip if nothing read!
+            // Monitoring:
+            var silenceMs = 0L
+            val frameDurationMs = 10L   // each FRAME_SIZE_480 = 10 ms (keep also for Silero!)
+            var isSpeech = false
+            var stopMax = false
 
-                        var i = 0
-                        while (i + chunkSize <= read) {
-                            // WebRTC VAD requires fixed-size frames (10/20/30 ms):
-                            // Extract a frame: Process the buffer in steps of chunkSize (960 bytes)
-                            val frame = buffer.copyOfRange(i, i + chunkSize)
-                            output.write(frame)
-                            recordingTime += frameDurationMs
+            FileOutputStream(recFilePcm).use { output ->
+                while (isRecording && recordingMode && (recordingTime < maxTime)) {
+                    // Reads audio samples from the microphone into raw buffer:
+                    val read = audioRecorder.read(buffer, 0, buffer.size)
+                    if (read <= 0) continue   // Skip if nothing read!
 
-                            // Run VAD on each frame:
-                            if (silenceEnabled && !vad.isSpeech(frame)) {
-                                // NO SPEECH -> Increase patience countdown:
-                                silenceMs += frameDurationMs
-                                if (silenceMs >= silenceThreshold) {
-                                    // STOP:
-                                    Log.d(TAG, "RECORDER: silence detected for more that ${silencePatienceSecs} seconds! -> STOPPING!")
-                                    isRecording = false
-                                    break
-                                }
-                            } else {
-                                // IS SPEECH or NO SILENCE DETECTION -> Reset patience countdown:
-                                silenceMs = 0L
+                    var i = 0
+                    while (i + chunkSize <= read) {
+                        // WebRTC VAD requires fixed-size frames (10/20/30 ms):
+                        // Extract a frame: Process the buffer in steps of chunkSize (960 bytes)
+                        val frame = buffer.copyOfRange(i, i + chunkSize)
+                        output.write(frame)
+                        recordingTime += frameDurationMs
+                        stopMax = recordingTime >= maxTime
+
+                        // Run VAD on each frame:
+                        isSpeech = if (prefs.silenceDetector == "Silero") {
+                            sileroVad.isSpeech(frame)
+                        } else {
+                            rtcVad.isSpeech(frame)
+                        }
+
+                        if (silenceEnabled && !isSpeech) {
+                            // NO SPEECH -> Increase patience countdown:
+                            silenceMs += frameDurationMs
+                            if (silenceMs >= silenceThreshold) {
+                                // STOP:
+                                Log.d(TAG, "RECORDER: silence detected for more that ${silencePatienceSecs} seconds! -> STOPPING!")
+                                isRecording = false
+                                break
                             }
+                        } else {
+                            // IS SPEECH or NO SILENCE DETECTION -> Reset patience countdown:
+                            silenceMs = 0L
+                        }
 
-                            i += chunkSize
-                        }
+                        i += chunkSize
                     }
-                    // STOP:
-                    if (recordingMode) {
-                        //STOP recording:
-                        Intent().also { intent ->
-                            intent.setAction(ACTION_REC_STOP)
-                            context.sendBroadcast(intent)
-                        }
+                    if (stopMax) {
+                        // STOP:
+                        Log.d(TAG, "RECORDER: maxTime reached! -> STOPPING!")
+                        isRecording = false
+                        break
+                    }
+                }
+                // STOP:
+                if (recordingMode) {
+                    //STOP recording:
+                    Intent().also { intent ->
+                        intent.setAction(ACTION_REC_STOP)
+                        context.sendBroadcast(intent)
                     }
                 }
             }
+
+            // Close VAD:
+            if (prefs.silenceDetector == "Silero") {
+                sileroVad.close()
+            } else {
+                rtcVad.close()
+            }
+
 
         } catch (e: Exception) {
             recordingFail = true

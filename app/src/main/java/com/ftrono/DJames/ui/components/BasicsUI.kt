@@ -188,6 +188,9 @@ fun DropdownSpinner(
                             prefs.overlayPosition = selectionOption
                             state.value = selectionOption
                             restartOverlay(context)
+                        } else if (prefName == "silenceDetector") {
+                            prefs.silenceDetector = selectionOption
+                            state.value = selectionOption
                         } else if (prefName == "queryLanguage") {
                             prefs.queryLanguage = queryLangCodes[queryLangFull.indexOf(selectionOption)]
                             state.value = selectionOption

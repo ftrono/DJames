@@ -69,6 +69,11 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getString(KEY_SILENCE_DETECTOR, "Silero") as String
         set(value) = sharedPrefs.edit().putString(KEY_SILENCE_DETECTOR, value).apply()
 
+    //Enable v3:
+    var enableNoiseSuppression: Boolean
+        get() = sharedPrefs.getBoolean(KEY_ENABLE_NOISE_SUPPRESSION, false) as Boolean
+        set(value) = sharedPrefs.edit().putBoolean(KEY_ENABLE_NOISE_SUPPRESSION, value).apply()
+
     //Voice queries: Default language:
     var queryLanguage: String
         //"en-US" -> English; "it" -> Italian
@@ -180,6 +185,7 @@ class Prefs (context: Context) {
         const val KEY_AUTO_STARTUP = ".key.auto_startup"
         const val KEY_OVERLAY_POSITION = ".key.overlay_position"
         const val KEY_SILENCE_DETECTOR = ".key.silence_detector"
+        const val KEY_ENABLE_NOISE_SUPPRESSION = ".key.enable_noise_suppression"
         const val KEY_QUERY_LANGUAGE = ".key.query_language"
         const val KEY_REC_TIMEOUT = ".key.rec_timeout"
         const val KEY_SILENCE_ENABLED_QUERIES = ".key.enable_silence_queries"

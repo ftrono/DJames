@@ -106,6 +106,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
 
     // STATUSES:
     val checkedV3 = remember { mutableStateOf(if (preview) true else prefs.enableV3) }
+    val checkedNoise = remember { mutableStateOf(if (preview) true else prefs.enableNoiseSuppression) }
     val checkedStartup = remember { mutableStateOf(if (preview) true else prefs.autoStartup) }
     val checkedSilenceQueries = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledQueries) }
     val checkedSilenceMess = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledMess) }
@@ -182,6 +183,96 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 preview = preview
             )
 
+            //SECTION: EXPERIMENTAL:
+            SettingsSection(
+                modifier = Modifier
+                    .padding(top=8.dp, end=8.dp, bottom=4.dp),
+                title = "Experimental",
+                signColor = colorResource(id = R.color.yellowSign),
+                iconPainter = painterResource(id = R.drawable.icon_warning)
+            ) {
+
+                //Experimental: Silence detector:
+                Text(
+                    modifier = Modifier
+                        .padding(top = 12.dp, bottom = 4.dp),
+                    text = "Default silence detector",
+                    color = colorResource(id = R.color.light_grey),
+                    textAlign = TextAlign.Start,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                DropdownSpinner(
+                    context = mContext,
+                    parentOptions = listOf("Silero", "WebRTC"),
+                    init = selDetectorState.value,
+                    state = selDetectorState,
+                    focusColorLight = colorResource(id = R.color.yellowSignLight),
+                    focusColorDark = colorResource(id = R.color.yellowSign),
+                    optionsBackground = colorResource(id = R.color.dark_grey),
+                    prefName = "silenceDetector",
+                    width = 200
+                )
+
+                //Experimental: Enable Noise Suppression:
+                Row(
+                    modifier = Modifier
+                        .padding(bottom = 4.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = "Enable noise suppression",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        lineHeight = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Switch(
+                        checked = checkedNoise.value,
+                        colors = getSwitchColors(
+                            color = colorResource(id = R.color.yellowSign)
+                        ),
+                        onCheckedChange = {
+                            checkedNoise.value = it
+                            prefs.enableNoiseSuppression = it
+                        }
+                    )
+                }
+
+                //Experimental: Enable v3:
+                Row(
+                    modifier = Modifier
+                        .padding(bottom = 4.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = "Enable v3 (alpha)",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        lineHeight = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Switch(
+                        checked = checkedV3.value,
+                        colors = getSwitchColors(
+                            color = colorResource(id = R.color.yellowSign)
+                        ),
+                        onCheckedChange = {
+                            checkedV3.value = it
+                            prefs.enableV3 = it
+                        }
+                    )
+                }
+            }
+
             //SECTION: OVERLAY BUTTON:
             SettingsSection(
                 modifier = Modifier
@@ -218,28 +309,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         }
                     )
                 }
-
-                //Silence detector:
-                Text(
-                    modifier = Modifier
-                        .padding(top = 12.dp, bottom = 4.dp),
-                    text = "Default silence detector",
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                DropdownSpinner(
-                    context = mContext,
-                    parentOptions = listOf("Silero", "WebRTC"),
-                    init = selDetectorState.value,
-                    state = selDetectorState,
-                    focusColorLight = colorResource(id = R.color.greenSignLight),
-                    focusColorDark = colorResource(id = R.color.greenSign),
-                    optionsBackground = colorResource(id = R.color.dark_grey),
-                    prefName = "silenceDetector",
-                    width = 200
-                )
 
                 //Go to App Permissions:
                 Row(
@@ -285,34 +354,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 signColor = colorResource(id = R.color.yellowSign),
                 iconPainter = painterResource(id = R.drawable.icon_speak)
             ) {
-
-                //Voice queries: Enable v3:
-                Row(
-                    modifier = Modifier
-                        .padding(bottom = 4.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = "Voice queries: enable v3 (alpha)",
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
-                        lineHeight = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Switch(
-                        checked = checkedV3.value,
-                        colors = getSwitchColors(
-                            color = colorResource(id = R.color.yellowSign)
-                        ),
-                        onCheckedChange = {
-                            prefs.enableV3 = it
-                        }
-                    )
-                }
 
                 //Req timeout:
                 Text(

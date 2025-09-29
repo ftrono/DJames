@@ -1,14 +1,19 @@
 package com.ftrono.DJames.be.audio
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.media.audiofx.AutomaticGainControl
+import android.media.audiofx.NoiseSuppressor
+import android.os.Environment
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import com.arthenica.ffmpegkit.FFmpegKit
+import com.dl.rtnr.rtNoiseReducer
 import com.ftrono.DJames.application.*
 import com.konovalov.vad.webrtc.VadWebRTC
 import com.konovalov.vad.webrtc.config.FrameSize as RtcFrameSize
@@ -18,17 +23,35 @@ import com.konovalov.vad.silero.VadSilero
 import com.konovalov.vad.silero.config.FrameSize as SileroFrameSize
 import com.konovalov.vad.silero.config.Mode as SileroMode
 import com.konovalov.vad.silero.config.SampleRate as SileroSampleRate
+import com.konovalov.vad.yamnet.VadYamnet
+import com.konovalov.vad.yamnet.config.FrameSize as YamnetFrameSize
+import com.konovalov.vad.yamnet.config.Mode as YamnetMode
+import com.konovalov.vad.yamnet.config.SampleRate as YamnetSampleRate
 import java.io.File
 import java.io.FileOutputStream
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 
 class AndroidAudioRecorder(private val context: Context) {
     private val TAG = AndroidAudioRecorder::class.java.simpleName
-    // private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
     private lateinit var audioRecorder: AudioRecord
     private var recFilePcm: File? = null
     private var recFileFlac: File? = null
+
+    // RTNR:
+    private var rtNoiseReducer: rtNoiseReducer? = null
+
+    fun initRTNR() {
+        try {
+            rtNoiseReducer = rtNoiseReducer(context as Activity)
+            Log.d(TAG, "RTNR initialized")
+        } catch (e: Exception) {
+            Log.d(TAG, "Failed to create noise reduction", e)
+        }
+    }
 
 
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
@@ -41,7 +64,7 @@ class AndroidAudioRecorder(private val context: Context) {
             val timestamp = utils.getCurrentTimestamp()
             lastRecordingName = "$timestamp.flac"
             recFilePcm = File(recDir, "$timestamp.pcm")
-            recFileFlac = File(recDir, lastRecordingName)
+            recFileFlac = File(saveDir, lastRecordingName)
 
             // Params:
             val channelConfig = AudioFormat.CHANNEL_IN_MONO
@@ -75,6 +98,14 @@ class AndroidAudioRecorder(private val context: Context) {
                 bufferSize
             )
 
+            // Enable NS + AGC if present
+            if (NoiseSuppressor.isAvailable()) {
+                NoiseSuppressor.create(audioRecorder.audioSessionId)?.enabled = true
+            }
+            if (AutomaticGainControl.isAvailable()) {
+                AutomaticGainControl.create(audioRecorder.audioSessionId)?.enabled = true
+            }
+
             // START:
             recordingMode = true
             var isRecording = true
@@ -83,13 +114,23 @@ class AndroidAudioRecorder(private val context: Context) {
             // Monitor:
             lateinit var rtcVad: VadWebRTC
             lateinit var sileroVad: VadSilero
+            lateinit var yamnetVad: VadYamnet
 
-            if (prefs.silenceDetector == "Silero") {
+            if (prefs.silenceDetector == "Yamnet") {
+                yamnetVad = VadYamnet(
+                    context,
+                    sampleRate = YamnetSampleRate.SAMPLE_RATE_16K,
+                    frameSize = YamnetFrameSize.FRAME_SIZE_487,
+                    mode = YamnetMode.NORMAL,
+                    silenceDurationMs = 0,
+                    speechDurationMs = 0
+                )
+            } else if (prefs.silenceDetector == "Silero") {
                 sileroVad = VadSilero(
                     context = context,
                     sampleRate = SileroSampleRate.SAMPLE_RATE_16K,
                     frameSize = SileroFrameSize.FRAME_SIZE_512,
-                    mode = SileroMode.AGGRESSIVE,
+                    mode = SileroMode.NORMAL,
                     silenceDurationMs = 0,   // handle silence detection manually
                     speechDurationMs = 0
                 )
@@ -104,7 +145,9 @@ class AndroidAudioRecorder(private val context: Context) {
             }
 
             // Rec buffers -> For VAD: 16-bit PCM → 2 bytes per sample:
-            val chunkSize = if (prefs.silenceDetector == "Silero") {
+            val chunkSize = if (prefs.silenceDetector == "Yamnet") {
+                yamnetVad.frameSize.value * 2
+            } else if (prefs.silenceDetector == "Silero") {
                 sileroVad.frameSize.value * 2
             } else {
                 rtcVad.frameSize.value * 2
@@ -128,16 +171,40 @@ class AndroidAudioRecorder(private val context: Context) {
                         // WebRTC VAD requires fixed-size frames (10/20/30 ms):
                         // Extract a frame: Process the buffer in steps of chunkSize (960 bytes)
                         val frame = buffer.copyOfRange(i, i + chunkSize)
+
+                        // Apply RTNR noise reduction (256 samples expected):
+                        if (prefs.enableNoiseSuppression) {
+                            rtNoiseReducer?.let { reducer ->
+                                val shortData = byteArrayToShortArray(frame)
+                                if (shortData.size >= 256) {
+                                    // Take first 256 samples (or handle in chunks if needed)
+                                    val shortBlock = shortData.copyOfRange(0, 256)
+
+                                    val doubleData = shortArrayToDoubleArray(shortBlock)
+                                    val seOut = reducer.audioSE(doubleData)   // noise reduced output
+                                    val processedShorts = doubleArrayToShortArray(seOut)
+                                    val processedBytes = shortArrayToByteArray(processedShorts)
+
+                                    // Replace first part of frame with processed bytes
+                                    System.arraycopy(processedBytes, 0, frame, 0, processedBytes.size)
+                                }
+                            }
+                        }
+
+                        //Write:
                         output.write(frame)
                         recordingTime += frameDurationMs
                         stopMax = recordingTime >= maxTime
 
                         // Run VAD on each frame:
-                        isSpeech = if (prefs.silenceDetector == "Silero") {
+                        isSpeech = if (prefs.silenceDetector == "Yamnet") {
+                            yamnetVad.classifyAudio("Speech", frame).label == "Speech"
+                        } else if (prefs.silenceDetector == "Silero") {
                             sileroVad.isSpeech(frame)
                         } else {
                             rtcVad.isSpeech(frame)
                         }
+                        // Log.d(TAG, "isSpeech: $isSpeech")
 
                         if (silenceEnabled && !isSpeech) {
                             // NO SPEECH -> Increase patience countdown:
@@ -173,7 +240,9 @@ class AndroidAudioRecorder(private val context: Context) {
             }
 
             // Close VAD:
-            if (prefs.silenceDetector == "Silero") {
+            if (prefs.silenceDetector == "Yamnet") {
+                yamnetVad.close()
+            } else if (prefs.silenceDetector == "Silero") {
                 sileroVad.close()
             } else {
                 rtcVad.close()
@@ -210,5 +279,27 @@ class AndroidAudioRecorder(private val context: Context) {
         } catch (e: Exception) {
             Log.w(TAG, "Audio file conversion error: ", e)
         }
+    }
+
+
+    // RTNR converters:
+    private fun byteArrayToShortArray(bytes: ByteArray): ShortArray {
+        val shorts = ShortArray(bytes.size / 2)
+        ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shorts)
+        return shorts
+    }
+
+    private fun shortArrayToDoubleArray(shorts: ShortArray): DoubleArray {
+        return DoubleArray(shorts.size) { i -> shorts[i].toDouble() }
+    }
+
+    private fun doubleArrayToShortArray(doubles: DoubleArray): ShortArray {
+        return ShortArray(doubles.size) { i -> doubles[i].toInt().toShort() }
+    }
+
+    private fun shortArrayToByteArray(shorts: ShortArray): ByteArray {
+        val buffer = ByteBuffer.allocate(shorts.size * 2).order(ByteOrder.LITTLE_ENDIAN)
+        buffer.asShortBuffer().put(shorts)
+        return buffer.array()
     }
 }

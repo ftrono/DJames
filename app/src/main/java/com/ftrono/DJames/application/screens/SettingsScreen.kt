@@ -204,7 +204,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 )
                 DropdownSpinner(
                     context = mContext,
-                    parentOptions = listOf("Silero", "WebRTC"),
+                    parentOptions = listOf("WebRTC", "Silero", "Yamnet"),
                     init = selDetectorState.value,
                     state = selDetectorState,
                     focusColorLight = colorResource(id = R.color.yellowSignLight),

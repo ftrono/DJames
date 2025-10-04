@@ -106,11 +106,13 @@ class AndroidAudioRecorder(private val context: Context) {
             )
 
             // Enable NS + AGC if present
-            if (NoiseSuppressor.isAvailable()) {
-                NoiseSuppressor.create(audioRecorder.audioSessionId)?.enabled = true
-            }
-            if (AutomaticGainControl.isAvailable()) {
-                AutomaticGainControl.create(audioRecorder.audioSessionId)?.enabled = true
+            if (!prefs.useSourceMic) {
+                if (NoiseSuppressor.isAvailable()) {
+                    NoiseSuppressor.create(audioRecorder.audioSessionId)?.enabled = true
+                }
+                if (AutomaticGainControl.isAvailable()) {
+                    AutomaticGainControl.create(audioRecorder.audioSessionId)?.enabled = true
+                }
             }
 
             // START:

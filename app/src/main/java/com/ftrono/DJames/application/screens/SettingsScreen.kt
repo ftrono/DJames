@@ -107,6 +107,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     // STATUSES:
     val checkedV3 = remember { mutableStateOf(if (preview) true else prefs.enableV3) }
     val checkedNoise = remember { mutableStateOf(if (preview) true else prefs.enableNoiseSuppression) }
+    val checkedMic = remember { mutableStateOf(if (preview) false else prefs.useSourceMic) }
     val checkedStartup = remember { mutableStateOf(if (preview) true else prefs.autoStartup) }
     val checkedSilenceQueries = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledQueries) }
     val checkedSilenceMess = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledMess) }
@@ -239,6 +240,35 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         onCheckedChange = {
                             checkedNoise.value = it
                             prefs.enableNoiseSuppression = it
+                        }
+                    )
+                }
+
+                //Experimental: Use source MIC:
+                Row(
+                    modifier = Modifier
+                        .padding(bottom = 4.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = "Use source MIC",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        lineHeight = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Switch(
+                        checked = checkedMic.value,
+                        colors = getSwitchColors(
+                            color = colorResource(id = R.color.yellowSign)
+                        ),
+                        onCheckedChange = {
+                            checkedMic.value = it
+                            prefs.useSourceMic = it
                         }
                     )
                 }

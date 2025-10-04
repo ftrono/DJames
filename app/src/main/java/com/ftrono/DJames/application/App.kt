@@ -101,6 +101,7 @@ var currentSongPlaying = MutableLiveData<String>("Don't turn off the screen!")
 var currentArtistPlaying = MutableLiveData<String>("You can keep this Clock\nScreen on to save battery")
 val overlayOptionsStr = MutableLiveData<String>("speak, save, clock, silence")   //volume
 var autoStopQueriesState = MutableLiveData<Boolean>(false)
+var autoUseSourceMic = MutableLiveData<Boolean>(false)
 var clickCounter = MutableLiveData<Int>(0)
 var allowVolumeClick = true
 var userNicknameUI = MutableLiveData<String>("")

@@ -104,14 +104,25 @@ fun getQuickActionOnTap(
         }
     } else if (name == "silence") {
         {
-            //TRIGGER ENABLE/DISABLE SILENCE DETECTION:
-            val silenceModeToTrigger = if (prefs.silenceEnabledQueries) "OFF" else "ON"
-            prefs.silenceEnabledQueries = !prefs.silenceEnabledQueries
-            autoStopQueriesState.postValue(!autoStopQueriesState.value!!)
+//            //TRIGGER ENABLE/DISABLE SILENCE DETECTION:
+//            val silenceModeToTrigger = if (prefs.silenceEnabledQueries) "OFF" else "ON"
+//            prefs.silenceEnabledQueries = !prefs.silenceEnabledQueries
+//            autoStopQueriesState.postValue(!autoStopQueriesState.value!!)
+//            //TOAST -> Send broadcast:
+//            Intent().also { intent ->
+//                intent.setAction(ACTION_TOASTER)
+//                intent.putExtra("toastText", "Silence detection $silenceModeToTrigger")
+//                context.sendBroadcast(intent)
+//            }
+
+            //TRIGGER ENABLE/DISABLE USE SOURCE MIC:
+            val micModeToTrigger = if (prefs.useSourceMic) "OFF" else "ON"
+            prefs.useSourceMic = !prefs.useSourceMic
+//            autoStopQueriesState.postValue(!autoStopQueriesState.value!!)
             //TOAST -> Send broadcast:
             Intent().also { intent ->
                 intent.setAction(ACTION_TOASTER)
-                intent.putExtra("toastText", "Silence detection $silenceModeToTrigger")
+                intent.putExtra("toastText", "Use source MIC: $micModeToTrigger")
                 context.sendBroadcast(intent)
             }
         }
@@ -233,7 +244,7 @@ fun getQuickAction(
         )
     } else {
         QuickAction(
-            description = "detect silence",
+            description = "source mic",
             content = {
                 Icon(
                     modifier = Modifier

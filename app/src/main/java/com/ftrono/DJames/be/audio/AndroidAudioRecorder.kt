@@ -89,9 +89,16 @@ class AndroidAudioRecorder(private val context: Context) {
                 prefs.silenceEnabledQueries
             }
 
+            // Mic source:
+            var micSource = if (prefs.useSourceMic) {
+                MediaRecorder.AudioSource.DEFAULT
+            } else {
+                MediaRecorder.AudioSource.VOICE_RECOGNITION
+            }
+
             //Create recorder:
             audioRecorder = AudioRecord(
-                MediaRecorder.AudioSource.VOICE_RECOGNITION,
+                micSource,
                 recSamplingRate,
                 channelConfig,
                 audioFormat,

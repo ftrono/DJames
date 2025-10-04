@@ -53,6 +53,11 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getBoolean(KEY_ENABLE_V3, false) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_ENABLE_V3, value).apply()
 
+    //Test: use source MIC:
+    var useSourceMic: Boolean
+        get() = sharedPrefs.getBoolean(KEY_USE_SOURCE_MIC, false) as Boolean
+        set(value) = sharedPrefs.edit().putBoolean(KEY_USE_SOURCE_MIC, value).apply()
+
     //Auto start-up:
     var autoStartup: Boolean
         get() = sharedPrefs.getBoolean(KEY_AUTO_STARTUP, false) as Boolean
@@ -182,6 +187,7 @@ class Prefs (context: Context) {
         const val KEY_USER_NICKNAME = ".key.user_nickname"
         const val KEY_USER_GENDER = ".key.user_gender"
         const val KEY_ENABLE_V3 = ".key.enable_v3"
+        const val KEY_USE_SOURCE_MIC = ".key.use_source_mic"
         const val KEY_AUTO_STARTUP = ".key.auto_startup"
         const val KEY_OVERLAY_POSITION = ".key.overlay_position"
         const val KEY_SILENCE_DETECTOR = ".key.silence_detector"

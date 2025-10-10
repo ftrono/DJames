@@ -35,7 +35,7 @@ import java.nio.ByteOrder
 
 class AndroidAudioRecorder(private val context: Context) {
     private val TAG = AndroidAudioRecorder::class.java.simpleName
-    private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    private val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
     private lateinit var audioRecorder: AudioRecord
     private var recFilePcm: File? = null
@@ -60,6 +60,10 @@ class AndroidAudioRecorder(private val context: Context) {
         messageType: String = "",
     ) {
         try {
+            //Create dir:
+            val saveDir = File(downloadsDir, "djames_rec")
+            saveDir.mkdirs()
+
             //Create files:
             val timestamp = utils.getCurrentTimestamp()
             lastRecordingName = "$timestamp.flac"

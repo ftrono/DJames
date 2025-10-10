@@ -106,8 +106,10 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
 
     // STATUSES:
     val checkedV3 = remember { mutableStateOf(if (preview) true else prefs.enableV3) }
-    val checkedNoise = remember { mutableStateOf(if (preview) true else prefs.enableNoiseSuppression) }
     val checkedMic = remember { mutableStateOf(if (preview) false else prefs.useSourceMic) }
+    val checkedNoise = remember { mutableStateOf(if (preview) true else prefs.enableNoiseSuppression) }
+    var recMinFreq by rememberSaveable { mutableStateOf(if (preview) "500" else prefs.recMinFreq) }
+    var recMaxFreq by rememberSaveable { mutableStateOf(if (preview) "6000" else prefs.recMaxFreq) }
     val checkedStartup = remember { mutableStateOf(if (preview) true else prefs.autoStartup) }
     val checkedSilenceQueries = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledQueries) }
     val checkedSilenceMess = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledMess) }
@@ -119,7 +121,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     var clockTimeout by rememberSaveable { mutableStateOf(if (preview) "5" else prefs.clockTimeout) }
     //val textQueryLangState = rememberSaveable { mutableStateOf(if (preview) "English" else queryLangFull[queryLangCodes.indexOf(prefs.queryLanguage)]) }
     val textMessLangState = rememberSaveable { mutableStateOf(if (preview) "English" else messLangFull[messLangCodes.indexOf(prefs.messageLanguage)]) }
-    val selDetectorState = rememberSaveable { mutableStateOf(if (preview) "WebRTC" else prefs.silenceDetector) }
 
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -152,9 +153,11 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             .clickable {
                                 saveSettings(
                                     mContext,
-                                    newRecTimeout = recTimeout,
-                                    newMessTimeout = messTimeout,
-                                    newClockTimeout = clockTimeout
+                                    recTimeout = recTimeout,
+                                    messTimeout = messTimeout,
+                                    clockTimeout = clockTimeout,
+                                    recMinFreq = recMinFreq,
+                                    recMaxFreq = recMaxFreq
                                 )
                                 navController.popBackStack()
                             },
@@ -193,27 +196,35 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 iconPainter = painterResource(id = R.drawable.icon_warning)
             ) {
 
-                //Experimental: Silence detector:
-                Text(
+                //Experimental: Use source MIC:
+                Row(
                     modifier = Modifier
-                        .padding(top = 12.dp, bottom = 4.dp),
-                    text = "Default silence detector",
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                DropdownSpinner(
-                    context = mContext,
-                    parentOptions = listOf("WebRTC", "Silero", "Yamnet"),
-                    init = selDetectorState.value,
-                    state = selDetectorState,
-                    focusColorLight = colorResource(id = R.color.yellowSignLight),
-                    focusColorDark = colorResource(id = R.color.yellowSign),
-                    optionsBackground = colorResource(id = R.color.dark_grey),
-                    prefName = "silenceDetector",
-                    width = 200
-                )
+                        .padding(bottom = 4.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = "Use source MIC",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        lineHeight = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Switch(
+                        checked = checkedMic.value,
+                        colors = getSwitchColors(
+                            color = colorResource(id = R.color.yellowSign)
+                        ),
+                        onCheckedChange = {
+                            checkedMic.value = it
+                            prefs.useSourceMic = it
+                        }
+                    )
+                }
+
 
                 //Experimental: Enable Noise Suppression:
                 Row(
@@ -244,34 +255,146 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     )
                 }
 
-                //Experimental: Use source MIC:
-                Row(
+
+                //Req Min Freq:
+                Text(
                     modifier = Modifier
-                        .padding(bottom = 4.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = "Use source MIC",
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
-                        lineHeight = 18.sp,
+                        .padding(top=8.dp, bottom = 4.dp),
+                    text = "Audio: min cutout frequency",
+                    color = colorResource(id = R.color.light_grey),
+                    textAlign = TextAlign.Start,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                OutlinedTextField(
+                    modifier = Modifier
+                        .padding(top = 8.dp, bottom = 20.dp)
+                        .width(250.dp)
+                        .focusRequester(focusRequester),
+                    colors = getTextFieldColors(
+                        colorLight = colorResource(id = R.color.yellowSignLight),
+                        colorDark = colorResource(id = R.color.yellowSign)
+                    ),
+                    value = recMinFreq,
+                    textStyle = TextStyle(
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
-                    )
-                    Switch(
-                        checked = checkedMic.value,
-                        colors = getSwitchColors(
-                            color = colorResource(id = R.color.yellowSign)
-                        ),
-                        onCheckedChange = {
-                            checkedMic.value = it
-                            prefs.useSourceMic = it
+                    ),
+                    maxLines = 1,
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            focusManager.clearFocus()
+                            keyboardController?.hide()
+                            saveSettings(
+                                mContext,
+                                recTimeout=recTimeout,
+                                messTimeout=messTimeout,
+                                clockTimeout=clockTimeout,
+                                recMinFreq=recMinFreq,
+                                recMaxFreq=recMaxFreq
+                            )
                         }
-                    )
-                }
+                    ),
+                    suffix = {
+                        Text(
+                            text = "Hz",
+                            fontSize = 16.sp,
+                            fontStyle = FontStyle.Italic
+                        )
+                    },
+                    supportingText = {
+                        Text(
+                            text = "(keep between 0 and 10000)"
+                        )
+                    },
+                    placeholder = {
+                        Text(
+                            text = "Write here...",
+                            fontSize = 16.sp,
+                            fontStyle = FontStyle.Italic
+                        )
+                    },
+                    onValueChange = { newText ->
+                        recMinFreq = newText.trimStart { it == '0' }
+                        //TODO
+                    }
+                )
+
+
+                //Req Max Freq:
+                Text(
+                    modifier = Modifier
+                        .padding(top=8.dp, bottom = 4.dp),
+                    text = "Audio: max cutout frequency",
+                    color = colorResource(id = R.color.light_grey),
+                    textAlign = TextAlign.Start,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                OutlinedTextField(
+                    modifier = Modifier
+                        .padding(top = 8.dp, bottom = 20.dp)
+                        .width(250.dp)
+                        .focusRequester(focusRequester),
+                    colors = getTextFieldColors(
+                        colorLight = colorResource(id = R.color.yellowSignLight),
+                        colorDark = colorResource(id = R.color.yellowSign)
+                    ),
+                    value = recMaxFreq,
+                    textStyle = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    maxLines = 1,
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            focusManager.clearFocus()
+                            keyboardController?.hide()
+                            saveSettings(
+                                mContext,
+                                recTimeout=recTimeout,
+                                messTimeout=messTimeout,
+                                clockTimeout=clockTimeout,
+                                recMinFreq=recMinFreq,
+                                recMaxFreq=recMaxFreq
+                            )
+                        }
+                    ),
+                    suffix = {
+                        Text(
+                            text = "Hz",
+                            fontSize = 16.sp,
+                            fontStyle = FontStyle.Italic
+                        )
+                    },
+                    supportingText = {
+                        Text(
+                            text = "(keep between 0 and 10000)"
+                        )
+                    },
+                    placeholder = {
+                        Text(
+                            text = "Write here...",
+                            fontSize = 16.sp,
+                            fontStyle = FontStyle.Italic
+                        )
+                    },
+                    onValueChange = { newText ->
+                        recMaxFreq = newText.trimStart { it == '0' }
+                        //TODO
+                    }
+                )
+
 
                 //Experimental: Enable v3:
                 Row(
@@ -420,7 +543,14 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         onDone = {
                             focusManager.clearFocus()
                             keyboardController?.hide()
-                            saveSettings(mContext, newRecTimeout=recTimeout, newMessTimeout=messTimeout, newClockTimeout=clockTimeout)
+                            saveSettings(
+                                mContext,
+                                recTimeout=recTimeout,
+                                messTimeout=messTimeout,
+                                clockTimeout=clockTimeout,
+                                recMinFreq=recMinFreq,
+                                recMaxFreq=recMaxFreq
+                            )
                         }
                     ),
                     suffix = {
@@ -577,9 +707,11 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             keyboardController?.hide()
                             saveSettings(
                                 mContext,
-                                newRecTimeout = recTimeout,
-                                newMessTimeout = messTimeout,
-                                newClockTimeout = clockTimeout
+                                recTimeout = recTimeout,
+                                messTimeout = messTimeout,
+                                clockTimeout = clockTimeout,
+                                recMinFreq=recMinFreq,
+                                recMaxFreq=recMaxFreq
                             )
                         }
                     ),
@@ -776,7 +908,14 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             onDone = {
                                 focusManager.clearFocus()
                                 keyboardController?.hide()
-                                saveSettings(mContext, newRecTimeout=recTimeout, newMessTimeout=messTimeout, newClockTimeout=clockTimeout)
+                                saveSettings(
+                                    mContext,
+                                    recTimeout=recTimeout,
+                                    messTimeout=messTimeout,
+                                    clockTimeout=clockTimeout,
+                                    recMinFreq=recMinFreq,
+                                    recMaxFreq=recMaxFreq
+                                )
                             }
                         ),
                         prefix = {
@@ -900,8 +1039,8 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
 }
 
 
-//Validate timeout before saving:
-fun validateTimeout(newVal: String, origVal: String, min_val: Int, max_val: Int) : String {
+//Validate integer value before saving:
+fun validateIntValue(newVal: String, origVal: String, min_val: Int, max_val: Int) : String {
     val newInt = newVal.toInt()
     return if (newInt in min_val..max_val) {
         newVal
@@ -912,21 +1051,33 @@ fun validateTimeout(newVal: String, origVal: String, min_val: Int, max_val: Int)
 
 
 //Save Settings:
-fun saveSettings(mContext: Context, newRecTimeout: String, newMessTimeout: String, newClockTimeout: String) {
+fun saveSettings(mContext: Context, recTimeout: String, messTimeout: String, clockTimeout: String, recMinFreq: String, recMaxFreq: String) {
     //RecTimeout:
-    if (newRecTimeout.isNotEmpty()) {
+    if (recTimeout.isNotEmpty()) {
         //validate & overwrite:
-        prefs.recTimeout = validateTimeout(newVal = newRecTimeout, origVal = prefs.recTimeout, min_val = 5, max_val = 15)
+        prefs.recTimeout = validateIntValue(newVal = recTimeout, origVal = prefs.recTimeout, min_val = 5, max_val = 15)
     }
     //MessageTimeout:
-    if (newMessTimeout.isNotEmpty()) {
+    if (messTimeout.isNotEmpty()) {
         //validate & overwrite:
-        prefs.messageTimeout = validateTimeout(newVal = newMessTimeout, origVal = prefs.messageTimeout, min_val = 5, max_val = 20)
+        prefs.messageTimeout = validateIntValue(newVal = messTimeout, origVal = prefs.messageTimeout, min_val = 5, max_val = 20)
     }
     //ClockTimeout:
-    if (newClockTimeout.isNotEmpty()) {
+    if (clockTimeout.isNotEmpty()) {
         //validate & overwrite:
-        prefs.clockTimeout = validateTimeout(newVal = newClockTimeout, origVal = prefs.clockTimeout, min_val = 5, max_val = 30)
+        prefs.clockTimeout = validateIntValue(newVal = clockTimeout, origVal = prefs.clockTimeout, min_val = 5, max_val = 30)
+    }
+    //RecMinFreq:
+    if (recMinFreq.isNotEmpty()) {
+        //validate & overwrite:
+        val maxFreq = if (recMaxFreq.isNotEmpty()) recMaxFreq.toInt() else 10000
+        prefs.recMinFreq = validateIntValue(newVal = recMinFreq, origVal = prefs.recMinFreq, min_val = 0, max_val = maxFreq)
+    }
+    //RecMaxFreq:
+    if (recMaxFreq.isNotEmpty()) {
+        //validate & overwrite:
+        val minFreq = if (recMinFreq.isNotEmpty()) recMinFreq.toInt() else 0
+        prefs.recMaxFreq = validateIntValue(newVal = recMaxFreq, origVal = prefs.recMaxFreq, min_val = minFreq, max_val = 10000)
     }
     Toast.makeText(mContext, "Preferences saved!", Toast.LENGTH_SHORT).show()
 }

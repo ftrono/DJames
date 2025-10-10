@@ -48,6 +48,7 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getString(KEY_USER_GENDER, "Sir") as String
         set(value) = sharedPrefs.edit().putString(KEY_USER_GENDER, value).apply()
 
+    // Experimental:
     //Enable v3:
     var enableV3: Boolean
         get() = sharedPrefs.getBoolean(KEY_ENABLE_V3, false) as Boolean
@@ -58,6 +59,22 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getBoolean(KEY_USE_SOURCE_MIC, false) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_USE_SOURCE_MIC, value).apply()
 
+    //Enable noise suppression:
+    var enableNoiseSuppression: Boolean
+        get() = sharedPrefs.getBoolean(KEY_ENABLE_NOISE_SUPPRESSION, false) as Boolean
+        set(value) = sharedPrefs.edit().putBoolean(KEY_ENABLE_NOISE_SUPPRESSION, value).apply()
+
+    //Rec min freq:
+    var recMinFreq: String
+        get() = sharedPrefs.getString(KEY_REC_MIN_FREQ, "500") as String
+        set(value) = sharedPrefs.edit().putString(KEY_REC_MIN_FREQ, value).apply()
+
+    //Rec max freq:
+    var recMaxFreq: String
+        get() = sharedPrefs.getString(KEY_REC_MAX_FREQ, "6000") as String
+        set(value) = sharedPrefs.edit().putString(KEY_REC_MAX_FREQ, value).apply()
+
+    //Prefs:
     //Auto start-up:
     var autoStartup: Boolean
         get() = sharedPrefs.getBoolean(KEY_AUTO_STARTUP, false) as Boolean
@@ -68,16 +85,6 @@ class Prefs (context: Context) {
         //0 -> Left; 1 -> Right
         get() = sharedPrefs.getString(KEY_OVERLAY_POSITION, "Right") as String
         set(value) = sharedPrefs.edit().putString(KEY_OVERLAY_POSITION, value).apply()
-
-    //Silence detector:
-    var silenceDetector: String
-        get() = sharedPrefs.getString(KEY_SILENCE_DETECTOR, "WebRTC") as String
-        set(value) = sharedPrefs.edit().putString(KEY_SILENCE_DETECTOR, value).apply()
-
-    //Enable v3:
-    var enableNoiseSuppression: Boolean
-        get() = sharedPrefs.getBoolean(KEY_ENABLE_NOISE_SUPPRESSION, false) as Boolean
-        set(value) = sharedPrefs.edit().putBoolean(KEY_ENABLE_NOISE_SUPPRESSION, value).apply()
 
     //Voice queries: Default language:
     var queryLanguage: String
@@ -188,10 +195,11 @@ class Prefs (context: Context) {
         const val KEY_USER_GENDER = ".key.user_gender"
         const val KEY_ENABLE_V3 = ".key.enable_v3"
         const val KEY_USE_SOURCE_MIC = ".key.use_source_mic"
+        const val KEY_REC_MIN_FREQ = ".key.rec_min_freq"
+        const val KEY_REC_MAX_FREQ = ".key.rec_max_freq"
+        const val KEY_ENABLE_NOISE_SUPPRESSION = ".key.enable_noise_suppression"
         const val KEY_AUTO_STARTUP = ".key.auto_startup"
         const val KEY_OVERLAY_POSITION = ".key.overlay_position"
-        const val KEY_SILENCE_DETECTOR = ".key.silence_detector"
-        const val KEY_ENABLE_NOISE_SUPPRESSION = ".key.enable_noise_suppression"
         const val KEY_QUERY_LANGUAGE = ".key.query_language"
         const val KEY_REC_TIMEOUT = ".key.rec_timeout"
         const val KEY_SILENCE_ENABLED_QUERIES = ".key.enable_silence_queries"

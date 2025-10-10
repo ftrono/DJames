@@ -143,13 +143,6 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.1.0")
     //VAD:
     implementation("com.github.gkonovalov.android-vad:webrtc:2.0.10")
-    implementation("com.github.gkonovalov.android-vad:silero:2.0.10")
-    implementation("com.github.gkonovalov.android-vad:yamnet:2.0.10")
-    //RTNR:
-    implementation("com.github.JaeBinCHA7:RTNR:V2.0.0") {
-        exclude("tensorflow-lite")
-        exclude("org.tensorflow")
-    }
 //    //Audio signal processing: FFT + helpers:
 //    implementation("be.tarsos.dsp:core:2.5")
 //    implementation("be.tarsos.dsp:jvm:2.5")

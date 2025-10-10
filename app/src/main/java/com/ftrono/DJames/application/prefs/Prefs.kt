@@ -61,7 +61,7 @@ class Prefs (context: Context) {
 
     //Enable noise suppression:
     var enableNoiseSuppression: Boolean
-        get() = sharedPrefs.getBoolean(KEY_ENABLE_NOISE_SUPPRESSION, false) as Boolean
+        get() = sharedPrefs.getBoolean(KEY_ENABLE_NOISE_SUPPRESSION, true) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_ENABLE_NOISE_SUPPRESSION, value).apply()
 
     //Rec min freq:
@@ -73,6 +73,11 @@ class Prefs (context: Context) {
     var recMaxFreq: String
         get() = sharedPrefs.getString(KEY_REC_MAX_FREQ, "6000") as String
         set(value) = sharedPrefs.edit().putString(KEY_REC_MAX_FREQ, value).apply()
+
+    //Save to downloads:
+    var recToDownloads: Boolean
+        get() = sharedPrefs.getBoolean(KEY_REC_TO_DOWNLOADS, false) as Boolean
+        set(value) = sharedPrefs.edit().putBoolean(KEY_REC_TO_DOWNLOADS, value).apply()
 
     //Prefs:
     //Auto start-up:
@@ -195,9 +200,10 @@ class Prefs (context: Context) {
         const val KEY_USER_GENDER = ".key.user_gender"
         const val KEY_ENABLE_V3 = ".key.enable_v3"
         const val KEY_USE_SOURCE_MIC = ".key.use_source_mic"
+        const val KEY_ENABLE_NOISE_SUPPRESSION = ".key.enable_noise_suppression"
         const val KEY_REC_MIN_FREQ = ".key.rec_min_freq"
         const val KEY_REC_MAX_FREQ = ".key.rec_max_freq"
-        const val KEY_ENABLE_NOISE_SUPPRESSION = ".key.enable_noise_suppression"
+        const val KEY_REC_TO_DOWNLOADS = ".key.rec_to_downloads"
         const val KEY_AUTO_STARTUP = ".key.auto_startup"
         const val KEY_OVERLAY_POSITION = ".key.overlay_position"
         const val KEY_QUERY_LANGUAGE = ".key.query_language"

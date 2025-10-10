@@ -110,6 +110,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val checkedNoise = remember { mutableStateOf(if (preview) true else prefs.enableNoiseSuppression) }
     var recMinFreq by rememberSaveable { mutableStateOf(if (preview) "500" else prefs.recMinFreq) }
     var recMaxFreq by rememberSaveable { mutableStateOf(if (preview) "6000" else prefs.recMaxFreq) }
+    val checkedRecToDownloads = remember { mutableStateOf(if (preview) false else prefs.recToDownloads) }
     val checkedStartup = remember { mutableStateOf(if (preview) true else prefs.autoStartup) }
     val checkedSilenceQueries = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledQueries) }
     val checkedSilenceMess = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledMess) }
@@ -394,6 +395,36 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         //TODO
                     }
                 )
+
+
+                //Experimental: Save recs to Downloads folder:
+                Row(
+                    modifier = Modifier
+                        .padding(bottom = 4.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = "Save recs to Downloads folder",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        lineHeight = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Switch(
+                        checked = checkedRecToDownloads.value,
+                        colors = getSwitchColors(
+                            color = colorResource(id = R.color.yellowSign)
+                        ),
+                        onCheckedChange = {
+                            checkedRecToDownloads.value = it
+                            prefs.recToDownloads = it
+                        }
+                    )
+                }
 
 
                 //Experimental: Enable v3:

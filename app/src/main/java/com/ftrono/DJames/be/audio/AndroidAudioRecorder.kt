@@ -37,14 +37,17 @@ class AndroidAudioRecorder(private val context: Context) {
     ) {
         try {
             //Create dir:
-            val saveDir = File(downloadsDir, "djames_rec")
-            saveDir.mkdirs()
+            var flacDir = recDir
+            if (prefs.recToDownloads) {
+                flacDir = File(downloadsDir, "djames_rec")
+                flacDir.mkdirs()
+            }
 
             //Create files:
             val timestamp = utils.getCurrentTimestamp()
             lastRecordingName = "$timestamp.flac"
             recFilePcm = File(recDir, "$timestamp.pcm")
-            recFileFlac = File(saveDir, lastRecordingName)
+            recFileFlac = File(flacDir, lastRecordingName)
 
             // Params:
             val channelConfig = AudioFormat.CHANNEL_IN_MONO
@@ -110,7 +113,7 @@ class AndroidAudioRecorder(private val context: Context) {
             )
 
             // FFT Filter:
-            val bpFilter = BiquadBandPassFilter()
+            val bpFilter = NoiseBPFilter()
 
             // Rec buffers -> For VAD: 16-bit PCM → 2 bytes per sample:
             val chunkSize = rtcVad.frameSize.value * 2

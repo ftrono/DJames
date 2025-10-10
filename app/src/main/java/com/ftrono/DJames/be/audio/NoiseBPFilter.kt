@@ -8,22 +8,24 @@ import kotlin.math.roundToInt
 import kotlin.math.sin
 
 
-class BiquadBandPassFilter(
-    /**
-     * Second-order Biquad band-pass filter (RBJ cookbook implementation).
-     * Keeps internal state across calls (no per-frame restart).
-     *
-     * Input/Output: PCM16 little-endian mono ByteArray frames.
-     */
-) {
+/**
+ * NOISE CLEANING BAND-PASS FILTER:
+ * Second-order Biquad band-pass filter (RBJ cookbook implementation).
+ * Keeps internal state across calls (no per-frame restart).
+ *
+ * Input/Output: PCM16 little-endian mono ByteArray frames.
+ */
+class NoiseBPFilter() {
+    // Type: Bi-Quad Band-Pass filter
 
+    // Init coefficients:
     private var b0 = 0.0
     private var b1 = 0.0
     private var b2 = 0.0
     private var a1 = 0.0
     private var a2 = 0.0
 
-    // state (Direct Form I)
+    // State (Direct Form I):
     private var x1 = 0.0
     private var x2 = 0.0
     private var y1 = 0.0
@@ -38,6 +40,24 @@ class BiquadBandPassFilter(
     /**
      * Configure the bandpass using min & max frequency.
      * Uses geometric center f0 = sqrt(f1 * f2) and Q = f0 / (f2 - f1).
+     *
+     * In setBand() we define constants (b0, b1, b2, a0, a1, a2) that describe how strongly to weight current and past samples.
+     *
+     * They come from these DSP equations for a biquad filter (a 2-pole, 2-zero filter):
+     *
+     * [ y[n] = b_0 x[n] + b_1 x[n-1] + b_2 x[n-2] - a_1 y[n-1] - a_2 y[n-2] ]
+     *
+     * where:
+     *
+     * x[n] is the input sample,
+     * y[n] is the output sample,
+     * b0, b1, b2 control the feed-forward part (how input affects output),
+     * a1, a2 control the feedback part (how previous outputs affect new one).
+     * The coefficients depend on:
+     *
+     * f0: center frequency (roughly where the band is centered),
+     * Q: quality factor (how wide/narrow the band is),
+     * sample_rate: defines the Nyquist limit (half of sample rate = max representable frequency).
      */
     fun setBand(minFreqHz: Int, maxFreqHz: Int) {
         val nyquist = recSamplingRate / 2.0
@@ -71,6 +91,11 @@ class BiquadBandPassFilter(
 
     /**
      * Process one PCM16 sample (normalized to [-1,1]). Returns filtered sample.
+     *
+     * For each incoming sample x, we compute y using the DSP formula and remember the last two inputs/outputs (x1, x2, y1, y2) for the next step:
+     * y = b0*x + b1*x1 + b2*x2 - a1*y1 - a2*y2
+     *
+     * This recurrence creates a smooth filter response — it’s not a hard cutoff, but a gradual one.
      */
     private fun processSample(x: Double): Double {
         val y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2

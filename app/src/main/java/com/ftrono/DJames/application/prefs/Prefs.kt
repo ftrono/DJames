@@ -71,7 +71,7 @@ class Prefs (context: Context) {
 
     //Rec max freq:
     var recMaxFreq: String
-        get() = sharedPrefs.getString(KEY_REC_MAX_FREQ, "3000") as String
+        get() = sharedPrefs.getString(KEY_REC_MAX_FREQ, "2900") as String
         set(value) = sharedPrefs.edit().putString(KEY_REC_MAX_FREQ, value).apply()
 
     //Save to downloads:

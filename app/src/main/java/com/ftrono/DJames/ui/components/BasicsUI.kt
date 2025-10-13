@@ -123,7 +123,7 @@ fun CustomSlider(
         onValueChange = { rangeVal -> position.value = rangeVal },
         valueRange = range,
         onValueChangeFinished = {
-            onDone
+            onDone()
         },
         colors = SliderDefaults.colors(
             thumbColor = thumbColor,
@@ -189,7 +189,7 @@ fun CustomRangeSlider(
         onValueChange = { rangeVal -> rangePosition.value = rangeVal },
         valueRange = range,
         onValueChangeFinished = {
-            onDone
+            onDone()
         },
         colors = SliderDefaults.colors(
             thumbColor = thumbColor,

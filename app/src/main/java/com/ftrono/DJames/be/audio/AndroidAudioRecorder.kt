@@ -119,7 +119,6 @@ class AndroidAudioRecorder(private val context: Context) {
             val chunkSize = rtcVad.frameSize.value * 2
             val buffer = ByteArray(bufferSize * 2)  // For Recorder: raw PCM storage
             val cleanedFrame = ByteArray(chunkSize)
-            val cleanedFrame2 = ByteArray(chunkSize)
 
             // Monitoring:
             var silenceMs = 0L
@@ -141,10 +140,9 @@ class AndroidAudioRecorder(private val context: Context) {
 
                         //Mute frequencies & run VAD on each cleaned frame:
                         if (prefs.enableNoiseSuppression) {
-                            bpFilter.processInto(frame, 0, cleanedFrame)   // 1st pass
-                            bpFilter.processInto(cleanedFrame, 0, cleanedFrame2)   // 2nd pass
-                            isSpeech = rtcVad.isSpeech(cleanedFrame2)
-                            output.write(cleanedFrame2)   //TODO: TEMP!
+                            bpFilter.processInto(frame, 0, cleanedFrame)
+                            isSpeech = rtcVad.isSpeech(cleanedFrame)
+                            output.write(cleanedFrame)   //TODO: TEMP!
                         } else {
                             isSpeech = rtcVad.isSpeech(frame)
                             output.write(frame)   //TODO: TEMP!

@@ -44,6 +44,11 @@ import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
+import androidx.compose.material3.RangeSlider
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.ui.text.style.TextAlign
+import kotlin.math.roundToInt
 
 
 @Composable
@@ -93,6 +98,136 @@ fun CustomCheckbox(
             fontSize = 14.sp,
             lineHeight = 16.sp,
             color = textColor
+        )
+    }
+}
+
+
+@Composable
+fun CustomSlider(
+    modifier: Modifier = Modifier,
+    position: MutableState<Float>,
+    range: ClosedFloatingPointRange<Float>,
+    steps: Int,
+    unit: String,
+    prefix: String = "",
+    trackColor: Color,
+    thumbColor: Color,
+    tickColor: Color? = null,
+    onDone: () -> Unit = {},
+) {
+    Slider(
+        modifier = modifier,
+        value = position.value,
+        steps = steps,   // (max - min) / (steps + 1),
+        onValueChange = { rangeVal -> position.value = rangeVal },
+        valueRange = range,
+        onValueChangeFinished = {
+            onDone
+        },
+        colors = SliderDefaults.colors(
+            thumbColor = thumbColor,
+            activeTrackColor = trackColor,
+            inactiveTrackColor = colorResource(R.color.dark_grey),
+            activeTickColor = tickColor ?: trackColor,
+            inactiveTickColor = tickColor ?: colorResource(R.color.dark_grey),
+        )
+    )
+    Row(
+        modifier = Modifier
+            .padding(bottom = 4.dp)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            modifier = Modifier
+                .padding(bottom = 4.dp),
+            text = "${range.start.roundToInt()}",
+            color = colorResource(id = R.color.mid_grey),
+            fontSize = 14.sp,
+        )
+        Text(
+            modifier = Modifier
+                .padding(bottom = 4.dp)
+                .weight(1F),
+            text = "${if (prefix != "") "$prefix " else ""}${position.value.roundToInt()} $unit",
+            color = colorResource(id = R.color.light_grey),
+            textAlign = TextAlign.Center,
+            fontSize = 14.sp,
+        )
+        Text(
+            modifier = Modifier
+                .padding(bottom = 4.dp),
+            text = "${range.endInclusive.roundToInt()}",
+            color = colorResource(id = R.color.mid_grey),
+            fontSize = 14.sp,
+        )
+    }
+}
+
+
+@Composable
+fun CustomRangeSlider(
+    modifier: Modifier = Modifier,
+    rangePosition: MutableState<ClosedFloatingPointRange<Float>>,
+    range: ClosedFloatingPointRange<Float>,
+    steps: Int,
+    unit: String,
+    trackColor: Color,
+    thumbColor: Color,
+    tickColor: Color? = null,
+    onDone: () -> Unit = {},
+) {
+    val min = range.start.roundToInt()
+    val max = range.endInclusive.roundToInt()
+
+    RangeSlider(
+        modifier = modifier,
+        value = rangePosition.value,
+        steps = steps - 1,   // (max - min) / (steps + 1),
+        onValueChange = { rangeVal -> rangePosition.value = rangeVal },
+        valueRange = range,
+        onValueChangeFinished = {
+            onDone
+        },
+        colors = SliderDefaults.colors(
+            thumbColor = thumbColor,
+            activeTrackColor = trackColor,
+            inactiveTrackColor = colorResource(R.color.dark_grey),
+            activeTickColor = tickColor ?: trackColor,
+            inactiveTickColor = tickColor ?: colorResource(R.color.dark_grey),
+        )
+    )
+    Row(
+        modifier = Modifier
+            .padding(bottom = 4.dp)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            modifier = Modifier
+                .padding(bottom = 4.dp),
+            text = "$min",
+            color = colorResource(id = R.color.mid_grey),
+            fontSize = 14.sp,
+        )
+        Text(
+            modifier = Modifier
+                .padding(bottom = 4.dp)
+                .weight(1F),
+            text = "${rangePosition.value.start.roundToInt()} to ${rangePosition.value.endInclusive.roundToInt()} $unit",
+            color = colorResource(id = R.color.light_grey),
+            textAlign = TextAlign.Center,
+            fontSize = 14.sp,
+        )
+        Text(
+            modifier = Modifier
+                .padding(bottom = 4.dp),
+            text = "$max",
+            color = colorResource(id = R.color.mid_grey),
+            fontSize = 14.sp,
         )
     }
 }

@@ -71,7 +71,7 @@ class Prefs (context: Context) {
 
     //Rec max freq:
     var recMaxFreq: String
-        get() = sharedPrefs.getString(KEY_REC_MAX_FREQ, "6000") as String
+        get() = sharedPrefs.getString(KEY_REC_MAX_FREQ, "3000") as String
         set(value) = sharedPrefs.edit().putString(KEY_REC_MAX_FREQ, value).apply()
 
     //Save to downloads:
@@ -115,7 +115,7 @@ class Prefs (context: Context) {
 
     //Messages: Rec timeout:
     var messageTimeout: String
-        get() = sharedPrefs.getString(KEY_MESSAGE_TIMEOUT, "15") as String
+        get() = sharedPrefs.getString(KEY_MESSAGE_TIMEOUT, "20") as String
         set(value) = sharedPrefs.edit().putString(KEY_MESSAGE_TIMEOUT, value).apply()
 
     //Messages: Silence enabled:

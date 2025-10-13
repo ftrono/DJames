@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -16,16 +15,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,21 +29,16 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -67,6 +57,8 @@ import com.ftrono.DJames.application.services.OverlayService
 import com.ftrono.DJames.application.spotUserName
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.volumeUpEnabledUI
+import com.ftrono.DJames.ui.components.CustomRangeSlider
+import com.ftrono.DJames.ui.components.CustomSlider
 import com.ftrono.DJames.ui.components.DropdownSpinner
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.components.SettingsSection
@@ -75,7 +67,8 @@ import com.ftrono.DJames.ui.components.StreetUIScaffold
 import com.ftrono.DJames.ui.navigation.DialogLogout
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.selectors.getSwitchColors
-import com.ftrono.DJames.ui.selectors.getTextFieldColors
+import kotlin.math.roundToInt
+
 
 @Preview
 @Preview(heightDp = 360, widthDp = 800)
@@ -108,8 +101,13 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val checkedV3 = remember { mutableStateOf(if (preview) true else prefs.enableV3) }
     val checkedMic = remember { mutableStateOf(if (preview) false else prefs.useSourceMic) }
     val checkedNoise = remember { mutableStateOf(if (preview) true else prefs.enableNoiseSuppression) }
-    var recMinFreq by rememberSaveable { mutableStateOf(if (preview) "500" else prefs.recMinFreq) }
-    var recMaxFreq by rememberSaveable { mutableStateOf(if (preview) "6000" else prefs.recMaxFreq) }
+
+    var recFreqRange = 300f..3400f
+    var sliderRecFreqPos = remember { mutableStateOf(if (preview) 800f..2800f else prefs.recMinFreq.toFloat()..prefs.recMaxFreq.toFloat()) }
+    var sliderRecTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.recTimeout.toFloat()) }
+    var sliderMessTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.recTimeout.toFloat()) }
+    var sliderClockTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.recTimeout.toFloat()) }
+
     val checkedRecToDownloads = remember { mutableStateOf(if (preview) false else prefs.recToDownloads) }
     val checkedStartup = remember { mutableStateOf(if (preview) true else prefs.autoStartup) }
     val checkedSilenceQueries = remember { mutableStateOf(if (preview) true else prefs.silenceEnabledQueries) }
@@ -117,10 +115,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val checkedAutoClock = remember { mutableStateOf(if (preview) true else prefs.autoClock) }
     val checkedClockRedirect = remember { mutableStateOf(if (preview) true else prefs.clockRedirectEnabled) }
     val checkedVolumeEnabled = remember { mutableStateOf(if (preview) true else prefs.volumeUpEnabled) }
-    var recTimeout by rememberSaveable { mutableStateOf(if (preview) "5" else prefs.recTimeout) }
-    var messTimeout by rememberSaveable { mutableStateOf(if (preview) "5" else prefs.messageTimeout) }
-    var clockTimeout by rememberSaveable { mutableStateOf(if (preview) "5" else prefs.clockTimeout) }
-    //val textQueryLangState = rememberSaveable { mutableStateOf(if (preview) "English" else queryLangFull[queryLangCodes.indexOf(prefs.queryLanguage)]) }
     val textMessLangState = rememberSaveable { mutableStateOf(if (preview) "English" else messLangFull[messLangCodes.indexOf(prefs.messageLanguage)]) }
 
     val focusRequester = remember { FocusRequester() }
@@ -152,14 +146,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             .padding(end = 18.dp)
                             .size(35.dp)
                             .clickable {
-                                saveSettings(
-                                    mContext,
-                                    recTimeout = recTimeout,
-                                    messTimeout = messTimeout,
-                                    clockTimeout = clockTimeout,
-                                    recMinFreq = recMinFreq,
-                                    recMaxFreq = recMaxFreq
-                                )
                                 navController.popBackStack()
                             },
                         imageVector = Icons.Default.Check,
@@ -257,142 +243,30 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 }
 
 
-                //Req Min Freq:
+                // Experimental: Rec frequencies range:
                 Text(
                     modifier = Modifier
                         .padding(top=8.dp, bottom = 4.dp),
-                    text = "Audio: min cutout frequency",
+                    text = "Audio: cutout frequencies",
                     color = colorResource(id = R.color.light_grey),
                     textAlign = TextAlign.Start,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
-                OutlinedTextField(
-                    modifier = Modifier
-                        .padding(top = 8.dp, bottom = 20.dp)
-                        .width(250.dp)
-                        .focusRequester(focusRequester),
-                    colors = getTextFieldColors(
-                        colorLight = colorResource(id = R.color.yellowSignLight),
-                        colorDark = colorResource(id = R.color.yellowSign)
-                    ),
-                    value = recMinFreq,
-                    textStyle = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    maxLines = 1,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            focusManager.clearFocus()
-                            keyboardController?.hide()
-                            saveSettings(
-                                mContext,
-                                recTimeout=recTimeout,
-                                messTimeout=messTimeout,
-                                clockTimeout=clockTimeout,
-                                recMinFreq=recMinFreq,
-                                recMaxFreq=recMaxFreq
-                            )
-                        }
-                    ),
-                    suffix = {
-                        Text(
-                            text = "Hz",
-                            fontSize = 16.sp,
-                            fontStyle = FontStyle.Italic
-                        )
-                    },
-                    supportingText = {
-                        Text(
-                            text = "(keep between 0 and 10000)"
-                        )
-                    },
-                    placeholder = {
-                        Text(
-                            text = "Write here...",
-                            fontSize = 16.sp,
-                            fontStyle = FontStyle.Italic
-                        )
-                    },
-                    onValueChange = { newText ->
-                        recMinFreq = newText.trimStart { it == '0' }
-                        //TODO
-                    }
-                )
-
-
-                //Req Max Freq:
-                Text(
-                    modifier = Modifier
-                        .padding(top=8.dp, bottom = 4.dp),
-                    text = "Audio: max cutout frequency",
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                OutlinedTextField(
-                    modifier = Modifier
-                        .padding(top = 8.dp, bottom = 20.dp)
-                        .width(250.dp)
-                        .focusRequester(focusRequester),
-                    colors = getTextFieldColors(
-                        colorLight = colorResource(id = R.color.yellowSignLight),
-                        colorDark = colorResource(id = R.color.yellowSign)
-                    ),
-                    value = recMaxFreq,
-                    textStyle = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    maxLines = 1,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            focusManager.clearFocus()
-                            keyboardController?.hide()
-                            saveSettings(
-                                mContext,
-                                recTimeout=recTimeout,
-                                messTimeout=messTimeout,
-                                clockTimeout=clockTimeout,
-                                recMinFreq=recMinFreq,
-                                recMaxFreq=recMaxFreq
-                            )
-                        }
-                    ),
-                    suffix = {
-                        Text(
-                            text = "Hz",
-                            fontSize = 16.sp,
-                            fontStyle = FontStyle.Italic
-                        )
-                    },
-                    supportingText = {
-                        Text(
-                            text = "(keep between 0 and 10000)"
-                        )
-                    },
-                    placeholder = {
-                        Text(
-                            text = "Write here...",
-                            fontSize = 16.sp,
-                            fontStyle = FontStyle.Italic
-                        )
-                    },
-                    onValueChange = { newText ->
-                        recMaxFreq = newText.trimStart { it == '0' }
-                        //TODO
+                CustomRangeSlider(
+                    modifier =  Modifier
+                        .padding(top=4.dp),
+                    rangePosition = sliderRecFreqPos,
+                    range = recFreqRange,
+                    steps = 31,   // (max - min) / (steps + 1),
+                    unit = "Hz",
+                    trackColor = colorResource(R.color.yellowSign),
+                    thumbColor = colorResource(R.color.yellowSignLight),
+                    tickColor = colorResource(R.color.faded_grey),
+                    onDone = {
+                        // Update prefs:
+                        prefs.recMinFreq = sliderRecFreqPos.value.start.roundToInt().toString()
+                        prefs.recMaxFreq = sliderRecFreqPos.value.endInclusive.roundToInt().toString()
                     }
                 )
 
@@ -498,7 +372,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top=12.dp),
+                        .padding(top = 12.dp),
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -539,7 +413,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 iconPainter = painterResource(id = R.drawable.icon_speak)
             ) {
 
-                //Req timeout:
+                //Voice queries: Req timeout:
                 Text(
                     modifier = Modifier
                         .padding(bottom = 4.dp),
@@ -550,64 +424,22 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
-                OutlinedTextField(
-                    modifier = Modifier
-                        .padding(top = 8.dp, bottom = 20.dp)
-                        .width(250.dp)
-                        .focusRequester(focusRequester),
-                    colors = getTextFieldColors(
-                        colorLight = colorResource(id = R.color.yellowSignLight),
-                        colorDark = colorResource(id = R.color.yellowSign)
-                    ),
-                    value = recTimeout,
-                    textStyle = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    maxLines = 1,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            focusManager.clearFocus()
-                            keyboardController?.hide()
-                            saveSettings(
-                                mContext,
-                                recTimeout=recTimeout,
-                                messTimeout=messTimeout,
-                                clockTimeout=clockTimeout,
-                                recMinFreq=recMinFreq,
-                                recMaxFreq=recMaxFreq
-                            )
-                        }
-                    ),
-                    suffix = {
-                        Text(
-                            text = "seconds",
-                            fontSize = 16.sp,
-                            fontStyle = FontStyle.Italic
-                        )
-                    },
-                    supportingText = {
-                        Text(
-                            text = "(keep between 5 and 15)"
-                        )
-                    },
-                    placeholder = {
-                        Text(
-                            text = "Write here...",
-                            fontSize = 16.sp,
-                            fontStyle = FontStyle.Italic
-                        )
-                    },
-                    onValueChange = { newText ->
-                        recTimeout = newText.trimStart { it == '0' }
-                        //TODO
+                CustomSlider(
+                    modifier =  Modifier
+                        .padding(top=4.dp),
+                    position = sliderRecTimeoutPos,
+                    range = 5f..20f,
+                    steps = 15,   // (max - min) / (steps + 1),
+                    unit = "seconds",
+                    trackColor = colorResource(R.color.yellowSign),
+                    thumbColor = colorResource(R.color.yellowSignLight),
+                    tickColor = colorResource(R.color.faded_grey),
+                    onDone = {
+                        // Update prefs:
+                        prefs.recTimeout = sliderRecTimeoutPos.value.roundToInt().toString()
                     }
                 )
+
 
                 //Voice queries: Silence detection:
                 Row(
@@ -641,7 +473,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top=12.dp),
+                        .padding(top = 12.dp),
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -712,64 +544,22 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
-                OutlinedTextField(
-                    modifier = Modifier
-                        .padding(top = 8.dp, bottom = 20.dp)
-                        .width(250.dp)
-                        .focusRequester(focusRequester),
-                    colors = getTextFieldColors(
-                        colorLight = colorResource(id = R.color.blueSignLight),
-                        colorDark = colorResource(id = R.color.blueSign)
-                    ),
-                    value = messTimeout,
-                    textStyle = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    maxLines = 1,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            focusManager.clearFocus()
-                            keyboardController?.hide()
-                            saveSettings(
-                                mContext,
-                                recTimeout = recTimeout,
-                                messTimeout = messTimeout,
-                                clockTimeout = clockTimeout,
-                                recMinFreq=recMinFreq,
-                                recMaxFreq=recMaxFreq
-                            )
-                        }
-                    ),
-                    suffix = {
-                        Text(
-                            text = "seconds",
-                            fontSize = 16.sp,
-                            fontStyle = FontStyle.Italic
-                        )
-                    },
-                    supportingText = {
-                        Text(
-                            text = "(keep between 5 and 20)"
-                        )
-                    },
-                    placeholder = {
-                        Text(
-                            text = "Write here...",
-                            fontSize = 16.sp,
-                            fontStyle = FontStyle.Italic
-                        )
-                    },
-                    onValueChange = { newText ->
-                        messTimeout = newText.trimStart { it == '0' }
-                        //TODO
+                CustomSlider(
+                    modifier =  Modifier
+                        .padding(top=4.dp),
+                    position = sliderMessTimeoutPos,
+                    range = 5f..20f,
+                    steps = 15,   // (max - min) / (steps + 1),
+                    unit = "seconds",
+                    trackColor = colorResource(R.color.blueSign),
+                    thumbColor = colorResource(R.color.blueSignLight),
+                    tickColor = colorResource(R.color.faded_grey),
+                    onDone = {
+                        // Update prefs:
+                        prefs.messageTimeout = sliderMessTimeoutPos.value.roundToInt().toString()
                     }
                 )
+
 
                 //Messages: Silence detection:
                 Row(
@@ -915,69 +705,20 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 }
 
                 if (checkedClockRedirect.value) {
-                    //After (timeout):
-                    OutlinedTextField(
-                        modifier = Modifier
-                            .width(250.dp)
-                            .focusRequester(focusRequester),
-                        colors = getTextFieldColors(
-                            colorLight = colorResource(id = R.color.mid_grey),
-                            colorDark = colorResource(id = R.color.faded_grey)
-                        ),
-                        value = clockTimeout,
-                        textStyle = TextStyle(
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        maxLines = 1,
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                focusManager.clearFocus()
-                                keyboardController?.hide()
-                                saveSettings(
-                                    mContext,
-                                    recTimeout=recTimeout,
-                                    messTimeout=messTimeout,
-                                    clockTimeout=clockTimeout,
-                                    recMinFreq=recMinFreq,
-                                    recMaxFreq=recMaxFreq
-                                )
-                            }
-                        ),
-                        prefix = {
-                            Text(
-                                text = "after     ",
-                                fontSize = 16.sp,
-                                fontStyle = FontStyle.Italic
-                            )
-                        },
-                        suffix = {
-                            Text(
-                                text = "seconds",
-                                fontSize = 16.sp,
-                                fontStyle = FontStyle.Italic
-                            )
-                        },
-                        supportingText = {
-                            Text(
-                                text = "(keep between 5 and 30)"
-                            )
-                        },
-                        placeholder = {
-                            Text(
-                                text = "Write here...",
-                                fontSize = 16.sp,
-                                fontStyle = FontStyle.Italic
-                            )
-                        },
-                        onValueChange = { newText ->
-                            clockTimeout = newText.trimStart { it == '0' }
-                            //TODO
+                    CustomSlider(
+                        modifier =  Modifier
+                            .padding(top=4.dp),
+                        position = sliderClockTimeoutPos,
+                        range = 5f..20f,
+                        steps = 15,   // (max - min) / (steps + 1),
+                        unit = "seconds",
+                        prefix = "after",
+                        trackColor = colorResource(R.color.midfaded_grey),
+                        thumbColor = colorResource(R.color.mid_grey),
+                        tickColor = colorResource(R.color.faded_grey),
+                        onDone = {
+                            // Update prefs:
+                            prefs.clockTimeout = sliderClockTimeoutPos.value.roundToInt().toString()
                         }
                     )
                 }
@@ -1078,39 +819,6 @@ fun validateIntValue(newVal: String, origVal: String, min_val: Int, max_val: Int
     } else {
         origVal
     }
-}
-
-
-//Save Settings:
-fun saveSettings(mContext: Context, recTimeout: String, messTimeout: String, clockTimeout: String, recMinFreq: String, recMaxFreq: String) {
-    //RecTimeout:
-    if (recTimeout.isNotEmpty()) {
-        //validate & overwrite:
-        prefs.recTimeout = validateIntValue(newVal = recTimeout, origVal = prefs.recTimeout, min_val = 5, max_val = 15)
-    }
-    //MessageTimeout:
-    if (messTimeout.isNotEmpty()) {
-        //validate & overwrite:
-        prefs.messageTimeout = validateIntValue(newVal = messTimeout, origVal = prefs.messageTimeout, min_val = 5, max_val = 20)
-    }
-    //ClockTimeout:
-    if (clockTimeout.isNotEmpty()) {
-        //validate & overwrite:
-        prefs.clockTimeout = validateIntValue(newVal = clockTimeout, origVal = prefs.clockTimeout, min_val = 5, max_val = 30)
-    }
-    //RecMinFreq:
-    if (recMinFreq.isNotEmpty()) {
-        //validate & overwrite:
-        val maxFreq = if (recMaxFreq.isNotEmpty()) recMaxFreq.toInt() else 10000
-        prefs.recMinFreq = validateIntValue(newVal = recMinFreq, origVal = prefs.recMinFreq, min_val = 0, max_val = maxFreq)
-    }
-    //RecMaxFreq:
-    if (recMaxFreq.isNotEmpty()) {
-        //validate & overwrite:
-        val minFreq = if (recMinFreq.isNotEmpty()) recMinFreq.toInt() else 0
-        prefs.recMaxFreq = validateIntValue(newVal = recMaxFreq, origVal = prefs.recMaxFreq, min_val = minFreq, max_val = 10000)
-    }
-    Toast.makeText(mContext, "Preferences saved!", Toast.LENGTH_SHORT).show()
 }
 
 

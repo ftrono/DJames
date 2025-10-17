@@ -101,6 +101,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val checkedV3 = remember { mutableStateOf(if (preview) true else prefs.enableV3) }
     val checkedMic = remember { mutableStateOf(if (preview) false else prefs.useSourceMic) }
     val checkedNoise = remember { mutableStateOf(if (preview) true else prefs.enableNoiseSuppression) }
+    val checkedSecondNoise = remember { mutableStateOf(if (preview) true else prefs.enableSecondNoiseSuppression) }
 
     var recFreqRange = 300f..3300f
     var sliderRecFreqPos = remember { mutableStateOf(if (preview) 800f..2700f else prefs.recMinFreq.toFloat()..prefs.recMaxFreq.toFloat()) }
@@ -242,33 +243,66 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     )
                 }
 
-
-                // Experimental: Rec frequencies range:
-                Text(
-                    modifier = Modifier
-                        .padding(top=8.dp, bottom = 4.dp),
-                    text = "Audio: cutout frequencies",
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                CustomRangeSlider(
-                    modifier =  Modifier
-                        .padding(top=4.dp),
-                    rangePosition = sliderRecFreqPos,
-                    range = recFreqRange,
-                    steps = 15,   // (max - min) / (steps + 1),
-                    unit = "Hz",
-                    trackColor = colorResource(R.color.yellowSign),
-                    thumbColor = colorResource(R.color.yellowSignLight),
-                    tickColor = colorResource(R.color.faded_grey),
-                    onDone = {
-                        // Update prefs:
-                        prefs.recMinFreq = sliderRecFreqPos.value.start.roundToInt().toString()
-                        prefs.recMaxFreq = sliderRecFreqPos.value.endInclusive.roundToInt().toString()
+                
+                if (checkedNoise.value) {
+                    //Experimental: Enable Second Noise Suppression:
+                    Row(
+                        modifier = Modifier
+                            .padding(bottom = 4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            modifier = Modifier.weight(1f),
+                            text = "Suppress noise twice",
+                            color = colorResource(id = R.color.light_grey),
+                            textAlign = TextAlign.Start,
+                            fontSize = 14.sp,
+                            lineHeight = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Switch(
+                            checked = checkedSecondNoise.value,
+                            colors = getSwitchColors(
+                                color = colorResource(id = R.color.yellowSign)
+                            ),
+                            onCheckedChange = {
+                                checkedSecondNoise.value = it
+                                prefs.enableSecondNoiseSuppression = it
+                            }
+                        )
                     }
-                )
+
+
+                    // Experimental: Rec frequencies range:
+                    Text(
+                        modifier = Modifier
+                            .padding(top = 8.dp, bottom = 4.dp),
+                        text = "Audio: cutout frequencies",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    CustomRangeSlider(
+                        modifier = Modifier
+                            .padding(top = 4.dp),
+                        rangePosition = sliderRecFreqPos,
+                        range = recFreqRange,
+                        steps = 15,   // (max - min) / (steps + 1),
+                        unit = "Hz",
+                        trackColor = colorResource(R.color.yellowSign),
+                        thumbColor = colorResource(R.color.yellowSignLight),
+                        tickColor = colorResource(R.color.faded_grey),
+                        onDone = {
+                            // Update prefs:
+                            prefs.recMinFreq = sliderRecFreqPos.value.start.roundToInt().toString()
+                            prefs.recMaxFreq =
+                                sliderRecFreqPos.value.endInclusive.roundToInt().toString()
+                        }
+                    )
+                }
 
 
                 //Experimental: Save recs to Downloads folder:

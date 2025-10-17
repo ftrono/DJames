@@ -31,12 +31,6 @@ class NoiseBPFilter() {
     private var y1 = 0.0
     private var y2 = 0.0
 
-    init {
-        val minFreqHz: Int = prefs.recMinFreq.toInt()
-        val maxFreqHz: Int = prefs.recMaxFreq.toInt()
-        setBand(minFreqHz, maxFreqHz)
-    }
-
     /**
      * Configure the bandpass using min & max frequency.
      * Uses geometric center f0 = sqrt(f1 * f2) and Q = f0 / (f2 - f1).
@@ -59,6 +53,14 @@ class NoiseBPFilter() {
      * Q: quality factor (how wide/narrow the band is),
      * sample_rate: defines the Nyquist limit (half of sample rate = max representable frequency).
      */
+
+    fun resetState() {
+        x1 = 0.0
+        x2 = 0.0
+        y1 = 0.0
+        y2 = 0.0
+    }
+
     fun setBand(minFreqHz: Int, maxFreqHz: Int) {
         val nyquist = recSamplingRate / 2.0
         val f1 = minFreqHz.coerceAtLeast(1).coerceAtMost(nyquist.toInt() - 1)
@@ -115,7 +117,9 @@ class NoiseBPFilter() {
      * - inOffset: byte offset inside inBytes where frame starts
      * - outBytes: destination buffer (preallocated) - same length as frame
      */
-    fun processInto(inBytes: ByteArray, inOffset: Int, outBytes: ByteArray) {
+    fun processInto(inBytes: ByteArray, inOffset: Int, outBytes: ByteArray, minFreqHz: Int, maxFreqHz: Int) {
+        setBand(minFreqHz, maxFreqHz)
+
         val n = outBytes.size / 2
         var j = inOffset
         var k = 0

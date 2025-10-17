@@ -113,12 +113,14 @@ class AndroidAudioRecorder(private val context: Context) {
             )
 
             // FFT Filter:
-            val bpFilter = NoiseBPFilter()
+            val bpFilter1 = NoiseBPFilter()
+            val bpFilter2 = NoiseBPFilter()
 
             // Rec buffers -> For VAD: 16-bit PCM → 2 bytes per sample:
             val chunkSize = rtcVad.frameSize.value * 2
             val buffer = ByteArray(bufferSize * 2)  // For Recorder: raw PCM storage
             val cleanedFrame = ByteArray(chunkSize)
+            val cleanedFrame2 = ByteArray(chunkSize)
 
             // Monitoring:
             var silenceMs = 0L
@@ -140,9 +142,31 @@ class AndroidAudioRecorder(private val context: Context) {
 
                         //Mute frequencies & run VAD on each cleaned frame:
                         if (prefs.enableNoiseSuppression) {
-                            bpFilter.processInto(frame, 0, cleanedFrame)
-                            isSpeech = rtcVad.isSpeech(cleanedFrame)
-                            output.write(cleanedFrame)   //TODO: TEMP!
+                            // 1st pass:
+                            bpFilter1.processInto(
+                                inBytes = frame,
+                                inOffset = 0,
+                                outBytes = cleanedFrame,
+                                minFreqHz = prefs.recMinFreq.toInt(),
+                                maxFreqHz = prefs.recMaxFreq.toInt(),
+                            )
+                            if (prefs.enableSecondNoiseSuppression) {
+                                // 2nd pass:
+                                bpFilter2.processInto(
+                                    inBytes = cleanedFrame,
+                                    inOffset = 0,
+                                    outBytes = cleanedFrame2,
+                                    minFreqHz = prefs.recMinFreq.toInt() + 400,
+                                    maxFreqHz = prefs.recMaxFreq.toInt() - 400,
+                                )
+                                // VAD:
+                                isSpeech = rtcVad.isSpeech(cleanedFrame2)
+                                output.write(cleanedFrame2)   //TODO: TEMP!
+                            } else {
+                                // VAD:
+                                isSpeech = rtcVad.isSpeech(cleanedFrame)
+                                output.write(cleanedFrame)   //TODO: TEMP!
+                            }
                         } else {
                             isSpeech = rtcVad.isSpeech(frame)
                             output.write(frame)   //TODO: TEMP!

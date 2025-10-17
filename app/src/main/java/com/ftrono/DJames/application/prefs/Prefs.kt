@@ -64,6 +64,11 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getBoolean(KEY_ENABLE_NOISE_SUPPRESSION, true) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_ENABLE_NOISE_SUPPRESSION, value).apply()
 
+    //Enable noise suppression:
+    var enableSecondNoiseSuppression: Boolean
+        get() = sharedPrefs.getBoolean(KEY_ENABLE_SECOND_NOISE_SUPPRESSION, false) as Boolean
+        set(value) = sharedPrefs.edit().putBoolean(KEY_ENABLE_SECOND_NOISE_SUPPRESSION, value).apply()
+
     //Rec min freq:
     var recMinFreq: String
         get() = sharedPrefs.getString(KEY_REC_MIN_FREQ, "500") as String
@@ -201,6 +206,7 @@ class Prefs (context: Context) {
         const val KEY_ENABLE_V3 = ".key.enable_v3"
         const val KEY_USE_SOURCE_MIC = ".key.use_source_mic"
         const val KEY_ENABLE_NOISE_SUPPRESSION = ".key.enable_noise_suppression"
+        const val KEY_ENABLE_SECOND_NOISE_SUPPRESSION = ".key.enable_second_noise_suppression"
         const val KEY_REC_MIN_FREQ = ".key.rec_min_freq"
         const val KEY_REC_MAX_FREQ = ".key.rec_max_freq"
         const val KEY_REC_TO_DOWNLOADS = ".key.rec_to_downloads"

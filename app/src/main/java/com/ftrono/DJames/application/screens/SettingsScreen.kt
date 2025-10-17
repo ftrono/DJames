@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -102,9 +103,11 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val checkedMic = remember { mutableStateOf(if (preview) false else prefs.useSourceMic) }
     val checkedNoise = remember { mutableStateOf(if (preview) true else prefs.enableNoiseSuppression) }
     val checkedSecondNoise = remember { mutableStateOf(if (preview) true else prefs.enableSecondNoiseSuppression) }
+    val checkedWind = remember { mutableStateOf(if (preview) true else prefs.enableWindSuppression) }
 
     var recFreqRange = 300f..3300f
     var sliderRecFreqPos = remember { mutableStateOf(if (preview) 800f..2700f else prefs.recMinFreq.toFloat()..prefs.recMaxFreq.toFloat()) }
+    var sliderSecNoiseDeltaPos = remember { mutableStateOf(if (preview) 100f else prefs.secondNoiseDelta.toFloat()) }
     var sliderRecTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.recTimeout.toFloat()) }
     var sliderMessTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.recTimeout.toFloat()) }
     var sliderClockTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.recTimeout.toFloat()) }
@@ -139,7 +142,10 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 title = "Preferences",
                 subtitle = if (!spotifyLoggedInState!!) "Not logged in" else "for ${prefs.spotUserName}",
                 showBack = true,
-                onBack = { navController.popBackStack() },
+                onBack = {
+                    navController.popBackStack()
+                    // Toast.makeText(mContext, "Preferences saved!", Toast.LENGTH_SHORT).show()
+                },
                 optionButtons = {
                     //SAVE BUTTON:
                     Icon(
@@ -148,6 +154,8 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             .size(35.dp)
                             .clickable {
                                 navController.popBackStack()
+                                Toast.makeText(mContext, "Preferences saved!", Toast.LENGTH_SHORT)
+                                    .show()
                             },
                         imageVector = Icons.Default.Check,
                         contentDescription = "Save",
@@ -245,6 +253,35 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
 
                 
                 if (checkedNoise.value) {
+                    // Experimental: Rec frequencies range:
+                    Text(
+                        modifier = Modifier
+                            .padding(top = 8.dp, bottom = 4.dp),
+                        text = "Noise: audio cutout frequencies",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    CustomRangeSlider(
+                        modifier = Modifier
+                            .padding(top = 4.dp),
+                        rangePosition = sliderRecFreqPos,
+                        range = recFreqRange,
+                        steps = 15,   // (max - min) / (steps + 1),
+                        unit = "Hz",
+                        trackColor = colorResource(R.color.yellowSign),
+                        thumbColor = colorResource(R.color.yellowSignLight),
+                        tickColor = colorResource(R.color.faded_grey),
+                        onDone = {
+                            // Update prefs:
+                            prefs.recMinFreq = sliderRecFreqPos.value.start.roundToInt().toString()
+                            prefs.recMaxFreq =
+                                sliderRecFreqPos.value.endInclusive.roundToInt().toString()
+                        }
+                    )
+
+
                     //Experimental: Enable Second Noise Suppression:
                     Row(
                         modifier = Modifier
@@ -275,33 +312,64 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     }
 
 
-                    // Experimental: Rec frequencies range:
-                    Text(
+                    if (checkedSecondNoise.value) {
+                        //Noise: additional cutout:
+                        Text(
+                            modifier = Modifier
+                                .padding(bottom = 4.dp),
+                            //.padding(top=8.dp, bottom = 4.dp),
+                            text = "Noise: additional cutout",
+                            color = colorResource(id = R.color.light_grey),
+                            textAlign = TextAlign.Start,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        CustomSlider(
+                            modifier = Modifier
+                                .padding(top = 4.dp),
+                            position = sliderSecNoiseDeltaPos,
+                            range = 0f..600f,
+                            steps = 5,   // (max - min) / (steps + 1),
+                            unit = "Hz",
+                            trackColor = colorResource(R.color.dark_grey),
+                            thumbColor = colorResource(R.color.yellowSignLight),
+                            tickColor = colorResource(R.color.faded_grey),
+                            onDone = {
+                                // Update prefs:
+                                prefs.secondNoiseDelta = sliderSecNoiseDeltaPos.value.roundToInt().toString()
+                            }
+                        )
+                    }
+
+
+                    //Experimental: Enable Wind Suppression:
+                    Row(
                         modifier = Modifier
-                            .padding(top = 8.dp, bottom = 4.dp),
-                        text = "Audio: cutout frequencies",
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    CustomRangeSlider(
-                        modifier = Modifier
-                            .padding(top = 4.dp),
-                        rangePosition = sliderRecFreqPos,
-                        range = recFreqRange,
-                        steps = 15,   // (max - min) / (steps + 1),
-                        unit = "Hz",
-                        trackColor = colorResource(R.color.yellowSign),
-                        thumbColor = colorResource(R.color.yellowSignLight),
-                        tickColor = colorResource(R.color.faded_grey),
-                        onDone = {
-                            // Update prefs:
-                            prefs.recMinFreq = sliderRecFreqPos.value.start.roundToInt().toString()
-                            prefs.recMaxFreq =
-                                sliderRecFreqPos.value.endInclusive.roundToInt().toString()
-                        }
-                    )
+                            .padding(bottom = 4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            modifier = Modifier.weight(1f),
+                            text = "Enable wind suppression",
+                            color = colorResource(id = R.color.light_grey),
+                            textAlign = TextAlign.Start,
+                            fontSize = 14.sp,
+                            lineHeight = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Switch(
+                            checked = checkedWind.value,
+                            colors = getSwitchColors(
+                                color = colorResource(id = R.color.yellowSign)
+                            ),
+                            onCheckedChange = {
+                                checkedWind.value = it
+                                prefs.enableWindSuppression = it
+                            }
+                        )
+                    }
                 }
 
 

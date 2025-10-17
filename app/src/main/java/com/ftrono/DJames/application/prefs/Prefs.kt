@@ -64,10 +64,20 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getBoolean(KEY_ENABLE_NOISE_SUPPRESSION, true) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_ENABLE_NOISE_SUPPRESSION, value).apply()
 
-    //Enable noise suppression:
+    //Enable second noise suppression:
     var enableSecondNoiseSuppression: Boolean
         get() = sharedPrefs.getBoolean(KEY_ENABLE_SECOND_NOISE_SUPPRESSION, false) as Boolean
         set(value) = sharedPrefs.edit().putBoolean(KEY_ENABLE_SECOND_NOISE_SUPPRESSION, value).apply()
+
+    //Delta Hz for second noise suppression:
+    var secondNoiseDelta: String
+        get() = sharedPrefs.getString(KEY_SECOND_NOISE_DELTA, "100") as String
+        set(value) = sharedPrefs.edit().putString(KEY_SECOND_NOISE_DELTA, value).apply()
+
+    //Enable wind suppression:
+    var enableWindSuppression: Boolean
+        get() = sharedPrefs.getBoolean(KEY_ENABLE_WIND_SUPPRESSION, true) as Boolean
+        set(value) = sharedPrefs.edit().putBoolean(KEY_ENABLE_WIND_SUPPRESSION, value).apply()
 
     //Rec min freq:
     var recMinFreq: String
@@ -207,6 +217,8 @@ class Prefs (context: Context) {
         const val KEY_USE_SOURCE_MIC = ".key.use_source_mic"
         const val KEY_ENABLE_NOISE_SUPPRESSION = ".key.enable_noise_suppression"
         const val KEY_ENABLE_SECOND_NOISE_SUPPRESSION = ".key.enable_second_noise_suppression"
+        const val KEY_SECOND_NOISE_DELTA = ".key.second_noise_delta"
+        const val KEY_ENABLE_WIND_SUPPRESSION = ".key.enable_wind_suppression"
         const val KEY_REC_MIN_FREQ = ".key.rec_min_freq"
         const val KEY_REC_MAX_FREQ = ".key.rec_max_freq"
         const val KEY_REC_TO_DOWNLOADS = ".key.rec_to_downloads"

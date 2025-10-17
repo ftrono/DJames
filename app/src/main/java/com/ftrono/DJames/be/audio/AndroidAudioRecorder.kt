@@ -112,9 +112,10 @@ class AndroidAudioRecorder(private val context: Context) {
                 speechDurationMs = 0
             )
 
-            // FFT Filter:
+            // FFT Filters:
             val bpFilter1 = NoiseBPFilter()
             val bpFilter2 = NoiseBPFilter()
+            val windSuppressor = ConstantWindSuppressor(sampleRate = recSamplingRate)
 
             // Rec buffers -> For VAD: 16-bit PCM → 2 bytes per sample:
             val chunkSize = rtcVad.frameSize.value * 2
@@ -156,16 +157,30 @@ class AndroidAudioRecorder(private val context: Context) {
                                     inBytes = cleanedFrame,
                                     inOffset = 0,
                                     outBytes = cleanedFrame2,
-                                    minFreqHz = prefs.recMinFreq.toInt() + 400,
-                                    maxFreqHz = prefs.recMaxFreq.toInt() - 400,
+                                    minFreqHz = prefs.recMinFreq.toInt() + prefs.secondNoiseDelta.toInt(),
+                                    maxFreqHz = prefs.recMaxFreq.toInt() - prefs.secondNoiseDelta.toInt(),
                                 )
-                                // VAD:
-                                isSpeech = rtcVad.isSpeech(cleanedFrame2)
-                                output.write(cleanedFrame2)   //TODO: TEMP!
+                                if (prefs.enableWindSuppression) {
+                                    // Clean wind + VAD:
+                                    val cleanedFrame3 = windSuppressor.process(cleanedFrame2)
+                                    isSpeech = rtcVad.isSpeech(cleanedFrame3)
+                                    output.write(cleanedFrame3)   //TODO: TEMP!
+                                } else {
+                                    // VAD:
+                                    isSpeech = rtcVad.isSpeech(cleanedFrame2)
+                                    output.write(cleanedFrame2)   //TODO: TEMP!
+                                }
                             } else {
-                                // VAD:
-                                isSpeech = rtcVad.isSpeech(cleanedFrame)
-                                output.write(cleanedFrame)   //TODO: TEMP!
+                                if (prefs.enableWindSuppression) {
+                                    // Clean wind + VAD:
+                                    val cleanedFrame3 = windSuppressor.process(cleanedFrame)
+                                    isSpeech = rtcVad.isSpeech(cleanedFrame3)
+                                    output.write(cleanedFrame3)   //TODO: TEMP!
+                                } else {
+                                    // VAD:
+                                    isSpeech = rtcVad.isSpeech(cleanedFrame)
+                                    output.write(cleanedFrame)   //TODO: TEMP!
+                                }
                             }
                         } else {
                             isSpeech = rtcVad.isSpeech(frame)

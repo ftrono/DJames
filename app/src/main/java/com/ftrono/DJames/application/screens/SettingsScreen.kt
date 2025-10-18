@@ -107,7 +107,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
 
     var recFreqRange = 300f..3300f
     var sliderRecFreqPos = remember { mutableStateOf(if (preview) 800f..2700f else prefs.recMinFreq.toFloat()..prefs.recMaxFreq.toFloat()) }
-    var sliderSecNoiseDeltaPos = remember { mutableStateOf(if (preview) 100f else prefs.secondNoiseDelta.toFloat()) }
+    var sliderSecNoiseDeltaPos = remember { mutableStateOf(if (preview) 200f else prefs.secondNoiseDelta.toFloat()) }
     var sliderRecTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.recTimeout.toFloat()) }
     var sliderMessTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.recTimeout.toFloat()) }
     var sliderClockTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.recTimeout.toFloat()) }
@@ -275,9 +275,8 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         tickColor = colorResource(R.color.faded_grey),
                         onDone = {
                             // Update prefs:
-                            prefs.recMinFreq = sliderRecFreqPos.value.start.roundToInt().toString()
-                            prefs.recMaxFreq =
-                                sliderRecFreqPos.value.endInclusive.roundToInt().toString()
+                            prefs.recMinFreq = sliderRecFreqPos.value.start.roundToInt()
+                            prefs.recMaxFreq = sliderRecFreqPos.value.endInclusive.roundToInt()
                         }
                     )
 
@@ -292,7 +291,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     ) {
                         Text(
                             modifier = Modifier.weight(1f),
-                            text = "Suppress noise twice",
+                            text = "Noise: apply suppression twice",
                             color = colorResource(id = R.color.light_grey),
                             textAlign = TextAlign.Start,
                             fontSize = 14.sp,
@@ -318,7 +317,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             modifier = Modifier
                                 .padding(bottom = 4.dp),
                             //.padding(top=8.dp, bottom = 4.dp),
-                            text = "Noise: additional cutout",
+                            text = "Noise: increase 2nd pass cutout of",
                             color = colorResource(id = R.color.light_grey),
                             textAlign = TextAlign.Start,
                             fontSize = 14.sp,
@@ -331,12 +330,12 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             range = 0f..600f,
                             steps = 5,   // (max - min) / (steps + 1),
                             unit = "Hz",
-                            trackColor = colorResource(R.color.dark_grey),
+                            trackColor = colorResource(R.color.yellowSign),
                             thumbColor = colorResource(R.color.yellowSignLight),
                             tickColor = colorResource(R.color.faded_grey),
                             onDone = {
                                 // Update prefs:
-                                prefs.secondNoiseDelta = sliderSecNoiseDeltaPos.value.roundToInt().toString()
+                                prefs.secondNoiseDelta = sliderSecNoiseDeltaPos.value.roundToInt()
                             }
                         )
                     }
@@ -383,7 +382,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 ) {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = "Save recs to Downloads folder",
+                        text = "Debug: save recs to Downloads",
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
@@ -538,7 +537,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     tickColor = colorResource(R.color.faded_grey),
                     onDone = {
                         // Update prefs:
-                        prefs.recTimeout = sliderRecTimeoutPos.value.roundToInt().toString()
+                        prefs.recTimeout = sliderRecTimeoutPos.value.roundToInt()
                     }
                 )
 
@@ -552,7 +551,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 ) {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = "Voice queries: Stop recording\nwhen silence is detected",
+                        text = "Voice queries: stop recording\nwhen silence is detected",
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
@@ -658,7 +657,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     tickColor = colorResource(R.color.faded_grey),
                     onDone = {
                         // Update prefs:
-                        prefs.messageTimeout = sliderMessTimeoutPos.value.roundToInt().toString()
+                        prefs.messageTimeout = sliderMessTimeoutPos.value.roundToInt()
                     }
                 )
 
@@ -672,7 +671,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 ) {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = "Messages: Stop recording\nwhen silence is detected",
+                        text = "Messages: stop recording\nwhen silence is detected",
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
@@ -820,7 +819,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         tickColor = colorResource(R.color.faded_grey),
                         onDone = {
                             // Update prefs:
-                            prefs.clockTimeout = sliderClockTimeoutPos.value.roundToInt().toString()
+                            prefs.clockTimeout = sliderClockTimeoutPos.value.roundToInt()
                         }
                     )
                 }

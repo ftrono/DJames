@@ -407,8 +407,10 @@ fun AddLinkDialog(
 
     LaunchedEffect(textState.value) {
         if (textState.value.contains("/track/")) {
+            useParentState.value = true
             checkboxDescription.value = "Save Artist instead"
         } else if (textState.value.contains("/episode/")) {
+            useParentState.value = true
             checkboxDescription.value = "Save Podcast instead"
         } else {
             checkboxDescription.value = ""

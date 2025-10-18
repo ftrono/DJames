@@ -115,14 +115,14 @@ fun getQuickActionOnTap(
 //                context.sendBroadcast(intent)
 //            }
 
-            //TRIGGER ENABLE/DISABLE USE SOURCE MIC:
-            val micModeToTrigger = if (prefs.useSourceMic) "OFF" else "ON"
-            prefs.useSourceMic = !prefs.useSourceMic
-//            autoStopQueriesState.postValue(!autoStopQueriesState.value!!)
+            //TRIGGER ENABLE/DISABLE USE EXPERIMENTAL SETTING:
+            val modeToTrigger = if (prefs.enableWindSuppression) "OFF" else "ON"
+            prefs.enableWindSuppression = !prefs.enableWindSuppression
+            // prefs.useSourceMic = !prefs.useSourceMic
             //TOAST -> Send broadcast:
             Intent().also { intent ->
                 intent.setAction(ACTION_TOASTER)
-                intent.putExtra("toastText", "Use source MIC: $micModeToTrigger")
+                intent.putExtra("toastText", "Wind suppression: $modeToTrigger")
                 context.sendBroadcast(intent)
             }
         }
@@ -244,14 +244,15 @@ fun getQuickAction(
         )
     } else {
         QuickAction(
-            description = "source mic",
+            description = "wind",
             content = {
                 Icon(
                     modifier = Modifier
                         .size(34.dp),
-                    painter = if (!autoStopQueriesState) painterResource(id = R.drawable.icon_hearing_off) else painterResource(id = R.drawable.icon_hearing),
+                    painter = painterResource(id = R.drawable.icon_settings),
+                    // painter = if (!autoStopQueriesState) painterResource(id = R.drawable.icon_hearing_off) else painterResource(id = R.drawable.icon_hearing),
                     tint = if (isActive) colorActive else colorInactive,
-                    contentDescription = "Voice request"
+                    contentDescription = "Experimental"
                 )
             }
         )

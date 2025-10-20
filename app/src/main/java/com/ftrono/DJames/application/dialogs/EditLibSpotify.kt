@@ -144,6 +144,7 @@ fun EditLibSpotify(
             onRefresh = {
                 Toast.makeText(mContext, "Refreshing info...", Toast.LENGTH_LONG).show()
                 textPlayUrl.value = spotifyUtils.trimSpotifyUrl(textPlayUrl.value)
+                itemSpotify.url = textPlayUrl.value
                 itemSpotify = spotifyUtils.callLinkExtractor(mContext, itemSpotify, new=false)
                 textType.value = itemSpotify.type
                 textName.value = itemSpotify.name

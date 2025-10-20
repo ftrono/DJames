@@ -654,7 +654,7 @@ class OverlayService : Service() {
                     "speak" -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                     "clock" -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                     "save" -> toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
-                    "silence" -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                    "custom" -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                     else -> toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                 }
                 //TRIGGER ACTION:

@@ -354,7 +354,7 @@ fun MainGuideInfo(
         Text(
             modifier = Modifier
                 .padding(top=6.dp),
-            text = "Play music via Spotify or YouTube,\nget driving directions,\ncall or message your contacts!",
+            text = "Play music via Spotify,\nget driving directions,\ncall or message your contacts!",   //TOOD: add "or YouTube"
             fontSize = 14.sp,
             color = colorResource(id = R.color.light_grey),
             textAlign = if (isLandscape) TextAlign.Start else TextAlign.Center,
@@ -539,28 +539,28 @@ fun GuideIconsRow(
     ) {
         Image(
             modifier = Modifier
-                .padding(start=iconSpacing, end=iconSpacing)
+                .padding(start = iconSpacing, end = iconSpacing)
                 .size(iconSize),
             painter = painterResource(R.drawable.logo_spotify),
             contentDescription = "Spotify logo"
         )
+//        Image(
+//            modifier = Modifier
+//                .padding(start = iconSpacing, end = iconSpacing)
+//                .size(iconSize),
+//            painter = painterResource(R.drawable.logo_youtube),
+//            contentDescription = "YouTube logo"
+//        )
         Image(
             modifier = Modifier
-                .padding(start=iconSpacing, end=iconSpacing)
-                .size(iconSize),
-            painter = painterResource(R.drawable.logo_youtube),
-            contentDescription = "YouTube logo"
-        )
-        Image(
-            modifier = Modifier
-                .padding(start=iconSpacing, end=iconSpacing)
+                .padding(start = iconSpacing, end = iconSpacing)
                 .size(iconSize),
             painter = painterResource(R.drawable.logo_gmaps),
             contentDescription = "GMaps logo"
         )
         Icon(
             modifier = Modifier
-                .padding(start=iconSpacing, end=iconSpacing)
+                .padding(start = iconSpacing, end = iconSpacing)
                 .size(iconSize),
             painter = guideIconSelector("calls"),
             tint = colorResource(R.color.colorAccentMid),
@@ -568,11 +568,18 @@ fun GuideIconsRow(
         )
         Icon(
             modifier = Modifier
-                .padding(start=iconSpacing, end=iconSpacing)
+                .padding(start = iconSpacing, end = iconSpacing)
                 .size(iconSize),
             painter = guideIconSelector("messages"),
             tint = colorResource(R.color.blueSignMid),
             contentDescription = "Message icon"
+        )
+        Image(
+            modifier = Modifier
+                .padding(start = iconSpacing, end = iconSpacing)
+                .size(iconSize),
+            painter = painterResource(R.drawable.logo_whatsapp),
+            contentDescription = "Whatsapp icon"
         )
         // GO ICON:
         Icon(

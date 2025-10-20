@@ -6,21 +6,22 @@ import android.content.Intent
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.os.Environment
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import com.arthenica.ffmpegkit.FFmpegKit
 import com.ftrono.DJames.application.*
+import com.konovalov.vad.webrtc.VadWebRTC
+import com.konovalov.vad.webrtc.config.FrameSize as RtcFrameSize
+import com.konovalov.vad.webrtc.config.Mode as RtcMode
+import com.konovalov.vad.webrtc.config.SampleRate as RtcSampleRate
 import java.io.File
 import java.io.FileOutputStream
-import com.konovalov.vad.webrtc.VadWebRTC
-import com.konovalov.vad.webrtc.config.FrameSize
-import com.konovalov.vad.webrtc.config.SampleRate
-import com.konovalov.vad.webrtc.config.Mode
 
 
 class AndroidAudioRecorder(private val context: Context) {
     private val TAG = AndroidAudioRecorder::class.java.simpleName
-    // private val saveDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    private val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
     private lateinit var audioRecorder: AudioRecord
     private var recFilePcm: File? = null
@@ -33,17 +34,28 @@ class AndroidAudioRecorder(private val context: Context) {
         messageType: String = "",
     ) {
         try {
+            //Create dir:
+            var flacDir = recDir
+            if (prefs.recToDownloads) {
+                flacDir = File(downloadsDir, "djames_rec")
+                flacDir.mkdirs()
+            }
+
             //Create files:
             val timestamp = utils.getCurrentTimestamp()
             lastRecordingName = "$timestamp.flac"
             recFilePcm = File(recDir, "$timestamp.pcm")
-            recFileFlac = File(recDir, lastRecordingName)
+            recFileFlac = File(flacDir, lastRecordingName)
 
             // Params:
             val channelConfig = AudioFormat.CHANNEL_IN_MONO
             val audioFormat = AudioFormat.ENCODING_PCM_16BIT
             val bufferSize = AudioRecord.getMinBufferSize(recSamplingRate, channelConfig, audioFormat)
-            val silenceThreshold = silencePatienceSecs * 1000   // ms
+            val silenceThreshold = if (messageMode) {
+                    silencePatienceMess * 1000   // ms
+                } else {
+                    silencePatienceQueries * 1000   // ms
+                }
 
             // Max time:
             var maxTime = if (messageMode && messageType == "voice") {
@@ -64,7 +76,7 @@ class AndroidAudioRecorder(private val context: Context) {
 
             //Create recorder:
             audioRecorder = AudioRecord(
-                MediaRecorder.AudioSource.VOICE_RECOGNITION,
+                MediaRecorder.AudioSource.DEFAULT,   // ALWAYS USE DEFAULT HERE!
                 recSamplingRate,
                 channelConfig,
                 audioFormat,
@@ -77,64 +89,112 @@ class AndroidAudioRecorder(private val context: Context) {
             audioRecorder.startRecording()
 
             // Monitor:
-            VadWebRTC(
-                sampleRate = SampleRate.SAMPLE_RATE_48K,
-                frameSize = FrameSize.FRAME_SIZE_480,   // 10ms @ 48kHz
-                mode = Mode.VERY_AGGRESSIVE,
+            val rtcVad = VadWebRTC(
+                sampleRate = RtcSampleRate.SAMPLE_RATE_48K,
+                frameSize = RtcFrameSize.FRAME_SIZE_480,   // 10ms @ 48kHz
+                mode = RtcMode.VERY_AGGRESSIVE,
                 silenceDurationMs = 0,   // handle silence detection manually
                 speechDurationMs = 0
-            ).use { vad ->
+            )
 
-                // Rec buffers:
-                val chunkSize = vad.frameSize.value * 2 // For VAD: 16-bit PCM → 2 bytes per sample
-                val buffer = ByteArray(bufferSize * 2)  // For Recorder: raw PCM storage
+            // FFT Filters:
+            val bpFilter1 = NoiseBPFilter()
+            val bpFilter2 = NoiseBPFilter()
 
-                // Monitoring:
-                var silenceMs = 0L
-                val frameDurationMs = 10L   // each FRAME_SIZE_480 = 10 ms
+            // Rec buffers -> For VAD: 16-bit PCM → 2 bytes per sample:
+            val chunkSize = rtcVad.frameSize.value * 2
+            val buffer = ByteArray(bufferSize * 2)  // For Recorder: raw PCM storage
+            val cleanedFrame = ByteArray(chunkSize)
+            val cleanedFrame2 = ByteArray(chunkSize)
 
-                FileOutputStream(recFilePcm).use { output ->
-                    while (isRecording && recordingMode && (recordingTime < maxTime)) {
-                        // Reads audio samples from the microphone into raw buffer:
-                        val read = audioRecorder.read(buffer, 0, buffer.size)
-                        if (read <= 0) continue   // Skip if nothing read!
+            // Monitoring:
+            var silenceMs = 0L
+            val frameDurationMs = 10L   // each FRAME_SIZE_480 = 10 ms
+            var isSpeech = false
+            var stopMax = false
 
-                        var i = 0
-                        while (i + chunkSize <= read) {
-                            // WebRTC VAD requires fixed-size frames (10/20/30 ms):
-                            // Extract a frame: Process the buffer in steps of chunkSize (960 bytes)
-                            val frame = buffer.copyOfRange(i, i + chunkSize)
-                            output.write(frame)
-                            recordingTime += frameDurationMs
+            FileOutputStream(recFilePcm).use { output ->
+                while (isRecording && recordingMode && (recordingTime < maxTime)) {
+                    // Reads audio samples from the microphone into raw buffer:
+                    val read = audioRecorder.read(buffer, 0, buffer.size)
+                    if (read <= 0) continue   // Skip if nothing read!
 
-                            // Run VAD on each frame:
-                            if (silenceEnabled && !vad.isSpeech(frame)) {
-                                // NO SPEECH -> Increase patience countdown:
-                                silenceMs += frameDurationMs
-                                if (silenceMs >= silenceThreshold) {
-                                    // STOP:
-                                    Log.d(TAG, "RECORDER: silence detected for more that ${silencePatienceSecs} seconds! -> STOPPING!")
-                                    isRecording = false
-                                    break
-                                }
+                    var i = 0
+                    while (i + chunkSize <= read) {
+                        // WebRTC VAD requires fixed-size frames (10/20/30 ms):
+                        // Extract a frame: Process the buffer in steps of chunkSize (960 bytes)
+                        val frame = buffer.copyOfRange(i, i + chunkSize)
+
+                        //Mute frequencies & run VAD on each cleaned frame:
+                        if (prefs.enableNoiseSuppression) {
+                            // 1st pass:
+                            bpFilter1.processInto(
+                                inBytes = frame,
+                                inOffset = 0,
+                                outBytes = cleanedFrame,
+                                minFreqHz = prefs.recMinFreq,
+                                maxFreqHz = prefs.recMaxFreq,
+                            )
+                            if (prefs.enableSecondNoiseSuppression) {
+                                // 2nd pass:
+                                bpFilter2.processInto(
+                                    inBytes = cleanedFrame,
+                                    inOffset = 0,
+                                    outBytes = cleanedFrame2,
+                                    minFreqHz = prefs.recMinFreq + prefs.secondNoiseDelta,
+                                    maxFreqHz = prefs.recMaxFreq - prefs.secondNoiseDelta,
+                                )
+                                // VAD:
+                                isSpeech = rtcVad.isSpeech(cleanedFrame2)
+                                output.write(if (prefs.recToDownloads) cleanedFrame2 else cleanedFrame)   //Write rec file
                             } else {
-                                // IS SPEECH or NO SILENCE DETECTION -> Reset patience countdown:
-                                silenceMs = 0L
+                                // VAD:
+                                isSpeech = rtcVad.isSpeech(cleanedFrame)
+                                output.write(cleanedFrame)   //Write rec file
                             }
+                        } else {
+                            isSpeech = rtcVad.isSpeech(frame)
+                            output.write(frame)   //Write rec file
+                        }
 
-                            i += chunkSize
+                        //Write:
+                        recordingTime += frameDurationMs
+                        stopMax = recordingTime >= maxTime
+
+                        if (silenceEnabled && !isSpeech) {
+                            // NO SPEECH -> Increase patience countdown:
+                            silenceMs += frameDurationMs
+                            if (silenceMs >= silenceThreshold) {
+                                // STOP:
+                                Log.d(TAG, "RECORDER: silence detected for more that ${silenceThreshold / 1000} seconds! -> STOPPING!")
+                                isRecording = false
+                                break
+                            }
+                        } else {
+                            // IS SPEECH or NO SILENCE DETECTION -> Reset patience countdown:
+                            silenceMs = 0L
                         }
+                        i += chunkSize
                     }
-                    // STOP:
-                    if (recordingMode) {
-                        //STOP recording:
-                        Intent().also { intent ->
-                            intent.setAction(ACTION_REC_STOP)
-                            context.sendBroadcast(intent)
-                        }
+                    if (stopMax) {
+                        // STOP:
+                        Log.d(TAG, "RECORDER: maxTime reached! -> STOPPING!")
+                        isRecording = false
+                        break
+                    }
+                }
+                // STOP:
+                if (recordingMode) {
+                    //STOP recording:
+                    Intent().also { intent ->
+                        intent.setAction(ACTION_REC_STOP)
+                        context.sendBroadcast(intent)
                     }
                 }
             }
+
+            // Close VAD:
+            rtcVad.close()
 
         } catch (e: Exception) {
             recordingFail = true
@@ -167,4 +227,5 @@ class AndroidAudioRecorder(private val context: Context) {
             Log.w(TAG, "Audio file conversion error: ", e)
         }
     }
+
 }

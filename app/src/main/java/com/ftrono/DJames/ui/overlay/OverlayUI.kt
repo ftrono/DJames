@@ -79,7 +79,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.autoStopQueriesState
 import com.ftrono.DJames.application.clickAnimationCountdownTime
 import com.ftrono.DJames.application.clickCounter
 import com.ftrono.DJames.application.overlayOptionsStr
@@ -179,7 +178,6 @@ fun DJamesPads(
     val sourceIsVolumeState by sourceIsVolume.observeAsState()
     val overlayOptionsState by overlayOptionsStr.observeAsState()
     val overlayOptions = overlayOptionsState!!.split(", ")
-    val autoStopQueriesState by autoStopQueriesState.observeAsState()
 
     // Colours:
     val colorBgActive = colorResource(R.color.colorAccentMid)
@@ -220,7 +218,7 @@ fun DJamesPads(
             posRight = overlayPosState == "Right"
         )
 
-        // Place 4 toes along a semi-circle on the left:
+        // Place N toes along a semi-circle on the left:
         angles.forEachIndexed { index, angle ->
             val rad = Math.toRadians(angle.toDouble())
             val x = (cos(rad) * animatedRadius.toPx()).dp
@@ -252,7 +250,6 @@ fun DJamesPads(
                     colorActive = colorIconActive,
                     colorInactive = colorIconInactive,
                     currentTimeState = currentTimeState!!,
-                    autoStopQueriesState = autoStopQueriesState!!,
                     short = overlayPosState == "Right" && sourceIsVolumeState!!,
                 )
 

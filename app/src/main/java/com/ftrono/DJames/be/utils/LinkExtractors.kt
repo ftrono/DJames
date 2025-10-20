@@ -6,6 +6,7 @@ import android.widget.Toast
 import com.ftrono.DJames.application.sourceToCatMap
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.database.ExtractedItem
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.models.RawLinkPreview
 import com.ftrono.DJames.be.spotify.SpotifyCalls
@@ -62,7 +63,8 @@ class LinkExtractors {
     }
 
     // Main: Spotify Link Extractor (via HTTP link preview parsing):
-    fun extractSpotifyInfoFromHTTP(context: Context, initLibItem: LibraryItem, new: Boolean): LibraryItem {
+    fun extractSpotifyInfoFromHTTP(context: Context, initLibItem: LibraryItem, new: Boolean): ExtractedItem {
+        var returnItem = ExtractedItem()
         var updLibItem = initLibItem
         var linkPreview = RawLinkPreview()
         var toastText = ""
@@ -95,6 +97,7 @@ class LinkExtractors {
                 return@runBlocking initLibItem
 
             } else {
+                returnItem.response = 200
                 updLibItem.name = linkPreview.title.split(" - $albumType by")[0]
                 updLibItem.detail = if (descrSplits.size > 1) {
                     if (updLibItem.type == "album" || updLibItem.type == "track") {
@@ -112,17 +115,19 @@ class LinkExtractors {
                 updLibItem.imageUrl = if (linkPreview.imageUrl != "") linkPreview.imageUrl else initLibItem.imageUrl
                 toastText = if (new) "Link info extracted!" else "Info refreshed!"
             }
+            returnItem.libItem = updLibItem
             Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
-            return@runBlocking updLibItem
+            return@runBlocking returnItem
         }
-        return updLibItem
+        return returnItem
     }
 
 
     // Main: Spotify Link Extractor (via Spotify Web API):
-    fun extractSpotifyInfoFromAPI(context: Context, initItem: LibraryItem, new: Boolean): LibraryItem {
+    fun extractSpotifyInfoFromAPI(context: Context, initItem: LibraryItem, new: Boolean): ExtractedItem {
         Log.d(TAG, "extractSpotifyInfoFromAPI: job start!")
         var toastText = ""
+        var returnItem = ExtractedItem()
         var itemSpotify = initItem
         val filter = itemSpotify.type
         try {
@@ -130,6 +135,7 @@ class LinkExtractors {
             val resp = spotifyCalls.getSpotifyItem(type=filter, id=spotifyUtils.getSpotifyID(itemSpotify.url))
             //PROCESS RESPONSE:
             if (resp.code == 200) {
+                returnItem.response = resp.code
                 //SUCCESS -> Extract info:
                 Log.d(TAG, "extractSpotifyInfoFromAPI: results received!")
                 val respJson = JsonParser.parseString(resp.body).asJsonObject
@@ -185,7 +191,8 @@ class LinkExtractors {
         //TOAST:
         Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
         Log.d(TAG, "extractSpotifyInfoFromAPI: job end!")
-        return itemSpotify
+        returnItem.libItem = itemSpotify
+        return returnItem
     }
 
 }

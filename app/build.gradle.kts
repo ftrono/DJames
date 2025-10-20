@@ -141,6 +141,9 @@ dependencies {
     //Coil:
     implementation("io.coil-kt.coil3:coil-compose:3.1.0")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.1.0")
-    // WebRTC VAD:
+    //VAD:
     implementation("com.github.gkonovalov.android-vad:webrtc:2.0.10")
+//    //Audio signal processing: FFT + helpers:
+//    implementation("be.tarsos.dsp:core:2.5")
+//    implementation("be.tarsos.dsp:jvm:2.5")
 }

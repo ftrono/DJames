@@ -196,13 +196,14 @@ class SpotifyUtils {
         // Main -> use Spotify API:
         val linkExtractor = LinkExtractors()
         var itemSpotify = initItem
-        itemSpotify = linkExtractor.extractSpotifyInfoFromAPI(context, itemSpotify, new)
+        var extractedItem = linkExtractor.extractSpotifyInfoFromAPI(context, itemSpotify, new)
         Log.d(TAG, "First link extraction: $itemSpotify")
-        if (itemSpotify.url == "") {
+        if (extractedItem.response != 200) {
             // Backup -> use link preview:
-            itemSpotify = linkExtractor.extractSpotifyInfoFromHTTP(context, itemSpotify, new)
+            extractedItem = linkExtractor.extractSpotifyInfoFromHTTP(context, itemSpotify, new)
             Log.d(TAG, "Second link extraction: $itemSpotify")
         }
+        itemSpotify = extractedItem.libItem
         if (itemSpotify.type == "playlist" && itemSpotify.detail == "") {
             itemSpotify.detail = "Spotify"
         }

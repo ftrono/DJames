@@ -28,7 +28,6 @@ import com.ftrono.DJames.application.ACTION_FINISH_MAIN
 import com.ftrono.DJames.application.ACTION_SAVE_TRACK
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.ClockActivity
-import com.ftrono.DJames.application.autoStopQueriesState
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.services.VoiceQueryService
@@ -102,16 +101,15 @@ fun getQuickActionOnTap(
         {
             //TODO: Raise Volume!
         }
-    } else if (name == "silence") {
+    } else if (name == "custom") {
         {
-            //TRIGGER ENABLE/DISABLE SILENCE DETECTION:
-            val silenceModeToTrigger = if (prefs.silenceEnabledQueries) "OFF" else "ON"
-            prefs.silenceEnabledQueries = !prefs.silenceEnabledQueries
-            autoStopQueriesState.postValue(!autoStopQueriesState.value!!)
+            //TRIGGER ENABLE/DISABLE USE EXPERIMENTAL SETTING:
+            val modeToTrigger = if (prefs.recToDownloads) "OFF" else "ON"
+            prefs.recToDownloads = !prefs.recToDownloads
             //TOAST -> Send broadcast:
             Intent().also { intent ->
                 intent.setAction(ACTION_TOASTER)
-                intent.putExtra("toastText", "Silence detection $silenceModeToTrigger")
+                intent.putExtra("toastText", "Save to Downloads: $modeToTrigger")
                 context.sendBroadcast(intent)
             }
         }
@@ -128,7 +126,6 @@ fun getQuickAction(
     colorActive: Color,
     colorInactive: Color,
     currentTimeState: String,
-    autoStopQueriesState: Boolean,
     short: Boolean = false,
 ): QuickAction {
     return if (name == "speak") {
@@ -232,15 +229,16 @@ fun getQuickAction(
             },
         )
     } else {
+        // "custom":
         QuickAction(
-            description = "detect silence",
+            description = "downloads",
             content = {
                 Icon(
                     modifier = Modifier
                         .size(34.dp),
-                    painter = if (!autoStopQueriesState) painterResource(id = R.drawable.icon_hearing_off) else painterResource(id = R.drawable.icon_hearing),
+                    painter = painterResource(id = R.drawable.icon_settings),
                     tint = if (isActive) colorActive else colorInactive,
-                    contentDescription = "Voice request"
+                    contentDescription = "Custom"
                 )
             }
         )

@@ -55,11 +55,6 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getBoolean(KEY_ENABLE_V3, false)
         set(value) = sharedPrefs.edit { putBoolean(KEY_ENABLE_V3, value) }
 
-    //Test: use source MIC:
-    var useSourceMic: Boolean
-        get() = sharedPrefs.getBoolean(KEY_USE_SOURCE_MIC, false)
-        set(value) = sharedPrefs.edit { putBoolean(KEY_USE_SOURCE_MIC, value) }
-
     //Enable noise suppression:
     var enableNoiseSuppression: Boolean
         get() = sharedPrefs.getBoolean(KEY_ENABLE_NOISE_SUPPRESSION, true)
@@ -67,28 +62,23 @@ class Prefs (context: Context) {
 
     //Rec min freq:
     var recMinFreq: Int
-        get() = sharedPrefs.getInt(KEY_REC_MIN_FREQ, 700)
+        get() = sharedPrefs.getInt(KEY_REC_MIN_FREQ, 900)
         set(value) = sharedPrefs.edit { putInt(KEY_REC_MIN_FREQ, value) }
 
     //Rec max freq:
     var recMaxFreq: Int
-        get() = sharedPrefs.getInt(KEY_REC_MAX_FREQ, 2900)
+        get() = sharedPrefs.getInt(KEY_REC_MAX_FREQ, 2700)
         set(value) = sharedPrefs.edit { putInt(KEY_REC_MAX_FREQ, value) }
 
     //Enable second noise suppression:
     var enableSecondNoiseSuppression: Boolean
-        get() = sharedPrefs.getBoolean(KEY_ENABLE_SECOND_NOISE_SUPPRESSION, false)
+        get() = sharedPrefs.getBoolean(KEY_ENABLE_SECOND_NOISE_SUPPRESSION, true)
         set(value) = sharedPrefs.edit { putBoolean(KEY_ENABLE_SECOND_NOISE_SUPPRESSION, value) }
 
     //Delta Hz for second noise suppression:
     var secondNoiseDelta: Int
-        get() = sharedPrefs.getInt(KEY_SECOND_NOISE_DELTA, 200)
+        get() = sharedPrefs.getInt(KEY_SECOND_NOISE_DELTA, 400)
         set(value) = sharedPrefs.edit { putInt(KEY_SECOND_NOISE_DELTA, value) }
-
-    //Enable wind suppression:
-    var enableWindSuppression: Boolean
-        get() = sharedPrefs.getBoolean(KEY_ENABLE_WIND_SUPPRESSION, true)
-        set(value) = sharedPrefs.edit { putBoolean(KEY_ENABLE_WIND_SUPPRESSION, value) }
 
     //Save to downloads:
     var recToDownloads: Boolean
@@ -215,13 +205,11 @@ class Prefs (context: Context) {
         const val KEY_USER_NICKNAME = ".key.user_nickname"
         const val KEY_USER_GENDER = ".key.user_gender"
         const val KEY_ENABLE_V3 = ".key.enable_v3"
-        const val KEY_USE_SOURCE_MIC = ".key.use_source_mic"
         const val KEY_ENABLE_NOISE_SUPPRESSION = ".key.enable_noise_suppression"
         const val KEY_REC_MIN_FREQ = ".key.rec_min_freq"
         const val KEY_REC_MAX_FREQ = ".key.rec_max_freq"
         const val KEY_ENABLE_SECOND_NOISE_SUPPRESSION = ".key.enable_second_noise_suppression"
         const val KEY_SECOND_NOISE_DELTA = ".key.second_noise_delta"
-        const val KEY_ENABLE_WIND_SUPPRESSION = ".key.enable_wind_suppression"
         const val KEY_REC_TO_DOWNLOADS = ".key.rec_to_downloads"
         const val KEY_AUTO_STARTUP = ".key.auto_startup"
         const val KEY_OVERLAY_POSITION = ".key.overlay_position"

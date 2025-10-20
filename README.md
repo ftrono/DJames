@@ -11,7 +11,7 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
-**Version 3.0.a8 (v3 alpha) (2025-09-19)** - Reworked Home screen: improved tips & guidance. Add open links from Library item options. Add noise-cleaning Band-Pass Filter as support to VAD. Provisionally tested also RTNR NoiseSuppressor, Silero VAD & Yamnet VAD (then removed).
+**Version 3.0.a8 (v3 alpha) (2025-10-20)** - Add noise-cleaning Band-Pass Filter as support to VAD. Reworked Home screen: improved tips & guidance. Add open links from Library item options. Tested many alternative VADs and noise filters (i.e. RTNR NoiseSuppressor, Silero VAD, Yamnet VAD, constant wind dynamic suppression, ...), then all removed.
 
 **Version 3.0.a7 (v3 alpha) (2025-09-07)** - New AudioRecorder & Silence Detector (WebRTC-VAD). Cache multiple recording files using rec timestamp as name.
 

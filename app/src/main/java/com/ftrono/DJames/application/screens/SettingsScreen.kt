@@ -100,14 +100,12 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
 
     // STATUSES:
     val checkedV3 = remember { mutableStateOf(if (preview) true else prefs.enableV3) }
-    val checkedMic = remember { mutableStateOf(if (preview) false else prefs.useSourceMic) }
     val checkedNoise = remember { mutableStateOf(if (preview) true else prefs.enableNoiseSuppression) }
     val checkedSecondNoise = remember { mutableStateOf(if (preview) true else prefs.enableSecondNoiseSuppression) }
-    val checkedWind = remember { mutableStateOf(if (preview) true else prefs.enableWindSuppression) }
 
     var recFreqRange = 300f..3300f
-    var sliderRecFreqPos = remember { mutableStateOf(if (preview) 800f..2700f else prefs.recMinFreq.toFloat()..prefs.recMaxFreq.toFloat()) }
-    var sliderSecNoiseDeltaPos = remember { mutableStateOf(if (preview) 200f else prefs.secondNoiseDelta.toFloat()) }
+    var sliderRecFreqPos = remember { mutableStateOf(if (preview) 900f..2700f else prefs.recMinFreq.toFloat()..prefs.recMaxFreq.toFloat()) }
+    var sliderSecNoiseDeltaPos = remember { mutableStateOf(if (preview) 400f else prefs.secondNoiseDelta.toFloat()) }
     var sliderRecTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.recTimeout.toFloat()) }
     var sliderMessTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.recTimeout.toFloat()) }
     var sliderClockTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.recTimeout.toFloat()) }
@@ -191,8 +189,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 signColor = colorResource(id = R.color.yellowSign),
                 iconPainter = painterResource(id = R.drawable.icon_warning)
             ) {
-
-                //Experimental: Use source MIC:
+                //Experimental: Enable v3:
                 Row(
                     modifier = Modifier
                         .padding(bottom = 4.dp)
@@ -202,7 +199,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 ) {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = "Use source MIC",
+                        text = "Enable v3 (alpha)",
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
@@ -210,13 +207,13 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         fontWeight = FontWeight.Bold
                     )
                     Switch(
-                        checked = checkedMic.value,
+                        checked = checkedV3.value,
                         colors = getSwitchColors(
                             color = colorResource(id = R.color.yellowSign)
                         ),
                         onCheckedChange = {
-                            checkedMic.value = it
-                            prefs.useSourceMic = it
+                            checkedV3.value = it
+                            prefs.enableV3 = it
                         }
                     )
                 }
@@ -339,36 +336,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             }
                         )
                     }
-
-
-                    //Experimental: Enable Wind Suppression:
-                    Row(
-                        modifier = Modifier
-                            .padding(bottom = 4.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            modifier = Modifier.weight(1f),
-                            text = "Enable wind suppression",
-                            color = colorResource(id = R.color.light_grey),
-                            textAlign = TextAlign.Start,
-                            fontSize = 14.sp,
-                            lineHeight = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Switch(
-                            checked = checkedWind.value,
-                            colors = getSwitchColors(
-                                color = colorResource(id = R.color.yellowSign)
-                            ),
-                            onCheckedChange = {
-                                checkedWind.value = it
-                                prefs.enableWindSuppression = it
-                            }
-                        )
-                    }
                 }
 
 
@@ -382,7 +349,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 ) {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = "Debug: save recs to Downloads",
+                        text = "Save recordings to Downloads",
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
@@ -397,36 +364,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         onCheckedChange = {
                             checkedRecToDownloads.value = it
                             prefs.recToDownloads = it
-                        }
-                    )
-                }
-
-
-                //Experimental: Enable v3:
-                Row(
-                    modifier = Modifier
-                        .padding(bottom = 4.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = "Enable v3 (alpha)",
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
-                        lineHeight = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Switch(
-                        checked = checkedV3.value,
-                        colors = getSwitchColors(
-                            color = colorResource(id = R.color.yellowSign)
-                        ),
-                        onCheckedChange = {
-                            checkedV3.value = it
-                            prefs.enableV3 = it
                         }
                     )
                 }

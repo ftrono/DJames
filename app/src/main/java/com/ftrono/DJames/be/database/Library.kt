@@ -52,3 +52,9 @@ data class LibraryItem(
 class LibraryItemConverter : JsonConverter<LibraryItem>(LibraryItem.serializer())
 class PhoneSetConverter : JsonConverter<PhoneSet>(PhoneSet.serializer())
 class AddressConverter : JsonConverter<Address>(Address.serializer())
+
+
+data class ExtractedItem(
+    var response: Int = 400,
+    var libItem: LibraryItem = LibraryItem()
+)

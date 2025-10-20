@@ -6,8 +6,6 @@ import android.content.Intent
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
-import android.media.audiofx.AutomaticGainControl
-import android.media.audiofx.NoiseSuppressor
 import android.os.Environment
 import android.util.Log
 import androidx.annotation.RequiresPermission
@@ -53,7 +51,11 @@ class AndroidAudioRecorder(private val context: Context) {
             val channelConfig = AudioFormat.CHANNEL_IN_MONO
             val audioFormat = AudioFormat.ENCODING_PCM_16BIT
             val bufferSize = AudioRecord.getMinBufferSize(recSamplingRate, channelConfig, audioFormat)
-            val silenceThreshold = silencePatienceSecs * 1000   // ms
+            val silenceThreshold = if (messageMode) {
+                    silencePatienceMess * 1000   // ms
+                } else {
+                    silencePatienceQueries * 1000   // ms
+                }
 
             // Max time:
             var maxTime = if (messageMode && messageType == "voice") {
@@ -72,31 +74,14 @@ class AndroidAudioRecorder(private val context: Context) {
                 prefs.silenceEnabledQueries
             }
 
-            // Mic source:
-            var micSource = if (prefs.useSourceMic) {
-                MediaRecorder.AudioSource.DEFAULT
-            } else {
-                MediaRecorder.AudioSource.VOICE_RECOGNITION
-            }
-
             //Create recorder:
             audioRecorder = AudioRecord(
-                micSource,
+                MediaRecorder.AudioSource.DEFAULT,   // ALWAYS USE DEFAULT HERE!
                 recSamplingRate,
                 channelConfig,
                 audioFormat,
                 bufferSize
             )
-
-            // Enable NS + AGC if present
-            if (!prefs.useSourceMic) {
-                if (NoiseSuppressor.isAvailable()) {
-                    NoiseSuppressor.create(audioRecorder.audioSessionId)?.enabled = true
-                }
-                if (AutomaticGainControl.isAvailable()) {
-                    AutomaticGainControl.create(audioRecorder.audioSessionId)?.enabled = true
-                }
-            }
 
             // START:
             recordingMode = true
@@ -115,7 +100,6 @@ class AndroidAudioRecorder(private val context: Context) {
             // FFT Filters:
             val bpFilter1 = NoiseBPFilter()
             val bpFilter2 = NoiseBPFilter()
-            val windSuppressor = ConstantWindSuppressor(sampleRate = recSamplingRate)
 
             // Rec buffers -> For VAD: 16-bit PCM → 2 bytes per sample:
             val chunkSize = rtcVad.frameSize.value * 2
@@ -160,27 +144,13 @@ class AndroidAudioRecorder(private val context: Context) {
                                     minFreqHz = prefs.recMinFreq + prefs.secondNoiseDelta,
                                     maxFreqHz = prefs.recMaxFreq - prefs.secondNoiseDelta,
                                 )
-                                if (prefs.enableWindSuppression) {
-                                    // Clean wind + VAD:
-                                    val cleanedFrame3 = windSuppressor.process(cleanedFrame2)
-                                    isSpeech = rtcVad.isSpeech(cleanedFrame3)
-                                    output.write(if (prefs.recToDownloads) cleanedFrame3 else cleanedFrame)   //Write rec file
-                                } else {
-                                    // VAD:
-                                    isSpeech = rtcVad.isSpeech(cleanedFrame2)
-                                    output.write(if (prefs.recToDownloads) cleanedFrame2 else cleanedFrame)   //Write rec file
-                                }
+                                // VAD:
+                                isSpeech = rtcVad.isSpeech(cleanedFrame2)
+                                output.write(if (prefs.recToDownloads) cleanedFrame2 else cleanedFrame)   //Write rec file
                             } else {
-                                if (prefs.enableWindSuppression) {
-                                    // Clean wind + VAD:
-                                    val cleanedFrame3 = windSuppressor.process(cleanedFrame)
-                                    isSpeech = rtcVad.isSpeech(cleanedFrame3)
-                                    output.write(if (prefs.recToDownloads) cleanedFrame3 else cleanedFrame)   //Write rec file
-                                } else {
-                                    // VAD:
-                                    isSpeech = rtcVad.isSpeech(cleanedFrame)
-                                    output.write(cleanedFrame)   //Write rec file
-                                }
+                                // VAD:
+                                isSpeech = rtcVad.isSpeech(cleanedFrame)
+                                output.write(cleanedFrame)   //Write rec file
                             }
                         } else {
                             isSpeech = rtcVad.isSpeech(frame)
@@ -196,7 +166,7 @@ class AndroidAudioRecorder(private val context: Context) {
                             silenceMs += frameDurationMs
                             if (silenceMs >= silenceThreshold) {
                                 // STOP:
-                                Log.d(TAG, "RECORDER: silence detected for more that ${silencePatienceSecs} seconds! -> STOPPING!")
+                                Log.d(TAG, "RECORDER: silence detected for more that ${silenceThreshold / 1000} seconds! -> STOPPING!")
                                 isRecording = false
                                 break
                             }

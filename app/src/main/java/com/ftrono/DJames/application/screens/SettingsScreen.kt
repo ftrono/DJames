@@ -107,8 +107,8 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     var sliderRecFreqPos = remember { mutableStateOf(if (preview) 900f..2700f else prefs.recMinFreq.toFloat()..prefs.recMaxFreq.toFloat()) }
     var sliderSecNoiseDeltaPos = remember { mutableStateOf(if (preview) 400f else prefs.secondNoiseDelta.toFloat()) }
     var sliderRecTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.recTimeout.toFloat()) }
-    var sliderMessTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.recTimeout.toFloat()) }
-    var sliderClockTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.recTimeout.toFloat()) }
+    var sliderMessTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.messageTimeout.toFloat()) }
+    var sliderClockTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.clockTimeout.toFloat()) }
 
     val checkedRecToDownloads = remember { mutableStateOf(if (preview) false else prefs.recToDownloads) }
     val checkedStartup = remember { mutableStateOf(if (preview) true else prefs.autoStartup) }

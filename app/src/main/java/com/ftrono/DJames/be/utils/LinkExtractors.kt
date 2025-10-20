@@ -113,10 +113,12 @@ class LinkExtractors {
                     initLibItem.detail
                 }
                 updLibItem.imageUrl = if (linkPreview.imageUrl != "") linkPreview.imageUrl else initLibItem.imageUrl
-                toastText = if (new) "Link info extracted!" else "Info refreshed!"
+                // toastText = if (new) "Link info extracted!" else "Info refreshed!"
             }
             returnItem.libItem = updLibItem
-            Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
+            if (toastText != "") {
+                Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
+            }
             return@runBlocking returnItem
         }
         return returnItem
@@ -179,7 +181,7 @@ class LinkExtractors {
                     Log.d(TAG, "ERROR: Cannot extract item.detail info! ", e)
                     itemSpotify.detail = ""
                 }
-                toastText = if (!new) "Refreshed!" else "Please fill in additional information!"
+                // toastText = if (!new) "Refreshed!" else "Please fill in additional information!"
             } else {
                 Log.w(TAG, "ERROR: Could not extract info from Spotify!")
                 toastText = if (!new) "Cannot refresh now!" else "Please fill in missing information!"
@@ -189,7 +191,9 @@ class LinkExtractors {
             toastText = if (!new) "Cannot refresh now!" else "Please fill in missing information!"
         }
         //TOAST:
-        Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
+        if (toastText != "") {
+            Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
+        }
         Log.d(TAG, "extractSpotifyInfoFromAPI: job end!")
         returnItem.libItem = itemSpotify
         return returnItem

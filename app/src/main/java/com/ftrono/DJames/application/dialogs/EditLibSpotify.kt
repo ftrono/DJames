@@ -69,21 +69,20 @@ fun EditLibSpotify(
 
     //Init:
     val id: Long = idState.value
-    var itemSpotify = LibraryItem(
-        source = "spotify",
-    )
 
     //Pre-populate:
-    if (idState.value == -2L) {
-        itemSpotify = defaultCollection
+    var itemSpotify = if (idState.value == -2L) {
+        defaultCollection
     } else if (extractedItemState.value != "") {
-        itemSpotify = Json.decodeFromString<LibraryItem>(extractedItemState.value)
-        extractedItemState.value = ""
+        Json.decodeFromString<LibraryItem>(extractedItemState.value)
     } else if (preview) {
-        val filter = "artist"
-        itemSpotify = testLibrary.filter{ it.type == filter && it.source == "spotify" }[0]
+        testLibrary.filter{ it.type == "artist" && it.source == "spotify" }[0]
     } else if (id > -1) {
-        itemSpotify = libUtils.getLibItemById(idState.value)
+        libUtils.getLibItemById(idState.value)
+    } else {
+        LibraryItem(
+            source = "spotify",
+        )
     }
 
     //Init aliases:
@@ -113,9 +112,12 @@ fun EditLibSpotify(
         if (textType.value == "") textType.value = "spotify"
     }
 
+    Log.d("TEMP", "TEMP: IN EDITLIBSPOTIFY -> ${itemSpotify}")
+
     //EDIT DIALOG:
     Dialog(
         onDismissRequest = {
+            extractedItemState.value = ""
             onDismiss()
         },
         properties = DialogProperties(
@@ -185,6 +187,7 @@ fun EditLibSpotify(
 
                     //4) End & close:
                     snapshot.value = utils.getCurrentTimestamp()   //Refresh list
+                    extractedItemState.value = ""
                     onDismiss()
                 }
             }

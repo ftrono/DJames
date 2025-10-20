@@ -112,8 +112,6 @@ fun EditLibSpotify(
         if (textType.value == "") textType.value = "spotify"
     }
 
-    Log.d("TEMP", "TEMP: IN EDITLIBSPOTIFY -> ${itemSpotify}")
-
     //EDIT DIALOG:
     Dialog(
         onDismissRequest = {

@@ -44,7 +44,6 @@ fun UserOptions(
 ) {
     val extraOpenState by extraOpen.observeAsState()
     val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
-    val checkedV3 = remember { mutableStateOf(if (preview) true else prefs.enableV3) }
 
     var mDisplayMenu = rememberSaveable {
         mutableStateOf(false)
@@ -99,18 +98,7 @@ fun UserOptions(
                         mDisplayMenu.value = false
                     }
                 )
-                //2) TODO: TEMP: Item: Enable / disable V3 engine:
-                OptionsItem(
-                    title = "Enable v3 engine",
-                    iconVector = Icons.Default.Check,
-                    showIcon = checkedV3.value,
-                    onClick = {
-                        prefs.enableV3 = !checkedV3.value
-                        checkedV3.value = !checkedV3.value
-                        if (checkedV3.value) "Enabled V3 engine!" else "Disabled V3 engine!"
-                    }
-                )
-                //3) Item: LOGIN/LOGOUT
+                //2) Item: LOGIN/LOGOUT
                 OptionsItem(
                     title = if (!spotifyLoggedInState!!) "Login to Spotify" else "Logout from Spotify",
                     iconPainter = painterResource(id = R.drawable.icon_user),

@@ -99,13 +99,12 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     }
 
     // STATUSES:
-    val checkedV3 = remember { mutableStateOf(if (preview) true else prefs.enableV3) }
     val checkedNoise = remember { mutableStateOf(if (preview) true else prefs.enableNoiseSuppression) }
     val checkedSecondNoise = remember { mutableStateOf(if (preview) true else prefs.enableSecondNoiseSuppression) }
 
     var recFreqRange = 300f..3300f
-    var sliderRecFreqPos = remember { mutableStateOf(if (preview) 900f..2700f else prefs.recMinFreq.toFloat()..prefs.recMaxFreq.toFloat()) }
-    var sliderSecNoiseDeltaPos = remember { mutableStateOf(if (preview) 400f else prefs.secondNoiseDelta.toFloat()) }
+    var sliderRecFreqPos = remember { mutableStateOf(if (preview) 900f..2500f else prefs.recMinFreq.toFloat()..prefs.recMaxFreq.toFloat()) }
+    var sliderSecNoiseDeltaPos = remember { mutableStateOf(if (preview) 500f else prefs.secondNoiseDelta.toFloat()) }
     var sliderRecTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.recTimeout.toFloat()) }
     var sliderMessTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.messageTimeout.toFloat()) }
     var sliderClockTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.clockTimeout.toFloat()) }
@@ -189,36 +188,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 signColor = colorResource(id = R.color.yellowSign),
                 iconPainter = painterResource(id = R.drawable.icon_warning)
             ) {
-                //Experimental: Enable v3:
-                Row(
-                    modifier = Modifier
-                        .padding(bottom = 4.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = "Enable v3 (alpha)",
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
-                        lineHeight = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Switch(
-                        checked = checkedV3.value,
-                        colors = getSwitchColors(
-                            color = colorResource(id = R.color.yellowSign)
-                        ),
-                        onCheckedChange = {
-                            checkedV3.value = it
-                            prefs.enableV3 = it
-                        }
-                    )
-                }
-
-
                 //Experimental: Enable Noise Suppression:
                 Row(
                     modifier = Modifier

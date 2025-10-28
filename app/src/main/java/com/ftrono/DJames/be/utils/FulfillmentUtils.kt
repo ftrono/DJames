@@ -23,6 +23,7 @@ class FulfillmentUtils {
         noPermission: Boolean = false,
         nevermind: Boolean = false,
         cannotRecordWAVoice: Boolean = false,
+        notAvailable: Boolean = false,
     ): DispatcherInfo {
         //Build fallback response:
         return DispatcherInfo(
@@ -35,6 +36,8 @@ class FulfillmentUtils {
                         defaultReplies.replyNotLoggedIn()
                     else if (noPermission)
                         defaultReplies.replyNoPermission()
+                    else if (notAvailable)
+                        defaultReplies.replyNotAvailable()
                     else if (notUnderstood)
                         defaultReplies.replyFallback()
                     else if (nevermind)

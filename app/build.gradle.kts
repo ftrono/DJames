@@ -16,7 +16,7 @@ android {
         minSdk = 29
         targetSdk = 35
         versionCode = 1
-        versionName = "3.0.a8"
+        versionName = "3.0.a9"
 
         manifestPlaceholders["appAuthRedirectScheme"] = "djames-oauth"
 
@@ -143,7 +143,4 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.1.0")
     //VAD:
     implementation("com.github.gkonovalov.android-vad:webrtc:2.0.10")
-//    //Audio signal processing: FFT + helpers:
-//    implementation("be.tarsos.dsp:core:2.5")
-//    implementation("be.tarsos.dsp:jvm:2.5")
 }

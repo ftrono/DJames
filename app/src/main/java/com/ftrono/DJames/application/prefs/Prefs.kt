@@ -50,11 +50,6 @@ class Prefs (context: Context) {
         set(value) = sharedPrefs.edit { putString(KEY_USER_GENDER, value) }
 
     // Experimental:
-    //Enable v3:
-    var enableV3: Boolean
-        get() = sharedPrefs.getBoolean(KEY_ENABLE_V3, false)
-        set(value) = sharedPrefs.edit { putBoolean(KEY_ENABLE_V3, value) }
-
     //Enable noise suppression:
     var enableNoiseSuppression: Boolean
         get() = sharedPrefs.getBoolean(KEY_ENABLE_NOISE_SUPPRESSION, true)
@@ -67,7 +62,7 @@ class Prefs (context: Context) {
 
     //Rec max freq:
     var recMaxFreq: Int
-        get() = sharedPrefs.getInt(KEY_REC_MAX_FREQ, 2700)
+        get() = sharedPrefs.getInt(KEY_REC_MAX_FREQ, 2500)
         set(value) = sharedPrefs.edit { putInt(KEY_REC_MAX_FREQ, value) }
 
     //Enable second noise suppression:
@@ -77,7 +72,7 @@ class Prefs (context: Context) {
 
     //Delta Hz for second noise suppression:
     var secondNoiseDelta: Int
-        get() = sharedPrefs.getInt(KEY_SECOND_NOISE_DELTA, 400)
+        get() = sharedPrefs.getInt(KEY_SECOND_NOISE_DELTA, 500)
         set(value) = sharedPrefs.edit { putInt(KEY_SECOND_NOISE_DELTA, value) }
 
     //Save to downloads:
@@ -204,7 +199,6 @@ class Prefs (context: Context) {
         //Shared prefs:
         const val KEY_USER_NICKNAME = ".key.user_nickname"
         const val KEY_USER_GENDER = ".key.user_gender"
-        const val KEY_ENABLE_V3 = ".key.enable_v3"
         const val KEY_ENABLE_NOISE_SUPPRESSION = ".key.enable_noise_suppression"
         const val KEY_REC_MIN_FREQ = ".key.rec_min_freq"
         const val KEY_REC_MAX_FREQ = ".key.rec_max_freq"

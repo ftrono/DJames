@@ -58,7 +58,8 @@ data class DispatcherInfo(
     var playType: String = "",
     var contextType: String = "",
     var usable: LibraryItem = LibraryItem(),
-    var playable: SpotifyPlayable = SpotifyPlayable()
+    var playable: SpotifyPlayable = SpotifyPlayable(),
+    var testV3: Boolean = false,
 )
 
 

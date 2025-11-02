@@ -99,7 +99,7 @@ class NLPDispatcher (private var context: Context) {
                         "PlayPlaylist" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback(notLoggedIn=true)
                         "PlayPodcast" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback(notLoggedIn=true)
                         "PlayCollection" -> if (spotifyLoggedIn.value!!) return spotify.playCollection(resultsNLP) else return fulfillmentUtils.fallback(notLoggedIn=true)
-                        "TestAgents" -> return if (prefs.enableV3) AgentsGraph().invoke(resultsNLP.queryText) else fulfillmentUtils.fallback(notAvailable=true)
+                        "TestAgents" -> return if (prefs.enableV3) AgentsGraph(context).invoke(resultsNLP.queryText) else fulfillmentUtils.fallback(notAvailable=true)   // TODO: TEMP
                         "Cancel" -> return fulfillmentUtils.fallback(nevermind=true)
                         else -> return fulfillmentUtils.fallback(notUnderstood=true)
                     }
@@ -194,10 +194,15 @@ class NLPDispatcher (private var context: Context) {
                     if (nlp_queryText != "" && intentName != "") {
                         if (messageMode) {
                             when (intentName) {
-                                "Cancel" -> return fulfillmentUtils.fallback(nevermind=true)
+                                "Cancel" -> return fulfillmentUtils.fallback(nevermind = true)
                                 else -> return fulfillment.sendMessage2(prevDispatch)
                             }
-
+                        } else if (prevDispatch.testV3) {
+                            // TODO: TEMP:
+                            when (intentName) {
+                                "Cancel" -> return fulfillmentUtils.fallback(nevermind = true)
+                                else -> return AgentsGraph(context).invoke(resultsNLP.queryText)
+                            }
                         } else {
                             when (intentName) {
                                 "Cancel" -> return fulfillmentUtils.fallback(nevermind=true)

@@ -1,0 +1,94 @@
+package com.ftrono.DJames.be.agents
+
+import android.content.Context
+import android.util.Log
+import com.ftrono.DJames.R
+import com.ftrono.DJames.application.lastRecordingName
+import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.be.models.AiReply
+import com.ftrono.DJames.be.models.DispatcherInfo
+import com.google.gson.JsonParser
+import org.bsc.langgraph4j.CompiledGraph
+import org.bsc.langgraph4j.StateGraph
+import org.bsc.langgraph4j.StateGraph.END
+import org.bsc.langgraph4j.StateGraph.START
+import org.bsc.langgraph4j.action.AsyncNodeAction.node_async
+import org.bsc.langgraph4j.state.AgentStateFactory
+import java.io.BufferedReader
+import java.io.InputStreamReader
+
+
+// MAIN GRAPH:
+class AgentsGraph(
+    private val context: Context,
+) {
+    private val TAG = AgentsGraph::class.java.simpleName
+
+    //GET LLM CREDENTIALS:
+    val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.env)))
+    private val apiKey = JsonParser.parseReader(reader).asJsonObject.get("mistral_api_key").asString
+
+    fun build(): StateGraph<SimpleState?> {
+        // Initialize nodes
+        val greeterNode = GreeterNode()
+        val responderNode = ResponderNode()
+        val agentNode = AgentNode(context, apiKey)
+
+        // Define the graph structure
+        val stateGraph = StateGraph<SimpleState?>(
+            SimpleState.SCHEMA,
+            AgentStateFactory { initData: MutableMap<String?, Any?>? ->
+                SimpleState(
+                    initData!!
+                )
+            })
+//            .addNode("greeter", node_async(greeterNode))
+//            .addNode("responder", node_async(responderNode))
+            .addNode("agent", node_async(agentNode))
+            // Define edges
+            .addEdge(START, "agent")
+//            .addEdge("greeter", "responder")
+//            .addEdge("responder", "agent")
+            .addEdge("agent", END)
+
+        return stateGraph
+    }
+
+    fun compile(stateGraph: StateGraph<SimpleState?>): CompiledGraph<SimpleState?> {
+        return stateGraph.compile()
+    }
+
+    fun invoke(
+        inMessage: String
+    ): DispatcherInfo {
+        // Build & compile the graph
+        val stateGraph = this.build()
+        val compiledGraph = this.compile(stateGraph)
+
+        // Run the graph
+        // The `stream` method returns an AsyncGenerator.
+        // For simplicity, we'll collect results. In a real app, you might process them as they arrive.
+        // Here, the final state after execution is the item of interest.
+        var outMessage = ""
+        for (item in compiledGraph.stream(
+            mutableMapOf<String?, Any?>(
+                SimpleState.MESSAGES_KEY to inMessage
+            )
+        )) {
+            Log.d("AgentsGraph", item.toString())
+            outMessage = item.state()!!.messages().last()!!
+        }
+
+        return DispatcherInfo(
+            lastRecording = lastRecordingName,
+            testV3 = true,
+            followUp = true,
+            aiReplies = listOf(
+                AiReply(
+                    langCode = prefs.queryLanguage,
+                    text = outMessage
+                )
+            )
+        )
+    }
+}

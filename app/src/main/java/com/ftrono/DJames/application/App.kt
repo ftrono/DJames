@@ -206,6 +206,14 @@ val spotifyAuthConfig = AuthorizationServiceConfiguration(
     Uri.parse("https://accounts.spotify.com/api/token")   // Token endpoint
 )
 
+//LLM:
+val mistralSttModel = "voxtral-mini-latest"
+val mistralSttUrl = "https://api.mistral.ai/v1/audio/transcriptions"
+val mistralLlmModel = "mistral-small-latest"
+val mistralLlmUrl = "https://api.mistral.ai/v1/chat/completions"
+val mistralLlmTemperature = 0.0F
+val mistralLlmTimeout = 60L
+
 //BROADCASTS:
 //Event receiver:
 //ACTION_SCREEN_ON, ACTION_SCREEN_OFF

@@ -26,9 +26,7 @@ import com.ftrono.DJames.be.utils.Utilities
 import com.google.gson.JsonObject
 import io.objectbox.Box
 import io.objectbox.BoxStore
-import okhttp3.OkHttpClient
 import java.io.File
-import java.util.concurrent.TimeUnit
 
 
 //GLOBALS:
@@ -141,7 +139,7 @@ val midThreshold = 60
 val recSamplingRate = 48000 // 44100
 val silencePatienceQueries = 2   //seconds
 val silencePatienceMess = 3   //seconds
-val queryTimeout = 5   //seconds
+val defaultHttpTimeout = 10L   //seconds
 val maxAudioRecTimeout = 120L   //for voice messages
 var lastRecordingName = ""
 var enablePlayerInfo = false
@@ -207,12 +205,6 @@ val spotifyAuthConfig = AuthorizationServiceConfiguration(
     Uri.parse("https://accounts.spotify.com/authorize"), // Authorization endpoint
     Uri.parse("https://accounts.spotify.com/api/token")   // Token endpoint
 )
-val client = OkHttpClient.Builder()
-    .connectTimeout(queryTimeout.toLong(), TimeUnit.SECONDS)
-    .writeTimeout(queryTimeout.toLong(), TimeUnit.SECONDS)
-    .readTimeout(queryTimeout.toLong(), TimeUnit.SECONDS)
-    .callTimeout(queryTimeout.toLong(), TimeUnit.SECONDS)
-    .build()
 
 //BROADCASTS:
 //Event receiver:

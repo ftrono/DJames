@@ -3,10 +3,10 @@ package com.ftrono.DJames.be.spotify
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.client
+import com.ftrono.DJames.application.defaultHttpTimeout
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.models.HttpResponse
+import com.ftrono.DJames.be.utils.HttpClient
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import kotlinx.coroutines.runBlocking
@@ -36,6 +36,8 @@ class SpotifyQuery(private val context: Context) {
         val encodedStr: String = Base64.getEncoder().encodeToString(authStr.toByteArray())
 
         //BUILD CLIENT:
+        val httpClient = HttpClient()
+        val client = httpClient.getClient(defaultHttpTimeout)
         var formBody = FormBody.Builder()
             .add("grant_type", "refresh_token")
             .add("refresh_token", prefs.refreshToken)
@@ -52,7 +54,7 @@ class SpotifyQuery(private val context: Context) {
 
         //CALL POST REQUEST:
         runBlocking {
-            var response = utils.makeRequest(client, request)
+            var response = httpClient.makeRequest(client, request)
             if (response.code == 200) {
                 try {
                     //RESPONSE RECEIVED -> TOKENS:
@@ -129,6 +131,8 @@ class SpotifyQuery(private val context: Context) {
         jsonHeads: JsonObject,
         jsonBody: JsonObject? = null
     ): HttpResponse {
+        val httpClient = HttpClient()
+        val client = httpClient.getClient(defaultHttpTimeout)
         var response = HttpResponse(
             code = -1,  // -1 to indicate failure
             body = ""
@@ -138,7 +142,7 @@ class SpotifyQuery(private val context: Context) {
         var request = buildRequest(type=type, url=url, jsonHeads=jsonHeads, jsonBody=jsonBody)
 
         runBlocking {
-            response = utils.makeRequest(client, request)
+            response = httpClient.makeRequest(client, request)
             if (response.code == 200 || response.code == 204) {
                 //FIRST QUERY SUCCESS:
                 Log.d(TAG, "Spotify query: first response SUCCESS!")
@@ -153,7 +157,7 @@ class SpotifyQuery(private val context: Context) {
                 var jsonHeads2 = jsonHeads
                 jsonHeads2.addProperty("Authorization", "Bearer ${prefs.spotifyToken}")
                 request = buildRequest(type=type, url=url, jsonHeads=jsonHeads, jsonBody=jsonBody)
-                response = utils.makeRequest(client, request)
+                response = httpClient.makeRequest(client, request)
 
                 if (response.code == 200 || response.code == 204) {
                     //SECOND QUERY SUCCESS:

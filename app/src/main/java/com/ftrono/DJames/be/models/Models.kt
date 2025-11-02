@@ -50,7 +50,7 @@ data class DispatcherInfo(
     var end: Boolean = false,   //fulfillment complete
     var fail: Boolean = false,   //fulfillment complete
     var playAcknowledge: Boolean = false,   //play the acknowledge tone
-    var followUp: Boolean = false,   //generic
+    var followUp: Boolean = false,   //from 2nd query on
     var messageMode: Boolean = false,   //specific for messages only
     var messageType: String = "",
     var intentName: String = "Fallback",

@@ -5,7 +5,6 @@ import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.defaultChatWait
 import com.ftrono.DJames.application.fulfillmentUtils
-import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.lastRequestIntent
 import com.ftrono.DJames.application.lastUserMessage
 import com.ftrono.DJames.application.messageUtils
@@ -14,6 +13,7 @@ import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.voiceConvStarted
+import com.ftrono.DJames.be.agents.AgentsGraph
 import com.ftrono.DJames.be.database.NlpQueryModel
 import com.ftrono.DJames.be.models.DispatcherInfo
 import com.ftrono.DJames.be.spotify.SpotifyFulfillment
@@ -99,7 +99,7 @@ class NLPDispatcher (private var context: Context) {
                         "PlayPlaylist" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback(notLoggedIn=true)
                         "PlayPodcast" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback(notLoggedIn=true)
                         "PlayCollection" -> if (spotifyLoggedIn.value!!) return spotify.playCollection(resultsNLP) else return fulfillmentUtils.fallback(notLoggedIn=true)
-                        "TestAgents" -> return fulfillmentUtils.fallback(notAvailable=true)   // TODO: TEMP!
+                        "TestAgents" -> return if (prefs.enableV3) AgentsGraph().invoke(resultsNLP.queryText) else fulfillmentUtils.fallback(notAvailable=true)
                         "Cancel" -> return fulfillmentUtils.fallback(nevermind=true)
                         else -> return fulfillmentUtils.fallback(notUnderstood=true)
                     }

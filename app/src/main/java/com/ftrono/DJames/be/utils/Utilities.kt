@@ -25,26 +25,13 @@ import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recDir
 import com.ftrono.DJames.application.services.OverlayService
-import com.ftrono.DJames.be.models.HttpResponse
 import com.ftrono.DJames.be.models.languageNamesMap
 import com.ftrono.DJames.be.models.languageWordsMap
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
 import java.io.File
-import java.io.IOException
-import java.nio.file.Paths
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.Random
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
-import kotlin.math.pow
-import kotlin.math.roundToInt
-import kotlin.math.sqrt
 import kotlin.streams.asSequence
 
 
@@ -61,32 +48,6 @@ class Utilities {
         return datetimeStr
     }
 
-    //OkHTTP: make HTTP request:
-    suspend fun makeRequest(client: OkHttpClient, request: Request): HttpResponse =
-        suspendCoroutine { continuation ->
-            client.newCall(request).enqueue(object : Callback {
-                override fun onResponse(call: Call, response: Response) {
-                    continuation.resume(
-                        HttpResponse(
-                            code = response.code,
-                            body = response.body!!.string()
-                        )
-                    )
-                }
-
-                override fun onFailure(call: Call, e: IOException) {
-                    continuation.resume(
-                        HttpResponse(
-                            code = -1,  // -1 to indicate failure
-                            body = ""
-                        )
-                    )
-                    Log.d("TAG", "RESPONSE ERROR: ", e)
-                }
-            })
-        }
-
-
     //Check service running:
     fun isMyServiceRunning(serviceClass: Class<*>, context: Context): Boolean {
         val manager = context.getSystemService(AppCompatActivity.ACTIVITY_SERVICE) as ActivityManager
@@ -98,12 +59,10 @@ class Utilities {
         return false
     }
 
-
     //Check Manifest permission:
     fun checkPermission(context: Context, permission: String): Boolean {
         return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
     }
-
 
     //ID creator:
     fun generateRandomString(length: Int, numOnly: Boolean = false): String {
@@ -120,12 +79,10 @@ class Utilities {
             .joinToString("")
     }
 
-
     //Capitalize each word in a sentence:
     fun capitalizeWords(text: String, delimiter: String = " "): String {
         return text.split(delimiter).joinToString(delimiter) { it.lowercase().replaceFirstChar(Char::titlecaseChar) }
     }
-
 
     //Clean string keeping only alphanumeric characters:
     fun cleanString(text: String, emojiOnly: Boolean = false): String {
@@ -140,12 +97,10 @@ class Utilities {
         return capitalizeWords(cleaned).trim()
     }
 
-
     //Check if string is made of alphabetic characters:
     fun isLetters(string: String): Boolean {
         return string.all { it.isLetter() }
     }
-
 
     //Validate contact phone (i.e. no phone number, no international prefix in phone number):
     fun isGlobalPhone(prefix: String, phone: String): Boolean {
@@ -155,7 +110,6 @@ class Utilities {
         return (phoneTest && (prefix.contains("+") && prefix.length == 3) && (phone.length == 10 || phone.length == 11))
     }
 
-
     //Trim strings:
     fun trimString(textOrig: String, maxLength: Int = 30): String {
         var textTrimmed = textOrig
@@ -164,15 +118,6 @@ class Utilities {
         }
         return textTrimmed
     }
-
-
-    //Get stdev:
-    fun getStDev(numbers: List<Int>): Int {
-        val mean = numbers.average()
-        val variance = numbers.map { (it - mean).pow(2) }.average()
-        return sqrt(variance).roundToInt()
-    }
-
 
     //Make call:
     fun makeCall(context: Context, contactPhone: String, fromService: Boolean = false) {
@@ -190,7 +135,6 @@ class Utilities {
         }
     }
 
-
     //Open link externally:
     fun openLink(context: Context, url: String, fromService: Boolean = false) {
         //Intent view:
@@ -206,7 +150,6 @@ class Utilities {
         context.startActivity(intent)
     }
 
-
     //UI update:
     fun updateStatesMap(statesMap: SnapshotStateMap<String, Boolean>, target: String): SnapshotStateMap<String, Boolean> {
         for (k in statesMap.keys) {
@@ -218,7 +161,6 @@ class Utilities {
         }
         return statesMap
     }
-
 
     //From a detected language name, get the supported language code:
     fun getLanguageCode(language: String, default: String = ""): String {
@@ -232,12 +174,10 @@ class Utilities {
         return reqLangCode
     }
 
-
     //Get the corresponding language name in preferred language for the detected language code:
     fun getLanguageName(languageCode: String): String {
         return languageNamesMap[prefs.queryLanguage]!![languageCode]!!
     }
-
 
     //Start/Stop DRIVE Mode:
     fun startStopDriveMode(
@@ -296,7 +236,6 @@ class Utilities {
         }
     }
 
-
     //FILE MANAGEMENT:
     //Send a cached file:
     fun sendCachedFile(context: Context, filename: String) {
@@ -318,7 +257,6 @@ class Utilities {
         }
     }
 
-
     //CLEANING:
     //Clean cached recordings:
     fun cleanRecordingsCache(context: Context) {
@@ -333,7 +271,6 @@ class Utilities {
             Log.w(TAG, "Recordings cache not deleted.")
         }
     }
-
 
     //On Logout: delete user Library & Messages files:
     fun deleteUserData(context: Context) {

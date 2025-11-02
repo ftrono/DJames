@@ -50,6 +50,11 @@ class Prefs (context: Context) {
         set(value) = sharedPrefs.edit { putString(KEY_USER_GENDER, value) }
 
     // Experimental:
+    //Enable v3:
+    var enableV3: Boolean
+        get() = sharedPrefs.getBoolean(KEY_ENABLE_V3, false)
+        set(value) = sharedPrefs.edit { putBoolean(KEY_ENABLE_V3, value) }
+
     //Enable noise suppression:
     var enableNoiseSuppression: Boolean
         get() = sharedPrefs.getBoolean(KEY_ENABLE_NOISE_SUPPRESSION, true)
@@ -199,6 +204,7 @@ class Prefs (context: Context) {
         //Shared prefs:
         const val KEY_USER_NICKNAME = ".key.user_nickname"
         const val KEY_USER_GENDER = ".key.user_gender"
+        const val KEY_ENABLE_V3 = ".key.enable_v3"
         const val KEY_ENABLE_NOISE_SUPPRESSION = ".key.enable_noise_suppression"
         const val KEY_REC_MIN_FREQ = ".key.rec_min_freq"
         const val KEY_REC_MAX_FREQ = ".key.rec_max_freq"

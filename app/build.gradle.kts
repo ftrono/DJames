@@ -143,4 +143,10 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.1.0")
     //VAD:
     implementation("com.github.gkonovalov.android-vad:webrtc:2.0.10")
+    //LangGraph4j:
+    implementation("org.bsc.langgraph4j:langgraph4j-parent:1.7.2")
+    implementation("org.bsc.langgraph4j:langgraph4j-core:1.7.2")
+//    implementation("org.bsc.langgraph4j:langgraph4j-agent-executor:1.7.2")
+//    implementation("dev.langchain4j:langchain4j:1.8.0")
+//    implementation("dev.langchain4j:langchain4j-mistral-ai:1.8.0")
 }

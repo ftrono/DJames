@@ -7,9 +7,9 @@ import android.widget.Toast
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.navigation.NavController
 import com.ftrono.DJames.application.ACTION_TOASTER
-import com.ftrono.DJames.application.client
 import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.defaultHttpTimeout
 import com.ftrono.DJames.application.refrTempToken
 import com.ftrono.DJames.application.showLoggingIn
 import com.ftrono.DJames.application.spotTempToken
@@ -18,6 +18,7 @@ import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.spotUserName
 import com.ftrono.DJames.application.userNicknameUI
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.utils.HttpClient
 import com.ftrono.DJames.ui.navigation.navigateTo
 import com.ftrono.DJames.ui.theme.NavigationItem
 import com.google.gson.JsonParser
@@ -36,6 +37,8 @@ class SpotifyLoginUtils {
     ) {
         //Get user profile data:
         //BUILD GET REQUEST:
+        val httpClient = HttpClient()
+        val client = httpClient.getClient(defaultHttpTimeout)
         val url = "https://api.spotify.com/v1/me"
         val request = Request.Builder()
             .url(url)
@@ -45,7 +48,7 @@ class SpotifyLoginUtils {
         //GET:
         scope.launch {
             Log.d(TAG, "Performing Spotify.me request...")
-            val meResponse = utils.makeRequest(client, request)
+            val meResponse = httpClient.makeRequest(client, request)
             if (meResponse.code == 200) {
                 Log.d(TAG, "Spotify.me: answer received!")
                 try {

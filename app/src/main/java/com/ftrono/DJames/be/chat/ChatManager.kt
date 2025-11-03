@@ -14,6 +14,7 @@ import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.agents.AgentsGraph
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
 import com.ftrono.DJames.be.nlp.NLPDispatcher
@@ -26,6 +27,8 @@ import kotlinx.coroutines.launch
 class ChatManager(private val context: Context) {
     private val TAG = ChatManager::class.java.simpleName
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val agentGraph = AgentsGraph(context)
+    private val nlpDispatcher = NLPDispatcher(context, agentGraph)
 
     fun resetConv() {
         chatLastDispatch = DispatcherInfo()
@@ -50,7 +53,6 @@ class ChatManager(private val context: Context) {
 
         // PROCESS:
         coroutineScope.launch {
-            var nlpDispatcher = NLPDispatcher(context)
             chatLastDispatch = nlpDispatcher.dispatch(text=text, prevDispatch=chatLastDispatch, fromVoice=false)
             Log.d(TAG, "LAST DISPATCH: $chatLastDispatch")
 

@@ -1,5 +1,6 @@
 package com.ftrono.DJames.be.database
 
+import com.ftrono.DJames.be.agents.ChatMessage
 import com.ftrono.DJames.be.models.ActionType
 import com.ftrono.DJames.be.models.ActionTypeConverter
 import com.ftrono.DJames.be.models.JsonConverter
@@ -186,6 +187,9 @@ data class Attachments(
     var playedExternally: Boolean = false,
     var contextError: Boolean = false,
 
+    @Convert(converter = ChatMessageConverter::class, dbType = String::class)
+    var llmChatMessages: MutableList<ChatMessage> = mutableListOf<ChatMessage>(),
+
     @Convert(converter = NlpQueryModelConverter::class, dbType = String::class)
     var nlpQueries: MutableList<NlpQueryModel>? = null,
 
@@ -208,3 +212,4 @@ class ExtractorInfoConverter : JsonConverter<ExtractorInfo>(ExtractorInfo.serial
 class SpotifyPlayableConverter : JsonConverter<SpotifyPlayable>(SpotifyPlayable.serializer())
 class NlpQueryModelConverter : JsonListConverter<NlpQueryModel>(NlpQueryModel.serializer())
 class SpotifyQueryModelConverter : JsonListConverter<SpotifyQueryModel>(SpotifyQueryModel.serializer())
+class ChatMessageConverter : JsonListConverter<ChatMessage>(ChatMessage.serializer())

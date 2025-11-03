@@ -28,17 +28,19 @@ class AgentsGraph(
     val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.env)))
     private val apiKey = JsonParser.parseReader(reader).asJsonObject.get("mistral_api_key").asString
 
-    fun build(): StateGraph<SimpleState?> {
+    // Initialize:
+    val stateGraph = this.build()
+    var messages: MutableList<ChatMessage?> = this.loadMessages()
+
+    fun build(): StateGraph<StateMap?> {
         // Initialize nodes
-        val greeterNode = GreeterNode()
-        val responderNode = ResponderNode()
         val agentNode = AgentNode(context, apiKey)
 
         // Define the graph structure
-        val stateGraph = StateGraph<SimpleState?>(
-            SimpleState.SCHEMA,
+        val stateGraph = StateGraph<StateMap?>(
+            StateMap.SCHEMA,
             AgentStateFactory { initData: MutableMap<String?, Any?>? ->
-                SimpleState(
+                StateMap(
                     initData!!
                 )
             })
@@ -54,29 +56,43 @@ class AgentsGraph(
         return stateGraph
     }
 
-    fun compile(stateGraph: StateGraph<SimpleState?>): CompiledGraph<SimpleState?> {
+    fun loadMessages(): MutableList<ChatMessage?> {
+        // TODO: Build initial messages list:
+        val msgList = mutableListOf<ChatMessage?>(
+            // ChatMessage(role = "user", content = inMessage)
+        )
+        Log.d(TAG, "Messages size: ${msgList.size} items.")
+        return msgList
+    }
+
+    fun compile(stateGraph: StateGraph<StateMap?>): CompiledGraph<StateMap?> {
         return stateGraph.compile()
     }
 
     fun invoke(
         inMessage: String
     ): DispatcherInfo {
-        // Build & compile the graph
-        val stateGraph = this.build()
+        // Build & compile the graph:
         val compiledGraph = this.compile(stateGraph)
+        messages.add(
+            ChatMessage(role = "user", content = inMessage)
+        )
+        Log.d(TAG, "Messages size (input): ${messages.size} items.")
 
-        // Run the graph
-        // The `stream` method returns an AsyncGenerator.
-        // For simplicity, we'll collect results. In a real app, you might process them as they arrive.
-        // Here, the final state after execution is the item of interest.
+        // Run the graph:
+        // The `stream` method returns an AsyncGenerator. Results are in the final state after execution:
         var outMessage = ""
         for (item in compiledGraph.stream(
+            // Input:
             mutableMapOf<String?, Any?>(
-                SimpleState.MESSAGES_KEY to inMessage
+                StateMap.MESSAGES to messages
             )
         )) {
-            Log.d("AgentsGraph", item.toString())
-            outMessage = item.state()!!.messages().last()!!
+            // Output:
+            Log.d(TAG, item.toString())
+            messages = item.state()!!.messages()
+            outMessage = item.state()!!.messages().last()!!.content
+            Log.d(TAG, "Messages size (output): ${messages.size} items.")
         }
 
         return DispatcherInfo(

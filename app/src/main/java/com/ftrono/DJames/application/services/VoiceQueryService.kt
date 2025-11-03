@@ -31,6 +31,7 @@ import com.ftrono.DJames.application.recordingFail
 import com.ftrono.DJames.application.recordingTime
 import com.ftrono.DJames.application.sourceIsVolume
 import com.ftrono.DJames.application.voiceConvStarted
+import com.ftrono.DJames.be.agents.AgentsGraph
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
 import com.ftrono.DJames.be.nlp.NLPDispatcher
@@ -48,6 +49,8 @@ class VoiceQueryService: Service() {
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
     private val audioRequestsManager = AudioRequestsManager()
     private lateinit var tts: TTSReader
+    private lateinit var agentGraph: AgentsGraph
+    private lateinit var nlpDispatcher: NLPDispatcher
 
     //Recorder:
     private val MyRecorder by lazy {
@@ -82,6 +85,10 @@ class VoiceQueryService: Service() {
             //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
             registerReceiver(VQReceiver, actFilter, RECEIVER_EXPORTED)
             Log.d(TAG, "VQReceiver started.")
+
+            // Init conv orchestrator:
+            agentGraph = AgentsGraph(applicationContext)
+            nlpDispatcher = NLPDispatcher(applicationContext, agentGraph)
 
             //Start recording:
             startVoiceRecording(speakIntro = true)
@@ -295,7 +302,6 @@ class VoiceQueryService: Service() {
         try {
             //PROCESS REQUEST:
             if (voiceQueryOn) {
-                var nlpDispatcher = NLPDispatcher(applicationContext)
                 lastDispatch = nlpDispatcher.dispatch(recFile=recFile, prevDispatch=lastDispatch, fromVoice=true)
                 messageMode = lastDispatch.messageMode
                 followUp = lastDispatch.followUp

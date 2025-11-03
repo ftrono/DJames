@@ -1,68 +1,85 @@
 package com.ftrono.DJames.be.agents
 
+import com.ftrono.DJames.be.models.JsonConverter
+import com.ftrono.DJames.be.models.JsonListConverter
+import io.objectbox.annotation.Convert
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import java.io.Serializable
+import kotlinx.serialization.Serializable as KxSerializable
 import kotlinx.serialization.json.*
 
+// Status:
+@KxSerializable
+data class LlmReturn(
+    var fail: Boolean = false,
+    var messages: List<ChatMessage?> = listOf<ChatMessage?>()
+)
 
 // Tools:
-@Serializable
+@KxSerializable
 data class ToolProperty(
     var type: String,
     var description: String,
 )
 
-@Serializable
+@KxSerializable
 data class ToolParameters(
     var type: String,
     var properties: Map<String, ToolProperty>,
 )
 
-@Serializable
+@KxSerializable
 data class ToolFunction(
     var name: String,
     var description: String,
     var parameters: ToolParameters,
 )
 
-@Serializable
+@KxSerializable
 data class ToolDefinition(
     var type: String,
     var function: ToolFunction,
 )
 
 
+// STATE INTERNALS:
 // Tool calls:
-@Serializable
+@KxSerializable
 data class FunctionCall(
     var name: String = "",
     var arguments: String = "",
-)
+): Serializable
 
-@Serializable
+@KxSerializable
 data class ToolCall(
     var id: String = "",
     var index: Int = 0,
+    @Convert(converter = FunctionCallConverter::class, dbType = String::class)
     var function: FunctionCall = FunctionCall()
-)
+): Serializable
 
 
 // Messages:
-@Serializable
+@KxSerializable
 data class ChatMessage(
     var role: String = "",   // "system", "user", "tool"
     var content: String = "",
+    @Convert(converter = ToolCallConverter::class, dbType = String::class)
     @SerialName("tool_calls")
     var toolCalls: List<ToolCall>? = null,
     @SerialName("tool_call_id")
     var toolCallId: String? = null,
-)
+): Serializable
+
+class ChatMessageConverter : JsonConverter<ChatMessage>(ChatMessage.serializer())
+class FunctionCallConverter : JsonConverter<FunctionCall>(FunctionCall.serializer())
+class ToolCallConverter : JsonListConverter<ToolCall>(ToolCall.serializer())
 
 
 // LLM API interaction:
-@Serializable
+@KxSerializable
 data class LlmRequest(
-    var messages: List<ChatMessage> = listOf<ChatMessage>(),
+    var messages: List<ChatMessage?> = listOf<ChatMessage?>(),
     var model: String = "",
     var temperature: Float = 0.0F,
     @SerialName("tool_choice")
@@ -73,7 +90,7 @@ data class LlmRequest(
     // you can add other parameters (max_tokens, top_p, etc) if supported
 )
 
-@Serializable
+@KxSerializable
 data class LlmUsage(
     @SerialName("prompt_tokens")
     var promptTokens: Long = 0L,
@@ -85,7 +102,7 @@ data class LlmUsage(
     var promptAudioSeconds: Long = 0L,
 )
 
-@Serializable
+@KxSerializable
 data class LlmChoice(
     var index: Int,
     var message: ChatMessage,
@@ -93,7 +110,7 @@ data class LlmChoice(
     var finishReason: String = "",
 )
 
-@Serializable
+@KxSerializable
 data class LlmResponse(
     var usage: LlmUsage = LlmUsage(),
     var choices: List<LlmChoice> = listOf<LlmChoice>(),

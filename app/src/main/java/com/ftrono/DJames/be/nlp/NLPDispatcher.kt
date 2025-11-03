@@ -20,7 +20,10 @@ import com.ftrono.DJames.be.spotify.SpotifyFulfillment
 import java.io.File
 
 
-class NLPDispatcher (private var context: Context) {
+class NLPDispatcher (
+    private var context: Context,
+    private var agentsGraph: AgentsGraph
+) {
 
     private val TAG = NLPDispatcher::class.java.simpleName
 
@@ -99,7 +102,7 @@ class NLPDispatcher (private var context: Context) {
                         "PlayPlaylist" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback(notLoggedIn=true)
                         "PlayPodcast" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback(notLoggedIn=true)
                         "PlayCollection" -> if (spotifyLoggedIn.value!!) return spotify.playCollection(resultsNLP) else return fulfillmentUtils.fallback(notLoggedIn=true)
-                        "TestAgents" -> return if (prefs.enableV3) AgentsGraph(context).invoke(resultsNLP.queryText) else fulfillmentUtils.fallback(notAvailable=true)   // TODO: TEMP
+                        "TestAgents" -> return if (prefs.enableV3) agentsGraph.invoke(resultsNLP.queryText) else fulfillmentUtils.fallback(notAvailable=true)   // TODO: TEMP
                         "Cancel" -> return fulfillmentUtils.fallback(nevermind=true)
                         else -> return fulfillmentUtils.fallback(notUnderstood=true)
                     }
@@ -201,7 +204,7 @@ class NLPDispatcher (private var context: Context) {
                             // TODO: TEMP:
                             when (intentName) {
                                 "Cancel" -> return fulfillmentUtils.fallback(nevermind = true)
-                                else -> return AgentsGraph(context).invoke(resultsNLP.queryText)
+                                else -> return agentsGraph.invoke(resultsNLP.queryText)
                             }
                         } else {
                             when (intentName) {

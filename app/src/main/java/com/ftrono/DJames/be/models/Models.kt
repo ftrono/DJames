@@ -11,6 +11,9 @@ import kotlinx.serialization.json.Json
 import io.objectbox.converter.PropertyConverter
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
 
 // MODEL CLASSES:
@@ -66,6 +69,36 @@ data class DispatcherInfo(
 // ENUM:
 enum class ActionType {
     PLAY, CALL, SMS, WA_TEXT, WA_VOICE, OPEN_URL
+}
+
+
+// SERIALIZERS:
+class NullableListSerializer<T>(private val elementSerializer: KSerializer<T>) : KSerializer<List<T>?> {
+    private val delegate = ListSerializer(elementSerializer)
+
+    @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+    override val descriptor: SerialDescriptor =
+        buildSerialDescriptor("NullableList", StructureKind.LIST) {
+            element("items", elementSerializer.descriptor)
+        }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun serialize(encoder: Encoder, value: List<T>?) {
+        if (value == null) {
+            encoder.encodeNull()
+        } else {
+            delegate.serialize(encoder, value)
+        }
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun deserialize(decoder: Decoder): List<T>? {
+        return if (decoder.decodeNotNullMark()) {
+            delegate.deserialize(decoder)
+        } else {
+            decoder.decodeNull(); null
+        }
+    }
 }
 
 

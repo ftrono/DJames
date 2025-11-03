@@ -18,6 +18,7 @@ import com.ftrono.DJames.application.messageBox
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.voiceConvStarted
+import com.ftrono.DJames.be.agents.ChatMessage
 import com.ftrono.DJames.be.models.ActionType
 import com.ftrono.DJames.be.collections.testMessages
 import io.objectbox.query.QueryBuilder
@@ -114,7 +115,7 @@ class MessageUtils {
 
 
     //Store last open log to DB:
-    fun storeMessage(context: Context, langCode: String, fromUser: Boolean = false, fromVoice: Boolean = false, isStart: Boolean = false) {
+    fun storeMessage(context: Context, langCode: String, fromUser: Boolean = false, fromVoice: Boolean = false, isStart: Boolean = false, llmMessages: MutableList<ChatMessage>? = null) {
         try {
             val message = if (fromUser) lastUserMessage else lastAiMessage
             if (message.text == "") {
@@ -130,10 +131,18 @@ class MessageUtils {
                     lastStarterId = message.timestamp
                     message.isStart = true
                 }
+                // Attach LLM ChatMessages:
+                val llmChatMessages = llmMessages ?: mutableListOf<ChatMessage>(
+                    ChatMessage(
+                        role = if (fromUser) "user" else "assistant",
+                        content = message.text,
+                    )
+                )
                 // CONTENT: Actually store message:
                 message.starterId = lastStarterId
                 message.fromVoice = fromVoice
                 message.langCode = langCode
+                message.attachments.llmChatMessages = llmChatMessages
                 messageBox!!.put(message)
                 Log.d(TAG, "Message item ${message.id} saved!")
                 //Send broadcast:

@@ -72,89 +72,124 @@ class LlmAgent(
     }
 
     // Main: Invoke LLM:
-    fun invoke(inMessage: String): String {
-        // Build initial messages:
-        var messages = mutableListOf(
-            ChatMessage(role = "system", content = basePrompt),
-            ChatMessage(role = "user", content = inMessage)
-        )
+    fun invoke(llmMessages: MutableList<ChatMessage?>): LlmReturn {
+        try {
+            // inMessages: must contain prompt + llmMessages + new updates:
+            var inMessages = mutableListOf<ChatMessage?>(
+                ChatMessage(role = "system", content = basePrompt)
+            )
+            inMessages.addAll(llmMessages)
+            // outMessages: must contain new updates only:
+            var outMessages = mutableListOf<ChatMessage?>()
 
-        // Build request:
-        var llmRequest = LlmRequest(
-            messages = messages.toList(),
-            model = mistralLlmModel,
-            temperature = mistralLlmTemperature,
-            toolChoice = if (tools.isNotEmpty()) "auto" else "none",
-            parallelToolCalls = false,
-            tools = if (toolsDef.isNotEmpty()) toolsDef else null,
-        )
+            // Build request:
+            var llmRequest = LlmRequest(
+                messages = inMessages.toList(),
+                model = mistralLlmModel,
+                temperature = mistralLlmTemperature,
+                toolChoice = if (tools.isNotEmpty()) "auto" else "none",
+                parallelToolCalls = false,
+                tools = if (toolsDef.isNotEmpty()) toolsDef else null,
+            )
 
-        // Invoke LLM:
-        var llmResponse = sendLlmRequest(llmRequest)
-        Log.d(TAG, "Got LLM response: $llmResponse")
-        var llmChoice = llmResponse.choices.firstOrNull()
+            // Invoke LLM:
+            var llmResponse = sendLlmRequest(llmRequest)
+            Log.d(TAG, "Got LLM response: $llmResponse")
+            var llmChoice = llmResponse.choices.firstOrNull()
 
-        while (llmChoice != null && llmChoice.finishReason == "tool_calls") {
-            // Parse LLM response:
-            var llmMessage = llmChoice.message
+            while (llmChoice != null && llmChoice.finishReason == "tool_calls") {
+                // Parse LLM response:
+                var llmMessage = llmChoice.message
 
-            if (tools.isNotEmpty() && llmMessage.toolCalls != null && llmMessage.toolCalls!!.isNotEmpty()) {
-                // Get requested tool & args:
+                if (tools.isNotEmpty() && llmMessage.toolCalls != null && llmMessage.toolCalls!!.isNotEmpty()) {
+                    // Get requested tool & args:
+                    val toolCall = llmMessage.toolCalls!!.first()
+                    val toolCallId = toolCall.id
+                    val toolName = toolCall.function.name
+                    val toolArgs = json.parseToJsonElement(toolCall.function.arguments).jsonObject
+                    Log.d(TAG, "Requested tool call: $toolCall")
+                    var updMessage: ChatMessage? = null
 
-                val toolCall = llmMessage.toolCalls!!.first()
-                val toolCallId = toolCall.id
-                val toolName = toolCall.function.name
-                val toolArgs = json.parseToJsonElement(toolCall.function.arguments).jsonObject
-                Log.d(TAG, "Requested tool call: $toolCall")
-                messages.add(
-                    ChatMessage(role="assistant", content = "Calling tool $toolCall...", toolCalls = listOf(toolCall))
-                )
+                    // Store "assistant" tool request message:
+                    updMessage = ChatMessage(
+                        role = "assistant",
+                        content = "Calling tool $toolCall...",
+                        toolCalls = listOf(toolCall)
+                    )
+                    inMessages.add(updMessage)
+                    outMessages.add(updMessage)
 
-                //Invoke requested tool:
-                val toolResponse = tools[toolName]!!.invoke(toolArgs)
-
-                if (toolResponse != "") {
+                    //Invoke requested tool:
+                    var toolResponse = tools[toolName]!!.invoke(toolArgs)
+                    toolResponse =
+                        if (toolResponse != "") toolResponse else "Technical issue: the tool could not be contacted."
                     Log.d(TAG, "Got tool response: $toolResponse")
+
+                    // Store "tool" response message:
+                    updMessage =
+                        ChatMessage(role = "tool", toolCallId = toolCallId, content = toolResponse)
+                    inMessages.add(updMessage)
+                    outMessages.add(updMessage)
+
                     // Send tool response to LLM:
-                    messages.add(
-                        ChatMessage(role="tool", toolCallId = toolCallId, content = toolResponse)
+                    llmRequest = LlmRequest(
+                        messages = inMessages.toList(),
+                        model = mistralLlmModel,
+                        temperature = mistralLlmTemperature,
+                        toolChoice = "auto",
+                        parallelToolCalls = false,
+                        tools = toolsDef,
                     )
+
+                    // Get response & proceed:
+                    llmResponse = sendLlmRequest(llmRequest)
+                    Log.d(TAG, "Got LLM response: $llmResponse")
+                    llmChoice = llmResponse.choices.firstOrNull()
+
                 } else {
-                    messages.add(
-                        ChatMessage(role="tool", toolCallId = toolCallId, content = "Technical issue: the tool could not be contacted.")
-                    )
+                    // No tool calls:
+                    Log.d(TAG, "No tool calls requested: exiting tools loop.")
+                    break
                 }
 
-                llmRequest = LlmRequest(
-                    messages = messages.toList(),
-                    model = mistralLlmModel,
-                    temperature = mistralLlmTemperature,
-                    toolChoice = "auto",
-                    parallelToolCalls = false,
-                    tools = toolsDef,
-                )
-
-                // Get response & proceed:
-                llmResponse = sendLlmRequest(llmRequest)
-                Log.d(TAG, "Got LLM response: $llmResponse")
-                llmChoice = llmResponse.choices.firstOrNull()
-
-            } else {
-                // No tool calls:
-                Log.d(TAG, "No tool calls requested: exiting tools loop.")
-                break
             }
 
+            if (llmChoice != null && llmChoice.finishReason == "stop") {
+                // Return final AI response:
+                Log.d(TAG, "Got LLM message: ${llmChoice.message.content}")
+                outMessages.add(
+                    llmChoice.message
+                )
+                return LlmReturn(
+                    fail = false,
+                    messages = outMessages,
+                )
+            } else {
+                // Error:
+                Log.w(TAG, "LLM invoking error! Check LLM response.")
+                return LlmReturn(
+                    fail = true,
+                    messages = mutableListOf<ChatMessage?>(
+                        ChatMessage(
+                            role = "assistant",
+                            content = defaultReplies.replyError()
+                        )
+                    ),
+                )
+            }
+        } catch (e: Exception) {
+            // Error:
+            Log.w(TAG, "LLM invoking error: ", e)
+            return LlmReturn(
+                fail = true,
+                messages = mutableListOf<ChatMessage?>(
+                    ChatMessage(
+                        role = "assistant",
+                        content = defaultReplies.replyError()
+                    )
+                ),
+            )
         }
-
-        if (llmChoice != null && llmChoice.finishReason == "stop") {
-            Log.d(TAG, "Got LLM message: ${llmChoice.message.content}")
-            return llmChoice.message.content
-        } else {
-            Log.w(TAG, "LLM invoking error! Finish reason is: ${llmChoice!!.finishReason}")
-            return defaultReplies.replyError()
-        }
-
     }
 
 }

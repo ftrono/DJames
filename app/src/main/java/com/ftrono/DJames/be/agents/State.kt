@@ -7,18 +7,25 @@ import org.bsc.langgraph4j.state.Channels
 
 // Define the state for our graph
 class StateMap(initData: MutableMap<String?, Any?>) : AgentState(initData) {
+    // Getters:
     fun messages(): MutableList<ChatMessage?> {
         return this.value<MutableList<ChatMessage?>>("messages")
             .orElse(mutableListOf<ChatMessage?>())
     }
 
+    fun fail(): Boolean {
+        return this.value<Boolean>("fail")
+            .orElse(false)
+    }
+
     companion object {
         const val MESSAGES: String = "messages"
+        const val FAIL: String = "fail"
 
-        // Define the schema for the state.
-        // MESSAGES will hold a list of strings, and new messages will be appended.
+        // Define state schema: new messages will be appended.
         val SCHEMA: MutableMap<String?, Channel<*>?> = mutableMapOf<String?, Channel<*>?>(
-            MESSAGES to Channels.appenderWithDuplicate<Any?> { ArrayList() }
+            MESSAGES to Channels.appenderWithDuplicate<Any?> { ArrayList() },
+            FAIL to Channels.base<Boolean> { false }
         )
     }
 }

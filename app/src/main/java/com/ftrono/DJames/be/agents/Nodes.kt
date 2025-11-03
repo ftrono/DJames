@@ -39,7 +39,8 @@ class AgentNode (
         val llmReturn = llmAgent.invoke(llmMessages = inMessages)
         //TODO: Add fail to return and store messages to DB here!
         return mutableMapOf<String?, Any?>(
-            StateMap.MESSAGES to llmReturn.messages
+            StateMap.MESSAGES to llmReturn.messages,
+            StateMap.FAIL to llmReturn.fail,
         )
     }
 }

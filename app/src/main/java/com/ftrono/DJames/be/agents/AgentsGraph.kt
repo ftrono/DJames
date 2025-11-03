@@ -82,6 +82,8 @@ class AgentsGraph(
         // Run the graph:
         // The `stream` method returns an AsyncGenerator. Results are in the final state after execution:
         var outMessage = ""
+        var fail = false
+
         for (item in compiledGraph.stream(
             // Input:
             mutableMapOf<String?, Any?>(
@@ -92,13 +94,15 @@ class AgentsGraph(
             Log.d(TAG, item.toString())
             messages = item.state()!!.messages()
             outMessage = item.state()!!.messages().last()!!.content
-            Log.d(TAG, "Messages size (output): ${messages.size} items.")
+            fail = item.state()!!.fail()
+            Log.d(TAG, "Messages size (output): ${messages.size} items, fail: $fail.")
         }
 
         return DispatcherInfo(
             lastRecording = lastRecordingName,
             testV3 = true,
-            followUp = true,
+            followUp = !fail,
+            fail = fail,
             aiReplies = listOf(
                 AiReply(
                     langCode = prefs.queryLanguage,

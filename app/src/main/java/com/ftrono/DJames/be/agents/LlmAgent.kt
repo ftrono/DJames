@@ -19,10 +19,12 @@ import okhttp3.RequestBody.Companion.toRequestBody
 class LlmAgent(
     private val context: Context,
     private val apiKey: String,
+    private val agentName: String,
     private val basePrompt: String,
     private val tools: Map<String, Tool> = mapOf<String, Tool>(),
+    private val isRouter: Boolean = false,
 ) {
-    private val TAG = LlmAgent::class.java.simpleName
+    private val TAG = this::class.java.simpleName + "_" + agentName
     private val json = Json {
         ignoreUnknownKeys = true
     }
@@ -76,9 +78,12 @@ class LlmAgent(
         try {
             // inMessages: must contain prompt + llmMessages + new updates:
             var inMessages = mutableListOf<ChatMessage?>(
-                ChatMessage(role = "system", content = basePrompt)
+                ChatMessage(role = "system", content = basePrompt)   // System prompt
             )
-            inMessages.addAll(llmMessages)
+            inMessages.addAll(llmMessages.subList(0, llmMessages.lastIndex))   // History
+            inMessages.add(ChatMessage(role = "user", content = basePrompt))   // Repeated user prompt
+            inMessages.add(llmMessages.last())   // User latest message
+
             // outMessages: must contain new updates only:
             var outMessages = mutableListOf<ChatMessage?>()
 
@@ -157,24 +162,32 @@ class LlmAgent(
             if (llmChoice != null && llmChoice.finishReason == "stop") {
                 // Return final AI response:
                 Log.d(TAG, "Got LLM message: ${llmChoice.message.content}")
-                outMessages.add(
-                    llmChoice.message
-                )
+                if (!isRouter) {
+                    outMessages.add(
+                        llmChoice.message
+                    )
+                }
                 return LlmReturn(
                     fail = false,
-                    messages = outMessages,
+                    next = if (isRouter) llmChoice.message.content else "",
+                    messages = if (!isRouter) outMessages else mutableListOf(),
                 )
             } else {
                 // Error:
                 Log.w(TAG, "LLM invoking error! Check LLM response.")
                 return LlmReturn(
                     fail = true,
-                    messages = mutableListOf<ChatMessage?>(
-                        ChatMessage(
-                            role = "assistant",
-                            content = defaultReplies.replyError()
+                    next = "__END__",
+                    messages = if (!isRouter) {
+                        mutableListOf<ChatMessage?>(
+                            ChatMessage(
+                                role = "assistant",
+                                content = defaultReplies.replyError()
+                            )
                         )
-                    ),
+                    } else {
+                        mutableListOf()
+                    },
                 )
             }
         } catch (e: Exception) {
@@ -182,14 +195,18 @@ class LlmAgent(
             Log.w(TAG, "LLM invoking error: ", e)
             return LlmReturn(
                 fail = true,
-                messages = mutableListOf<ChatMessage?>(
-                    ChatMessage(
-                        role = "assistant",
-                        content = defaultReplies.replyError()
+                next = "__END__",
+                messages = if (!isRouter) {
+                    mutableListOf<ChatMessage?>(
+                        ChatMessage(
+                            role = "assistant",
+                            content = defaultReplies.replyError()
+                        )
                     )
-                ),
+                } else {
+                    mutableListOf()
+                },
             )
         }
     }
-
 }

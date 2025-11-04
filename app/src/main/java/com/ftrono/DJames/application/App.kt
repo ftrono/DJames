@@ -212,7 +212,7 @@ val mistralSttUrl = "https://api.mistral.ai/v1/audio/transcriptions"
 val mistralLlmModel = "mistral-small-latest"
 val mistralLlmUrl = "https://api.mistral.ai/v1/chat/completions"
 val mistralLlmTemperature = 0.0F
-val mistralLlmTimeout = 60L
+val mistralLlmTimeout = 20L
 
 //BROADCASTS:
 //Event receiver:

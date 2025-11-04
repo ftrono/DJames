@@ -439,15 +439,12 @@ class MessageUtils {
         for (msg in messages) {
             val extraDetails = if (msg.fromUser) "" else messageUtils.buildExtraDetails(msg)
             if (extraDetails != "") {
-                val action = if (msg.requestIntent.contains("Play")) {
-                    ActionType.PLAY
-                } else {
-                    when (msg.requestIntent) {
-                        "CallRequest" -> ActionType.CALL
-                        "MessageRequest" -> ActionType.SMS
-                        "DriveRequest" -> ActionType.OPEN_URL
-                        else -> null
-                    }
+                val action = when {
+                    msg.requestIntent.contains("Play") -> ActionType.PLAY
+                    msg.requestIntent.contains("Call") -> ActionType.CALL
+                    msg.requestIntent.contains("Message") -> ActionType.SMS
+                    msg.requestIntent.contains("Drive") -> ActionType.OPEN_URL
+                    else -> null
                 }
                 if (action != null) {
                     msg.actionType = action

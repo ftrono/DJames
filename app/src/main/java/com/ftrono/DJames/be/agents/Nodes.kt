@@ -2,27 +2,40 @@ package com.ftrono.DJames.be.agents
 
 import android.content.Context
 import android.util.Log
+import com.ftrono.DJames.application.lastRequestIntent
+import org.bsc.langgraph4j.StateGraph.END
 import org.bsc.langgraph4j.action.NodeAction
-import java.util.Map
 
 
-interface Assistant {
-    fun chat(userMessage: String): String
-}
-
-// Node that adds a greeting
-class AgentNode (
+// (LLM-based) Router node:
+class MainRouterNode (
     private val context: Context,
     private val apiKey: String,
 ) : NodeAction<StateMap?> {
 
-    private val TAG = AgentNode::class.java.simpleName
+    private val TAG = this::class.java.simpleName
+    val name: String = TAG.replace("Node", "")
 
     override fun apply(state: StateMap?): MutableMap<String?, Any?> {
+        Log.d(TAG, "$name activated")
         val prompt = """
-            You are DJames, a smart driving assistant and personal virtual DJ! 
-            You speak like an English personal chauffeur. You are helpful and gentle. 
-            Use the available tools provided to get the list of available songs for the artist requested by the user.
+            You're a Router agent in a conversational graph. 
+            
+            ## TASK:
+            You have **only one task*: to **classify** the user request into **ONE of the following literal categories**.
+
+            ## AVAILABLE CATEGORIES:
+            - "PlayerAgent" -> for any request involving music, songs, music artists, albums or podcast episodes, or Spotify in general.
+            - "CallAgent" -> for any request involving calling someone.
+            - "MessageAgent" -> for any request involving messaging someone.
+            - "DriveAgent" -> for any request involving requesting driving directions, routes, places, navigation or maps.
+            - "__END__" -> if the user wants to end the conversation.
+            - "GuidanceAgent" -> in any other case.
+
+           ## IMPORTANT: 
+           - **You must NOT answer to the user question**: another agent will take care of that.
+           - **Ignore all conversational context and previous replies.**
+           - **Strictly reply with only ONE of these classification categories and NOTHING ELSE**. Don't use quotes.
         """
         var inMessages = state!!.messages()
         Log.d(TAG, "Current messages: $inMessages")
@@ -30,14 +43,214 @@ class AgentNode (
         val llmAgent = LlmAgent(
             context = context,
             apiKey = apiKey,
+            agentName = name,
             basePrompt = prompt,
-            tools = mapOf<String, Tool>(
-                "searchTracks" to SearchTracks()
-            )
+            tools = mapOf<String, Tool>(),
+            isRouter = true,
         )
 
         val llmReturn = llmAgent.invoke(llmMessages = inMessages)
-        //TODO: Add fail to return and store messages to DB here!
+        // lastRequestIntent = llmReturn.next   // TODO
+
+        return mutableMapOf<String?, Any?>(
+            StateMap.MESSAGES to llmReturn.messages,
+            StateMap.FAIL to llmReturn.fail,
+            StateMap.NEXT to llmReturn.next,
+        )
+    }
+}
+
+
+// (LLM-based) ReAct agent node:
+class PlayerAgentNode (
+    private val context: Context,
+    private val apiKey: String,
+) : NodeAction<StateMap?> {
+
+    private val TAG = this::class.java.simpleName
+    val name: String = TAG.replace("Node", "")
+
+    override fun apply(state: StateMap?): MutableMap<String?, Any?> {
+        Log.d(TAG, "$name activated")
+        val prompt = """
+            You are DJames, a smart driving assistant and personal virtual DJ! 
+            You speak like an English personal chauffeur. You are helpful and gentle. 
+            Use the available tools provided to get the list of available songs for the artist requested by the user.
+            **Don't use markdown and always reply with short answers to the user.**
+        """
+        var inMessages = state!!.messages()
+        Log.d(TAG, "Current messages: $inMessages")
+
+        val llmAgent = LlmAgent(
+            context = context,
+            apiKey = apiKey,
+            agentName = name,
+            basePrompt = prompt,
+            tools = mapOf<String, Tool>(
+                "searchTracks" to SearchTracks()
+            ),
+        )
+
+        val llmReturn = llmAgent.invoke(llmMessages = inMessages)
+
+        return mutableMapOf<String?, Any?>(
+            StateMap.MESSAGES to llmReturn.messages,
+            StateMap.FAIL to llmReturn.fail,
+        )
+    }
+}
+
+
+// (LLM-based) ReAct agent node:
+class CallAgentNode (
+    private val context: Context,
+    private val apiKey: String,
+) : NodeAction<StateMap?> {
+
+    private val TAG = this::class.java.simpleName
+    val name: String = TAG.replace("Node", "")
+
+    override fun apply(state: StateMap?): MutableMap<String?, Any?> {
+        Log.d(TAG, "$name activated")
+        val prompt = """
+            You are DJames, a smart driving assistant and personal virtual DJ! 
+            You speak like an English personal chauffeur. You are helpful and gentle. 
+            Use the available tools provided to get the list of available contacts that the user can call.
+            **Don't use markdown and always reply with short answers to the user.**
+        """
+        var inMessages = state!!.messages()
+        Log.d(TAG, "Current messages: $inMessages")
+
+        val llmAgent = LlmAgent(
+            context = context,
+            apiKey = apiKey,
+            agentName = name,
+            basePrompt = prompt,
+            tools = mapOf<String, Tool>(
+                "searchContacts" to SearchContacts()
+            ),
+        )
+
+        val llmReturn = llmAgent.invoke(llmMessages = inMessages)
+
+        return mutableMapOf<String?, Any?>(
+            StateMap.MESSAGES to llmReturn.messages,
+            StateMap.FAIL to llmReturn.fail,
+        )
+    }
+}
+
+
+// (LLM-based) ReAct agent node:
+class MessageAgentNode (
+    private val context: Context,
+    private val apiKey: String,
+) : NodeAction<StateMap?> {
+
+    private val TAG = this::class.java.simpleName
+    val name: String = TAG.replace("Node", "")
+
+    override fun apply(state: StateMap?): MutableMap<String?, Any?> {
+        Log.d(TAG, "$name activated")
+        val prompt = """
+            You are DJames, a smart driving assistant and personal virtual DJ! 
+            You speak like an English personal chauffeur. You are helpful and gentle. 
+            Use the available tools provided to get the list of available contacts that the user can send messages to.
+            **Don't use markdown and always reply with short answers to the user.**
+        """
+        var inMessages = state!!.messages()
+        Log.d(TAG, "Current messages: $inMessages")
+
+        val llmAgent = LlmAgent(
+            context = context,
+            apiKey = apiKey,
+            agentName = name,
+            basePrompt = prompt,
+            tools = mapOf<String, Tool>(
+                "searchContacts" to SearchContacts()
+            ),
+        )
+
+        val llmReturn = llmAgent.invoke(llmMessages = inMessages)
+
+        return mutableMapOf<String?, Any?>(
+            StateMap.MESSAGES to llmReturn.messages,
+            StateMap.FAIL to llmReturn.fail,
+        )
+    }
+}
+
+
+// (LLM-based) ReAct agent node:
+class DriveAgentNode (
+    private val context: Context,
+    private val apiKey: String,
+) : NodeAction<StateMap?> {
+
+    private val TAG = this::class.java.simpleName
+    val name: String = TAG.replace("Node", "")
+
+    override fun apply(state: StateMap?): MutableMap<String?, Any?> {
+        Log.d(TAG, "$name activated")
+        val prompt = """
+            You are DJames, a smart driving assistant and personal virtual DJ! 
+            You speak like an English personal chauffeur. You are helpful and gentle. 
+            Use the available tools provided to get the list of available places the user can go nearby.
+            **Don't use markdown and always reply with short answers to the user.**
+        """
+        var inMessages = state!!.messages()
+        Log.d(TAG, "Current messages: $inMessages")
+
+        val llmAgent = LlmAgent(
+            context = context,
+            apiKey = apiKey,
+            agentName = name,
+            basePrompt = prompt,
+            tools = mapOf<String, Tool>(
+                "searchPlaces" to SearchPlaces()
+            ),
+        )
+
+        val llmReturn = llmAgent.invoke(llmMessages = inMessages)
+
+        return mutableMapOf<String?, Any?>(
+            StateMap.MESSAGES to llmReturn.messages,
+            StateMap.FAIL to llmReturn.fail,
+        )
+    }
+}
+
+
+// (LLM-based) ReAct agent node:
+class GuidanceAgentNode (
+    private val context: Context,
+    private val apiKey: String,
+) : NodeAction<StateMap?> {
+
+    private val TAG = this::class.java.simpleName
+    val name: String = TAG.replace("Node", "")
+
+    override fun apply(state: StateMap?): MutableMap<String?, Any?> {
+        Log.d(TAG, "$name activated")
+        val prompt = """
+            You are DJames, a smart driving assistant and personal virtual DJ! 
+            You speak like an English personal chauffeur. You are helpful and gentle. 
+            Your only task is to provide information on your functionalities to the user.
+            **Don't use markdown and always reply with short answers to the user.**
+        """
+        var inMessages = state!!.messages()
+        Log.d(TAG, "Current messages: $inMessages")
+
+        val llmAgent = LlmAgent(
+            context = context,
+            apiKey = apiKey,
+            agentName = name,
+            basePrompt = prompt,
+            tools = mapOf<String, Tool>(),
+        )
+
+        val llmReturn = llmAgent.invoke(llmMessages = inMessages)
+
         return mutableMapOf<String?, Any?>(
             StateMap.MESSAGES to llmReturn.messages,
             StateMap.FAIL to llmReturn.fail,

@@ -12,7 +12,8 @@ import kotlinx.serialization.json.*
 @KxSerializable
 data class LlmReturn(
     var fail: Boolean = false,
-    var messages: List<ChatMessage?> = listOf<ChatMessage?>()
+    var next: String = "",
+    var messages: MutableList<ChatMessage?> = mutableListOf<ChatMessage?>(),
 )
 
 // Tools:

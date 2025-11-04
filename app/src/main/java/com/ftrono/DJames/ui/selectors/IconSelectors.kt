@@ -55,9 +55,9 @@ fun messagesIconSelector(
     cat: String
 ): Painter {
     return when {
-        cat == "CallRequest" -> painterResource(R.drawable.icon_phone)
-        cat == "MessageRequest" -> painterResource(R.drawable.icon_message)
-        cat == "DriveRequest" -> painterResource(R.drawable.icon_place)
+        cat.contains("Call") -> painterResource(R.drawable.icon_phone)
+        cat.contains("Message") -> painterResource(R.drawable.icon_message)
+        cat.contains("Drive") -> painterResource(R.drawable.icon_place)
         cat.contains("Play") -> painterResource(R.drawable.icon_headphones)
         else -> painterResource(R.drawable.icon_help)
     }
@@ -69,9 +69,9 @@ fun actionsIconSelector(
     cat: String
 ): ImageVector {
     return when {
-        cat == "CallRequest" -> Icons.Default.Call
-        cat == "MessageRequest" -> Icons.Default.Edit
-        cat == "DriveRequest" -> Icons.AutoMirrored.Filled.ArrowForward
+        cat.contains("Call") -> Icons.Default.Call
+        cat.contains("Message") -> Icons.Default.Edit
+        cat.contains("Drive") -> Icons.AutoMirrored.Filled.ArrowForward
         cat.contains("Play") -> Icons.Default.PlayArrow
         else -> Icons.AutoMirrored.Filled.ArrowForward
     }

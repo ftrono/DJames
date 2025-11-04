@@ -3,6 +3,7 @@ package com.ftrono.DJames.be.agents
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.lastRecordingName
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.be.models.AiReply
@@ -12,8 +13,10 @@ import org.bsc.langgraph4j.CompiledGraph
 import org.bsc.langgraph4j.StateGraph
 import org.bsc.langgraph4j.StateGraph.END
 import org.bsc.langgraph4j.StateGraph.START
+import org.bsc.langgraph4j.action.AsyncEdgeAction.edge_async
 import org.bsc.langgraph4j.action.AsyncNodeAction.node_async
 import org.bsc.langgraph4j.state.AgentStateFactory
+import org.bsc.langgraph4j.utils.EdgeMappings
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -22,7 +25,7 @@ import java.io.InputStreamReader
 class AgentsGraph(
     private val context: Context,
 ) {
-    private val TAG = AgentsGraph::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     //GET LLM CREDENTIALS:
     val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.env)))
@@ -33,10 +36,7 @@ class AgentsGraph(
     var messages: MutableList<ChatMessage?> = this.loadMessages()
 
     fun build(): StateGraph<StateMap?> {
-        // Initialize nodes
-        val agentNode = AgentNode(context, apiKey)
-
-        // Define the graph structure
+        // Define the graph structure:
         val stateGraph = StateGraph<StateMap?>(
             StateMap.SCHEMA,
             AgentStateFactory { initData: MutableMap<String?, Any?>? ->
@@ -44,15 +44,37 @@ class AgentsGraph(
                     initData!!
                 )
             })
-//            .addNode("greeter", node_async(greeterNode))
-//            .addNode("responder", node_async(responderNode))
-            .addNode("agent", node_async(agentNode))
-            // Define edges
-            .addEdge(START, "agent")
-//            .addEdge("greeter", "responder")
-//            .addEdge("responder", "agent")
-            .addEdge("agent", END)
+            // Nodes:
+            .addNode("MainRouter", node_async(MainRouterNode(context, apiKey)))
+            .addNode("PlayerAgent", node_async(PlayerAgentNode(context, apiKey)))
+            .addNode("CallAgent", node_async(CallAgentNode(context, apiKey)))
+            .addNode("MessageAgent", node_async(MessageAgentNode(context, apiKey)))
+            .addNode("DriveAgent", node_async(DriveAgentNode(context, apiKey)))
+            .addNode("GuidanceAgent", node_async(GuidanceAgentNode(context, apiKey)))
+            // Edges:
+            .addEdge(START, "MainRouter")
+            .addConditionalEdges(
+                "MainRouter",
+                edge_async { state ->
+                    state!!.next()
+                },
+                EdgeMappings.builder()
+                    .to("PlayerAgent")
+                    .to("CallAgent")
+                    .to("MessageAgent")
+                    .to("DriveAgent")
+                    .to("GuidanceAgent")
+                    .toEND(END)
+                    .build()
+            )
+            // End:
+            .addEdge("PlayerAgent", END)
+            .addEdge("CallAgent", END)
+            .addEdge("MessageAgent", END)
+            .addEdge("DriveAgent", END)
+            .addEdge("GuidanceAgent", END)
 
+        Log.d(TAG, "Graph built!")
         return stateGraph
     }
 
@@ -74,6 +96,7 @@ class AgentsGraph(
     ): DispatcherInfo {
         // Build & compile the graph:
         val compiledGraph = this.compile(stateGraph)
+        Log.d(TAG, "Graph compiled!")
         messages.add(
             ChatMessage(role = "user", content = inMessage)
         )
@@ -83,6 +106,7 @@ class AgentsGraph(
         // The `stream` method returns an AsyncGenerator. Results are in the final state after execution:
         var outMessage = ""
         var fail = false
+        var next = ""
 
         for (item in compiledGraph.stream(
             // Input:
@@ -91,22 +115,26 @@ class AgentsGraph(
             )
         )) {
             // Output:
-            Log.d(TAG, item.toString())
+            // Log.d(TAG, item.toString())
             messages = item.state()!!.messages()
-            outMessage = item.state()!!.messages().last()!!.content
+            outMessage = item.state()!!.messages().last()!!.content.replace("* ", "- ")
             fail = item.state()!!.fail()
-            Log.d(TAG, "Messages size (output): ${messages.size} items, fail: $fail.")
+            next = item.state()!!.next()
         }
+        Log.d(TAG, "Messages size (output): ${messages.size} items, fail: $fail.")
+
+        //TODO: Add store messages to DB here!
 
         return DispatcherInfo(
             lastRecording = lastRecordingName,
             testV3 = true,
-            followUp = !fail,
+            followUp = !fail && next != END,
             fail = fail,
+            end = next == END,
             aiReplies = listOf(
                 AiReply(
                     langCode = prefs.queryLanguage,
-                    text = outMessage
+                    text = if (next != END) outMessage else defaultReplies.replyNevermind()
                 )
             )
         )

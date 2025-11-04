@@ -45,7 +45,7 @@ import java.io.File
 class VoiceQueryService: Service() {
 
     //Main:
-    private val TAG = VoiceQueryService::class.java.simpleName
+    private val TAG = this::class.java.simpleName
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
     private val audioRequestsManager = AudioRequestsManager()
     private lateinit var tts: TTSReader

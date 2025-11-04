@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 
 
 class ChatManager(private val context: Context) {
-    private val TAG = ChatManager::class.java.simpleName
+    private val TAG = this::class.java.simpleName
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val agentGraph = AgentsGraph(context)
     private val nlpDispatcher = NLPDispatcher(context, agentGraph)

@@ -19,7 +19,7 @@ import kotlin.coroutines.suspendCoroutine
 
 class TTSReader(private val context: Context) {
     //Main:
-    private val TAG = TTSReader::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     fun speak(
         aiReplies: List<AiReply>,

@@ -25,7 +25,7 @@ import java.io.File
 class ActionsExecutor(
     private val context: Context
 ) {
-    private val TAG = ActionsExecutor::class.java.simpleName
+    private val TAG = this::class.java.simpleName
     private val chatManager = ChatManager(context)
 
     // HELPER: LAUNCHER ONLY:

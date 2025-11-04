@@ -12,7 +12,7 @@ import com.google.gson.JsonObject
 
 class EventReceiver: BroadcastReceiver() {
 
-    private val TAG = EventReceiver::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     override fun onReceive(context: Context?, intent: Intent?) {
 

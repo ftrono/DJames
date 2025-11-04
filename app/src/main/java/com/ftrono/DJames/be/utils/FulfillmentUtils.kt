@@ -14,7 +14,7 @@ import java.io.InputStreamReader
 
 
 class FulfillmentUtils {
-    private val TAG = FulfillmentUtils::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     //FALLBACK:
     fun fallback(

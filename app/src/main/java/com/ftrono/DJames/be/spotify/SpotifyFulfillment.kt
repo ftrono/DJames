@@ -26,7 +26,7 @@ import com.ftrono.DJames.be.nlp.NLPMatcher
 
 
 class SpotifyFulfillment (private var context: Context) {
-    private val TAG = SpotifyFulfillment::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
 
     //Play a song (with custom context), an album, an artist or a playlist: PART 1:

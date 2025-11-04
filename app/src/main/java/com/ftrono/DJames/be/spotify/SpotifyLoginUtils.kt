@@ -28,7 +28,7 @@ import java.lang.Thread.sleep
 
 
 class SpotifyLoginUtils {
-    private val TAG = SpotifyLoginUtils::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     fun getSpotifyUserData(
         context: Context,

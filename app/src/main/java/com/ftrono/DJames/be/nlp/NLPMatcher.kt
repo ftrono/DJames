@@ -9,7 +9,7 @@ import me.xdrop.fuzzywuzzy.FuzzySearch
 import kotlin.math.roundToInt
 
 class NLPMatcher (private val context: Context) {
-    private val TAG = NLPMatcher::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     //Match item from user query against user library:
     fun matchLibrary(filter: String, text: String, threshold: Int = midThreshold): Long {

@@ -22,7 +22,7 @@ import java.net.URLEncoder
 
 class SpotifyPlayer (private val context: Context) {
 
-    private val TAG = SpotifyPlayer::class.java.simpleName
+    private val TAG = this::class.java.simpleName
     private var query = SpotifyQuery(context)
     private var extThread: Thread? = null
 

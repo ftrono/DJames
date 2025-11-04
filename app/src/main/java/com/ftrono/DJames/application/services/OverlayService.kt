@@ -103,7 +103,7 @@ import kotlinx.coroutines.delay
 
 
 class OverlayService : Service() {
-    private val TAG = OverlayService::class.java.simpleName
+    private val TAG = this::class.java.simpleName
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
 
     //Compose Views:

@@ -28,7 +28,7 @@ import java.io.File
 
 
 class MessageUtils {
-    private val TAG = MessageUtils::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     //GET ALL:
     //Get List of Message IDs:

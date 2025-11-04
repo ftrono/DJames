@@ -36,7 +36,7 @@ import kotlin.streams.asSequence
 
 
 class Utilities {
-    private val TAG = Utilities::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     //Timestamps:
     fun getCurrentTimestamp(): Long {

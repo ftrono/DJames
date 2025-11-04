@@ -20,7 +20,7 @@ import java.io.FileOutputStream
 
 
 class AndroidAudioRecorder(private val context: Context) {
-    private val TAG = AndroidAudioRecorder::class.java.simpleName
+    private val TAG = this::class.java.simpleName
     private val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
     private lateinit var audioRecorder: AudioRecord

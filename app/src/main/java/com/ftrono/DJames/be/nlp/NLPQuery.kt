@@ -24,7 +24,7 @@ import java.io.InputStreamReader
 
 
 class NLPQuery(context: Context) {
-    private val TAG = NLPQuery::class.java.simpleName
+    private val TAG = this::class.java.simpleName
     private val regionId = "europe-west1"
     private var sessionId: SessionName? = null
     private var sessionsClient: SessionsClient? = null

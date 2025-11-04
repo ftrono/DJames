@@ -25,7 +25,7 @@ class NLPDispatcher (
     private var agentsGraph: AgentsGraph
 ) {
 
-    private val TAG = NLPDispatcher::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     fun dispatch(
         text: String = "",

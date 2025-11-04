@@ -23,7 +23,7 @@ import com.ftrono.DJames.be.models.DispatcherInfo
 
 
 class GenericFulfillment (private var context: Context) {
-    private val TAG = GenericFulfillment::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
 
     //Process a request involving a Contact (Call / Message):

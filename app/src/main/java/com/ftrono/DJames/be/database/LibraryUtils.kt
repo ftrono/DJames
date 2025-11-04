@@ -22,7 +22,7 @@ import java.io.File
 
 
 class LibraryUtils {
-    private val TAG = LibraryUtils::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     // COMMON:
     // Get library name:

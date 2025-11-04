@@ -20,7 +20,7 @@ import java.util.Base64
 
 
 class SpotifyQuery(private val context: Context) {
-    private val TAG = SpotifyQuery::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     //REFRESHER:
     fun refreshAuth(context: Context) {

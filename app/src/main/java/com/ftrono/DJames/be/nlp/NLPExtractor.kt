@@ -16,7 +16,7 @@ import java.io.InputStreamReader
 
 
 class NLPExtractor (private val context: Context) {
-    private val TAG = NLPExtractor::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     //SONGS + ALBUM: Extract play info:
     fun extractPlayInfo(queryText: String, reqLanguage: String, playType: String, contextType: String): ExtractorInfo {

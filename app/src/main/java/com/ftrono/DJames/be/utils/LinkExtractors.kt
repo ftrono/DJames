@@ -20,7 +20,7 @@ import org.jsoup.Jsoup
 
 
 class LinkExtractors {
-    private val TAG = LinkExtractors::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     // GET LINK PREVIEW:
     suspend fun fetchRawLinkPreview(url: String): RawLinkPreview {

@@ -1,8 +1,8 @@
 package com.ftrono.DJames.be.database
 
 import com.ftrono.DJames.be.agents.ChatMessage
-import com.ftrono.DJames.be.models.ActionType
-import com.ftrono.DJames.be.models.ActionTypeConverter
+import com.ftrono.DJames.be.agents.ActionType
+import com.ftrono.DJames.be.agents.ActionTypeConverter
 import com.ftrono.DJames.be.models.JsonConverter
 import com.ftrono.DJames.be.models.JsonListConverter
 import io.objectbox.annotation.Entity

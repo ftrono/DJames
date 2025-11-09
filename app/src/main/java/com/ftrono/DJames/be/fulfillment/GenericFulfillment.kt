@@ -17,9 +17,9 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.ExtractorInfo
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.NlpQueryModel
-import com.ftrono.DJames.be.models.ActionType
+import com.ftrono.DJames.be.agents.ActionType
 import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.models.DispatcherInfo
+import com.ftrono.DJames.be.agents.StateInfo
 
 
 class GenericFulfillment (private var context: Context) {
@@ -27,8 +27,8 @@ class GenericFulfillment (private var context: Context) {
 
 
     //Process a request involving a Contact (Call / Message):
-    fun contactRequest(resultsNLP: NlpQueryModel, fromVoice: Boolean = false): DispatcherInfo {
-        var dispatcherInfo = DispatcherInfo(
+    fun contactRequest(resultsNLP: NlpQueryModel, fromVoice: Boolean = false): StateInfo {
+        var stateInfo = StateInfo(
             lastRecording = lastRecordingName
         )
         val filter = "contact"
@@ -66,13 +66,13 @@ class GenericFulfillment (private var context: Context) {
                     )
                 )
 
-                //dispatcherInfo:
-                dispatcherInfo.aiReplies = aiReplies
-                dispatcherInfo.actionType = ActionType.CALL
-                dispatcherInfo.end = true
-                dispatcherInfo.playAcknowledge = true
-                dispatcherInfo.usable = itemInfo
-                Log.d(TAG, dispatcherInfo.toString())
+                //stateInfo:
+                stateInfo.aiReplies = aiReplies
+                stateInfo.actionType = ActionType.CALL
+                stateInfo.end = true
+                stateInfo.playAcknowledge = true
+                stateInfo.usable = itemInfo
+                Log.d(TAG, stateInfo.toString())
 
             } else if (resultsNLP.intentName.contains("Message")) {
                 //B) MESSAGE:
@@ -97,25 +97,25 @@ class GenericFulfillment (private var context: Context) {
                 extractorInfo.reqLanguage = reqLangCode
 
                 //Extract message type:
-                dispatcherInfo.messageType = nlpExtractor.extractMessageType(nlp_queryText)
+                stateInfo.messageType = nlpExtractor.extractMessageType(nlp_queryText)
                 // Select action to take:
-                if (dispatcherInfo.messageType == "voice") {
-                    dispatcherInfo.actionType = ActionType.WA_VOICE
+                if (stateInfo.messageType == "voice") {
+                    stateInfo.actionType = ActionType.WA_VOICE
                     if (!fromVoice) {
                         //Fallback:
                         return fulfillmentUtils.fallback(cannotRecordWAVoice=true)
                     }
-                } else if (dispatcherInfo.messageType == "whatsapp") {
-                    dispatcherInfo.actionType = ActionType.WA_TEXT
+                } else if (stateInfo.messageType == "whatsapp") {
+                    stateInfo.actionType = ActionType.WA_TEXT
                 } else {
-                    dispatcherInfo.actionType = ActionType.SMS
+                    stateInfo.actionType = ActionType.SMS
                 }
 
                 //Reply:
-                var ttsToRead = if (dispatcherInfo.messageType == "voice") {
+                var ttsToRead = if (stateInfo.messageType == "voice") {
                     defaultReplies.replyMessageRecord(itemInfo.name)
                 } else {
-                    defaultReplies.replyMessageDictate(itemInfo.name, dispatcherInfo.messageType, reqLangName)
+                    defaultReplies.replyMessageDictate(itemInfo.name, stateInfo.messageType, reqLangName)
                 }
                 val aiReplies = listOf(
                     AiReply(
@@ -124,12 +124,12 @@ class GenericFulfillment (private var context: Context) {
                     )
                 )
 
-                //dispatcherInfo:
-                dispatcherInfo.aiReplies = aiReplies
-                dispatcherInfo.messageMode = true
-                dispatcherInfo.reqLanguage = reqLangCode
-                dispatcherInfo.usable = itemInfo
-                Log.d(TAG, dispatcherInfo.toString())
+                //stateInfo:
+                stateInfo.aiReplies = aiReplies
+                stateInfo.messageMode = true
+                stateInfo.reqLanguage = reqLangCode
+                stateInfo.usable = itemInfo
+                Log.d(TAG, stateInfo.toString())
 
             } else {
                 //Fallback:
@@ -137,50 +137,50 @@ class GenericFulfillment (private var context: Context) {
             }
 
             //Update message:
-            lastAiMessage.actionType = dispatcherInfo.actionType
+            lastAiMessage.actionType = stateInfo.actionType
             lastAiMessage.attachments.nlpExtractor = extractorInfo
             lastAiMessage.attachments.usable = itemInfo
-            return dispatcherInfo
+            return stateInfo
         }
     }
 
 
     //Send a message: PART 2:
-    fun sendMessage2(prevDispatch: DispatcherInfo): DispatcherInfo {
-        var dispatcherInfo = DispatcherInfo(
+    fun sendMessage2(prevState: StateInfo): StateInfo {
+        var stateInfo = StateInfo(
             lastRecording = lastRecordingName
         )
 
         // MESSAGE SENDER:
         try {
             //Recover info:
-            var reqLangCode = prevDispatch.reqLanguage
-            var itemInfo = prevDispatch.usable
-            dispatcherInfo.actionType = prevDispatch.actionType
+            var reqLangCode = prevState.reqLanguage
+            var itemInfo = prevState.usable
+            stateInfo.actionType = prevState.actionType
 
             //Store usable details:
             itemInfo.language = reqLangCode
 
-            //dispatcherInfo:
-            dispatcherInfo.usable = itemInfo
-            dispatcherInfo.aiReplies = listOf()   //populate after action
+            //stateInfo:
+            stateInfo.usable = itemInfo
+            stateInfo.aiReplies = listOf()   //populate after action
 
         } catch (e: Exception) {
             Log.w(TAG, "sendMessage2: EXCEPTION: ", e)
             return fulfillmentUtils.fallback()   //Error
         }
 
-        dispatcherInfo.end = true
-        dispatcherInfo.playAcknowledge = true
-        Log.d(TAG, dispatcherInfo.toString())
+        stateInfo.end = true
+        stateInfo.playAcknowledge = true
+        Log.d(TAG, stateInfo.toString())
 
-        return dispatcherInfo
+        return stateInfo
     }
 
 
     //Process Drive request: PART 1:
-    fun driveRequest1(resultsNLP: NlpQueryModel): DispatcherInfo {
-        var dispatcherInfo = DispatcherInfo(
+    fun driveRequest1(resultsNLP: NlpQueryModel): StateInfo {
+        var stateInfo = StateInfo(
             lastRecording = lastRecordingName
         )
 
@@ -199,22 +199,22 @@ class GenericFulfillment (private var context: Context) {
             )
         )
 
-        //dispatcherInfo:
-        dispatcherInfo.aiReplies = aiReplies
-        dispatcherInfo.intentName = resultsNLP.intentName
-        dispatcherInfo.reqLanguage = reqLangCode
-        Log.d(TAG, dispatcherInfo.toString())
+        //stateInfo:
+        stateInfo.aiReplies = aiReplies
+        stateInfo.intentName = resultsNLP.intentName
+        stateInfo.reqLanguage = reqLangCode
+        Log.d(TAG, stateInfo.toString())
 
-        return dispatcherInfo
+        return stateInfo
     }
 
 
     //Process Drive request: PART 2:
-    fun driveRequest2(resultsNLP: NlpQueryModel, prevDispatch: DispatcherInfo): DispatcherInfo {
-        var dispatcherInfo = DispatcherInfo(
+    fun driveRequest2(resultsNLP: NlpQueryModel, prevState: StateInfo): StateInfo {
+        var stateInfo = StateInfo(
             lastRecording = lastRecordingName
         )
-        var reqLangCode = prevDispatch.reqLanguage
+        var reqLangCode = prevState.reqLanguage
 
         //PROCESS PLACE INFO:
         //item:
@@ -270,22 +270,22 @@ class GenericFulfillment (private var context: Context) {
                 ),
             )
 
-            //dispatcherInfo:
-            dispatcherInfo.aiReplies = aiReplies
-            dispatcherInfo.actionType = ActionType.OPEN_URL
-            dispatcherInfo.usable = itemInfo
-            dispatcherInfo.playAcknowledge = true
+            //stateInfo:
+            stateInfo.aiReplies = aiReplies
+            stateInfo.actionType = ActionType.OPEN_URL
+            stateInfo.usable = itemInfo
+            stateInfo.playAcknowledge = true
 
             //Update message:
-            lastAiMessage.actionType = dispatcherInfo.actionType
+            lastAiMessage.actionType = stateInfo.actionType
             lastAiMessage.attachments.nlpExtractor = extractorInfo
             lastAiMessage.attachments.usable = itemInfo
         }
 
         //Build return
-        dispatcherInfo.end = true
-        Log.d(TAG, dispatcherInfo.toString())
-        return dispatcherInfo
+        stateInfo.end = true
+        Log.d(TAG, stateInfo.toString())
+        return stateInfo
     }
 
 }

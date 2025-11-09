@@ -18,7 +18,7 @@ import com.ftrono.DJames.be.agents.nodes.MainRouterNode
 import com.ftrono.DJames.be.agents.nodes.MessageAgentNode
 import com.ftrono.DJames.be.agents.nodes.PlayerAgentNode
 import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.models.DispatcherInfo
+import com.ftrono.DJames.be.agents.StateInfo
 import com.ftrono.DJames.be.models.RecDetails
 import com.google.gson.JsonParser
 import org.bsc.langgraph4j.CompiledGraph
@@ -141,11 +141,11 @@ class AgentsGraph(
     }
 
     fun invoke(
-        prevDispatch: DispatcherInfo,
+        prevState: StateInfo,
         recDetails: RecDetails? = null,
         inMessage: String = "",
         isStart: Boolean = false,
-    ): DispatcherInfo {
+    ): StateInfo {
         // Build & compile the graph:
         val compiledGraph = this.compile(stateGraph)
         Log.d(TAG, "Graph compiled!")
@@ -191,7 +191,7 @@ class AgentsGraph(
 
         if (fail || isSilence) {
             // Silence case:
-            return DispatcherInfo(
+            return StateInfo(
                 lastRecording = lastRecordingName,
                 fail = true,
                 noSave = isSilence,
@@ -217,24 +217,23 @@ class AgentsGraph(
             )
 
             Log.d(TAG, "Messages size (input): ${messages.size} items.")
-
-            // Run the graph:
-            // The `stream` method returns an AsyncGenerator. Results are in the final state after execution:
             var outMessage = ""
 
-            for (item in compiledGraph.stream(
+            // STREAMING LOOP:
+            // The `stream` method returns an AsyncGenerator. Results are in the final state after execution:
+            for (event in compiledGraph.stream(
                 // Input:
                 mutableMapOf<String?, Any?>(
                     StateMap.MESSAGES to messages
                 )
             )) {
                 // Output:
-                // Log.d(TAG, item.toString())
-                messages = item.state()!!.messages()
-                fail = item.state()!!.fail()
-                next = item.state()!!.next()
+                Log.d(TAG, "Current node: ${event.node()}")
+                messages = event.state()!!.messages()
+                fail = event.state()!!.fail()
+                next = event.state()!!.next()
                 isEnd = next == END
-                language = item.state()!!.language()
+                language = event.state()!!.language()
                 try {
                     outMessage = messages.last()!!.content.replace("* ", "- ")
                 } catch (e: Exception) {
@@ -248,7 +247,7 @@ class AgentsGraph(
 
             //TODO: Add store messages to DB here!
 
-            return DispatcherInfo(
+            return StateInfo(
                 lastRecording = lastRecordingName,
                 fail = fail,
                 end = isEnd,

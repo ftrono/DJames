@@ -7,7 +7,7 @@ import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.lastRecordingName
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.models.DispatcherInfo
+import com.ftrono.DJames.be.agents.StateInfo
 import com.google.gson.JsonParser
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -25,9 +25,9 @@ class FulfillmentUtils {
         cannotRecordWAVoice: Boolean = false,
         notAvailable: Boolean = false,
         noSave: Boolean = false,
-    ): DispatcherInfo {
+    ): StateInfo {
         //Build fallback response:
-        return DispatcherInfo(
+        return StateInfo(
             lastRecording = lastRecordingName,
             fail = true,
             noSave = noSave,

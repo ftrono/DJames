@@ -86,7 +86,7 @@ class LlmAgent(
         runBlocking {
             var response = httpClient.makeRequest(client, request)
             if (response.code == 200) {
-                Log.w(TAG, "sendLlmRequest(): query success. Status code: ${response.code}.")
+                Log.d(TAG, "sendLlmRequest(): query success. Status code: ${response.code}.")
             } else {
                 Log.w(TAG, "sendLlmRequest(): cannot query. Status code: ${response.code}, details: ${response.body}")
             }

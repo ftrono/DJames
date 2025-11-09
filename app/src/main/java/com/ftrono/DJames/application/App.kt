@@ -14,7 +14,7 @@ import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.be.database.MessageUtils
 import com.ftrono.DJames.be.database.MyObjectBox
 import com.ftrono.DJames.be.database.LibraryItem
-import com.ftrono.DJames.be.models.DispatcherInfo
+import com.ftrono.DJames.be.agents.StateInfo
 import com.ftrono.DJames.be.utils.FulfillmentUtils
 import com.ftrono.DJames.be.chat.DefaultReplies
 import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
@@ -127,7 +127,7 @@ var allMessageIds = MutableLiveData<List<Long>>(listOf<Long>())
 
 // Conversation tracking:
 val chatInputPlaceholder = "Ask via chat..."
-var chatLastDispatch = DispatcherInfo()
+var chatLastState = StateInfo()
 var lastAiMessage: Message = Message()
 var lastUserMessage: Message = Message()
 var lastRequestIntent: String = ""

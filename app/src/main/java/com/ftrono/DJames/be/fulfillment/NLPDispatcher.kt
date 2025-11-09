@@ -13,7 +13,7 @@ import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.NlpQueryModel
-import com.ftrono.DJames.be.models.DispatcherInfo
+import com.ftrono.DJames.be.agents.StateInfo
 import java.io.File
 
 
@@ -25,18 +25,18 @@ class NLPDispatcher (
     fun dispatch(
         text: String = "",
         recFile: File? = null,
-        prevDispatch: DispatcherInfo = DispatcherInfo(),
+        prevState: StateInfo = StateInfo(),
         isStart: Boolean = false,
         fromVoice: Boolean = false,
-    ): DispatcherInfo {
+    ): StateInfo {
 
         //Init:
         var reqLanguage = prefs.queryLanguage
         var intentName = ""
-        var messageMode = prevDispatch.messageMode
+        var messageMode = prevState.messageMode
 
-        if (prevDispatch.reqLanguage != "") {
-            reqLanguage = prevDispatch.reqLanguage
+        if (prevState.reqLanguage != "") {
+            reqLanguage = prevState.reqLanguage
         }
 
 
@@ -121,9 +121,9 @@ class NLPDispatcher (
             //FOLLOW UP / MESSAGE MODE:
             //Check prev intent & requested language:
             var prevIntent = ""
-            var reqLangCode = prevDispatch.reqLanguage
+            var reqLangCode = prevState.reqLanguage
 
-            if (messageMode && prevDispatch.messageType == "voice" && fromVoice) {
+            if (messageMode && prevState.messageType == "voice" && fromVoice) {
                 Log.d(TAG, "MESSAGE FOLLOWUP: AUDIO MESSAGE.")
                 //Whatsapp audio message -> no NLP query!
                 val storedText = "(private voice message)"
@@ -136,7 +136,7 @@ class NLPDispatcher (
                     fromVoice = true
                 )
                 try {
-                    return fulfillment.sendMessage2(prevDispatch)
+                    return fulfillment.sendMessage2(prevState)
                 } catch (e: Exception) {
                     Log.w(TAG, "Error in sending Whatsapp audio message!")
                     return fulfillmentUtils.fallback()   //Error
@@ -151,7 +151,7 @@ class NLPDispatcher (
                 } else {
                     Log.d(TAG, "GENERIC FOLLOWUP.")
                     //Store previous information:
-                    prevIntent = prevDispatch.intentName
+                    prevIntent = prevState.intentName
                     resultsNLP = nlpQuery.queryNLP(text=text, recFile=recFile, messageMode = false, reqLanguage = reqLangCode)
                 }
 
@@ -198,19 +198,19 @@ class NLPDispatcher (
                         if (messageMode) {
                             when (intentName) {
                                 "Cancel" -> return fulfillmentUtils.fallback(nevermind = true)
-                                else -> return fulfillment.sendMessage2(prevDispatch)
+                                else -> return fulfillment.sendMessage2(prevState)
                             }
                         } else {
                             when (intentName) {
                                 "Cancel" -> return fulfillmentUtils.fallback(nevermind=true)
                                 else -> {
                                     when (prevIntent) {
-                                        "DriveRequest" -> return fulfillment.driveRequest2(resultsNLP, prevDispatch)
-                                        "PlaySong" -> if (spotifyLoggedIn.value!!) return spotify.playSongAlbum2(resultsNLP, prevDispatch) else return fulfillmentUtils.fallback(notLoggedIn=true)
-                                        "PlayAlbum" -> if (spotifyLoggedIn.value!!) return spotify.playSongAlbum2(resultsNLP, prevDispatch) else return fulfillmentUtils.fallback(notLoggedIn=true)
-                                        "PlayArtist" -> if (spotifyLoggedIn.value!!) return spotify.playArtistPlaylist2(resultsNLP, prevDispatch) else return fulfillmentUtils.fallback(notLoggedIn=true)
-                                        "PlayPlaylist" -> if (spotifyLoggedIn.value!!) return spotify.playArtistPlaylist2(resultsNLP, prevDispatch) else return fulfillmentUtils.fallback(notLoggedIn=true)
-                                        "PlayPodcast" -> if (spotifyLoggedIn.value!!) return spotify.playPodcast2(resultsNLP, prevDispatch) else return fulfillmentUtils.fallback(notLoggedIn=true)
+                                        "DriveRequest" -> return fulfillment.driveRequest2(resultsNLP, prevState)
+                                        "PlaySong" -> if (spotifyLoggedIn.value!!) return spotify.playSongAlbum2(resultsNLP, prevState) else return fulfillmentUtils.fallback(notLoggedIn=true)
+                                        "PlayAlbum" -> if (spotifyLoggedIn.value!!) return spotify.playSongAlbum2(resultsNLP, prevState) else return fulfillmentUtils.fallback(notLoggedIn=true)
+                                        "PlayArtist" -> if (spotifyLoggedIn.value!!) return spotify.playArtistPlaylist2(resultsNLP, prevState) else return fulfillmentUtils.fallback(notLoggedIn=true)
+                                        "PlayPlaylist" -> if (spotifyLoggedIn.value!!) return spotify.playArtistPlaylist2(resultsNLP, prevState) else return fulfillmentUtils.fallback(notLoggedIn=true)
+                                        "PlayPodcast" -> if (spotifyLoggedIn.value!!) return spotify.playPodcast2(resultsNLP, prevState) else return fulfillmentUtils.fallback(notLoggedIn=true)
                                     }
                                 }
                             }

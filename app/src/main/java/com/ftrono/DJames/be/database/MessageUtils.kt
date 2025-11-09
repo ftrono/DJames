@@ -18,7 +18,7 @@ import com.ftrono.DJames.application.messageBox
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.ChatMessage
-import com.ftrono.DJames.be.models.ActionType
+import com.ftrono.DJames.be.agents.ActionType
 import com.ftrono.DJames.be.collections.testMessages
 import io.objectbox.query.QueryBuilder
 import kotlinx.serialization.json.Json

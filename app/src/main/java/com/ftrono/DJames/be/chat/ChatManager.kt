@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.lastAiMessage
-import com.ftrono.DJames.application.chatLastDispatch
+import com.ftrono.DJames.application.chatLastState
 import com.ftrono.DJames.application.lastRequestIntent
 import com.ftrono.DJames.application.defaultChatResetTime
 import com.ftrono.DJames.application.fulfillmentUtils
@@ -16,7 +16,7 @@ import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.AgentsGraph
 import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.models.DispatcherInfo
+import com.ftrono.DJames.be.agents.StateInfo
 import com.ftrono.DJames.be.fulfillment.NLPDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,26 +32,23 @@ class ChatManager(private val context: Context) {
     private var isStart = false
 
     fun init() {
-        if (prefs.enableV3) {
-            agentsGraph = AgentsGraph(context)
-        } else {
-            nlpDispatcher = NLPDispatcher(context)
-        }
+        agentsGraph = AgentsGraph(context)
+        nlpDispatcher = NLPDispatcher(context)
     }
 
     fun resetConv() {
         isStart = true
-        chatLastDispatch = DispatcherInfo()
+        chatLastState = StateInfo()
         lastRecordingName = ""
     }
 
     fun processQuery(text: String, restart: Boolean = false) {
         // Reset chat if end, if forced "restart" (only if tap on oldChat action) or defaultChatResetTime is elapsed:
-        Log.d(TAG, "$chatLastDispatch")
+        Log.d(TAG, "$chatLastState")
         if (
             restart
-            || chatLastDispatch.end
-            || chatLastDispatch.fail
+            || chatLastState.end
+            || chatLastState.fail
             || ((utils.getCurrentTimestamp() - lastStarterId) > defaultChatResetTime)
         ) {
             resetConv()
@@ -63,26 +60,26 @@ class ChatManager(private val context: Context) {
 
         // PROCESS:
         coroutineScope.launch {
-            chatLastDispatch = if (prefs.enableV3) {
+            chatLastState = if (prefs.enableV3) {
                 agentsGraph.invoke(
                     inMessage = text,
-                    prevDispatch = chatLastDispatch,
+                    prevState = chatLastState,
                     isStart = isStart
                 )
             } else {
                 nlpDispatcher.dispatch(
                     text = text,
-                    prevDispatch = chatLastDispatch,
+                    prevState = chatLastState,
                     isStart = isStart,
                     fromVoice = false
                 )
             }
-            Log.d(TAG, "LAST DISPATCH: $chatLastDispatch")
+            Log.d(TAG, "LAST DISPATCH: $chatLastState")
 
             var newReplies = listOf<AiReply>()
             isStart = false   // Enable FollowUp
 
-            if (chatLastDispatch.fail && chatLastDispatch.aiReplies.isEmpty()) {
+            if (chatLastState.fail && chatLastState.aiReplies.isEmpty()) {
                 // Default fail replies:
                 newReplies = listOf(
                     AiReply(
@@ -93,9 +90,9 @@ class ChatManager(private val context: Context) {
             }
 
             // Store message:
-            if (chatLastDispatch.aiReplies.isNotEmpty()) {
+            if (chatLastState.aiReplies.isNotEmpty()) {
                 // Save reply:
-                lastAiMessage.text = fulfillmentUtils.joinReplies(chatLastDispatch.aiReplies)
+                lastAiMessage.text = fulfillmentUtils.joinReplies(chatLastState.aiReplies)
                 lastAiMessage.requestIntent = lastRequestIntent
                 messageUtils.storeMessage(
                     context = context,
@@ -106,9 +103,9 @@ class ChatManager(private val context: Context) {
             }
 
             // Execute:
-            if (chatLastDispatch.end && chatLastDispatch.actionType != null) {
+            if (chatLastState.end && chatLastState.actionType != null) {
                 val actionsExecutor = ActionsExecutor(context)
-                newReplies = actionsExecutor.execute(chatLastDispatch)
+                newReplies = actionsExecutor.execute(chatLastState)
                 if (newReplies.isNotEmpty()) {
                     // Save additional AI reply as a new message:
                     messageUtils.resetMessage(fromUser = false)

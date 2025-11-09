@@ -14,9 +14,9 @@ import com.ftrono.DJames.application.recDir
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.SpotifyPlayable
-import com.ftrono.DJames.be.models.ActionType
+import com.ftrono.DJames.be.agents.ActionType
 import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.models.DispatcherInfo
+import com.ftrono.DJames.be.agents.StateInfo
 import com.ftrono.DJames.be.spotify.SpotifyPlayer
 import java.io.File
 
@@ -47,17 +47,17 @@ class ActionsExecutor(
 
     // MAIN: EXECUTOR:
     fun execute(
-        latestDispatch: DispatcherInfo
+        latestState: StateInfo
     ): List<AiReply> {
         var updatedReplies = listOf<AiReply>()
         // Execute action:
-        var stringReply = if (latestDispatch.actionType == null) "" else {
+        var stringReply = if (latestState.actionType == null) "" else {
             launchAction(
-                action = latestDispatch.actionType!!,
-                usable = latestDispatch.usable,
-                playable = latestDispatch.playable,
-                reqLanguage = latestDispatch.reqLanguage,
-                lastRecording = latestDispatch.lastRecording
+                action = latestState.actionType!!,
+                usable = latestState.usable,
+                playable = latestState.playable,
+                reqLanguage = latestState.reqLanguage,
+                lastRecording = latestState.lastRecording
             )
         }
         // Update replies:

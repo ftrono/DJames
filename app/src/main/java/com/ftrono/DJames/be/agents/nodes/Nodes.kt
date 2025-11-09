@@ -2,12 +2,9 @@ package com.ftrono.DJames.be.agents.nodes
 
 import android.content.Context
 import android.util.Log
-import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.lastRequestIntent
-import com.ftrono.DJames.application.lastUserMessage
 import com.ftrono.DJames.application.lastUserMessageId
 import com.ftrono.DJames.application.messageUtils
-import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.be.agents.ChatMessage
 import com.ftrono.DJames.be.agents.LlmAgent
 import com.ftrono.DJames.be.agents.tools.SearchContacts
@@ -16,6 +13,30 @@ import com.ftrono.DJames.be.agents.tools.SearchTracks
 import com.ftrono.DJames.be.agents.StateMap
 import com.ftrono.DJames.be.agents.tools.Tool
 import org.bsc.langgraph4j.action.NodeAction
+
+
+// (LLM-based) Human node:
+class HumanNode () : NodeAction<StateMap?> {
+
+    private val TAG = this::class.java.simpleName
+    val name: String = TAG
+
+    override fun apply(state: StateMap?): MutableMap<String?, Any?> {
+        Log.d(TAG, "$name activated")
+
+//        var resumeMessage = state!!.resumeMessage()
+//        val outMessages = mutableListOf<ChatMessage?>(
+//            ChatMessage(
+//                role = "user",
+//                content = resumeMessage
+//            )
+//        )
+
+        return mutableMapOf<String?, Any?>(
+            StateMap.NEXT to "PlayerAgent"
+        )
+    }
+}
 
 
 // (LLM-based) Router node:
@@ -63,11 +84,14 @@ class MainRouterNode (
         lastRequestIntent = llmReturn.next   // TODO
 
         // Update last user message:
-        messageUtils.updateMessage(
-            context = context,
-            id = state.lastUserMessageId(),
-            requestIntent = llmReturn.next,
-        )
+        val lastId = state.lastUserMessageId()
+        if (lastId != 0L) {
+            messageUtils.updateMessage(
+                context = context,
+                id = state.lastUserMessageId(),
+                requestIntent = llmReturn.next,
+            )
+        }
 
         return mutableMapOf<String?, Any?>(
             StateMap.Companion.MESSAGES to llmReturn.messages,

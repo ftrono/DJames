@@ -1,5 +1,6 @@
 package com.ftrono.DJames.be.agents
 
+import com.ftrono.DJames.be.models.EnumTypeConverter
 import com.ftrono.DJames.be.models.JsonConverter
 import com.ftrono.DJames.be.models.JsonListConverter
 import io.objectbox.annotation.Convert
@@ -9,6 +10,19 @@ import kotlinx.serialization.Serializable as KxSerializable
 import kotlinx.serialization.json.*
 
 
+// ENUMS:
+enum class NodeType {
+    AGENT, HUMAN, ROUTER
+}
+class NodeTypeConverter : EnumTypeConverter<NodeType>(NodeType.entries.toTypedArray())
+
+enum class ActionType {
+    PLAY, CALL, SMS, WA_TEXT, WA_VOICE, OPEN_URL
+}
+class ActionTypeConverter : EnumTypeConverter<ActionType>(ActionType.entries.toTypedArray())
+
+
+// MODELS:
 // Tools:
 @KxSerializable
 data class ToolProperty(

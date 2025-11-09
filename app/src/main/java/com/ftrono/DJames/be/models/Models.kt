@@ -11,6 +11,7 @@ import kotlinx.serialization.json.Json
 import io.objectbox.converter.PropertyConverter
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
+import kotlin.reflect.KClass
 
 
 // MODEL CLASSES:
@@ -48,32 +49,6 @@ data class AiReply(
 )
 
 
-@Serializable
-data class DispatcherInfo(
-    var lastRecording: String = "",   //Flac only
-    var aiReplies: List<AiReply> = listOf(),
-    var actionType: ActionType? = null, //"call", ""
-    var end: Boolean = false,   //fulfillment complete
-    var fail: Boolean = false,   //fulfillment complete
-    var noSave: Boolean = false,   // don't store message
-    var playAcknowledge: Boolean = false,   //play the acknowledge tone
-    var messageMode: Boolean = false,   //specific for messages only
-    var messageType: String = "",
-    var intentName: String = "Fallback",
-    var reqLanguage: String = "",
-    var playType: String = "",
-    var contextType: String = "",
-    var usable: LibraryItem = LibraryItem(),
-    var playable: SpotifyPlayable = SpotifyPlayable(),
-)
-
-
-// ENUM:
-enum class ActionType {
-    PLAY, CALL, SMS, WA_TEXT, WA_VOICE, OPEN_URL
-}
-
-
 // CONVERTERS:
 open class JsonConverter<T>(
     private val serializer: KSerializer<T>
@@ -109,25 +84,17 @@ open class JsonListConverter<T>(
 }
 
 
-class ActionTypeConverter : PropertyConverter<ActionType, String> {
-    override fun convertToDatabaseValue(entityProperty: ActionType?): String? {
+abstract class EnumTypeConverter<T : Enum<T>>(
+    private val enumValues: Array<T>
+) : PropertyConverter<T, String> {
+
+    override fun convertToDatabaseValue(entityProperty: T?): String? {
         return entityProperty?.name
     }
 
-    override fun convertToEntityProperty(databaseValue: String?): ActionType? {
+    override fun convertToEntityProperty(databaseValue: String?): T? {
         return databaseValue?.let { value ->
-            ActionType.entries.find { it.name.equals(value, ignoreCase = true) }
+            enumValues.firstOrNull { it.name.equals(value, ignoreCase = true) }
         }
     }
-}
-
-
-// Convert String to ActionType:
-fun actionTypeFromString(value: String?): ActionType? {
-    return ActionType.entries.find { it.name.equals(value, ignoreCase = true) }
-}
-
-// Convert ActionType to String:
-fun actionTypeToString(actionType: ActionType?): String? {
-    return actionType?.name
 }

@@ -18,7 +18,7 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.application.ACTION_REC_STOP
-import com.ftrono.DJames.application.chatLastDispatch
+import com.ftrono.DJames.application.chatLastState
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.lastRecordingName
 import com.ftrono.DJames.application.lastRequestIntent
@@ -30,9 +30,10 @@ import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.application.recordingFail
 import com.ftrono.DJames.application.recordingTime
 import com.ftrono.DJames.application.sourceIsVolume
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.AgentsGraph
 import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.models.DispatcherInfo
+import com.ftrono.DJames.be.agents.StateInfo
 import com.ftrono.DJames.be.fulfillment.NLPDispatcher
 import com.ftrono.DJames.be.audio.AndroidAudioRecorder
 import com.ftrono.DJames.be.audio.AudioRequestsManager
@@ -60,7 +61,7 @@ class VoiceQueryService: Service() {
     //Status:
     private var isStart = false
     private var messageMode = false
-    private var lastDispatch = DispatcherInfo()
+    private var lastState = StateInfo()
 
     //JOBS:
     private var recordingThread: Thread? = null
@@ -137,7 +138,7 @@ class VoiceQueryService: Service() {
         recordingMode = false
         voiceQueryOn = false
         sourceIsVolume.postValue(false)
-        lastDispatch = DispatcherInfo()
+        lastState = StateInfo()
         lastRequestIntent = ""
         lastRecordingName = ""
         //Set overlay READY color:
@@ -199,7 +200,7 @@ class VoiceQueryService: Service() {
                             //End previous conversations:
                             isStart = true
                             lastRecordingName = ""
-                            chatLastDispatch = DispatcherInfo()
+                            chatLastState = StateInfo()
                             //START:
                             queryStatus.postValue("processing")
                             Thread.sleep(500)
@@ -237,7 +238,7 @@ class VoiceQueryService: Service() {
                             ) {
                                 MyRecorder.start(
                                     messageMode = messageMode,
-                                    messageType = lastDispatch.messageType,
+                                    messageType = lastState.messageType,
                                 )
                             }
                         },
@@ -303,29 +304,29 @@ class VoiceQueryService: Service() {
         try {
             //PROCESS REQUEST:
             if (voiceQueryOn) {
-                lastDispatch = if (prefs.enableV3) {
+                lastState = if (prefs.enableV3) {
                     agentsGraph.invoke(
                         recDetails = recDetails,
-                        prevDispatch = lastDispatch,
+                        prevState = lastState,
                         isStart = isStart
                     )
                 } else {
                     nlpDispatcher.dispatch(
                         recFile = File(recDetails.recPath),
-                        prevDispatch = lastDispatch,
+                        prevState = lastState,
                         isStart = isStart,
                         fromVoice = true
                     )
                 }
                 // Enable FollowUp:
                 isStart = false
-                val followUp = !lastDispatch.end && !lastDispatch.fail
-                messageMode = lastDispatch.messageMode
+                val followUp = !lastState.end && !lastState.fail
+                messageMode = lastState.messageMode
 
                 val actionsExecutor = ActionsExecutor(applicationContext)
                 var newReplies = listOf<AiReply>()
 
-                if (lastDispatch.fail && lastDispatch.aiReplies.isEmpty()) {
+                if (lastState.fail && lastState.aiReplies.isEmpty()) {
                     // Default fail replies:
                     newReplies = listOf(
                         AiReply(
@@ -341,33 +342,33 @@ class VoiceQueryService: Service() {
                 if (voiceQueryOn && intentName.contains("Play") || intentName.contains("Call")) {
                     // A) First speak, then execute action:
                     // Read:
-                    if (lastDispatch.aiReplies.isNotEmpty()) {
+                    if (lastState.aiReplies.isNotEmpty()) {
                         tts.speak(
-                            aiReplies = lastDispatch.aiReplies,
-                            saveMessage = !lastDispatch.noSave,
+                            aiReplies = lastState.aiReplies,
+                            saveMessage = !lastState.noSave,
                         )
                     }
                     audioRequestsManager.releaseDuckedFocus()
                     // Execute (only if end):
-                    if (lastDispatch.end && lastDispatch.actionType != null) {
-                        actionsExecutor.execute(lastDispatch)
+                    if (lastState.end && lastState.actionType != null) {
+                        actionsExecutor.execute(lastState)
                     }
 
                 } else if (voiceQueryOn) {
                     // B) First execute action, then speak:
                     // Execute (only if end):
-                    if (lastDispatch.end && lastDispatch.actionType != null) {
-                        newReplies = actionsExecutor.execute(lastDispatch)
+                    if (lastState.end && lastState.actionType != null) {
+                        newReplies = actionsExecutor.execute(lastState)
                     }
                     // If received updated replies: replace!
                     if (newReplies.isNotEmpty()) {
-                        lastDispatch.aiReplies = newReplies
+                        lastState.aiReplies = newReplies
                     }
                     // Read:
-                    if (lastDispatch.aiReplies.isNotEmpty()) {
+                    if (lastState.aiReplies.isNotEmpty()) {
                         tts.speak(
-                            aiReplies = lastDispatch.aiReplies,
-                            saveMessage = !lastDispatch.noSave,
+                            aiReplies = lastState.aiReplies,
+                            saveMessage = !lastState.noSave,
                         )
                     }
                     audioRequestsManager.releaseDuckedFocus()
@@ -383,10 +384,10 @@ class VoiceQueryService: Service() {
                 } else {
                     // END:
                     queryStatus.postValue("ready")
-                    if (lastDispatch.fail) {
+                    if (lastState.fail) {
                         toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                     } else {
-                        if (lastDispatch.playAcknowledge) toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                        if (lastState.playAcknowledge) toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                     }
                     Thread.sleep(200)
                     stopSelf()

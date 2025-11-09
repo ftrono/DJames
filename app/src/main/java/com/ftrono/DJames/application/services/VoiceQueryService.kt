@@ -59,7 +59,6 @@ class VoiceQueryService: Service() {
 
     //Status:
     private var isStart = false
-    private var followUp = false
     private var messageMode = false
     private var lastDispatch = DispatcherInfo()
 
@@ -133,7 +132,6 @@ class VoiceQueryService: Service() {
         }
 
         //Reset:
-        followUp = false
         messageMode = false
         recordingFail = false
         recordingMode = false
@@ -315,12 +313,15 @@ class VoiceQueryService: Service() {
                     nlpDispatcher.dispatch(
                         recFile = File(recDetails.recPath),
                         prevDispatch = lastDispatch,
+                        isStart = isStart,
                         fromVoice = true
                     )
                 }
+                // Enable FollowUp:
                 isStart = false
+                val followUp = !lastDispatch.end && !lastDispatch.fail
                 messageMode = lastDispatch.messageMode
-                followUp = lastDispatch.followUp
+
                 val actionsExecutor = ActionsExecutor(applicationContext)
                 var newReplies = listOf<AiReply>()
 

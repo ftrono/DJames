@@ -250,7 +250,6 @@ class AgentsGraph(
 
             return DispatcherInfo(
                 lastRecording = lastRecordingName,
-                followUp = !fail && !isEnd,
                 fail = fail,
                 end = isEnd,
                 aiReplies = listOf(

@@ -52,8 +52,8 @@ class ChatManager(private val context: Context) {
             restart
             || chatLastDispatch.end
             || chatLastDispatch.fail
-            || (!chatLastDispatch.followUp && !chatLastDispatch.messageMode)
-            || ((utils.getCurrentTimestamp() - lastStarterId) > defaultChatResetTime)) {
+            || ((utils.getCurrentTimestamp() - lastStarterId) > defaultChatResetTime)
+        ) {
             resetConv()
         }
         //Set overlay PROCESSING color & icon:
@@ -73,13 +73,14 @@ class ChatManager(private val context: Context) {
                 nlpDispatcher.dispatch(
                     text = text,
                     prevDispatch = chatLastDispatch,
+                    isStart = isStart,
                     fromVoice = false
                 )
             }
             Log.d(TAG, "LAST DISPATCH: $chatLastDispatch")
 
             var newReplies = listOf<AiReply>()
-            isStart = false
+            isStart = false   // Enable FollowUp
 
             if (chatLastDispatch.fail && chatLastDispatch.aiReplies.isEmpty()) {
                 // Default fail replies:

@@ -20,20 +20,19 @@ import java.io.File
 class NLPDispatcher (
     private var context: Context
 ) {
-
     private val TAG = this::class.java.simpleName
 
     fun dispatch(
         text: String = "",
         recFile: File? = null,
         prevDispatch: DispatcherInfo = DispatcherInfo(),
-        fromVoice: Boolean = false
+        isStart: Boolean = false,
+        fromVoice: Boolean = false,
     ): DispatcherInfo {
 
         //Init:
         var reqLanguage = prefs.queryLanguage
         var intentName = ""
-        var followUp = prevDispatch.followUp
         var messageMode = prevDispatch.messageMode
 
         if (prevDispatch.reqLanguage != "") {
@@ -48,7 +47,7 @@ class NLPDispatcher (
         var resultsNLP = NlpQueryModel()
 
         //1ST REQUEST -> always in default request language:
-        if (!followUp && !messageMode) {
+        if (isStart) {
             Log.d(TAG, "1ST REQUEST.")
             resultsNLP = nlpQuery.queryNLP(text=text, recFile=recFile, messageMode = false, reqLanguage = reqLanguage)
 

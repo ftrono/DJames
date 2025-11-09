@@ -202,7 +202,6 @@ class GenericFulfillment (private var context: Context) {
         //dispatcherInfo:
         dispatcherInfo.aiReplies = aiReplies
         dispatcherInfo.intentName = resultsNLP.intentName
-        dispatcherInfo.followUp = true
         dispatcherInfo.reqLanguage = reqLangCode
         Log.d(TAG, dispatcherInfo.toString())
 

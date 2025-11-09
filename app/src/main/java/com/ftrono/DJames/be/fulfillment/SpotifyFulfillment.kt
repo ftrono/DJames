@@ -90,7 +90,6 @@ class SpotifyFulfillment (private var context: Context) {
         //dispatcherInfo:
         dispatcherInfo.aiReplies = aiReplies
         dispatcherInfo.intentName = resultsNLP.intentName
-        dispatcherInfo.followUp = true
         dispatcherInfo.reqLanguage = reqLangCode
         dispatcherInfo.playType = playType
         dispatcherInfo.contextType = contextType

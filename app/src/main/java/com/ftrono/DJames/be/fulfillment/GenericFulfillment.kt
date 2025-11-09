@@ -1,4 +1,4 @@
-package com.ftrono.DJames.be.nlp
+package com.ftrono.DJames.be.fulfillment
 
 import android.content.Context
 import android.util.Log
@@ -43,8 +43,7 @@ class GenericFulfillment (private var context: Context) {
         extractorInfo.matchExtracted = contactExtracted
 
         //Match extracted contact name with user library:
-        val nlpMatcher = NLPMatcher(context)
-        var libMatchId = nlpMatcher.matchLibrary(filter, text=contactExtracted)
+        var libMatchId = libUtils.matchLibrary(filter, text=contactExtracted)
 
         if (libMatchId < 0) {
             //Fallback:
@@ -231,8 +230,7 @@ class GenericFulfillment (private var context: Context) {
         extractorInfo.reqLanguage = reqLangCode
 
         //Check place in library:
-        val nlpMatcher = NLPMatcher(context)
-        val libMatchId = nlpMatcher.matchLibrary("place", matchName, maxThreshold)
+        val libMatchId = libUtils.matchLibrary("place", matchName, maxThreshold)
         if (libMatchId < 0) {
             //Place NOT found:
             Log.d(TAG, "DRIVE -> Place from Message")

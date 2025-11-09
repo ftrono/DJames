@@ -1,4 +1,4 @@
-package com.ftrono.DJames.be.nlp
+package com.ftrono.DJames.be.fulfillment
 
 import android.Manifest
 import android.content.Context
@@ -14,7 +14,6 @@ import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.NlpQueryModel
 import com.ftrono.DJames.be.models.DispatcherInfo
-import com.ftrono.DJames.be.spotify.SpotifyFulfillment
 import java.io.File
 
 

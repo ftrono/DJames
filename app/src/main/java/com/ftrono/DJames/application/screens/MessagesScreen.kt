@@ -635,7 +635,7 @@ fun DialogDeleteMessages(
                 } else if (selectedMessageIds.size == 1) {
                     "Do you want to delete this message?"
                 } else if (selectedMessageIds.size > 1) {
-                    "Do you want to delete the selected messages?"
+                    "Do you want to delete ${selectedMessageIds.size} selected messages?"
                 } else {
                     "Do you want to delete all message history?"
                 },

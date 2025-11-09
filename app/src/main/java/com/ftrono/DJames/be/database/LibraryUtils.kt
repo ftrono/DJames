@@ -5,9 +5,11 @@ import android.util.Log
 import android.widget.Toast
 import com.ftrono.DJames.application.curLibrarySize
 import com.ftrono.DJames.application.gMapsLinkFormat
+import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.libCats
 import com.ftrono.DJames.application.libraryBox
+import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.sourceToCatMap
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.be.collections.defaultCollection
@@ -17,8 +19,10 @@ import io.objectbox.query.QueryBuilder.StringOrder
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
+import me.xdrop.fuzzywuzzy.FuzzySearch
 import okhttp3.internal.toImmutableList
 import java.io.File
+import kotlin.math.roundToInt
 
 
 class LibraryUtils {
@@ -277,6 +281,60 @@ class LibraryUtils {
             }
             return playable
         }
+    }
+
+    // MATCHER:
+    //Match item from user query against user library:
+    fun matchLibrary(filter: String, text: String, threshold: Int = midThreshold): Long {
+        var matchId = -1L
+        val libMap = getAliasesMap(filter)
+        if (text != "" && libMap.isNotEmpty()) {
+            //Init:
+            var score = 0
+            val listEvalued = text.split(", ")
+            val listConfirmed = mutableListOf<Long>()
+            val scoresMap = mutableMapOf<Long, Int>()
+
+            //Check each evaluated item:
+            for (eval in listEvalued) {
+                //Check each artist id:
+                for (curId in libMap.keys) {
+                    val aliasScores = mutableListOf<Int>()
+                    //Check each alias:
+                    for (curAlias in libMap[curId]!!) {
+                        if (filter == "playlist") {
+                            val namePartial = FuzzySearch.partialRatio(curAlias, eval.lowercase())
+                            val nameFull = FuzzySearch.ratio(curAlias, eval.lowercase())
+                            score = listOf<Int>(namePartial, nameFull).average().roundToInt()
+                        } else {
+                            score = FuzzySearch.ratio(curAlias, eval.lowercase())
+                        }
+                        // Log.d(TAG, "LIB CONFIRMATION: COMPARING $curAlias WITH ${eval.lowercase()}, MATCH: $score")
+                        aliasScores.add(score)
+                    }
+                    //Get Max alias score and add globally only if high enough:
+                    val maxScore = aliasScores.max()
+                    if (!scoresMap.keys.contains(curId) && maxScore >= threshold) {
+                        scoresMap[curId] = maxScore
+                    }
+                }
+                if (scoresMap.isNotEmpty()) {
+                    //Sort and get highest match:
+                    val sortedScores = scoresMap.toList().sortedByDescending { it.second }.toMap()
+                    Log.d(TAG, "SORTED MAP FOR $eval: $sortedScores")
+                    listConfirmed.add(sortedScores.keys.toList()[0])
+                    val matchScore = sortedScores.values.toList()[0]
+                    lastAiMessage.attachments.matchScore = matchScore
+                }
+            }
+            //Final:
+            if (listConfirmed.isNotEmpty()) {
+                Log.d(TAG, "listConfirmed: $listConfirmed")
+                matchId = listConfirmed[0]
+                Log.d(TAG, "LIBRARY MATCH ID: $matchId, ALIASES: ${libMap[matchId]!!}")
+            }
+        }
+        return matchId
     }
 
 

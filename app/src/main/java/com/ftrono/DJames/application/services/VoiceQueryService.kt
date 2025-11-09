@@ -33,7 +33,7 @@ import com.ftrono.DJames.application.sourceIsVolume
 import com.ftrono.DJames.be.agents.AgentsGraph
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
-import com.ftrono.DJames.be.nlp.NLPDispatcher
+import com.ftrono.DJames.be.fulfillment.NLPDispatcher
 import com.ftrono.DJames.be.audio.AndroidAudioRecorder
 import com.ftrono.DJames.be.audio.AudioRequestsManager
 import com.ftrono.DJames.be.audio.TTSReader

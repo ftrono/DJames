@@ -76,14 +76,18 @@ import kotlin.Boolean
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
 fun HomeScreenPreview() {
+    val context = LocalContext.current
     val navController = rememberNavController()
+    val chatManager = ChatManager(context)
+    chatManager.init()
     val sharedViewModel: SharedViewModel = viewModel()
-    HomeScreen(navController, sharedViewModel, preview = true)
+    HomeScreen(navController, chatManager, sharedViewModel, preview = true)
 }
 
 @Composable
 fun HomeScreen(
     navController: NavController,
+    chatManager: ChatManager,
     sharedViewModel: SharedViewModel,
     preview: Boolean = false
 ) {
@@ -197,6 +201,7 @@ fun HomeScreen(
                     requestPermissions = requestPermissions,
                     requestOverlayOn = requestOverlayOn,
                     navController = navController,
+                    chatManager = chatManager,
                     sharedViewModel = sharedViewModel,
                 )
                 // BUTTONS ROW:
@@ -249,6 +254,7 @@ fun HomeScreen(
                     requestPermissions = requestPermissions,
                     requestOverlayOn = requestOverlayOn,
                     navController = navController,
+                    chatManager = chatManager,
                     sharedViewModel = sharedViewModel,
                 )
                 DriveModeButton(
@@ -376,9 +382,9 @@ fun HomeChatWrapper(
     requestPermissions: MutableState<Boolean>,
     requestOverlayOn: MutableState<Boolean>,
     navController: NavController,
+    chatManager: ChatManager,
     sharedViewModel: SharedViewModel
 ) {
-    val chatManager = ChatManager(context)
 
     ChatInputField(
         context = context,

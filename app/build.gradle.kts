@@ -146,4 +146,5 @@ dependencies {
     //LangGraph4j:
     implementation("org.bsc.langgraph4j:langgraph4j-parent:1.7.2")
     implementation("org.bsc.langgraph4j:langgraph4j-core:1.7.2")
+    implementation("tools.jackson.core:jackson-databind:3.0.2")
 }

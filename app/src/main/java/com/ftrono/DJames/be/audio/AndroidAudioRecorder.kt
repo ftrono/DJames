@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.annotation.RequiresPermission
 import com.arthenica.ffmpegkit.FFmpegKit
 import com.ftrono.DJames.application.*
+import com.ftrono.DJames.be.models.RecDetails
 import com.konovalov.vad.webrtc.VadWebRTC
 import com.konovalov.vad.webrtc.config.FrameSize as RtcFrameSize
 import com.konovalov.vad.webrtc.config.Mode as RtcMode
@@ -26,6 +27,7 @@ class AndroidAudioRecorder(private val context: Context) {
     private lateinit var audioRecorder: AudioRecord
     private var recFilePcm: File? = null
     private var recFileFlac: File? = null
+    private var speechPct: Int = 0
 
 
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
@@ -112,6 +114,8 @@ class AndroidAudioRecorder(private val context: Context) {
             val frameDurationMs = 10L   // each FRAME_SIZE_480 = 10 ms
             var isSpeech = false
             var stopMax = false
+            var numFrames = 0
+            var numSpeech = 0
 
             FileOutputStream(recFilePcm).use { output ->
                 while (isRecording && recordingMode && (recordingTime < maxTime)) {
@@ -124,6 +128,7 @@ class AndroidAudioRecorder(private val context: Context) {
                         // WebRTC VAD requires fixed-size frames (10/20/30 ms):
                         // Extract a frame: Process the buffer in steps of chunkSize (960 bytes)
                         val frame = buffer.copyOfRange(i, i + chunkSize)
+                        numFrames ++
 
                         //Mute frequencies & run VAD on each cleaned frame:
                         if (prefs.enableNoiseSuppression) {
@@ -173,6 +178,7 @@ class AndroidAudioRecorder(private val context: Context) {
                         } else {
                             // IS SPEECH or NO SILENCE DETECTION -> Reset patience countdown:
                             silenceMs = 0L
+                            numSpeech ++
                         }
                         i += chunkSize
                     }
@@ -193,27 +199,39 @@ class AndroidAudioRecorder(private val context: Context) {
                 }
             }
 
+            // Calculate speechPct:
+            speechPct = if (numFrames == 0) 0 else {
+                ((numSpeech.toFloat() / numFrames.toFloat())* 100).toInt()
+            }
+            Log.d(TAG, "SpeechPct: $speechPct -> $numSpeech / $numFrames")
+
             // Close VAD:
             rtcVad.close()
 
         } catch (e: Exception) {
             recordingFail = true
+            speechPct = 0
             Log.w(TAG, "ERROR: Recorder start FAIL.", e)
         }
     }
 
-    fun stop(): File {
+    fun stop(): RecDetails {
         try {
             audioRecorder.stop()
             audioRecorder.release()
             recordingMode = false
             //Convert:
             convertAudioFile(source = recFilePcm!!, target = recFileFlac!!)
+            return RecDetails(
+                recPath = recFileFlac!!.absolutePath,
+                speechPct = speechPct,
+            )
         } catch (e: Exception) {
             recordingFail = true
-            Log.w(TAG, "ERROR: Recorder stop FAIL.", e)
+            speechPct = 0
+            Log.w(TAG, "ERROR: Recorder stop FAIL.")
+            return RecDetails()
         }
-        return recFileFlac!!
     }
 
     fun convertAudioFile(source: File, target: File) {
@@ -224,6 +242,8 @@ class AndroidAudioRecorder(private val context: Context) {
             //Log.d(TAG, "Conversion output: ${session.output}")
             Log.d(TAG, "Conversion fail track (if any): ${session.failStackTrace}")
         } catch (e: Exception) {
+            recordingFail = true
+            speechPct = 0
             Log.w(TAG, "Audio file conversion error: ", e)
         }
     }

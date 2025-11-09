@@ -8,13 +8,6 @@ import java.io.Serializable
 import kotlinx.serialization.Serializable as KxSerializable
 import kotlinx.serialization.json.*
 
-// Status:
-@KxSerializable
-data class LlmReturn(
-    var fail: Boolean = false,
-    var next: String = "",
-    var messages: MutableList<ChatMessage?> = mutableListOf<ChatMessage?>(),
-)
 
 // Tools:
 @KxSerializable
@@ -115,4 +108,30 @@ data class LlmChoice(
 data class LlmResponse(
     var usage: LlmUsage = LlmUsage(),
     var choices: List<LlmChoice> = listOf<LlmChoice>(),
+)
+
+@KxSerializable
+data class SttResponse(
+    var usage: LlmUsage = LlmUsage(),
+    var language: String = "",
+    var model: String = "",
+    var text: String = "",
+)
+
+// Status:
+@KxSerializable
+data class LlmReturn(
+    var fail: Boolean = false,
+    var next: String = "",
+    var language: String = "",
+    var messages: MutableList<ChatMessage?> = mutableListOf<ChatMessage?>(),
+)
+
+// Status:
+@KxSerializable
+data class SttReturn(
+    var fail: Boolean = false,
+    var isSilence: Boolean = false,
+    var language: String = "",
+    var transcription: String = "",
 )

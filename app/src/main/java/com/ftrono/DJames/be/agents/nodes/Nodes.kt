@@ -1,9 +1,20 @@
-package com.ftrono.DJames.be.agents
+package com.ftrono.DJames.be.agents.nodes
 
 import android.content.Context
 import android.util.Log
+import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.lastRequestIntent
-import org.bsc.langgraph4j.StateGraph.END
+import com.ftrono.DJames.application.lastUserMessage
+import com.ftrono.DJames.application.lastUserMessageId
+import com.ftrono.DJames.application.messageUtils
+import com.ftrono.DJames.application.nlp_queryText
+import com.ftrono.DJames.be.agents.ChatMessage
+import com.ftrono.DJames.be.agents.LlmAgent
+import com.ftrono.DJames.be.agents.tools.SearchContacts
+import com.ftrono.DJames.be.agents.tools.SearchPlaces
+import com.ftrono.DJames.be.agents.tools.SearchTracks
+import com.ftrono.DJames.be.agents.StateMap
+import com.ftrono.DJames.be.agents.tools.Tool
 import org.bsc.langgraph4j.action.NodeAction
 
 
@@ -29,7 +40,7 @@ class MainRouterNode (
             - "CallAgent" -> for any request involving calling someone.
             - "MessageAgent" -> for any request involving messaging someone.
             - "DriveAgent" -> for any request involving requesting driving directions, routes, places, navigation or maps.
-            - "__END__" -> if the user wants to end the conversation.
+            - "__END__" -> if the user wants to stop, cancel, exit or end the conversation.
             - "GuidanceAgent" -> in any other case.
 
            ## IMPORTANT: 
@@ -45,17 +56,23 @@ class MainRouterNode (
             apiKey = apiKey,
             agentName = name,
             basePrompt = prompt,
-            tools = mapOf<String, Tool>(),
             isRouter = true,
         )
 
         val llmReturn = llmAgent.invoke(llmMessages = inMessages)
-        // lastRequestIntent = llmReturn.next   // TODO
+        lastRequestIntent = llmReturn.next   // TODO
+
+        // Update last user message:
+        messageUtils.updateMessage(
+            context = context,
+            id = state.lastUserMessageId(),
+            requestIntent = llmReturn.next,
+        )
 
         return mutableMapOf<String?, Any?>(
-            StateMap.MESSAGES to llmReturn.messages,
-            StateMap.FAIL to llmReturn.fail,
-            StateMap.NEXT to llmReturn.next,
+            StateMap.Companion.MESSAGES to llmReturn.messages,
+            StateMap.Companion.FAIL to llmReturn.fail,
+            StateMap.Companion.NEXT to llmReturn.next,
         )
     }
 }
@@ -94,8 +111,8 @@ class PlayerAgentNode (
         val llmReturn = llmAgent.invoke(llmMessages = inMessages)
 
         return mutableMapOf<String?, Any?>(
-            StateMap.MESSAGES to llmReturn.messages,
-            StateMap.FAIL to llmReturn.fail,
+            StateMap.Companion.MESSAGES to llmReturn.messages,
+            StateMap.Companion.FAIL to llmReturn.fail,
         )
     }
 }
@@ -134,8 +151,8 @@ class CallAgentNode (
         val llmReturn = llmAgent.invoke(llmMessages = inMessages)
 
         return mutableMapOf<String?, Any?>(
-            StateMap.MESSAGES to llmReturn.messages,
-            StateMap.FAIL to llmReturn.fail,
+            StateMap.Companion.MESSAGES to llmReturn.messages,
+            StateMap.Companion.FAIL to llmReturn.fail,
         )
     }
 }
@@ -174,8 +191,8 @@ class MessageAgentNode (
         val llmReturn = llmAgent.invoke(llmMessages = inMessages)
 
         return mutableMapOf<String?, Any?>(
-            StateMap.MESSAGES to llmReturn.messages,
-            StateMap.FAIL to llmReturn.fail,
+            StateMap.Companion.MESSAGES to llmReturn.messages,
+            StateMap.Companion.FAIL to llmReturn.fail,
         )
     }
 }
@@ -214,8 +231,8 @@ class DriveAgentNode (
         val llmReturn = llmAgent.invoke(llmMessages = inMessages)
 
         return mutableMapOf<String?, Any?>(
-            StateMap.MESSAGES to llmReturn.messages,
-            StateMap.FAIL to llmReturn.fail,
+            StateMap.Companion.MESSAGES to llmReturn.messages,
+            StateMap.Companion.FAIL to llmReturn.fail,
         )
     }
 }
@@ -246,14 +263,13 @@ class GuidanceAgentNode (
             apiKey = apiKey,
             agentName = name,
             basePrompt = prompt,
-            tools = mapOf<String, Tool>(),
         )
 
         val llmReturn = llmAgent.invoke(llmMessages = inMessages)
 
         return mutableMapOf<String?, Any?>(
-            StateMap.MESSAGES to llmReturn.messages,
-            StateMap.FAIL to llmReturn.fail,
+            StateMap.Companion.MESSAGES to llmReturn.messages,
+            StateMap.Companion.FAIL to llmReturn.fail,
         )
     }
 }

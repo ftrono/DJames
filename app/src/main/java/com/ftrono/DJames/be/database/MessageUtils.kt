@@ -17,7 +17,6 @@ import com.ftrono.DJames.application.maxHistoryDays
 import com.ftrono.DJames.application.messageBox
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.application.voiceConvStarted
 import com.ftrono.DJames.be.agents.ChatMessage
 import com.ftrono.DJames.be.models.ActionType
 import com.ftrono.DJames.be.collections.testMessages
@@ -114,16 +113,21 @@ class MessageUtils {
     }
 
 
-    //Store last open log to DB:
-    fun storeMessage(context: Context, langCode: String, fromUser: Boolean = false, fromVoice: Boolean = false, isStart: Boolean = false, llmMessages: MutableList<ChatMessage>? = null) {
+    //Store last open message to DB:
+    fun storeMessage(
+        context: Context,
+        langCode: String,
+        fromUser: Boolean = false,
+        fromVoice: Boolean = false,
+        isStart: Boolean = false,
+        llmMessages: MutableList<ChatMessage>? = null
+    ): Long {
+        var key = -1L
         try {
             val message = if (fromUser) lastUserMessage else lastAiMessage
             if (message.text == "") {
                 // Empty message -> nothing to save:
                 Log.w(TAG, "Empty Message: not saved!")
-            } else if (fromVoice && !voiceConvStarted) {
-                // Voice conv not started -> don't save:
-                Log.w(TAG, "Voice conv not started: message not saved!")
             } else {
                 message.timestamp = utils.getCurrentTimestamp()
                 if (isStart) {
@@ -143,7 +147,7 @@ class MessageUtils {
                 message.fromVoice = fromVoice
                 message.langCode = langCode
                 message.attachments.llmChatMessages = llmChatMessages
-                messageBox!!.put(message)
+                key = messageBox!!.put(message)
                 Log.d(TAG, "Message item ${message.id} saved!")
                 //Send broadcast:
                 Intent().also { intent ->
@@ -154,7 +158,34 @@ class MessageUtils {
         } catch (e: Exception) {
             Log.w(TAG, "ERROR: Message item not saved!", e)
         }
+        return key
     }
+
+
+    //Store last open message to DB:
+    fun updateMessage(
+        context: Context,
+        id: Long,
+        langCode: String = "",
+        requestIntent: String = "",
+    ) {
+        try {
+            val message = messageBox!!.get(id)
+            message.langCode = if (langCode != "") langCode else message.langCode
+            message.requestIntent =
+                if (requestIntent != "") requestIntent else message.requestIntent
+            messageBox!!.put(message)
+            Log.d(TAG, "Message item $id updated!")
+            //Send broadcast:
+            Intent().also { intent ->
+                intent.setAction(ACTION_MESSAGES_REFRESH)
+                context.sendBroadcast(intent)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: Message item $id not updated!", e)
+        }
+    }
+
 
     //DB DELETE:
     //Update Starter ID for conversations whose first message has been deleted:

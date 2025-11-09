@@ -12,8 +12,6 @@ import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.application.voiceConvStarted
-import com.ftrono.DJames.be.agents.AgentsGraph
 import com.ftrono.DJames.be.database.NlpQueryModel
 import com.ftrono.DJames.be.models.DispatcherInfo
 import com.ftrono.DJames.be.spotify.SpotifyFulfillment
@@ -21,8 +19,7 @@ import java.io.File
 
 
 class NLPDispatcher (
-    private var context: Context,
-    private var agentsGraph: AgentsGraph
+    private var context: Context
 ) {
 
     private val TAG = this::class.java.simpleName
@@ -61,7 +58,6 @@ class NLPDispatcher (
                 //A) PROCESS:
                 try {
                     //Get relevant results:
-                    voiceConvStarted = true
                     nlp_queryText = resultsNLP.queryText
                     nlp_queryText = fulfillmentUtils.replaceNums(nlp_queryText)
                     intentName = resultsNLP.intentName
@@ -81,8 +77,11 @@ class NLPDispatcher (
                     Log.d(TAG, "NLPDispatcher1: detected intent: $intentName")
 
                 } catch (e: Exception) {
+                    //Error:
                     Log.w(TAG, "NLPDispatcher1: no NLP results!")
-                    return fulfillmentUtils.fallback()   //Error
+                    return fulfillmentUtils.fallback(
+                        noSave = true   // Don't save first fallback
+                    )
                 }
 
                 // Typing delay:
@@ -102,7 +101,7 @@ class NLPDispatcher (
                         "PlayPlaylist" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback(notLoggedIn=true)
                         "PlayPodcast" -> if (spotifyLoggedIn.value!!) return spotify.playItem1(resultsNLP) else return fulfillmentUtils.fallback(notLoggedIn=true)
                         "PlayCollection" -> if (spotifyLoggedIn.value!!) return spotify.playCollection(resultsNLP) else return fulfillmentUtils.fallback(notLoggedIn=true)
-                        "TestAgents" -> return if (prefs.enableV3) agentsGraph.invoke(resultsNLP.queryText) else fulfillmentUtils.fallback(notAvailable=true)   // TODO: TEMP
+                        "TestAgents" -> return fulfillmentUtils.fallback(notAvailable=true)   // TODO: TEMP
                         "Cancel" -> return fulfillmentUtils.fallback(nevermind=true)
                         else -> return fulfillmentUtils.fallback(notUnderstood=true)
                     }
@@ -112,7 +111,10 @@ class NLPDispatcher (
 
             } else {
                 //B) EMPTY NLP RESULTS:
-                return fulfillmentUtils.fallback(notUnderstood=true)
+                return fulfillmentUtils.fallback(
+                    notUnderstood=true,
+                    noSave = true,   // Don't save first fallback
+                )
             }
 
 
@@ -199,12 +201,6 @@ class NLPDispatcher (
                             when (intentName) {
                                 "Cancel" -> return fulfillmentUtils.fallback(nevermind = true)
                                 else -> return fulfillment.sendMessage2(prevDispatch)
-                            }
-                        } else if (prevDispatch.testV3) {
-                            // TODO: TEMP:
-                            when (intentName) {
-                                "Cancel" -> return fulfillmentUtils.fallback(nevermind = true)
-                                else -> return agentsGraph.invoke(resultsNLP.queryText)
                             }
                         } else {
                             when (intentName) {

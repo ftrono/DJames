@@ -37,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -52,7 +51,6 @@ import com.ftrono.DJames.application.allMessageIds
 import com.ftrono.DJames.application.chatInputPlaceholder
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
-import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.maxHistoryDays
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.queryStatus
@@ -60,6 +58,7 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.chat.ActionsExecutor
 import com.ftrono.DJames.be.chat.ChatManager
 import com.ftrono.DJames.be.database.Message
+import com.ftrono.DJames.be.models.ActionType
 import com.ftrono.DJames.ui.components.ChatInputField
 import com.ftrono.DJames.ui.components.ConvStarterBubble
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
@@ -71,31 +70,32 @@ import com.ftrono.DJames.ui.overlay.TypingIndicator
 import com.ftrono.DJames.ui.navigation.SharedViewModel
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
-import com.ftrono.DJames.ui.navigation.navigateTo
 import com.ftrono.DJames.ui.selectors.libColorSelector
 import com.ftrono.DJames.ui.selectors.libIconSelector
 import com.ftrono.DJames.ui.selectors.messagesColorSelectorLight
 import com.ftrono.DJames.ui.selectors.messagesIconSelector
-import com.ftrono.DJames.ui.theme.NavigationItem
 
 
 @Preview
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
 fun MessagesScreenPreview() {
+    val context = LocalContext.current
     val navController = rememberNavController()
+    val chatManager = ChatManager(context)
+    chatManager.init()
     val sharedViewModel: SharedViewModel = viewModel()
-    MessagesScreen(navController, sharedViewModel, preview=true)
+    MessagesScreen(navController, chatManager, sharedViewModel, preview=true)
 }
 
 @Composable
 fun MessagesScreen(
     navController: NavController,
+    chatManager: ChatManager,
     sharedViewModel: SharedViewModel,
     preview: Boolean = false
 ) {
     val mContext = LocalContext.current
-    val chatManager = ChatManager(mContext)
 
     //Overlay permission management:
     val requestOverlayOn = rememberSaveable { mutableStateOf(false) }
@@ -257,6 +257,11 @@ fun MessagesScreen(
                                     message = message,
                                     selectedMessageIds = selectedMessageIds,
                                     extraDetails = extraDetails,
+                                    showButton = (
+                                        message.actionType != ActionType.SMS &&
+                                        message.actionType != ActionType.WA_VOICE &&
+                                        message.actionType != ActionType.WA_VOICE
+                                    )
                                 )
                             }
                         }
@@ -408,6 +413,7 @@ fun MessageDetail(
     message: Message,
     selectedMessageIds: SnapshotStateList<Long>,
     extraDetails: String,
+    showButton: Boolean = false,
 ) {
     MessageBubble(
         modifier = Modifier
@@ -416,9 +422,10 @@ fun MessageDetail(
         fromUser = message.fromUser,
         messageId = message.id,
         requestIntent = message.requestIntent,
-        showButton = true,
+        showButton = showButton,
         onClick = {
-            val actionsExecutor = ActionsExecutor(context)
+            if (showButton) {
+                val actionsExecutor = ActionsExecutor(context)
                 actionsExecutor.launchAction(
                     action = message.actionType!!,
                     usable = message.attachments.usable,
@@ -426,6 +433,7 @@ fun MessageDetail(
                     reqLanguage = message.langCode,
                     fromOldChat = true,
                 )
+            }
         }
     ) {
         Column(

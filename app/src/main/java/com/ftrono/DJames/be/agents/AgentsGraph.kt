@@ -5,9 +5,21 @@ import android.util.Log
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.lastRecordingName
+import com.ftrono.DJames.application.lastRequestIntent
+import com.ftrono.DJames.application.lastUserMessage
+import com.ftrono.DJames.application.lastUserMessageId
+import com.ftrono.DJames.application.messageUtils
+import com.ftrono.DJames.application.minSpeechPct
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.be.agents.nodes.CallAgentNode
+import com.ftrono.DJames.be.agents.nodes.DriveAgentNode
+import com.ftrono.DJames.be.agents.nodes.GuidanceAgentNode
+import com.ftrono.DJames.be.agents.nodes.MainRouterNode
+import com.ftrono.DJames.be.agents.nodes.MessageAgentNode
+import com.ftrono.DJames.be.agents.nodes.PlayerAgentNode
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
+import com.ftrono.DJames.be.models.RecDetails
 import com.google.gson.JsonParser
 import org.bsc.langgraph4j.CompiledGraph
 import org.bsc.langgraph4j.StateGraph
@@ -91,52 +103,167 @@ class AgentsGraph(
         return stateGraph.compile()
     }
 
+    // (FROM VOICE) TRANSCRIBE NEW AUDIO:
+    fun transcribe(inAudioPath: String): SttReturn {
+        Log.d(TAG, "STT activated")
+        val sttAgent = LlmAgent(
+            context = context,
+            apiKey = apiKey,
+            agentName = "Transcriber",
+        )
+        val sttReturn = sttAgent.transcribe(
+            audioPath = inAudioPath
+        )
+        return sttReturn
+    }
+
+    // Store user message:
+    fun storeUserMessage(
+        transcription: String,
+        language: String,
+        fromVoice: Boolean,
+        isStart: Boolean
+    ): Long {
+        // Store last user message:
+        lastUserMessage.text = transcription
+        lastUserMessage.requestIntent = lastRequestIntent
+        lastUserMessageId = messageUtils.storeMessage(
+            context = context,
+            langCode = language,
+            fromUser = true,
+            fromVoice = fromVoice,
+            isStart = isStart,
+            llmMessages = mutableListOf<ChatMessage>(
+                ChatMessage(role = "user", content = transcription)
+            )
+        )
+        return lastUserMessageId
+    }
+
     fun invoke(
-        inMessage: String
+        prevDispatch: DispatcherInfo,
+        recDetails: RecDetails? = null,
+        inMessage: String = "",
+        isStart: Boolean = false,
     ): DispatcherInfo {
         // Build & compile the graph:
         val compiledGraph = this.compile(stateGraph)
         Log.d(TAG, "Graph compiled!")
-        messages.add(
-            ChatMessage(role = "user", content = inMessage)
-        )
-        Log.d(TAG, "Messages size (input): ${messages.size} items.")
 
-        // Run the graph:
-        // The `stream` method returns an AsyncGenerator. Results are in the final state after execution:
-        var outMessage = ""
+        // Status vars:
+        var fromVoice = recDetails != null
         var fail = false
+        var isSilence = false
+        var isEnd = false
         var next = ""
+        var language = ""
 
-        for (item in compiledGraph.stream(
-            // Input:
-            mutableMapOf<String?, Any?>(
-                StateMap.MESSAGES to messages
-            )
-        )) {
-            // Output:
-            // Log.d(TAG, item.toString())
-            messages = item.state()!!.messages()
-            outMessage = item.state()!!.messages().last()!!.content.replace("* ", "- ")
-            fail = item.state()!!.fail()
-            next = item.state()!!.next()
+        // TODO: Retrieve latest messages
+
+        var transcription = ""
+        if (fromVoice) {
+            // FROM VOICE:
+            // Empty audio:
+            if (recDetails!!.speechPct <= minSpeechPct) {
+                isSilence = true
+                fail = true
+                Log.d(TAG, "Empty audio.")
+
+            } else {
+                // STT transcribe:
+                val sttReturn = transcribe(recDetails.recPath)
+
+                isSilence = sttReturn.isSilence
+                fail = sttReturn.fail
+                language = sttReturn.language
+                transcription = sttReturn.transcription
+
+                if (isSilence) {
+                    Log.d(TAG, "Empty transcription.")
+                } else {
+                    Log.d(TAG, "TRANSCRIPTION: $transcription")
+                }
+            }
+        } else {
+            // FROM CHAT:
+            transcription = inMessage
         }
-        Log.d(TAG, "Messages size (output): ${messages.size} items, fail: $fail.")
 
-        //TODO: Add store messages to DB here!
-
-        return DispatcherInfo(
-            lastRecording = lastRecordingName,
-            testV3 = true,
-            followUp = !fail && next != END,
-            fail = fail,
-            end = next == END,
-            aiReplies = listOf(
-                AiReply(
-                    langCode = prefs.queryLanguage,
-                    text = if (next != END) outMessage else defaultReplies.replyNevermind()
+        if (fail || isSilence) {
+            // Silence case:
+            return DispatcherInfo(
+                lastRecording = lastRecordingName,
+                fail = true,
+                noSave = isSilence,
+                aiReplies = listOf(
+                    AiReply(
+                        langCode = prefs.queryLanguage,
+                        text = if (isSilence) defaultReplies.replyFallback() else defaultReplies.replyError()
+                    )
                 )
             )
-        )
+
+        } else {
+            // Store user message:
+            storeUserMessage(
+                transcription = transcription,
+                language = language,
+                fromVoice = fromVoice,
+                isStart = isStart,
+            )
+            // Append last user chat message to conversation:
+            messages.add(
+                ChatMessage(role = "user", content = transcription)
+            )
+
+            Log.d(TAG, "Messages size (input): ${messages.size} items.")
+
+            // Run the graph:
+            // The `stream` method returns an AsyncGenerator. Results are in the final state after execution:
+            var outMessage = ""
+
+            for (item in compiledGraph.stream(
+                // Input:
+                mutableMapOf<String?, Any?>(
+                    StateMap.MESSAGES to messages
+                )
+            )) {
+                // Output:
+                // Log.d(TAG, item.toString())
+                messages = item.state()!!.messages()
+                fail = item.state()!!.fail()
+                next = item.state()!!.next()
+                isEnd = next == END
+                language = item.state()!!.language()
+                try {
+                    outMessage = messages.last()!!.content.replace("* ", "- ")
+                } catch (e: Exception) {
+                    Log.w(TAG, "Cannot recover outMessage!")
+                    fail = true
+                    break
+                }
+                if (fail) break
+            }
+            Log.d(TAG, "Messages size (output): ${messages.size} items, fail: $fail.")
+
+            //TODO: Add store messages to DB here!
+
+            return DispatcherInfo(
+                lastRecording = lastRecordingName,
+                followUp = !fail && !isEnd,
+                fail = fail,
+                end = isEnd,
+                aiReplies = listOf(
+                    AiReply(
+                        langCode = prefs.queryLanguage,
+                        text = when {
+                            fail -> defaultReplies.replyError()
+                            isEnd -> defaultReplies.replyNevermind()
+                            else -> outMessage
+                        }
+                    )
+                )
+            )
+        }
     }
 }

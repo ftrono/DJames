@@ -30,7 +30,6 @@ import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.application.recordingFail
 import com.ftrono.DJames.application.recordingTime
 import com.ftrono.DJames.application.sourceIsVolume
-import com.ftrono.DJames.application.voiceConvStarted
 import com.ftrono.DJames.be.agents.AgentsGraph
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.DispatcherInfo
@@ -39,6 +38,7 @@ import com.ftrono.DJames.be.audio.AndroidAudioRecorder
 import com.ftrono.DJames.be.audio.AudioRequestsManager
 import com.ftrono.DJames.be.audio.TTSReader
 import com.ftrono.DJames.be.chat.ActionsExecutor
+import com.ftrono.DJames.be.models.RecDetails
 import java.io.File
 
 
@@ -49,7 +49,7 @@ class VoiceQueryService: Service() {
     private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
     private val audioRequestsManager = AudioRequestsManager()
     private lateinit var tts: TTSReader
-    private lateinit var agentGraph: AgentsGraph
+    private lateinit var agentsGraph: AgentsGraph
     private lateinit var nlpDispatcher: NLPDispatcher
 
     //Recorder:
@@ -58,6 +58,7 @@ class VoiceQueryService: Service() {
     }
 
     //Status:
+    private var isStart = false
     private var followUp = false
     private var messageMode = false
     private var lastDispatch = DispatcherInfo()
@@ -87,8 +88,11 @@ class VoiceQueryService: Service() {
             Log.d(TAG, "VQReceiver started.")
 
             // Init conv orchestrator:
-            agentGraph = AgentsGraph(applicationContext)
-            nlpDispatcher = NLPDispatcher(applicationContext, agentGraph)
+            if (prefs.enableV3) {
+                agentsGraph = AgentsGraph(applicationContext)
+            } else {
+                nlpDispatcher = NLPDispatcher(applicationContext)
+            }
 
             //Start recording:
             startVoiceRecording(speakIntro = true)
@@ -138,7 +142,6 @@ class VoiceQueryService: Service() {
         lastDispatch = DispatcherInfo()
         lastRequestIntent = ""
         lastRecordingName = ""
-        voiceConvStarted = false
         //Set overlay READY color:
         queryStatus.postValue("ready")
         Log.d(TAG, "VOICE QUERY SERVICE TERMINATED.")
@@ -196,7 +199,7 @@ class VoiceQueryService: Service() {
                     audioRequestsManager.requestDuckedFocus(
                         onGranted = {
                             //End previous conversations:
-                            voiceConvStarted = false
+                            isStart = true
                             lastRecordingName = ""
                             chatLastDispatch = DispatcherInfo()
                             //START:
@@ -204,7 +207,7 @@ class VoiceQueryService: Service() {
                             Thread.sleep(500)
                             //Read TTS:
                             tts.speak(
-                                listOf(
+                                aiReplies = listOf(
                                     AiReply(
                                         langCode = prefs.queryLanguage,
                                         text = defaultReplies.speakIntro()
@@ -257,7 +260,7 @@ class VoiceQueryService: Service() {
     fun stopVoiceRecording() {
         Log.d(TAG, "stopVoiceRecording() triggered")
         try {
-            var recFile = MyRecorder.stop()
+            var recDetails = MyRecorder.stop()
             Log.d(TAG, "RECORDING STOPPED.")
             cancelThread(recordingThread, "recordingThread")
             messageUtils.resetMessage(fromUser = false)
@@ -279,7 +282,7 @@ class VoiceQueryService: Service() {
                             queryStatus.postValue("processing")
                             //PROCESS QUERY:
                             processingThread = Thread {
-                                processQuery(recFile)
+                                processQuery(recDetails)
                             }
                             processingThread!!.start()
                         }
@@ -297,12 +300,25 @@ class VoiceQueryService: Service() {
 
 
     // PROCESS QUERY:
-    private fun processQuery(recFile: File) {
+    private fun processQuery(recDetails: RecDetails) {
         Log.d(TAG, "PROCESSING JOB STARTED!")
         try {
             //PROCESS REQUEST:
             if (voiceQueryOn) {
-                lastDispatch = nlpDispatcher.dispatch(recFile=recFile, prevDispatch=lastDispatch, fromVoice=true)
+                lastDispatch = if (prefs.enableV3) {
+                    agentsGraph.invoke(
+                        recDetails = recDetails,
+                        prevDispatch = lastDispatch,
+                        isStart = isStart
+                    )
+                } else {
+                    nlpDispatcher.dispatch(
+                        recFile = File(recDetails.recPath),
+                        prevDispatch = lastDispatch,
+                        fromVoice = true
+                    )
+                }
+                isStart = false
                 messageMode = lastDispatch.messageMode
                 followUp = lastDispatch.followUp
                 val actionsExecutor = ActionsExecutor(applicationContext)
@@ -325,7 +341,10 @@ class VoiceQueryService: Service() {
                     // A) First speak, then execute action:
                     // Read:
                     if (lastDispatch.aiReplies.isNotEmpty()) {
-                        tts.speak(lastDispatch.aiReplies)
+                        tts.speak(
+                            aiReplies = lastDispatch.aiReplies,
+                            saveMessage = !lastDispatch.noSave,
+                        )
                     }
                     audioRequestsManager.releaseDuckedFocus()
                     // Execute (only if end):
@@ -345,7 +364,10 @@ class VoiceQueryService: Service() {
                     }
                     // Read:
                     if (lastDispatch.aiReplies.isNotEmpty()) {
-                        tts.speak(lastDispatch.aiReplies)
+                        tts.speak(
+                            aiReplies = lastDispatch.aiReplies,
+                            saveMessage = !lastDispatch.noSave,
+                        )
                     }
                     audioRequestsManager.releaseDuckedFocus()
 

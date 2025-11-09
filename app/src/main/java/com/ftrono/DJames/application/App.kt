@@ -26,6 +26,7 @@ import com.ftrono.DJames.be.utils.Utilities
 import com.google.gson.JsonObject
 import io.objectbox.Box
 import io.objectbox.BoxStore
+import kotlinx.serialization.json.Json
 import java.io.File
 
 
@@ -40,6 +41,15 @@ val copyrightYear = 2024
 var libraryBox: Box<LibraryItem>? = null
 var messageBox: Box<Message>? = null
 var recDir: File? = null
+
+//JSON modes:
+val jsonUnknown = Json {
+    ignoreUnknownKeys = true
+    coerceInputValues = true
+}
+val jsonNoPrint = Json {
+    prettyPrint = false
+}
 
 //UTILS:
 val utils = Utilities()
@@ -122,7 +132,7 @@ var lastAiMessage: Message = Message()
 var lastUserMessage: Message = Message()
 var lastRequestIntent: String = ""
 var lastStarterId: Long = 0L
-var voiceConvStarted: Boolean = false   // avoids saving AI fallback messages after empty user voice messages
+var lastUserMessageId: Long = 0L
 
 //Preferences:
 val maxHistoryDays: Long = 15L
@@ -139,6 +149,7 @@ val midThreshold = 60
 val recSamplingRate = 48000 // 44100
 val silencePatienceQueries = 2   //seconds
 val silencePatienceMess = 3   //seconds
+val minSpeechPct = 10   // %
 val defaultHttpTimeout = 10L   //seconds
 val maxAudioRecTimeout = 120L   //for voice messages
 var lastRecordingName = ""

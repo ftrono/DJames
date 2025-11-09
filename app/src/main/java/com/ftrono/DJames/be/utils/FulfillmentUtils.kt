@@ -24,11 +24,13 @@ class FulfillmentUtils {
         nevermind: Boolean = false,
         cannotRecordWAVoice: Boolean = false,
         notAvailable: Boolean = false,
+        noSave: Boolean = false,
     ): DispatcherInfo {
         //Build fallback response:
         return DispatcherInfo(
             lastRecording = lastRecordingName,
             fail = true,
+            noSave = noSave,
             aiReplies = listOf(
                 AiReply(
                     langCode = prefs.queryLanguage,

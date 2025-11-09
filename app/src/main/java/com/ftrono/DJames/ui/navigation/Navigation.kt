@@ -30,6 +30,7 @@ import com.ftrono.DJames.application.screens.HomeScreen
 import com.ftrono.DJames.application.screens.SettingsScreen
 import com.ftrono.DJames.application.screens.LibraryScreen
 import com.ftrono.DJames.application.screens.MessagesScreen
+import com.ftrono.DJames.be.chat.ChatManager
 import com.ftrono.DJames.ui.theme.NavigationItem
 
 
@@ -39,7 +40,10 @@ class SharedViewModel : ViewModel() {
 }
 
 @Composable
-fun Navigation(navController: NavHostController) {
+fun Navigation(
+    navController: NavHostController,
+    chatManager: ChatManager,
+) {
     val sharedViewModel: SharedViewModel = viewModel()
     NavHost(
         modifier = Modifier
@@ -68,7 +72,7 @@ fun Navigation(navController: NavHostController) {
             curNavId = 1
             innerNavOpen.postValue(false)
             extraOpen.postValue(false)
-            HomeScreen(navController, sharedViewModel)
+            HomeScreen(navController, chatManager, sharedViewModel)
         }
 
         //2 -> LIBRARY:
@@ -114,7 +118,7 @@ fun Navigation(navController: NavHostController) {
             curNavId = 2
             innerNavOpen.postValue(false)
             extraOpen.postValue(false)
-            MessagesScreen(navController, sharedViewModel)
+            MessagesScreen(navController, chatManager, sharedViewModel)
         }
 
         //EXTRA:

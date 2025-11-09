@@ -38,6 +38,12 @@ data class QuickAction(
 )
 
 
+data class RecDetails(
+    var recPath: String = "",
+    var speechPct: Int = 0
+)
+
+
 @Serializable
 data class AiReply(
     val langCode: String,
@@ -52,6 +58,7 @@ data class DispatcherInfo(
     var actionType: ActionType? = null, //"call", ""
     var end: Boolean = false,   //fulfillment complete
     var fail: Boolean = false,   //fulfillment complete
+    var noSave: Boolean = false,   // don't store message
     var playAcknowledge: Boolean = false,   //play the acknowledge tone
     var followUp: Boolean = false,   //from 2nd query on
     var messageMode: Boolean = false,   //specific for messages only
@@ -62,7 +69,6 @@ data class DispatcherInfo(
     var contextType: String = "",
     var usable: LibraryItem = LibraryItem(),
     var playable: SpotifyPlayable = SpotifyPlayable(),
-    var testV3: Boolean = false,
 )
 
 

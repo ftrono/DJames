@@ -27,10 +27,20 @@ import kotlinx.coroutines.launch
 class ChatManager(private val context: Context) {
     private val TAG = this::class.java.simpleName
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val agentGraph = AgentsGraph(context)
-    private val nlpDispatcher = NLPDispatcher(context, agentGraph)
+    private lateinit var agentsGraph: AgentsGraph
+    private lateinit var nlpDispatcher: NLPDispatcher
+    private var isStart = false
+
+    fun init() {
+        if (prefs.enableV3) {
+            agentsGraph = AgentsGraph(context)
+        } else {
+            nlpDispatcher = NLPDispatcher(context)
+        }
+    }
 
     fun resetConv() {
+        isStart = true
         chatLastDispatch = DispatcherInfo()
         lastRecordingName = ""
     }
@@ -53,10 +63,23 @@ class ChatManager(private val context: Context) {
 
         // PROCESS:
         coroutineScope.launch {
-            chatLastDispatch = nlpDispatcher.dispatch(text=text, prevDispatch=chatLastDispatch, fromVoice=false)
+            chatLastDispatch = if (prefs.enableV3) {
+                agentsGraph.invoke(
+                    inMessage = text,
+                    prevDispatch = chatLastDispatch,
+                    isStart = isStart
+                )
+            } else {
+                nlpDispatcher.dispatch(
+                    text = text,
+                    prevDispatch = chatLastDispatch,
+                    fromVoice = false
+                )
+            }
             Log.d(TAG, "LAST DISPATCH: $chatLastDispatch")
 
             var newReplies = listOf<AiReply>()
+            isStart = false
 
             if (chatLastDispatch.fail && chatLastDispatch.aiReplies.isEmpty()) {
                 // Default fail replies:

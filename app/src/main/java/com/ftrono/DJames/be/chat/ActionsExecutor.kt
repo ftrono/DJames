@@ -6,7 +6,6 @@ import android.telephony.SmsManager
 import android.util.Log
 import androidx.core.content.FileProvider
 import android.net.Uri
-import com.ftrono.DJames.application.ACTION_MAKE_CALL
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.nlp_queryText
@@ -26,7 +25,6 @@ class ActionsExecutor(
     private val context: Context
 ) {
     private val TAG = this::class.java.simpleName
-    private val chatManager = ChatManager(context)
 
     // HELPER: LAUNCHER ONLY:
     fun launchAction(
@@ -40,9 +38,9 @@ class ActionsExecutor(
         return when (action) {
             ActionType.PLAY -> spotifyPlay(playable!!)
             ActionType.CALL -> makeCall(usable!!, fromOldChat)
-            ActionType.SMS -> sendSMS(usable!!, reqLanguage, fromOldChat)
-            ActionType.WA_TEXT -> sendWhatsappText(usable!!, reqLanguage, fromOldChat)
-            ActionType.WA_VOICE -> sendWhatsappAudio(usable!!, lastRecording, fromOldChat)
+            ActionType.SMS -> sendSMS(usable!!, reqLanguage)
+            ActionType.WA_TEXT -> sendWhatsappText(usable!!, reqLanguage)
+            ActionType.WA_VOICE -> sendWhatsappAudio(usable!!, lastRecording)
             ActionType.OPEN_URL -> openLink(usable!!)
         }
     }
@@ -101,33 +99,26 @@ class ActionsExecutor(
     //SEND SMS:
     fun sendSMS(
         usable: LibraryItem,
-        reqLanguage: String,
-        fromOldChat: Boolean = false,
+        reqLanguage: String
     ): String {
         try {
             var ttsToRead = ""
             val contactName = usable.name
             val phoneSet = usable.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
-            if (fromOldChat) {
-                // START NEW:
-                val curText = "Send an SMS to $contactName"
-                chatManager.processQuery(curText, restart = true)
-            } else {
-                // SEND:
-                var messageText = "[DJ] ${
-                    fulfillmentUtils.replaceEmojis(
-                        context = context,
-                        text = nlp_queryText,
-                        reqLanguage = reqLanguage
-                    )
-                }"
-                val smsManager: SmsManager = SmsManager.getDefault()
-                val parts = smsManager.divideMessage(messageText)
-                smsManager.sendMultipartTextMessage(contactPhone, null, parts, null, null)
-                ttsToRead = defaultReplies.replySmsSent(contactName)
-                Log.d(TAG, ttsToRead)
-            }
+            // SEND:
+            var messageText = "[DJ] ${
+                fulfillmentUtils.replaceEmojis(
+                    context = context,
+                    text = nlp_queryText,
+                    reqLanguage = reqLanguage
+                )
+            }"
+            val smsManager: SmsManager = SmsManager.getDefault()
+            val parts = smsManager.divideMessage(messageText)
+            smsManager.sendMultipartTextMessage(contactPhone, null, parts, null, null)
+            ttsToRead = defaultReplies.replySmsSent(contactName)
+            Log.d(TAG, ttsToRead)
             return ttsToRead
 
         } catch (e: Exception) {
@@ -140,44 +131,37 @@ class ActionsExecutor(
     fun sendWhatsappText(
         usable: LibraryItem,
         reqLanguage: String,
-        fromOldChat: Boolean = false,
     ): String {
         try {
             var ttsToRead = ""
             val contactName = usable.name
             val phoneSet = usable.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
-            if (fromOldChat) {
-                // START NEW:
-                val curText = "Send a Whatsapp message to $contactName"
-                chatManager.processQuery(curText, restart = true)
-            } else {
-                // SEND:
-                var messageText = "[DJ] ${
-                    fulfillmentUtils.replaceEmojis(
-                        context = context,
-                        text = nlp_queryText,
-                        reqLanguage = reqLanguage
-                    )
-                }"
+            // SEND:
+            var messageText = "[DJ] ${
+                fulfillmentUtils.replaceEmojis(
+                    context = context,
+                    text = nlp_queryText,
+                    reqLanguage = reqLanguage
+                )
+            }"
 
-                //Open WA:
-                val intent = Intent(Intent.ACTION_VIEW).apply {
-                    data = Uri.parse(
-                        "https://wa.me/${contactPhone.replace("+", "")}?text=${
-                            Uri.encode(messageText)
-                        }"
-                    )
-                    setPackage("com.whatsapp")
-                    setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    putExtra("fromwhere", "ser")
-                }
-
-                //Try to send:
-                context.startActivity(intent)
-                ttsToRead = defaultReplies.replyWATextSent(contactName)
-                Log.d(TAG, "Whatsapp text message ready to be sent!")
+            //Open WA:
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                data = Uri.parse(
+                    "https://wa.me/${contactPhone.replace("+", "")}?text=${
+                        Uri.encode(messageText)
+                    }"
+                )
+                setPackage("com.whatsapp")
+                setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                putExtra("fromwhere", "ser")
             }
+
+            //Try to send:
+            context.startActivity(intent)
+            ttsToRead = defaultReplies.replyWATextSent(contactName)
+            Log.d(TAG, "Whatsapp text message ready to be sent!")
             return ttsToRead
 
         } catch (e: Exception) {
@@ -190,16 +174,11 @@ class ActionsExecutor(
     fun sendWhatsappAudio(
         usable: LibraryItem,
         lastRecording: String,
-        fromOldChat: Boolean = false,
     ): String {
         try {
             var ttsToRead = ""
             val contactName = usable.name
-            if (fromOldChat) {
-                // START NEW:
-                val curText = "Send a Whatsapp voice message to $contactName"
-                chatManager.processQuery(curText, restart = true)
-            } else if (lastRecording != "") {
+            if (lastRecording != "") {
                 //Get audio file:
                 val audioFile = File(recDir, lastRecording)   //Flac
                 val uri =

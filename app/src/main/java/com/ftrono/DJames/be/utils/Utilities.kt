@@ -85,7 +85,7 @@ class Utilities {
     }
 
     //Clean string keeping only alphanumeric characters:
-    fun cleanString(text: String, emojiOnly: Boolean = false): String {
+    fun cleanString(text: String, emojiOnly: Boolean = false, capitalize: Boolean = true): String {
         //val re = Regex("[^A-Za-z0-9 ]")
         var re: Regex? = null
         if (emojiOnly) {
@@ -94,7 +94,7 @@ class Utilities {
             re = Regex("[\\p{P}\\p{S}]|[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+")
         }
         val cleaned = re.replace(text, " ").replace(Regex("\\s+"), " ").trim()
-        return capitalizeWords(cleaned).trim()
+        return if (capitalize) capitalizeWords(cleaned).trim() else cleaned.trim()
     }
 
     //Check if string is made of alphabetic characters:

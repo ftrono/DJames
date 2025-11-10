@@ -51,6 +51,10 @@ val jsonNoPrint = Json {
     prettyPrint = false
 }
 
+// GRAPH CONTROL:
+var START = "__START__"
+var END = "__END__"
+
 //UTILS:
 val utils = Utilities()
 val libUtils = LibraryUtils()
@@ -157,6 +161,7 @@ var enablePlayerInfo = false
 val datetimeExportFormat = "yyyy-MM-dd HH_mm_ss"
 val datetimeFullFormat = "yyyy/MM/dd HH:mm"
 val datetimeShortFormat = "MMMM dd, HH:mm"
+val dateOnlyFormat = "EEEE yyyy-MM-dd"
 
 //Dropdowns:
 val genders = listOf<String>("Sir", "Madam", "Friend")

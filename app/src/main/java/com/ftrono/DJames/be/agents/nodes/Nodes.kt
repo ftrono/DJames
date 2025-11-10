@@ -2,53 +2,36 @@ package com.ftrono.DJames.be.agents.nodes
 
 import android.content.Context
 import android.util.Log
+import com.ftrono.DJames.application.dateOnlyFormat
 import com.ftrono.DJames.application.lastRequestIntent
 import com.ftrono.DJames.application.lastUserMessageId
 import com.ftrono.DJames.application.messageUtils
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.ChatMessage
 import com.ftrono.DJames.be.agents.LlmAgent
+import com.ftrono.DJames.be.agents.NodeType
+import com.ftrono.DJames.be.agents.StateInfo
 import com.ftrono.DJames.be.agents.tools.SearchContacts
 import com.ftrono.DJames.be.agents.tools.SearchPlaces
 import com.ftrono.DJames.be.agents.tools.SearchTracks
-import com.ftrono.DJames.be.agents.StateMap
+import com.ftrono.DJames.be.agents.promptDateStr
+import com.ftrono.DJames.be.agents.promptIntro
+import com.ftrono.DJames.be.agents.promptJsonOut
 import com.ftrono.DJames.be.agents.tools.Tool
-import org.bsc.langgraph4j.action.NodeAction
-
-
-// (LLM-based) Human node:
-class HumanNode () : NodeAction<StateMap?> {
-
-    private val TAG = this::class.java.simpleName
-    val name: String = TAG
-
-    override fun apply(state: StateMap?): MutableMap<String?, Any?> {
-        Log.d(TAG, "$name activated")
-
-//        var resumeMessage = state!!.resumeMessage()
-//        val outMessages = mutableListOf<ChatMessage?>(
-//            ChatMessage(
-//                role = "user",
-//                content = resumeMessage
-//            )
-//        )
-
-        return mutableMapOf<String?, Any?>(
-            StateMap.NEXT to "PlayerAgent"
-        )
-    }
-}
 
 
 // (LLM-based) Router node:
 class MainRouterNode (
     private val context: Context,
     private val apiKey: String,
-) : NodeAction<StateMap?> {
+    val nextOptions: List<String> = listOf(),
+) : Node() {
 
     private val TAG = this::class.java.simpleName
-    val name: String = TAG.replace("Node", "")
+    override val name: String = TAG.replace("Node", "")
+    override val type: NodeType = NodeType.ROUTER
 
-    override fun apply(state: StateMap?): MutableMap<String?, Any?> {
+    override fun invoke(prevState: StateInfo): StateInfo {
         Log.d(TAG, "$name activated")
         val prompt = """
             You're a Router agent in a conversational graph. 
@@ -69,9 +52,7 @@ class MainRouterNode (
            - **Ignore all conversational context and previous replies.**
            - **Strictly reply with only ONE of these classification categories and NOTHING ELSE**. Don't use quotes.
         """
-        var inMessages = state!!.messages()
-        Log.d(TAG, "Current messages: $inMessages")
-
+        var updState = prevState
         val llmAgent = LlmAgent(
             context = context,
             apiKey = apiKey,
@@ -80,24 +61,27 @@ class MainRouterNode (
             isRouter = true,
         )
 
-        val llmReturn = llmAgent.invoke(llmMessages = inMessages)
-        lastRequestIntent = llmReturn.next   // TODO
+        val llmReturn = llmAgent.invoke(llmMessages = prevState.messages)
+        Log.d(TAG, "Routing to -> ${llmReturn.next}")
 
-        // Update last user message:
-        val lastId = state.lastUserMessageId()
-        if (lastId != 0L) {
-            messageUtils.updateMessage(
-                context = context,
-                id = state.lastUserMessageId(),
-                requestIntent = llmReturn.next,
-            )
+        if (llmReturn.next in nextOptions) {
+            // Update last user message:
+            if (prevState.lastUserMsgId != 0L) {
+                messageUtils.updateMessage(
+                    context = context,
+                    id = prevState.lastUserMsgId,
+                    requestIntent = llmReturn.next,
+                )
+            }
+            // Route to next:
+            lastRequestIntent = llmReturn.next   // TODO
+            updState.next = llmReturn.next
+        } else {
+            // Non-existent 'next' option:
+            Log.w(TAG, "ERROR: Next ID '${llmReturn.next}' not in nextIds array!")
+            updState.fail = true
         }
-
-        return mutableMapOf<String?, Any?>(
-            StateMap.Companion.MESSAGES to llmReturn.messages,
-            StateMap.Companion.FAIL to llmReturn.fail,
-            StateMap.Companion.NEXT to llmReturn.next,
-        )
+        return updState
     }
 }
 
@@ -106,38 +90,43 @@ class MainRouterNode (
 class PlayerAgentNode (
     private val context: Context,
     private val apiKey: String,
-) : NodeAction<StateMap?> {
+    val nextOptions: List<String> = listOf(),
+) : Node() {
 
     private val TAG = this::class.java.simpleName
-    val name: String = TAG.replace("Node", "")
+    override val name: String = TAG.replace("Node", "")
 
-    override fun apply(state: StateMap?): MutableMap<String?, Any?> {
+    override fun invoke(prevState: StateInfo): StateInfo {
         Log.d(TAG, "$name activated")
-        val prompt = """
-            You are DJames, a smart driving assistant and personal virtual DJ! 
-            You speak like an English personal chauffeur. You are helpful and gentle. 
+        var prompt = """
+            ## TASK:
+            Your domain is music conversations. Your task is to help the user find a song to play. 
+            Any request not involving music is outside your tasks scope.
             Use the available tools provided to get the list of available songs for the artist requested by the user.
-            **Don't use markdown and always reply with short answers to the user.**
         """
-        var inMessages = state!!.messages()
-        Log.d(TAG, "Current messages: $inMessages")
+        val curDate = utils.convertTimestamp(utils.getCurrentTimestamp(), dateOnlyFormat)
+        Log.d(TAG, "Current date: $curDate")
+        prompt = promptIntro.replace(promptDateStr, curDate) + "\n" + prompt   // TODO: + "\n" + promptJsonOut
 
+        var updState = prevState
         val llmAgent = LlmAgent(
             context = context,
             apiKey = apiKey,
             agentName = name,
             basePrompt = prompt,
+            // useJson = false,   // TODO
             tools = mapOf<String, Tool>(
                 "searchTracks" to SearchTracks()
             ),
         )
 
-        val llmReturn = llmAgent.invoke(llmMessages = inMessages)
+        val llmReturn = llmAgent.invoke(llmMessages = prevState.messages)
 
-        return mutableMapOf<String?, Any?>(
-            StateMap.Companion.MESSAGES to llmReturn.messages,
-            StateMap.Companion.FAIL to llmReturn.fail,
-        )
+        // Extend:
+        updState.messages.addAll(llmReturn.messages)
+        updState.fail = llmReturn.fail
+        updState.next = nextOptions.first()   // TODO
+        return updState
     }
 }
 
@@ -146,38 +135,44 @@ class PlayerAgentNode (
 class CallAgentNode (
     private val context: Context,
     private val apiKey: String,
-) : NodeAction<StateMap?> {
+    val nextOptions: List<String> = listOf(),
+) : Node() {
 
     private val TAG = this::class.java.simpleName
-    val name: String = TAG.replace("Node", "")
+    override val name: String = TAG.replace("Node", "")
 
-    override fun apply(state: StateMap?): MutableMap<String?, Any?> {
+    override fun invoke(prevState: StateInfo): StateInfo {
         Log.d(TAG, "$name activated")
-        val prompt = """
-            You are DJames, a smart driving assistant and personal virtual DJ! 
-            You speak like an English personal chauffeur. You are helpful and gentle. 
+        var prompt = """
+            ## TASK:
+            Your task is to help the user make a call to one of his contacts. 
+            Any request not involving making a call is outside your tasks scope.
             Use the available tools provided to get the list of available contacts that the user can call.
             **Don't use markdown and always reply with short answers to the user.**
         """
-        var inMessages = state!!.messages()
-        Log.d(TAG, "Current messages: $inMessages")
+        val curDate = utils.convertTimestamp(utils.getCurrentTimestamp(), dateOnlyFormat)
+        Log.d(TAG, "Current date: $curDate")
+        prompt = promptIntro.replace(promptDateStr, curDate) + "\n" + prompt   // TODO: + "\n" + promptJsonOut
 
+        var updState = prevState
         val llmAgent = LlmAgent(
             context = context,
             apiKey = apiKey,
             agentName = name,
             basePrompt = prompt,
+            // useJson = false,   // TODO
             tools = mapOf<String, Tool>(
                 "searchContacts" to SearchContacts()
             ),
         )
 
-        val llmReturn = llmAgent.invoke(llmMessages = inMessages)
+        val llmReturn = llmAgent.invoke(llmMessages = prevState.messages)
 
-        return mutableMapOf<String?, Any?>(
-            StateMap.Companion.MESSAGES to llmReturn.messages,
-            StateMap.Companion.FAIL to llmReturn.fail,
-        )
+        // Extend:
+        updState.messages.addAll(llmReturn.messages)
+        updState.fail = llmReturn.fail
+        updState.next = nextOptions.first()   // TODO
+        return updState
     }
 }
 
@@ -186,38 +181,44 @@ class CallAgentNode (
 class MessageAgentNode (
     private val context: Context,
     private val apiKey: String,
-) : NodeAction<StateMap?> {
+    val nextOptions: List<String> = listOf(),
+) : Node() {
 
     private val TAG = this::class.java.simpleName
-    val name: String = TAG.replace("Node", "")
+    override val name: String = TAG.replace("Node", "")
 
-    override fun apply(state: StateMap?): MutableMap<String?, Any?> {
+    override fun invoke(prevState: StateInfo): StateInfo {
         Log.d(TAG, "$name activated")
-        val prompt = """
-            You are DJames, a smart driving assistant and personal virtual DJ! 
-            You speak like an English personal chauffeur. You are helpful and gentle. 
+        var prompt = """
+            ## TASK:
+            Your task is to help the user send a message to one of his contacts.
+            Any request not involving sending an SMS, a Whatsapp text message or a Whatsapp audio/voice message is outside your tasks scope.
             Use the available tools provided to get the list of available contacts that the user can send messages to.
             **Don't use markdown and always reply with short answers to the user.**
         """
-        var inMessages = state!!.messages()
-        Log.d(TAG, "Current messages: $inMessages")
+        val curDate = utils.convertTimestamp(utils.getCurrentTimestamp(), dateOnlyFormat)
+        Log.d(TAG, "Current date: $curDate")
+        prompt = promptIntro.replace(promptDateStr, curDate) + "\n" + prompt   // TODO: + "\n" + promptJsonOut
 
+        var updState = prevState
         val llmAgent = LlmAgent(
             context = context,
             apiKey = apiKey,
             agentName = name,
             basePrompt = prompt,
+            // useJson = false,   // TODO
             tools = mapOf<String, Tool>(
                 "searchContacts" to SearchContacts()
             ),
         )
 
-        val llmReturn = llmAgent.invoke(llmMessages = inMessages)
+        val llmReturn = llmAgent.invoke(llmMessages = prevState.messages)
 
-        return mutableMapOf<String?, Any?>(
-            StateMap.Companion.MESSAGES to llmReturn.messages,
-            StateMap.Companion.FAIL to llmReturn.fail,
-        )
+        // Extend:
+        updState.messages.addAll(llmReturn.messages)
+        updState.fail = llmReturn.fail
+        updState.next = nextOptions.first()   // TODO
+        return updState
     }
 }
 
@@ -226,38 +227,44 @@ class MessageAgentNode (
 class DriveAgentNode (
     private val context: Context,
     private val apiKey: String,
-) : NodeAction<StateMap?> {
+    val nextOptions: List<String> = listOf(),
+) : Node() {
 
     private val TAG = this::class.java.simpleName
-    val name: String = TAG.replace("Node", "")
+    override val name: String = TAG.replace("Node", "")
 
-    override fun apply(state: StateMap?): MutableMap<String?, Any?> {
+    override fun invoke(prevState: StateInfo): StateInfo {
         Log.d(TAG, "$name activated")
-        val prompt = """
-            You are DJames, a smart driving assistant and personal virtual DJ! 
-            You speak like an English personal chauffeur. You are helpful and gentle. 
+        var prompt = """
+            ## TASK:
+            Your domain is places, maps and driving directions. Your task is to help the user find a place to drive to.
+            Any request not involving places, maps or driving directions is outside your tasks scope.
             Use the available tools provided to get the list of available places the user can go nearby.
             **Don't use markdown and always reply with short answers to the user.**
         """
-        var inMessages = state!!.messages()
-        Log.d(TAG, "Current messages: $inMessages")
+        val curDate = utils.convertTimestamp(utils.getCurrentTimestamp(), dateOnlyFormat)
+        Log.d(TAG, "Current date: $curDate")
+        prompt = promptIntro.replace(promptDateStr, curDate) + "\n" + prompt   // TODO: + "\n" + promptJsonOut
 
+        var updState = prevState
         val llmAgent = LlmAgent(
             context = context,
             apiKey = apiKey,
             agentName = name,
             basePrompt = prompt,
+            // useJson = false,   // TODO
             tools = mapOf<String, Tool>(
                 "searchPlaces" to SearchPlaces()
             ),
         )
 
-        val llmReturn = llmAgent.invoke(llmMessages = inMessages)
+        val llmReturn = llmAgent.invoke(llmMessages = prevState.messages)
 
-        return mutableMapOf<String?, Any?>(
-            StateMap.Companion.MESSAGES to llmReturn.messages,
-            StateMap.Companion.FAIL to llmReturn.fail,
-        )
+        // Extend:
+        updState.messages.addAll(llmReturn.messages)
+        updState.fail = llmReturn.fail
+        updState.next = nextOptions.first()   // TODO
+        return updState
     }
 }
 
@@ -266,34 +273,38 @@ class DriveAgentNode (
 class GuidanceAgentNode (
     private val context: Context,
     private val apiKey: String,
-) : NodeAction<StateMap?> {
+    val nextOptions: List<String> = listOf(),
+) : Node() {
 
     private val TAG = this::class.java.simpleName
-    val name: String = TAG.replace("Node", "")
+    override val name: String = TAG.replace("Node", "")
 
-    override fun apply(state: StateMap?): MutableMap<String?, Any?> {
+    override fun invoke(prevState: StateInfo): StateInfo {
         Log.d(TAG, "$name activated")
-        val prompt = """
-            You are DJames, a smart driving assistant and personal virtual DJ! 
-            You speak like an English personal chauffeur. You are helpful and gentle. 
+        var prompt = """
+            ## TASK:
             Your only task is to provide information on your functionalities to the user.
             **Don't use markdown and always reply with short answers to the user.**
         """
-        var inMessages = state!!.messages()
-        Log.d(TAG, "Current messages: $inMessages")
+        val curDate = utils.convertTimestamp(utils.getCurrentTimestamp(), dateOnlyFormat)
+        Log.d(TAG, "Current date: $curDate")
+        prompt = promptIntro.replace(promptDateStr, curDate) + "\n" + prompt   // TODO: + "\n" + promptJsonOut
 
+        var updState = prevState
         val llmAgent = LlmAgent(
             context = context,
             apiKey = apiKey,
             agentName = name,
             basePrompt = prompt,
+            // useJson = false,   // TODO
         )
 
-        val llmReturn = llmAgent.invoke(llmMessages = inMessages)
+        val llmReturn = llmAgent.invoke(llmMessages = prevState.messages)
 
-        return mutableMapOf<String?, Any?>(
-            StateMap.Companion.MESSAGES to llmReturn.messages,
-            StateMap.Companion.FAIL to llmReturn.fail,
-        )
+        // Extend:
+        updState.messages.addAll(llmReturn.messages)
+        updState.fail = llmReturn.fail
+        updState.next = nextOptions.first()   // TODO
+        return updState
     }
 }

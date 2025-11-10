@@ -1,5 +1,6 @@
 package com.ftrono.DJames.be.agents
 
+import com.ftrono.DJames.application.START
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.models.AiReply
@@ -9,18 +10,29 @@ import kotlinx.serialization.Serializable
 // STATE:
 @Serializable
 data class StateInfo(
-    var lastRecording: String = "",   //Flac only
-    var aiReplies: List<AiReply> = listOf(),
-    var actionType: ActionType? = null, //"call", ""
-    var end: Boolean = false,   //fulfillment complete
+    // Graph state:
+    var messages: MutableList<ChatMessage> = mutableListOf(),
+    var next: String = START,
+    var interrupt: Boolean = false,
     var fail: Boolean = false,   //fulfillment complete
+    var end: Boolean = false,   //fulfillment complete
+    var agentName: String = "",
+    var intentName: String = "Fallback",
+    var lastUserMsgId: Long = 0L,
+
+    // Modes:
     var noSave: Boolean = false,   // don't store message
-    var playAcknowledge: Boolean = false,   //play the acknowledge tone
     var messageMode: Boolean = false,   //specific for messages only
     var messageType: String = "",
-    var intentName: String = "Fallback",
-    var agentName: String = "Fallback",
+
+    // Replies & Actions:
+    var aiReplies: List<AiReply> = listOf(),
+    var actionType: ActionType? = null, //"call", ""
+    var playAcknowledge: Boolean = false,   //play the acknowledge tone
+
+    // More:
     var reqLanguage: String = "",
+    var lastRecording: String = "",   //Flac only
     var playType: String = "",
     var contextType: String = "",
     var usable: LibraryItem = LibraryItem(),

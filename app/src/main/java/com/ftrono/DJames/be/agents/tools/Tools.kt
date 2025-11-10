@@ -1,6 +1,5 @@
 package com.ftrono.DJames.be.agents.tools
 
-import com.ftrono.DJames.be.agents.tools.Tool
 import com.ftrono.DJames.be.agents.ToolDefinition
 import com.ftrono.DJames.be.agents.ToolFunction
 import com.ftrono.DJames.be.agents.ToolParameters

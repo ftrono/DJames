@@ -10,6 +10,8 @@ import com.ftrono.DJames.application.lastUserMessage
 import com.ftrono.DJames.application.lastUserMessageId
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.minSpeechPct
+import com.ftrono.DJames.application.START
+import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.be.agents.nodes.CallAgentNode
 import com.ftrono.DJames.be.agents.nodes.DriveAgentNode
@@ -19,16 +21,9 @@ import com.ftrono.DJames.be.agents.nodes.MessageAgentNode
 import com.ftrono.DJames.be.agents.nodes.PlayerAgentNode
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.agents.StateInfo
+import com.ftrono.DJames.be.agents.graph.Graph
 import com.ftrono.DJames.be.models.RecDetails
 import com.google.gson.JsonParser
-import org.bsc.langgraph4j.CompiledGraph
-import org.bsc.langgraph4j.StateGraph
-import org.bsc.langgraph4j.StateGraph.END
-import org.bsc.langgraph4j.StateGraph.START
-import org.bsc.langgraph4j.action.AsyncEdgeAction.edge_async
-import org.bsc.langgraph4j.action.AsyncNodeAction.node_async
-import org.bsc.langgraph4j.state.AgentStateFactory
-import org.bsc.langgraph4j.utils.EdgeMappings
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -44,63 +39,95 @@ class AgentsGraph(
     private val apiKey = JsonParser.parseReader(reader).asJsonObject.get("mistral_api_key").asString
 
     // Initialize:
-    val stateGraph = this.build()
-    var messages: MutableList<ChatMessage?> = this.loadMessages()
+    val graph = this.build()
 
-    fun build(): StateGraph<StateMap?> {
+    fun build(): Graph {
         // Define the graph structure:
-        val stateGraph = StateGraph<StateMap?>(
-            StateMap.SCHEMA,
-            AgentStateFactory { initData: MutableMap<String?, Any?>? ->
-                StateMap(
-                    initData!!
-                )
-            })
-            // Nodes:
-            .addNode("MainRouter", node_async(MainRouterNode(context, apiKey)))
-            .addNode("PlayerAgent", node_async(PlayerAgentNode(context, apiKey)))
-            .addNode("CallAgent", node_async(CallAgentNode(context, apiKey)))
-            .addNode("MessageAgent", node_async(MessageAgentNode(context, apiKey)))
-            .addNode("DriveAgent", node_async(DriveAgentNode(context, apiKey)))
-            .addNode("GuidanceAgent", node_async(GuidanceAgentNode(context, apiKey)))
-            // Edges:
-            .addEdge(START, "MainRouter")
-            .addConditionalEdges(
-                "MainRouter",
-                edge_async { state ->
-                    state!!.next()
-                },
-                EdgeMappings.builder()
-                    .to("PlayerAgent")
-                    .to("CallAgent")
-                    .to("MessageAgent")
-                    .to("DriveAgent")
-                    .to("GuidanceAgent")
-                    .toEND(END)
-                    .build()
+        val graph = Graph(name="GraphV3")
+
+        // MAIN ROUTER:
+        graph.addNode(
+            MainRouterNode(
+                context = context,
+                apiKey = apiKey,
+                nextOptions = listOf(
+                    "PlayerAgent",
+                    "CallAgent",
+                    "MessageAgent",
+                    "DriveAgent",
+                    "GuidanceAgent",
+                    END
+                ),
             )
-            // End:
-            .addEdge("PlayerAgent", END)
-            .addEdge("CallAgent", END)
-            .addEdge("MessageAgent", END)
-            .addEdge("DriveAgent", END)
-            .addEdge("GuidanceAgent", END)
+        )
+
+        // NODES:
+        graph.addNode(
+            PlayerAgentNode(
+                context = context,
+                apiKey = apiKey,
+                nextOptions = listOf(
+                    END,   // Default
+                    "MainRouter",
+                ),
+            )
+        )
+
+        graph.addNode(
+            CallAgentNode(
+                context = context,
+                apiKey = apiKey,
+                nextOptions = listOf(
+                    END,   // Default
+                    "MainRouter",
+                ),
+            )
+        )
+
+        graph.addNode(
+            MessageAgentNode(
+                context = context,
+                apiKey = apiKey,
+                nextOptions = listOf(
+                    END,   // Default
+                    "MainRouter",
+                ),
+            )
+        )
+
+        graph.addNode(
+            DriveAgentNode(
+                context = context,
+                apiKey = apiKey,
+                nextOptions = listOf(
+                    END,   // Default
+                    "MainRouter",
+                ),
+            )
+        )
+
+        graph.addNode(
+            GuidanceAgentNode(
+                context = context,
+                apiKey = apiKey,
+                nextOptions = listOf(
+                    END,   // Default
+                    "MainRouter",
+                ),
+            )
+        )
 
         Log.d(TAG, "Graph built!")
-        return stateGraph
+        return graph
     }
 
-    fun loadMessages(): MutableList<ChatMessage?> {
+    fun loadMessages(): MutableList<ChatMessage> {
         // TODO: Build initial messages list:
-        val msgList = mutableListOf<ChatMessage?>(
+        val msgList = mutableListOf<ChatMessage>(
             // ChatMessage(role = "user", content = inMessage)
         )
         Log.d(TAG, "Messages size: ${msgList.size} items.")
         return msgList
-    }
-
-    fun compile(stateGraph: StateGraph<StateMap?>): CompiledGraph<StateMap?> {
-        return stateGraph.compile()
     }
 
     // (FROM VOICE) TRANSCRIBE NEW AUDIO:
@@ -146,20 +173,25 @@ class AgentsGraph(
         inMessage: String = "",
         isStart: Boolean = false,
     ): StateInfo {
-        // Build & compile the graph:
-        val compiledGraph = this.compile(stateGraph)
-        Log.d(TAG, "Graph compiled!")
 
         // Status vars:
+        var updState = prevState
         var fromVoice = recDetails != null
         var fail = false
         var isSilence = false
         var isEnd = false
         var next = ""
         var language = ""
+        Log.d(TAG, "Invoking Graph...")
 
-        // TODO: Retrieve latest messages
+        // Retrieve latest messages:
+        if (updState.messages.isEmpty()) {
+            updState.messages.addAll(
+                loadMessages()   // TODO
+            )
+        }
 
+        // Parse new message:
         var transcription = ""
         if (fromVoice) {
             // FROM VOICE:
@@ -212,50 +244,31 @@ class AgentsGraph(
                 isStart = isStart,
             )
             // Append last user chat message to conversation:
-            messages.add(
+            updState.messages.add(
                 ChatMessage(role = "user", content = transcription)
             )
 
-            Log.d(TAG, "Messages size (input): ${messages.size} items.")
-            var outMessage = ""
+            Log.d(TAG, "Messages size (input): ${updState.messages.size} items.")
 
             // STREAMING LOOP:
-            // The `stream` method returns an AsyncGenerator. Results are in the final state after execution:
-            for (event in compiledGraph.stream(
-                // Input:
-                mutableMapOf<String?, Any?>(
-                    StateMap.MESSAGES to messages
-                )
-            )) {
-                // Output:
-                Log.d(TAG, "Current node: ${event.node()}")
-                messages = event.state()!!.messages()
-                fail = event.state()!!.fail()
-                next = event.state()!!.next()
-                isEnd = next == END
-                language = event.state()!!.language()
-                try {
-                    outMessage = messages.last()!!.content.replace("* ", "- ")
-                } catch (e: Exception) {
-                    Log.w(TAG, "Cannot recover outMessage!")
-                    fail = true
-                    break
-                }
-                if (fail) break
-            }
-            Log.d(TAG, "Messages size (output): ${messages.size} items, fail: $fail.")
+            updState = graph.invoke(updState)
+
+            var outMessage = updState.messages.last().content.replace("* ", "- ")
+            var isEnd = updState.next == END
+            Log.d(TAG, "Messages size (output): ${updState.messages.size} items, fail: ${updState.fail}")
 
             //TODO: Add store messages to DB here!
 
             return StateInfo(
+                messages = updState.messages,
                 lastRecording = lastRecordingName,
-                fail = fail,
+                fail = updState.fail,
                 end = isEnd,
                 aiReplies = listOf(
                     AiReply(
                         langCode = prefs.queryLanguage,
                         text = when {
-                            fail -> defaultReplies.replyError()
+                            updState.fail -> defaultReplies.replyError()
                             isEnd -> defaultReplies.replyNevermind()
                             else -> outMessage
                         }

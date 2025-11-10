@@ -138,7 +138,7 @@ data class LlmReturn(
     var fail: Boolean = false,
     var next: String = "",
     var language: String = "",
-    var messages: MutableList<ChatMessage?> = mutableListOf<ChatMessage?>(),
+    var messages: MutableList<ChatMessage> = mutableListOf<ChatMessage>(),
 )
 
 // Status:

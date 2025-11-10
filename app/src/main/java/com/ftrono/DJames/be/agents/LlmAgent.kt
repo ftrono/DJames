@@ -153,10 +153,10 @@ class LlmAgent(
     }
 
     // Main: Invoke LLM:
-    fun invoke(llmMessages: MutableList<ChatMessage?>): LlmReturn {
+    fun invoke(llmMessages: MutableList<ChatMessage>): LlmReturn {
         try {
             // inMessages: must contain prompt + llmMessages + new updates:
-            var inMessages = mutableListOf<ChatMessage?>(
+            var inMessages = mutableListOf<ChatMessage>(
                 ChatMessage(role = "system", content = basePrompt)   // System prompt
             )
             inMessages.addAll(llmMessages.subList(0, llmMessages.lastIndex))   // History
@@ -164,7 +164,7 @@ class LlmAgent(
             inMessages.add(llmMessages.last())   // User latest message
 
             // outMessages: must contain new updates only:
-            var outMessages = mutableListOf<ChatMessage?>()
+            var outMessages = mutableListOf<ChatMessage>()
 
             // Build request:
             var llmRequest = LlmRequest(
@@ -298,7 +298,7 @@ class LlmAgent(
             fail = true,
             next = "__END__",
             messages = if (!isRouter) {
-                mutableListOf<ChatMessage?>(
+                mutableListOf<ChatMessage>(
                     ChatMessage(
                         role = "assistant",
                         content = defaultReplies.replyError()

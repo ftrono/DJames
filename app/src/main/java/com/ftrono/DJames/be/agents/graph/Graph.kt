@@ -3,12 +3,16 @@ package com.ftrono.DJames.be.agents.graph
 import android.util.Log
 import com.ftrono.DJames.be.agents.ChatMessage
 import com.ftrono.DJames.be.agents.nodes.Node
+import com.ftrono.DJames.be.agents.StateInfo
+import com.ftrono.DJames.application.START
+import com.ftrono.DJames.application.END
+import com.ftrono.DJames.be.agents.NodeType
 
 
-class Graph() {
-    private val TAG = this::class.java.simpleName
-    var START = "__START__"
-    var END = "__END__"
+class Graph(
+    val name: String
+) {
+    private val TAG = this::class.java.simpleName + "_" + name
 
     var nodes = mutableMapOf<String, Node>()
 
@@ -25,13 +29,26 @@ class Graph() {
     }
 
     fun invoke(
-        startNode: String = START,
-        inMessages: MutableList<ChatMessage>,
-    ) {
-        var curNodeId = startNode
-        while (curNodeId != END) {
-            val curNode = getNode(curNodeId)
+        prevState: StateInfo
+    ): StateInfo {
+        var updState = prevState
+        if (updState.next == START) updState.next = nodes.keys.first()
+        Log.d(TAG, "Graph streaming loop STARTED from Node: '${updState.next}'.")
 
+        // TODO: STREAMING LOOP:
+        while (updState.next != END && !updState.fail) {
+            Log.d(TAG, "Streaming from Node: ${updState.next}")
+            updState = getNode(updState.next).invoke(updState)
+            // Human-in-the-Loop:
+            if (updState.interrupt) {
+                Log.d(TAG, "Interrupt requested!")
+                break
+            } else if (updState.next == END) {
+                updState.end = true
+            }
+            Log.d(TAG, "Next node -> ${updState.next}")
         }
+        Log.d(TAG, "Graph streaming loop ENDED.")
+        return updState
     }
 }

@@ -1,18 +1,18 @@
 package com.ftrono.DJames.be.agents.nodes
 
-import com.ftrono.DJames.be.agents.ChatMessage
 import com.ftrono.DJames.be.agents.NodeType
+import com.ftrono.DJames.be.agents.StateInfo
 
 
-open class Node(
-    var name: String = "",
-    var type: NodeType = NodeType.AGENT,
-    var callerIds: List<String> = listOf(),
-    var nextIds: List<String> = listOf()
-) {
+open class Node() {
+
+    open val name: String = ""
+    open val type: NodeType = NodeType.AGENT
+
     open fun invoke(
-        inMessages: MutableList<ChatMessage>,
-    ) {
+        prevState: StateInfo): StateInfo {
         // TODO
+        var updState = prevState
+        return updState
     }
 }

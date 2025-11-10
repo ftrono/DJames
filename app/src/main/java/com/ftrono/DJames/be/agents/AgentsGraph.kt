@@ -66,6 +66,7 @@ class AgentsGraph(
             PlayerAgentNode(
                 context = context,
                 apiKey = apiKey,
+                useJson = true,
                 nextOptions = listOf(
                     END,   // Default
                     "MainRouter",
@@ -77,6 +78,7 @@ class AgentsGraph(
             CallAgentNode(
                 context = context,
                 apiKey = apiKey,
+                useJson = true,
                 nextOptions = listOf(
                     END,   // Default
                     "MainRouter",
@@ -88,6 +90,7 @@ class AgentsGraph(
             MessageAgentNode(
                 context = context,
                 apiKey = apiKey,
+                useJson = true,
                 nextOptions = listOf(
                     END,   // Default
                     "MainRouter",
@@ -99,6 +102,7 @@ class AgentsGraph(
             DriveAgentNode(
                 context = context,
                 apiKey = apiKey,
+                useJson = true,
                 nextOptions = listOf(
                     END,   // Default
                     "MainRouter",
@@ -110,6 +114,7 @@ class AgentsGraph(
             GuidanceAgentNode(
                 context = context,
                 apiKey = apiKey,
+                useJson = true,
                 nextOptions = listOf(
                     END,   // Default
                     "MainRouter",
@@ -179,8 +184,6 @@ class AgentsGraph(
         var fromVoice = recDetails != null
         var fail = false
         var isSilence = false
-        var isEnd = false
-        var next = ""
         var language = ""
         Log.d(TAG, "Invoking Graph...")
 

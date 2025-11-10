@@ -149,3 +149,10 @@ data class SttReturn(
     var language: String = "",
     var transcription: String = "",
 )
+
+// JSON STRUCTURED OUTPUT:
+@KxSerializable
+data class LlmReply(
+    var next: String = "",
+    var reply: String = "",
+)

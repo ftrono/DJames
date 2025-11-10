@@ -186,6 +186,7 @@ data class Attachments(
     var matchScore: Int = 0,
     var playedExternally: Boolean = false,
     var contextError: Boolean = false,
+    var llmNext: String = "",
 
     @Convert(converter = ChatMessageConverter::class, dbType = String::class)
     var llmChatMessages: MutableList<ChatMessage> = mutableListOf<ChatMessage>(),

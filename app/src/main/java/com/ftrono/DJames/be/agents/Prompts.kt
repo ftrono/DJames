@@ -8,14 +8,18 @@ val promptIntro = """
     Today is [TODAY_DATE].
 """
 
+val promptRouterIntro = """
+    You're a Router agent in a conversational graph. 
+"""
+
 val promptJsonOut = """
     ## OUTPUT:
     You must reply using a JSON output with the following structure:
     {
         "next": (String) Put here strictly one of the following strings:
             * **"__END__"** if your reply ends the conversation and no followup is needed from the user;
-            * **"Handoff"** if the user query is outside your tasks scope;
-            * **"Human"** in any other case (i.e. your reply will expect a follow-up from the user).
+            * **"HANDOFF"** if the user query is outside your tasks scope;
+            * **"HUMAN"** in any other case (i.e. your reply will expect a follow-up from the user).
         "reply": (String) If you did NOT select "Handoff", write here your reply to the user. Keep it short and don't use markdown.
     }
     **Only return this JSON** with no extra text or comments and **no trailing and leading backticks `**.

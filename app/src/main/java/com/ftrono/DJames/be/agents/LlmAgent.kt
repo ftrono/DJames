@@ -29,7 +29,8 @@ class LlmAgent(
     private val context: Context,
     private val apiKey: String,
     private val agentName: String,
-    private val basePrompt: String = "",
+    private val systemPrompt: String = "",
+    private val userPrompt: String = "",
     private val tools: Map<String, Tool> = mapOf<String, Tool>(),
     private val isRouter: Boolean = false,
 ) {
@@ -157,10 +158,10 @@ class LlmAgent(
         try {
             // inMessages: must contain prompt + llmMessages + new updates:
             var inMessages = mutableListOf<ChatMessage>(
-                ChatMessage(role = "system", content = basePrompt)   // System prompt
+                ChatMessage(role = "system", content = systemPrompt)   // System prompt
             )
             inMessages.addAll(llmMessages.subList(0, llmMessages.lastIndex))   // History
-            inMessages.add(ChatMessage(role = "user", content = basePrompt))   // Repeated user prompt
+            inMessages.add(ChatMessage(role = "user", content = userPrompt))   // Repeated user prompt
             inMessages.add(llmMessages.last())   // User latest message
 
             // outMessages: must contain new updates only:

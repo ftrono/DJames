@@ -22,6 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 class ChatManager(private val context: Context) {
@@ -60,56 +61,40 @@ class ChatManager(private val context: Context) {
 
         // PROCESS:
         coroutineScope.launch {
-            chatLastState = if (prefs.enableV3) {
-                agentsGraph.invoke(
-                    inMessage = text,
-                    prevState = chatLastState,
-                    isStart = isStart
-                )
-            } else {
-                nlpDispatcher.dispatch(
-                    text = text,
-                    prevState = chatLastState,
-                    isStart = isStart,
-                    fromVoice = false
-                )
-            }
-            Log.d(TAG, "LAST DISPATCH: $chatLastState")
-
-            var newReplies = listOf<AiReply>()
-            isStart = false   // Enable FollowUp
-
-            if (chatLastState.fail && chatLastState.aiReplies.isEmpty()) {
-                // Default fail replies:
-                newReplies = listOf(
-                    AiReply(
-                        langCode = prefs.queryLanguage,
-                        text = defaultReplies.replyError()
+            withContext(coroutineScope.coroutineContext) {
+                chatLastState = if (prefs.enableV3) {
+                    agentsGraph.invoke(
+                        inMessage = text,
+                        prevState = chatLastState,
+                        isStart = isStart
                     )
-                )
-            }
+                } else {
+                    nlpDispatcher.dispatch(
+                        text = text,
+                        prevState = chatLastState,
+                        isStart = isStart,
+                        fromVoice = false
+                    )
+                }
+                Log.d(TAG, "LAST DISPATCH: $chatLastState")
 
-            // Store message:
-            if (chatLastState.aiReplies.isNotEmpty()) {
-                // Save reply:
-                lastAiMessage.text = fulfillmentUtils.joinReplies(chatLastState.aiReplies)
-                lastAiMessage.requestIntent = lastRequestIntent
-                messageUtils.storeMessage(
-                    context = context,
-                    langCode = prefs.queryLanguage,
-                    fromUser = false,
-                    fromVoice = false
-                )
-            }
+                var newReplies = listOf<AiReply>()
+                isStart = false   // Enable FollowUp
 
-            // Execute:
-            if (chatLastState.end && chatLastState.actionType != null) {
-                val actionsExecutor = ActionsExecutor(context)
-                newReplies = actionsExecutor.execute(chatLastState)
-                if (newReplies.isNotEmpty()) {
-                    // Save additional AI reply as a new message:
-                    messageUtils.resetMessage(fromUser = false)
-                    lastAiMessage.text = fulfillmentUtils.joinReplies(newReplies)
+                if (chatLastState.fail && chatLastState.aiReplies.isEmpty()) {
+                    // Default fail replies:
+                    newReplies = listOf(
+                        AiReply(
+                            langCode = prefs.queryLanguage,
+                            text = defaultReplies.replyError()
+                        )
+                    )
+                }
+
+                // Store message:
+                if (chatLastState.aiReplies.isNotEmpty()) {
+                    // Save reply:
+                    lastAiMessage.text = fulfillmentUtils.joinReplies(chatLastState.aiReplies)
                     lastAiMessage.requestIntent = lastRequestIntent
                     messageUtils.storeMessage(
                         context = context,
@@ -118,8 +103,25 @@ class ChatManager(private val context: Context) {
                         fromVoice = false
                     )
                 }
-            }
 
+                // Execute:
+                if (chatLastState.end && chatLastState.actionType != null) {
+                    val actionsExecutor = ActionsExecutor(context)
+                    newReplies = actionsExecutor.execute(chatLastState)
+                    if (newReplies.isNotEmpty()) {
+                        // Save additional AI reply as a new message:
+                        messageUtils.resetMessage(fromUser = false)
+                        lastAiMessage.text = fulfillmentUtils.joinReplies(newReplies)
+                        lastAiMessage.requestIntent = lastRequestIntent
+                        messageUtils.storeMessage(
+                            context = context,
+                            langCode = prefs.queryLanguage,
+                            fromUser = false,
+                            fromVoice = false
+                        )
+                    }
+                }
+            }
             queryStatus.postValue("ready")
         }
     }

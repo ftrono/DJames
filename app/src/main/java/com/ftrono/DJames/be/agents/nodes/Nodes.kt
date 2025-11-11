@@ -2,26 +2,14 @@ package com.ftrono.DJames.be.agents.nodes
 
 import android.content.Context
 import android.util.Log
-import com.ftrono.DJames.application.dateOnlyFormat
-import com.ftrono.DJames.application.lastRequestIntent
-import com.ftrono.DJames.application.lastUserMessageId
-import com.ftrono.DJames.application.messageUtils
-import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.agents.ChatMessage
+import com.ftrono.DJames.application.END
 import com.ftrono.DJames.be.agents.LlmAgent
-import com.ftrono.DJames.be.agents.LlmReply
 import com.ftrono.DJames.be.agents.NodeType
 import com.ftrono.DJames.be.agents.StateInfo
 import com.ftrono.DJames.be.agents.tools.SearchContacts
 import com.ftrono.DJames.be.agents.tools.SearchPlaces
 import com.ftrono.DJames.be.agents.tools.SearchTracks
-import com.ftrono.DJames.be.agents.promptDateStr
-import com.ftrono.DJames.be.agents.promptIntro
-import com.ftrono.DJames.be.agents.promptJsonOut
-import com.ftrono.DJames.be.agents.promptRouterIntro
 import com.ftrono.DJames.be.agents.tools.Tool
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 
 
 // (LLM-based) Router node:
@@ -51,14 +39,9 @@ class MainRouterNode (
             - "DriveAgent" -> for any request involving requesting driving directions, routes, places, navigation or maps.
             - "__END__" -> if the user wants to stop, cancel, exit or end the conversation.
             - "GuidanceAgent" -> in any other case.
-
-           ## IMPORTANT: 
-           - **You must NOT answer to the user question**: another agent will take care of that.
-           - **Ignore all conversational context and previous replies.**
-           - **Strictly reply with only ONE of these classification categories and NOTHING ELSE**. Don't use quotes.
         """
         var systemPrompt = buildSystemPrompt(isRouter = true)
-        userPrompt = buildUserPrompt(systemPrompt, userPrompt)
+        userPrompt = buildUserPrompt(systemPrompt, userPrompt, isRouter = true)
 
         val llmAgent = LlmAgent(
             context = context,
@@ -81,7 +64,8 @@ class PlayerAgentNode (
     private val context: Context,
     private val apiKey: String,
     override val useJson: Boolean = false,
-    override val nextOptions: List<String> = listOf(),
+    override val onComplete: String = END,
+    override val onFallback: String = "",
 ) : Node() {
 
     override val TAG = this::class.java.simpleName
@@ -98,7 +82,7 @@ class PlayerAgentNode (
             Any request not involving music is outside your tasks scope.
             Use the available tools provided to get the list of available songs for the artist requested by the user.
         """
-        var systemPrompt = buildSystemPrompt()
+        var systemPrompt = buildSystemPrompt(useJson=useJson)
         userPrompt = buildUserPrompt(systemPrompt, userPrompt, useJson=useJson)
 
         val llmAgent = LlmAgent(
@@ -115,10 +99,11 @@ class PlayerAgentNode (
         val llmReturn = llmAgent.invoke(llmMessages = prevState.messages)
         if (useJson && !llmReturn.fail) {
             updState = parseJson(llmReturn, updState)
+        } else {
+            updState.messages.addAll(llmReturn.messages)
         }
 
         // Extend:
-        updState.messages.addAll(llmReturn.messages)
         updState.fail = llmReturn.fail
         return updState
     }
@@ -130,7 +115,8 @@ class CallAgentNode (
     private val context: Context,
     private val apiKey: String,
     override val useJson: Boolean = false,
-    override val nextOptions: List<String> = listOf(),
+    override val onComplete: String = END,
+    override val onFallback: String = "",
 ) : Node() {
 
     override val TAG = this::class.java.simpleName
@@ -146,9 +132,8 @@ class CallAgentNode (
             Your task is to help the user make a call to one of his contacts. 
             Any request not involving making a call is outside your tasks scope.
             Use the available tools provided to get the list of available contacts that the user can call.
-            **Don't use markdown and always reply with short answers to the user.**
         """
-        var systemPrompt = buildSystemPrompt()
+        var systemPrompt = buildSystemPrompt(useJson=useJson)
         userPrompt = buildUserPrompt(systemPrompt, userPrompt, useJson=useJson)
 
         val llmAgent = LlmAgent(
@@ -165,10 +150,11 @@ class CallAgentNode (
         val llmReturn = llmAgent.invoke(llmMessages = prevState.messages)
         if (useJson && !llmReturn.fail) {
             updState = parseJson(llmReturn, updState)
+        } else {
+            updState.messages.addAll(llmReturn.messages)
         }
 
         // Extend:
-        updState.messages.addAll(llmReturn.messages)
         updState.fail = llmReturn.fail
         return updState
     }
@@ -180,7 +166,8 @@ class MessageAgentNode (
     private val context: Context,
     private val apiKey: String,
     override val useJson: Boolean = false,
-    override val nextOptions: List<String> = listOf(),
+    override val onComplete: String = END,
+    override val onFallback: String = "",
 ) : Node() {
 
     override val TAG = this::class.java.simpleName
@@ -196,9 +183,8 @@ class MessageAgentNode (
             Your task is to help the user send a message to one of his contacts.
             Any request not involving sending an SMS, a Whatsapp text message or a Whatsapp audio/voice message is outside your tasks scope.
             Use the available tools provided to get the list of available contacts that the user can send messages to.
-            **Don't use markdown and always reply with short answers to the user.**
         """
-        var systemPrompt = buildSystemPrompt()
+        var systemPrompt = buildSystemPrompt(useJson=useJson)
         userPrompt = buildUserPrompt(systemPrompt, userPrompt, useJson=useJson)
 
         val llmAgent = LlmAgent(
@@ -215,10 +201,11 @@ class MessageAgentNode (
         val llmReturn = llmAgent.invoke(llmMessages = prevState.messages)
         if (useJson && !llmReturn.fail) {
             updState = parseJson(llmReturn, updState)
+        } else {
+            updState.messages.addAll(llmReturn.messages)
         }
 
         // Extend:
-        updState.messages.addAll(llmReturn.messages)
         updState.fail = llmReturn.fail
         return updState
     }
@@ -230,7 +217,8 @@ class DriveAgentNode (
     private val context: Context,
     private val apiKey: String,
     override val useJson: Boolean = false,
-    override val nextOptions: List<String> = listOf(),
+    override val onComplete: String = END,
+    override val onFallback: String = "",
 ) : Node() {
 
     override val TAG = this::class.java.simpleName
@@ -246,9 +234,8 @@ class DriveAgentNode (
             Your domain is places, maps and driving directions. Your task is to help the user find a place to drive to.
             Any request not involving places, maps or driving directions is outside your tasks scope.
             Use the available tools provided to get the list of available places the user can go nearby.
-            **Don't use markdown and always reply with short answers to the user.**
         """
-        var systemPrompt = buildSystemPrompt()
+        var systemPrompt = buildSystemPrompt(useJson=useJson)
         userPrompt = buildUserPrompt(systemPrompt, userPrompt, useJson=useJson)
 
         val llmAgent = LlmAgent(
@@ -265,10 +252,11 @@ class DriveAgentNode (
         val llmReturn = llmAgent.invoke(llmMessages = prevState.messages)
         if (useJson && !llmReturn.fail) {
             updState = parseJson(llmReturn, updState)
+        } else {
+            updState.messages.addAll(llmReturn.messages)
         }
 
         // Extend:
-        updState.messages.addAll(llmReturn.messages)
         updState.fail = llmReturn.fail
         return updState
     }
@@ -280,7 +268,8 @@ class GuidanceAgentNode (
     private val context: Context,
     private val apiKey: String,
     override val useJson: Boolean = false,
-    override val nextOptions: List<String> = listOf(),
+    override val onComplete: String = END,
+    override val onFallback: String = "",
 ) : Node() {
 
     override val TAG = this::class.java.simpleName
@@ -294,9 +283,8 @@ class GuidanceAgentNode (
         var userPrompt = """
             ## TASK:
             Your only task is to provide information on your functionalities to the user.
-            **Don't use markdown and always reply with short answers to the user.**
         """
-        var systemPrompt = buildSystemPrompt()
+        var systemPrompt = buildSystemPrompt(useJson=useJson)
         userPrompt = buildUserPrompt(systemPrompt, userPrompt, useJson=useJson)
 
         val llmAgent = LlmAgent(
@@ -310,10 +298,11 @@ class GuidanceAgentNode (
         val llmReturn = llmAgent.invoke(llmMessages = prevState.messages)
         if (useJson && !llmReturn.fail) {
             updState = parseJson(llmReturn, updState)
+        } else {
+            updState.messages.addAll(llmReturn.messages)
         }
 
         // Extend:
-        updState.messages.addAll(llmReturn.messages)
         updState.fail = llmReturn.fail
         return updState
     }

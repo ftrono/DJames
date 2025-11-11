@@ -37,6 +37,7 @@ data class QuickAction(
 
 
 data class RecDetails(
+    var recName: String = "",
     var recPath: String = "",
     var speechPct: Int = 0
 )

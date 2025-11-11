@@ -16,7 +16,6 @@ data class StateInfo(
     var interrupt: Boolean = false,
     var fail: Boolean = false,   //fulfillment complete
     var end: Boolean = false,   //fulfillment complete
-    var agentName: String = "",
     var intentName: String = "Fallback",
     var lastUserMsgId: Long = 0L,
 
@@ -35,6 +34,6 @@ data class StateInfo(
     var lastRecording: String = "",   //Flac only
     var playType: String = "",
     var contextType: String = "",
-    var usable: LibraryItem = LibraryItem(),
-    var playable: SpotifyPlayable = SpotifyPlayable(),
+    var usable: LibraryItem? = null,
+    var playable: SpotifyPlayable? = null,
 )

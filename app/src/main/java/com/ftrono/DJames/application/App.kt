@@ -136,7 +136,6 @@ var lastAiMessage: Message = Message()
 var lastUserMessage: Message = Message()
 var lastRequestIntent: String = ""
 var lastStarterId: Long = 0L
-var lastUserMessageId: Long = 0L
 
 //Preferences:
 val maxHistoryDays: Long = 15L
@@ -161,7 +160,7 @@ var enablePlayerInfo = false
 val datetimeExportFormat = "yyyy-MM-dd HH_mm_ss"
 val datetimeFullFormat = "yyyy/MM/dd HH:mm"
 val datetimeShortFormat = "MMMM dd, HH:mm"
-val dateOnlyFormat = "EEEE yyyy-MM-dd"
+val dateOnlyFormat = "EEEE dd MMMM yyyy"
 
 //Dropdowns:
 val genders = listOf<String>("Sir", "Madam", "Friend")
@@ -227,7 +226,7 @@ val mistralSttModel = "voxtral-mini-latest"
 val mistralSttUrl = "https://api.mistral.ai/v1/audio/transcriptions"
 val mistralLlmModel = "mistral-small-latest"
 val mistralLlmUrl = "https://api.mistral.ai/v1/chat/completions"
-val mistralLlmTemperature = 0.0F
+val mistralLlmTemperature = 0.3F
 val mistralLlmTimeout = 20L
 
 //BROADCASTS:

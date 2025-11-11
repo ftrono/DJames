@@ -155,11 +155,11 @@ class GenericFulfillment (private var context: Context) {
         try {
             //Recover info:
             var reqLangCode = prevState.reqLanguage
-            var itemInfo = prevState.usable
+            var itemInfo = if (prevState.usable != null) prevState.usable else LibraryItem()
             stateInfo.actionType = prevState.actionType
 
             //Store usable details:
-            itemInfo.language = reqLangCode
+            itemInfo!!.language = reqLangCode
 
             //stateInfo:
             stateInfo.usable = itemInfo

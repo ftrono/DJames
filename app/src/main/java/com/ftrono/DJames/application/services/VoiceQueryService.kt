@@ -192,58 +192,60 @@ class VoiceQueryService: Service() {
             cancelThread(processingThread, "processingThread")
             //Start rec Job:
             recordingThread = Thread {
-                // 1) SPEAK INTRO:
-                if (voiceQueryOn && speakIntro) {
+                synchronized(this) {
+                    // 1) SPEAK INTRO:
+                    if (voiceQueryOn && speakIntro) {
 
-                    audioRequestsManager.requestDuckedFocus(
-                        onGranted = {
-                            //End previous conversations:
-                            isStart = true
-                            lastRecordingName = ""
-                            chatLastState = StateInfo()
-                            //START:
-                            queryStatus.postValue("processing")
-                            Thread.sleep(500)
-                            //Read TTS:
-                            tts.speak(
-                                aiReplies = listOf(
-                                    AiReply(
-                                        langCode = prefs.queryLanguage,
-                                        text = defaultReplies.speakIntro()
-                                    )
-                                ),
-                                saveMessage = false   // intro message!
-                            )
-                        },
-                        onFail = { stopSelf() }
-                    )
-                    audioRequestsManager.releaseDuckedFocus()
-                }
-
-                // 2) RECORD:
-                if (voiceQueryOn) {
-                    audioRequestsManager.requestExclusiveFocus(
-                        onGranted = {
-                            //Set overlay BUSY color:
-                            queryStatus.postValue("busy")
-
-                            //Play START tone:
-                            toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
-                            // toneGen.startTone(ToneGenerator.TONE_CDMA_ONE_MIN_BEEP)   //FOLLOW UP
-
-                            //Start recording (default: cacheDir):
-                            messageUtils.resetMessage(fromUser = true)
-                            if (
-                                ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
-                            ) {
-                                MyRecorder.start(
-                                    messageMode = messageMode,
-                                    messageType = lastState.messageType,
+                        audioRequestsManager.requestDuckedFocus(
+                            onGranted = {
+                                //End previous conversations:
+                                isStart = true
+                                lastRecordingName = ""
+                                chatLastState = StateInfo()
+                                //START:
+                                queryStatus.postValue("processing")
+                                Thread.sleep(500)
+                                //Read TTS:
+                                tts.speak(
+                                    aiReplies = listOf(
+                                        AiReply(
+                                            langCode = prefs.queryLanguage,
+                                            text = defaultReplies.speakIntro()
+                                        )
+                                    ),
+                                    saveMessage = false   // intro message!
                                 )
-                            }
-                        },
-                        onFail = { stopSelf() }
-                    )
+                            },
+                            onFail = { stopSelf() }
+                        )
+                        audioRequestsManager.releaseDuckedFocus()
+                    }
+
+                    // 2) RECORD:
+                    if (voiceQueryOn) {
+                        audioRequestsManager.requestExclusiveFocus(
+                            onGranted = {
+                                //Set overlay BUSY color:
+                                queryStatus.postValue("busy")
+
+                                //Play START tone:
+                                toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
+                                // toneGen.startTone(ToneGenerator.TONE_CDMA_ONE_MIN_BEEP)   //FOLLOW UP
+
+                                //Start recording (default: cacheDir):
+                                messageUtils.resetMessage(fromUser = true)
+                                if (
+                                    ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+                                ) {
+                                    MyRecorder.start(
+                                        messageMode = messageMode,
+                                        messageType = lastState.messageType,
+                                    )
+                                }
+                            },
+                            onFail = { stopSelf() }
+                        )
+                    }
                 }
             }
             recordingThread!!.start()
@@ -281,7 +283,9 @@ class VoiceQueryService: Service() {
                             queryStatus.postValue("processing")
                             //PROCESS QUERY:
                             processingThread = Thread {
-                                processQuery(recDetails)
+                                synchronized(this) {
+                                    processQuery(recDetails)
+                                }
                             }
                             processingThread!!.start()
                         }
@@ -303,6 +307,7 @@ class VoiceQueryService: Service() {
         Log.d(TAG, "PROCESSING JOB STARTED!")
         try {
             //PROCESS REQUEST:
+            lastState.lastRecording = recDetails.recName
             if (voiceQueryOn) {
                 lastState = if (prefs.enableV3) {
                     agentsGraph.invoke(

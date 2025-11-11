@@ -36,12 +36,12 @@ class ActionsExecutor(
         lastRecording: String = "",
     ): String {
         return when (action) {
-            ActionType.PLAY -> spotifyPlay(playable!!)
-            ActionType.CALL -> makeCall(usable!!, fromOldChat)
-            ActionType.SMS -> sendSMS(usable!!, reqLanguage)
-            ActionType.WA_TEXT -> sendWhatsappText(usable!!, reqLanguage)
-            ActionType.WA_VOICE -> sendWhatsappAudio(usable!!, lastRecording)
-            ActionType.OPEN_URL -> openLink(usable!!)
+            ActionType.PLAY -> spotifyPlay(playable)
+            ActionType.CALL -> makeCall(usable, fromOldChat)
+            ActionType.SMS -> sendSMS(usable, reqLanguage)
+            ActionType.WA_TEXT -> sendWhatsappText(usable, reqLanguage)
+            ActionType.WA_VOICE -> sendWhatsappAudio(usable, lastRecording)
+            ActionType.OPEN_URL -> openLink(usable)
         }
     }
 
@@ -74,20 +74,24 @@ class ActionsExecutor(
 
     // SPOTIFY PLAY:
     fun spotifyPlay(
-        playable: SpotifyPlayable
+        playable: SpotifyPlayable?
     ): String {
-        val spotifyPlayer = SpotifyPlayer(context)
-        spotifyPlayer.spotifyPlay(playable)
+        try {
+            val spotifyPlayer = SpotifyPlayer(context)
+            spotifyPlayer.spotifyPlay(playable!!)
+        } catch (e: Exception) {
+            Log.w(TAG, "spotifyPlay(): TOOL ERROR: ", e)
+        }
         return ""
     }
 
     //CALL:
     fun makeCall(
-        usable: LibraryItem,
+        usable: LibraryItem?,
         fromOldChat: Boolean = false,
     ): String {
         try {
-            val phoneSet = usable.phoneSet!!
+            val phoneSet = usable!!.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
             utils.makeCall(context, contactPhone, fromService = !fromOldChat)
         } catch (e: Exception) {
@@ -98,12 +102,12 @@ class ActionsExecutor(
 
     //SEND SMS:
     fun sendSMS(
-        usable: LibraryItem,
+        usable: LibraryItem?,
         reqLanguage: String
     ): String {
         try {
             var ttsToRead = ""
-            val contactName = usable.name
+            val contactName = usable!!.name
             val phoneSet = usable.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
             // SEND:
@@ -129,12 +133,12 @@ class ActionsExecutor(
 
     //SEND WHATSAPP TEXT:
     fun sendWhatsappText(
-        usable: LibraryItem,
+        usable: LibraryItem?,
         reqLanguage: String,
     ): String {
         try {
             var ttsToRead = ""
-            val contactName = usable.name
+            val contactName = usable!!.name
             val phoneSet = usable.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
             // SEND:
@@ -172,12 +176,12 @@ class ActionsExecutor(
 
     //SEND WHATSAPP AUDIO:
     fun sendWhatsappAudio(
-        usable: LibraryItem,
+        usable: LibraryItem?,
         lastRecording: String,
     ): String {
         try {
             var ttsToRead = ""
-            val contactName = usable.name
+            val contactName = usable!!.name
             if (lastRecording != "") {
                 //Get audio file:
                 val audioFile = File(recDir, lastRecording)   //Flac
@@ -211,10 +215,14 @@ class ActionsExecutor(
 
     // OPEN LINK:
     fun openLink(
-        usable: LibraryItem
+        usable: LibraryItem?
     ): String {
-        val urlToOpen = usable.url
-        utils.openLink(context, url = urlToOpen, fromService = true)
+        try {
+            val urlToOpen = usable!!.url
+            utils.openLink(context, url = urlToOpen, fromService = true)
+        } catch (e: Exception) {
+            Log.w(TAG, "openLink(): TOOL ERROR: ", e)
+        }
         return ""
     }
 

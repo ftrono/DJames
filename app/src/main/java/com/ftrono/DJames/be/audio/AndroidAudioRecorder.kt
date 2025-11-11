@@ -27,6 +27,7 @@ class AndroidAudioRecorder(private val context: Context) {
     private lateinit var audioRecorder: AudioRecord
     private var recFilePcm: File? = null
     private var recFileFlac: File? = null
+    private var lastRecordingName: String = ""
     private var speechPct: Int = 0
 
 
@@ -203,7 +204,7 @@ class AndroidAudioRecorder(private val context: Context) {
             speechPct = if (numFrames == 0) 0 else {
                 ((numSpeech.toFloat() / numFrames.toFloat())* 100).toInt()
             }
-            Log.d(TAG, "SpeechPct: $speechPct -> $numSpeech / $numFrames")
+            Log.d(TAG, "SpeechPct: $speechPct% -> $numSpeech / $numFrames")
 
             // Close VAD:
             rtcVad.close()
@@ -223,6 +224,7 @@ class AndroidAudioRecorder(private val context: Context) {
             //Convert:
             convertAudioFile(source = recFilePcm!!, target = recFileFlac!!)
             return RecDetails(
+                recName = lastRecordingName,
                 recPath = recFileFlac!!.absolutePath,
                 speechPct = speechPct,
             )

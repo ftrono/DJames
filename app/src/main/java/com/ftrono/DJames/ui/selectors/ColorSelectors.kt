@@ -137,11 +137,11 @@ fun messagesColorSelector(
     cat: String
 ): Color {
     return when {
-        cat.contains("Call") -> colorResource(id = R.color.colorAccent)
+        cat.contains("Call") -> colorResource(id = R.color.greenSign)
         cat.contains("Message") -> colorResource(id = R.color.blueSign)
         cat.contains("Drive") -> colorResource(id = R.color.brownSign)
         cat.contains("Play") -> colorResource(id = R.color.yellowSign)
-        else -> colorResource(id = R.color.colorPrimary)
+        else -> colorResource(id = R.color.dark_grey)
     }
 }
 

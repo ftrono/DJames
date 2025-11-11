@@ -171,7 +171,7 @@ class LlmAgent(
             var llmRequest = LlmRequest(
                 messages = inMessages.toList(),
                 model = mistralLlmModel,
-                temperature = mistralLlmTemperature,
+                temperature = if (isRouter) 0F else mistralLlmTemperature,
                 toolChoice = if (tools.isNotEmpty()) "auto" else "none",
                 parallelToolCalls = false,
                 tools = if (toolsDef.isNotEmpty()) toolsDef else null,

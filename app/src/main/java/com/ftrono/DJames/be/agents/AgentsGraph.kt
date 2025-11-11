@@ -7,7 +7,6 @@ import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.lastRecordingName
 import com.ftrono.DJames.application.lastRequestIntent
 import com.ftrono.DJames.application.lastUserMessage
-import com.ftrono.DJames.application.lastUserMessageId
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.minSpeechPct
 import com.ftrono.DJames.application.START
@@ -67,10 +66,8 @@ class AgentsGraph(
                 context = context,
                 apiKey = apiKey,
                 useJson = true,
-                nextOptions = listOf(
-                    END,   // Default
-                    "MainRouter",
-                ),
+                onComplete = END,
+                onFallback = "MainRouter",
             )
         )
 
@@ -79,10 +76,8 @@ class AgentsGraph(
                 context = context,
                 apiKey = apiKey,
                 useJson = true,
-                nextOptions = listOf(
-                    END,   // Default
-                    "MainRouter",
-                ),
+                onComplete = END,
+                onFallback = "MainRouter",
             )
         )
 
@@ -91,10 +86,8 @@ class AgentsGraph(
                 context = context,
                 apiKey = apiKey,
                 useJson = true,
-                nextOptions = listOf(
-                    END,   // Default
-                    "MainRouter",
-                ),
+                onComplete = END,
+                onFallback = "MainRouter",
             )
         )
 
@@ -103,10 +96,8 @@ class AgentsGraph(
                 context = context,
                 apiKey = apiKey,
                 useJson = true,
-                nextOptions = listOf(
-                    END,   // Default
-                    "MainRouter",
-                ),
+                onComplete = END,
+                onFallback = "MainRouter",
             )
         )
 
@@ -115,10 +106,8 @@ class AgentsGraph(
                 context = context,
                 apiKey = apiKey,
                 useJson = true,
-                nextOptions = listOf(
-                    END,   // Default
-                    "MainRouter",
-                ),
+                onComplete = END,
+                onFallback = "MainRouter",
             )
         )
 
@@ -159,7 +148,7 @@ class AgentsGraph(
         // Store last user message:
         lastUserMessage.text = transcription
         lastUserMessage.requestIntent = lastRequestIntent
-        lastUserMessageId = messageUtils.storeMessage(
+        val lastUserMsgId = messageUtils.storeMessage(
             context = context,
             langCode = language,
             fromUser = true,
@@ -169,7 +158,7 @@ class AgentsGraph(
                 ChatMessage(role = "user", content = transcription)
             )
         )
-        return lastUserMessageId
+        return lastUserMsgId
     }
 
     fun invoke(
@@ -240,7 +229,7 @@ class AgentsGraph(
 
         } else {
             // Store user message:
-            storeUserMessage(
+            updState.lastUserMsgId = storeUserMessage(
                 transcription = transcription,
                 language = language,
                 fromVoice = fromVoice,
@@ -255,29 +244,22 @@ class AgentsGraph(
 
             // STREAMING LOOP:
             updState = graph.invoke(updState)
-
-            var outMessage = updState.messages.last().content.replace("* ", "- ")
-            var isEnd = updState.next == END
             Log.d(TAG, "Messages size (output): ${updState.messages.size} items, fail: ${updState.fail}")
 
             //TODO: Add store messages to DB here!
 
-            return StateInfo(
-                messages = updState.messages,
-                lastRecording = lastRecordingName,
-                fail = updState.fail,
-                end = isEnd,
-                aiReplies = listOf(
-                    AiReply(
-                        langCode = prefs.queryLanguage,
-                        text = when {
-                            updState.fail -> defaultReplies.replyError()
-                            isEnd -> defaultReplies.replyNevermind()
-                            else -> outMessage
-                        }
-                    )
+            // Returns:
+            updState.end = updState.next == END
+            updState.aiReplies = listOf(
+                AiReply(
+                    langCode = prefs.queryLanguage,
+                    text = when {
+                        updState.fail -> defaultReplies.replyError()
+                        else -> updState.messages.last().content
+                    }
                 )
             )
+            return updState
         }
     }
 }

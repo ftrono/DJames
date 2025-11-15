@@ -65,7 +65,6 @@ class AgentsGraph(
             PlayerAgentNode(
                 context = context,
                 apiKey = apiKey,
-                useJson = true,
                 onComplete = END,
                 onFallback = "MainRouter",
             )
@@ -75,7 +74,6 @@ class AgentsGraph(
             CallAgentNode(
                 context = context,
                 apiKey = apiKey,
-                useJson = true,
                 onComplete = END,
                 onFallback = "MainRouter",
             )
@@ -85,7 +83,6 @@ class AgentsGraph(
             MessageAgentNode(
                 context = context,
                 apiKey = apiKey,
-                useJson = true,
                 onComplete = END,
                 onFallback = "MainRouter",
             )
@@ -95,7 +92,6 @@ class AgentsGraph(
             DriveAgentNode(
                 context = context,
                 apiKey = apiKey,
-                useJson = true,
                 onComplete = END,
                 onFallback = "MainRouter",
             )
@@ -105,7 +101,6 @@ class AgentsGraph(
             GuidanceAgentNode(
                 context = context,
                 apiKey = apiKey,
-                useJson = true,
                 onComplete = END,
                 onFallback = "MainRouter",
             )

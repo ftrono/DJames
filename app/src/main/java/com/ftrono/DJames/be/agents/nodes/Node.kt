@@ -5,17 +5,21 @@ import android.util.Log
 import com.ftrono.DJames.application.dateOnlyFormat
 import com.ftrono.DJames.application.lastRequestIntent
 import com.ftrono.DJames.application.messageUtils
+import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.agents.ChatMessage
 import com.ftrono.DJames.be.agents.LlmReply
 import com.ftrono.DJames.be.agents.LlmReturn
 import com.ftrono.DJames.be.agents.NodeType
 import com.ftrono.DJames.be.agents.StateInfo
 import com.ftrono.DJames.be.agents.promptDateStr
+import com.ftrono.DJames.be.agents.promptEnd
+import com.ftrono.DJames.be.agents.promptGenderStr
 import com.ftrono.DJames.be.agents.promptIntro
-import com.ftrono.DJames.be.agents.promptJsonIntro
 import com.ftrono.DJames.be.agents.promptJsonOut
 import com.ftrono.DJames.be.agents.promptRouterIntro
 import com.ftrono.DJames.be.agents.promptRouterOut
+import com.ftrono.DJames.be.agents.promptUserStr
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
@@ -30,33 +34,64 @@ open class Node() {
     open val onFallback: String = ""
     open val TAG = this::class.java.simpleName
 
-    // Build applicable System prompt:
-    fun buildSystemPrompt(
-        isRouter: Boolean = false,
-        useJson: Boolean = false,
-    ): String {
-        if (isRouter) {
-            return promptRouterIntro
-        } else {
-            val curDate = utils.convertTimestamp(utils.getCurrentTimestamp(), dateOnlyFormat)
-            return if (useJson) promptJsonIntro.replace(promptDateStr, curDate) else promptIntro.replace(promptDateStr, curDate)
-        }
-    }
 
     // Build applicable User prompt:
-    fun buildUserPrompt(
-        systemPrompt: String,
-        userCorePrompt: String,
+    fun addPromptsToMessages(
+        origMessages: MutableList<ChatMessage>,
+        corePrompt: String,
         isRouter: Boolean = false,
         useJson: Boolean = false,
-    ): String {
-        var userPrompt = systemPrompt + "\n" + userCorePrompt
-        if (useJson) {
-            userPrompt = userPrompt + "\n" + promptJsonOut
-        } else if (isRouter) {
-            userPrompt = userPrompt + "\n" + promptRouterOut
+        joinMessages: Boolean = false,
+    ): MutableList<ChatMessage> {
+
+        // 1) Build system prompt:
+        val systemPrompt = if (isRouter) {
+                promptRouterIntro
+            } else {
+                val curDate = utils.convertTimestamp(utils.getCurrentTimestamp(), dateOnlyFormat)
+                promptIntro.replace(promptDateStr, curDate).replace(promptGenderStr, prefs.userGender)
+            }
+
+        // 2) Prepare user prompt:
+        var userPrompt = if (useJson) {
+                systemPrompt + "\n" + corePrompt + "\n" + promptJsonOut
+            } else if (isRouter) {
+                systemPrompt + "\n" + corePrompt + "\n" + promptRouterOut
+            } else {
+                systemPrompt + "\n" + corePrompt + "\n"
+            }
+
+
+        // 3) Prepare inMessages: must contain prompt + llmMessages + new updates:
+        var inMessages = mutableListOf<ChatMessage>(
+            ChatMessage(role = "system", content = systemPrompt + userPrompt)   // System prompt
+        )
+
+        if (joinMessages) {
+            // Join the entire conversation in one message only:
+            var fullConv = "## FULL CONVERSATION TRANSCRIPTION:"
+            for (msg in origMessages) {
+                fullConv = "$fullConv\n   - ${msg.role.uppercase()}: \"${msg.content} \""
+            }
+            inMessages.add(
+                ChatMessage(
+                    role = "user", content = fullConv
+                )
+            )
+
+        } else {
+            // Prepend user prompt to last user message:
+            userPrompt = userPrompt + "\n" + promptEnd
+            inMessages.addAll(origMessages.subList(0, origMessages.lastIndex))  // History
+            inMessages.add(
+                ChatMessage(
+                    role = "user",
+                    content = userPrompt.replace(promptUserStr, origMessages.last().content)
+                )
+            )   // User prompt + user message
         }
-        return userPrompt
+
+        return inMessages
     }
 
     // Clean & parse Json output from a LLM reply:

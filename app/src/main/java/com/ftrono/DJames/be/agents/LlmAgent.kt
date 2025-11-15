@@ -2,10 +2,12 @@ package com.ftrono.DJames.be.agents
 
 import android.content.Context
 import android.util.Log
+import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.jsonNoPrint
 import com.ftrono.DJames.application.jsonUnknown
 import com.ftrono.DJames.application.mistralLlmModel
+import com.ftrono.DJames.application.mistralLlmProModel
 import com.ftrono.DJames.application.mistralLlmTemperature
 import com.ftrono.DJames.application.mistralLlmTimeout
 import com.ftrono.DJames.application.mistralLlmUrl
@@ -13,6 +15,7 @@ import com.ftrono.DJames.application.mistralSttModel
 import com.ftrono.DJames.application.mistralSttUrl
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.tools.Tool
+import com.ftrono.DJames.be.agents.tools.ToolHandoff
 import com.ftrono.DJames.be.models.HttpResponse
 import com.ftrono.DJames.be.utils.HttpClient
 import kotlinx.coroutines.runBlocking
@@ -29,10 +32,9 @@ class LlmAgent(
     private val context: Context,
     private val apiKey: String,
     private val agentName: String,
-    private val systemPrompt: String = "",
-    private val userPrompt: String = "",
     private val tools: Map<String, Tool> = mapOf<String, Tool>(),
     private val isRouter: Boolean = false,
+    private val handoffTo: String = "MainRouter"
 ) {
     private val TAG = this::class.java.simpleName + "_" + agentName
     private var toolsDef = defineTools()
@@ -51,6 +53,12 @@ class LlmAgent(
         val jsonBody = jsonNoPrint.encodeToString(llmRequest)
         val requestBody = jsonBody.toRequestBody("application/json".toMediaTypeOrNull())
         return requestBody
+    }
+
+    // Clean LLM message:
+    private fun cleanLlmMessage(text: String): String {
+        var re = Regex("[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+")
+        return re.replace(text, " ").replace("**", "\n").replace("* ", "- ").trim()
     }
 
     // Send LLM API request:
@@ -156,21 +164,15 @@ class LlmAgent(
     // Main: Invoke LLM:
     fun invoke(llmMessages: MutableList<ChatMessage>): LlmReturn {
         try {
-            // inMessages: must contain prompt + llmMessages + new updates:
-            var inMessages = mutableListOf<ChatMessage>(
-                ChatMessage(role = "system", content = systemPrompt)   // System prompt
-            )
-            inMessages.addAll(llmMessages.subList(0, llmMessages.lastIndex))   // History
-            inMessages.add(ChatMessage(role = "user", content = userPrompt))   // Repeated user prompt
-            inMessages.add(llmMessages.last())   // User latest message
-
             // outMessages: must contain new updates only:
             var outMessages = mutableListOf<ChatMessage>()
+            var inMessages = llmMessages   // editable
+            var next = ""
 
             // Build request:
             var llmRequest = LlmRequest(
                 messages = inMessages.toList(),
-                model = mistralLlmModel,
+                model = mistralLlmModel,   // mistralLlmProModel,
                 temperature = if (isRouter) 0F else mistralLlmTemperature,
                 toolChoice = if (tools.isNotEmpty()) "auto" else "none",
                 parallelToolCalls = false,
@@ -201,8 +203,26 @@ class LlmAgent(
                         val toolCall = llmMessage.toolCalls!!.first()
                         val toolCallId = toolCall.id
                         val toolName = toolCall.function.name
-                        val toolArgs =
-                            jsonUnknown.parseToJsonElement(toolCall.function.arguments).jsonObject
+                        val curTool = tools[toolName]!!
+
+                        if (curTool.type == ToolType.HANDOFF) {
+                            // HANDOFF CASE:
+                            Log.d(TAG, "LLM: HANDOFF CALLED! Target node -> $llmResponse")
+                            return LlmReturn(
+                                fail = false,
+                                next = handoffTo,
+                                messages = mutableListOf(),
+                            )
+                        } else if (curTool.type == ToolType.ACTION) {
+                            // ACTION CASE:
+                            Log.d(TAG, "LLM: ACTION tool executed!")
+                            next = END
+                        }
+
+                        // Other tool:
+                        val toolArgs = jsonUnknown
+                            .parseToJsonElement(toolCall.function.arguments)
+                            .jsonObject
                         Log.d(TAG, "Requested tool call: $toolCall")
                         var updMessage: ChatMessage? = null
 
@@ -217,8 +237,7 @@ class LlmAgent(
 
                         //Invoke requested tool:
                         var toolResponse = tools[toolName]!!.invoke(toolArgs)
-                        toolResponse =
-                            if (toolResponse != "") toolResponse else "Technical issue: the tool could not be contacted."
+                        toolResponse = if (toolResponse != "") toolResponse else "Technical issue: the tool could not be contacted."
                         Log.d(TAG, "Got tool response: $toolResponse")
 
                         // Store "tool" response message:
@@ -272,12 +291,15 @@ class LlmAgent(
                     Log.d(TAG, "Got LLM message: ${llmChoice.message.content}")
                     if (!isRouter) {
                         outMessages.add(
-                            llmChoice.message
+                            ChatMessage(
+                                role = llmChoice.message.role,
+                                content = cleanLlmMessage(llmChoice.message.content)
+                            )
                         )
                     }
                     return LlmReturn(
                         fail = false,
-                        next = if (isRouter) llmChoice.message.content else "",
+                        next = if (isRouter) llmChoice.message.content else next,
                         messages = if (!isRouter) outMessages else mutableListOf(),
                     )
                 } else {
@@ -297,7 +319,7 @@ class LlmAgent(
     private fun getFallbackReply(): LlmReturn {
         return LlmReturn(
             fail = true,
-            next = "__END__",
+            next = END,
             messages = if (!isRouter) {
                 mutableListOf<ChatMessage>(
                     ChatMessage(

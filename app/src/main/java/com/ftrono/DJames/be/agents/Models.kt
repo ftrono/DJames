@@ -16,6 +16,10 @@ enum class NodeType {
 }
 class NodeTypeConverter : EnumTypeConverter<NodeType>(NodeType.entries.toTypedArray())
 
+enum class ToolType {
+    HANDOFF, ACTION, INTERMEDIATE
+}
+
 enum class ActionType {
     PLAY, CALL, SMS, WA_TEXT, WA_VOICE, OPEN_URL
 }
@@ -34,6 +38,7 @@ data class ToolProperty(
 data class ToolParameters(
     var type: String,
     var properties: Map<String, ToolProperty>,
+    var required: MutableList<String> = mutableListOf<String>(),
 )
 
 @KxSerializable
@@ -141,7 +146,6 @@ data class LlmReturn(
     var messages: MutableList<ChatMessage> = mutableListOf<ChatMessage>(),
 )
 
-// Status:
 @KxSerializable
 data class SttReturn(
     var fail: Boolean = false,

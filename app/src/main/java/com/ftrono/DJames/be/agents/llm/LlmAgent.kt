@@ -1,21 +1,26 @@
-package com.ftrono.DJames.be.agents
+package com.ftrono.DJames.be.agents.llm
 
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.END
-import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.jsonNoPrint
 import com.ftrono.DJames.application.jsonUnknown
 import com.ftrono.DJames.application.mistralLlmModel
-import com.ftrono.DJames.application.mistralLlmProModel
 import com.ftrono.DJames.application.mistralLlmTemperature
 import com.ftrono.DJames.application.mistralLlmTimeout
 import com.ftrono.DJames.application.mistralLlmUrl
 import com.ftrono.DJames.application.mistralSttModel
 import com.ftrono.DJames.application.mistralSttUrl
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.agents.data.ChatMessage
+import com.ftrono.DJames.be.agents.data.LlmRequest
+import com.ftrono.DJames.be.agents.data.LlmResponse
+import com.ftrono.DJames.be.agents.data.LlmReturn
+import com.ftrono.DJames.be.agents.data.SttResponse
+import com.ftrono.DJames.be.agents.data.SttReturn
+import com.ftrono.DJames.be.agents.data.ToolDefinition
+import com.ftrono.DJames.be.agents.data.ToolType
 import com.ftrono.DJames.be.agents.tools.Tool
-import com.ftrono.DJames.be.agents.tools.ToolHandoff
 import com.ftrono.DJames.be.models.HttpResponse
 import com.ftrono.DJames.be.utils.HttpClient
 import kotlinx.coroutines.runBlocking
@@ -34,7 +39,8 @@ class LlmAgent(
     private val agentName: String,
     private val tools: Map<String, Tool> = mapOf<String, Tool>(),
     private val isRouter: Boolean = false,
-    private val handoffTo: String = "MainRouter"
+    private val onComplete: String = END,
+    private val onFallback: String = END,
 ) {
     private val TAG = this::class.java.simpleName + "_" + agentName
     private var toolsDef = defineTools()
@@ -172,7 +178,7 @@ class LlmAgent(
             // Build request:
             var llmRequest = LlmRequest(
                 messages = inMessages.toList(),
-                model = mistralLlmModel,   // mistralLlmProModel,
+                model = mistralLlmModel,
                 temperature = if (isRouter) 0F else mistralLlmTemperature,
                 toolChoice = if (tools.isNotEmpty()) "auto" else "none",
                 parallelToolCalls = false,
@@ -210,13 +216,13 @@ class LlmAgent(
                             Log.d(TAG, "LLM: HANDOFF CALLED! Target node -> $llmResponse")
                             return LlmReturn(
                                 fail = false,
-                                next = handoffTo,
+                                next = onFallback,
                                 messages = mutableListOf(),
                             )
                         } else if (curTool.type == ToolType.ACTION) {
                             // ACTION CASE:
                             Log.d(TAG, "LLM: ACTION tool executed!")
-                            next = END
+                            next = onComplete
                         }
 
                         // Other tool:
@@ -319,17 +325,7 @@ class LlmAgent(
     private fun getFallbackReply(): LlmReturn {
         return LlmReturn(
             fail = true,
-            next = END,
-            messages = if (!isRouter) {
-                mutableListOf<ChatMessage>(
-                    ChatMessage(
-                        role = "assistant",
-                        content = defaultReplies.replyError()
-                    )
-                )
-            } else {
-                mutableListOf()
-            },
+            messages = mutableListOf(),
         )
     }
 

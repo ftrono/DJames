@@ -16,7 +16,7 @@ import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.AgentsGraph
 import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.agents.StateInfo
+import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.be.fulfillment.NLPDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +34,7 @@ class ChatManager(private val context: Context) {
 
     fun init() {
         agentsGraph = AgentsGraph(context)
+        agentsGraph.build()
         nlpDispatcher = NLPDispatcher(context)
     }
 

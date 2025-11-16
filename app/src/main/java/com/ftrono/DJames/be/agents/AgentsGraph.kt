@@ -4,23 +4,21 @@ import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.defaultReplies
-import com.ftrono.DJames.application.lastRecordingName
-import com.ftrono.DJames.application.lastRequestIntent
-import com.ftrono.DJames.application.lastUserMessage
-import com.ftrono.DJames.application.messageUtils
-import com.ftrono.DJames.application.minSpeechPct
 import com.ftrono.DJames.application.START
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.be.agents.nodes.CallAgentNode
-import com.ftrono.DJames.be.agents.nodes.DriveAgentNode
+import com.ftrono.DJames.be.agents.nodes.DriverAgentNode
 import com.ftrono.DJames.be.agents.nodes.GuidanceAgentNode
 import com.ftrono.DJames.be.agents.nodes.MainRouterNode
 import com.ftrono.DJames.be.agents.nodes.MessageAgentNode
 import com.ftrono.DJames.be.agents.nodes.PlayerAgentNode
 import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.agents.StateInfo
+import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.be.agents.graph.Graph
+import com.ftrono.DJames.be.agents.llm.LlmAgent
+import com.ftrono.DJames.be.agents.data.ChatMessage
+import com.ftrono.DJames.be.agents.data.SttReturn
 import com.ftrono.DJames.be.models.RecDetails
 import com.google.gson.JsonParser
 import java.io.BufferedReader
@@ -30,87 +28,77 @@ import java.io.InputStreamReader
 // MAIN GRAPH:
 class AgentsGraph(
     private val context: Context,
-) {
-    private val TAG = this::class.java.simpleName
+): Graph(context) {
+
+    override val name = this::class.java.simpleName
+    override var TAG = name
 
     //GET LLM CREDENTIALS:
     val reader = BufferedReader(InputStreamReader(context.resources.openRawResource(R.raw.env)))
     private val apiKey = JsonParser.parseReader(reader).asJsonObject.get("mistral_api_key").asString
 
-    // Initialize:
-    val graph = this.build()
-
-    fun build(): Graph {
+    override fun build() {
         // Define the graph structure:
-        val graph = Graph(name="GraphV3")
-
-        // MAIN ROUTER:
-        graph.addNode(
-            MainRouterNode(
-                context = context,
-                apiKey = apiKey,
-                nextOptions = listOf(
-                    "PlayerAgent",
-                    "CallAgent",
-                    "MessageAgent",
-                    "DriveAgent",
-                    "GuidanceAgent",
-                    END
+        addNodes(
+            nodes = mutableListOf(
+                // MAIN ROUTER:
+                MainRouterNode(
+                    context = context,
+                    apiKey = apiKey,
+                    nextOptions = listOf(
+                        "PlayerAgent",
+                        "CallAgent",
+                        "MessageAgent",
+                        "DriverAgent",
+                        "GuidanceAgent",
+                        START,
+                        END
+                    ),
                 ),
+
+                // NODES:
+                PlayerAgentNode(
+                    context = context,
+                    apiKey = apiKey,
+                    onComplete = END,
+                    onFallback = "MainRouter",
+                ),
+
+                CallAgentNode(
+                    context = context,
+                    apiKey = apiKey,
+                    onComplete = END,
+                    onFallback = "MainRouter",
+                ),
+
+                MessageAgentNode(
+                    context = context,
+                    apiKey = apiKey,
+                    onComplete = END,
+                    onFallback = "MainRouter",
+                ),
+
+                DriverAgentNode(
+                    context = context,
+                    apiKey = apiKey,
+                    onComplete = END,
+                    onFallback = "MainRouter",
+                ),
+
+                GuidanceAgentNode(
+                    context = context,
+                    apiKey = apiKey,
+                    onComplete = END,
+                    onFallback = "MainRouter",
+                )
             )
         )
-
-        // NODES:
-        graph.addNode(
-            PlayerAgentNode(
-                context = context,
-                apiKey = apiKey,
-                onComplete = END,
-                onFallback = "MainRouter",
-            )
-        )
-
-        graph.addNode(
-            CallAgentNode(
-                context = context,
-                apiKey = apiKey,
-                onComplete = END,
-                onFallback = "MainRouter",
-            )
-        )
-
-        graph.addNode(
-            MessageAgentNode(
-                context = context,
-                apiKey = apiKey,
-                onComplete = END,
-                onFallback = "MainRouter",
-            )
-        )
-
-        graph.addNode(
-            DriveAgentNode(
-                context = context,
-                apiKey = apiKey,
-                onComplete = END,
-                onFallback = "MainRouter",
-            )
-        )
-
-        graph.addNode(
-            GuidanceAgentNode(
-                context = context,
-                apiKey = apiKey,
-                onComplete = END,
-                onFallback = "MainRouter",
-            )
-        )
-
         Log.d(TAG, "Graph built!")
-        return graph
     }
 
-    fun loadMessages(): MutableList<ChatMessage> {
+    // State / DB:
+    // Load latest message to State:
+    override fun loadMessages(): MutableList<ChatMessage> {
         // TODO: Build initial messages list:
         val msgList = mutableListOf<ChatMessage>(
             // ChatMessage(role = "user", content = inMessage)
@@ -120,7 +108,7 @@ class AgentsGraph(
     }
 
     // (FROM VOICE) TRANSCRIBE NEW AUDIO:
-    fun transcribe(inAudioPath: String): SttReturn {
+    override fun transcribe(inAudioPath: String): SttReturn {
         Log.d(TAG, "STT activated")
         val sttAgent = LlmAgent(
             context = context,
@@ -133,42 +121,15 @@ class AgentsGraph(
         return sttReturn
     }
 
-    // Store user message:
-    fun storeUserMessage(
-        transcription: String,
-        language: String,
-        fromVoice: Boolean,
-        isStart: Boolean
-    ): Long {
-        // Store last user message:
-        lastUserMessage.text = transcription
-        lastUserMessage.requestIntent = lastRequestIntent
-        val lastUserMsgId = messageUtils.storeMessage(
-            context = context,
-            langCode = language,
-            fromUser = true,
-            fromVoice = fromVoice,
-            isStart = isStart,
-            llmMessages = mutableListOf<ChatMessage>(
-                ChatMessage(role = "user", content = transcription)
-            )
-        )
-        return lastUserMsgId
-    }
-
-    fun invoke(
+    override fun invoke(
         prevState: StateInfo,
-        recDetails: RecDetails? = null,
-        inMessage: String = "",
-        isStart: Boolean = false,
+        recDetails: RecDetails?,
+        inMessage: String,
+        isStart: Boolean,
     ): StateInfo {
 
         // Status vars:
         var updState = prevState
-        var fromVoice = recDetails != null
-        var fail = false
-        var isSilence = false
-        var language = ""
         Log.d(TAG, "Invoking Graph...")
 
         // Retrieve latest messages:
@@ -178,83 +139,35 @@ class AgentsGraph(
             )
         }
 
-        // Parse new message:
-        var transcription = ""
-        if (fromVoice) {
-            // FROM VOICE:
-            // Empty audio:
-            if (recDetails!!.speechPct <= minSpeechPct) {
-                isSilence = true
-                fail = true
-                Log.d(TAG, "Empty audio.")
+        // Process new message:
+        updState = processUserMessage(
+            prevState = prevState,
+            recDetails = recDetails,
+            inMessage = inMessage,
+            isStart = isStart,
+        )
 
-            } else {
-                // STT transcribe:
-                val sttReturn = transcribe(recDetails.recPath)
+        Log.d(TAG, "Messages size (input): ${updState.messages.size} items.")
 
-                isSilence = sttReturn.isSilence
-                fail = sttReturn.fail
-                language = sttReturn.language
-                transcription = sttReturn.transcription
+        // STREAMING LOOP:
+        updState = stream(updState, onRestart = "GuidanceAgent")
+        Log.d(TAG, "Messages size (output): ${updState.messages.size} items, fail: ${updState.fail}")
 
-                if (isSilence) {
-                    Log.d(TAG, "Empty transcription.")
-                } else {
-                    Log.d(TAG, "TRANSCRIPTION: $transcription")
+        //TODO: Add store messages to DB here!
+
+        // Returns:
+        updState.end = updState.next == END
+        updState.aiReplies = listOf(
+            AiReply(
+                langCode = prefs.queryLanguage,
+                text = when {
+                    updState.isSilence -> defaultReplies.replyFallback()   // Fallback
+                    updState.fail -> defaultReplies.replyError()   // Error
+                    (updState.next == END && updState.messages.isEmpty()) -> defaultReplies.replyNevermind()   // Nevermind
+                    else -> updState.messages.last().content   // Actual reply
                 }
-            }
-        } else {
-            // FROM CHAT:
-            transcription = inMessage
-        }
-
-        if (fail || isSilence) {
-            // Silence case:
-            return StateInfo(
-                lastRecording = lastRecordingName,
-                fail = true,
-                noSave = isSilence,
-                aiReplies = listOf(
-                    AiReply(
-                        langCode = prefs.queryLanguage,
-                        text = if (isSilence) defaultReplies.replyFallback() else defaultReplies.replyError()
-                    )
-                )
             )
-
-        } else {
-            // Store user message:
-            updState.lastUserMsgId = storeUserMessage(
-                transcription = transcription,
-                language = language,
-                fromVoice = fromVoice,
-                isStart = isStart,
-            )
-            // Append last user chat message to conversation:
-            updState.messages.add(
-                ChatMessage(role = "user", content = transcription)
-            )
-
-            Log.d(TAG, "Messages size (input): ${updState.messages.size} items.")
-
-            // STREAMING LOOP:
-            updState = graph.invoke(updState)
-            Log.d(TAG, "Messages size (output): ${updState.messages.size} items, fail: ${updState.fail}")
-
-            //TODO: Add store messages to DB here!
-
-            // Returns:
-            updState.end = updState.next == END
-            updState.aiReplies = listOf(
-                AiReply(
-                    langCode = prefs.queryLanguage,
-                    text = when {
-                        updState.fail -> defaultReplies.replyError()
-                        else -> updState.messages.last().content
-                    }
-                )
-            )
-            return updState
-        }
+        )
+        return updState
     }
 }

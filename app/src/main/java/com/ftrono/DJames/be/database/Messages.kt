@@ -1,17 +1,14 @@
 package com.ftrono.DJames.be.database
 
-import com.ftrono.DJames.be.agents.ChatMessage
-import com.ftrono.DJames.be.agents.ActionType
-import com.ftrono.DJames.be.agents.ActionTypeConverter
+import com.ftrono.DJames.be.agents.data.ChatMessage
+import com.ftrono.DJames.be.agents.data.ActionType
+import com.ftrono.DJames.be.agents.data.ActionTypeConverter
 import com.ftrono.DJames.be.models.JsonConverter
 import com.ftrono.DJames.be.models.JsonListConverter
 import io.objectbox.annotation.Entity
 import io.objectbox.annotation.Id
 import io.objectbox.annotation.Convert
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.decodeFromString
 
 
 //SUPPORT CLASSES:

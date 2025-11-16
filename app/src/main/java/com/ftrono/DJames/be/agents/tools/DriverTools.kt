@@ -1,46 +1,16 @@
 package com.ftrono.DJames.be.agents.tools
 
 import android.util.Log
-import com.ftrono.DJames.be.agents.ToolDefinition
-import com.ftrono.DJames.be.agents.ToolFunction
-import com.ftrono.DJames.be.agents.ToolParameters
-import com.ftrono.DJames.be.agents.ToolProperty
-import com.ftrono.DJames.be.agents.ToolType
+import com.ftrono.DJames.be.agents.data.ToolDefinition
+import com.ftrono.DJames.be.agents.data.ToolFunction
+import com.ftrono.DJames.be.agents.data.ToolParameters
+import com.ftrono.DJames.be.agents.data.ToolProperty
+import com.ftrono.DJames.be.agents.data.ToolType
 import kotlinx.serialization.json.*
 
 
-class ToolHandoff(): Tool() {
-    private val TAG = this::class.simpleName
-    override val name = "tool_handoff"
-    override val type: ToolType = ToolType.HANDOFF
-
-    override fun getDefinition(): ToolDefinition {
-        return ToolDefinition(
-            type = "function",
-            function = ToolFunction(
-                name = name,
-                description = """
-                    Handoff tool. Use this tool if the user either: 
-                        (i) wants to end/stop the conversation; 
-                        (ii) is requesting guidance or info about your capabilities; 
-                        (iii) in **any case* the user makes a request outside your tasks scope.
-                    """.trimIndent(),
-                parameters = ToolParameters(
-                    type = "object",
-                    properties = mapOf(),
-                )
-            )
-        )
-    }
-
-    override fun invoke(args: JsonObject): String {
-        return "MainRouter"
-    }
-}
-
-
-class ToolRetrievePlayer(): Tool() {
-    private val TAG = this::class.simpleName
+class ToolRetrieveDriver(): Tool() {
+    private val TAG = this::class.java.simpleName
     override val name = "tool_retrieve"
     override val type: ToolType = ToolType.INTERMEDIATE
 
@@ -96,11 +66,17 @@ class ToolRetrievePlayer(): Tool() {
         Log.d(TAG, "Input params: $artist, $track, KEYS: ${allTracks.keys}")
 
         var retString = if (allTracks.containsKey(artist) && allTracks[artist]!!.containsKey(track)) {
-            "Track found! Spotify ID: ${allTracks[artist]!![track]!!}"
+            """
+            Track found! Spotify ID: ${allTracks[artist]!![track]!!}.
+            Call tool 'tool_play' with this ID.
+            """.trimMargin()
         } else if (allTracks.containsKey(artist)) {
-            """Songs that can be played by $artist:
-                (don't read Spotify IDs to the user):
-               ${allTracks[artist]!!}
+            """
+            Songs that can be played by $artist:
+            (don't read Spotify IDs to the user):
+            ${allTracks[artist]!!}
+           
+            Ask the user which of these they want to play.
             """.trimIndent()
         } else {
             "No song found for this artist."
@@ -110,9 +86,9 @@ class ToolRetrievePlayer(): Tool() {
 }
 
 
-class ToolPlay(): Tool() {
-    private val TAG = this::class.simpleName
-    override val name = "tool_play"
+class ToolGo(): Tool() {
+    private val TAG = this::class.java.simpleName
+    override val name = "tool_go"
     override val type: ToolType = ToolType.ACTION
 
     override fun getDefinition(): ToolDefinition {
@@ -140,63 +116,11 @@ class ToolPlay(): Tool() {
 
     override fun invoke(args: JsonObject): String {
         var spotifyID = args["spotify_id"]?: ""
-        val retString = if (spotifyID != "") "Playing the track with Spotify ID: $spotifyID. Do NOT make further questions to the user." else "Empty Spotify ID!"
+        val retString = if (spotifyID != "") {
+            "Playing the track with Spotify ID: $spotifyID. Do NOT make further questions to the user."
+        } else {
+            "Empty Spotify ID!"
+        }
         return retString
-    }
-}
-
-
-class SearchContacts(): Tool() {
-    private val TAG = this::class.simpleName
-    override val name = "search_contacts"
-    override val type: ToolType = ToolType.INTERMEDIATE
-
-    override fun getDefinition(): ToolDefinition {
-        return ToolDefinition(
-            type = "function",
-            function = ToolFunction(
-                name = name,
-                description = "Get the full list of contacts that the user can call or send messages to.",
-                parameters = ToolParameters(
-                    type = "object",
-                    properties = mapOf(),
-                )
-            )
-        )
-    }
-
-    override fun invoke(args: JsonObject): String {
-        val allTracks = listOf(
-            "amal", "myself", "rick", "mom", "dad"
-        )
-        return "Contacts that can be called:\n${allTracks}"
-    }
-}
-
-
-class SearchPlaces(): Tool() {
-    private val TAG = this::class.simpleName
-    override val name = "search_places"
-    override val type: ToolType = ToolType.INTERMEDIATE
-
-    override fun getDefinition(): ToolDefinition {
-        return ToolDefinition(
-            type = "function",
-            function = ToolFunction(
-                name = name,
-                description = "Get the full list of places the user can go nearby.",
-                parameters = ToolParameters(
-                    type = "object",
-                    properties = mapOf(),
-                )
-            )
-        )
-    }
-
-    override fun invoke(args: JsonObject): String {
-        val allPlaces = listOf(
-            "lecce", "florence", "cagliari", "manchester", "rome", "trento"
-        )
-        return "Places reachable nearby:\n${allPlaces}"
     }
 }

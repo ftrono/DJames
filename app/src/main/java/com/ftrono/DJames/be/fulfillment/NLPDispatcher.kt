@@ -13,7 +13,7 @@ import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.NlpQueryModel
-import com.ftrono.DJames.be.agents.StateInfo
+import com.ftrono.DJames.be.agents.data.StateInfo
 import java.io.File
 
 

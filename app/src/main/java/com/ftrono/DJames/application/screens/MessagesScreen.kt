@@ -58,7 +58,7 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.chat.ActionsExecutor
 import com.ftrono.DJames.be.chat.ChatManager
 import com.ftrono.DJames.be.database.Message
-import com.ftrono.DJames.be.agents.ActionType
+import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.ui.components.ChatInputField
 import com.ftrono.DJames.ui.components.ConvStarterBubble
 import com.ftrono.DJames.ui.dialogs.GeneralDialog

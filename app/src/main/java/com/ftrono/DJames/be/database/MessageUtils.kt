@@ -17,8 +17,8 @@ import com.ftrono.DJames.application.maxHistoryDays
 import com.ftrono.DJames.application.messageBox
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.agents.ChatMessage
-import com.ftrono.DJames.be.agents.ActionType
+import com.ftrono.DJames.be.agents.data.ChatMessage
+import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.be.collections.testMessages
 import io.objectbox.query.QueryBuilder
 import kotlinx.serialization.json.Json

@@ -1,4 +1,4 @@
-package com.ftrono.DJames.be.agents
+package com.ftrono.DJames.be.agents.data
 
 import com.ftrono.DJames.be.models.EnumTypeConverter
 import com.ftrono.DJames.be.models.JsonConverter
@@ -7,7 +7,6 @@ import io.objectbox.annotation.Convert
 import kotlinx.serialization.SerialName
 import java.io.Serializable
 import kotlinx.serialization.Serializable as KxSerializable
-import kotlinx.serialization.json.*
 
 
 // ENUMS:

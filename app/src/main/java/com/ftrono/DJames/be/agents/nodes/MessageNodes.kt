@@ -1,0 +1,54 @@
+package com.ftrono.DJames.be.agents.nodes
+
+import android.content.Context
+import android.util.Log
+import com.ftrono.DJames.be.agents.llm.LlmAgent
+import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.be.agents.tools.*
+
+
+// (LLM-based) ReAct agent node:
+class MessageAgentNode (
+    private val context: Context,
+    private val apiKey: String,
+    override val onComplete: String,
+    override val onFallback: String,
+) : Node() {
+
+    override val TAG = this::class.java.simpleName
+    override val name: String = TAG.replace("Node", "")
+
+    override fun invoke(prevState: StateInfo): StateInfo {
+        Log.d(TAG, "${name} activated")
+        var updState = prevState
+
+        // Build prompt:
+        var corePrompt = """
+            ## TASK:
+            Your task is to help the user send a message to one of his contacts.
+            Any request not involving sending an SMS, a Whatsapp text message or a Whatsapp audio/voice message is outside your tasks scope.
+            Use the available tools provided to get the list of available contacts that the user can send messages to.
+        """.trimIndent()
+        var inMessages = prepareInMessages(
+            origMessages = prevState.messages,
+            corePrompt = corePrompt,
+        )
+
+        val llmAgent = LlmAgent(
+            context = context,
+            apiKey = apiKey,
+            agentName = name,
+            onComplete = onComplete,
+            onFallback = onFallback,
+            tools = mapOf<String, Tool>(
+                ToolHandoff().name to ToolHandoff(),
+                ToolRetrieveContacts().name to ToolRetrieveContacts(),
+                ToolSend().name to ToolSend(),
+            ),
+        )
+
+        val llmReturn = llmAgent.invoke(llmMessages = inMessages)
+        updState = updateStateFlow(updState, llmReturn)
+        return updState
+    }
+}

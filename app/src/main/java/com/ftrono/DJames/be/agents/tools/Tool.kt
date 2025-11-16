@@ -1,10 +1,10 @@
 package com.ftrono.DJames.be.agents.tools
 
-import com.ftrono.DJames.be.agents.ToolDefinition
-import com.ftrono.DJames.be.agents.ToolFunction
-import com.ftrono.DJames.be.agents.ToolParameters
-import com.ftrono.DJames.be.agents.ToolProperty
-import com.ftrono.DJames.be.agents.ToolType
+import com.ftrono.DJames.be.agents.data.ToolDefinition
+import com.ftrono.DJames.be.agents.data.ToolFunction
+import com.ftrono.DJames.be.agents.data.ToolParameters
+import com.ftrono.DJames.be.agents.data.ToolProperty
+import com.ftrono.DJames.be.agents.data.ToolType
 import kotlinx.serialization.json.JsonObject
 
 open class Tool {

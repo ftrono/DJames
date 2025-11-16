@@ -1,4 +1,4 @@
-package com.ftrono.DJames.be.agents
+package com.ftrono.DJames.be.agents.data
 
 import com.ftrono.DJames.application.START
 import com.ftrono.DJames.be.database.LibraryItem
@@ -14,6 +14,7 @@ data class StateInfo(
     var messages: MutableList<ChatMessage> = mutableListOf(),
     var next: String = START,
     var interrupt: Boolean = false,
+    var isSilence: Boolean = false,
     var fail: Boolean = false,   //fulfillment complete
     var end: Boolean = false,   //fulfillment complete
     var intentName: String = "Fallback",

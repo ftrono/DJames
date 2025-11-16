@@ -7,7 +7,7 @@ import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.lastRecordingName
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.agents.StateInfo
+import com.ftrono.DJames.be.agents.data.StateInfo
 import com.google.gson.JsonParser
 import java.io.BufferedReader
 import java.io.InputStreamReader

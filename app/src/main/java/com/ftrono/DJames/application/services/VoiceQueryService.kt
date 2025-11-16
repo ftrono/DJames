@@ -30,10 +30,9 @@ import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.application.recordingFail
 import com.ftrono.DJames.application.recordingTime
 import com.ftrono.DJames.application.sourceIsVolume
-import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.AgentsGraph
 import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.agents.StateInfo
+import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.be.fulfillment.NLPDispatcher
 import com.ftrono.DJames.be.audio.AndroidAudioRecorder
 import com.ftrono.DJames.be.audio.AudioRequestsManager
@@ -90,6 +89,7 @@ class VoiceQueryService: Service() {
             // Init conv orchestrator:
             if (prefs.enableV3) {
                 agentsGraph = AgentsGraph(applicationContext)
+                agentsGraph.build()
             } else {
                 nlpDispatcher = NLPDispatcher(applicationContext)
             }

@@ -17,9 +17,9 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.ExtractorInfo
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.NlpQueryModel
-import com.ftrono.DJames.be.agents.ActionType
+import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.agents.StateInfo
+import com.ftrono.DJames.be.agents.data.StateInfo
 
 
 class GenericFulfillment (private var context: Context) {

@@ -2,45 +2,40 @@ package com.ftrono.DJames.be.agents.nodes
 
 import android.content.Context
 import android.util.Log
-import com.ftrono.DJames.application.dateOnlyFormat
+import com.ftrono.DJames.application.END
+import com.ftrono.DJames.application.datetimePromptFormat
 import com.ftrono.DJames.application.lastRequestIntent
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.agents.ChatMessage
-import com.ftrono.DJames.be.agents.LlmReply
-import com.ftrono.DJames.be.agents.LlmReturn
-import com.ftrono.DJames.be.agents.NodeType
-import com.ftrono.DJames.be.agents.StateInfo
-import com.ftrono.DJames.be.agents.promptDateStr
-import com.ftrono.DJames.be.agents.promptEnd
-import com.ftrono.DJames.be.agents.promptGenderStr
-import com.ftrono.DJames.be.agents.promptIntro
-import com.ftrono.DJames.be.agents.promptJsonOut
-import com.ftrono.DJames.be.agents.promptRouterIntro
-import com.ftrono.DJames.be.agents.promptRouterOut
-import com.ftrono.DJames.be.agents.promptUserStr
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
+import com.ftrono.DJames.be.agents.data.ChatMessage
+import com.ftrono.DJames.be.agents.data.LlmReturn
+import com.ftrono.DJames.be.agents.data.NodeType
+import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.be.agents.data.promptDateStr
+import com.ftrono.DJames.be.agents.data.promptEnd
+import com.ftrono.DJames.be.agents.data.promptGenderStr
+import com.ftrono.DJames.be.agents.data.promptIntro
+import com.ftrono.DJames.be.agents.data.promptRouterIntro
+import com.ftrono.DJames.be.agents.data.promptRouterOut
+import com.ftrono.DJames.be.agents.data.promptUserStr
 
 
 open class Node() {
 
     open val name: String = ""
     open val type: NodeType = NodeType.AGENT
-    open val useJson: Boolean = false
     open val nextOptions: List<String> = listOf()
     open val onComplete: String = ""
     open val onFallback: String = ""
     open val TAG = this::class.java.simpleName
 
 
-    // Build applicable User prompt:
-    fun addPromptsToMessages(
+    // Build prompts & prepare inMessages:
+    fun prepareInMessages(
         origMessages: MutableList<ChatMessage>,
         corePrompt: String,
         isRouter: Boolean = false,
-        useJson: Boolean = false,
         joinMessages: Boolean = false,
     ): MutableList<ChatMessage> {
 
@@ -48,14 +43,14 @@ open class Node() {
         val systemPrompt = if (isRouter) {
                 promptRouterIntro
             } else {
-                val curDate = utils.convertTimestamp(utils.getCurrentTimestamp(), dateOnlyFormat)
+                val curDate = utils.convertTimestamp(
+                    utils.getCurrentTimestamp(), datetimePromptFormat
+                )
                 promptIntro.replace(promptDateStr, curDate).replace(promptGenderStr, prefs.userGender)
             }
 
         // 2) Prepare user prompt:
-        var userPrompt = if (useJson) {
-                systemPrompt + "\n" + corePrompt + "\n" + promptJsonOut
-            } else if (isRouter) {
+        var userPrompt = if (isRouter) {
                 systemPrompt + "\n" + corePrompt + "\n" + promptRouterOut
             } else {
                 systemPrompt + "\n" + corePrompt + "\n"
@@ -94,11 +89,6 @@ open class Node() {
         return inMessages
     }
 
-    // Clean & parse Json output from a LLM reply:
-    fun decodeJson(text: String): LlmReply {
-        val cleanText = text.replace("```json", "").replace("```", "").trim()
-        return Json.decodeFromString<LlmReply>(cleanText)
-    }
 
     // (Router) Route to 'next' node:
     fun routeRequest(
@@ -122,6 +112,9 @@ open class Node() {
             lastRequestIntent = llmReturn.next   // TODO
             updState.intentName = llmReturn.next
             updState.next = llmReturn.next
+            if (updState.next == END) {
+                updState.messages = mutableListOf<ChatMessage>()
+            }
 
         } else {
             // Non-existent 'next' option:
@@ -131,29 +124,28 @@ open class Node() {
         return updState
     }
 
-    // (Agent) Extract & use 'next' & 'reply' from JSON output:
-    fun parseJson(
-        llmReturn: LlmReturn,
+    fun updateStateFlow(
         prevState: StateInfo,
+        llmReturn: LlmReturn,
     ): StateInfo {
         var updState = prevState
-
-        // Parse structured JSON output:
-        val outJson = decodeJson(llmReturn.messages.last().content)
-        if (outJson.next == "HANDOFF") {
-            // Only "HANDOFF", no messages:
-            updState.next = onFallback
-
+        if (llmReturn.fail) {
+            updState.fail = true
         } else {
-            // Update Next and messages list:
-            if (outJson.next == "HUMAN") {
-                updState.interrupt = true
-            } else {
-                updState.next = outJson.next
+            when (llmReturn.next) {
+                onComplete -> {
+                    updState.messages.addAll(llmReturn.messages)
+                    updState.next = llmReturn.next
+                }
+                onFallback -> {
+                    updState.next = llmReturn.next
+                }
+                else -> {
+                    updState.interrupt = true
+                    updState.messages.addAll(llmReturn.messages)
+                    updState.next = name
+                }
             }
-            llmReturn.messages.last().content = outJson.reply.replace("* ", "- ")
-            updState.messages.addAll(llmReturn.messages)
-            updState.intentName = name
         }
         return updState
     }

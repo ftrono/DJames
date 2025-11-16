@@ -14,7 +14,7 @@ import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.be.database.MessageUtils
 import com.ftrono.DJames.be.database.MyObjectBox
 import com.ftrono.DJames.be.database.LibraryItem
-import com.ftrono.DJames.be.agents.StateInfo
+import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.be.utils.FulfillmentUtils
 import com.ftrono.DJames.be.chat.DefaultReplies
 import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
@@ -160,7 +160,7 @@ var enablePlayerInfo = false
 val datetimeExportFormat = "yyyy-MM-dd HH_mm_ss"
 val datetimeFullFormat = "yyyy/MM/dd HH:mm"
 val datetimeShortFormat = "MMMM dd, HH:mm"
-val dateOnlyFormat = "EEEE dd MMMM yyyy"
+val datetimePromptFormat = "EEEE dd MMMM yyyy, HH:mm"
 
 //Dropdowns:
 val genders = listOf<String>("Sir", "Madam", "Friend")
@@ -225,7 +225,6 @@ val spotifyAuthConfig = AuthorizationServiceConfiguration(
 val mistralSttModel = "voxtral-mini-latest"
 val mistralSttUrl = "https://api.mistral.ai/v1/audio/transcriptions"
 val mistralLlmModel = "mistral-small-latest"
-val mistralLlmProModel = "mistral-medium-latest"
 val mistralLlmUrl = "https://api.mistral.ai/v1/chat/completions"
 val mistralLlmTemperature = 0.3F
 val mistralLlmTimeout = 20L

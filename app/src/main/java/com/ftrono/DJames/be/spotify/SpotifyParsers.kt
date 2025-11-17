@@ -16,7 +16,7 @@ import com.google.gson.JsonObject
 
 
 class SpotifyParsers() {
-    private val TAG = SpotifyParsers::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     fun extractSingleArtist(itemJson: JsonObject): SpotifyArtist {
         return SpotifyArtist(

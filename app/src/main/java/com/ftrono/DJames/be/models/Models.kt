@@ -2,8 +2,6 @@ package com.ftrono.DJames.be.models
 
 
 import androidx.compose.runtime.Composable
-import com.ftrono.DJames.be.database.LibraryItem
-import com.ftrono.DJames.be.database.SpotifyPlayable
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -35,37 +33,18 @@ data class QuickAction(
 )
 
 
+data class RecDetails(
+    var recName: String = "",
+    var recPath: String = "",
+    var speechPct: Int = 0
+)
+
+
 @Serializable
 data class AiReply(
     val langCode: String,
     val text: String
 )
-
-
-@Serializable
-data class DispatcherInfo(
-    var lastRecording: String = "",   //Flac only
-    var aiReplies: List<AiReply> = listOf(),
-    var actionType: ActionType? = null, //"call", ""
-    var end: Boolean = false,   //fulfillment complete
-    var fail: Boolean = false,   //fulfillment complete
-    var playAcknowledge: Boolean = false,   //play the acknowledge tone
-    var followUp: Boolean = false,   //generic
-    var messageMode: Boolean = false,   //specific for messages only
-    var messageType: String = "",
-    var intentName: String = "Fallback",
-    var reqLanguage: String = "",
-    var playType: String = "",
-    var contextType: String = "",
-    var usable: LibraryItem = LibraryItem(),
-    var playable: SpotifyPlayable = SpotifyPlayable()
-)
-
-
-// ENUM:
-enum class ActionType {
-    PLAY, CALL, SMS, WA_TEXT, WA_VOICE, OPEN_URL
-}
 
 
 // CONVERTERS:
@@ -103,25 +82,17 @@ open class JsonListConverter<T>(
 }
 
 
-class ActionTypeConverter : PropertyConverter<ActionType, String> {
-    override fun convertToDatabaseValue(entityProperty: ActionType?): String? {
+abstract class EnumTypeConverter<T : Enum<T>>(
+    private val enumValues: Array<T>
+) : PropertyConverter<T, String> {
+
+    override fun convertToDatabaseValue(entityProperty: T?): String? {
         return entityProperty?.name
     }
 
-    override fun convertToEntityProperty(databaseValue: String?): ActionType? {
+    override fun convertToEntityProperty(databaseValue: String?): T? {
         return databaseValue?.let { value ->
-            ActionType.entries.find { it.name.equals(value, ignoreCase = true) }
+            enumValues.firstOrNull { it.name.equals(value, ignoreCase = true) }
         }
     }
-}
-
-
-// Convert String to ActionType:
-fun actionTypeFromString(value: String?): ActionType? {
-    return ActionType.entries.find { it.name.equals(value, ignoreCase = true) }
-}
-
-// Convert ActionType to String:
-fun actionTypeToString(actionType: ActionType?): String? {
-    return actionType?.name
 }

@@ -31,6 +31,14 @@ class DefaultReplies() {
         return defaultSents.random()
     }
 
+    fun replyNotAvailable(): String {
+        val defaultSents = listOf(
+            "Sorry ${prefs.userGender}, this task is not available yet!",
+            "I'm sorry ${prefs.userGender}, I'm not ready for this task at the moment!",
+        )
+        return defaultSents.random()
+    }
+
     fun replyNoPermission(): String {
         val defaultSents = listOf(
             "Sorry ${prefs.userGender}, you first need to enable me in Settings! Don't do it while driving.",

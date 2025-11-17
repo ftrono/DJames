@@ -8,7 +8,7 @@ import com.ftrono.DJames.application.audioManager
 
 
 class AudioRequestsManager() {
-    private val TAG = AudioRequestsManager::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     //AudioManager:
     private val duckedAttributes = AudioAttributes.Builder()

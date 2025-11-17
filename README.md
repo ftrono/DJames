@@ -1,6 +1,6 @@
 # 🎧 DJames
 
-DJames is a vocal Spotify remote & smart driving assistant for Android. It makes use of *Google Dialogflow* for Speech-to-Text and basic NLP, *Spotify's Web API* and custom NLP extraction and matching algorithms. The UI is based on Jetpack Compose.
+DJames is a vocal Spotify remote & smart driving assistant for Android. It makes use of a Multi-Agent AI architecture based on *Mistral AI* & *Google Dialogflow* for Speech-to-Text and NLP, *Spotify's Web API* and custom extraction and matching algorithms. The UI is based on Jetpack Compose.
 
 <img src="./app/src/main/res/drawable-nodpi/app_icon_round.png" alt="DJames" width="100"/>
 
@@ -10,6 +10,8 @@ DJames is supported by **Android >= 10**.
 
 
 ## Versions history
+
+**Version 3.0.a9 (v3 alpha) (2025-10-28)** - Init works for multi-agent architecture.
 
 **Version 3.0.a8 (v3 alpha) (2025-10-20)** - Add noise-cleaning Band-Pass Filter as support to VAD. Reworked Home screen: improved tips & guidance. Add open links from Library item options. Tested many alternative VADs and noise filters (i.e. RTNR NoiseSuppressor, Silero VAD, Yamnet VAD, constant wind dynamic suppression, ...), then all removed.
 

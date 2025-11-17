@@ -9,7 +9,7 @@ import com.google.gson.JsonObject
 
 
 class SpotifyCalls(private val context: Context) {
-    private val TAG = SpotifyPlayer::class.java.simpleName
+    private val TAG = this::class.java.simpleName
     private var query = SpotifyQuery(context)
 
 

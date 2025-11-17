@@ -1,4 +1,4 @@
-package com.ftrono.DJames.be.nlp
+package com.ftrono.DJames.be.fulfillment
 
 import android.content.Context
 import android.util.Log
@@ -24,7 +24,7 @@ import java.io.InputStreamReader
 
 
 class NLPQuery(context: Context) {
-    private val TAG = NLPQuery::class.java.simpleName
+    private val TAG = this::class.java.simpleName
     private val regionId = "europe-west1"
     private var sessionId: SessionName? = null
     private var sessionsClient: SessionsClient? = null
@@ -64,7 +64,7 @@ class NLPQuery(context: Context) {
         try {
             synchronized(this) {
                 try {
-                    Thread.sleep(queryTimeout.toLong() * 1000)   //default: 5
+                    Thread.sleep(5L * 1000)   //default: 5
                     sessionsClient!!.shutdown()
                     Log.d(TAG, "Connection Error: sessionsClient manually SHUT DOWN.")
                 } catch (e: InterruptedException) {

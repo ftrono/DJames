@@ -37,6 +37,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.dialogs.MultiPermissionsHandler
 import com.ftrono.DJames.application.services.OverlayService
+import com.ftrono.DJames.be.chat.ChatManager
 import com.ftrono.DJames.ui.components.isKeyboardOpen
 import com.ftrono.DJames.ui.navigation.BottomNavigationBar
 import com.ftrono.DJames.ui.navigation.Navigation
@@ -177,6 +178,10 @@ class MainActivity : ComponentActivity() {
             )
         }
 
+        // ChatManager:
+        val chatManager = ChatManager(mContext)
+        chatManager.init()
+
 
         //MAIN SCREEN:
         Row(
@@ -205,7 +210,7 @@ class MainActivity : ComponentActivity() {
                         .padding(it)
                 ) {
                     //SET CURRENT SCREEN FROM NAVIGATION HOST:
-                    Navigation(navController)
+                    Navigation(navController, chatManager)
                 }
             }
         }

@@ -67,7 +67,7 @@ class Prefs (context: Context) {
 
     //Rec max freq:
     var recMaxFreq: Int
-        get() = sharedPrefs.getInt(KEY_REC_MAX_FREQ, 2700)
+        get() = sharedPrefs.getInt(KEY_REC_MAX_FREQ, 2500)
         set(value) = sharedPrefs.edit { putInt(KEY_REC_MAX_FREQ, value) }
 
     //Enable second noise suppression:
@@ -77,7 +77,7 @@ class Prefs (context: Context) {
 
     //Delta Hz for second noise suppression:
     var secondNoiseDelta: Int
-        get() = sharedPrefs.getInt(KEY_SECOND_NOISE_DELTA, 400)
+        get() = sharedPrefs.getInt(KEY_SECOND_NOISE_DELTA, 500)
         set(value) = sharedPrefs.edit { putInt(KEY_SECOND_NOISE_DELTA, value) }
 
     //Save to downloads:

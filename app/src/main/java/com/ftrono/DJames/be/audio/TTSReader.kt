@@ -19,23 +19,15 @@ import kotlin.coroutines.suspendCoroutine
 
 class TTSReader(private val context: Context) {
     //Main:
-    private val TAG = TTSReader::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     fun speak(
         aiReplies: List<AiReply>,
         saveMessage: Boolean = true
     ) {
-        var fullText = ""
-        // Speak:
-        runBlocking {
-            for (reply in aiReplies) {
-                fullText = fullText + reply.text
-                ttsRead(context, reply)
-            }
-        }
+        // Save reply:
         if (saveMessage) {
-            // Save reply:
-            lastAiMessage.text = fullText
+            lastAiMessage.text = aiReplies.joinToString(" ") { it.text }
             lastAiMessage.requestIntent = lastRequestIntent
             messageUtils.storeMessage(
                 context = context,
@@ -43,6 +35,12 @@ class TTSReader(private val context: Context) {
                 fromUser = false,
                 fromVoice = true
             )
+        }
+        // Speak:
+        runBlocking {
+            for (reply in aiReplies) {
+                ttsRead(context, reply)
+            }
         }
     }
 

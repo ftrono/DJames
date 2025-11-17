@@ -21,7 +21,7 @@ import kotlin.math.roundToInt
 
 
 class SpotifySearch(private val context: Context) {
-    private val TAG = SpotifySearch::class.java.simpleName
+    private val TAG = this::class.java.simpleName
     private var query = SpotifyQuery(context)
 
     //SEARCH PLAYABLE:

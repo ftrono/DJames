@@ -33,7 +33,7 @@ import kotlinx.serialization.decodeFromString
 
 
 class SpotifyUtils {
-    private val TAG = SpotifyUtils::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     //Extract URL from share message:
     fun extractUrl(text: String): String {

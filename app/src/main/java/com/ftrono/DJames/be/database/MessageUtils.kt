@@ -17,8 +17,8 @@ import com.ftrono.DJames.application.maxHistoryDays
 import com.ftrono.DJames.application.messageBox
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.application.voiceConvStarted
-import com.ftrono.DJames.be.models.ActionType
+import com.ftrono.DJames.be.agents.data.ChatMessage
+import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.be.collections.testMessages
 import io.objectbox.query.QueryBuilder
 import kotlinx.serialization.json.Json
@@ -27,7 +27,7 @@ import java.io.File
 
 
 class MessageUtils {
-    private val TAG = MessageUtils::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     //GET ALL:
     //Get List of Message IDs:
@@ -113,16 +113,21 @@ class MessageUtils {
     }
 
 
-    //Store last open log to DB:
-    fun storeMessage(context: Context, langCode: String, fromUser: Boolean = false, fromVoice: Boolean = false, isStart: Boolean = false) {
+    //Store last open message to DB:
+    fun storeMessage(
+        context: Context,
+        langCode: String,
+        fromUser: Boolean = false,
+        fromVoice: Boolean = false,
+        isStart: Boolean = false,
+        llmMessages: MutableList<ChatMessage>? = null
+    ): Long {
+        var key = -1L
         try {
             val message = if (fromUser) lastUserMessage else lastAiMessage
             if (message.text == "") {
                 // Empty message -> nothing to save:
                 Log.w(TAG, "Empty Message: not saved!")
-            } else if (fromVoice && !voiceConvStarted) {
-                // Voice conv not started -> don't save:
-                Log.w(TAG, "Voice conv not started: message not saved!")
             } else {
                 message.timestamp = utils.getCurrentTimestamp()
                 if (isStart) {
@@ -130,11 +135,19 @@ class MessageUtils {
                     lastStarterId = message.timestamp
                     message.isStart = true
                 }
+                // Attach LLM ChatMessages:
+                val llmChatMessages = llmMessages ?: mutableListOf<ChatMessage>(
+                    ChatMessage(
+                        role = if (fromUser) "user" else "assistant",
+                        content = message.text,
+                    )
+                )
                 // CONTENT: Actually store message:
                 message.starterId = lastStarterId
                 message.fromVoice = fromVoice
                 message.langCode = langCode
-                messageBox!!.put(message)
+                message.attachments.llmChatMessages = llmChatMessages
+                key = messageBox!!.put(message)
                 Log.d(TAG, "Message item ${message.id} saved!")
                 //Send broadcast:
                 Intent().also { intent ->
@@ -145,7 +158,34 @@ class MessageUtils {
         } catch (e: Exception) {
             Log.w(TAG, "ERROR: Message item not saved!", e)
         }
+        return key
     }
+
+
+    //Store last open message to DB:
+    fun updateMessage(
+        context: Context,
+        id: Long,
+        langCode: String = "",
+        requestIntent: String = "",
+    ) {
+        try {
+            val message = messageBox!!.get(id)
+            message.langCode = if (langCode != "") langCode else message.langCode
+            message.requestIntent =
+                if (requestIntent != "") requestIntent else message.requestIntent
+            messageBox!!.put(message)
+            Log.d(TAG, "Message item $id updated!")
+            //Send broadcast:
+            Intent().also { intent ->
+                intent.setAction(ACTION_MESSAGES_REFRESH)
+                context.sendBroadcast(intent)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR: Message item $id not updated!", e)
+        }
+    }
+
 
     //DB DELETE:
     //Update Starter ID for conversations whose first message has been deleted:
@@ -430,15 +470,12 @@ class MessageUtils {
         for (msg in messages) {
             val extraDetails = if (msg.fromUser) "" else messageUtils.buildExtraDetails(msg)
             if (extraDetails != "") {
-                val action = if (msg.requestIntent.contains("Play")) {
-                    ActionType.PLAY
-                } else {
-                    when (msg.requestIntent) {
-                        "CallRequest" -> ActionType.CALL
-                        "MessageRequest" -> ActionType.SMS
-                        "DriveRequest" -> ActionType.OPEN_URL
-                        else -> null
-                    }
+                val action = when {
+                    msg.requestIntent.contains("Play") -> ActionType.PLAY
+                    msg.requestIntent.contains("Call") -> ActionType.CALL
+                    msg.requestIntent.contains("Message") -> ActionType.SMS
+                    msg.requestIntent.contains("Drive") -> ActionType.OPEN_URL
+                    else -> null
                 }
                 if (action != null) {
                     msg.actionType = action

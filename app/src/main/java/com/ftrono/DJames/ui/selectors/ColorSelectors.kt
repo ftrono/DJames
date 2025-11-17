@@ -137,9 +137,9 @@ fun messagesColorSelector(
     cat: String
 ): Color {
     return when {
-        cat == "CallRequest" -> colorResource(id = R.color.greenSign)
-        cat == "MessageRequest" -> colorResource(id = R.color.blueSign)
-        cat == "DriveRequest" -> colorResource(id = R.color.brownSign)
+        cat.contains("Call") -> colorResource(id = R.color.greenSign)
+        cat.contains("Message") -> colorResource(id = R.color.blueSign)
+        cat.contains("Drive") -> colorResource(id = R.color.brownSign)
         cat.contains("Play") -> colorResource(id = R.color.yellowSign)
         else -> colorResource(id = R.color.dark_grey)
     }
@@ -151,9 +151,9 @@ fun messagesColorSelectorLight(
     cat: String
 ): Color {
     return when {
-        cat == "CallRequest" -> colorResource(id = R.color.greenSignLight)
-        cat == "MessageRequest" -> colorResource(id = R.color.blueSignLight)
-        cat == "DriveRequest" -> colorResource(id = R.color.brownSignLight)
+        cat.contains("Call") -> colorResource(id = R.color.greenSignLight)
+        cat.contains("Message") -> colorResource(id = R.color.blueSignLight)
+        cat.contains("Drive") -> colorResource(id = R.color.brownSignLight)
         cat.contains("Play") -> colorResource(id = R.color.yellowSignLight)
         else -> colorResource(id = R.color.mid_grey)
     }

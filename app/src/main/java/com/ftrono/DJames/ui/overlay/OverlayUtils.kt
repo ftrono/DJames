@@ -104,12 +104,12 @@ fun getQuickActionOnTap(
     } else if (name == "custom") {
         {
             //TRIGGER ENABLE/DISABLE USE EXPERIMENTAL SETTING:
-            val modeToTrigger = if (prefs.recToDownloads) "OFF" else "ON"
-            prefs.recToDownloads = !prefs.recToDownloads
+            val modeToTrigger = if (prefs.enableV3) "OFF" else "ON"
+            prefs.enableV3 = !prefs.enableV3
             //TOAST -> Send broadcast:
             Intent().also { intent ->
                 intent.setAction(ACTION_TOASTER)
-                intent.putExtra("toastText", "Save to Downloads: $modeToTrigger")
+                intent.putExtra("toastText", "V3 mode: $modeToTrigger")
                 context.sendBroadcast(intent)
             }
         }
@@ -231,7 +231,7 @@ fun getQuickAction(
     } else {
         // "custom":
         QuickAction(
-            description = "downloads",
+            description = "v3 mode",
             content = {
                 Icon(
                     modifier = Modifier

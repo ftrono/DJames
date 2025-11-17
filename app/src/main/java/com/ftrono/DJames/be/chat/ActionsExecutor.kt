@@ -6,7 +6,6 @@ import android.telephony.SmsManager
 import android.util.Log
 import androidx.core.content.FileProvider
 import android.net.Uri
-import com.ftrono.DJames.application.ACTION_MAKE_CALL
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.nlp_queryText
@@ -15,9 +14,9 @@ import com.ftrono.DJames.application.recDir
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.SpotifyPlayable
-import com.ftrono.DJames.be.models.ActionType
+import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.models.DispatcherInfo
+import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.be.spotify.SpotifyPlayer
 import java.io.File
 
@@ -25,8 +24,7 @@ import java.io.File
 class ActionsExecutor(
     private val context: Context
 ) {
-    private val TAG = ActionsExecutor::class.java.simpleName
-    private val chatManager = ChatManager(context)
+    private val TAG = this::class.java.simpleName
 
     // HELPER: LAUNCHER ONLY:
     fun launchAction(
@@ -38,28 +36,28 @@ class ActionsExecutor(
         lastRecording: String = "",
     ): String {
         return when (action) {
-            ActionType.PLAY -> spotifyPlay(playable!!)
-            ActionType.CALL -> makeCall(usable!!, fromOldChat)
-            ActionType.SMS -> sendSMS(usable!!, reqLanguage, fromOldChat)
-            ActionType.WA_TEXT -> sendWhatsappText(usable!!, reqLanguage, fromOldChat)
-            ActionType.WA_VOICE -> sendWhatsappAudio(usable!!, lastRecording, fromOldChat)
-            ActionType.OPEN_URL -> openLink(usable!!)
+            ActionType.PLAY -> spotifyPlay(playable)
+            ActionType.CALL -> makeCall(usable, fromOldChat)
+            ActionType.SMS -> sendSMS(usable, reqLanguage)
+            ActionType.WA_TEXT -> sendWhatsappText(usable, reqLanguage)
+            ActionType.WA_VOICE -> sendWhatsappAudio(usable, lastRecording)
+            ActionType.OPEN_URL -> openLink(usable)
         }
     }
 
     // MAIN: EXECUTOR:
     fun execute(
-        latestDispatch: DispatcherInfo
+        latestState: StateInfo
     ): List<AiReply> {
         var updatedReplies = listOf<AiReply>()
         // Execute action:
-        var stringReply = if (latestDispatch.actionType == null) "" else {
+        var stringReply = if (latestState.actionType == null) "" else {
             launchAction(
-                action = latestDispatch.actionType!!,
-                usable = latestDispatch.usable,
-                playable = latestDispatch.playable,
-                reqLanguage = latestDispatch.reqLanguage,
-                lastRecording = latestDispatch.lastRecording
+                action = latestState.actionType!!,
+                usable = latestState.usable,
+                playable = latestState.playable,
+                reqLanguage = latestState.reqLanguage,
+                lastRecording = latestState.lastRecording
             )
         }
         // Update replies:
@@ -76,20 +74,24 @@ class ActionsExecutor(
 
     // SPOTIFY PLAY:
     fun spotifyPlay(
-        playable: SpotifyPlayable
+        playable: SpotifyPlayable?
     ): String {
-        val spotifyPlayer = SpotifyPlayer(context)
-        spotifyPlayer.spotifyPlay(playable)
+        try {
+            val spotifyPlayer = SpotifyPlayer(context)
+            spotifyPlayer.spotifyPlay(playable!!)
+        } catch (e: Exception) {
+            Log.w(TAG, "spotifyPlay(): TOOL ERROR: ", e)
+        }
         return ""
     }
 
     //CALL:
     fun makeCall(
-        usable: LibraryItem,
+        usable: LibraryItem?,
         fromOldChat: Boolean = false,
     ): String {
         try {
-            val phoneSet = usable.phoneSet!!
+            val phoneSet = usable!!.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
             utils.makeCall(context, contactPhone, fromService = !fromOldChat)
         } catch (e: Exception) {
@@ -100,34 +102,27 @@ class ActionsExecutor(
 
     //SEND SMS:
     fun sendSMS(
-        usable: LibraryItem,
-        reqLanguage: String,
-        fromOldChat: Boolean = false,
+        usable: LibraryItem?,
+        reqLanguage: String
     ): String {
         try {
             var ttsToRead = ""
-            val contactName = usable.name
+            val contactName = usable!!.name
             val phoneSet = usable.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
-            if (fromOldChat) {
-                // START NEW:
-                val curText = "Send an SMS to $contactName"
-                chatManager.processQuery(curText, restart = true)
-            } else {
-                // SEND:
-                var messageText = "[DJ] ${
-                    fulfillmentUtils.replaceEmojis(
-                        context = context,
-                        text = nlp_queryText,
-                        reqLanguage = reqLanguage
-                    )
-                }"
-                val smsManager: SmsManager = SmsManager.getDefault()
-                val parts = smsManager.divideMessage(messageText)
-                smsManager.sendMultipartTextMessage(contactPhone, null, parts, null, null)
-                ttsToRead = defaultReplies.replySmsSent(contactName)
-                Log.d(TAG, ttsToRead)
-            }
+            // SEND:
+            var messageText = "[DJ] ${
+                fulfillmentUtils.replaceEmojis(
+                    context = context,
+                    text = nlp_queryText,
+                    reqLanguage = reqLanguage
+                )
+            }"
+            val smsManager: SmsManager = SmsManager.getDefault()
+            val parts = smsManager.divideMessage(messageText)
+            smsManager.sendMultipartTextMessage(contactPhone, null, parts, null, null)
+            ttsToRead = defaultReplies.replySmsSent(contactName)
+            Log.d(TAG, ttsToRead)
             return ttsToRead
 
         } catch (e: Exception) {
@@ -138,46 +133,39 @@ class ActionsExecutor(
 
     //SEND WHATSAPP TEXT:
     fun sendWhatsappText(
-        usable: LibraryItem,
+        usable: LibraryItem?,
         reqLanguage: String,
-        fromOldChat: Boolean = false,
     ): String {
         try {
             var ttsToRead = ""
-            val contactName = usable.name
+            val contactName = usable!!.name
             val phoneSet = usable.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
-            if (fromOldChat) {
-                // START NEW:
-                val curText = "Send a Whatsapp message to $contactName"
-                chatManager.processQuery(curText, restart = true)
-            } else {
-                // SEND:
-                var messageText = "[DJ] ${
-                    fulfillmentUtils.replaceEmojis(
-                        context = context,
-                        text = nlp_queryText,
-                        reqLanguage = reqLanguage
-                    )
-                }"
+            // SEND:
+            var messageText = "[DJ] ${
+                fulfillmentUtils.replaceEmojis(
+                    context = context,
+                    text = nlp_queryText,
+                    reqLanguage = reqLanguage
+                )
+            }"
 
-                //Open WA:
-                val intent = Intent(Intent.ACTION_VIEW).apply {
-                    data = Uri.parse(
-                        "https://wa.me/${contactPhone.replace("+", "")}?text=${
-                            Uri.encode(messageText)
-                        }"
-                    )
-                    setPackage("com.whatsapp")
-                    setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    putExtra("fromwhere", "ser")
-                }
-
-                //Try to send:
-                context.startActivity(intent)
-                ttsToRead = defaultReplies.replyWATextSent(contactName)
-                Log.d(TAG, "Whatsapp text message ready to be sent!")
+            //Open WA:
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                data = Uri.parse(
+                    "https://wa.me/${contactPhone.replace("+", "")}?text=${
+                        Uri.encode(messageText)
+                    }"
+                )
+                setPackage("com.whatsapp")
+                setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                putExtra("fromwhere", "ser")
             }
+
+            //Try to send:
+            context.startActivity(intent)
+            ttsToRead = defaultReplies.replyWATextSent(contactName)
+            Log.d(TAG, "Whatsapp text message ready to be sent!")
             return ttsToRead
 
         } catch (e: Exception) {
@@ -188,18 +176,13 @@ class ActionsExecutor(
 
     //SEND WHATSAPP AUDIO:
     fun sendWhatsappAudio(
-        usable: LibraryItem,
+        usable: LibraryItem?,
         lastRecording: String,
-        fromOldChat: Boolean = false,
     ): String {
         try {
             var ttsToRead = ""
-            val contactName = usable.name
-            if (fromOldChat) {
-                // START NEW:
-                val curText = "Send a Whatsapp voice message to $contactName"
-                chatManager.processQuery(curText, restart = true)
-            } else if (lastRecording != "") {
+            val contactName = usable!!.name
+            if (lastRecording != "") {
                 //Get audio file:
                 val audioFile = File(recDir, lastRecording)   //Flac
                 val uri =
@@ -232,10 +215,14 @@ class ActionsExecutor(
 
     // OPEN LINK:
     fun openLink(
-        usable: LibraryItem
+        usable: LibraryItem?
     ): String {
-        val urlToOpen = usable.url
-        utils.openLink(context, url = urlToOpen, fromService = true)
+        try {
+            val urlToOpen = usable!!.url
+            utils.openLink(context, url = urlToOpen, fromService = true)
+        } catch (e: Exception) {
+            Log.w(TAG, "openLink(): TOOL ERROR: ", e)
+        }
         return ""
     }
 

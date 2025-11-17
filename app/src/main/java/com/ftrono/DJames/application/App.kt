@@ -14,7 +14,7 @@ import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.be.database.MessageUtils
 import com.ftrono.DJames.be.database.MyObjectBox
 import com.ftrono.DJames.be.database.LibraryItem
-import com.ftrono.DJames.be.models.DispatcherInfo
+import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.be.utils.FulfillmentUtils
 import com.ftrono.DJames.be.chat.DefaultReplies
 import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
@@ -26,22 +26,34 @@ import com.ftrono.DJames.be.utils.Utilities
 import com.google.gson.JsonObject
 import io.objectbox.Box
 import io.objectbox.BoxStore
-import okhttp3.OkHttpClient
+import kotlinx.serialization.json.Json
 import java.io.File
-import java.util.concurrent.TimeUnit
 
 
 //GLOBALS:
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.0.a8 (alpha)"
+val appVersion = "3.0.a9 (alpha)"
 val copyrightYear = 2024
 
 //DB:
 var libraryBox: Box<LibraryItem>? = null
 var messageBox: Box<Message>? = null
 var recDir: File? = null
+
+//JSON modes:
+val jsonUnknown = Json {
+    ignoreUnknownKeys = true
+    coerceInputValues = true
+}
+val jsonNoPrint = Json {
+    prettyPrint = false
+}
+
+// GRAPH CONTROL:
+var START = "__START__"
+var END = "__END__"
 
 //UTILS:
 val utils = Utilities()
@@ -119,12 +131,11 @@ var allMessageIds = MutableLiveData<List<Long>>(listOf<Long>())
 
 // Conversation tracking:
 val chatInputPlaceholder = "Ask via chat..."
-var chatLastDispatch = DispatcherInfo()
+var chatLastState = StateInfo()
 var lastAiMessage: Message = Message()
 var lastUserMessage: Message = Message()
 var lastRequestIntent: String = ""
 var lastStarterId: Long = 0L
-var voiceConvStarted: Boolean = false   // avoids saving AI fallback messages after empty user voice messages
 
 //Preferences:
 val maxHistoryDays: Long = 15L
@@ -141,13 +152,15 @@ val midThreshold = 60
 val recSamplingRate = 48000 // 44100
 val silencePatienceQueries = 2   //seconds
 val silencePatienceMess = 3   //seconds
-val queryTimeout = 5   //seconds
+val minSpeechPct = 10   // %
+val defaultHttpTimeout = 10L   //seconds
 val maxAudioRecTimeout = 120L   //for voice messages
 var lastRecordingName = ""
 var enablePlayerInfo = false
 val datetimeExportFormat = "yyyy-MM-dd HH_mm_ss"
 val datetimeFullFormat = "yyyy/MM/dd HH:mm"
 val datetimeShortFormat = "MMMM dd, HH:mm"
+val datetimePromptFormat = "EEEE dd MMMM yyyy, HH:mm"
 
 //Dropdowns:
 val genders = listOf<String>("Sir", "Madam", "Friend")
@@ -207,12 +220,14 @@ val spotifyAuthConfig = AuthorizationServiceConfiguration(
     Uri.parse("https://accounts.spotify.com/authorize"), // Authorization endpoint
     Uri.parse("https://accounts.spotify.com/api/token")   // Token endpoint
 )
-val client = OkHttpClient.Builder()
-    .connectTimeout(queryTimeout.toLong(), TimeUnit.SECONDS)
-    .writeTimeout(queryTimeout.toLong(), TimeUnit.SECONDS)
-    .readTimeout(queryTimeout.toLong(), TimeUnit.SECONDS)
-    .callTimeout(queryTimeout.toLong(), TimeUnit.SECONDS)
-    .build()
+
+//LLM:
+val mistralSttModel = "voxtral-mini-latest"
+val mistralSttUrl = "https://api.mistral.ai/v1/audio/transcriptions"
+val mistralLlmModel = "mistral-small-latest"
+val mistralLlmUrl = "https://api.mistral.ai/v1/chat/completions"
+val mistralLlmTemperature = 0.3F
+val mistralLlmTimeout = 20L
 
 //BROADCASTS:
 //Event receiver:

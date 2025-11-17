@@ -7,14 +7,14 @@ import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.lastRecordingName
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.models.DispatcherInfo
+import com.ftrono.DJames.be.agents.data.StateInfo
 import com.google.gson.JsonParser
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
 
 class FulfillmentUtils {
-    private val TAG = FulfillmentUtils::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     //FALLBACK:
     fun fallback(
@@ -23,11 +23,14 @@ class FulfillmentUtils {
         noPermission: Boolean = false,
         nevermind: Boolean = false,
         cannotRecordWAVoice: Boolean = false,
-    ): DispatcherInfo {
+        notAvailable: Boolean = false,
+        noSave: Boolean = false,
+    ): StateInfo {
         //Build fallback response:
-        return DispatcherInfo(
+        return StateInfo(
             lastRecording = lastRecordingName,
             fail = true,
+            noSave = noSave,
             aiReplies = listOf(
                 AiReply(
                     langCode = prefs.queryLanguage,
@@ -35,6 +38,8 @@ class FulfillmentUtils {
                         defaultReplies.replyNotLoggedIn()
                     else if (noPermission)
                         defaultReplies.replyNoPermission()
+                    else if (notAvailable)
+                        defaultReplies.replyNotAvailable()
                     else if (notUnderstood)
                         defaultReplies.replyFallback()
                     else if (nevermind)

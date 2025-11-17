@@ -3,6 +3,7 @@ package com.ftrono.DJames.be.utils
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import com.ftrono.DJames.application.defaultHttpTimeout
 import com.ftrono.DJames.application.sourceToCatMap
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.utils
@@ -14,30 +15,30 @@ import com.google.gson.JsonParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.jsoup.Jsoup
 
 
 class LinkExtractors {
-    private val TAG = LinkExtractors::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     // GET LINK PREVIEW:
     suspend fun fetchRawLinkPreview(url: String): RawLinkPreview {
         val linkPreview = RawLinkPreview()
         return withContext(Dispatchers.IO) {
             try {
-                val client = OkHttpClient()
+                // Build request:
+                val httpClient = HttpClient()
+                val client = httpClient.getClient(defaultHttpTimeout)
                 val request = Request.Builder()
                     .url(url)
                     .header("User-Agent", "Mozilla/5.0") // important: some sites block bots
                     .build()
 
-                client.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) return@withContext linkPreview
-
-                    val body = response.body?.string() ?: return@withContext linkPreview
-                    val doc = Jsoup.parse(body)
+                // Query HTTP:
+                var response = httpClient.makeRequest(client, request)
+                if (response.code == 200) {
+                    val doc = Jsoup.parse(response.body)
 
                     // Try Open Graph first
                     val title = doc.select("meta[property=og:title]").attr("content")
@@ -48,13 +49,17 @@ class LinkExtractors {
                     val pageUrl = doc.select("meta[property=og:url]").attr("content")
                         .ifBlank { url }
 
+                    // Return:
                     RawLinkPreview(
                         title = title,
                         description = description,
                         imageUrl = image.ifBlank { "" },
                         url = pageUrl
                     )
+                } else {
+                    linkPreview
                 }
+
             } catch (e: Exception) {
                 Log.d(TAG, "fetchLinkPreview(): ERROR in fetching link preview: ", e)
                 linkPreview

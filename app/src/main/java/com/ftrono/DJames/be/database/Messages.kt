@@ -1,16 +1,14 @@
 package com.ftrono.DJames.be.database
 
-import com.ftrono.DJames.be.models.ActionType
-import com.ftrono.DJames.be.models.ActionTypeConverter
+import com.ftrono.DJames.be.agents.data.ChatMessage
+import com.ftrono.DJames.be.agents.data.ActionType
+import com.ftrono.DJames.be.agents.data.ActionTypeConverter
 import com.ftrono.DJames.be.models.JsonConverter
 import com.ftrono.DJames.be.models.JsonListConverter
 import io.objectbox.annotation.Entity
 import io.objectbox.annotation.Id
 import io.objectbox.annotation.Convert
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.decodeFromString
 
 
 //SUPPORT CLASSES:
@@ -185,6 +183,10 @@ data class Attachments(
     var matchScore: Int = 0,
     var playedExternally: Boolean = false,
     var contextError: Boolean = false,
+    var llmNext: String = "",
+
+    @Convert(converter = ChatMessageConverter::class, dbType = String::class)
+    var llmChatMessages: MutableList<ChatMessage> = mutableListOf<ChatMessage>(),
 
     @Convert(converter = NlpQueryModelConverter::class, dbType = String::class)
     var nlpQueries: MutableList<NlpQueryModel>? = null,
@@ -208,3 +210,4 @@ class ExtractorInfoConverter : JsonConverter<ExtractorInfo>(ExtractorInfo.serial
 class SpotifyPlayableConverter : JsonConverter<SpotifyPlayable>(SpotifyPlayable.serializer())
 class NlpQueryModelConverter : JsonListConverter<NlpQueryModel>(NlpQueryModel.serializer())
 class SpotifyQueryModelConverter : JsonListConverter<SpotifyQueryModel>(SpotifyQueryModel.serializer())
+class ChatMessageConverter : JsonListConverter<ChatMessage>(ChatMessage.serializer())

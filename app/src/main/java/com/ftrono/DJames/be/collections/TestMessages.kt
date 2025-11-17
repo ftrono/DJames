@@ -9,7 +9,7 @@ import com.ftrono.DJames.be.database.SpotifyArtist
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.database.SpotifyPlaylist
 import com.ftrono.DJames.be.database.SpotifyTrack
-import com.ftrono.DJames.be.models.ActionType
+import com.ftrono.DJames.be.agents.data.ActionType
 
 
 val testMessages = listOf<Message>(

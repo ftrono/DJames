@@ -1,4 +1,4 @@
-package com.ftrono.DJames.be.nlp
+package com.ftrono.DJames.be.fulfillment
 
 import android.util.Log
 import com.ftrono.DJames.R
@@ -16,7 +16,7 @@ import java.io.InputStreamReader
 
 
 class NLPExtractor (private val context: Context) {
-    private val TAG = NLPExtractor::class.java.simpleName
+    private val TAG = this::class.java.simpleName
 
     //SONGS + ALBUM: Extract play info:
     fun extractPlayInfo(queryText: String, reqLanguage: String, playType: String, contextType: String): ExtractorInfo {

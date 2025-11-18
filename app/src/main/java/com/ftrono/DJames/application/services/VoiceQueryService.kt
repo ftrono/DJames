@@ -342,6 +342,7 @@ class VoiceQueryService: Service() {
                                 fromVoice = true,
                                 text = lastState.aiReplies.joinToString(" ") { it.text },
                                 intent = lastState.intentName,
+                                actionType = lastState.actionType,
                                 attachments = lastState.attachments,
                             )
                         }

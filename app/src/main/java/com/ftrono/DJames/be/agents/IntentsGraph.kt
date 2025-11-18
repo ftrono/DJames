@@ -169,7 +169,7 @@ class IntentsGraph(
             )
             updState.lastUserMsgId = messageUtils.storeMessage(
                 context = context,
-                langCode = "en",   // TODO
+                langCode = if (updState.reqLangCode != "") updState.reqLangCode else "en",
                 fromUser = true,
                 fromVoice = fromVoice,
                 isStart = isStart,

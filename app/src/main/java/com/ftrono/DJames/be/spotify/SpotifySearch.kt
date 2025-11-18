@@ -3,7 +3,6 @@ package com.ftrono.DJames.be.spotify
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.deltaSimilarity
-import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.playThreshold
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.spotifyParsers
@@ -12,6 +11,7 @@ import com.ftrono.DJames.be.database.ExtractorInfo
 import com.ftrono.DJames.be.database.SpotifyMatchModel
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.database.SpotifyQueryModel
+import com.ftrono.DJames.be.database.SpotifyResults
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -25,8 +25,9 @@ class SpotifySearch(private val context: Context) {
     private var query = SpotifyQuery(context)
 
     //SEARCH PLAYABLE:
-    fun searchPlayable(searchData: ExtractorInfo): SpotifyPlayable {
+    fun searchPlayable(searchData: ExtractorInfo): SpotifyResults {
         //Get context:
+        var spotResults = SpotifyResults()
         var playType = searchData.playType
         var matchName = searchData.matchExtracted.lowercase()
         var artistName = searchData.artistConfirmed.lowercase()
@@ -161,10 +162,11 @@ class SpotifySearch(private val context: Context) {
                 }
             }
         }
-        lastAiMessage.attachments.spotifyQueries = spotifyQueries
-        lastAiMessage.attachments.matchScore = bestScore
+        spotResults.bestResult = bestResult
+        spotResults.spotifyQueries = spotifyQueries
+        spotResults.matchScore = bestScore
         Log.d(TAG, "BEST RESULT: $bestResult")
-        return bestResult
+        return spotResults
     }
 
 

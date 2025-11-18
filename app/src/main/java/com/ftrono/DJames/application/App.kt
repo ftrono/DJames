@@ -128,13 +128,7 @@ val sourceToCatMap = mapOf(
 )
 val libCats = sourceToCatMap.keys.toList()
 var allMessageIds = MutableLiveData<List<Long>>(listOf<Long>())
-
-// Conversation tracking:
 val chatInputPlaceholder = "Ask via chat..."
-var chatLastState = StateInfo()
-var lastAiMessage: Message = Message()
-var lastUserMessage: Message = Message()
-var lastRequestIntent: String = ""
 var lastStarterId: Long = 0L
 
 //Preferences:
@@ -155,7 +149,6 @@ val silencePatienceMess = 3   //seconds
 val minSpeechPct = 10   // %
 val defaultHttpTimeout = 10L   //seconds
 val maxAudioRecTimeout = 120L   //for voice messages
-var lastRecordingName = ""
 var enablePlayerInfo = false
 val datetimeExportFormat = "yyyy-MM-dd HH_mm_ss"
 val datetimeFullFormat = "yyyy/MM/dd HH:mm"
@@ -188,7 +181,6 @@ var audioManager: AudioManager? = null
 
 //Player info:
 var currently_playing: JsonObject? = null
-var nlp_queryText = ""
 var currentTrackId: String = ""
 var songName: String = ""
 var artistName: String = ""

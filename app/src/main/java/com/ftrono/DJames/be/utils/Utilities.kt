@@ -165,8 +165,8 @@ class Utilities {
     //From a detected language name, get the supported language code:
     fun getLanguageCode(language: String, default: String = ""): String {
         var reqLangCode = default
-        if (languageWordsMap.contains(language)) {
-            reqLangCode = languageWordsMap[language]!!
+        if (languageWordsMap.contains(language.trim())) {
+            reqLangCode = languageWordsMap[language.trim()]!!
             Log.d(TAG, "REQUESTED LANGUAGE: $reqLangCode")
         } else {
             Log.d(TAG, "No requested language found in the voice request.")

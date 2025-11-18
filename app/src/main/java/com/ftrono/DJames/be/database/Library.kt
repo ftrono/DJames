@@ -58,3 +58,8 @@ data class ExtractedItem(
     var response: Int = 400,
     var libItem: LibraryItem = LibraryItem()
 )
+
+data class LibMatch(
+    var matchScore: Int = 0,
+    var matchId: Long = 0L
+)

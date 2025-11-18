@@ -259,7 +259,7 @@ fun MessagesScreen(
                                     extraDetails = extraDetails,
                                     showButton = (
                                         message.actionType != ActionType.SMS &&
-                                        message.actionType != ActionType.WA_VOICE &&
+                                        message.actionType != ActionType.WA_TEXT &&
                                         message.actionType != ActionType.WA_VOICE
                                     )
                                 )
@@ -428,6 +428,7 @@ fun MessageDetail(
                 val actionsExecutor = ActionsExecutor(context)
                 actionsExecutor.launchAction(
                     action = message.actionType!!,
+                    text = message.text,
                     usable = message.attachments.usable,
                     playable = message.attachments.spotifyPlay,
                     reqLanguage = message.langCode,

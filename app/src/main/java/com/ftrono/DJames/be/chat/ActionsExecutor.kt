@@ -8,7 +8,6 @@ import androidx.core.content.FileProvider
 import android.net.Uri
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
-import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recDir
 import com.ftrono.DJames.application.utils
@@ -29,6 +28,7 @@ class ActionsExecutor(
     // HELPER: LAUNCHER ONLY:
     fun launchAction(
         action: ActionType,
+        text: String,
         usable: LibraryItem? = null,
         playable: SpotifyPlayable? = null,
         reqLanguage: String = "",
@@ -38,8 +38,8 @@ class ActionsExecutor(
         return when (action) {
             ActionType.PLAY -> spotifyPlay(playable)
             ActionType.CALL -> makeCall(usable, fromOldChat)
-            ActionType.SMS -> sendSMS(usable, reqLanguage)
-            ActionType.WA_TEXT -> sendWhatsappText(usable, reqLanguage)
+            ActionType.SMS -> sendSMS(text, usable, reqLanguage)
+            ActionType.WA_TEXT -> sendWhatsappText(text, usable, reqLanguage)
             ActionType.WA_VOICE -> sendWhatsappAudio(usable, lastRecording)
             ActionType.OPEN_URL -> openLink(usable)
         }
@@ -54,9 +54,10 @@ class ActionsExecutor(
         var stringReply = if (latestState.actionType == null) "" else {
             launchAction(
                 action = latestState.actionType!!,
-                usable = latestState.usable,
-                playable = latestState.playable,
-                reqLanguage = latestState.reqLanguage,
+                text = latestState.messages.last().content,
+                usable = latestState.attachments.usable,
+                playable = latestState.attachments.spotifyPlay,
+                reqLanguage = latestState.reqLangCode,
                 lastRecording = latestState.lastRecording
             )
         }
@@ -80,7 +81,7 @@ class ActionsExecutor(
             val spotifyPlayer = SpotifyPlayer(context)
             spotifyPlayer.spotifyPlay(playable!!)
         } catch (e: Exception) {
-            Log.w(TAG, "spotifyPlay(): TOOL ERROR: ", e)
+            Log.w(TAG, "spotifyPlay(): ACTION ERROR: ", e)
         }
         return ""
     }
@@ -95,13 +96,14 @@ class ActionsExecutor(
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
             utils.makeCall(context, contactPhone, fromService = !fromOldChat)
         } catch (e: Exception) {
-            Log.w(TAG, "makeCall(): TOOL ERROR: ", e)
+            Log.w(TAG, "makeCall(): ACTION ERROR: ", e)
         }
         return ""
     }
 
     //SEND SMS:
     fun sendSMS(
+        text: String,
         usable: LibraryItem?,
         reqLanguage: String
     ): String {
@@ -114,7 +116,7 @@ class ActionsExecutor(
             var messageText = "[DJ] ${
                 fulfillmentUtils.replaceEmojis(
                     context = context,
-                    text = nlp_queryText,
+                    text = text,
                     reqLanguage = reqLanguage
                 )
             }"
@@ -126,13 +128,14 @@ class ActionsExecutor(
             return ttsToRead
 
         } catch (e: Exception) {
-            Log.w(TAG, "sendSMS(): TOOL ERROR: ", e)
+            Log.w(TAG, "sendSMS(): ACTION ERROR: ", e)
             return defaultReplies.replyError()
         }
     }
 
     //SEND WHATSAPP TEXT:
     fun sendWhatsappText(
+        text: String,
         usable: LibraryItem?,
         reqLanguage: String,
     ): String {
@@ -145,7 +148,7 @@ class ActionsExecutor(
             var messageText = "[DJ] ${
                 fulfillmentUtils.replaceEmojis(
                     context = context,
-                    text = nlp_queryText,
+                    text = text,
                     reqLanguage = reqLanguage
                 )
             }"
@@ -169,7 +172,7 @@ class ActionsExecutor(
             return ttsToRead
 
         } catch (e: Exception) {
-            Log.w(TAG, "sendWhatsappText(): TOOL ERROR: ", e)
+            Log.w(TAG, "sendWhatsappText(): ACTION ERROR: ", e)
             return defaultReplies.replyError()
         }
     }
@@ -208,7 +211,7 @@ class ActionsExecutor(
             return ttsToRead
 
         } catch (e: Exception) {
-            Log.w(TAG, "sendWhatsappAudio(): TOOL ERROR: ", e)
+            Log.w(TAG, "sendWhatsappAudio(): ACTION ERROR: ", e)
             return defaultReplies.replyError()
         }
     }
@@ -221,7 +224,7 @@ class ActionsExecutor(
             val urlToOpen = usable!!.url
             utils.openLink(context, url = urlToOpen, fromService = true)
         } catch (e: Exception) {
-            Log.w(TAG, "openLink(): TOOL ERROR: ", e)
+            Log.w(TAG, "openLink(): ACTION ERROR: ", e)
         }
         return ""
     }

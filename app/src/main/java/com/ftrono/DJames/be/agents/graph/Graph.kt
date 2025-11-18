@@ -6,16 +6,7 @@ import com.ftrono.DJames.be.agents.nodes.Node
 import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.application.START
 import com.ftrono.DJames.application.END
-import com.ftrono.DJames.application.defaultReplies
-import com.ftrono.DJames.application.lastRecordingName
-import com.ftrono.DJames.application.lastRequestIntent
-import com.ftrono.DJames.application.lastUserMessage
-import com.ftrono.DJames.application.messageUtils
-import com.ftrono.DJames.application.minSpeechPct
-import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.be.agents.data.ChatMessage
-import com.ftrono.DJames.be.agents.data.SttReturn
-import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.RecDetails
 
 
@@ -56,16 +47,19 @@ open class Graph(
         return mutableListOf()
     }
 
-    open fun transcribe(inAudioPath: String): SttReturn {
+    open fun processUserMessage(
+        prevState: StateInfo,
+        recDetails: RecDetails?,
+        inMessage: String,
+    ): StateInfo {
         // TODO
-        return SttReturn()
+        return StateInfo()
     }
 
     open fun invoke(
         prevState: StateInfo,
         recDetails: RecDetails? = null,
         inMessage: String = "",
-        isStart: Boolean = false,
     ): StateInfo {
         // TODO
         return StateInfo()
@@ -80,7 +74,12 @@ open class Graph(
 
         var updState = prevState
         updState.interrupt = false   // turn off from previous run
-        if (updState.next == START) updState.next = graph.keys.first()
+        if (updState.next == START) {
+            updState.isStart = true
+            updState.next = graph.keys.first()
+        } else {
+            updState.isStart = false
+        }
         Log.d(TAG, "Graph streaming loop STARTED from Node: '${updState.next}'.")
 
         // TODO: STREAMING LOOP:
@@ -92,12 +91,11 @@ open class Graph(
             if (updState.interrupt) {
                 Log.d(TAG, "Interrupt requested!")
                 break
-            } else if (updState.next == END) {
-                updState.end = true
             } else if (updState.next == START) {
                 // Fresh start:
                 updState = StateInfo(
                     next = onRestart,
+                    isStart = true,
                     messages = mutableListOf(
                         ChatMessage(
                             role = "user",
@@ -112,99 +110,4 @@ open class Graph(
         // Log.d(TAG, "Final State -> $updState")
         return updState
     }
-
-    // Process new user message:
-    fun processUserMessage(
-        prevState: StateInfo,
-        recDetails: RecDetails?,
-        inMessage: String,
-        isStart: Boolean,
-    ): StateInfo {
-        
-        // Status vars:
-        var updState = prevState
-        var fromVoice = recDetails != null
-        var fail = false
-        var isSilence = false
-        var language = ""
-        Log.d(TAG, "Processing new user message...")
-
-        // Parse new message:
-        var transcription = ""
-        if (fromVoice) {
-            // FROM VOICE:
-            // Empty audio:
-            if (recDetails!!.speechPct <= minSpeechPct) {
-                isSilence = true
-                fail = true
-                Log.d(TAG, "Empty audio.")
-
-            } else {
-                // STT transcribe:
-                val sttReturn = transcribe(recDetails.recPath)
-
-                isSilence = sttReturn.isSilence
-                fail = sttReturn.fail
-                language = sttReturn.language
-                transcription = sttReturn.transcription
-
-                if (isSilence) {
-                    Log.d(TAG, "Empty transcription.")
-                } else {
-                    Log.d(TAG, "TRANSCRIPTION: $transcription")
-                }
-            }
-        } else {
-            // FROM CHAT:
-            transcription = inMessage
-        }
-
-        if (fail || isSilence) {
-            // Silence case:
-            return StateInfo(
-                lastRecording = lastRecordingName,
-                fail = true,
-                isSilence = isSilence,
-                noSave = isSilence,
-            )
-
-        } else {
-            // Store user message:
-            updState.lastUserMsgId = storeUserMessage(
-                transcription = transcription,
-                language = language,
-                fromVoice = fromVoice,
-                isStart = isStart,
-            )
-            // Append last user chat message to conversation:
-            updState.messages.add(
-                ChatMessage(role = "user", content = transcription)
-            )
-            return updState
-        }
-    }
-
-    // Store user message:
-    fun storeUserMessage(
-        transcription: String,
-        language: String,
-        fromVoice: Boolean,
-        isStart: Boolean
-    ): Long {
-        // Store last user message:
-        lastUserMessage.text = transcription
-        lastUserMessage.requestIntent = lastRequestIntent
-        val lastUserMsgId = messageUtils.storeMessage(
-            context = context,
-            langCode = language,
-            fromUser = true,
-            fromVoice = fromVoice,
-            isStart = isStart,
-            llmMessages = mutableListOf<ChatMessage>(
-                ChatMessage(role = "user", content = transcription)
-            )
-        )
-        return lastUserMsgId
-    }
-
 }

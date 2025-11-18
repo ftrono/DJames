@@ -5,7 +5,6 @@ import android.util.Log
 import android.widget.Toast
 import com.ftrono.DJames.application.curLibrarySize
 import com.ftrono.DJames.application.gMapsLinkFormat
-import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.libCats
 import com.ftrono.DJames.application.libraryBox
@@ -285,7 +284,8 @@ class LibraryUtils {
 
     // MATCHER:
     //Match item from user query against user library:
-    fun matchLibrary(filter: String, text: String, threshold: Int = midThreshold): Long {
+    fun matchLibrary(filter: String, text: String, threshold: Int = midThreshold): LibMatch {
+        var libMatch = LibMatch()
         var matchId = -1L
         val libMap = getAliasesMap(filter)
         if (text != "" && libMap.isNotEmpty()) {
@@ -324,7 +324,7 @@ class LibraryUtils {
                     Log.d(TAG, "SORTED MAP FOR $eval: $sortedScores")
                     listConfirmed.add(sortedScores.keys.toList()[0])
                     val matchScore = sortedScores.values.toList()[0]
-                    lastAiMessage.attachments.matchScore = matchScore
+                    libMatch.matchScore = matchScore
                 }
             }
             //Final:
@@ -334,7 +334,8 @@ class LibraryUtils {
                 Log.d(TAG, "LIBRARY MATCH ID: $matchId, ALIASES: ${libMap[matchId]!!}")
             }
         }
-        return matchId
+        libMatch.matchId = matchId
+        return libMatch
     }
 
 

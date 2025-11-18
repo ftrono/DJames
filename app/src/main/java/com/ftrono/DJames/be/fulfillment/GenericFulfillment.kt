@@ -4,19 +4,15 @@ import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
-import com.ftrono.DJames.application.lastAiMessage
-import com.ftrono.DJames.application.lastRecordingName
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.maxThreshold
 import com.ftrono.DJames.application.messLangFull
-import com.ftrono.DJames.application.nlp_queryText
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.messLangLower
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.ExtractorInfo
 import com.ftrono.DJames.be.database.LibraryItem
-import com.ftrono.DJames.be.database.NlpQueryModel
 import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.agents.data.StateInfo
@@ -27,10 +23,10 @@ class GenericFulfillment (private var context: Context) {
 
 
     //Process a request involving a Contact (Call / Message):
-    fun contactRequest(resultsNLP: NlpQueryModel, fromVoice: Boolean = false): StateInfo {
-        var stateInfo = StateInfo(
-            lastRecording = lastRecordingName
-        )
+    fun contactRequest(prevState: StateInfo): StateInfo {
+        // Manage state:
+        var updState = prevState
+        var queryText = updState.messages.last().content
         val filter = "contact"
         var itemInfo = LibraryItem(
             type = filter
@@ -39,23 +35,23 @@ class GenericFulfillment (private var context: Context) {
         //Extract contact:
         var extractorInfo = ExtractorInfo()
         var nlpExtractor = NLPExtractor(context)
-        var contactExtracted = nlpExtractor.extractContact(nlp_queryText)
+        var contactExtracted = nlpExtractor.extractContact(queryText)
         extractorInfo.matchExtracted = contactExtracted
 
         //Match extracted contact name with user library:
-        var libMatchId = libUtils.matchLibrary(filter, text=contactExtracted)
+        var libMatch = libUtils.matchLibrary(filter, text=contactExtracted)
 
-        if (libMatchId < 0) {
+        if (libMatch.matchId < 0) {
             //Fallback:
-            return fulfillmentUtils.fallback(notUnderstood=true)
+            return fulfillmentUtils.fallback(updState, notUnderstood=true)
 
         } else {
             //Get contact:
-            itemInfo = libUtils.getLibItemById(libMatchId)
+            itemInfo = libUtils.getLibItemById(libMatch.matchId)
             extractorInfo.matchConfirmed = itemInfo.name
 
             //CASES:
-            if (resultsNLP.intentName.contains("Call")) {
+            if (updState.intentName.contains("Call")) {
                 //A) CALL:
                 //Reply:
                 val ttsToRead = defaultReplies.replyCalling(itemInfo.name)
@@ -66,22 +62,20 @@ class GenericFulfillment (private var context: Context) {
                     )
                 )
 
-                //stateInfo:
-                stateInfo.aiReplies = aiReplies
-                stateInfo.actionType = ActionType.CALL
-                stateInfo.end = true
-                stateInfo.playAcknowledge = true
-                stateInfo.usable = itemInfo
-                Log.d(TAG, stateInfo.toString())
+                //updState:
+                updState.aiReplies = aiReplies
+                updState.actionType = ActionType.CALL
+                updState.playAcknowledge = true
+                updState.attachments.usable = itemInfo
 
-            } else if (resultsNLP.intentName.contains("Message")) {
+            } else if (updState.intentName.contains("Message")) {
                 //B) MESSAGE:
                 //Check if voice request contains a specific requested language:
-                var reqLangName = resultsNLP.reqLanguage
-                var reqLangCode = utils.getLanguageCode(reqLangName)
+                var reqLangName = updState.reqLangName
+                var reqLangCode = updState.reqLangCode
 
                 //If no specific language requested -> use contact preferences or global preferences:
-                if (reqLangCode == "") {
+                if (reqLangCode == prefs.queryLanguage) {
                     try {
                         //Contact preferences:
                         reqLangCode = itemInfo.language
@@ -97,25 +91,25 @@ class GenericFulfillment (private var context: Context) {
                 extractorInfo.reqLanguage = reqLangCode
 
                 //Extract message type:
-                stateInfo.messageType = nlpExtractor.extractMessageType(nlp_queryText)
+                updState.messageType = nlpExtractor.extractMessageType(queryText)
                 // Select action to take:
-                if (stateInfo.messageType == "voice") {
-                    stateInfo.actionType = ActionType.WA_VOICE
-                    if (!fromVoice) {
+                if (updState.messageType == "voice") {
+                    updState.actionType = ActionType.WA_VOICE
+                    if (!updState.fromVoice) {
                         //Fallback:
-                        return fulfillmentUtils.fallback(cannotRecordWAVoice=true)
+                        return fulfillmentUtils.fallback(updState, cannotRecordWAVoice=true)
                     }
-                } else if (stateInfo.messageType == "whatsapp") {
-                    stateInfo.actionType = ActionType.WA_TEXT
+                } else if (updState.messageType == "whatsapp") {
+                    updState.actionType = ActionType.WA_TEXT
                 } else {
-                    stateInfo.actionType = ActionType.SMS
+                    updState.actionType = ActionType.SMS
                 }
 
                 //Reply:
-                var ttsToRead = if (stateInfo.messageType == "voice") {
+                var ttsToRead = if (updState.messageType == "voice") {
                     defaultReplies.replyMessageRecord(itemInfo.name)
                 } else {
-                    defaultReplies.replyMessageDictate(itemInfo.name, stateInfo.messageType, reqLangName)
+                    defaultReplies.replyMessageDictate(itemInfo.name, updState.messageType, reqLangName)
                 }
                 val aiReplies = listOf(
                     AiReply(
@@ -124,70 +118,60 @@ class GenericFulfillment (private var context: Context) {
                     )
                 )
 
-                //stateInfo:
-                stateInfo.aiReplies = aiReplies
-                stateInfo.messageMode = true
-                stateInfo.reqLanguage = reqLangCode
-                stateInfo.usable = itemInfo
-                Log.d(TAG, stateInfo.toString())
+                //updState:
+                updState.interrupt = true   // Messages only!
+                updState.aiReplies = aiReplies
+                updState.messageMode = true
+                updState.reqLangCode = reqLangCode
+                updState.attachments.usable = itemInfo
 
             } else {
                 //Fallback:
-                return fulfillmentUtils.fallback(notUnderstood=true)
+                return fulfillmentUtils.fallback(updState, notUnderstood=true)
             }
 
             //Update message:
-            lastAiMessage.actionType = stateInfo.actionType
-            lastAiMessage.attachments.nlpExtractor = extractorInfo
-            lastAiMessage.attachments.usable = itemInfo
-            return stateInfo
+            updState.actionType = updState.actionType
+            updState.attachments.nlpExtractor = extractorInfo
+            updState.attachments.matchScore = libMatch.matchScore
+            updState.attachments.usable = itemInfo
+
+            // Update state:
+            Log.d(TAG, updState.toString())
+
+            return updState
         }
     }
 
 
     //Send a message: PART 2:
     fun sendMessage2(prevState: StateInfo): StateInfo {
-        var stateInfo = StateInfo(
-            lastRecording = lastRecordingName
-        )
-
-        // MESSAGE SENDER:
+        var updState = prevState
         try {
             //Recover info:
-            var reqLangCode = prevState.reqLanguage
-            var itemInfo = if (prevState.usable != null) prevState.usable else LibraryItem()
-            stateInfo.actionType = prevState.actionType
-
-            //Store usable details:
-            itemInfo!!.language = reqLangCode
-
-            //stateInfo:
-            stateInfo.usable = itemInfo
-            stateInfo.aiReplies = listOf()   //populate after action
+            var reqLangCode = updState.reqLangCode
+            updState.attachments.usable!!.language = reqLangCode
+            updState.playAcknowledge = true
+            updState.aiReplies = listOf()   //populate after action
 
         } catch (e: Exception) {
             Log.w(TAG, "sendMessage2: EXCEPTION: ", e)
-            return fulfillmentUtils.fallback()   //Error
+            return fulfillmentUtils.fallback(updState)   //Error
         }
 
-        stateInfo.end = true
-        stateInfo.playAcknowledge = true
-        Log.d(TAG, stateInfo.toString())
-
-        return stateInfo
+        Log.d(TAG, updState.toString())
+        return updState
     }
 
 
     //Process Drive request: PART 1:
-    fun driveRequest1(resultsNLP: NlpQueryModel): StateInfo {
-        var stateInfo = StateInfo(
-            lastRecording = lastRecordingName
-        )
+    fun driveRequest1(prevState: StateInfo): StateInfo {
+        // Manage state:
+        var updState = prevState
 
         //Detect & process requested languages:
-        var detLanguage = resultsNLP.reqLanguage
-        var reqLangCode = utils.getLanguageCode(detLanguage, prefs.placeLanguage)
-        var reqLangName = utils.getLanguageName(reqLangCode)
+        var reqLangCode = updState.reqLangCode
+        var reqLangName = updState.reqLangName
 
         //Reply:
         var ttsToRead = ""
@@ -199,26 +183,23 @@ class GenericFulfillment (private var context: Context) {
             )
         )
 
-        //stateInfo:
-        stateInfo.aiReplies = aiReplies
-        stateInfo.intentName = resultsNLP.intentName
-        stateInfo.reqLanguage = reqLangCode
-        Log.d(TAG, stateInfo.toString())
+        //updState:
+        updState.interrupt = true
+        updState.aiReplies = aiReplies
+        updState.reqLangCode = reqLangCode
+        Log.d(TAG, updState.toString())
 
-        return stateInfo
+        return updState
     }
 
 
     //Process Drive request: PART 2:
-    fun driveRequest2(resultsNLP: NlpQueryModel, prevState: StateInfo): StateInfo {
-        var stateInfo = StateInfo(
-            lastRecording = lastRecordingName
-        )
-        var reqLangCode = prevState.reqLanguage
+    fun driveRequest2(prevState: StateInfo): StateInfo {
+        var updState = prevState
+        var reqLangCode = updState.reqLangCode
 
         //PROCESS PLACE INFO:
-        //item:
-        var matchName = nlp_queryText
+        var queryText = updState.messages.last().content
         var placeLanguage = reqLangCode   //TODO
         var itemInfo = LibraryItem(
             type = "place"
@@ -229,11 +210,11 @@ class GenericFulfillment (private var context: Context) {
         extractorInfo.reqLanguage = reqLangCode
 
         //Check place in library:
-        val libMatchId = libUtils.matchLibrary("place", matchName, maxThreshold)
-        if (libMatchId < 0) {
+        val libMatch = libUtils.matchLibrary("place", queryText, maxThreshold)
+        if (libMatch.matchId < 0) {
             //Place NOT found:
             Log.d(TAG, "DRIVE -> Place from Message")
-            itemInfo = nlpExtractor.extractPlace(nlp_queryText, reqLangCode)
+            itemInfo = nlpExtractor.extractPlace(queryText, reqLangCode)
             itemInfo.url = libUtils.buildPlaceUrlFromItemInfo(itemInfo)
             extractorInfo.matchExtracted = itemInfo.name
             extractorInfo.contextExtracted = itemInfo.detail
@@ -241,15 +222,15 @@ class GenericFulfillment (private var context: Context) {
         } else {
             //Place found:
             Log.d(TAG, "DRIVE -> Place from Library")
-            itemInfo = libUtils.getLibItemById(libMatchId)
+            itemInfo = libUtils.getLibItemById(libMatch.matchId)
             itemInfo.detail = itemInfo.address!!.town + ", " + itemInfo.address!!.street + itemInfo.address!!.number
-            extractorInfo.matchExtracted = nlp_queryText
+            extractorInfo.matchExtracted = queryText
             extractorInfo.matchConfirmed = itemInfo.name
             extractorInfo.contextConfirmed = itemInfo.detail
         }
 
         if (itemInfo.url == "") {
-            return fulfillmentUtils.fallback()   //Error
+            return fulfillmentUtils.fallback(updState)   //Error
 
         } else {
             //NAVIGATE:
@@ -270,22 +251,21 @@ class GenericFulfillment (private var context: Context) {
                 ),
             )
 
-            //stateInfo:
-            stateInfo.aiReplies = aiReplies
-            stateInfo.actionType = ActionType.OPEN_URL
-            stateInfo.usable = itemInfo
-            stateInfo.playAcknowledge = true
+            //updState:
+            updState.aiReplies = aiReplies
+            updState.actionType = ActionType.OPEN_URL
+            updState.attachments.usable = itemInfo
+            updState.playAcknowledge = true
 
             //Update message:
-            lastAiMessage.actionType = stateInfo.actionType
-            lastAiMessage.attachments.nlpExtractor = extractorInfo
-            lastAiMessage.attachments.usable = itemInfo
+            updState.actionType = updState.actionType
+            updState.attachments.nlpExtractor = extractorInfo
+            updState.attachments.matchScore = libMatch.matchScore
+            updState.attachments.usable = itemInfo
         }
 
-        //Build return
-        stateInfo.end = true
-        Log.d(TAG, stateInfo.toString())
-        return stateInfo
+        Log.d(TAG, updState.toString())
+        return updState
     }
 
 }

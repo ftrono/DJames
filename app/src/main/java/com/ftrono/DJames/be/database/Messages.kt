@@ -144,15 +144,16 @@ data class SpotifyQueryModel(
 class SpotifyMatchModelConverter : JsonListConverter<SpotifyMatchModel>(SpotifyMatchModel.serializer())
 
 
+@Serializable
+data class SpotifyResults(
+    var matchScore: Int = 0,
+    @Convert(converter = SpotifyQueryModelConverter::class, dbType = String::class)
+    var spotifyQueries: MutableList<SpotifyQueryModel>? = null,
+    var bestResult: SpotifyPlayable? = null,
+)
+
+
 //ENTITIES:
-/*
-************************************
-   ### GOLDEN RULE: ###
-   - User messages are saved by Dispatcher (need NLP results for language recognition!)
-   - AI messages are saved by:
-      - TTSReader (if voice)
-      - ChatManager (if chat)
-*/
 @Serializable
 @Entity
 data class Message(
@@ -181,18 +182,16 @@ data class Message(
 @Serializable
 data class Attachments(
     var matchScore: Int = 0,
-    var playedExternally: Boolean = false,
-    var contextError: Boolean = false,
-    var llmNext: String = "",
+    var entityArtists: MutableList<String> = mutableListOf<String>(),   // Fulfillment-only
 
     @Convert(converter = ChatMessageConverter::class, dbType = String::class)
     var llmChatMessages: MutableList<ChatMessage> = mutableListOf<ChatMessage>(),
 
     @Convert(converter = NlpQueryModelConverter::class, dbType = String::class)
-    var nlpQueries: MutableList<NlpQueryModel>? = null,
+    var nlpQueries: MutableList<NlpQueryModel>? = null,   // Fulfillment-only
 
     @Convert(converter = ExtractorInfoConverter::class, dbType = String::class)
-    var nlpExtractor: ExtractorInfo? = null,
+    var nlpExtractor: ExtractorInfo? = null,   // Fulfillment-only
 
     @Convert(converter = SpotifyQueryModelConverter::class, dbType = String::class)
     var spotifyQueries: MutableList<SpotifyQueryModel>? = null,

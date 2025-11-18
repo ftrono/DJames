@@ -151,6 +151,7 @@ data class SttReturn(
     var isSilence: Boolean = false,
     var language: String = "",
     var transcription: String = "",
+    var intent: String = "",   // Legacy only
 )
 
 // JSON STRUCTURED OUTPUT:

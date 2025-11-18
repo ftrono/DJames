@@ -7,7 +7,6 @@ import com.ftrono.DJames.application.ACTION_MESSAGES_REFRESH
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.clockActive
-import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.spotIntroUrl
 import com.ftrono.DJames.application.spotCollectionIntUri
 import com.ftrono.DJames.application.prefs
@@ -65,9 +64,6 @@ class SpotifyPlayer (private val context: Context) {
                     sessionState = playInternally(playable, useAlbum = true)
                     Log.d(TAG, "(SECOND) SESSION STATE: ${sessionState}")
 
-                    //Update message:
-                    lastAiMessage.attachments.contextError = true
-
                     //Send broadcast:
                     Intent().also { intent ->
                         intent.setAction(ACTION_MESSAGES_REFRESH)
@@ -103,8 +99,6 @@ class SpotifyPlayer (private val context: Context) {
                 val encodedContextUri = URLEncoder.encode(contextUri, "UTF-8")
                 openExternally("$playUrl?context=$encodedContextUri", clockWasActive)
             }
-            //Update message:
-            lastAiMessage.attachments.playedExternally = true
 
             //Send broadcast:
             Intent().also { intent ->

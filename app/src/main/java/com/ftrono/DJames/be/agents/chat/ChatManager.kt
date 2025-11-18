@@ -1,11 +1,9 @@
-package com.ftrono.DJames.be.chat
+package com.ftrono.DJames.be.agents.chat
 
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.END
-import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.defaultChatResetTime
-import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.queryStatus

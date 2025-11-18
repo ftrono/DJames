@@ -55,8 +55,8 @@ import com.ftrono.DJames.application.maxHistoryDays
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.chat.ActionsExecutor
-import com.ftrono.DJames.be.chat.ChatManager
+import com.ftrono.DJames.be.agents.chat.ActionsExecutor
+import com.ftrono.DJames.be.agents.chat.ChatManager
 import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.ui.components.ChatInputField

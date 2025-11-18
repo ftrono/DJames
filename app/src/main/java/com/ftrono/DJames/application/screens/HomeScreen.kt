@@ -58,7 +58,7 @@ import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.spotUserName
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.volumeUpEnabledUI
-import com.ftrono.DJames.be.chat.ChatManager
+import com.ftrono.DJames.be.agents.chat.ChatManager
 import com.ftrono.DJames.ui.components.CardSign
 import com.ftrono.DJames.ui.components.ChatInputField
 import com.ftrono.DJames.ui.components.DriveIcon

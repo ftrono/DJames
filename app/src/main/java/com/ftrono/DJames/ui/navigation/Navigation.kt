@@ -30,7 +30,7 @@ import com.ftrono.DJames.application.screens.HomeScreen
 import com.ftrono.DJames.application.screens.SettingsScreen
 import com.ftrono.DJames.application.screens.LibraryScreen
 import com.ftrono.DJames.application.screens.MessagesScreen
-import com.ftrono.DJames.be.chat.ChatManager
+import com.ftrono.DJames.be.agents.chat.ChatManager
 import com.ftrono.DJames.ui.theme.NavigationItem
 
 

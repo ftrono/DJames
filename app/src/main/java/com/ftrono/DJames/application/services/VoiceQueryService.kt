@@ -35,7 +35,7 @@ import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.be.audio.AndroidAudioRecorder
 import com.ftrono.DJames.be.audio.AudioRequestsManager
 import com.ftrono.DJames.be.audio.TTSReader
-import com.ftrono.DJames.be.chat.ActionsExecutor
+import com.ftrono.DJames.be.agents.chat.ActionsExecutor
 import com.ftrono.DJames.be.models.RecDetails
 
 
@@ -332,7 +332,6 @@ class VoiceQueryService: Service() {
                         tts.speak(
                             aiReplies = lastState.aiReplies
                         )
-
                         // Save reply:
                         if (!lastState.noSave) {
                             messageUtils.storeMessage(

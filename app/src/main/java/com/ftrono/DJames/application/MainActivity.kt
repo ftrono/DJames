@@ -37,7 +37,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.dialogs.MultiPermissionsHandler
 import com.ftrono.DJames.application.services.OverlayService
-import com.ftrono.DJames.be.chat.ChatManager
+import com.ftrono.DJames.be.agents.chat.ChatManager
 import com.ftrono.DJames.ui.components.isKeyboardOpen
 import com.ftrono.DJames.ui.navigation.BottomNavigationBar
 import com.ftrono.DJames.ui.navigation.Navigation

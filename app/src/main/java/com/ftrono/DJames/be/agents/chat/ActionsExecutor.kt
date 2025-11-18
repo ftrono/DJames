@@ -1,4 +1,4 @@
-package com.ftrono.DJames.be.chat
+package com.ftrono.DJames.be.agents.chat
 
 import android.content.Context
 import android.content.Intent

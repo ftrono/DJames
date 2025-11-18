@@ -181,6 +181,7 @@ class IntentsGraph(
             // Cancel:
             updState = fulfillmentUtils.fallback(updState, notUnderstood = true)
             updState.messageMode = false
+            updState.actionType = null
             updState.next == END
         }
 

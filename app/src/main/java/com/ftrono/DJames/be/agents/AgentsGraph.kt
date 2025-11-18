@@ -251,19 +251,6 @@ class AgentsGraph(
                 }
             )
         )
-
-        // Save reply:
-        if (!updState.noSave) {
-            messageUtils.storeMessage(
-                context = context,
-                langCode = prefs.queryLanguage,
-                fromUser = false,
-                fromVoice = true,
-                text = updState.aiReplies.joinToString(" ") { it.text },
-                intent = updState.intentName,
-                attachments = updState.attachments,
-            )
-        }
         return updState
     }
 }

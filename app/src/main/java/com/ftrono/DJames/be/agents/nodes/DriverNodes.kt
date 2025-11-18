@@ -1,16 +1,13 @@
 package com.ftrono.DJames.be.agents.nodes
 
-import android.Manifest
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.END
-import com.ftrono.DJames.application.fulfillmentUtils
-import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.data.ChatMessage
 import com.ftrono.DJames.be.agents.llm.LlmAgent
 import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.be.agents.tools.*
-import com.ftrono.DJames.be.fulfillment.GenericFulfillment
+import com.ftrono.DJames.be.agents.fulfillment.GenericFulfillment
 
 
 // (LLM-based) ReAct agent node:

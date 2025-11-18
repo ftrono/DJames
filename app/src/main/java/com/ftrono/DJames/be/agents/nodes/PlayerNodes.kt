@@ -9,7 +9,7 @@ import com.ftrono.DJames.be.agents.data.ChatMessage
 import com.ftrono.DJames.be.agents.llm.LlmAgent
 import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.be.agents.tools.*
-import com.ftrono.DJames.be.fulfillment.SpotifyFulfillment
+import com.ftrono.DJames.be.agents.fulfillment.SpotifyFulfillment
 
 
 // (LLM-based) ReAct agent node:

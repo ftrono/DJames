@@ -10,7 +10,7 @@ import com.ftrono.DJames.be.agents.data.ChatMessage
 import com.ftrono.DJames.be.agents.llm.LlmAgent
 import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.be.agents.tools.*
-import com.ftrono.DJames.be.fulfillment.GenericFulfillment
+import com.ftrono.DJames.be.agents.fulfillment.GenericFulfillment
 
 
 // (LLM-based) ReAct agent node:

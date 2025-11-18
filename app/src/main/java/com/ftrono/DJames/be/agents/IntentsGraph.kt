@@ -20,7 +20,7 @@ import com.ftrono.DJames.be.agents.nodes.MessageIntentNode
 import com.ftrono.DJames.be.agents.nodes.PlayerIntentNode
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.database.NlpQueryModel
-import com.ftrono.DJames.be.fulfillment.NLPQuery
+import com.ftrono.DJames.be.agents.fulfillment.NLPQuery
 import com.ftrono.DJames.be.models.RecDetails
 
 

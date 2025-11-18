@@ -1,16 +1,15 @@
-package com.ftrono.DJames.be.utils
+package com.ftrono.DJames.be.agents.fulfillment
 
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.be.models.AiReply
 import com.google.gson.JsonParser
 import java.io.BufferedReader
 import java.io.InputStreamReader
-
 
 class FulfillmentUtils {
     private val TAG = this::class.java.simpleName
@@ -49,16 +48,6 @@ class FulfillmentUtils {
             )
         )
         return updState
-    }
-
-
-    //Join replies:
-    fun joinReplies(replies: List<AiReply>): String {
-        var fullText = ""
-        for (reply in replies) {
-            fullText = fullText + reply.text
-        }
-        return fullText
     }
 
 

@@ -14,8 +14,7 @@ import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.be.database.MessageUtils
 import com.ftrono.DJames.be.database.MyObjectBox
 import com.ftrono.DJames.be.database.LibraryItem
-import com.ftrono.DJames.be.agents.data.StateInfo
-import com.ftrono.DJames.be.utils.FulfillmentUtils
+import com.ftrono.DJames.be.agents.fulfillment.FulfillmentUtils
 import com.ftrono.DJames.be.chat.DefaultReplies
 import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
 import com.ftrono.DJames.be.spotify.SpotifyUtils

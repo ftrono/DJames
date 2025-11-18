@@ -177,6 +177,11 @@ class IntentsGraph(
                 intent = updState.intentName,
                 attachments = attachments,
             )
+        } else {
+            // Cancel:
+            updState = fulfillmentUtils.fallback(updState, notUnderstood = true)
+            updState.messageMode = false
+            updState.next == END
         }
 
         // Typing delay:

@@ -30,10 +30,6 @@ class SpotifyFulfillment (private var context: Context) {
         var intentName = updState.intentName
         var queryText = updState.messages.last().content
 
-        //Detect & process requested languages:
-        var reqLangCode = updState.reqLangCode
-        var reqLangName = updState.reqLangName
-
         //Distinguish by intent & build voice response:
         var playType = ""
         var contextType = ""
@@ -74,7 +70,7 @@ class SpotifyFulfillment (private var context: Context) {
         }
 
         //Reply:
-        val ttsToRead = defaultReplies.replyPlayRequest(intentName, reqLangName, contextType)
+        val ttsToRead = defaultReplies.replyPlayRequest(intentName, updState.reqLangName, contextType)
         val aiReplies = listOf(
             AiReply(
                 langCode = prefs.queryLanguage,
@@ -85,7 +81,6 @@ class SpotifyFulfillment (private var context: Context) {
         //updState:
         updState.interrupt = true
         updState.aiReplies = aiReplies
-        updState.reqLangCode = reqLangCode
         updState.playType = playType
         updState.contextType = contextType
         Log.d(TAG, updState.toString())
@@ -123,12 +118,9 @@ class SpotifyFulfillment (private var context: Context) {
         //updState:
         updState.aiReplies = aiReplies
         updState.actionType = ActionType.PLAY
+        updState.attachments.spotifyPlay = playable
         Log.d(TAG, updState.toString())
 
-        //Update message:
-        updState.actionType = updState.actionType
-        updState.attachments.spotifyPlay = playable
-        updState.attachments.spotifyPlay = playable
         return updState
     }
 
@@ -226,12 +218,8 @@ class SpotifyFulfillment (private var context: Context) {
             //updState:
             updState.aiReplies = aiReplies
             updState.actionType = ActionType.PLAY
-
-            //Update message:
             extractorInfo.reqLanguage = reqLangCode
-            updState.actionType = updState.actionType
             updState.attachments.nlpExtractor = extractorInfo
-            updState.attachments.spotifyPlay = playable
             updState.attachments.matchScore = spotResults.matchScore
             updState.attachments.spotifyQueries = spotResults.spotifyQueries
             updState.attachments.spotifyPlay = playable
@@ -339,12 +327,8 @@ class SpotifyFulfillment (private var context: Context) {
             //updState:
             updState.aiReplies = aiReplies
             updState.actionType = ActionType.PLAY
-
-            //Update message:
             extractorInfo.reqLanguage = reqLangCode
-            updState.actionType = updState.actionType
             updState.attachments.nlpExtractor = extractorInfo
-            updState.attachments.spotifyPlay = playable
             updState.attachments.spotifyPlay = playable
         }
 
@@ -424,12 +408,8 @@ class SpotifyFulfillment (private var context: Context) {
             //updState:
             updState.aiReplies = aiReplies
             updState.actionType = ActionType.PLAY
-
-            //Update message:
             extractorInfo.reqLanguage = reqLangCode
-            updState.actionType = updState.actionType
             updState.attachments.nlpExtractor = extractorInfo
-            updState.attachments.spotifyPlay = playable
             updState.attachments.spotifyPlay = playable
         }
 

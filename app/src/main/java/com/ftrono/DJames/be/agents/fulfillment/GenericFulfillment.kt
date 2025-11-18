@@ -121,7 +121,7 @@ class GenericFulfillment (private var context: Context) {
                 updState.interrupt = true   // Messages only!
                 updState.aiReplies = aiReplies
                 updState.messageMode = true
-                updState.reqLangCode = reqLangCode
+                updState.reqLangCode = reqLangCode   // Updated as requested
                 updState.attachments.usable = itemInfo
 
             } else {
@@ -129,15 +129,10 @@ class GenericFulfillment (private var context: Context) {
                 return fulfillmentUtils.fallback(updState, notUnderstood=true)
             }
 
-            //Update message:
-            updState.actionType = updState.actionType
+            // Update state:
             updState.attachments.nlpExtractor = extractorInfo
             updState.attachments.matchScore = libMatch.matchScore
-            updState.attachments.usable = itemInfo
-
-            // Update state:
             Log.d(TAG, updState.toString())
-
             return updState
         }
     }
@@ -168,13 +163,9 @@ class GenericFulfillment (private var context: Context) {
         // Manage state:
         var updState = prevState
 
-        //Detect & process requested languages:
-        var reqLangCode = updState.reqLangCode
-        var reqLangName = updState.reqLangName
-
         //Reply:
         var ttsToRead = ""
-        ttsToRead = defaultReplies.replyPlaceRequest(reqLangName)
+        ttsToRead = defaultReplies.replyPlaceRequest(updState.reqLangName)
         val aiReplies = listOf(
             AiReply(
                 langCode = prefs.queryLanguage,
@@ -185,7 +176,6 @@ class GenericFulfillment (private var context: Context) {
         //updState:
         updState.interrupt = true
         updState.aiReplies = aiReplies
-        updState.reqLangCode = reqLangCode
         Log.d(TAG, updState.toString())
 
         return updState
@@ -253,11 +243,7 @@ class GenericFulfillment (private var context: Context) {
             //updState:
             updState.aiReplies = aiReplies
             updState.actionType = ActionType.OPEN_URL
-            updState.attachments.usable = itemInfo
             updState.playAcknowledge = true
-
-            //Update message:
-            updState.actionType = updState.actionType
             updState.attachments.nlpExtractor = extractorInfo
             updState.attachments.matchScore = libMatch.matchScore
             updState.attachments.usable = itemInfo

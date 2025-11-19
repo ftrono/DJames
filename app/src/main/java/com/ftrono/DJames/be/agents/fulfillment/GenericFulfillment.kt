@@ -74,7 +74,7 @@ class GenericFulfillment (private var context: Context) {
                 var reqLangCode = updState.reqLangCode
 
                 //If no specific language requested -> use contact preferences or global preferences:
-                if (reqLangCode == prefs.queryLanguage) {
+                if (reqLangCode == prefs.messageLanguage) {
                     try {
                         //Contact preferences:
                         reqLangCode = itemInfo.language

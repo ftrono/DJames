@@ -133,13 +133,22 @@ class IntentsGraph(
             }
 
             // ReqLanguage selection:
+            val defaultLang = if (resultsNlp.intentName == "DriveRequest") {
+                    prefs.placeLanguage
+                } else if (resultsNlp.intentName == "MessageRequest") {
+                    prefs.messageLanguage
+                } else {
+                    prefs.queryLanguage
+                }
             if (isStart && resultsNlp.reqLanguage != "") {
                 updState.reqLangCode = utils.getLanguageCode(
-                    language = resultsNlp.reqLanguage,
-                    default = prefs.queryLanguage,
+                    language = resultsNlp.reqLanguage,   // Explicitly requested language by voice
+                    default = defaultLang,
                 )
+            } else if (isStart) {
+                updState.reqLangCode = defaultLang   // Intent default
             } else {
-                updState.reqLangCode = resultsNlp.language
+                updState.reqLangCode = resultsNlp.language   // Audio language
             }
             updState.reqLangName = utils.getLanguageName(updState.reqLangCode)
             Log.d(TAG, "LANGUAGES: detLanguage: ${resultsNlp.reqLanguage}, reqLangCode: ${updState.reqLangCode}, reqLanguageName: ${updState.reqLangName}")

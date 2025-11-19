@@ -270,7 +270,7 @@ class SpotifyUtils {
                 //SUCCESS -> Play ACKNOWLEDGE tone:
                 toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                 Log.d(TAG, "Saved track: $ids")
-                toastText = "Current track saved in Spotify!"
+                toastText = "Current track SAVED in Spotify!"
             } else {
                 //Play FAIL tone:
                 toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL

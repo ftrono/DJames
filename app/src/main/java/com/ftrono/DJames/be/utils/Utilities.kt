@@ -16,6 +16,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import com.ftrono.DJames.BuildConfig
 import com.ftrono.DJames.application.ACTION_MAKE_CALL
 import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.libCats
@@ -242,7 +243,7 @@ class Utilities {
         if (filename != "") {
             //Get cached file:
             val file = File(context.cacheDir, filename)
-            val uriToFile = FileProvider.getUriForFile(context, "com.ftrono.DJames.provider", file)
+            val uriToFile = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.provider", file)
             val sendIntent: Intent = Intent().apply {
                 action = Intent.ACTION_SEND
                 putExtra(Intent.EXTRA_STREAM, uriToFile)

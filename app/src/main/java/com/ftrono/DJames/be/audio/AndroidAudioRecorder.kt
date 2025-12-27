@@ -5,11 +5,12 @@ import android.content.Context
 import android.content.Intent
 import android.media.AudioFormat
 import android.media.AudioRecord
+import android.media.MediaCodec
+import android.media.MediaFormat
 import android.media.MediaRecorder
 import android.os.Environment
 import android.util.Log
 import androidx.annotation.RequiresPermission
-import com.arthenica.ffmpegkit.FFmpegKit
 import com.ftrono.DJames.application.*
 import com.ftrono.DJames.be.models.RecDetails
 import com.konovalov.vad.webrtc.VadWebRTC
@@ -17,6 +18,7 @@ import com.konovalov.vad.webrtc.config.FrameSize as RtcFrameSize
 import com.konovalov.vad.webrtc.config.Mode as RtcMode
 import com.konovalov.vad.webrtc.config.SampleRate as RtcSampleRate
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 
 
@@ -222,7 +224,7 @@ class AndroidAudioRecorder(private val context: Context) {
             audioRecorder.release()
             recordingMode = false
             //Convert:
-            convertAudioFile(source = recFilePcm!!, target = recFileFlac!!)
+            convertPcmToFlac(pcmFile = recFilePcm!!, flacFile = recFileFlac!!, sampleRate = recSamplingRate)
             return RecDetails(
                 recName = lastRecordingName,
                 recPath = recFileFlac!!.absolutePath,
@@ -236,13 +238,70 @@ class AndroidAudioRecorder(private val context: Context) {
         }
     }
 
-    fun convertAudioFile(source: File, target: File) {
+    fun convertPcmToFlac(
+        pcmFile: File,
+        flacFile: File,
+        sampleRate: Int,
+        channels: Int = 1
+    ) {
         try {
-            val cmd = "-f s16le -ar ${recSamplingRate} -ac 1 -i ${source.absolutePath} -c:a flac ${target.absolutePath} -y -loglevel quiet"
-            val session = FFmpegKit.execute(cmd)
-            Log.d(TAG, "Conversion return: ${session.returnCode}")
-            //Log.d(TAG, "Conversion output: ${session.output}")
-            Log.d(TAG, "Conversion fail track (if any): ${session.failStackTrace}")
+            val codec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_FLAC)
+
+            val format = MediaFormat.createAudioFormat(
+                MediaFormat.MIMETYPE_AUDIO_FLAC,
+                sampleRate,
+                channels
+            )
+            format.setInteger(MediaFormat.KEY_PCM_ENCODING, AudioFormat.ENCODING_PCM_16BIT)
+            format.setInteger(MediaFormat.KEY_BIT_RATE, sampleRate * channels * 16)
+
+            codec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+            codec.start()
+
+            val inputStream = FileInputStream(pcmFile)
+            val outputStream = FileOutputStream(flacFile)
+
+            val bufferInfo = MediaCodec.BufferInfo()
+            var eof = false
+
+            while (!eof) {
+                // Input buffer handling (PCM → codec):
+                val inIndex = codec.dequeueInputBuffer(10000)
+                if (inIndex >= 0) {
+                    val inputBuffer = codec.getInputBuffer(inIndex)!!
+                    inputBuffer.clear()
+                    val temp = ByteArray(inputBuffer.capacity())
+                    val bytesRead = inputStream.read(temp)
+                    if (bytesRead == -1) {
+                        codec.queueInputBuffer(
+                            inIndex, 0, 0, 0,
+                            MediaCodec.BUFFER_FLAG_END_OF_STREAM
+                        )
+                        eof = true
+                    } else {
+                        inputBuffer.put(temp, 0, bytesRead)
+                        codec.queueInputBuffer(inIndex, 0, bytesRead, 0, 0)
+                    }
+                }
+
+                // Output buffer handling (codec → FLAC file):
+                var outIndex = codec.dequeueOutputBuffer(bufferInfo, 10000)
+                while (outIndex >= 0) {
+                    val outBuffer = codec.getOutputBuffer(outIndex)!!
+                    val data = ByteArray(bufferInfo.size)
+                    outBuffer.get(data)
+                    outBuffer.clear()
+                    outputStream.write(data)
+                    codec.releaseOutputBuffer(outIndex, false)
+                    outIndex = codec.dequeueOutputBuffer(bufferInfo, 0)
+                }
+            }
+
+            inputStream.close()
+            outputStream.close()
+            codec.stop()
+            codec.release()
+
         } catch (e: Exception) {
             recordingFail = true
             speechPct = 0

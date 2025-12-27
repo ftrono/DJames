@@ -26,6 +26,21 @@ android {
         }
     }
 
+//    // DUAL APP VERSION (PROD + DEBUG):
+//    flavorDimensions += "environment"
+//    productFlavors {
+//        create("prod") {
+//            dimension = "environment"
+//        }
+//        create("dev") {
+//            dimension = "environment"
+//            applicationIdSuffix = ".dev"
+//            versionNameSuffix = "-dev"
+//            // Optional: different redirect scheme to avoid conflicts
+//            manifestPlaceholders["appAuthRedirectScheme"] = "myapp-oauth-dev"
+//        }
+//    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -132,8 +147,6 @@ dependencies {
     compileOnly("org.apache.tomcat:annotations-api:6.0.53") {
         exclude("com.google.protobuf")
     }
-    //FFmpeg-kit:
-    implementation("com.arthenica:ffmpeg-kit-full:6.0-2")
     //FuzzyWuzzy:
     implementation("me.xdrop:fuzzywuzzy:1.4.0")
     //AppAuth:

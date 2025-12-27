@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
+import com.ftrono.DJames.BuildConfig
 import com.ftrono.DJames.application.ACTION_MESSAGES_REFRESH
 import com.ftrono.DJames.application.appVersion
 import com.ftrono.DJames.application.datetimeExportFormat
@@ -329,7 +330,7 @@ class MessageUtils {
         try {
             // Get URI and MIME type of file
             val file = File(context.cacheDir, filename)
-            val uri = FileProvider.getUriForFile(context, "com.ftrono.DJames.provider", file)
+            val uri = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.provider", file)
             val mime = context.contentResolver.getType(uri)
 
             // Open file with user selected app

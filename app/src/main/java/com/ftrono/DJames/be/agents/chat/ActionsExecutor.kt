@@ -6,6 +6,7 @@ import android.telephony.SmsManager
 import android.util.Log
 import androidx.core.content.FileProvider
 import android.net.Uri
+import com.ftrono.DJames.BuildConfig
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.prefs
@@ -189,7 +190,7 @@ class ActionsExecutor(
                 //Get audio file:
                 val audioFile = File(recDir, lastRecording)   //Flac
                 val uri =
-                    FileProvider.getUriForFile(context, "com.ftrono.DJames.provider", audioFile)
+                    FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.provider", audioFile)
 
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "audio/*"

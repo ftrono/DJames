@@ -1,7 +1,6 @@
 package com.ftrono.DJames.ui.navigation
 
 import android.content.Context
-import android.content.Intent
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Person
@@ -13,22 +12,17 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.lifecycle.coroutineScope
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.extraOpen
-import com.ftrono.DJames.application.showLoggingIn
-import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.spotifyLoginUtils
 import com.ftrono.DJames.ui.components.OptionsItem
 import com.ftrono.DJames.ui.components.OptionsMenu
-import com.ftrono.DJames.ui.dialogs.DialogLoading
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.theme.NavigationItem
 
@@ -37,38 +31,14 @@ import com.ftrono.DJames.ui.theme.NavigationItem
 @Composable
 fun UserOptions(
     context: Context,
-    lifecycleOwner: LifecycleOwner,
     navController: NavController,
     preview: Boolean = false
 ) {
     val extraOpenState by extraOpen.observeAsState()
-    val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
     val checkedV3 = remember { mutableStateOf(if (preview) true else prefs.enableV3) }
 
     var mDisplayMenu = rememberSaveable {
         mutableStateOf(false)
-    }
-
-    val logoutDialogOn = rememberSaveable { mutableStateOf(false) }
-    if (logoutDialogOn.value) {
-        DialogLogout(
-            context,
-            logoutDialogOn,
-            navController,
-            extraOpenState!!
-        )
-    }
-
-    val dialogLoggingInOn by showLoggingIn.observeAsState()
-    if (dialogLoggingInOn!!) {
-        DialogLoading(
-            text = "Logging in to Spotify..."
-        )
-        spotifyLoginUtils.getSpotifyUserData(
-            context = context,
-            navController = navController,
-            scope = lifecycleOwner.lifecycle.coroutineScope
-        )
     }
 
     // USER OPTIONS MENU:

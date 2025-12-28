@@ -39,7 +39,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
@@ -69,7 +68,6 @@ fun GuideScreen(
     preview: Boolean = false
 ) {
     val mContext = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
     var guideStateItems = getGuideStateItems(fullGuide)
     val expandedStates = remember {
         mutableStateMapOf(*guideStateItems.map { it to false }.toTypedArray())
@@ -89,7 +87,6 @@ fun GuideScreen(
                 optionButtons = {
                     UserOptions(
                         context = mContext,
-                        lifecycleOwner = lifecycleOwner,
                         navController = navController,
                         preview = preview,
                     )

@@ -40,7 +40,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -95,7 +94,6 @@ fun HomeScreen(
     val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
 
     val mContext = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
 
     val focusManager = LocalFocusManager.current
     val overlayActiveState by overlayActive.observeAsState()
@@ -145,7 +143,6 @@ fun HomeScreen(
                 optionButtons = {
                     UserOptions(
                         context = mContext,
-                        lifecycleOwner = lifecycleOwner,
                         navController = navController,
                         preview = preview,
                     )

@@ -43,6 +43,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.coroutineScope
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
@@ -54,9 +56,11 @@ import com.ftrono.DJames.application.extraOpen
 import com.ftrono.DJames.application.genders
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.showLoggingIn
 import com.ftrono.DJames.application.spotUserImageState
 import com.ftrono.DJames.application.spotUserName
 import com.ftrono.DJames.application.spotifyLoggedIn
+import com.ftrono.DJames.application.spotifyLoginUtils
 import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.userNicknameUI
 import com.ftrono.DJames.application.utils
@@ -67,6 +71,7 @@ import com.ftrono.DJames.ui.components.ExtServiceAccountItem
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.components.SettingsSection
 import com.ftrono.DJames.ui.components.StreetUIScaffold
+import com.ftrono.DJames.ui.dialogs.DialogLoading
 import com.ftrono.DJames.ui.navigation.DialogLogout
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import java.io.ByteArrayOutputStream
@@ -102,6 +107,7 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
     val spotUserNameState by spotUserName.observeAsState()
 
     // LOGIN / LOGOUT:
+    val lifecycleOwner = LocalLifecycleOwner.current
     val logoutDialogOn = rememberSaveable { mutableStateOf(false) }
     if (logoutDialogOn.value) {
         DialogLogout(
@@ -109,6 +115,18 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
             logoutDialogOn,
             navController,
             extraOpenState!!
+        )
+    }
+
+    val dialogLoggingInOn by showLoggingIn.observeAsState()
+    if (dialogLoggingInOn!!) {
+        DialogLoading(
+            text = "Logging in to Spotify..."
+        )
+        spotifyLoginUtils.getSpotifyUserData(
+            context = mContext,
+            navController = navController,
+            scope = lifecycleOwner.lifecycle.coroutineScope
         )
     }
 

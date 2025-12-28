@@ -25,6 +25,7 @@ import androidx.navigation.compose.composable
 import com.ftrono.DJames.application.curNavId
 import com.ftrono.DJames.application.innerNavOpen
 import com.ftrono.DJames.application.extraOpen
+import com.ftrono.DJames.application.screens.AccountsScreen
 import com.ftrono.DJames.application.screens.GuideScreen
 import com.ftrono.DJames.application.screens.HomeScreen
 import com.ftrono.DJames.application.screens.SettingsScreen
@@ -122,6 +123,22 @@ fun Navigation(
         }
 
         //EXTRA:
+        //0 -> ACCOUNT:
+        composable(
+            NavigationItem.Accounts.route,
+            enterTransition = {
+                scaleIn() + expandVertically(expandFrom = Alignment.Bottom)
+            },
+            exitTransition = {
+                scaleOut() + shrinkVertically(shrinkTowards = Alignment.Bottom)
+            }
+        ) {
+            curNavId = 0
+            innerNavOpen.postValue(false)
+            extraOpen.postValue(true)
+            AccountsScreen(navController)
+        }
+
         //0 -> SETTINGS:
         composable(
             NavigationItem.Settings.route,
@@ -138,7 +155,7 @@ fun Navigation(
             SettingsScreen(navController)
         }
 
-        //1 -> GUIDE:
+        //0 -> GUIDE:
         composable(
             NavigationItem.Guide.route,
             enterTransition = {

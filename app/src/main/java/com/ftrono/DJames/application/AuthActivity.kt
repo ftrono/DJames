@@ -111,8 +111,8 @@ class AuthActivity: ComponentActivity() {
                     spotTempToken = tokenResponse.accessToken!!
                     refrTempToken = tokenResponse.refreshToken!!
                     Log.d(TAG, "AUTH SUCCESS: Access & Refresh tokens received! Started Spotify.me main.")
-                    // Log.d(TAG, "AccessToken: $spotTempToken")
-                    // Log.d(TAG, "RefreshToken: $refrTempToken")
+                    // Log.d(TAG, "Access Token: $spotTempToken")
+                    // Log.d(TAG, "Refresh Token: $refrTempToken")
                     showLoggingIn.postValue(true)
                 } catch (e: Exception) {
                     Log.w(TAG, "ERROR:  AUTH: Cannot call Spotify.me main!", e)

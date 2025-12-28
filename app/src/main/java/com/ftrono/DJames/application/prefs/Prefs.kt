@@ -67,7 +67,7 @@ class Prefs (context: Context) {
 
     //Rec max freq:
     var recMaxFreq: Int
-        get() = sharedPrefs.getInt(KEY_REC_MAX_FREQ, 2500)
+        get() = sharedPrefs.getInt(KEY_REC_MAX_FREQ, 3100)
         set(value) = sharedPrefs.edit { putInt(KEY_REC_MAX_FREQ, value) }
 
     //Enable second noise suppression:
@@ -88,7 +88,7 @@ class Prefs (context: Context) {
     //Prefs:
     //Auto start-up:
     var autoStartup: Boolean
-        get() = sharedPrefs.getBoolean(KEY_AUTO_STARTUP, false)
+        get() = sharedPrefs.getBoolean(KEY_AUTO_STARTUP, true)
         set(value) = sharedPrefs.edit { putBoolean(KEY_AUTO_STARTUP, value) }
 
     //Overlay position:
@@ -194,7 +194,7 @@ class Prefs (context: Context) {
         set(value) = encryptedPrefs.edit { putString(KEY_SPOTIFY_TOKEN, value) }
 
     //(Encrypted) Spotify refresh token:
-    var refreshToken: String
+    var spotRefreshToken: String
         get() = encryptedPrefs.getString(KEY_SPOTIFY_REFRESH_TOKEN, "") as String
         set(value) = encryptedPrefs.edit { putString(KEY_SPOTIFY_REFRESH_TOKEN, value) }
 

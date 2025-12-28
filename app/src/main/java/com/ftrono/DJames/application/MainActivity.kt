@@ -77,13 +77,17 @@ class MainActivity : ComponentActivity() {
         //Screen density:
         density = resources.displayMetrics.density
 
-        //Check Login status:
+        // Profile info:
+        userNicknameUI.postValue(prefs.userNickname)
+        userGender.postValue(prefs.userGender)
+
+        //Check Spotify Login status:
         if (prefs.spotifyToken == "") {
             spotifyLoggedIn.postValue(false)
         } else {
             spotifyLoggedIn.postValue(true)
             spotUserName.postValue(prefs.spotUserName)
-            userGender.postValue(prefs.userGender)
+            spotUserImageState.postValue(prefs.spotUserImage)
         }
 
         //Start personal Receiver:
@@ -117,8 +121,6 @@ class MainActivity : ComponentActivity() {
         if (prefs.nlpUserId == "") {
             prefs.nlpUserId = utils.generateRandomString(12)
         }
-        spotUserImageState.postValue(prefs.spotUserImage)
-        userNicknameUI.postValue(prefs.userNickname)
 
         //AUTO START-UP:
         if (

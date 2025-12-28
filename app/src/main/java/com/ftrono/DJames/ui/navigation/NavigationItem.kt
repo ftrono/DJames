@@ -13,5 +13,6 @@ sealed class NavigationItem(
     object Library : NavigationItem("library", R.drawable.icon_star, "Saved")
     object Messages : NavigationItem("messages", R.drawable.icon_message, "Messages")
     //SETTINGS:
+    object Accounts : NavigationItem("accounts", R.drawable.icon_user, "Accounts")
     object Settings : NavigationItem("settings", R.drawable.icon_settings, "Preferences")
 }

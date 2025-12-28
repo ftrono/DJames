@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavController
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.AuthActivity
 import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.extraOpen
@@ -83,7 +82,23 @@ fun UserOptions(
             expandedState = mDisplayMenu,
             backgroundColor = colorResource(id = R.color.dark_grey_background),
             options = {
-                //1) Item: PREFERENCES
+                //1) Item: ACCOUNTS
+                OptionsItem(
+                    title = "Accounts",
+                    iconPainter = painterResource(id = R.drawable.icon_user),
+                    onClick = {
+                        //Navigate:
+                        val curNavRoute = NavigationItem.Accounts.route
+                        if (curNavRoute == lastNavRoute && (extraOpenState!!)) {
+                            navController.popBackStack()
+                        } else {
+                            navigateTo(navController, curNavRoute)
+                        }
+                        lastNavRoute = curNavRoute
+                        mDisplayMenu.value = false
+                    }
+                )
+                //2) Item: PREFERENCES
                 OptionsItem(
                     title = "Preferences",
                     iconPainter = painterResource(id = R.drawable.icon_settings),
@@ -99,7 +114,7 @@ fun UserOptions(
                         mDisplayMenu.value = false
                     }
                 )
-                //2) TODO: TEMP: Item: Enable / disable V3 engine:
+                //3) TODO: TEMP: Item: Enable / disable V3 engine:
                 OptionsItem(
                     title = "Enable v3 engine",
                     iconVector = Icons.Default.Check,
@@ -107,24 +122,6 @@ fun UserOptions(
                     onClick = {
                         prefs.enableV3 = !checkedV3.value
                         checkedV3.value = !checkedV3.value
-                        if (checkedV3.value) "Enabled V3 engine!" else "Disabled V3 engine!"
-                    }
-                )
-                //3) Item: LOGIN/LOGOUT
-                OptionsItem(
-                    title = if (!spotifyLoggedInState!!) "Login to Spotify" else "Logout from Spotify",
-                    iconPainter = painterResource(id = R.drawable.icon_user),
-                    onClick = {
-                        if (!spotifyLoggedInState!!) {
-                            //Login user -> Open WebView:
-                            val intent1 =
-                                Intent(context, AuthActivity::class.java)
-                            context.startActivity(intent1)
-                        } else {
-                            //LOG OUT:
-                            logoutDialogOn.value = true
-                        }
-                        mDisplayMenu.value = false
                     }
                 )
             }
@@ -146,7 +143,7 @@ fun DialogLogout(
         title = "Logout",
         content = {
             Text(
-                text = "You will need to login again to Spotify to use DJames.\n\nDo you want to log out?",   // and you'll lose your saved library & message history
+                text = "You will need to login again to Spotify to play music via DJames.\n\nDo you want to log out?",
                 color = colorResource(id = R.color.light_grey),
                 fontSize = 14.sp
             )
@@ -154,11 +151,7 @@ fun DialogLogout(
         dismissText = "No",
         confirmText = "Yes",
         onConfirm = {
-            spotifyLoginUtils.logout(
-                context,
-                navController,
-                extraOpenState
-            )
+            spotifyLoginUtils.logout(context)
             dialogOnState.value = false
         }
     )

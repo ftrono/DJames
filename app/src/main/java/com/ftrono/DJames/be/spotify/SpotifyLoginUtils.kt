@@ -60,13 +60,12 @@ class SpotifyLoginUtils {
                         //Log.d(TAG, response)
                         //SUCCESS!
                         prefs.spotifyToken = spotTempToken
-                        prefs.refreshToken = refrTempToken
+                        prefs.spotRefreshToken = refrTempToken
                         prefs.spotUserName = respJSON.get("display_name").asString
                         spotUserName.postValue(respJSON.get("display_name").asString)
                         prefs.spotUserId = respJSON.get("id").asString
                         prefs.spotUserEMail = respJSON.get("email").asString
                         prefs.spotCountry = respJSON.get("country").asString
-                        prefs.userNickname = utils.cleanString(respJSON.get("display_name").asString)
                         //Spotify profile image:
                         try {
                             val images = respJSON.getAsJsonArray("images")
@@ -97,15 +96,14 @@ class SpotifyLoginUtils {
             //States:
             showLoggingIn.postValue(false)
             spotUserImageState.postValue(prefs.spotUserImage)
-            userNicknameUI.postValue(prefs.userNickname)
             //TOAST -> Send broadcast:
             Intent().also { intent ->
                 intent.setAction(ACTION_TOASTER)
-                intent.putExtra("toastText", "Logged in! Please pick a nickname for you!")
+                intent.putExtra("toastText", "Logged in to Spotify!")
                 context.sendBroadcast(intent)
             }
-            //Navigate to Settings:
-            val curNavRoute = NavigationItem.Settings.route
+            //Navigate to Accounts:
+            val curNavRoute = NavigationItem.Accounts.route
             navigateTo(navController, curNavRoute)
             lastNavRoute = curNavRoute
         }
@@ -113,35 +111,20 @@ class SpotifyLoginUtils {
 
 
     //LOGOUT:
-    fun logout(
-        context: Context,
-        navController: NavController,
-        extraOpenState: Boolean
-    ) {
+    fun logout(context: Context) {
         //Delete tokens & user details:
         spotifyLoggedIn.postValue(false)
         prefs.spotifyToken = ""
-        prefs.refreshToken = ""
+        prefs.spotRefreshToken = ""
         prefs.spotUserId = ""
         prefs.spotUserName = ""
         prefs.spotUserEMail = ""
         prefs.spotUserImage = ""
         prefs.spotCountry = ""
-        prefs.userNickname = ""
-        prefs.nlpUserId = utils.generateRandomString(12)
         spotUserName.postValue("")
         spotUserImageState.postValue("")
-        userNicknameUI.postValue("")   //TODO
         //utils.deleteUserCache(context)
         Toast.makeText(context, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()
-        //Navigate to Home:
-        val curNavRoute = NavigationItem.Home.route
-        if (curNavRoute == lastNavRoute && (extraOpenState)) {
-            navController.popBackStack()
-        } else {
-            navigateTo(navController, curNavRoute)
-        }
-        lastNavRoute = curNavRoute
     }
 
 

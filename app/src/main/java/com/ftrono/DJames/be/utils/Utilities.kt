@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
@@ -28,12 +29,16 @@ import com.ftrono.DJames.application.recDir
 import com.ftrono.DJames.application.services.OverlayService
 import com.ftrono.DJames.be.models.languageNamesMap
 import com.ftrono.DJames.be.models.languageWordsMap
+import org.json.JSONObject
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.Random
 import kotlin.streams.asSequence
+import androidx.core.content.edit
+import com.ftrono.DJames.application.userGender
+import com.ftrono.DJames.application.userNicknameUI
 
 
 class Utilities {
@@ -257,6 +262,52 @@ class Utilities {
             Toast.makeText(context, "ERROR: cannot send the requested file!", Toast.LENGTH_LONG).show()
         }
     }
+
+
+    // PREFS EXPORT / IMPORT:
+    fun exportSharedPreferences(context: Context): String {
+        val shPrefs: SharedPreferences =
+            context.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+
+        val allEntries = shPrefs.all
+        val json = JSONObject()
+
+        for ((key, value) in allEntries) {
+            when (value) {
+                is Boolean, is Int, is Long, is Float, is String -> {
+                    json.put(key, value)
+                }
+            }
+        }
+
+        return json.toString()
+    }
+
+    fun importSharedPreferences(
+        context: Context,
+        jsonString: String
+    ) {
+        val shPrefs = context.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+        shPrefs.edit {
+            val json = JSONObject(jsonString)
+
+            json.keys().forEach { key ->
+                when (val value = json.get(key)) {
+                    is Boolean -> putBoolean(key, value)
+                    is Int -> putInt(key, value)
+                    is Long -> putLong(key, value)
+                    is Double -> putFloat(key, value.toFloat())
+                    is String -> putString(key, value)
+                }
+            }
+
+        }
+
+        // Profile info:
+        userNicknameUI.postValue(prefs.userNickname)
+        userGender.postValue(prefs.userGender)
+    }
+
 
     //CLEANING:
     //Clean cached recordings:

@@ -57,7 +57,11 @@ class LibraryUtils {
                     libraryItems.addAll(testLibrary.filter { it.source == cat && it.type == subcat })
                 }
             } else {
-                if (cat == "") {
+                if (cat == "" && subcat == "") {
+                    libraryItems.addAll(
+                        libraryBox!!.query().build().find()
+                    )
+                } else if (cat == "") {
                     libraryItems.addAll(
                         libraryBox!!.query(LibraryItem_.type.equal(subcat))
                         .build().find()
@@ -397,9 +401,13 @@ class LibraryUtils {
     // SEND:
     //Get export file name:
     fun getExportFileName(cat: String, subcat: String = ""): String {
-        return if (cat == "spotify") {
+        return if (cat == "" && subcat == "") {
+            "library.json"
+        } else if (cat == "spotify") {
             if (subcat == "") {
                 "library_${cat}.json"
+            } else if (cat != subcat) {
+                "library_${cat}_${subcat}s.json"
             } else {
                 "library_${cat}s.json"
             }
@@ -409,7 +417,7 @@ class LibraryUtils {
     }
 
     //Prepare Library JSON string for export:
-    fun serializeLibrary(cat: String, subcat: String): String {
+    fun serializeLibrary(cat: String = "", subcat: String = ""): String {
         var jsonContent = ""
         try {
             //Populate cached array & store to cached file:

@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -15,13 +14,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -55,17 +51,13 @@ import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.services.OverlayService
-import com.ftrono.DJames.application.spotUserName
-import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.volumeUpEnabledUI
 import com.ftrono.DJames.ui.components.CustomRangeSlider
 import com.ftrono.DJames.ui.components.CustomSlider
 import com.ftrono.DJames.ui.components.DropdownSpinner
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.components.SettingsSection
-import com.ftrono.DJames.ui.components.SettingsUserSection
 import com.ftrono.DJames.ui.components.StreetUIScaffold
-import com.ftrono.DJames.ui.navigation.DialogLogout
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.selectors.getSwitchColors
 import kotlin.math.roundToInt
@@ -83,20 +75,6 @@ fun SettingsScreenPreview() {
 fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val mContext = LocalContext.current
     val extraOpenState by extraOpen.observeAsState()
-
-    val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
-    val userNameState by spotUserName.observeAsState()
-
-    // LOGIN / LOGOUT:
-    val logoutDialogOn = rememberSaveable { mutableStateOf(false) }
-    if (logoutDialogOn.value) {
-        DialogLogout(
-            mContext,
-            logoutDialogOn,
-            navController,
-            extraOpenState!!
-        )
-    }
 
     // STATUSES:
     val checkedV3 = remember { mutableStateOf(if (preview) true else prefs.enableV3) }
@@ -138,28 +116,13 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
             StreetUITopBar(
                 pretitle = "",
                 title = "Preferences",
-                subtitle = if (!spotifyLoggedInState!!) "Not logged in" else "for ${prefs.spotUserName}",
+                subtitle = "App settings",
                 showBack = true,
                 onBack = {
                     navController.popBackStack()
                     // Toast.makeText(mContext, "Preferences saved!", Toast.LENGTH_SHORT).show()
                 },
-                optionButtons = {
-                    //SAVE BUTTON:
-                    Icon(
-                        modifier = Modifier
-                            .padding(end = 18.dp)
-                            .size(35.dp)
-                            .clickable {
-                                navController.popBackStack()
-                                Toast.makeText(mContext, "Preferences saved!", Toast.LENGTH_SHORT)
-                                    .show()
-                            },
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "Save",
-                        tint = colorResource(R.color.greenSignLight)
-                    )
-                }
+                optionButtons = { }
             )
         }
     ) {
@@ -172,14 +135,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
         ) {
-
-            //SECTION: USER NICKNAME:
-            SettingsUserSection(
-                modifier = Modifier,
-                logoutDialogOn = logoutDialogOn,
-                spotifyLoggedInState = spotifyLoggedInState!!,
-                preview = preview
-            )
 
             //SECTION: EXPERIMENTAL:
             SettingsSection(

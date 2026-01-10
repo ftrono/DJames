@@ -26,19 +26,19 @@ android {
         }
     }
 
-    // DUAL APP VERSION (PROD + DEBUG):
-    flavorDimensions += "environment"
-    productFlavors {
-        create("prod") {
-            dimension = "environment"
-        }
-        create("dev") {
-            dimension = "environment"
-            applicationIdSuffix = ".dev"
-            versionNameSuffix = "-dev"
-            manifestPlaceholders["appAuthRedirectScheme"] = "djames-dev-oauth"
-        }
-    }
+//    // DUAL APP VERSION (PROD + DEBUG):
+//    flavorDimensions += "environment"
+//    productFlavors {
+//        create("prod") {
+//            dimension = "environment"
+//        }
+//        create("dev") {
+//            dimension = "environment"
+//            applicationIdSuffix = ".dev"
+//            versionNameSuffix = "-dev"
+//            manifestPlaceholders["appAuthRedirectScheme"] = "djames-dev-oauth"
+//        }
+//    }
 
     buildTypes {
         release {

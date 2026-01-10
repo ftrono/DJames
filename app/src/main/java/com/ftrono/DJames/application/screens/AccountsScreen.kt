@@ -315,6 +315,7 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
                     filter = "user",
                     textState = textNickName,
                     imageUrl = userImage!!,
+                    placeholder = "Nickname...",
                     preview = preview,
                     onClick = {
                         // Store new nickname to prefs!:

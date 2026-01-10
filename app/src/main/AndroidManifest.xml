@@ -80,8 +80,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:scheme="djames-oauth"
-                    android:host="callback" />
+                    android:scheme="@string/redirect_scheme"
+                    android:host="@string/redirect_host" />
             </intent-filter>
         </activity>
 

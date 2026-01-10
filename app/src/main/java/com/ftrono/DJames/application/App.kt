@@ -206,7 +206,6 @@ val spotifyQueryLimit = 10
 var spotTempToken = ""
 var refrTempToken = ""
 var showLoggingIn = MutableLiveData<Boolean>(false)
-val redirectUri = "djames-oauth://callback"   //URLEncoder.encode(redirectUriOrig, "UTF-8")
 val spotifyAuthConfig = AuthorizationServiceConfiguration(
     Uri.parse("https://accounts.spotify.com/authorize"), // Authorization endpoint
     Uri.parse("https://accounts.spotify.com/api/token")   // Token endpoint

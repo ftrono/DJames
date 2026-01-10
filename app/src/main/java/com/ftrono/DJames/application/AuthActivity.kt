@@ -52,7 +52,7 @@ class AuthActivity: ComponentActivity() {
             spotifyAuthConfig,
             clientId,
             ResponseTypeValues.CODE, // Spotify uses Authorization Code flow
-            Uri.parse(redirectUri)
+            Uri.parse(getString(R.string.redirect_uri))
         )
             //Spotify Scopes:
             .setScopes(

@@ -5,4 +5,10 @@
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
         <item name="android:windowBackground">@color/windowBackground</item>
     </style>
+
+    <style name="Theme.DJames.SplashScreenTheme" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/windowBackground</item>
+        <item name="postSplashScreenTheme">@style/Theme.DJames</item>
+    </style>
+
 </resources>

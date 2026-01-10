@@ -36,8 +36,7 @@ android {
             dimension = "environment"
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
-            // Optional: different redirect scheme to avoid conflicts
-            manifestPlaceholders["appAuthRedirectScheme"] = "myapp-oauth-dev"
+            manifestPlaceholders["appAuthRedirectScheme"] = "djames-dev-oauth"
         }
     }
 

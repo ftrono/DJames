@@ -170,8 +170,12 @@ fun EditLibContact(
                     itemContact.lastUpdated = utils.getCurrentTimestamp()
                     //Language:
                     if (checkedLang.value) {
-                        itemContact.language =
-                            messLangCodes[messLangFull.indexOf(textLanguage.value)]
+                        if (textLanguage.value != "") {
+                            itemContact.language =
+                                messLangCodes[messLangFull.indexOf(textLanguage.value)]
+                        } else {
+                            itemContact.language = prefs.messageLanguage
+                        }
                     } else {
                         itemContact.language = ""
                     }

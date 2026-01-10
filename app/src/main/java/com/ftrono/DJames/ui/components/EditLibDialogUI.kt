@@ -99,6 +99,7 @@ fun EditLibDynamicNameSection(
     textState: MutableState<String>,
     subtitleState: MutableState<String>? = null,
     imageUrl: String,
+    placeholder: String = "Write name...",
     disabled: Boolean = false,
     preview: Boolean = false,
     onClick: () -> Unit = {},
@@ -110,7 +111,6 @@ fun EditLibDynamicNameSection(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    val placeholder = "Nickname..."
     val textFieldColors = getTextFieldColors(
         colorLight = libColorSelectorLight(cat = if (filter == "user") "contact" else if (filter == "collection") "playlist" else filter),
         colorDark = libColorSelector(cat = if (filter == "user") "contact" else if (filter == "collection") "playlist" else filter),

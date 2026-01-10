@@ -212,7 +212,7 @@ class MainActivity : ComponentActivity() {
                         .padding(it)
                 ) {
                     //SET CURRENT SCREEN FROM NAVIGATION HOST:
-                    Navigation(navController, chatManager)
+                    Navigation(navController, chatManager, preview)
                 }
             }
         }

@@ -212,7 +212,13 @@ class GenericFulfillment (private var context: Context) {
             //Place found:
             Log.d(TAG, "DRIVE -> Place from Library")
             itemInfo = libUtils.getLibItemById(libMatch.matchId)
-            itemInfo.detail = itemInfo.address!!.town + ", " + itemInfo.address!!.street + itemInfo.address!!.number
+            itemInfo.detail = if (itemInfo.address!!.street == "" && itemInfo.address!!.number == "") {
+                itemInfo.address!!.town
+            } else if (itemInfo.address!!.number == "") {
+                itemInfo.address!!.town + ", " + itemInfo.address!!.street
+            } else {
+                itemInfo.address!!.town + ", " + itemInfo.address!!.street + " " + itemInfo.address!!.number
+            }
             extractorInfo.matchExtracted = queryText
             extractorInfo.matchConfirmed = itemInfo.name
             extractorInfo.contextConfirmed = itemInfo.detail

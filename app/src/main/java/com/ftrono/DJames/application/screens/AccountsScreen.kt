@@ -61,7 +61,6 @@ import com.ftrono.DJames.application.spotUserImageState
 import com.ftrono.DJames.application.spotUserName
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.spotifyLoginUtils
-import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.userNicknameUI
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.models.ZipBackup

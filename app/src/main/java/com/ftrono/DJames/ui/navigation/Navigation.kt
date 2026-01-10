@@ -44,6 +44,7 @@ class SharedViewModel : ViewModel() {
 fun Navigation(
     navController: NavHostController,
     chatManager: ChatManager,
+    preview: Boolean = false,
 ) {
     val sharedViewModel: SharedViewModel = viewModel()
     NavHost(
@@ -73,7 +74,7 @@ fun Navigation(
             curNavId = 1
             innerNavOpen.postValue(false)
             extraOpen.postValue(false)
-            HomeScreen(navController, chatManager, sharedViewModel)
+            HomeScreen(navController, chatManager, sharedViewModel, preview)
         }
 
         //2 -> LIBRARY:
@@ -96,7 +97,7 @@ fun Navigation(
             curNavId = 0
             innerNavOpen.postValue(false)
             extraOpen.postValue(false)
-            LibraryScreen(navController)
+            LibraryScreen(navController, preview=preview)
         }
 
         //3 -> MESSAGES:
@@ -119,7 +120,7 @@ fun Navigation(
             curNavId = 2
             innerNavOpen.postValue(false)
             extraOpen.postValue(false)
-            MessagesScreen(navController, chatManager, sharedViewModel)
+            MessagesScreen(navController, chatManager, sharedViewModel, preview)
         }
 
         //EXTRA:
@@ -136,7 +137,7 @@ fun Navigation(
             curNavId = 0
             innerNavOpen.postValue(false)
             extraOpen.postValue(true)
-            AccountsScreen(navController)
+            AccountsScreen(navController, preview)
         }
 
         //0 -> SETTINGS:
@@ -152,7 +153,7 @@ fun Navigation(
             curNavId = 0
             innerNavOpen.postValue(false)
             extraOpen.postValue(true)
-            SettingsScreen(navController)
+            SettingsScreen(navController, preview)
         }
 
         //0 -> GUIDE:
@@ -168,7 +169,7 @@ fun Navigation(
             curNavId = 0
             innerNavOpen.postValue(false)
             extraOpen.postValue(true)
-            GuideScreen(navController)
+            GuideScreen(navController, preview)
         }
     }
 }

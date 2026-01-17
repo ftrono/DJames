@@ -35,7 +35,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +51,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_FINISH_CLOCK
 import com.ftrono.DJames.application.ACTION_MAKE_CALL
 import com.ftrono.DJames.application.ACTION_REC_STOP
@@ -500,6 +500,7 @@ class OverlayService : Service() {
             NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
         val notification = notificationBuilder.setOngoing(true)
             .setContentTitle("DJames: Overlay Service is running in background")
+            .setSmallIcon(R.drawable.app_icon_notification)
             .setPriority(NotificationManager.IMPORTANCE_MIN)
             .setCategory(Notification.CATEGORY_SERVICE)
             .build()

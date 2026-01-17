@@ -17,6 +17,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_REC_STOP
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.defaultReplies
@@ -154,6 +155,7 @@ class VoiceQueryService: Service() {
             NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
         val notification = notificationBuilder.setOngoing(true)
             .setContentTitle("DJames: Voice Query Service is running in background")
+            .setSmallIcon(R.drawable.app_icon_notification)
             .setPriority(NotificationManager.IMPORTANCE_MIN)
             .setCategory(Notification.CATEGORY_SERVICE)
             .build()

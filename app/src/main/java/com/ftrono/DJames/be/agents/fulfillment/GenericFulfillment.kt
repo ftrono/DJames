@@ -5,7 +5,7 @@ import android.util.Log
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.libUtils
-import com.ftrono.DJames.application.maxThreshold
+import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.messLangFull
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.messLangCodes
@@ -199,7 +199,7 @@ class GenericFulfillment (private var context: Context) {
         extractorInfo.reqLanguage = reqLangCode
 
         //Check place in library:
-        val libMatches = libUtils.matchLibrary("place", queryText, maxThreshold)
+        val libMatches = libUtils.matchLibrary("place", queryText, midThreshold)
         if (libMatches.isEmpty()) {
             //Place NOT found:
             Log.d(TAG, "DRIVE -> Place from Message")

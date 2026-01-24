@@ -3,7 +3,7 @@ package com.ftrono.DJames.be.spotify
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.deltaSimilarity
-import com.ftrono.DJames.application.playThreshold
+import com.ftrono.DJames.application.searchThreshold
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.spotifyParsers
 import com.ftrono.DJames.application.spotifyQueryLimit
@@ -113,7 +113,7 @@ class SpotifySearch(private val context: Context) {
 
         //SECOND REQUEST:
         var url2 = url
-        if (bestScore <= playThreshold || items.isEmpty()) {
+        if (bestScore <= searchThreshold || items.isEmpty()) {
             //Compose query:
             if (artistName != "") {
                 val encodedArtistName: String = URLEncoder.encode(artistName, "UTF-8")

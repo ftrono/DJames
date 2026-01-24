@@ -214,7 +214,8 @@ val spotifyAuthConfig = AuthorizationServiceConfiguration(
 //LLM:
 val mistralSttModel = "voxtral-mini-latest"
 val mistralSttUrl = "https://api.mistral.ai/v1/audio/transcriptions"
-val mistralLlmModel = "mistral-small-latest"
+val mistralLlmModelSmall = "mistral-small-latest"
+val mistralLlmModelMedium = "mistral-medium-latest"
 val mistralLlmUrl = "https://api.mistral.ai/v1/chat/completions"
 val mistralLlmTemperature = 0.3F
 val mistralLlmTimeout = 20L

@@ -4,9 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.END
-import com.ftrono.DJames.application.fulfillmentUtils
-import com.ftrono.DJames.application.spotifyLoggedIn
-import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.application.mistralLlmModelSmall
 import com.ftrono.DJames.be.agents.llm.LlmAgent
 import com.ftrono.DJames.be.agents.data.NodeType
 import com.ftrono.DJames.be.agents.data.StateInfo
@@ -22,6 +20,7 @@ class MainRouterNode (
     override val TAG = this::class.java.simpleName
     override val name: String = TAG.replace("Node", "")
     override val type: NodeType = NodeType.ROUTER
+    val model = mistralLlmModelSmall
 
     override fun invoke(prevState: StateInfo): StateInfo {
         Log.d(TAG, "$name activated")
@@ -50,6 +49,7 @@ class MainRouterNode (
         val llmAgent = LlmAgent(
             context = context,
             apiKey = apiKey,
+            model = model,
             agentName = name,
             isRouter = true,
         )

@@ -9,6 +9,7 @@ import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.defaultChatWait
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.minSpeechPct
+import com.ftrono.DJames.application.mistralSttModel
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.be.agents.nodes.CallAgentNode
 import com.ftrono.DJames.be.agents.nodes.DriverAgentNode
@@ -21,9 +22,7 @@ import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.be.agents.graph.Graph
 import com.ftrono.DJames.be.agents.llm.LlmAgent
 import com.ftrono.DJames.be.agents.data.ChatMessage
-import com.ftrono.DJames.be.agents.data.SttReturn
 import com.ftrono.DJames.be.database.Attachments
-import com.ftrono.DJames.be.database.NlpQueryModel
 import com.ftrono.DJames.be.models.RecDetails
 import com.google.gson.JsonParser
 import java.io.BufferedReader
@@ -153,6 +152,7 @@ class AgentsGraph(
                 val sttAgent = LlmAgent(
                     context = context,
                     apiKey = apiKey,
+                    model = mistralSttModel,
                     agentName = "Transcriber",
                 )
                 val sttReturn = sttAgent.transcribe(

@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.fulfillmentUtils
+import com.ftrono.DJames.application.mistralLlmModelSmall
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.be.agents.data.ChatMessage
 import com.ftrono.DJames.be.agents.llm.LlmAgent
@@ -22,6 +23,7 @@ class PlayerAgentNode (
 
     override val TAG = this::class.java.simpleName
     override val name: String = TAG.replace("Node", "")
+    val model = mistralLlmModelSmall
 
     override fun invoke(prevState: StateInfo): StateInfo {
         Log.d(TAG, "$name activated")
@@ -57,6 +59,7 @@ class PlayerAgentNode (
         val llmAgent = LlmAgent(
             context = context,
             apiKey = apiKey,
+            model = model,
             agentName = name,
             onComplete = onComplete,
             onFallback = onFallback,

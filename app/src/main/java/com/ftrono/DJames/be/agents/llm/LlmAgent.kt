@@ -5,11 +5,9 @@ import android.util.Log
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.jsonNoPrint
 import com.ftrono.DJames.application.jsonUnknown
-import com.ftrono.DJames.application.mistralLlmModel
 import com.ftrono.DJames.application.mistralLlmTemperature
 import com.ftrono.DJames.application.mistralLlmTimeout
 import com.ftrono.DJames.application.mistralLlmUrl
-import com.ftrono.DJames.application.mistralSttModel
 import com.ftrono.DJames.application.mistralSttUrl
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.data.ChatMessage
@@ -36,6 +34,7 @@ import java.io.File
 class LlmAgent(
     private val context: Context,
     private val apiKey: String,
+    private val model: String,
     private val agentName: String,
     private val tools: Map<String, Tool> = mapOf<String, Tool>(),
     private val isRouter: Boolean = false,
@@ -125,7 +124,7 @@ class LlmAgent(
             val audioRequestBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("file", audioFile.name, fileBody)
-                .addFormDataPart("model", mistralSttModel)
+                .addFormDataPart("model", model)
                 // .addFormDataPart("language", "en")
                 .build()
 
@@ -178,7 +177,7 @@ class LlmAgent(
             // Build request:
             var llmRequest = LlmRequest(
                 messages = inMessages.toList(),
-                model = mistralLlmModel,
+                model = model,
                 temperature = if (isRouter) 0F else mistralLlmTemperature,
                 toolChoice = if (tools.isNotEmpty()) "auto" else "none",
                 parallelToolCalls = false,
@@ -259,7 +258,7 @@ class LlmAgent(
                         // Send tool response to LLM:
                         llmRequest = LlmRequest(
                             messages = inMessages.toList(),
-                            model = mistralLlmModel,
+                            model = model,
                             temperature = mistralLlmTemperature,
                             toolChoice = "auto",
                             parallelToolCalls = false,

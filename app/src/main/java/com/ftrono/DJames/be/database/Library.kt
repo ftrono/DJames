@@ -61,5 +61,6 @@ data class ExtractedItem(
 
 data class LibMatch(
     var matchScore: Int = 0,
-    var matchId: Long = 0L
+    var matchId: Long = 0L,
+    var matchName: String = "",
 )

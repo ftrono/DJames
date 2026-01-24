@@ -38,16 +38,17 @@ class GenericFulfillment (private var context: Context) {
         extractorInfo.matchExtracted = contactExtracted
 
         //Match extracted contact name with user library:
-        var libMatch = libUtils.matchLibrary(filter, text=contactExtracted)
+        var libMatches = libUtils.matchLibrary(filter, text=contactExtracted)
 
-        if (libMatch.matchId < 0) {
+        if (libMatches.isEmpty()) {
             //Fallback:
             return fulfillmentUtils.fallback(updState, notUnderstood=true)
 
         } else {
             //Get contact:
-            itemInfo = libUtils.getLibItemById(libMatch.matchId)
+            itemInfo = libUtils.getLibItemById(libMatches[0].matchId)
             extractorInfo.matchConfirmed = itemInfo.name
+            updState.attachments.matchScore = libMatches[0].matchScore
 
             //CASES:
             if (updState.intentName.contains("Call")) {
@@ -131,7 +132,6 @@ class GenericFulfillment (private var context: Context) {
 
             // Update state:
             updState.attachments.nlpExtractor = extractorInfo
-            updState.attachments.matchScore = libMatch.matchScore
             Log.d(TAG, updState.toString())
             return updState
         }
@@ -199,8 +199,8 @@ class GenericFulfillment (private var context: Context) {
         extractorInfo.reqLanguage = reqLangCode
 
         //Check place in library:
-        val libMatch = libUtils.matchLibrary("place", queryText, maxThreshold)
-        if (libMatch.matchId < 0) {
+        val libMatches = libUtils.matchLibrary("place", queryText, maxThreshold)
+        if (libMatches.isEmpty()) {
             //Place NOT found:
             Log.d(TAG, "DRIVE -> Place from Message")
             itemInfo = nlpExtractor.extractPlace(queryText, reqLangCode)
@@ -211,7 +211,8 @@ class GenericFulfillment (private var context: Context) {
         } else {
             //Place found:
             Log.d(TAG, "DRIVE -> Place from Library")
-            itemInfo = libUtils.getLibItemById(libMatch.matchId)
+            itemInfo = libUtils.getLibItemById(libMatches[0].matchId)
+            updState.attachments.matchScore = libMatches[0].matchScore
             itemInfo.detail = if (itemInfo.address!!.street == "" && itemInfo.address!!.number == "") {
                 itemInfo.address!!.town
             } else if (itemInfo.address!!.number == "") {
@@ -251,7 +252,6 @@ class GenericFulfillment (private var context: Context) {
             updState.actionType = ActionType.OPEN_URL
             updState.playAcknowledge = true
             updState.attachments.nlpExtractor = extractorInfo
-            updState.attachments.matchScore = libMatch.matchScore
             updState.attachments.usable = itemInfo
         }
 

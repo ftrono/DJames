@@ -203,6 +203,13 @@ class LibraryUtils {
         }
     }
 
+    //Get names Map in format {"id": "Name"}:
+    fun getNamesMap(filter: String): Map<Long, String> {
+        return getAll(subcat=filter).associate { item ->
+            item.id to (item.name)
+        }
+    }
+
     // Search if URL already exists -> get item's DB ID:
     fun getLibIDWithUrl(url: String): Long {
         val res = libraryBox!!.query(LibraryItem_.url.equal(url))
@@ -288,15 +295,14 @@ class LibraryUtils {
 
     // MATCHER:
     //Match item from user query against user library:
-    fun matchLibrary(filter: String, text: String, threshold: Int = midThreshold): LibMatch {
-        var libMatch = LibMatch()
-        var matchId = -1L
+    fun matchLibrary(filter: String, text: String, threshold: Int = midThreshold): MutableList<LibMatch> {
+        var libMatches = mutableListOf<LibMatch>()
         val libMap = getAliasesMap(filter)
+        val namesMap = getNamesMap(filter)
         if (text != "" && libMap.isNotEmpty()) {
             //Init:
             var score = 0
             val listEvalued = text.split(", ")
-            val listConfirmed = mutableListOf<Long>()
             val scoresMap = mutableMapOf<Long, Int>()
 
             //Check each evaluated item:
@@ -326,20 +332,20 @@ class LibraryUtils {
                     //Sort and get highest match:
                     val sortedScores = scoresMap.toList().sortedByDescending { it.second }.toMap()
                     Log.d(TAG, "SORTED MAP FOR $eval: $sortedScores")
-                    listConfirmed.add(sortedScores.keys.toList()[0])
-                    val matchScore = sortedScores.values.toList()[0]
-                    libMatch.matchScore = matchScore
+                    for (key in sortedScores.keys) {
+                        libMatches.add(
+                            LibMatch(
+                                matchId = key,
+                                matchScore = sortedScores[key]!!,
+                                matchName = namesMap[key]!!,
+                            )
+                        )
+                    }
                 }
             }
-            //Final:
-            if (listConfirmed.isNotEmpty()) {
-                Log.d(TAG, "listConfirmed: $listConfirmed")
-                matchId = listConfirmed[0]
-                Log.d(TAG, "LIBRARY MATCH ID: $matchId, ALIASES: ${libMap[matchId]!!}")
-            }
         }
-        libMatch.matchId = matchId
-        return libMatch
+        Log.d(TAG, "LIBRARY MATCHES FOUND: ${libMatches.map { it.matchScore }}")
+        return libMatches
     }
 
 

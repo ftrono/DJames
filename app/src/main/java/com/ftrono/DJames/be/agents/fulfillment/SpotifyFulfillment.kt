@@ -146,12 +146,12 @@ class SpotifyFulfillment (private var context: Context) {
         if (artistExtracted != "") {
             //Confirm artists with library check:
             artistConfirmed = nlpExtractor.checkArtists(updState.attachments.entityArtists, artistExtracted, reqLangCode)
-            val libMatch = libUtils.matchLibrary("artist", artistConfirmed)
-            if (libMatch.matchId > -1) {
-                artistConfirmed = libUtils.getLibItemName(libMatch.matchId)
+            val libMatches = libUtils.matchLibrary("artist", artistConfirmed)
+            if (libMatches.isNotEmpty()) {
+                artistConfirmed = libMatches[0].matchName
+                updState.attachments.matchScore = libMatches[0].matchScore
             }
             extractorInfo.artistConfirmed = artistConfirmed
-            updState.attachments.matchScore = libMatch.matchScore
         }
 
         //GET SPOTIFY PLAY INFO:
@@ -182,19 +182,19 @@ class SpotifyFulfillment (private var context: Context) {
 
                 } else if (contextExtracted != "") {
                     //Confirm context playlist with library check:
-                    val libMatch = libUtils.matchLibrary("playlist", contextExtracted)
+                    val libMatches = libUtils.matchLibrary("playlist", contextExtracted)
 
-                    if (libMatch.matchId > -1) {
+                    if (libMatches.isNotEmpty()) {
                         Log.d(TAG, "Context -> Playlist in lib")
                         //Get playlist URL:
-                        val itemInfo = libUtils.getLibItemById(libMatch.matchId)
+                        val itemInfo = libUtils.getLibItemById(libMatches[0].matchId)
+                        updState.attachments.matchScore = libMatches[0].matchScore
                         playable.track!!.context = SpotifyContext(
                             type = "playlist",
                             name = itemInfo.name,
                             id = spotifyUtils.getSpotifyID(itemInfo.url)
                         )
                         extractorInfo.contextConfirmed = itemInfo.name
-                        updState.attachments.matchScore = libMatch.matchScore
                     }
 
                     // TODO: allow use other specific albums as context!
@@ -253,36 +253,35 @@ class SpotifyFulfillment (private var context: Context) {
         if (playType == "artist") {
             //Confirm artists with library check:
             val artistExtracted = nlpExtractor.checkArtists(updState.attachments.entityArtists, queryText, reqLangCode)
-            val libMatch = libUtils.matchLibrary("artist", artistExtracted)
+            val libMatches = libUtils.matchLibrary("artist", artistExtracted)
 
-            if (libMatch.matchId > -1) {
+            if (libMatches.isNotEmpty()) {
                 Log.d(TAG, "PLAY -> Artist Top Tracks")
                 //Build playable:
-                val itemInfo = libUtils.getLibItemById(libMatch.matchId)
+                val itemInfo = libUtils.getLibItemById(libMatches[0].matchId)
+                updState.attachments.matchScore = libMatches[0].matchScore
                 playable.id = spotifyUtils.getSpotifyID(itemInfo.url)
                 playable.artist = SpotifyArtist(
                     id = playable.id,
                     name = itemInfo.name
                 )
-                updState.attachments.matchScore = libMatch.matchScore
             }
 
         //B) PLAYLIST:
         } else if (playType == "playlist") {
             //Check playlist in library:
-            val libMatch = libUtils.matchLibrary(playType, queryText)
+            val libMatches = libUtils.matchLibrary(playType, queryText)
 
-            if (libMatch.matchId > -1) {
+            if (libMatches.isNotEmpty()) {
                 //Build playable:
                 Log.d(TAG, "PLAY -> Playlist in lib")
-                val itemInfo = libUtils.getLibItemById(libMatch.matchId)
+                val itemInfo = libUtils.getLibItemById(libMatches[0].matchId)
+                updState.attachments.matchScore = libMatches[0].matchScore
                 playable.id = spotifyUtils.getSpotifyID(itemInfo.url)
                 playable.playlist = SpotifyPlaylist(
                     id = playable.id,
                     name = itemInfo.name
                 )
-                updState.attachments.matchScore = libMatch.matchScore
-
             }
         }
 
@@ -357,12 +356,12 @@ class SpotifyFulfillment (private var context: Context) {
 
 
         //PODCAST:
-        val libMatch = libUtils.matchLibrary(playType, queryText)
-        if (libMatch.matchId > -1) {
+        val libMatches = libUtils.matchLibrary(playType, queryText)
+        if (libMatches.isNotEmpty()) {
             Log.d(TAG, "PLAY -> Podcast in lib")
             //1) Context -> Podcast:
-            val itemInfo = libUtils.getLibItemById(libMatch.matchId)
-            updState.attachments.matchScore = libMatch.matchScore
+            val itemInfo = libUtils.getLibItemById(libMatches[0].matchId)
+            updState.attachments.matchScore = libMatches[0].matchScore
 
             //2) Item -> GET latest podcast episode:
             //TODO: latest episode only!

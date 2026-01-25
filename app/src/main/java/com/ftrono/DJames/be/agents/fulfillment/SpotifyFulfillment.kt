@@ -17,7 +17,7 @@ import com.ftrono.DJames.be.database.SpotifyPlaylist
 import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.agents.data.StateInfo
-import com.ftrono.DJames.be.spotify.SpotifySearch
+import com.ftrono.DJames.be.spotify.SpotifySearchLegacy
 
 
 class SpotifyFulfillment (private var context: Context) {
@@ -156,7 +156,7 @@ class SpotifyFulfillment (private var context: Context) {
 
         //GET SPOTIFY PLAY INFO:
         //Search tracks + album:
-        var search = SpotifySearch(context)
+        var search = SpotifySearchLegacy(context)
         var spotResults = search.searchPlayable(searchData=extractorInfo)   //TODO: Tracks & albums don't pass through Library yet!
         var playable = spotResults.bestResult
 
@@ -287,7 +287,7 @@ class SpotifyFulfillment (private var context: Context) {
 
         //Search in Spotify:
         if (playable.id == "") {
-            val search = SpotifySearch(context)
+            val search = SpotifySearchLegacy(context)
             val spotResults = search.searchPlayable(extractorInfo)
             if (spotResults.bestResult != null) {
                 playable = spotResults.bestResult!!

@@ -20,7 +20,7 @@ import me.xdrop.fuzzywuzzy.FuzzySearch
 import kotlin.math.roundToInt
 
 
-class SpotifySearch(private val context: Context) {
+class SpotifySearchLegacy(private val context: Context) {
     private val TAG = this::class.java.simpleName
     private var query = SpotifyQuery(context)
 
@@ -206,6 +206,9 @@ class SpotifySearch(private val context: Context) {
                 // Extract key info:
                 curMatch.playable = spotifyParsers.extractPlayableFromJson(playType, curJson)
                 ids.add(curMatch.playable.id)
+                if (playType == "track" && curMatch.playable.track!!.album!!.type == "album") {
+                    curMatch.isAlbum = true
+                }
                 var stringToMatch = curJson.get("name").asString
                 var detailToMatch = when (playType) {
                     "track" -> {
@@ -289,6 +292,7 @@ class SpotifySearch(private val context: Context) {
             Log.d(TAG, "Check saved: $savedIds")
             // Add isSaved information:
             savedIds.takeIf { it.isNotEmpty() }?.forEachIndexed { i, isSaved ->
+                allMatches[i].isSaved = isSaved
                 allMatches[i].playable.track!!.saved = isSaved
             }
         }

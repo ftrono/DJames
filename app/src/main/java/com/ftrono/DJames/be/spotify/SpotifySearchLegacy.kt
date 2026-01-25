@@ -34,7 +34,7 @@ class SpotifySearchLegacy(private val context: Context) {
 
         //BUILD GET REQUEST:
         var baseURL = "https://api.spotify.com/v1/search"
-        val encodedMatchName: String = Uri.encode(matchName)
+        val encodedMatchName = Uri.encode(matchName)
 
         //Check if LIVE to be preferred or not:
         var live = false
@@ -116,8 +116,8 @@ class SpotifySearchLegacy(private val context: Context) {
         if (bestScore <= searchThreshold || items.isEmpty()) {
             //Compose query:
             if (artistName != "") {
-                val encodedArtistName: String = Uri.encode(artistName)
-                url2 += "?q=${encodedMatchName}+by+${encodedArtistName}&type=${playType}&limit=$spotifyQueryLimit&market=${prefs.spotCountry}"
+                val encodedQuery: String = Uri.encode("$matchName by $artistName")
+                url2 += "?q=${encodedQuery}&type=${playType}&limit=$spotifyQueryLimit&market=${prefs.spotCountry}"
             } else {
                 url2 += "?q=${encodedMatchName}&type=${playType}&limit=$spotifyQueryLimit&market=${prefs.spotCountry}"
             }

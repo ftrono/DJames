@@ -122,6 +122,8 @@ class SpotifyContextConverter : JsonConverter<SpotifyContext>(SpotifyContext.ser
 data class SpotifyMatchModel(
     var pos: Int = 0,
     var score: Int = 0,
+    var isSaved: Boolean = false,
+    var isAlbum: Boolean = false,
     var nameSetSimilarity: Int = 0,
     var namePartialSimilarity: Int = 0,
     var nameFullSimilarity: Int = 0,

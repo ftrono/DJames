@@ -1,6 +1,7 @@
 package com.ftrono.DJames.be.spotify
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import com.ftrono.DJames.application.deltaSimilarity
 import com.ftrono.DJames.application.searchThreshold
@@ -15,7 +16,6 @@ import com.ftrono.DJames.be.database.SpotifyResults
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import java.net.URLEncoder
 import me.xdrop.fuzzywuzzy.FuzzySearch
 import kotlin.math.roundToInt
 
@@ -34,7 +34,7 @@ class SpotifySearchLegacy(private val context: Context) {
 
         //BUILD GET REQUEST:
         var baseURL = "https://api.spotify.com/v1/search"
-        val encodedMatchName: String = URLEncoder.encode(matchName, "UTF-8")
+        val encodedMatchName: String = Uri.encode(matchName)
 
         //Check if LIVE to be preferred or not:
         var live = false
@@ -71,7 +71,7 @@ class SpotifySearchLegacy(private val context: Context) {
         if (qParams.isNotEmpty()) {
             var queryParams = qParams.joinToString("&", prefix = "&")
             val encodedParams: String =
-                URLEncoder.encode(queryParams, "UTF-8").replace("%26", "%20").replace("%3A", ":")
+                Uri.encode(queryParams).replace("%26", "%20").replace("%3A", ":")
             url1 += "?q=${encodedMatchName}${encodedParams}&type=${playType}&limit=$spotifyQueryLimit&market=${prefs.spotCountry}"
         } else {
             url1 += "?q=${encodedMatchName}&type=${playType}&limit=$spotifyQueryLimit&market=${prefs.spotCountry}"
@@ -116,7 +116,7 @@ class SpotifySearchLegacy(private val context: Context) {
         if (bestScore <= searchThreshold || items.isEmpty()) {
             //Compose query:
             if (artistName != "") {
-                val encodedArtistName: String = URLEncoder.encode(artistName, "UTF-8")
+                val encodedArtistName: String = Uri.encode(artistName)
                 url2 += "?q=${encodedMatchName}+by+${encodedArtistName}&type=${playType}&limit=$spotifyQueryLimit&market=${prefs.spotCountry}"
             } else {
                 url2 += "?q=${encodedMatchName}&type=${playType}&limit=$spotifyQueryLimit&market=${prefs.spotCountry}"

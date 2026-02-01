@@ -73,7 +73,6 @@ data class SpotifyTrack(
     var name: String = "",
     var artists: MutableList<SpotifyArtist> = mutableListOf<SpotifyArtist>(),
     var album: SpotifyAlbum? = null,
-    var saved: Boolean = false,   // Only for search
     var context: SpotifyContext? = null,
 )
 
@@ -119,9 +118,20 @@ class SpotifyContextConverter : JsonConverter<SpotifyContext>(SpotifyContext.ser
 
 
 @Serializable
+data class ScoreSet(
+    var nameSetSimilarity: Int = 0,
+    var namePartialSimilarity: Int = 0,
+    var nameFullSimilarity: Int = 0,
+    var detailSetSimilarity: Int = 0,
+    var detailPartialSimilarity: Int = 0,
+)
+
+
+@Serializable
 data class SpotifyMatchModel(
     var pos: Int = 0,
     var score: Int = 0,
+    var scoreSet: ScoreSet? = null,
     var isSaved: Boolean = false,
     var isAlbum: Boolean = false,
     var nameSetSimilarity: Int = 0,
@@ -144,15 +154,6 @@ data class SpotifyQueryModel(
 )
 
 class SpotifyMatchModelConverter : JsonListConverter<SpotifyMatchModel>(SpotifyMatchModel.serializer())
-
-
-@Serializable
-data class SpotifyResults(
-    var matchScore: Int = 0,
-    @Convert(converter = SpotifyQueryModelConverter::class, dbType = String::class)
-    var spotifyQueries: MutableList<SpotifyQueryModel>? = null,
-    var bestResult: SpotifyPlayable? = null,
-)
 
 
 //ENTITIES:

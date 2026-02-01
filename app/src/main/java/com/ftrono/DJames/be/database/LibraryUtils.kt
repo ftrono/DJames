@@ -8,7 +8,7 @@ import com.ftrono.DJames.application.gMapsLinkFormat
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.libCats
 import com.ftrono.DJames.application.libraryBox
-import com.ftrono.DJames.application.minThreshold
+import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.sourceToCatMap
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.be.collections.defaultCollection
@@ -295,7 +295,7 @@ class LibraryUtils {
 
     // MATCHER:
     //Match item from user query against user library:
-    fun matchLibrary(filter: String, text: String, threshold: Int = minThreshold): MutableList<LibMatch> {
+    fun matchLibrary(filter: String, text: String, threshold: Int = midThreshold): MutableList<LibMatch> {
         var libMatches = mutableListOf<LibMatch>()
         val libMap = getAliasesMap(filter)
         val namesMap = getNamesMap(filter)

@@ -17,7 +17,7 @@ import com.ftrono.DJames.be.database.SpotifyPlaylist
 import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.agents.data.StateInfo
-import com.ftrono.DJames.be.spotify.SpotifySearchLegacy
+import com.ftrono.DJames.be.spotify.SpotifySearch
 
 
 class SpotifyFulfillment (private var context: Context) {
@@ -156,16 +156,24 @@ class SpotifyFulfillment (private var context: Context) {
 
         //GET SPOTIFY PLAY INFO:
         //Search tracks + album:
-        var search = SpotifySearchLegacy(context)
-        var spotResults = search.searchPlayable(searchData=extractorInfo)   //TODO: Tracks & albums don't pass through Library yet!
-        var playable = spotResults.bestResult
+        var search = SpotifySearch(context)
+        var spotQuery = search.searchPlayable(
+            playType = playType,
+            matchName = extractorInfo.matchExtracted.lowercase(),
+            detailName = extractorInfo.artistConfirmed.lowercase(),
+        )   //TODO: Tracks & albums don't pass through Library yet!
 
         //A) EMPTY QUERY RESULT:
-        if (playable == null || playable.id == "") {
+        if (spotQuery.spotifyMatches.isEmpty()) {
             return fulfillmentUtils.fallback(updState, notUnderstood=true)
 
         } else {
             //B) SPOTIFY RESULT RECEIVED!
+            spotQuery.spotifyMatches = search.legacyRescoreResults(playType, spotQuery.spotifyMatches)
+            val bestMatch = spotQuery.spotifyMatches[0]
+            var playable = bestMatch.playable
+            updState.attachments.matchScore = bestMatch.score
+            updState.attachments.spotifyQueries = mutableListOf(spotQuery)
             //Wait 1 sec:
             Thread.sleep(1000)
 
@@ -220,8 +228,6 @@ class SpotifyFulfillment (private var context: Context) {
             updState.actionType = ActionType.PLAY
             extractorInfo.reqLanguage = reqLangCode
             updState.attachments.nlpExtractor = extractorInfo
-            updState.attachments.matchScore = spotResults.matchScore
-            updState.attachments.spotifyQueries = spotResults.spotifyQueries
             updState.attachments.spotifyPlay = playable
         }
 
@@ -287,13 +293,24 @@ class SpotifyFulfillment (private var context: Context) {
 
         //Search in Spotify:
         if (playable.id == "") {
-            val search = SpotifySearchLegacy(context)
-            val spotResults = search.searchPlayable(extractorInfo)
-            if (spotResults.bestResult != null) {
-                playable = spotResults.bestResult!!
-                updState.attachments.matchScore = spotResults.matchScore
-                updState.attachments.spotifyQueries = spotResults.spotifyQueries
+            val search = SpotifySearch(context)
+            var spotQuery = search.searchPlayable(
+                playType = playType,
+                matchName = extractorInfo.matchExtracted.lowercase(),
+                detailName = extractorInfo.artistConfirmed.lowercase(),
+            )   //TODO: Tracks & albums don't pass through Library yet!
 
+            //A) EMPTY QUERY RESULT:
+            if (spotQuery.spotifyMatches.isEmpty()) {
+                return fulfillmentUtils.fallback(updState, notUnderstood=true)
+
+            } else {
+                //B) SPOTIFY RESULT RECEIVED!
+                spotQuery.spotifyMatches = search.legacyRescoreResults(playType, spotQuery.spotifyMatches)
+                val bestMatch = spotQuery.spotifyMatches[0]
+                playable = bestMatch.playable
+                updState.attachments.matchScore = bestMatch.score
+                updState.attachments.spotifyQueries = mutableListOf(spotQuery)
             }
         }
 

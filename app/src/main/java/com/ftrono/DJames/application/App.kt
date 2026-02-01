@@ -33,7 +33,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.0.0"
+val appVersion = "3.0.a10"
 val copyrightYear = 2024
 
 //DB:
@@ -141,7 +141,7 @@ val clickSleepInterval: Long = 100   //ms
 val deltaSimilarity = 10   //5
 val searchThreshold = 80
 val midThreshold = 70
-val minThreshold = 60
+val minThreshold = 50
 val recSamplingRate = 48000 // 44100
 val silencePatienceQueries = 2   //seconds
 val silencePatienceMess = 3   //seconds

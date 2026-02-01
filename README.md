@@ -11,7 +11,7 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
-**Version 3.0.0 (2025-12-28)** - All alphas confirmed! Add AccountsScreen, backup & restore, notification icon, remove FFmpeg. Add DualApp debug variant.
+**Version 3.0.a10 (2025-12-28)** - Add AccountsScreen, backup & restore, notification icon, remove FFmpeg. Add DualApp debug variant. SpotifyQuery: fix legacy bug (!) and code modularization. Start rework of PlayerNodes.
 
 **Version 3.0.a9 (v3 alpha) (2025-10-28)** - MULTI-AGENT ARCHITECTURE! Implemented new LangGraph-inspired Conversational Graph with State, Nodes & Tools. Migrated NLPDispatcher to IntentsGraph. Init LLM AgentsGraph works.
 

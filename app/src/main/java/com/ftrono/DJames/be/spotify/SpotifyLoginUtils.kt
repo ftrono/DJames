@@ -54,38 +54,30 @@ class SpotifyLoginUtils {
                 try {
                     //RESPONSE RECEIVED -> USER'S PROFILE DATA:
                     val respJSON = JsonParser.parseString(meResponse.body).asJsonObject
-                    var product = respJSON.get("product").asString
-                    //User must be PREMIUM:
-                    if (product == "premium" || product == "duo" || product == "family") {
-                        //Log.d(TAG, response)
-                        //SUCCESS!
-                        prefs.spotifyToken = spotTempToken
-                        prefs.spotRefreshToken = refrTempToken
-                        prefs.spotUserName = respJSON.get("display_name").asString
-                        spotUserName.postValue(respJSON.get("display_name").asString)
-                        prefs.spotUserId = respJSON.get("id").asString
-                        prefs.spotUserEMail = respJSON.get("email").asString
-                        prefs.spotCountry = respJSON.get("country").asString
-                        //Spotify profile image:
-                        try {
-                            val images = respJSON.getAsJsonArray("images")
-                            val firstImage = images.get(0).asJsonObject
-                            prefs.spotUserImage = firstImage.get("url").asString
-                        } catch (e: Exception) {
-                            Log.w(TAG, "Unable to retrieve user image: ", e)
-                            prefs.spotUserImage = ""
-                        }
-                        //Generate NLP user ID:
-                        prefs.nlpUserId = utils.generateRandomString(30, numOnly = true)
-
-                        sleep(1000)
-                        Log.d(TAG, "Spotify.me: success! User is enabled.")
-                        Toast.makeText(context, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
-                        spotifyLoggedIn.postValue(true)
-                    } else {
-                        Log.w(TAG, "Spotify.me: PROBLEM -> user not enabled! USER TYPE: $product")
-                        Toast.makeText(context, "ERROR: to use DJames, you need to be a Spotify Premium user! :(", Toast.LENGTH_LONG).show()
+                    //Log.d(TAG, response)
+                    //SUCCESS!
+                    prefs.spotifyToken = spotTempToken
+                    prefs.spotRefreshToken = refrTempToken
+                    prefs.spotUserName = respJSON.get("display_name").asString
+                    spotUserName.postValue(respJSON.get("display_name").asString)
+                    prefs.spotUserId = respJSON.get("id").asString
+                    //Spotify profile image:
+                    try {
+                        val images = respJSON.getAsJsonArray("images")
+                        val firstImage = images.get(0).asJsonObject
+                        prefs.spotUserImage = firstImage.get("url").asString
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Unable to retrieve user image: ", e)
+                        prefs.spotUserImage = ""
                     }
+                    //Generate NLP user ID:
+                    prefs.nlpUserId = utils.generateRandomString(30, numOnly = true)
+
+                    sleep(1000)
+                    Log.d(TAG, "Spotify.me: success! User is enabled.")
+                    Toast.makeText(context, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
+                    spotifyLoggedIn.postValue(true)
+
                 } catch (e: Exception) {
                     Log.w(TAG, "Profile parsing error: ", e)
                     Toast.makeText(context, "Authentication ERROR: not logged in.", Toast.LENGTH_LONG).show()
@@ -118,9 +110,7 @@ class SpotifyLoginUtils {
         prefs.spotRefreshToken = ""
         prefs.spotUserId = ""
         prefs.spotUserName = ""
-        prefs.spotUserEMail = ""
         prefs.spotUserImage = ""
-        prefs.spotCountry = ""
         spotUserName.postValue("")
         spotUserImageState.postValue("")
         //utils.deleteUserCache(context)

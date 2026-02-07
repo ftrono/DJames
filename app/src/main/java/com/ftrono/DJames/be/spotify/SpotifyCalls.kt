@@ -15,7 +15,7 @@ class SpotifyCalls(private val context: Context) {
 
     //SAVE CURRENT TRACK:
     fun saveTrackRequest(ids: JsonArray): Int {
-        var url = "https://api.spotify.com/v1/me/tracks"
+        var url = "https://api.spotify.com/v1/me/library"
 
         //Body:
         var jsonBody = JsonObject()

@@ -166,20 +166,10 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getString(KEY_SPOTIFY_USER_NAME, "") as String
         set(value) = sharedPrefs.edit { putString(KEY_SPOTIFY_USER_NAME, value) }
 
-    //Spotify user email:
-    var spotUserEMail: String
-        get() = sharedPrefs.getString(KEY_SPOTIFY_USER_EMAIL, "") as String
-        set(value) = sharedPrefs.edit { putString(KEY_SPOTIFY_USER_EMAIL, value) }
-
     //Spotify user image:
     var spotUserImage: String
         get() = sharedPrefs.getString(KEY_SPOTIFY_USER_IMAGE, "") as String
         set(value) = sharedPrefs.edit { putString(KEY_SPOTIFY_USER_IMAGE, value) }
-
-    //Spotify country:
-    var spotCountry: String
-        get() = sharedPrefs.getString(KEY_SPOTIFY_COUNTRY, "") as String
-        set(value) = sharedPrefs.edit { putString(KEY_SPOTIFY_COUNTRY, value) }
 
     //NLP user ID:
     var nlpUserId: String
@@ -226,9 +216,7 @@ class Prefs (context: Context) {
         const val KEY_VOLUME_UP_ENABLED = ".key.volume_up_enabled"
         const val KEY_SPOTIFY_USER_ID = ".key.spotify_user_id"
         const val KEY_SPOTIFY_USER_NAME = ".key.spotify_user_name"
-        const val KEY_SPOTIFY_USER_EMAIL = ".key.spotify_user_email"
         const val KEY_SPOTIFY_USER_IMAGE = ".key.spotify_user_image"
-        const val KEY_SPOTIFY_COUNTRY = ".key.spotify_country"
         const val KEY_NLP_USER_ID = ".key.nlp_user_id"
 
         //Encrypted prefs:

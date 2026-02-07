@@ -63,7 +63,7 @@ class SpotifyParsers() {
         return SpotifyPodcast(
             id = itemJson.get("id").asString,
             name = itemJson.get("name").asString,
-            publisher = itemJson.get("publisher").asString,
+            publisher = "",   // TODO: REMOVE
         )
     }
     
@@ -75,7 +75,7 @@ class SpotifyParsers() {
             podcast = SpotifyPodcast(
                 id = libItem.url.split("/").last(),   //getSpotifyID()
                 name = libItem.name,
-                publisher = libItem.detail,
+                publisher = "",   // TODO: REMOVE
             )
         )
         try {

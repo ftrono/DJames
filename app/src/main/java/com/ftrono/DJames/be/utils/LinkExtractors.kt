@@ -108,8 +108,8 @@ class LinkExtractors {
                     if (updLibItem.type == "album" || updLibItem.type == "track") {
                         // Pos 0 -> artist name:
                         descrSplits[0]
-                    } else if (updLibItem.type == "playlist" || updLibItem.type == "podcast") {
-                        // Pos 1 -> playlist owner or publisher:
+                    } else if (updLibItem.type == "playlist") {
+                        // Pos 1 -> playlist owner:
                         descrSplits[1]
                     }  else {
                         initLibItem.detail
@@ -178,7 +178,6 @@ class LinkExtractors {
                             }
                         }
                         "playlist" -> respJson.get("owner").asJsonObject.get("display_name").asString
-                        "podcast" -> respJson.get("publisher").asString
                         "episode" -> respJson.get("show").asJsonObject.get("name").asString
                         else -> ""
                     }

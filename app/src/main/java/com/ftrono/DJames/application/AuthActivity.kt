@@ -56,8 +56,6 @@ class AuthActivity: ComponentActivity() {
         )
             //Spotify Scopes:
             .setScopes(
-                "user-read-private",   //Read access to user’s email address
-                "user-read-email",   //Read access to user’s subscription details (type of user account)
                 "user-read-playback-state",   //Read access to a user’s player state (devices, player state, track)
                 "user-modify-playback-state",   //Write access to a user’s playback state (add to queue)
                 "user-read-currently-playing",   //Read your currently playing content (track / queue)
@@ -71,6 +69,8 @@ class AuthActivity: ComponentActivity() {
                 "user-read-recently-played",   //Read access to a user’s recently played tracks
                 "user-library-read",   //Access saved content (tracks, albums)
                 "user-library-modify"   //Manage saved content (tracks, albums)
+                // "user-read-private",   //Read access to user’s subscription details (type of user account)
+                // "user-read-email",   //Read access to user’s email address
                 //"playlist-modify-private",   //Write access to a user's private playlists
                 //"playlist-modify-public",   //Write access to a user's public playlists
                 //"app-remote-control",   //Android only: communicate with the Spotify app on your device

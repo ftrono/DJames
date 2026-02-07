@@ -80,7 +80,7 @@ data class SpotifyTrack(
 data class SpotifyPodcast(
     var id: String = "",
     var name: String = "",
-    var publisher: String = "",
+    var publisher: String = "",   // TODO: REMOVE
 )
 
 @Serializable

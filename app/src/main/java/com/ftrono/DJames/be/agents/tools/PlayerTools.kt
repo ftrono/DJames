@@ -1,18 +1,38 @@
 package com.ftrono.DJames.be.agents.tools
 
+import android.content.Context
 import android.util.Log
+import com.ftrono.DJames.application.libUtils
+import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.application.maxSearchMatches
+import com.ftrono.DJames.application.midThreshold
+import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.be.agents.data.ToolDefinition
 import com.ftrono.DJames.be.agents.data.ToolFunction
 import com.ftrono.DJames.be.agents.data.ToolParameters
 import com.ftrono.DJames.be.agents.data.ToolProperty
+import com.ftrono.DJames.be.agents.data.ToolResponse
 import com.ftrono.DJames.be.agents.data.ToolType
+import com.ftrono.DJames.be.database.Attachments
+import com.ftrono.DJames.be.database.LibMatch
+import com.ftrono.DJames.be.database.PlayRequest
+import com.ftrono.DJames.be.database.SpotifyPlayable
+import com.ftrono.DJames.be.spotify.SpotifySearch
 import kotlinx.serialization.json.*
 
+data class QueryAPIReturn(
+    var candidates: MutableList<SpotifyPlayable> = mutableListOf(),
+    var attachments: Attachments = Attachments()
+)
 
-class ToolRetrievePlayer(): Tool() {
+
+class ToolRetrievePlayer(
+    private val context: Context,
+): Tool() {
     private val TAG = this::class.java.simpleName
     override val name = "tool_retrieve"
     override val type: ToolType = ToolType.INTERMEDIATE
+    val spotSearch = SpotifySearch(context)
 
     override fun getDefinition(): ToolDefinition {
         return ToolDefinition(
@@ -27,11 +47,23 @@ class ToolRetrievePlayer(): Tool() {
                     properties = mapOf(
                         "artist" to ToolProperty(
                             type = "string",   // Arg type
-                            description = "The name of the requested music artist / band."   // Arg description
+                            description = "The name(s) of the requested music artist(s) / band(s) (if any). If multiple artists, separate them by a comma."   // Arg description
                         ),
                         "track" to ToolProperty(
                             type = "string",   // Arg type
-                            description = "The name of the requested music track / song."   // Arg description
+                            description = "The name of the requested music track / song (if any)."   // Arg description
+                        ),
+                        "album" to ToolProperty(
+                            type = "string",   // Arg type
+                            description = "The name of the requested music album (if any)."   // Arg description
+                        ),
+                        "playlist" to ToolProperty(
+                            type = "string",   // Arg type
+                            description = "The name of the requested music playlist or collection (if any)."   // Arg description
+                        ),
+                        "podcast" to ToolProperty(
+                            type = "string",   // Arg type
+                            description = "The name of the requested music podcast (if any)."   // Arg description
                         ),
                     ),
                 )
@@ -39,49 +71,228 @@ class ToolRetrievePlayer(): Tool() {
         )
     }
 
-    override fun invoke(args: JsonObject): String {
-        val allTracks = mapOf(
-            "the script" to mapOf(
-                "the man who can't be moved" to "0x0001",
-                "science & faith" to "0x0002",
-                "hall of fame" to "0x0003"
-            ),
-            "john mayer" to mapOf(
-                "my stupid mouth" to "0x0004",
-                "clarity" to "0x0005",
-                "split screen sadness" to "0x0006"
-            ),
-            "linkin park" to mapOf(
-                "lost" to "0x0007",
-                "numb" to "0x0008",
-                "in the end" to "0x0009"
-            )
+    // Prepare original query + add Library matches (avoiding duplicates):
+    fun loadCandidates(queryType: String, query: String, maxMatches: Int = maxSearchMatches): MutableList<LibMatch> {
+        val selMatches = mutableListOf<LibMatch>()
+
+        // Get library matches:
+        val libMatches = if (queryType == "track") {
+            mutableListOf()
+        } else libUtils.matchLibrary(
+            filter = queryType,
+            text = query,
+            threshold = midThreshold
         )
 
-        var artist = args["artist"]?.jsonPrimitive?.content ?: ""
-        artist = artist.lowercase().trim()
-        var track = args["track"]?.jsonPrimitive?.content ?: ""
-        track = track.lowercase().trim()
-
-        Log.d(TAG, "Input params: $artist, $track, KEYS: ${allTracks.keys}")
-
-        var retString = if (allTracks.containsKey(artist) && allTracks[artist]!!.containsKey(track)) {
-            """
-            Track found! Spotify ID: ${allTracks[artist]!![track]!!}.
-            Call tool 'tool_play' with this ID.
-            """.trimMargin()
-        } else if (allTracks.containsKey(artist)) {
-            """
-            Songs that can be played by $artist:
-            (don't read Spotify IDs to the user):
-            ${allTracks[artist]!!}
-           
-            Ask the user which of these they want to play.
-            """.trimIndent()
-        } else {
-            "No song found for this artist."
+        // If query not in library matches -> Add as first empty match:
+        if (!libMatches.map{ it.matchName.lowercase() }.contains(query)) {
+            selMatches.add(
+                LibMatch(
+                    matchId = -1L,
+                    matchName = query
+                )
+            )
         }
-        return retString
+
+        // Add sorted library matches up to maxMatches:
+        for (match in libMatches) {
+            if (selMatches.size < maxMatches) {
+                selMatches.add(match)
+            }
+        }
+        return selMatches
+    }
+
+    // Query API and extract results:
+    fun queryAPI(searchType: String, attachments: Attachments, matchName: String, detailName: String = ""): QueryAPIReturn {
+        var updAttachments = attachments
+        val candidates = mutableListOf<SpotifyPlayable>()
+        val curQuery = spotSearch.searchPlayable(
+            playType = searchType,
+            matchName = matchName.lowercase(),
+            detailName = detailName.lowercase(),
+        )
+        if (curQuery.spotifyMatches.isNotEmpty()) {
+            curQuery.spotifyMatches = spotSearch.rescoreResults(searchType, curQuery.spotifyMatches)
+        }
+        updAttachments.spotifyQueries!!.add(curQuery)
+
+        // Select N best:
+        if (curQuery.spotifyMatches.size <= maxSearchMatches) {
+            candidates.addAll(curQuery.spotifyMatches)
+        } else {
+            candidates.addAll(curQuery.spotifyMatches.slice(0..maxSearchMatches))
+        }
+
+        return QueryAPIReturn(
+            candidates = candidates,
+            attachments = updAttachments
+        )
+    }
+
+    // MAIN: INVOKE:
+    override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
+        // INIT:
+        var retString = ""
+        var updAttachments = attachments
+        updAttachments.spotifyQueries = mutableListOf()   // Reset
+
+        val playRequest = PlayRequest(
+            source = "spotify",   // TODO
+            track = (args["track"]?.jsonPrimitive?.content ?: "").lowercase().trim(),
+            artist = (args["artist"]?.jsonPrimitive?.content ?: "").lowercase().trim(),
+            album = (args["album"]?.jsonPrimitive?.content ?: "").lowercase().trim(),
+            playlist = (args["playlist"]?.jsonPrimitive?.content ?: "").lowercase().trim(),
+            podcast = (args["podcast"]?.jsonPrimitive?.content ?: "").lowercase().trim(),
+        )
+
+        // Queries (max 2 items per list):
+        val matchNames = mutableListOf<LibMatch>()   // all
+        val matchDetails = mutableListOf<LibMatch>()   // artist only
+        val matchContexts = mutableListOf<LibMatch>()   // playlist or collection
+
+        // 1) PLAY HIERARCHY:
+        if (playRequest.podcast != "") {
+            // PLAY PODCAST:
+            playRequest.type = "podcast"
+            matchNames.addAll(loadCandidates("podcast", playRequest.podcast, maxMatches = 1))
+
+        } else if (playRequest.album != "") {
+            // PLAY ALBUM:
+            playRequest.type = "album"
+            matchNames.addAll(loadCandidates("album", playRequest.album, maxMatches = 1))
+            if (playRequest.artist != "") {
+                matchDetails.addAll(loadCandidates("artist", playRequest.artist, maxMatches = 1))
+            }
+
+        } else if (playRequest.track != "") {
+            // PLAY TRACK:
+            playRequest.type = "track"
+            matchNames.addAll(loadCandidates("track", playRequest.track, maxMatches = 1))
+            if (playRequest.artist != "") {
+                matchDetails.addAll(loadCandidates("artist", playRequest.artist, maxMatches = 1))
+            }
+            if (playRequest.playlist != "") {
+                matchContexts.addAll(loadCandidates("playlist", playRequest.playlist, maxMatches = 1))
+                playRequest.context = "playlist"
+            }
+
+        } else if (playRequest.playlist != "") {
+            // PLAY PLAYLIST:
+            playRequest.type = "playlist"
+            matchNames.addAll(loadCandidates("playlist", playRequest.playlist, maxMatches = 1))
+
+
+        } else if (playRequest.artist != "") {
+            // PLAY ARTIST:
+            playRequest.type = "artist"
+            matchNames.addAll(loadCandidates("artist", playRequest.artist, maxMatches = 1))
+        }
+
+        Log.d(TAG, "PLAY TYPE: ${playRequest.type}")
+        Log.d(TAG, "MATCH NAMES: $matchNames")
+        Log.d(TAG, "MATCH DETAILS: $matchDetails")
+        Log.d(TAG, "MATCH CONTEXTS: $matchContexts")
+
+        // Fallback:
+        if (playRequest.type == "" || matchNames.isEmpty()) {
+            retString = "End the conversation by simply saying that you did not understand."
+
+        } else {
+            // 2) QUERY SPOTIFY:
+            updAttachments.playCandidates = mutableListOf<SpotifyPlayable>()
+            for (nameMatch in matchNames) {
+                if (nameMatch.matchId != -1L) {
+                    // Add from library (no API search):
+                    updAttachments.playCandidates!!.add(
+                        libUtils.libItemToPlayable(
+                            libItem = libUtils.getLibItemById(nameMatch.matchId),
+                            matchScore = nameMatch.matchScore
+                        )
+                    )
+                } else {
+                    // API search:
+                    if (matchDetails.isEmpty()) {
+                        // Query name only:
+                        val queryAPIReturn = queryAPI(playRequest.type, updAttachments, nameMatch.matchName)
+                        updAttachments = queryAPIReturn.attachments
+                        updAttachments.playCandidates!!.addAll(queryAPIReturn.candidates)
+                    } else {
+                        // Add artist filter:
+                        for (detailMatch in matchDetails) {
+                            val queryAPIReturn = queryAPI(playRequest.type, updAttachments, nameMatch.matchName, detailMatch.matchName)
+                            updAttachments = queryAPIReturn.attachments
+                            updAttachments.playCandidates!!.addAll(queryAPIReturn.candidates)
+                        }
+                    }
+                }
+            }
+            // TODO: match context!
+
+            Log.d(TAG, "PLAY CANDIDATES: $updAttachments.playCandidates!!")
+
+            // 3) PREPARE TOOL RESPONSE:
+            if (updAttachments.playCandidates!!.isEmpty()) {
+                // Fallback:
+                retString =
+                    "End the conversation by simply saying that you could not find any results."
+
+            } else if (updAttachments.playCandidates!!.size == 1) {
+                // Success -> one match:
+                retString = """
+                ${utils.capitalizeWords(playRequest.type)} found! Spotify ID: ${updAttachments.playCandidates!![0].id}.
+                Call tool 'tool_play' with this ID.
+                """.trimMargin()
+
+            } else {
+                var candidateStr = ""
+                for (playable in updAttachments.playCandidates!!) {
+                    when (playable.type) {
+                        "artist" -> {
+                            candidateStr += "\n- spotifyId: ${playable.id}, name: ${playable.artist!!.name}"
+                        }
+
+                        "podcast" -> {
+                            candidateStr += "\n- spotifyId: ${playable.id}, name: ${playable.podcast!!.name}"
+                        }
+
+                        "playlist" -> {
+                            candidateStr += "\n- spotifyId: ${playable.id}, name: ${playable.playlist!!.name}, by: ${playable.playlist!!.owner}"   // TODO: Collection!!!
+                        }
+
+                        "album" -> {
+                            candidateStr += "\n- spotifyId: ${playable.id}, name: ${playable.album!!.name}, by: ${playable.album!!.artists.joinToString { it.name }}"
+                        }
+
+                        "track" -> {
+                            candidateStr += "\n- spotifyId: ${playable.id}, name: ${playable.track!!.name}, by: ${playable.track!!.artists.joinToString { it.name }}"
+                        }
+                    }
+                }
+                if (candidateStr == "") {
+                    // Fallback:
+                    retString =
+                        "End the conversation by simply saying that you could not find any results."
+                } else {
+                    // Success -> multiple matches:
+                    retString = """
+                        ${utils.capitalizeWords(playRequest.type)}s found:
+                        (don't read Spotify IDs to the user):
+                        [CANDIDATES]
+                       
+                        If you can clearly identify what the user is requesting among them, just call tool 'tool_play' with that result's Spotify ID.
+                        Otherwise, read to the user the most relevant results based on the query and ask them which of these results they want to play.
+                        """.trimIndent()
+                    retString = retString.replace("[CANDIDATES]", candidateStr)
+                }
+            }
+        }
+
+        // Return:
+        return ToolResponse(
+            message = retString,
+            attachments = updAttachments,
+        )
     }
 }
 
@@ -112,13 +323,34 @@ class ToolPlay(): Tool() {
         )
     }
 
-    override fun invoke(args: JsonObject): String {
-        var spotifyID = args["spotify_id"]?: ""
-        val retString = if (spotifyID != "") {
-            "Playing the track with Spotify ID: $spotifyID. Do NOT make further questions to the user."
+    override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
+        val spotifyID: String = (args["spotify_id"]?.jsonPrimitive?.content ?: "")
+        val updAttachments = attachments
+        Log.d(TAG, "CANDIDATES: ${updAttachments.playCandidates}")
+        Log.d(TAG, "spotifyID: $spotifyID")
+
+        if (spotifyID == "" || updAttachments.playCandidates == null) {
+            return ToolResponse(
+                message = "Tell the user there was a problem and end the conversation.",
+                attachments = updAttachments,
+            )
+
         } else {
-            "Empty Spotify ID!"
+            // Retrieve from attachments:
+            val playMatches = updAttachments.playCandidates!!.filter { it.id == spotifyID }
+            if (playMatches.isNotEmpty()) {
+                updAttachments.spotifyPlay = playMatches[0]
+                return ToolResponse(
+                    message = "Playing the track with Spotify ID: $spotifyID. Do NOT ask further questions to the user.",
+                    attachments = updAttachments,
+                    actionType = ActionType.PLAY,
+                )
+            } else {
+                return ToolResponse(
+                    message = "Cannot find the requested song. Read them again to the user.",
+                    attachments = updAttachments,
+                )
+            }
         }
-        return retString
     }
 }

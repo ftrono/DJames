@@ -10,15 +10,18 @@ import com.ftrono.DJames.application.mistralLlmTimeout
 import com.ftrono.DJames.application.mistralLlmUrl
 import com.ftrono.DJames.application.mistralSttUrl
 import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.be.agents.data.ChatMessage
 import com.ftrono.DJames.be.agents.data.LlmRequest
 import com.ftrono.DJames.be.agents.data.LlmResponse
 import com.ftrono.DJames.be.agents.data.LlmReturn
+import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.be.agents.data.SttResponse
 import com.ftrono.DJames.be.agents.data.SttReturn
 import com.ftrono.DJames.be.agents.data.ToolDefinition
 import com.ftrono.DJames.be.agents.data.ToolType
 import com.ftrono.DJames.be.agents.tools.Tool
+import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.models.HttpResponse
 import com.ftrono.DJames.be.utils.HttpClient
 import kotlinx.coroutines.runBlocking
@@ -167,12 +170,17 @@ class LlmAgent(
     }
 
     // Main: Invoke LLM:
-    fun invoke(llmMessages: MutableList<ChatMessage>): LlmReturn {
+    fun invoke(
+        llmMessages: MutableList<ChatMessage>,
+        attachments: Attachments,
+    ): LlmReturn {
         try {
             // outMessages: must contain new updates only:
             var outMessages = mutableListOf<ChatMessage>()
             var inMessages = llmMessages   // editable
             var next = ""
+            var updAttachments = attachments
+            var actionType: ActionType? = null
 
             // Build request:
             var llmRequest = LlmRequest(
@@ -192,7 +200,7 @@ class LlmAgent(
             if (httpResponse.code != 200) {
                 // Error:
                 Log.w(TAG, "LLM invoking error: status code ${httpResponse.code}!")
-                return getFallbackReply()
+                return getFallbackReply(updAttachments)
 
             } else {
                 var llmResponse = jsonUnknown.decodeFromString<LlmResponse>(httpResponse.body)
@@ -217,6 +225,7 @@ class LlmAgent(
                                 fail = false,
                                 next = onFallback,
                                 messages = mutableListOf(),
+                                attachments = updAttachments
                             )
                         } else if (curTool.type == ToolType.ACTION) {
                             // ACTION CASE:
@@ -241,16 +250,18 @@ class LlmAgent(
                         outMessages.add(updMessage)
 
                         //Invoke requested tool:
-                        var toolResponse = tools[toolName]!!.invoke(toolArgs)
-                        toolResponse = if (toolResponse != "") toolResponse else "Technical issue: the tool could not be contacted."
-                        Log.d(TAG, "Got tool response: $toolResponse")
+                        val toolResponse = tools[toolName]!!.invoke(toolArgs, updAttachments)
+                        val toolResponseMsg = if (toolResponse.message != "") toolResponse.message else "Technical issue: the tool could not be contacted."
+                        Log.d(TAG, "Got tool response: ${toolResponse.message}")
+                        updAttachments = toolResponse.attachments
+                        actionType = toolResponse.actionType
 
                         // Store "tool" response message:
                         updMessage =
                             ChatMessage(
                                 role = "tool",
                                 toolCallId = toolCallId,
-                                content = toolResponse
+                                content = toolResponseMsg
                             )
                         inMessages.add(updMessage)
                         outMessages.add(updMessage)
@@ -280,7 +291,7 @@ class LlmAgent(
                         } else {
                             // Error:
                             Log.w(TAG, "LLM invoking error: status code ${httpResponse.code}!")
-                            return getFallbackReply()
+                            return getFallbackReply(updAttachments)
                         }
 
                     } else {
@@ -306,25 +317,28 @@ class LlmAgent(
                         fail = false,
                         next = if (isRouter) llmChoice.message.content else next,
                         messages = if (!isRouter) outMessages else mutableListOf(),
+                        attachments = updAttachments,
+                        actionType = actionType,
                     )
                 } else {
                     // Error:
                     Log.w(TAG, "LLM invoking error! Check LLM response.")
-                    return getFallbackReply()
+                    return getFallbackReply(updAttachments)
                 }
             }
         } catch (e: Exception) {
             // Error:
             Log.w(TAG, "LLM invoking error: ", e)
-            return getFallbackReply()
+            return getFallbackReply(attachments)
         }
     }
 
     // Get fallback reply:
-    private fun getFallbackReply(): LlmReturn {
+    private fun getFallbackReply(attachments: Attachments): LlmReturn {
         return LlmReturn(
             fail = true,
             messages = mutableListOf(),
+            attachments = attachments,
         )
     }
 

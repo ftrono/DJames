@@ -56,8 +56,13 @@ class CallAgentNode (
             ),
         )
 
-        val llmReturn = llmAgent.invoke(llmMessages = inMessages)
-        updState = updateStateFlow(updState, llmReturn)
+        val llmReturn = llmAgent.invoke(
+            llmMessages = inMessages,
+            attachments = updState.attachments
+        )
+        updState.attachments = llmReturn.attachments
+        updState.actionType = llmReturn.actionType
+        updState = updateStateFromNode(updState, llmReturn)
         return updState
     }
 }

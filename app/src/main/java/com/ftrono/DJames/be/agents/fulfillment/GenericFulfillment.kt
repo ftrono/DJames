@@ -48,7 +48,7 @@ class GenericFulfillment (private var context: Context) {
             //Get contact:
             itemInfo = libUtils.getLibItemById(libMatches[0].matchId)
             extractorInfo.matchConfirmed = itemInfo.name
-            updState.attachments.matchScore = libMatches[0].matchScore
+            itemInfo.matchScore = libMatches[0].matchScore
 
             //CASES:
             if (updState.intentName.contains("Call")) {
@@ -212,7 +212,7 @@ class GenericFulfillment (private var context: Context) {
             //Place found:
             Log.d(TAG, "DRIVE -> Place from Library")
             itemInfo = libUtils.getLibItemById(libMatches[0].matchId)
-            updState.attachments.matchScore = libMatches[0].matchScore
+            itemInfo.matchScore = libMatches[0].matchScore
             itemInfo.detail = if (itemInfo.address!!.street == "" && itemInfo.address!!.number == "") {
                 itemInfo.address!!.town
             } else if (itemInfo.address!!.number == "") {

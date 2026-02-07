@@ -149,7 +149,6 @@ class SpotifyFulfillment (private var context: Context) {
             val libMatches = libUtils.matchLibrary("artist", artistConfirmed)
             if (libMatches.isNotEmpty()) {
                 artistConfirmed = libMatches[0].matchName
-                updState.attachments.matchScore = libMatches[0].matchScore
             }
             extractorInfo.artistConfirmed = artistConfirmed
         }
@@ -169,10 +168,8 @@ class SpotifyFulfillment (private var context: Context) {
 
         } else {
             //B) SPOTIFY RESULT RECEIVED!
-            spotQuery.spotifyMatches = search.legacyRescoreResults(playType, spotQuery.spotifyMatches)
-            val bestMatch = spotQuery.spotifyMatches[0]
-            var playable = bestMatch.playable
-            updState.attachments.matchScore = bestMatch.score
+            spotQuery.spotifyMatches = search.rescoreResults(playType, spotQuery.spotifyMatches)
+            val playable = spotQuery.spotifyMatches[0]
             updState.attachments.spotifyQueries = mutableListOf(spotQuery)
             //Wait 1 sec:
             Thread.sleep(1000)
@@ -196,7 +193,6 @@ class SpotifyFulfillment (private var context: Context) {
                         Log.d(TAG, "Context -> Playlist in lib")
                         //Get playlist URL:
                         val itemInfo = libUtils.getLibItemById(libMatches[0].matchId)
-                        updState.attachments.matchScore = libMatches[0].matchScore
                         playable.track!!.context = SpotifyContext(
                             type = "playlist",
                             name = itemInfo.name,
@@ -265,7 +261,7 @@ class SpotifyFulfillment (private var context: Context) {
                 Log.d(TAG, "PLAY -> Artist Top Tracks")
                 //Build playable:
                 val itemInfo = libUtils.getLibItemById(libMatches[0].matchId)
-                updState.attachments.matchScore = libMatches[0].matchScore
+                playable.matchScore = libMatches[0].matchScore
                 playable.id = spotifyUtils.getSpotifyID(itemInfo.url)
                 playable.artist = SpotifyArtist(
                     id = playable.id,
@@ -282,7 +278,7 @@ class SpotifyFulfillment (private var context: Context) {
                 //Build playable:
                 Log.d(TAG, "PLAY -> Playlist in lib")
                 val itemInfo = libUtils.getLibItemById(libMatches[0].matchId)
-                updState.attachments.matchScore = libMatches[0].matchScore
+                playable.matchScore = libMatches[0].matchScore
                 playable.id = spotifyUtils.getSpotifyID(itemInfo.url)
                 playable.playlist = SpotifyPlaylist(
                     id = playable.id,
@@ -306,10 +302,8 @@ class SpotifyFulfillment (private var context: Context) {
 
             } else {
                 //B) SPOTIFY RESULT RECEIVED!
-                spotQuery.spotifyMatches = search.legacyRescoreResults(playType, spotQuery.spotifyMatches)
-                val bestMatch = spotQuery.spotifyMatches[0]
-                playable = bestMatch.playable
-                updState.attachments.matchScore = bestMatch.score
+                spotQuery.spotifyMatches = search.rescoreResults(playType, spotQuery.spotifyMatches)
+                playable = spotQuery.spotifyMatches[0]
                 updState.attachments.spotifyQueries = mutableListOf(spotQuery)
             }
         }
@@ -378,7 +372,7 @@ class SpotifyFulfillment (private var context: Context) {
             Log.d(TAG, "PLAY -> Podcast in lib")
             //1) Context -> Podcast:
             val itemInfo = libUtils.getLibItemById(libMatches[0].matchId)
-            updState.attachments.matchScore = libMatches[0].matchScore
+            playable.matchScore = libMatches[0].matchScore
 
             //2) Item -> GET latest podcast episode:
             //TODO: latest episode only!

@@ -90,7 +90,7 @@ open class Node() {
 
 
     // (Router) Route to 'next' node:
-    fun routeRequest(
+    fun updateStateFromRouter(
         context: Context,
         llmReturn: LlmReturn,
         prevState: StateInfo
@@ -122,7 +122,7 @@ open class Node() {
         return updState
     }
 
-    fun updateStateFlow(
+    fun updateStateFromNode(
         prevState: StateInfo,
         llmReturn: LlmReturn,
     ): StateInfo {

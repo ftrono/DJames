@@ -231,7 +231,7 @@ class AgentsGraph(
         Log.d(TAG, "Messages size (input): ${updState.messages.size} items.")
 
         // STREAMING LOOP:
-        updState = stream(updState, onRestart = "GuidanceAgent")
+        updState = stream(updState, onRestart = "GuidanceAgent", onResume = "MainRouter")
         Log.d(TAG, "Messages size (output): ${updState.messages.size} items, fail: ${updState.fail}")
 
         //TODO: Add store messages to DB here!

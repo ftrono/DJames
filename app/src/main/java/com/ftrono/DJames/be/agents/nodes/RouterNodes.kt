@@ -54,8 +54,13 @@ class MainRouterNode (
             isRouter = true,
         )
 
-        val llmReturn = llmAgent.invoke(llmMessages = inMessages)
-        updState = routeRequest(context, llmReturn, updState)
+        val llmReturn = llmAgent.invoke(
+            llmMessages = inMessages,
+            attachments = updState.attachments
+        )
+        updState.attachments = llmReturn.attachments
+        updState.actionType = llmReturn.actionType
+        updState = updateStateFromRouter(context, llmReturn, updState)
         return updState
     }
 }

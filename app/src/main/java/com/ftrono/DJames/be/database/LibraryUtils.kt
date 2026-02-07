@@ -266,30 +266,45 @@ class LibraryUtils {
 
 
     // MODEL CONVERTER:
-    // TODO: WIP!
-    fun libItemToPlayable(libItem: LibraryItem): SpotifyPlayable {
+    fun libItemToPlayable(libItem: LibraryItem, matchScore: Int = 0): SpotifyPlayable {
         if (libItem.source != "spotify") {
             return SpotifyPlayable()
         } else {
-            var playable = SpotifyPlayable(
+            return SpotifyPlayable(
                 id = spotifyUtils.getSpotifyID(libItem.url),
-                type = libItem.type
+                matchScore = matchScore,
+                type = libItem.type,
+                artist = if (libItem.type == "artist") {
+                    SpotifyArtist(
+                        id = spotifyUtils.getSpotifyID(libItem.url),
+                        name = libItem.name
+                    )
+                } else null,
+                album = if (libItem.type == "artist") {
+                    SpotifyAlbum(
+                        id = spotifyUtils.getSpotifyID(libItem.url),
+                        name = libItem.name,
+                        artists = mutableListOf(
+                            SpotifyArtist(
+                                name = libItem.detail
+                            )
+                        )
+                    )
+                } else null,
+                playlist = if (libItem.type == "playlist") {
+                    SpotifyPlaylist(
+                        id = spotifyUtils.getSpotifyID(libItem.url),
+                        name = libItem.name,
+                        owner = libItem.detail
+                    )
+                } else null,
+                podcast = if (libItem.type == "podcast") {
+                    SpotifyPodcast(
+                        id = spotifyUtils.getSpotifyID(libItem.url),
+                        name = libItem.name,
+                    )
+                } else null,
             )
-            if (libItem.type == "artist") {
-                playable.artist == SpotifyArtist(
-                    id = spotifyUtils.getSpotifyID(libItem.url),
-                    name = libItem.name
-                )
-            } else if (libItem.type == "playlist") {
-                playable.playlist == SpotifyPlaylist(
-                    id = spotifyUtils.getSpotifyID(libItem.url),
-                    name = libItem.name,
-                    owner = libItem.detail
-                )
-            } else {
-                // TODO
-            }
-            return playable
         }
     }
 

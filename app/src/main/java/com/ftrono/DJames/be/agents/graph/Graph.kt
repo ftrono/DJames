@@ -70,6 +70,7 @@ open class Graph(
     fun stream(
         prevState: StateInfo,
         onRestart: String,
+        onResume: String = "",
     ): StateInfo {
 
         var updState = prevState
@@ -79,6 +80,7 @@ open class Graph(
             updState.next = graph.keys.first()
         } else {
             updState.isStart = false
+            if (onResume != "") updState.next = onResume
         }
         Log.d(TAG, "Graph streaming loop STARTED from Node: '${updState.next}'.")
 

@@ -35,6 +35,7 @@ data class LibraryItem(
     //Primary key:
     @Id var id: Long = 0,
     var lastUpdated: Long = 0,   // Timestamp
+    var matchScore: Int = 0,
     var name: String = "",
     var aliases: MutableList<String> = mutableListOf(),
     var source: String = "",   // i.e.: "local", "spotify", "youtube", "maps", ...

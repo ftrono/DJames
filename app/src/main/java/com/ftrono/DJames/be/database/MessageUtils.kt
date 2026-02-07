@@ -379,6 +379,11 @@ class MessageUtils {
                 }
             }
 
+            //Add confidence:
+            if (attachments.usable!!.matchScore > 0 && detailText.trim() != "") {
+                detailText += "\nMatch:  ${attachments.usable!!.matchScore}%"
+            }
+
         } else if (intentName.contains("Play") && attachments.spotifyPlay != null) {
             //Play requests:
             val playable = attachments.spotifyPlay!!
@@ -438,10 +443,11 @@ class MessageUtils {
                     detailText = "Track:  $matchName\nArtist:  $artistName\nContext:  $contextFull"
                 }
             }
-        }
-        //Add confidence:
-        if (attachments.matchScore > 0 && detailText.trim() != "") {
-            detailText = detailText + "\nMatch:  ${attachments.matchScore}%"
+
+            //Add confidence:
+            if (playable.matchScore > 0 && detailText.trim() != "") {
+                detailText += "\nMatch:  ${playable.matchScore}%"
+            }
         }
         return detailText
     }

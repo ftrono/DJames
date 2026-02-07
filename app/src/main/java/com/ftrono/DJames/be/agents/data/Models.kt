@@ -1,5 +1,7 @@
 package com.ftrono.DJames.be.agents.data
 
+import com.ftrono.DJames.be.database.Attachments
+import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.models.EnumTypeConverter
 import com.ftrono.DJames.be.models.JsonConverter
 import com.ftrono.DJames.be.models.JsonListConverter
@@ -51,6 +53,13 @@ data class ToolFunction(
 data class ToolDefinition(
     var type: String,
     var function: ToolFunction,
+)
+
+@KxSerializable
+data class ToolResponse(
+    var message: String,
+    var attachments: Attachments,
+    var actionType: ActionType? = null,   //"call", ""
 )
 
 
@@ -142,7 +151,9 @@ data class LlmReturn(
     var fail: Boolean = false,
     var next: String = "",
     var language: String = "",
-    var messages: MutableList<ChatMessage> = mutableListOf<ChatMessage>(),
+    var messages: MutableList<ChatMessage> = mutableListOf(),
+    var attachments: Attachments = Attachments(),
+    var actionType: ActionType? = null,   //"call", ""
 )
 
 @KxSerializable
@@ -152,11 +163,4 @@ data class SttReturn(
     var language: String = "",
     var transcription: String = "",
     var intent: String = "",   // Legacy only
-)
-
-// JSON STRUCTURED OUTPUT:
-@KxSerializable
-data class LlmReply(
-    var next: String = "",
-    var reply: String = "",
 )

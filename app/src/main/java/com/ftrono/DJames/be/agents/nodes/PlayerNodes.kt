@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.fulfillmentUtils
+import com.ftrono.DJames.application.mistralLlmModelMedium
 import com.ftrono.DJames.application.mistralLlmModelSmall
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.be.agents.data.ChatMessage
@@ -23,7 +24,7 @@ class PlayerAgentNode (
 
     override val TAG = this::class.java.simpleName
     override val name: String = TAG.replace("Node", "")
-    val model = mistralLlmModelSmall
+    val model = mistralLlmModelMedium
 
     override fun invoke(prevState: StateInfo): StateInfo {
         Log.d(TAG, "$name activated")
@@ -49,6 +50,7 @@ class PlayerAgentNode (
             ## FURTHER INFO:
             - If the user's request is unclear, ask for clarification before proceeding with any tools. 
             - If the user's request includes additional information that is not relevant to the task, focus on the primary request and ignore the additional information.
+            - **Reply in the same language in which the user is speaking!** 
             - **Always follow the indications you receive from the tools!**
         """.trimIndent()
         var inMessages = prepareInMessages(
@@ -65,13 +67,18 @@ class PlayerAgentNode (
             onFallback = onFallback,
             tools = mapOf<String, Tool>(
                 ToolHandoff().name to ToolHandoff(),
-                ToolRetrievePlayer().name to ToolRetrievePlayer(),
+                ToolRetrievePlayer(context).name to ToolRetrievePlayer(context),
                 ToolPlay().name to ToolPlay(),
             ),
         )
 
-        val llmReturn = llmAgent.invoke(llmMessages = inMessages)
-        updState = updateStateFlow(updState, llmReturn)
+        val llmReturn = llmAgent.invoke(
+            llmMessages = inMessages,
+            attachments = updState.attachments
+        )
+        updState.attachments = llmReturn.attachments
+        updState.actionType = llmReturn.actionType
+        updState = updateStateFromNode(updState, llmReturn)
         return updState
     }
 }

@@ -182,7 +182,11 @@ class Utilities {
 
     //Get the corresponding language name in preferred language for the detected language code:
     fun getLanguageName(languageCode: String): String {
-        return languageNamesMap[prefs.queryLanguage]!![languageCode]!!
+        return try {
+            languageNamesMap[prefs.queryLanguage]!![languageCode]!!
+        } catch (e: Exception) {
+            ""
+        }
     }
 
     //Start/Stop DRIVE Mode:

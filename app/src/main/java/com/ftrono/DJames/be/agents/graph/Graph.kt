@@ -6,7 +6,9 @@ import com.ftrono.DJames.be.agents.nodes.Node
 import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.application.START
 import com.ftrono.DJames.application.END
+import com.ftrono.DJames.application.maxGraphLoops
 import com.ftrono.DJames.be.agents.data.ChatMessage
+import com.ftrono.DJames.be.agents.data.LlmReturn
 import com.ftrono.DJames.be.models.RecDetails
 
 
@@ -69,44 +71,56 @@ open class Graph(
     // Stream graph:
     fun stream(
         prevState: StateInfo,
-        onRestart: String,
-        onResume: String = "",
+        routerNode: String,
+        onRestart: String = "",
+        resumeOnRouter: Boolean = false,
     ): StateInfo {
 
         var updState = prevState
+        var loops = 0
         updState.interrupt = false   // turn off from previous run
         if (updState.next == START) {
             updState.isStart = true
             updState.next = graph.keys.first()
         } else {
             updState.isStart = false
-            if (onResume != "") updState.next = onResume
+            if (resumeOnRouter) updState.next = routerNode
         }
         Log.d(TAG, "Graph streaming loop STARTED from Node: '${updState.next}'.")
 
-        // TODO: STREAMING LOOP:
+        // STREAMING LOOP:
         while (updState.next != END && !updState.fail) {
-            Log.d(TAG, "Streaming from Node: ${updState.next}")
-            // Log.d(TAG, "State -> $updState")
-            updState = getNode(updState.next).invoke(updState)
-            // Human-in-the-Loop:
-            if (updState.interrupt) {
-                Log.d(TAG, "Interrupt requested!")
+            if (loops >= maxGraphLoops) {
+                // Avoid infinite looping:
+                updState.fail = true
+                Log.d(TAG, "Max graph loops reached! Interrupting...")
                 break
-            } else if (updState.next == START) {
-                // Fresh start:
-                updState = StateInfo(
-                    next = onRestart,
-                    isStart = true,
-                    messages = mutableListOf(
-                        ChatMessage(
-                            role = "user",
-                            content = "Hi!"
+
+            } else {
+                Log.d(TAG, "Streaming from Node: ${updState.next}")
+                // Log.d(TAG, "State -> $updState")
+                val newNode = getNode(updState.next)
+                if (newNode.name == routerNode) loops += 1
+                updState = newNode.invoke(updState)   // invoke
+                // Human-in-the-Loop:
+                if (updState.interrupt) {
+                    Log.d(TAG, "Interrupt requested!")
+                    break
+                } else if (updState.next == START) {
+                    // Fresh start:
+                    updState = StateInfo(
+                        next = onRestart,
+                        isStart = true,
+                        messages = mutableListOf(
+                            ChatMessage(
+                                role = "user",
+                                content = "Hi!"
+                            )
                         )
                     )
-                )
+                }
+                Log.d(TAG, "Next node -> ${updState.next}")
             }
-            Log.d(TAG, "Next node -> ${updState.next}")
         }
         Log.d(TAG, "Graph streaming loop ENDED.")
         // Log.d(TAG, "Final State -> $updState")

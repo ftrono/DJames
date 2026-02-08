@@ -139,6 +139,7 @@ val clickAnimationCountdownTime: Int = 4000   //ms
 val clickCountdownTime: Long = 3000   //ms
 val clickSleepInterval: Long = 100   //ms
 val maxSearchMatches = 2
+val maxGraphLoops = 2
 val deltaSimilarity = 10   //5
 val midThreshold = 70
 val minThreshold = 50

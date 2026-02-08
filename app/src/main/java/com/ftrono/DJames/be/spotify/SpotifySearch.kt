@@ -27,7 +27,7 @@ class SpotifySearch(private val context: Context) {
         // Log.d(TAG, "Querying SpotifySearch with: type '$playType', matchName: '$matchName', detailName: '$detailName'...")
         val baseURL = "https://api.spotify.com/v1/search"
         val encodedQuery = Uri.encode(if (detailName != "") "$matchName $detailName" else matchName)
-        val url = baseURL + "?q=${encodedQuery}&type=${playType}&limit=$spotifyQueryLimit"
+        val url = baseURL + "?q=${encodedQuery}&type=${if (playType == "podcast") "show" else playType}&limit=$spotifyQueryLimit"
 
         // Headers:
         val jsonHeads = JsonObject()

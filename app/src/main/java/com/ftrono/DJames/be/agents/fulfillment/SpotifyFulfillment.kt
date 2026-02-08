@@ -377,7 +377,8 @@ class SpotifyFulfillment (private var context: Context) {
             //2) Item -> GET latest podcast episode:
             //TODO: latest episode only!
             try {
-                playable.episode = spotifyUtils.getPodcastEpisodes(context, itemInfo, latestOnly = true)[0]
+                val podcastId = spotifyUtils.getSpotifyID(itemInfo.url)
+                playable.episode = spotifyUtils.getPodcastEpisodes(context, podcastId, itemInfo.name, latestOnly = true)[0]
                 playable.id = playable.episode!!.id
 
             } catch (e: Exception) {

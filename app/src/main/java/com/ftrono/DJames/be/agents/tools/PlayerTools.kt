@@ -2,10 +2,13 @@ package com.ftrono.DJames.be.agents.tools
 
 import android.content.Context
 import android.util.Log
+import com.ftrono.DJames.application.episodeUrlIntro
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.maxSearchMatches
 import com.ftrono.DJames.application.midThreshold
+import com.ftrono.DJames.application.showUrlIntro
+import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.be.agents.data.ToolDefinition
 import com.ftrono.DJames.be.agents.data.ToolFunction
@@ -15,6 +18,7 @@ import com.ftrono.DJames.be.agents.data.ToolResponse
 import com.ftrono.DJames.be.agents.data.ToolType
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.database.LibMatch
+import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.PlayRequest
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.spotify.SpotifySearch
@@ -79,10 +83,15 @@ class ToolRetrievePlayer(
         val libMatches = if (queryType == "track") {
             mutableListOf()
         } else libUtils.matchLibrary(
-            filter = queryType,
-            text = query,
+            filter = queryType.lowercase(),
+            text = query.lowercase(),
             threshold = midThreshold
         )
+
+        // If collection:
+        if (libMatches.isNotEmpty() && libMatches[0].matchId == -2L) {
+            return mutableListOf(libMatches[0])
+        }
 
         // If query not in library matches -> Add as first empty match:
         if (!libMatches.map{ it.matchName.lowercase() }.contains(query)) {
@@ -98,6 +107,8 @@ class ToolRetrievePlayer(
         for (match in libMatches) {
             if (selMatches.size < maxMatches) {
                 selMatches.add(match)
+            } else {
+                break
             }
         }
         return selMatches
@@ -155,38 +166,38 @@ class ToolRetrievePlayer(
         if (playRequest.podcast != "") {
             // PLAY PODCAST:
             playRequest.type = "podcast"
-            matchNames.addAll(loadCandidates("podcast", playRequest.podcast, maxMatches = 1))
+            matchNames.addAll(loadCandidates("podcast", playRequest.podcast))
 
         } else if (playRequest.album != "") {
             // PLAY ALBUM:
             playRequest.type = "album"
-            matchNames.addAll(loadCandidates("album", playRequest.album, maxMatches = 1))
+            matchNames.addAll(loadCandidates("album", playRequest.album))
             if (playRequest.artist != "") {
-                matchDetails.addAll(loadCandidates("artist", playRequest.artist, maxMatches = 1))
+                matchDetails.addAll(loadCandidates("artist", playRequest.artist))
             }
 
         } else if (playRequest.track != "") {
             // PLAY TRACK:
             playRequest.type = "track"
-            matchNames.addAll(loadCandidates("track", playRequest.track, maxMatches = 1))
+            matchNames.addAll(loadCandidates("track", playRequest.track))
             if (playRequest.artist != "") {
-                matchDetails.addAll(loadCandidates("artist", playRequest.artist, maxMatches = 1))
+                matchDetails.addAll(loadCandidates("artist", playRequest.artist))
             }
             if (playRequest.playlist != "") {
-                matchContexts.addAll(loadCandidates("playlist", playRequest.playlist, maxMatches = 1))
+                matchContexts.addAll(loadCandidates("playlist", playRequest.playlist))
                 playRequest.context = "playlist"
             }
 
         } else if (playRequest.playlist != "") {
             // PLAY PLAYLIST:
             playRequest.type = "playlist"
-            matchNames.addAll(loadCandidates("playlist", playRequest.playlist, maxMatches = 1))
+            matchNames.addAll(loadCandidates("playlist", playRequest.playlist))
 
 
         } else if (playRequest.artist != "") {
             // PLAY ARTIST:
             playRequest.type = "artist"
-            matchNames.addAll(loadCandidates("artist", playRequest.artist, maxMatches = 1))
+            matchNames.addAll(loadCandidates("artist", playRequest.artist))
         }
 
         Log.d(TAG, "PLAY TYPE: ${playRequest.type}")
@@ -281,7 +292,7 @@ class ToolRetrievePlayer(
                         [CANDIDATES]
                        
                         If you can clearly identify what the user is requesting among them, just call tool 'tool_play' with that result's Spotify ID.
-                        Otherwise, read to the user the most relevant results based on the query and ask them which of these results they want to play.
+                        Otherwise, read to the user the most relevant results based on the query (in plain text, no markdown) and ask them which of these results they want to play.
                         """.trimIndent()
                     retString = retString.replace("[CANDIDATES]", candidateStr)
                 }
@@ -297,7 +308,9 @@ class ToolRetrievePlayer(
 }
 
 
-class ToolPlay(): Tool() {
+class ToolPlay(
+    private val context: Context,
+): Tool() {
     private val TAG = this::class.java.simpleName
     override val name = "tool_play"
     override val type: ToolType = ToolType.ACTION
@@ -326,12 +339,10 @@ class ToolPlay(): Tool() {
     override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
         val spotifyID: String = (args["spotify_id"]?.jsonPrimitive?.content ?: "")
         val updAttachments = attachments
-        Log.d(TAG, "CANDIDATES: ${updAttachments.playCandidates}")
-        Log.d(TAG, "spotifyID: $spotifyID")
 
         if (spotifyID == "" || updAttachments.playCandidates == null) {
             return ToolResponse(
-                message = "Tell the user there was a problem and end the conversation.",
+                message = "Tell the user there was a problem and END the conversation.",
                 attachments = updAttachments,
             )
 
@@ -339,12 +350,39 @@ class ToolPlay(): Tool() {
             // Retrieve from attachments:
             val playMatches = updAttachments.playCandidates!!.filter { it.id == spotifyID }
             if (playMatches.isNotEmpty()) {
-                updAttachments.spotifyPlay = playMatches[0]
+                val playMatch = playMatches[0]
+
+                if (playMatch.type == "podcast") {
+                    // Podcast -> GET latest podcast episode:
+                    //TODO: latest episode only!
+                    try {
+                        playMatch.episode = spotifyUtils.getPodcastEpisodes(
+                            context = context,
+                            podcastId = playMatch.id,
+                            podcastName = playMatch.podcast!!.name,
+                            latestOnly = true
+                        )[0]
+                        playMatch.id = playMatch.episode!!.id
+                        playMatch.type = "episode"
+                        Log.d(TAG, "Episode: $playMatch")
+
+                    } catch (e: Exception) {
+                        // Episodes not found:
+                        Log.d(TAG, "Podcast episodes not found! ", e)
+                        return ToolResponse(
+                            message = "Cannot find the latest episode for the requested podcast. End the conversation.",
+                            attachments = updAttachments,
+                        )
+                    }
+                }
+
+                updAttachments.spotifyPlay = playMatch
                 return ToolResponse(
                     message = "Playing the track with Spotify ID: $spotifyID. Do NOT ask further questions to the user.",
                     attachments = updAttachments,
                     actionType = ActionType.PLAY,
                 )
+
             } else {
                 return ToolResponse(
                     message = "Cannot find the requested song. Read them again to the user.",

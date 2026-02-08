@@ -38,7 +38,6 @@ import com.ftrono.DJames.application.aliasFieldDescription
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotIntroUrl
 import com.ftrono.DJames.be.database.LibraryItem
-import com.ftrono.DJames.be.collections.defaultCollection
 import com.ftrono.DJames.be.collections.testLibrary
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.decodeFromString
@@ -71,13 +70,11 @@ fun EditLibSpotify(
     val id: Long = idState.value
 
     //Pre-populate:
-    var itemSpotify = if (idState.value == -2L) {
-        defaultCollection
-    } else if (extractedItemState.value != "") {
+    var itemSpotify = if (extractedItemState.value != "") {
         Json.decodeFromString<LibraryItem>(extractedItemState.value)
     } else if (preview) {
         testLibrary.filter{ it.type == "artist" && it.source == "spotify" }[0]
-    } else if (id > -1) {
+    } else if (id != -1L) {
         libUtils.getLibItemById(idState.value)
     } else {
         LibraryItem(
@@ -175,7 +172,6 @@ fun EditLibSpotify(
                     itemSpotify.type = textType.value
                     itemSpotify.name = textName.value.trim()
                     itemSpotify.aliases = aliasesList
-                    itemSpotify.lastUpdated = utils.getCurrentTimestamp()
                     itemSpotify.detail = textDetail.value
                     itemSpotify.imageUrl = imageUrlState.value
                     itemSpotify.url = spotifyUtils.trimSpotifyUrl(textPlayUrl.value)

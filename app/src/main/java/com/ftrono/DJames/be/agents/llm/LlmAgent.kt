@@ -5,6 +5,7 @@ import android.util.Log
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.jsonNoPrint
 import com.ftrono.DJames.application.jsonUnknown
+import com.ftrono.DJames.application.mistralLlmModelSmall
 import com.ftrono.DJames.application.mistralLlmTemperature
 import com.ftrono.DJames.application.mistralLlmTimeout
 import com.ftrono.DJames.application.mistralLlmUrl
@@ -128,7 +129,7 @@ class LlmAgent(
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("file", audioFile.name, fileBody)
                 .addFormDataPart("model", model)
-                // .addFormDataPart("language", "en")
+                .addFormDataPart("language", "en")
                 .build()
 
             var httpResponse = sendLlmRequest(
@@ -269,7 +270,7 @@ class LlmAgent(
                         // Send tool response to LLM:
                         llmRequest = LlmRequest(
                             messages = inMessages.toList(),
-                            model = model,
+                            model = if (actionType != null) mistralLlmModelSmall else model,
                             temperature = mistralLlmTemperature,
                             toolChoice = "auto",
                             parallelToolCalls = false,

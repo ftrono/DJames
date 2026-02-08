@@ -11,6 +11,7 @@ import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.minSpeechPct
 import com.ftrono.DJames.application.mistralSttModel
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.nodes.CallAgentNode
 import com.ftrono.DJames.be.agents.nodes.DriverAgentNode
 import com.ftrono.DJames.be.agents.nodes.GuidanceAgentNode
@@ -163,7 +164,9 @@ class AgentsGraph(
                 transcription = sttReturn.transcription
                 updState.isSilence = sttReturn.isSilence
                 updState.fail = sttReturn.fail
-                language = sttReturn.language
+                updState.reqLangCode = if (sttReturn.language != "") sttReturn.language else prefs.queryLanguage
+                updState.reqLangName = utils.getLanguageName(updState.reqLangCode)
+                Log.d(TAG, "TRANSCR. LANGUAGE: '${updState.reqLangCode}' - '${updState.reqLangName}'")
 
                 if (updState.isSilence) {
                     updState.noSave = true
@@ -191,7 +194,7 @@ class AgentsGraph(
             )
             updState.lastUserMsgId = messageUtils.storeMessage(
                 context = context,
-                langCode = "en",
+                langCode = updState.reqLangCode,
                 fromUser = true,
                 fromVoice = fromVoice,
                 isStart = isStart,
@@ -231,7 +234,7 @@ class AgentsGraph(
         Log.d(TAG, "Messages size (input): ${updState.messages.size} items.")
 
         // STREAMING LOOP:
-        updState = stream(updState, onRestart = "GuidanceAgent", onResume = "MainRouter")
+        updState = stream(updState, routerNode = "MainRouter")
         Log.d(TAG, "Messages size (output): ${updState.messages.size} items, fail: ${updState.fail}")
 
         //TODO: Add store messages to DB here!
@@ -239,7 +242,7 @@ class AgentsGraph(
         // Returns:
         updState.aiReplies = listOf(
             AiReply(
-                langCode = prefs.queryLanguage,
+                langCode = updState.reqLangCode,
                 text = when {
                     updState.isSilence -> defaultReplies.replyFallback()   // Fallback
                     updState.fail -> defaultReplies.replyError()   // Error

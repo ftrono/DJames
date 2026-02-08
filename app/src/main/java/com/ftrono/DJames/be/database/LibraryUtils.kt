@@ -44,10 +44,10 @@ class LibraryUtils {
     }
 
     // GET ALL ITEMS:
-    fun getAll(cat: String = "", subcat: String = "", preview: Boolean = false): List<LibraryItem> {
+    fun getAll(cat: String = "", subcat: String = "", excludeDefault: Boolean = false, preview: Boolean = false): List<LibraryItem> {
         try {
             var libraryItems = mutableListOf<LibraryItem>()
-            if (cat == "spotify" && (subcat == "" || subcat == "playlist")) {
+            if (!excludeDefault && ((cat == "spotify" && subcat == "") || subcat == "playlist")) {
                 libraryItems.add(defaultCollection)
             }
             if (preview) {
@@ -121,6 +121,8 @@ class LibraryUtils {
     fun getLibItemById(id: Long, preview: Boolean = false): LibraryItem {
         if (preview) {
             return testLibrary.filter { it.id == id }[0]
+        } else if (id == -2L) {
+            return defaultCollection
         } else {
             return libraryBox!!.get(id)
         }
@@ -141,7 +143,7 @@ class LibraryUtils {
     fun refreshLibrary(cat: String, subcat: String = "", preview: Boolean = false): List<LibraryItem> {
         try {
             //1) LOAD LIBRARY:
-            var libraryItems = getAll(cat, subcat, preview)
+            var libraryItems = getAll(cat, subcat, preview=preview)
 
             //2) UPDATE LIBRARY SIZE (IMPORTANT - for signs):
             curLibrarySize.postValue(libraryItems.size)
@@ -271,7 +273,7 @@ class LibraryUtils {
             return SpotifyPlayable()
         } else {
             return SpotifyPlayable(
-                id = spotifyUtils.getSpotifyID(libItem.url),
+                id = if (libItem.id == -2L) "collection" else spotifyUtils.getSpotifyID(libItem.url),      // Important!
                 matchScore = matchScore,
                 type = libItem.type,
                 artist = if (libItem.type == "artist") {
@@ -280,7 +282,7 @@ class LibraryUtils {
                         name = libItem.name
                     )
                 } else null,
-                album = if (libItem.type == "artist") {
+                album = if (libItem.type == "album") {
                     SpotifyAlbum(
                         id = spotifyUtils.getSpotifyID(libItem.url),
                         name = libItem.name,
@@ -293,7 +295,7 @@ class LibraryUtils {
                 } else null,
                 playlist = if (libItem.type == "playlist") {
                     SpotifyPlaylist(
-                        id = spotifyUtils.getSpotifyID(libItem.url),
+                        id = if (libItem.id == -2L) "collection" else spotifyUtils.getSpotifyID(libItem.url),      // Important!
                         name = libItem.name,
                         owner = libItem.detail
                     )
@@ -318,6 +320,7 @@ class LibraryUtils {
             //Init:
             var score = 0
             val listEvalued = text.split(", ")
+            Log.d(TAG, "LIST EVALUED: $listEvalued")
             val scoresMap = mutableMapOf<Long, Int>()
 
             //Check each evaluated item:
@@ -345,8 +348,8 @@ class LibraryUtils {
                 }
                 if (scoresMap.isNotEmpty()) {
                     //Sort and get highest match:
+                    // { id: score }
                     val sortedScores = scoresMap.toList().sortedByDescending { it.second }.toMap()
-                    Log.d(TAG, "SORTED MAP FOR $eval: $sortedScores")
                     for (key in sortedScores.keys) {
                         libMatches.add(
                             LibMatch(
@@ -359,7 +362,7 @@ class LibraryUtils {
                 }
             }
         }
-        Log.d(TAG, "LIBRARY MATCHES FOUND: ${libMatches.map { it.matchScore }}")
+        Log.d(TAG, "LIBRARY MATCHES FOUND: $libMatches")
         return libMatches
     }
 
@@ -442,7 +445,7 @@ class LibraryUtils {
         var jsonContent = ""
         try {
             //Populate cached array & store to cached file:
-            jsonContent = Json.encodeToString(getAll(cat, subcat))
+            jsonContent = Json.encodeToString(getAll(cat, subcat, excludeDefault=true))
             Log.d(TAG, "Successfully serialized Library for cat: $cat, subcat: $subcat.")
         } catch (e: Exception) {
             Log.w(TAG, "ERROR: Cannot serialize Library for cat: $cat, subcat: $subcat! ", e)
@@ -533,7 +536,6 @@ class LibraryUtils {
         var libItems = libraryBox!!.all
         for (item in libItems) {
             //TODO: update as needed!
-            // item.lastUpdated = utils.getCurrentTimestamp()
             libraryBox!!.put(item)
         }
         Log.d(TAG, "Library DB updated!")

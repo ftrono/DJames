@@ -295,11 +295,10 @@ class SpotifyUtils {
 
 
     //Get Podcast episodes:
-    fun getPodcastEpisodes(context: Context, libItem: LibraryItem, latestOnly: Boolean = true): List<SpotifyEpisode> {
+    fun getPodcastEpisodes(context: Context, podcastId: String, podcastName: String, latestOnly: Boolean = true): List<SpotifyEpisode> {
         Log.d(TAG, "getPodcastEpisodes: job start!")
         var episodes = mutableListOf<SpotifyEpisode>()
         try {
-            val podcastId = spotifyUtils.getSpotifyID(libItem.url)
             val spotifyCalls = SpotifyCalls(context)
             val resp = spotifyCalls.getSpotifyPodcastEpisodes(podcastId, limit = if (latestOnly) 1 else null)
             //PROCESS RESPONSE:
@@ -312,7 +311,7 @@ class SpotifyUtils {
                     Log.w(TAG, "ERROR: Could not get Podcast Episodes from Spotify!")
                 } else {
                     for (item in items) {
-                        episodes.add(spotifyParsers.extractEpisodeFromLibItem(item.asJsonObject, libItem))
+                        episodes.add(spotifyParsers.extractEpisodeFromLibItem(item.asJsonObject, podcastId, podcastName))
                     }
                 }
 

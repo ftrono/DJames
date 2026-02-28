@@ -65,6 +65,16 @@ class Utilities {
         return false
     }
 
+    //Check notifications enabled:
+    fun isNotificationServiceEnabled(context: Context): Boolean {
+        val enabledListeners = Settings.Secure.getString(
+            context.contentResolver,
+            "enabled_notification_listeners"
+        ) ?: return false
+
+        return enabledListeners.contains(context.packageName)
+    }
+
     //Check Manifest permission:
     fun checkPermission(context: Context, permission: String): Boolean {
         return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED

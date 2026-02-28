@@ -91,6 +91,7 @@ val permissionDescriptions = buildMap {
     }
 }
 val overlayPermissionDescription = "DJames needs your permission to show its Overlay button over other apps! Through this button, you will be able to record voice requests.\n\nPlease tap 'Yes' and enable DJames from the app list!"
+val notificationListenerPermissionDescription = "DJames needs your permission to read your notifications. It will only do so while the Overlay button is visible, to read your notifications.\n\nPlease tap 'Yes' and enable DJames from the app list!"
 
 //STATUS VARS:
 var curNavId = 0

@@ -378,7 +378,7 @@ class ToolPlay(
 
                 updAttachments.spotifyPlay = playMatch
                 return ToolResponse(
-                    message = "Playing the track with Spotify ID: $spotifyID. Do NOT ask further questions to the user.",
+                    message = "Playing the ${playMatch.type} with Spotify ID: $spotifyID. Do NOT ask further questions to the user.",
                     attachments = updAttachments,
                     actionType = ActionType.PLAY,
                 )

@@ -37,7 +37,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.dialogs.MultiPermissionsHandler
 import com.ftrono.DJames.application.services.OverlayService
-import com.ftrono.DJames.be.chat.ChatManager
+import com.ftrono.DJames.be.agents.chat.ChatManager
 import com.ftrono.DJames.ui.components.isKeyboardOpen
 import com.ftrono.DJames.ui.navigation.BottomNavigationBar
 import com.ftrono.DJames.ui.navigation.Navigation
@@ -77,13 +77,17 @@ class MainActivity : ComponentActivity() {
         //Screen density:
         density = resources.displayMetrics.density
 
-        //Check Login status:
+        // Profile info:
+        userNicknameUI.postValue(prefs.userNickname)
+        userGender.postValue(prefs.userGender)
+
+        //Check Spotify Login status:
         if (prefs.spotifyToken == "") {
             spotifyLoggedIn.postValue(false)
         } else {
             spotifyLoggedIn.postValue(true)
             spotUserName.postValue(prefs.spotUserName)
-            userGender.postValue(prefs.userGender)
+            spotUserImageState.postValue(prefs.spotUserImage)
         }
 
         //Start personal Receiver:
@@ -117,8 +121,6 @@ class MainActivity : ComponentActivity() {
         if (prefs.nlpUserId == "") {
             prefs.nlpUserId = utils.generateRandomString(12)
         }
-        spotUserImageState.postValue(prefs.spotUserImage)
-        userNicknameUI.postValue(prefs.userNickname)
 
         //AUTO START-UP:
         if (
@@ -210,7 +212,7 @@ class MainActivity : ComponentActivity() {
                         .padding(it)
                 ) {
                     //SET CURRENT SCREEN FROM NAVIGATION HOST:
-                    Navigation(navController, chatManager)
+                    Navigation(navController, chatManager, preview)
                 }
             }
         }

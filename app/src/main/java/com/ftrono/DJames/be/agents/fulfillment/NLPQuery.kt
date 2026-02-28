@@ -1,10 +1,11 @@
-package com.ftrono.DJames.be.fulfillment
+package com.ftrono.DJames.be.agents.fulfillment
 
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.*
 import com.ftrono.DJames.be.database.NlpQueryModel
+import com.ftrono.DJames.be.models.RecDetails
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.dialogflow.v2.AudioEncoding
@@ -21,6 +22,7 @@ import com.google.protobuf.ByteString
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
+import java.util.concurrent.TimeUnit
 
 
 class NLPQuery(context: Context) {
@@ -65,7 +67,7 @@ class NLPQuery(context: Context) {
             synchronized(this) {
                 try {
                     Thread.sleep(5L * 1000)   //default: 5
-                    sessionsClient!!.shutdown()
+                    sessionsClient!!.shutdownNow()
                     Log.d(TAG, "Connection Error: sessionsClient manually SHUT DOWN.")
                 } catch (e: InterruptedException) {
                     Log.d(TAG, "NLPQuery: sessionThread already off.")
@@ -77,7 +79,12 @@ class NLPQuery(context: Context) {
     }
 
 
-    fun queryNLP(text: String = "", recFile: File? = null, messageMode: Boolean = false, reqLanguage: String = ""): NlpQueryModel {
+    fun queryNLP(
+        text: String = "",
+        recDetails: RecDetails? = null,
+        messageMode: Boolean = false,
+        reqLanguage: String = ""
+    ): NlpQueryModel {
         var respData = NlpQueryModel()
         try {
             var languageCode = ""
@@ -98,9 +105,10 @@ class NLPQuery(context: Context) {
             var queryInput: QueryInput? = null
             var detectIntentRequest: DetectIntentRequest? = null
 
-            if (recFile != null) {
+            if (recDetails != null) {
+                val recFile = File(recDetails.recPath)
                 //AUDIO REQUEST:
-                respData.recFile = lastRecordingName
+                respData.recFile = recDetails.recName
                 val inputAudioConfig: InputAudioConfig = InputAudioConfig.newBuilder()
                     .setAudioEncoding(AudioEncoding.AUDIO_ENCODING_FLAC)
                     .setSampleRateHertz(recSamplingRate)

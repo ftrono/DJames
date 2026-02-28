@@ -52,12 +52,10 @@ class AuthActivity: ComponentActivity() {
             spotifyAuthConfig,
             clientId,
             ResponseTypeValues.CODE, // Spotify uses Authorization Code flow
-            Uri.parse(redirectUri)
+            Uri.parse(getString(R.string.redirect_uri))
         )
             //Spotify Scopes:
             .setScopes(
-                "user-read-private",   //Read access to user’s email address
-                "user-read-email",   //Read access to user’s subscription details (type of user account)
                 "user-read-playback-state",   //Read access to a user’s player state (devices, player state, track)
                 "user-modify-playback-state",   //Write access to a user’s playback state (add to queue)
                 "user-read-currently-playing",   //Read your currently playing content (track / queue)
@@ -71,6 +69,8 @@ class AuthActivity: ComponentActivity() {
                 "user-read-recently-played",   //Read access to a user’s recently played tracks
                 "user-library-read",   //Access saved content (tracks, albums)
                 "user-library-modify"   //Manage saved content (tracks, albums)
+                // "user-read-private",   //Read access to user’s subscription details (type of user account)
+                // "user-read-email",   //Read access to user’s email address
                 //"playlist-modify-private",   //Write access to a user's private playlists
                 //"playlist-modify-public",   //Write access to a user's public playlists
                 //"app-remote-control",   //Android only: communicate with the Spotify app on your device
@@ -111,8 +111,8 @@ class AuthActivity: ComponentActivity() {
                     spotTempToken = tokenResponse.accessToken!!
                     refrTempToken = tokenResponse.refreshToken!!
                     Log.d(TAG, "AUTH SUCCESS: Access & Refresh tokens received! Started Spotify.me main.")
-                    // Log.d(TAG, "AccessToken: $spotTempToken")
-                    // Log.d(TAG, "RefreshToken: $refrTempToken")
+                    // Log.d(TAG, "Access Token: $spotTempToken")
+                    // Log.d(TAG, "Refresh Token: $refrTempToken")
                     showLoggingIn.postValue(true)
                 } catch (e: Exception) {
                     Log.w(TAG, "ERROR:  AUTH: Cannot call Spotify.me main!", e)

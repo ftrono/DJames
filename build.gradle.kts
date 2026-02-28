@@ -10,7 +10,7 @@ buildscript {
         set("ext.kotlin_version", "2.1.20")
         set("compose_version", "2024.04.01")
     }
-    val objectboxVersion by extra("4.0.3")
+    val objectboxVersion by extra("4.1.0")
     dependencies {
         // Android Gradle Plugin 4.1.0 or later supported
         classpath(libs.gradle)

@@ -40,7 +40,7 @@ class SpotifyQuery(private val context: Context) {
         val client = httpClient.getClient(defaultHttpTimeout)
         var formBody = FormBody.Builder()
             .add("grant_type", "refresh_token")
-            .add("refresh_token", prefs.refreshToken)
+            .add("refresh_token", prefs.spotRefreshToken)
             .build()
         var headers = Headers.Builder()
             .add("content-type", "application/x-www-form-urlencoded")
@@ -65,8 +65,7 @@ class SpotifyQuery(private val context: Context) {
                     Log.d(TAG, keySet.toString())
                     prefs.spotifyToken = respJSON.get("access_token").asString
                     if (respJSON.has("refresh_token")) {
-                        prefs.refreshToken =
-                            respJSON.get("refresh_token").asString
+                        prefs.spotRefreshToken = respJSON.get("refresh_token").asString
                     }
                     Log.d(TAG, "TOKEN REFRESH SUCCESS: new Refresh tokens received!")
                 } catch (e: Exception) {

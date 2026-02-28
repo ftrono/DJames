@@ -25,7 +25,6 @@ import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.SpotifyEpisode
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.utils.LinkExtractors
-import com.google.gson.JsonArray
 import com.google.gson.JsonParser
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
@@ -261,16 +260,15 @@ class SpotifyUtils {
         var toastText = ""
         try {
             val spotifyCalls = SpotifyCalls(context)
-            val ids = JsonArray()
-            ids.add(currentTrackId.split(":").last())
+            val ids = listOf(currentTrackId.split(":").last())
             Log.d(TAG, "IDS TO SAVE: $ids")
-            val ret = spotifyCalls.saveTrackRequest(ids)
+            val ret = spotifyCalls.saveLibraryRequest(ids, type="track")
             //PROCESS RESPONSE:
             if (ret == 200) {
                 //SUCCESS -> Play ACKNOWLEDGE tone:
                 toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                 Log.d(TAG, "Saved track: $ids")
-                toastText = "Current track saved in Spotify!"
+                toastText = "Current track SAVED in Spotify!"
             } else {
                 //Play FAIL tone:
                 toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
@@ -295,11 +293,10 @@ class SpotifyUtils {
 
 
     //Get Podcast episodes:
-    fun getPodcastEpisodes(context: Context, libItem: LibraryItem, latestOnly: Boolean = true): List<SpotifyEpisode> {
+    fun getPodcastEpisodes(context: Context, podcastId: String, podcastName: String, latestOnly: Boolean = true): List<SpotifyEpisode> {
         Log.d(TAG, "getPodcastEpisodes: job start!")
         var episodes = mutableListOf<SpotifyEpisode>()
         try {
-            val podcastId = spotifyUtils.getSpotifyID(libItem.url)
             val spotifyCalls = SpotifyCalls(context)
             val resp = spotifyCalls.getSpotifyPodcastEpisodes(podcastId, limit = if (latestOnly) 1 else null)
             //PROCESS RESPONSE:
@@ -312,7 +309,7 @@ class SpotifyUtils {
                     Log.w(TAG, "ERROR: Could not get Podcast Episodes from Spotify!")
                 } else {
                     for (item in items) {
-                        episodes.add(spotifyParsers.extractEpisodeFromLibItem(item.asJsonObject, libItem))
+                        episodes.add(spotifyParsers.extractEpisodeFromLibItem(item.asJsonObject, podcastId, podcastName))
                     }
                 }
 

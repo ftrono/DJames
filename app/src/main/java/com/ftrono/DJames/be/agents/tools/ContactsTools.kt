@@ -5,7 +5,9 @@ import com.ftrono.DJames.be.agents.data.ToolDefinition
 import com.ftrono.DJames.be.agents.data.ToolFunction
 import com.ftrono.DJames.be.agents.data.ToolParameters
 import com.ftrono.DJames.be.agents.data.ToolProperty
+import com.ftrono.DJames.be.agents.data.ToolResponse
 import com.ftrono.DJames.be.agents.data.ToolType
+import com.ftrono.DJames.be.database.Attachments
 import kotlinx.serialization.json.*
 
 
@@ -39,7 +41,7 @@ class ToolRetrieveContacts(): Tool() {
         )
     }
 
-    override fun invoke(args: JsonObject): String {
+    override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
         val allTracks = mapOf(
             "the script" to mapOf(
                 "the man who can't be moved" to "0x0001",
@@ -81,7 +83,10 @@ class ToolRetrieveContacts(): Tool() {
         } else {
             "No song found for this artist."
         }
-        return retString
+        return ToolResponse(
+            message = retString,
+            attachments = attachments,
+        )
     }
 }
 
@@ -114,10 +119,13 @@ class ToolCall(): Tool() {
         )
     }
 
-    override fun invoke(args: JsonObject): String {
+    override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
         var spotifyID = args["spotify_id"]?: ""
         val retString = if (spotifyID != "") "Playing the track with Spotify ID: $spotifyID. Do NOT make further questions to the user." else "Empty Spotify ID!"
-        return retString
+        return ToolResponse(
+            message = retString,
+            attachments = attachments,
+        )
     }
 }
 
@@ -150,13 +158,16 @@ class ToolSend(): Tool() {
         )
     }
 
-    override fun invoke(args: JsonObject): String {
+    override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
         var spotifyID = args["spotify_id"]?: ""
         val retString = if (spotifyID != "") {
             "Playing the track with Spotify ID: $spotifyID. Do NOT make further questions to the user."
         } else {
             "Empty Spotify ID!"
         }
-        return retString
+        return ToolResponse(
+            message = retString,
+            attachments = attachments,
+        )
     }
 }

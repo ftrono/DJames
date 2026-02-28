@@ -6,7 +6,12 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.START
 import com.ftrono.DJames.application.END
+import com.ftrono.DJames.application.defaultChatWait
+import com.ftrono.DJames.application.messageUtils
+import com.ftrono.DJames.application.minSpeechPct
+import com.ftrono.DJames.application.mistralSttModel
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.nodes.CallAgentNode
 import com.ftrono.DJames.be.agents.nodes.DriverAgentNode
 import com.ftrono.DJames.be.agents.nodes.GuidanceAgentNode
@@ -18,14 +23,14 @@ import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.be.agents.graph.Graph
 import com.ftrono.DJames.be.agents.llm.LlmAgent
 import com.ftrono.DJames.be.agents.data.ChatMessage
-import com.ftrono.DJames.be.agents.data.SttReturn
+import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.models.RecDetails
 import com.google.gson.JsonParser
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
 
-// MAIN GRAPH:
+// LLM GRAPH:
 class AgentsGraph(
     private val context: Context,
 ): Graph(context) {
@@ -107,25 +112,105 @@ class AgentsGraph(
         return msgList
     }
 
-    // (FROM VOICE) TRANSCRIBE NEW AUDIO:
-    override fun transcribe(inAudioPath: String): SttReturn {
-        Log.d(TAG, "STT activated")
-        val sttAgent = LlmAgent(
-            context = context,
-            apiKey = apiKey,
-            agentName = "Transcriber",
-        )
-        val sttReturn = sttAgent.transcribe(
-            audioPath = inAudioPath
-        )
-        return sttReturn
+    // Process new user message:
+    override fun processUserMessage(
+        prevState: StateInfo,
+        recDetails: RecDetails?,
+        inMessage: String,
+    ): StateInfo {
+
+        // Status vars:
+        var updState = prevState
+        var fromVoice = recDetails != null
+        updState.fromVoice = fromVoice
+        var isStart = prevState.next == START
+        var language = "en"
+        Log.d(TAG, "Processing new user message...")
+
+        // Parse new message:
+        // LLM version: transcribe only if voice:
+        var transcription = ""
+        if (fromVoice) {
+            // FROM VOICE:
+            updState.lastRecording = recDetails!!.recName
+            updState.noSave = false
+
+            if (recDetails.speechPct <= minSpeechPct) {
+                // Empty audio:
+                Log.d(TAG, "Empty audio.")
+                updState.isSilence = true
+                updState.fail = true
+                updState.noSave = true
+
+            } else if (prevState.messageMode && prevState.messageType == "voice") {
+                //Whatsapp audio message -> no STT!
+                Log.d(TAG, "Message followup: audio message.")
+                transcription = "(private message)"
+
+            } else {
+                // (LLM) STT transcribe:
+                Log.d(TAG, "STT activated")
+                val sttAgent = LlmAgent(
+                    context = context,
+                    apiKey = apiKey,
+                    model = mistralSttModel,
+                    agentName = "Transcriber",
+                )
+                val sttReturn = sttAgent.transcribe(
+                    audioPath = recDetails.recPath
+                )
+
+                // Process:
+                transcription = sttReturn.transcription
+                updState.isSilence = sttReturn.isSilence
+                updState.fail = sttReturn.fail
+                updState.reqLangCode = if (sttReturn.language != "") sttReturn.language else prefs.queryLanguage
+                updState.reqLangName = utils.getLanguageName(updState.reqLangCode)
+                Log.d(TAG, "TRANSCR. LANGUAGE: '${updState.reqLangCode}' - '${updState.reqLangName}'")
+
+                if (updState.isSilence) {
+                    updState.noSave = true
+                    Log.d(TAG, "Empty transcription.")
+                } else {
+                    Log.d(TAG, "TRANSCRIPTION: $transcription")
+                }
+            }
+        } else {
+            // FROM CHAT:
+            transcription = inMessage
+            Thread.sleep(defaultChatWait)   // Typing delay
+        }
+
+        if (!updState.fail && !updState.isSilence) {
+            // STATE: Append last user message (original) to conversation:
+            updState.messages.add(
+                ChatMessage(role = "user", content = transcription)
+            )
+            // DB: Store user message (anonymized):
+            val storedText = if (updState.messageMode) "(private message)" else transcription
+            val attachments = Attachments()
+            attachments.llmChatMessages = mutableListOf<ChatMessage>(
+                ChatMessage(role = "user", content = storedText)
+            )
+            updState.lastUserMsgId = messageUtils.storeMessage(
+                context = context,
+                langCode = updState.reqLangCode,
+                fromUser = true,
+                fromVoice = fromVoice,
+                isStart = isStart,
+                text = storedText,
+                intent = updState.intentName,
+                attachments = attachments,
+            )
+        }
+        return updState
     }
 
+    // MAIN: INVOKE:
     override fun invoke(
         prevState: StateInfo,
         recDetails: RecDetails?,
         inMessage: String,
-        isStart: Boolean,
     ): StateInfo {
 
         // Status vars:
@@ -144,26 +229,27 @@ class AgentsGraph(
             prevState = prevState,
             recDetails = recDetails,
             inMessage = inMessage,
-            isStart = isStart,
         )
 
         Log.d(TAG, "Messages size (input): ${updState.messages.size} items.")
 
         // STREAMING LOOP:
-        updState = stream(updState, onRestart = "GuidanceAgent")
+        updState = stream(updState, routerNode = "MainRouter")
         Log.d(TAG, "Messages size (output): ${updState.messages.size} items, fail: ${updState.fail}")
 
         //TODO: Add store messages to DB here!
 
         // Returns:
-        updState.end = updState.next == END
         updState.aiReplies = listOf(
             AiReply(
-                langCode = prefs.queryLanguage,
+                langCode = updState.reqLangCode,
                 text = when {
                     updState.isSilence -> defaultReplies.replyFallback()   // Fallback
                     updState.fail -> defaultReplies.replyError()   // Error
-                    (updState.next == END && updState.messages.isEmpty()) -> defaultReplies.replyNevermind()   // Nevermind
+                    (updState.next == END && (
+                            updState.messages.isEmpty() || updState.messages.last().role != "assistant"
+                        )
+                    ) -> defaultReplies.replyNevermind()   // Nevermind
                     else -> updState.messages.last().content   // Actual reply
                 }
             )

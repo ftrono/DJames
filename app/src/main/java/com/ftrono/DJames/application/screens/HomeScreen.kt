@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -40,7 +41,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -58,7 +58,7 @@ import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.spotUserName
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.volumeUpEnabledUI
-import com.ftrono.DJames.be.chat.ChatManager
+import com.ftrono.DJames.be.agents.chat.ChatManager
 import com.ftrono.DJames.ui.components.CardSign
 import com.ftrono.DJames.ui.components.ChatInputField
 import com.ftrono.DJames.ui.components.DriveIcon
@@ -95,7 +95,6 @@ fun HomeScreen(
     val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
 
     val mContext = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
 
     val focusManager = LocalFocusManager.current
     val overlayActiveState by overlayActive.observeAsState()
@@ -139,13 +138,12 @@ fun HomeScreen(
         topBar = {
             StreetUITopBar(
                 pretitle = "",
-                title = "DJames",
+                title = stringResource(R.string.app_name),
                 subtitle = if (!spotifyLoggedInState!!) "Not logged in" else "for ${prefs.spotUserName}",
                 showBack = false,
                 optionButtons = {
                     UserOptions(
                         context = mContext,
-                        lifecycleOwner = lifecycleOwner,
                         navController = navController,
                         preview = preview,
                     )

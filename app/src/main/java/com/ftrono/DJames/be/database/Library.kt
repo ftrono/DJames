@@ -35,13 +35,14 @@ data class LibraryItem(
     //Primary key:
     @Id var id: Long = 0,
     var lastUpdated: Long = 0,   // Timestamp
+    var matchScore: Int = 0,
     var name: String = "",
     var aliases: MutableList<String> = mutableListOf(),
     var source: String = "",   // i.e.: "local", "spotify", "youtube", "maps", ...
     var type: String = "",   // i.e.: "artist", "playlist", "podcast", "episode", ...
     var url: String = "",
     var imageUrl: String = "",
-    var detail: String = "",   // i.e. playlist owner, podcast publisher, artist genres, album artists, ...
+    var detail: String = "",   // i.e. playlist owner, artist genres, album artists, ...
     var language: String = "",
     @Convert(converter = PhoneSetConverter::class, dbType = String::class)
     var phoneSet: PhoneSet? = null,
@@ -57,4 +58,10 @@ class AddressConverter : JsonConverter<Address>(Address.serializer())
 data class ExtractedItem(
     var response: Int = 400,
     var libItem: LibraryItem = LibraryItem()
+)
+
+data class LibMatch(
+    var matchScore: Int = 0,
+    var matchId: Long = 0L,
+    var matchName: String = "",
 )

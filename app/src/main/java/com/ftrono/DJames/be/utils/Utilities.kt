@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
@@ -16,6 +17,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import com.ftrono.DJames.BuildConfig
 import com.ftrono.DJames.application.ACTION_MAKE_CALL
 import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.libCats
@@ -27,12 +29,16 @@ import com.ftrono.DJames.application.recDir
 import com.ftrono.DJames.application.services.OverlayService
 import com.ftrono.DJames.be.models.languageNamesMap
 import com.ftrono.DJames.be.models.languageWordsMap
+import org.json.JSONObject
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.Random
 import kotlin.streams.asSequence
+import androidx.core.content.edit
+import com.ftrono.DJames.application.userGender
+import com.ftrono.DJames.application.userNicknameUI
 
 
 class Utilities {
@@ -165,8 +171,8 @@ class Utilities {
     //From a detected language name, get the supported language code:
     fun getLanguageCode(language: String, default: String = ""): String {
         var reqLangCode = default
-        if (languageWordsMap.contains(language)) {
-            reqLangCode = languageWordsMap[language]!!
+        if (languageWordsMap.contains(language.trim())) {
+            reqLangCode = languageWordsMap[language.trim()]!!
             Log.d(TAG, "REQUESTED LANGUAGE: $reqLangCode")
         } else {
             Log.d(TAG, "No requested language found in the voice request.")
@@ -176,7 +182,11 @@ class Utilities {
 
     //Get the corresponding language name in preferred language for the detected language code:
     fun getLanguageName(languageCode: String): String {
-        return languageNamesMap[prefs.queryLanguage]!![languageCode]!!
+        return try {
+            languageNamesMap[prefs.queryLanguage]!![languageCode]!!
+        } catch (e: Exception) {
+            ""
+        }
     }
 
     //Start/Stop DRIVE Mode:
@@ -242,7 +252,7 @@ class Utilities {
         if (filename != "") {
             //Get cached file:
             val file = File(context.cacheDir, filename)
-            val uriToFile = FileProvider.getUriForFile(context, "com.ftrono.DJames.provider", file)
+            val uriToFile = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.provider", file)
             val sendIntent: Intent = Intent().apply {
                 action = Intent.ACTION_SEND
                 putExtra(Intent.EXTRA_STREAM, uriToFile)
@@ -256,6 +266,52 @@ class Utilities {
             Toast.makeText(context, "ERROR: cannot send the requested file!", Toast.LENGTH_LONG).show()
         }
     }
+
+
+    // PREFS EXPORT / IMPORT:
+    fun exportSharedPreferences(context: Context): String {
+        val shPrefs: SharedPreferences =
+            context.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+
+        val allEntries = shPrefs.all
+        val json = JSONObject()
+
+        for ((key, value) in allEntries) {
+            when (value) {
+                is Boolean, is Int, is Long, is Float, is String -> {
+                    json.put(key, value)
+                }
+            }
+        }
+
+        return json.toString()
+    }
+
+    fun importSharedPreferences(
+        context: Context,
+        jsonString: String
+    ) {
+        val shPrefs = context.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+        shPrefs.edit {
+            val json = JSONObject(jsonString)
+
+            json.keys().forEach { key ->
+                when (val value = json.get(key)) {
+                    is Boolean -> putBoolean(key, value)
+                    is Int -> putInt(key, value)
+                    is Long -> putLong(key, value)
+                    is Double -> putFloat(key, value.toFloat())
+                    is String -> putString(key, value)
+                }
+            }
+
+        }
+
+        // Profile info:
+        userNicknameUI.postValue(prefs.userNickname)
+        userGender.postValue(prefs.userGender)
+    }
+
 
     //CLEANING:
     //Clean cached recordings:

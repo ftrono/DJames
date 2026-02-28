@@ -14,9 +14,8 @@ import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.be.database.MessageUtils
 import com.ftrono.DJames.be.database.MyObjectBox
 import com.ftrono.DJames.be.database.LibraryItem
-import com.ftrono.DJames.be.agents.data.StateInfo
-import com.ftrono.DJames.be.utils.FulfillmentUtils
-import com.ftrono.DJames.be.chat.DefaultReplies
+import com.ftrono.DJames.be.agents.fulfillment.FulfillmentUtils
+import com.ftrono.DJames.be.agents.chat.DefaultReplies
 import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
 import com.ftrono.DJames.be.spotify.SpotifyUtils
 import com.ftrono.DJames.ui.theme.NavigationItem
@@ -34,7 +33,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.0.a9 (alpha)"
+val appVersion = "3.0.a10"
 val copyrightYear = 2024
 
 //DB:
@@ -128,13 +127,7 @@ val sourceToCatMap = mapOf(
 )
 val libCats = sourceToCatMap.keys.toList()
 var allMessageIds = MutableLiveData<List<Long>>(listOf<Long>())
-
-// Conversation tracking:
 val chatInputPlaceholder = "Ask via chat..."
-var chatLastState = StateInfo()
-var lastAiMessage: Message = Message()
-var lastUserMessage: Message = Message()
-var lastRequestIntent: String = ""
 var lastStarterId: Long = 0L
 
 //Preferences:
@@ -145,17 +138,17 @@ val raiseVolumeCountdownTime: Int = 7000   //ms
 val clickAnimationCountdownTime: Int = 4000   //ms
 val clickCountdownTime: Long = 3000   //ms
 val clickSleepInterval: Long = 100   //ms
+val maxSearchMatches = 2
+val maxGraphLoops = 2
 val deltaSimilarity = 10   //5
-val playThreshold = 80
-val maxThreshold = 70
-val midThreshold = 60
+val midThreshold = 70
+val minThreshold = 50
 val recSamplingRate = 48000 // 44100
 val silencePatienceQueries = 2   //seconds
 val silencePatienceMess = 3   //seconds
 val minSpeechPct = 10   // %
 val defaultHttpTimeout = 10L   //seconds
 val maxAudioRecTimeout = 120L   //for voice messages
-var lastRecordingName = ""
 var enablePlayerInfo = false
 val datetimeExportFormat = "yyyy-MM-dd HH_mm_ss"
 val datetimeFullFormat = "yyyy/MM/dd HH:mm"
@@ -188,7 +181,6 @@ var audioManager: AudioManager? = null
 
 //Player info:
 var currently_playing: JsonObject? = null
-var nlp_queryText = ""
 var currentTrackId: String = ""
 var songName: String = ""
 var artistName: String = ""
@@ -215,7 +207,6 @@ val spotifyQueryLimit = 10
 var spotTempToken = ""
 var refrTempToken = ""
 var showLoggingIn = MutableLiveData<Boolean>(false)
-val redirectUri = "djames-oauth://callback"   //URLEncoder.encode(redirectUriOrig, "UTF-8")
 val spotifyAuthConfig = AuthorizationServiceConfiguration(
     Uri.parse("https://accounts.spotify.com/authorize"), // Authorization endpoint
     Uri.parse("https://accounts.spotify.com/api/token")   // Token endpoint
@@ -224,7 +215,8 @@ val spotifyAuthConfig = AuthorizationServiceConfiguration(
 //LLM:
 val mistralSttModel = "voxtral-mini-latest"
 val mistralSttUrl = "https://api.mistral.ai/v1/audio/transcriptions"
-val mistralLlmModel = "mistral-small-latest"
+val mistralLlmModelSmall = "mistral-small-latest"
+val mistralLlmModelMedium = "mistral-medium-latest"
 val mistralLlmUrl = "https://api.mistral.ai/v1/chat/completions"
 val mistralLlmTemperature = 0.3F
 val mistralLlmTimeout = 20L

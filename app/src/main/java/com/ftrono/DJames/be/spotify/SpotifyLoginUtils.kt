@@ -54,39 +54,30 @@ class SpotifyLoginUtils {
                 try {
                     //RESPONSE RECEIVED -> USER'S PROFILE DATA:
                     val respJSON = JsonParser.parseString(meResponse.body).asJsonObject
-                    var product = respJSON.get("product").asString
-                    //User must be PREMIUM:
-                    if (product == "premium" || product == "duo" || product == "family") {
-                        //Log.d(TAG, response)
-                        //SUCCESS!
-                        prefs.spotifyToken = spotTempToken
-                        prefs.refreshToken = refrTempToken
-                        prefs.spotUserName = respJSON.get("display_name").asString
-                        spotUserName.postValue(respJSON.get("display_name").asString)
-                        prefs.spotUserId = respJSON.get("id").asString
-                        prefs.spotUserEMail = respJSON.get("email").asString
-                        prefs.spotCountry = respJSON.get("country").asString
-                        prefs.userNickname = utils.cleanString(respJSON.get("display_name").asString)
-                        //Spotify profile image:
-                        try {
-                            val images = respJSON.getAsJsonArray("images")
-                            val firstImage = images.get(0).asJsonObject
-                            prefs.spotUserImage = firstImage.get("url").asString
-                        } catch (e: Exception) {
-                            Log.w(TAG, "Unable to retrieve user image: ", e)
-                            prefs.spotUserImage = ""
-                        }
-                        //Generate NLP user ID:
-                        prefs.nlpUserId = utils.generateRandomString(30, numOnly = true)
-
-                        sleep(1000)
-                        Log.d(TAG, "Spotify.me: success! User is enabled.")
-                        Toast.makeText(context, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
-                        spotifyLoggedIn.postValue(true)
-                    } else {
-                        Log.w(TAG, "Spotify.me: PROBLEM -> user not enabled! USER TYPE: $product")
-                        Toast.makeText(context, "ERROR: to use DJames, you need to be a Spotify Premium user! :(", Toast.LENGTH_LONG).show()
+                    //Log.d(TAG, response)
+                    //SUCCESS!
+                    prefs.spotifyToken = spotTempToken
+                    prefs.spotRefreshToken = refrTempToken
+                    prefs.spotUserName = respJSON.get("display_name").asString
+                    spotUserName.postValue(respJSON.get("display_name").asString)
+                    prefs.spotUserId = respJSON.get("id").asString
+                    //Spotify profile image:
+                    try {
+                        val images = respJSON.getAsJsonArray("images")
+                        val firstImage = images.get(0).asJsonObject
+                        prefs.spotUserImage = firstImage.get("url").asString
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Unable to retrieve user image: ", e)
+                        prefs.spotUserImage = ""
                     }
+                    //Generate NLP user ID:
+                    prefs.nlpUserId = utils.generateRandomString(30, numOnly = true)
+
+                    sleep(1000)
+                    Log.d(TAG, "Spotify.me: success! User is enabled.")
+                    Toast.makeText(context, "SUCCESS: DJames is now LOGGED IN to your Spotify!", Toast.LENGTH_LONG).show()
+                    spotifyLoggedIn.postValue(true)
+
                 } catch (e: Exception) {
                     Log.w(TAG, "Profile parsing error: ", e)
                     Toast.makeText(context, "Authentication ERROR: not logged in.", Toast.LENGTH_LONG).show()
@@ -97,15 +88,14 @@ class SpotifyLoginUtils {
             //States:
             showLoggingIn.postValue(false)
             spotUserImageState.postValue(prefs.spotUserImage)
-            userNicknameUI.postValue(prefs.userNickname)
             //TOAST -> Send broadcast:
             Intent().also { intent ->
                 intent.setAction(ACTION_TOASTER)
-                intent.putExtra("toastText", "Logged in! Please pick a nickname for you!")
+                intent.putExtra("toastText", "Logged in to Spotify!")
                 context.sendBroadcast(intent)
             }
-            //Navigate to Settings:
-            val curNavRoute = NavigationItem.Settings.route
+            //Navigate to Accounts:
+            val curNavRoute = NavigationItem.Accounts.route
             navigateTo(navController, curNavRoute)
             lastNavRoute = curNavRoute
         }
@@ -113,35 +103,18 @@ class SpotifyLoginUtils {
 
 
     //LOGOUT:
-    fun logout(
-        context: Context,
-        navController: NavController,
-        extraOpenState: Boolean
-    ) {
+    fun logout(context: Context) {
         //Delete tokens & user details:
         spotifyLoggedIn.postValue(false)
         prefs.spotifyToken = ""
-        prefs.refreshToken = ""
+        prefs.spotRefreshToken = ""
         prefs.spotUserId = ""
         prefs.spotUserName = ""
-        prefs.spotUserEMail = ""
         prefs.spotUserImage = ""
-        prefs.spotCountry = ""
-        prefs.userNickname = ""
-        prefs.nlpUserId = utils.generateRandomString(12)
         spotUserName.postValue("")
         spotUserImageState.postValue("")
-        userNicknameUI.postValue("")   //TODO
         //utils.deleteUserCache(context)
         Toast.makeText(context, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()
-        //Navigate to Home:
-        val curNavRoute = NavigationItem.Home.route
-        if (curNavRoute == lastNavRoute && (extraOpenState)) {
-            navController.popBackStack()
-        } else {
-            navigateTo(navController, curNavRoute)
-        }
-        lastNavRoute = curNavRoute
     }
 
 

@@ -1,10 +1,10 @@
-package com.ftrono.DJames.be.fulfillment
+package com.ftrono.DJames.be.agents.fulfillment
 
 import android.util.Log
 import com.ftrono.DJames.R
 import android.content.Context
 import com.ftrono.DJames.application.libUtils
-import com.ftrono.DJames.application.maxThreshold
+import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.ExtractorInfo
@@ -139,7 +139,7 @@ class NLPExtractor (private val context: Context) {
                 for (artist in artistsNlp) {
                     score = FuzzySearch.ratio(artist.lowercase(), extr)
                     Log.d(TAG, "EVALUATION: COMPARING $artist WITH $extr, MATCH: $score")
-                    if (!artistsTemp.contains(artist) && score >= maxThreshold) {
+                    if (!artistsTemp.contains(artist) && score >= midThreshold) {
                         artistsTemp.add(artist)
                     }
                 }

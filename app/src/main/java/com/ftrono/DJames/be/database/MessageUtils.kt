@@ -6,18 +6,15 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
+import com.ftrono.DJames.BuildConfig
 import com.ftrono.DJames.application.ACTION_MESSAGES_REFRESH
 import com.ftrono.DJames.application.appVersion
 import com.ftrono.DJames.application.datetimeExportFormat
 import com.ftrono.DJames.application.datetimeFullFormat
-import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.lastStarterId
-import com.ftrono.DJames.application.lastUserMessage
 import com.ftrono.DJames.application.maxHistoryDays
 import com.ftrono.DJames.application.messageBox
-import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.agents.data.ChatMessage
 import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.be.collections.testMessages
 import io.objectbox.query.QueryBuilder
@@ -94,25 +91,6 @@ class MessageUtils {
 
 
     //INSERT NEW:
-    //Reset message:
-    fun resetMessage(fromUser: Boolean = false) {
-        if (fromUser) {
-            lastUserMessage = Message(
-                id = 0,
-                appVersion = appVersion,
-                fromUser = true
-            )
-        } else {
-            lastAiMessage = Message(
-                id = 0,
-                appVersion = appVersion,
-                fromUser = false
-            )
-        }
-
-    }
-
-
     //Store last open message to DB:
     fun storeMessage(
         context: Context,
@@ -120,33 +98,36 @@ class MessageUtils {
         fromUser: Boolean = false,
         fromVoice: Boolean = false,
         isStart: Boolean = false,
-        llmMessages: MutableList<ChatMessage>? = null
+        text: String,
+        intent: String = "",
+        actionType: ActionType? = null,
+        attachments: Attachments = Attachments(),
     ): Long {
         var key = -1L
         try {
-            val message = if (fromUser) lastUserMessage else lastAiMessage
-            if (message.text == "") {
+            if (text == "") {
                 // Empty message -> nothing to save:
                 Log.w(TAG, "Empty Message: not saved!")
             } else {
-                message.timestamp = utils.getCurrentTimestamp()
+                var message = Message(
+                    id = 0,
+                    appVersion = appVersion,
+                    fromUser = fromUser,
+                    timestamp = utils.getCurrentTimestamp(),
+                    text = text,
+                    fromVoice = fromVoice,
+                    langCode = langCode,
+                    requestIntent = intent,
+                    actionType = actionType,
+                    attachments = attachments
+                )
                 if (isStart) {
                     // NEW CONVERSATION:
                     lastStarterId = message.timestamp
                     message.isStart = true
                 }
-                // Attach LLM ChatMessages:
-                val llmChatMessages = llmMessages ?: mutableListOf<ChatMessage>(
-                    ChatMessage(
-                        role = if (fromUser) "user" else "assistant",
-                        content = message.text,
-                    )
-                )
-                // CONTENT: Actually store message:
                 message.starterId = lastStarterId
-                message.fromVoice = fromVoice
-                message.langCode = langCode
-                message.attachments.llmChatMessages = llmChatMessages
+                // Store message:
                 key = messageBox!!.put(message)
                 Log.d(TAG, "Message item ${message.id} saved!")
                 //Send broadcast:
@@ -168,12 +149,18 @@ class MessageUtils {
         id: Long,
         langCode: String = "",
         requestIntent: String = "",
+        isStart: Boolean = false,
     ) {
         try {
             val message = messageBox!!.get(id)
             message.langCode = if (langCode != "") langCode else message.langCode
             message.requestIntent =
                 if (requestIntent != "") requestIntent else message.requestIntent
+            if (isStart) {
+                // NEW CONVERSATION:
+                lastStarterId = message.timestamp
+                message.isStart = true
+            }
             messageBox!!.put(message)
             Log.d(TAG, "Message item $id updated!")
             //Send broadcast:
@@ -343,7 +330,7 @@ class MessageUtils {
         try {
             // Get URI and MIME type of file
             val file = File(context.cacheDir, filename)
-            val uri = FileProvider.getUriForFile(context, "com.ftrono.DJames.provider", file)
+            val uri = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.provider", file)
             val mime = context.contentResolver.getType(uri)
 
             // Open file with user selected app
@@ -390,6 +377,11 @@ class MessageUtils {
                     detailText =
                         if (itemInfo.name == "") "" else "Place:  ${itemInfo.name}\nDetail:  ${itemInfo.detail}"
                 }
+            }
+
+            //Add confidence:
+            if (attachments.usable!!.matchScore > 0 && detailText.trim() != "") {
+                detailText += "\nMatch:  ${attachments.usable!!.matchScore}%"
             }
 
         } else if (intentName.contains("Play") && attachments.spotifyPlay != null) {
@@ -439,7 +431,7 @@ class MessageUtils {
                     //Context:
                     var contextType = if (playable.track!!.context == null) "" else playable.track!!.context!!.type
                     var contextName = ""
-                    if (playable.track!!.context != null && !attachments.contextError && !attachments.playedExternally) {
+                    if (playable.track!!.context != null) {
                         //Use Context name:
                         contextName = playable.track!!.context!!.name
                     } else if (playable.track!!.album != null) {
@@ -448,17 +440,14 @@ class MessageUtils {
                         contextName = playable.track!!.album!!.name
                     }
                     var contextFull = "$contextName  ($contextType)"
-                    if (attachments.playedExternally) {
-                        contextFull = "$contextFull [EXT]"
-                    }
-                    detailText =
-                        "Track:  $matchName\nArtist:  $artistName\nContext:  $contextFull"
+                    detailText = "Track:  $matchName\nArtist:  $artistName\nContext:  $contextFull"
                 }
             }
-        }
-        //Add confidence:
-        if (attachments.matchScore > 0 && detailText.trim() != "") {
-            detailText = detailText + "\nMatch:  ${attachments.matchScore}%"
+
+            //Add confidence:
+            if (playable.matchScore > 0 && detailText.trim() != "") {
+                detailText += "\nMatch:  ${playable.matchScore}%"
+            }
         }
         return detailText
     }
@@ -468,21 +457,8 @@ class MessageUtils {
     fun updateExistingMessages() {
         var messages = messageBox!!.query().order(Message_.timestamp, QueryBuilder.DESCENDING).build().find()
         for (msg in messages) {
-            val extraDetails = if (msg.fromUser) "" else messageUtils.buildExtraDetails(msg)
-            if (extraDetails != "") {
-                val action = when {
-                    msg.requestIntent.contains("Play") -> ActionType.PLAY
-                    msg.requestIntent.contains("Call") -> ActionType.CALL
-                    msg.requestIntent.contains("Message") -> ActionType.SMS
-                    msg.requestIntent.contains("Drive") -> ActionType.OPEN_URL
-                    else -> null
-                }
-                if (action != null) {
-                    msg.actionType = action
-                    messageBox!!.put(msg)
-                    Log.d(TAG, "Updated message with id: ${msg.id}!")
-                }
-            }
+            //TODO
+            break
         }
     }
 

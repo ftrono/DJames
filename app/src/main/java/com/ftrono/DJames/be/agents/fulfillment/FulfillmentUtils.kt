@@ -1,23 +1,22 @@
-package com.ftrono.DJames.be.utils
+package com.ftrono.DJames.be.agents.fulfillment
 
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.defaultReplies
-import com.ftrono.DJames.application.lastRecordingName
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.be.models.AiReply
 import com.google.gson.JsonParser
 import java.io.BufferedReader
 import java.io.InputStreamReader
-
 
 class FulfillmentUtils {
     private val TAG = this::class.java.simpleName
 
     //FALLBACK:
     fun fallback(
+        prevState: StateInfo,
         notUnderstood: Boolean = false,
         notLoggedIn: Boolean = false,
         noPermission: Boolean = false,
@@ -27,39 +26,28 @@ class FulfillmentUtils {
         noSave: Boolean = false,
     ): StateInfo {
         //Build fallback response:
-        return StateInfo(
-            lastRecording = lastRecordingName,
-            fail = true,
-            noSave = noSave,
-            aiReplies = listOf(
-                AiReply(
-                    langCode = prefs.queryLanguage,
-                    text = if (notLoggedIn)
-                        defaultReplies.replyNotLoggedIn()
-                    else if (noPermission)
-                        defaultReplies.replyNoPermission()
-                    else if (notAvailable)
-                        defaultReplies.replyNotAvailable()
-                    else if (notUnderstood)
-                        defaultReplies.replyFallback()
-                    else if (nevermind)
-                        defaultReplies.replyNevermind()
-                    else if (cannotRecordWAVoice)
-                        defaultReplies.replyMessageCannotRecord()
-                    else defaultReplies.replyError()
-                )
+        var updState = prevState
+        updState.fail = true
+        updState.noSave = noSave
+        updState.aiReplies = listOf(
+            AiReply(
+                langCode = prefs.queryLanguage,
+                text = if (notLoggedIn)
+                    defaultReplies.replyNotLoggedIn()
+                else if (noPermission)
+                    defaultReplies.replyNoPermission()
+                else if (notAvailable)
+                    defaultReplies.replyNotAvailable()
+                else if (notUnderstood)
+                    defaultReplies.replyFallback()
+                else if (nevermind)
+                    defaultReplies.replyNevermind()
+                else if (cannotRecordWAVoice)
+                    defaultReplies.replyMessageCannotRecord()
+                else defaultReplies.replyError()
             )
         )
-    }
-
-
-    //Join replies:
-    fun joinReplies(replies: List<AiReply>): String {
-        var fullText = ""
-        for (reply in replies) {
-            fullText = fullText + reply.text
-        }
-        return fullText
+        return updState
     }
 
 

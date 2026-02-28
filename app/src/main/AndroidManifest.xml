@@ -18,9 +18,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.DJames"
         android:usesCleartextTraffic="true"
@@ -28,7 +28,7 @@
         
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.ftrono.DJames.provider"
+            android:authorities="${applicationId}.provider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
@@ -80,8 +80,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:scheme="djames-oauth"
-                    android:host="callback" />
+                    android:scheme="@string/redirect_scheme"
+                    android:host="@string/redirect_host" />
             </intent-filter>
         </activity>
 

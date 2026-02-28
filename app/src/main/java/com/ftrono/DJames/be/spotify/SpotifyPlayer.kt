@@ -2,12 +2,12 @@ package com.ftrono.DJames.be.spotify
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import com.ftrono.DJames.application.ACTION_MESSAGES_REFRESH
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.clockActive
-import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.spotIntroUrl
 import com.ftrono.DJames.application.spotCollectionIntUri
 import com.ftrono.DJames.application.prefs
@@ -17,7 +17,6 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import java.net.URLEncoder
 
 
 class SpotifyPlayer (private val context: Context) {
@@ -65,9 +64,6 @@ class SpotifyPlayer (private val context: Context) {
                     sessionState = playInternally(playable, useAlbum = true)
                     Log.d(TAG, "(SECOND) SESSION STATE: ${sessionState}")
 
-                    //Update message:
-                    lastAiMessage.attachments.contextError = true
-
                     //Send broadcast:
                     Intent().also { intent ->
                         intent.setAction(ACTION_MESSAGES_REFRESH)
@@ -85,7 +81,7 @@ class SpotifyPlayer (private val context: Context) {
                             openExternally(playUrl, clockWasActive)
                         } else {
                             var contextUri = "$spotIntroUri:album:${playable.track!!.album!!.id}"
-                            val encodedContextUri = URLEncoder.encode(contextUri, "UTF-8")
+                            val encodedContextUri = Uri.encode(contextUri)
                             openExternally("$playUrl?context=$encodedContextUri", clockWasActive)
                         }
                         return -1
@@ -100,11 +96,9 @@ class SpotifyPlayer (private val context: Context) {
                 openExternally(playUrl, clockWasActive)
             } else {
                 var contextUri = "$spotIntroUri:album:${playable.track!!.album!!.id}"
-                val encodedContextUri = URLEncoder.encode(contextUri, "UTF-8")
+                val encodedContextUri = Uri.encode(contextUri)
                 openExternally("$playUrl?context=$encodedContextUri", clockWasActive)
             }
-            //Update message:
-            lastAiMessage.attachments.playedExternally = true
 
             //Send broadcast:
             Intent().also { intent ->

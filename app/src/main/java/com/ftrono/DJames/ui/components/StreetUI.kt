@@ -405,6 +405,7 @@ fun GeneralSectionClosedPreview() {
 fun GeneralSectionOpenPreview() {
     GeneralSectionHeader(
         title = "Title",
+        subtitle = "Subtitle",
         signColor = guideColorSelector(cat = "songs"),
         iconPainter = guideIconSelector(cat = "songs"),
         arrowColor = guideColorSelectorLight(cat = "songs"),
@@ -418,6 +419,7 @@ fun GeneralSectionOpenPreview() {
 fun GeneralSectionHeader(
     modifier: Modifier = Modifier,
     title: String,
+    subtitle: String = "",
     signColor: Color,
     iconPainter: Painter,
     arrowColor: Color = colorResource(id = R.color.light_grey),
@@ -439,6 +441,7 @@ fun GeneralSectionHeader(
             modifier = Modifier
                 .padding(start=6.dp, end=8.dp, top=12.dp, bottom=12.dp),
             title=title,
+            subtitle=subtitle,
             signColor = signColor,
             iconPainter = iconPainter,
             arrowColor = arrowColor,
@@ -453,8 +456,10 @@ fun GeneralSectionHeader(
 fun SectionTitle(
     modifier: Modifier = Modifier,
     title: String,
+    subtitle: String = "",
     signColor: Color,
-    iconPainter: Painter,
+    iconPainter: Painter? = null,
+    iconVector: ImageVector? = null,
     arrowColor: Color = colorResource(id = R.color.light_grey),
     expandable: Boolean = false,
     isExpanded: Boolean = true
@@ -473,18 +478,30 @@ fun SectionTitle(
             backgroundColor = signColor,
             borderColor = colorResource(id = R.color.mid_grey),
             contentColor = colorResource(id = R.color.light_grey),
-            iconPainter = iconPainter
+            iconPainter = iconPainter,
+            iconVector = iconVector,
         )
-        //CAT TITLE:
-        Text(
+        Column(
             modifier = Modifier
                 .padding(start = 12.dp)
                 .weight(1f),
-            text = title,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = colorResource(id = R.color.light_grey)
-        )
+        ) {
+            //CAT TITLE:
+            Text(
+                text = title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = colorResource(id = R.color.light_grey)
+            )
+            //SUBTITLE:
+            if (subtitle != "") {
+                Text(
+                    text = subtitle,
+                    fontSize = 12.sp,
+                    color = colorResource(id = R.color.mid_grey)
+                )
+            }
+        }
         //EXPAND/COLLAPSE:
         if (expandable) {
             Icon(

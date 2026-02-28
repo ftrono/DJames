@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.datetimePromptFormat
-import com.ftrono.DJames.application.lastRequestIntent
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
@@ -91,7 +90,7 @@ open class Node() {
 
 
     // (Router) Route to 'next' node:
-    fun routeRequest(
+    fun updateStateFromRouter(
         context: Context,
         llmReturn: LlmReturn,
         prevState: StateInfo
@@ -109,7 +108,6 @@ open class Node() {
                 )
             }
             // Route to next:
-            lastRequestIntent = llmReturn.next   // TODO
             updState.intentName = llmReturn.next
             updState.next = llmReturn.next
             if (updState.next == END) {
@@ -124,7 +122,7 @@ open class Node() {
         return updState
     }
 
-    fun updateStateFlow(
+    fun updateStateFromNode(
         prevState: StateInfo,
         llmReturn: LlmReturn,
     ): StateInfo {

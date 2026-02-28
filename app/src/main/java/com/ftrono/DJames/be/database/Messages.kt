@@ -23,6 +23,17 @@ data class NlpQueryModel(
     var reqLanguage: String = "",
 )
 
+@Serializable
+data class PlayRequest(
+    var type: String = "",
+    var context: String = "",
+    var source: String = "",
+    var track: String = "",
+    var artist: String = "",
+    var album: String = "",
+    var playlist: String = "",
+    var podcast: String = "",
+)
 
 @Serializable
 data class ExtractorInfo(
@@ -81,7 +92,6 @@ data class SpotifyTrack(
 data class SpotifyPodcast(
     var id: String = "",
     var name: String = "",
-    var publisher: String = "",
 )
 
 @Serializable
@@ -99,10 +109,10 @@ data class SpotifyEpisode(
 @Serializable
 data class SpotifyPlayable(
     var id: String = "",
+    var matchScore: Int = 0,
     var type: String = "",
     var track: SpotifyTrack? = null,
     var artist: SpotifyArtist? = null,
-    var artists: MutableList<SpotifyArtist> = mutableListOf<SpotifyArtist>(),
     var album: SpotifyAlbum? = null,
     var playlist: SpotifyPlaylist? = null,
     var episode: SpotifyEpisode? = null,
@@ -119,40 +129,15 @@ class SpotifyContextConverter : JsonConverter<SpotifyContext>(SpotifyContext.ser
 
 
 @Serializable
-data class SpotifyMatchModel(
-    var pos: Int = 0,
-    var score: Int = 0,
-    var nameSetSimilarity: Int = 0,
-    var namePartialSimilarity: Int = 0,
-    var nameFullSimilarity: Int = 0,
-    var detailSetSimilarity: Int = 0,
-    var detailPartialSimilarity: Int = 0,
-    @Convert(converter = SpotifyPlayableConverter::class, dbType = String::class)
-    var playable: SpotifyPlayable = SpotifyPlayable()
-)
-
-
-@Serializable
 data class SpotifyQueryModel(
     var type: String = "",
     var url: String = "",
     var numItems: Int = 0,
-    @Convert(converter = SpotifyMatchModelConverter::class, dbType = String::class)
-    var spotifyMatches: MutableList<SpotifyMatchModel> = mutableListOf<SpotifyMatchModel>()
+    var spotifyMatches: MutableList<SpotifyPlayable> = mutableListOf()
 )
-
-class SpotifyMatchModelConverter : JsonListConverter<SpotifyMatchModel>(SpotifyMatchModel.serializer())
 
 
 //ENTITIES:
-/*
-************************************
-   ### GOLDEN RULE: ###
-   - User messages are saved by Dispatcher (need NLP results for language recognition!)
-   - AI messages are saved by:
-      - TTSReader (if voice)
-      - ChatManager (if chat)
-*/
 @Serializable
 @Entity
 data class Message(
@@ -180,19 +165,14 @@ data class Message(
 
 @Serializable
 data class Attachments(
-    var matchScore: Int = 0,
-    var playedExternally: Boolean = false,
-    var contextError: Boolean = false,
-    var llmNext: String = "",
-
     @Convert(converter = ChatMessageConverter::class, dbType = String::class)
     var llmChatMessages: MutableList<ChatMessage> = mutableListOf<ChatMessage>(),
 
-    @Convert(converter = NlpQueryModelConverter::class, dbType = String::class)
-    var nlpQueries: MutableList<NlpQueryModel>? = null,
+    @Convert(converter = PlayRequestConverter::class, dbType = String::class)
+    var playRequest: PlayRequest? = null,
 
-    @Convert(converter = ExtractorInfoConverter::class, dbType = String::class)
-    var nlpExtractor: ExtractorInfo? = null,
+    @Convert(converter = SpotifyPlayCandidatesConverter::class, dbType = String::class)
+    var playCandidates: MutableList<SpotifyPlayable>? = null,
 
     @Convert(converter = SpotifyQueryModelConverter::class, dbType = String::class)
     var spotifyQueries: MutableList<SpotifyQueryModel>? = null,
@@ -202,10 +182,21 @@ data class Attachments(
 
     @Convert(converter = LibraryItemConverter::class, dbType = String::class)
     var usable: LibraryItem? = null,
+
+    // INTENTS:
+    var entityArtists: MutableList<String> = mutableListOf<String>(),   // Fulfillment-only
+
+    @Convert(converter = NlpQueryModelConverter::class, dbType = String::class)
+    var nlpQueries: MutableList<NlpQueryModel>? = null,   // Fulfillment-only
+
+    @Convert(converter = ExtractorInfoConverter::class, dbType = String::class)
+    var nlpExtractor: ExtractorInfo? = null,   // Fulfillment-only
 )
 
 
 class AttachmentsConverter : JsonConverter<Attachments>(Attachments.serializer())
+class PlayRequestConverter : JsonConverter<PlayRequest>(PlayRequest.serializer())
+class SpotifyPlayCandidatesConverter : JsonListConverter<SpotifyPlayable>(SpotifyPlayable.serializer())
 class ExtractorInfoConverter : JsonConverter<ExtractorInfo>(ExtractorInfo.serializer())
 class SpotifyPlayableConverter : JsonConverter<SpotifyPlayable>(SpotifyPlayable.serializer())
 class NlpQueryModelConverter : JsonListConverter<NlpQueryModel>(NlpQueryModel.serializer())

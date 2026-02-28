@@ -25,12 +25,13 @@ import androidx.navigation.compose.composable
 import com.ftrono.DJames.application.curNavId
 import com.ftrono.DJames.application.innerNavOpen
 import com.ftrono.DJames.application.extraOpen
+import com.ftrono.DJames.application.screens.AccountsScreen
 import com.ftrono.DJames.application.screens.GuideScreen
 import com.ftrono.DJames.application.screens.HomeScreen
 import com.ftrono.DJames.application.screens.SettingsScreen
 import com.ftrono.DJames.application.screens.LibraryScreen
 import com.ftrono.DJames.application.screens.MessagesScreen
-import com.ftrono.DJames.be.chat.ChatManager
+import com.ftrono.DJames.be.agents.chat.ChatManager
 import com.ftrono.DJames.ui.theme.NavigationItem
 
 
@@ -43,6 +44,7 @@ class SharedViewModel : ViewModel() {
 fun Navigation(
     navController: NavHostController,
     chatManager: ChatManager,
+    preview: Boolean = false,
 ) {
     val sharedViewModel: SharedViewModel = viewModel()
     NavHost(
@@ -72,7 +74,7 @@ fun Navigation(
             curNavId = 1
             innerNavOpen.postValue(false)
             extraOpen.postValue(false)
-            HomeScreen(navController, chatManager, sharedViewModel)
+            HomeScreen(navController, chatManager, sharedViewModel, preview)
         }
 
         //2 -> LIBRARY:
@@ -95,7 +97,7 @@ fun Navigation(
             curNavId = 0
             innerNavOpen.postValue(false)
             extraOpen.postValue(false)
-            LibraryScreen(navController)
+            LibraryScreen(navController, preview=preview)
         }
 
         //3 -> MESSAGES:
@@ -118,10 +120,26 @@ fun Navigation(
             curNavId = 2
             innerNavOpen.postValue(false)
             extraOpen.postValue(false)
-            MessagesScreen(navController, chatManager, sharedViewModel)
+            MessagesScreen(navController, chatManager, sharedViewModel, preview)
         }
 
         //EXTRA:
+        //0 -> ACCOUNT:
+        composable(
+            NavigationItem.Accounts.route,
+            enterTransition = {
+                scaleIn() + expandVertically(expandFrom = Alignment.Bottom)
+            },
+            exitTransition = {
+                scaleOut() + shrinkVertically(shrinkTowards = Alignment.Bottom)
+            }
+        ) {
+            curNavId = 0
+            innerNavOpen.postValue(false)
+            extraOpen.postValue(true)
+            AccountsScreen(navController, preview)
+        }
+
         //0 -> SETTINGS:
         composable(
             NavigationItem.Settings.route,
@@ -135,10 +153,10 @@ fun Navigation(
             curNavId = 0
             innerNavOpen.postValue(false)
             extraOpen.postValue(true)
-            SettingsScreen(navController)
+            SettingsScreen(navController, preview)
         }
 
-        //1 -> GUIDE:
+        //0 -> GUIDE:
         composable(
             NavigationItem.Guide.route,
             enterTransition = {
@@ -151,7 +169,7 @@ fun Navigation(
             curNavId = 0
             innerNavOpen.postValue(false)
             extraOpen.postValue(true)
-            GuideScreen(navController)
+            GuideScreen(navController, preview)
         }
     }
 }

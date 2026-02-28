@@ -88,6 +88,7 @@ fun EditLibContact(
     }
 
     //Init default language:
+    var defaultPrefLanguage = if (preview) "it" else prefs.messageLanguage
     var initLanguage = itemContact.language
     if (initLanguage == "") {
         //No custom language:
@@ -166,11 +167,14 @@ fun EditLibContact(
                     }
                     itemContact.name = utils.capitalizeWords(textName.value).trim()
                     itemContact.aliases = aliasesList
-                    itemContact.lastUpdated = utils.getCurrentTimestamp()
                     //Language:
                     if (checkedLang.value) {
-                        itemContact.language =
-                            messLangCodes[messLangFull.indexOf(textLanguage.value)]
+                        if (textLanguage.value != "") {
+                            itemContact.language =
+                                messLangCodes[messLangFull.indexOf(textLanguage.value)]
+                        } else {
+                            itemContact.language = prefs.messageLanguage
+                        }
                     } else {
                         itemContact.language = ""
                     }
@@ -239,7 +243,7 @@ fun EditLibContact(
                 } else {
                     "Set custom messaging language\n(default: ${
                         messLangFull[messLangCodes.indexOf(
-                            initLanguage
+                            defaultPrefLanguage
                         )]
                     })"
                 }

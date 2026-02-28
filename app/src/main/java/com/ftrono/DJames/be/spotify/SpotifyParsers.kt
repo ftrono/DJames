@@ -63,19 +63,17 @@ class SpotifyParsers() {
         return SpotifyPodcast(
             id = itemJson.get("id").asString,
             name = itemJson.get("name").asString,
-            publisher = itemJson.get("publisher").asString,
         )
     }
     
-    fun extractEpisodeFromLibItem(itemJson: JsonObject, libItem: LibraryItem): SpotifyEpisode {
+    fun extractEpisodeFromLibItem(itemJson: JsonObject, podcastId: String, podcastName: String): SpotifyEpisode {
         var episode = SpotifyEpisode(
             id = itemJson.get("id").asString,
             name = itemJson.get("name").asString.replace(" - Ep. ", ". Ep "),
             releaseDate = itemJson.get("release_date").asString,
             podcast = SpotifyPodcast(
-                id = libItem.url.split("/").last(),   //getSpotifyID()
-                name = libItem.name,
-                publisher = libItem.detail,
+                id = podcastId,
+                name = podcastName,
             )
         )
         try {

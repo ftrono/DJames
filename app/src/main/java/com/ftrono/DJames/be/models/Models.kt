@@ -33,6 +33,12 @@ data class QuickAction(
 )
 
 
+data class ZipBackup(
+    var jsonPrefs: String = "",
+    var jsonLibrary: String = "",
+)
+
+
 data class RecDetails(
     var recName: String = "",
     var recPath: String = "",

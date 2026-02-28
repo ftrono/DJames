@@ -5,7 +5,6 @@ import android.util.Log
 import android.widget.Toast
 import com.ftrono.DJames.application.curLibrarySize
 import com.ftrono.DJames.application.gMapsLinkFormat
-import com.ftrono.DJames.application.lastAiMessage
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.libCats
 import com.ftrono.DJames.application.libraryBox
@@ -45,10 +44,10 @@ class LibraryUtils {
     }
 
     // GET ALL ITEMS:
-    fun getAll(cat: String = "", subcat: String = "", preview: Boolean = false): List<LibraryItem> {
+    fun getAll(cat: String = "", subcat: String = "", excludeDefault: Boolean = false, preview: Boolean = false): List<LibraryItem> {
         try {
             var libraryItems = mutableListOf<LibraryItem>()
-            if (cat == "spotify" && (subcat == "" || subcat == "playlist")) {
+            if (!excludeDefault && ((cat == "spotify" && subcat == "") || subcat == "playlist")) {
                 libraryItems.add(defaultCollection)
             }
             if (preview) {
@@ -58,7 +57,11 @@ class LibraryUtils {
                     libraryItems.addAll(testLibrary.filter { it.source == cat && it.type == subcat })
                 }
             } else {
-                if (cat == "") {
+                if (cat == "" && subcat == "") {
+                    libraryItems.addAll(
+                        libraryBox!!.query().build().find()
+                    )
+                } else if (cat == "") {
                     libraryItems.addAll(
                         libraryBox!!.query(LibraryItem_.type.equal(subcat))
                         .build().find()
@@ -118,6 +121,8 @@ class LibraryUtils {
     fun getLibItemById(id: Long, preview: Boolean = false): LibraryItem {
         if (preview) {
             return testLibrary.filter { it.id == id }[0]
+        } else if (id == -2L) {
+            return defaultCollection
         } else {
             return libraryBox!!.get(id)
         }
@@ -138,7 +143,7 @@ class LibraryUtils {
     fun refreshLibrary(cat: String, subcat: String = "", preview: Boolean = false): List<LibraryItem> {
         try {
             //1) LOAD LIBRARY:
-            var libraryItems = getAll(cat, subcat, preview)
+            var libraryItems = getAll(cat, subcat, preview=preview)
 
             //2) UPDATE LIBRARY SIZE (IMPORTANT - for signs):
             curLibrarySize.postValue(libraryItems.size)
@@ -200,6 +205,13 @@ class LibraryUtils {
         }
     }
 
+    //Get names Map in format {"id": "Name"}:
+    fun getNamesMap(filter: String): Map<Long, String> {
+        return getAll(subcat=filter).associate { item ->
+            item.id to (item.name)
+        }
+    }
+
     // Search if URL already exists -> get item's DB ID:
     fun getLibIDWithUrl(url: String): Long {
         val res = libraryBox!!.query(LibraryItem_.url.equal(url))
@@ -256,43 +268,59 @@ class LibraryUtils {
 
 
     // MODEL CONVERTER:
-    // TODO: WIP!
-    fun libItemToPlayable(libItem: LibraryItem): SpotifyPlayable {
+    fun libItemToPlayable(libItem: LibraryItem, matchScore: Int = 0): SpotifyPlayable {
         if (libItem.source != "spotify") {
             return SpotifyPlayable()
         } else {
-            var playable = SpotifyPlayable(
-                id = spotifyUtils.getSpotifyID(libItem.url),
-                type = libItem.type
+            return SpotifyPlayable(
+                id = if (libItem.id == -2L) "collection" else spotifyUtils.getSpotifyID(libItem.url),      // Important!
+                matchScore = matchScore,
+                type = libItem.type,
+                artist = if (libItem.type == "artist") {
+                    SpotifyArtist(
+                        id = spotifyUtils.getSpotifyID(libItem.url),
+                        name = libItem.name
+                    )
+                } else null,
+                album = if (libItem.type == "album") {
+                    SpotifyAlbum(
+                        id = spotifyUtils.getSpotifyID(libItem.url),
+                        name = libItem.name,
+                        artists = mutableListOf(
+                            SpotifyArtist(
+                                name = libItem.detail
+                            )
+                        )
+                    )
+                } else null,
+                playlist = if (libItem.type == "playlist") {
+                    SpotifyPlaylist(
+                        id = if (libItem.id == -2L) "collection" else spotifyUtils.getSpotifyID(libItem.url),      // Important!
+                        name = libItem.name,
+                        owner = libItem.detail
+                    )
+                } else null,
+                podcast = if (libItem.type == "podcast") {
+                    SpotifyPodcast(
+                        id = spotifyUtils.getSpotifyID(libItem.url),
+                        name = libItem.name,
+                    )
+                } else null,
             )
-            if (libItem.type == "artist") {
-                playable.artist == SpotifyArtist(
-                    id = spotifyUtils.getSpotifyID(libItem.url),
-                    name = libItem.name
-                )
-            } else if (libItem.type == "playlist") {
-                playable.playlist == SpotifyPlaylist(
-                    id = spotifyUtils.getSpotifyID(libItem.url),
-                    name = libItem.name,
-                    owner = libItem.detail
-                )
-            } else {
-                // TODO
-            }
-            return playable
         }
     }
 
     // MATCHER:
     //Match item from user query against user library:
-    fun matchLibrary(filter: String, text: String, threshold: Int = midThreshold): Long {
-        var matchId = -1L
+    fun matchLibrary(filter: String, text: String, threshold: Int = midThreshold): MutableList<LibMatch> {
+        var libMatches = mutableListOf<LibMatch>()
         val libMap = getAliasesMap(filter)
+        val namesMap = getNamesMap(filter)
         if (text != "" && libMap.isNotEmpty()) {
             //Init:
             var score = 0
             val listEvalued = text.split(", ")
-            val listConfirmed = mutableListOf<Long>()
+            Log.d(TAG, "LIST EVALUED: $listEvalued")
             val scoresMap = mutableMapOf<Long, Int>()
 
             //Check each evaluated item:
@@ -320,21 +348,22 @@ class LibraryUtils {
                 }
                 if (scoresMap.isNotEmpty()) {
                     //Sort and get highest match:
+                    // { id: score }
                     val sortedScores = scoresMap.toList().sortedByDescending { it.second }.toMap()
-                    Log.d(TAG, "SORTED MAP FOR $eval: $sortedScores")
-                    listConfirmed.add(sortedScores.keys.toList()[0])
-                    val matchScore = sortedScores.values.toList()[0]
-                    lastAiMessage.attachments.matchScore = matchScore
+                    for (key in sortedScores.keys) {
+                        libMatches.add(
+                            LibMatch(
+                                matchId = key,
+                                matchScore = sortedScores[key]!!,
+                                matchName = namesMap[key]!!,
+                            )
+                        )
+                    }
                 }
             }
-            //Final:
-            if (listConfirmed.isNotEmpty()) {
-                Log.d(TAG, "listConfirmed: $listConfirmed")
-                matchId = listConfirmed[0]
-                Log.d(TAG, "LIBRARY MATCH ID: $matchId, ALIASES: ${libMap[matchId]!!}")
-            }
         }
-        return matchId
+        Log.d(TAG, "LIBRARY MATCHES FOUND: $libMatches")
+        return libMatches
     }
 
 
@@ -396,9 +425,13 @@ class LibraryUtils {
     // SEND:
     //Get export file name:
     fun getExportFileName(cat: String, subcat: String = ""): String {
-        return if (cat == "spotify") {
+        return if (cat == "" && subcat == "") {
+            "library.json"
+        } else if (cat == "spotify") {
             if (subcat == "") {
                 "library_${cat}.json"
+            } else if (cat != subcat) {
+                "library_${cat}_${subcat}s.json"
             } else {
                 "library_${cat}s.json"
             }
@@ -408,11 +441,11 @@ class LibraryUtils {
     }
 
     //Prepare Library JSON string for export:
-    fun serializeLibrary(cat: String, subcat: String): String {
+    fun serializeLibrary(cat: String = "", subcat: String = ""): String {
         var jsonContent = ""
         try {
             //Populate cached array & store to cached file:
-            jsonContent = Json.encodeToString(getAll(cat, subcat))
+            jsonContent = Json.encodeToString(getAll(cat, subcat, excludeDefault=true))
             Log.d(TAG, "Successfully serialized Library for cat: $cat, subcat: $subcat.")
         } catch (e: Exception) {
             Log.w(TAG, "ERROR: Cannot serialize Library for cat: $cat, subcat: $subcat! ", e)
@@ -503,7 +536,6 @@ class LibraryUtils {
         var libItems = libraryBox!!.all
         for (item in libItems) {
             //TODO: update as needed!
-            // item.lastUpdated = utils.getCurrentTimestamp()
             libraryBox!!.put(item)
         }
         Log.d(TAG, "Library DB updated!")

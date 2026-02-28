@@ -3,7 +3,9 @@ package com.ftrono.DJames.be.agents.tools
 import com.ftrono.DJames.be.agents.data.ToolDefinition
 import com.ftrono.DJames.be.agents.data.ToolFunction
 import com.ftrono.DJames.be.agents.data.ToolParameters
+import com.ftrono.DJames.be.agents.data.ToolResponse
 import com.ftrono.DJames.be.agents.data.ToolType
+import com.ftrono.DJames.be.database.Attachments
 import kotlinx.serialization.json.*
 
 
@@ -31,7 +33,10 @@ class ToolHandoff(): Tool() {
         )
     }
 
-    override fun invoke(args: JsonObject): String {
-        return ""   // Not needed
+    override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
+        return ToolResponse(
+            message = "",
+            attachments = attachments,
+        )   // Not needed
     }
 }

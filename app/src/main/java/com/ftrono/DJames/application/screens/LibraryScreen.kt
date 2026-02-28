@@ -23,7 +23,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Delete
@@ -63,7 +62,6 @@ import com.ftrono.DJames.application.libCats
 import com.ftrono.DJames.application.dialogs.EditLibContact
 import com.ftrono.DJames.application.dialogs.EditLibPlace
 import com.ftrono.DJames.application.dialogs.EditLibSpotify
-import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.be.database.LibraryItem
@@ -74,15 +72,12 @@ import com.ftrono.DJames.ui.components.LetterStarter
 import com.ftrono.DJames.ui.components.LibItemCard
 import com.ftrono.DJames.ui.components.StreetUIScaffold
 import com.ftrono.DJames.ui.dialogs.AddLinkDialog
-import com.ftrono.DJames.ui.dialogs.DialogLoading
 import com.ftrono.DJames.ui.navigation.FiltersRow
 import com.ftrono.DJames.ui.navigation.SplitterSign
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
 import com.ftrono.DJames.ui.navigation.TopSplitterBar
-import com.ftrono.DJames.ui.navigation.navigateTo
 import com.ftrono.DJames.ui.selectors.libColorSelector
-import com.ftrono.DJames.ui.theme.NavigationItem
 import kotlin.String
 
 
@@ -593,7 +588,6 @@ fun CatOptions(
     mDisplayMenu: MutableState<Boolean>,
     deleteLibOn: MutableState<Boolean>,
 ) {
-    var selectedJsonUri by remember { mutableStateOf<Uri?>(null) }
     var jsonImport by remember { mutableStateOf<String?>(null) }
     var jsonExport by remember { mutableStateOf<String?>(null) }
 
@@ -602,7 +596,6 @@ fun CatOptions(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         // Assign stream & read JSON content from the selected file
-        selectedJsonUri = uri
         uri?.let {
             try {
                 val inputStream = context.contentResolver.openInputStream(it)
@@ -648,7 +641,7 @@ fun CatOptions(
             //2) Item: IMPORT CATEGORY ITEMS
             OptionsItem(
                 title = "Import from file",
-                iconVector = Icons.AutoMirrored.Filled.List,
+                iconVector = Icons.AutoMirrored.Filled.ExitToApp,
                 onClick = {
                     mDisplayMenu.value = false
                     filePickerLauncher.launch("application/json")   // Json MIME type
@@ -657,7 +650,7 @@ fun CatOptions(
             //3) Item: EXPORT CATEGORY ITEMS
             OptionsItem(
                 title = "Export to file",
-                iconVector = Icons.AutoMirrored.Filled.ExitToApp,
+                iconPainter = painterResource(R.drawable.icon_download),
                 onClick = {
                     mDisplayMenu.value = false
                     jsonExport = libUtils.serializeLibrary(currentCatState.value, currentSubCatState.value)

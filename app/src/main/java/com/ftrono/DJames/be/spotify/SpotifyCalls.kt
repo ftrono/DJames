@@ -3,8 +3,8 @@ package com.ftrono.DJames.be.spotify
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.spotIntroUri
 import com.ftrono.DJames.be.models.HttpResponse
-import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
 
@@ -14,12 +14,11 @@ class SpotifyCalls(private val context: Context) {
 
 
     //SAVE CURRENT TRACK:
-    fun saveTrackRequest(ids: JsonArray): Int {
+    fun saveLibraryRequest(ids: List<String>, type: String): Int {
         var url = "https://api.spotify.com/v1/me/library"
 
-        //Body:
-        var jsonBody = JsonObject()
-        jsonBody.add("ids", ids)
+        //Data:
+        val uris = ids.joinToString(",") { "$spotIntroUri%3A${type}%3A${it}" }
 
         //Headers:
         var jsonHeads = JsonObject()
@@ -27,8 +26,9 @@ class SpotifyCalls(private val context: Context) {
         jsonHeads.addProperty("Content-Type", "application/json")
 
         //PUT REQUEST:
-        var response = query.querySpotify(type = "put", url = url, jsonHeads = jsonHeads, jsonBody = jsonBody)
-        Log.d(TAG, "saveTrackRequest: response code: ${response.code}")
+        var response = query.querySpotify(type = "put", url = "$url?uris=$uris", jsonHeads = jsonHeads)
+        Log.d(TAG, "saveLibraryRequest: response code: ${response.code}")
+        Log.d(TAG, "saveLibraryRequest: response: ${response}")
         return response.code
     }
 

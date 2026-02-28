@@ -25,7 +25,6 @@ import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.SpotifyEpisode
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.utils.LinkExtractors
-import com.google.gson.JsonArray
 import com.google.gson.JsonParser
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
@@ -261,10 +260,9 @@ class SpotifyUtils {
         var toastText = ""
         try {
             val spotifyCalls = SpotifyCalls(context)
-            val ids = JsonArray()
-            ids.add(currentTrackId.split(":").last())
+            val ids = listOf(currentTrackId.split(":").last())
             Log.d(TAG, "IDS TO SAVE: $ids")
-            val ret = spotifyCalls.saveTrackRequest(ids)
+            val ret = spotifyCalls.saveLibraryRequest(ids, type="track")
             //PROCESS RESPONSE:
             if (ret == 200) {
                 //SUCCESS -> Play ACKNOWLEDGE tone:

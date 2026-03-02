@@ -125,16 +125,16 @@ fun HomeScreen(
             permission = Manifest.permission.RECORD_AUDIO
         )
     }
-    //Notifications Listener permission management:
-    val requestNotificationListenerOn = rememberSaveable { mutableStateOf(
-        !utils.isNotificationServiceEnabled(mContext)
-    ) }
-    if (requestNotificationListenerOn.value) {
-        DialogRequestNotificationListener(
-            mContext = mContext,
-            dialogOnState = requestNotificationListenerOn
-        )
-    }
+//    //Notifications Listener permission management:
+//    val requestNotificationListenerOn = rememberSaveable { mutableStateOf(
+//        !utils.isNotificationServiceEnabled(mContext)
+//    ) }
+//    if (requestNotificationListenerOn.value) {
+//        DialogRequestNotificationListener(
+//            mContext = mContext,
+//            dialogOnState = requestNotificationListenerOn
+//        )
+//    }
 
     StreetUIScaffold(
         modifier = Modifier

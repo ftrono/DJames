@@ -185,12 +185,13 @@ class LlmAgent(
         llmMessages: MutableList<ChatMessage>,
         attachments: Attachments,
     ): LlmReturn {
+        // outMessages: must contain new updates only:
+        val outMessages = mutableListOf<ChatMessage>()
+        var updAttachments = attachments
+
         try {
-            // outMessages: must contain new updates only:
-            var outMessages = mutableListOf<ChatMessage>()
-            var inMessages = llmMessages   // editable
+            val inMessages = llmMessages   // editable
             var next = ""
-            var updAttachments = attachments
             var actionType: ActionType? = null
 
             // Build request:
@@ -211,6 +212,7 @@ class LlmAgent(
             if (httpResponse.code != 200) {
                 // Error:
                 Log.w(TAG, "LLM invoking error: status code ${httpResponse.code}!")
+                updAttachments.llmChatMessages.addAll(outMessages)
                 return getFallbackReply(updAttachments)
 
             } else {
@@ -232,6 +234,7 @@ class LlmAgent(
                         if (curTool.type == ToolType.HANDOFF) {
                             // HANDOFF CASE:
                             Log.d(TAG, "LLM: HANDOFF CALLED! Target node -> $llmResponse")
+                            updAttachments.llmChatMessages.addAll(outMessages)
                             return LlmReturn(
                                 fail = false,
                                 next = onFallback,
@@ -302,6 +305,7 @@ class LlmAgent(
                         } else {
                             // Error:
                             Log.w(TAG, "LLM invoking error: status code ${httpResponse.code}!")
+                            updAttachments.llmChatMessages.addAll(outMessages)
                             return getFallbackReply(updAttachments)
                         }
 
@@ -324,6 +328,7 @@ class LlmAgent(
                             )
                         )
                     }
+                    updAttachments.llmChatMessages.addAll(outMessages)
                     return LlmReturn(
                         fail = false,
                         next = if (isRouter) llmChoice.message.content else next,
@@ -334,12 +339,14 @@ class LlmAgent(
                 } else {
                     // Error:
                     Log.w(TAG, "LLM invoking error! Check LLM response.")
+                    updAttachments.llmChatMessages.addAll(outMessages)
                     return getFallbackReply(updAttachments)
                 }
             }
         } catch (e: Exception) {
             // Error:
             Log.w(TAG, "LLM invoking error: ", e)
+            updAttachments.llmChatMessages.addAll(outMessages)
             return getFallbackReply(attachments)
         }
     }

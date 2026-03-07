@@ -24,6 +24,12 @@ data class NlpQueryModel(
 )
 
 @Serializable
+data class UseRequest(
+    var type: String = "",
+    var name: String = ""
+)
+
+@Serializable
 data class PlayRequest(
     var type: String = "",
     var context: String = "",
@@ -174,6 +180,12 @@ data class Attachments(
     @Convert(converter = SpotifyPlayCandidatesConverter::class, dbType = String::class)
     var playCandidates: MutableList<SpotifyPlayable>? = null,
 
+    @Convert(converter = UseRequestConverter::class, dbType = String::class)
+    var useRequest: UseRequest? = null,
+
+    @Convert(converter = UseCandidatesConverter::class, dbType = String::class)
+    var useCandidates: MutableList<LibraryItem>? = null,
+
     @Convert(converter = SpotifyQueryModelConverter::class, dbType = String::class)
     var spotifyQueries: MutableList<SpotifyQueryModel>? = null,
 
@@ -197,6 +209,8 @@ data class Attachments(
 class AttachmentsConverter : JsonConverter<Attachments>(Attachments.serializer())
 class PlayRequestConverter : JsonConverter<PlayRequest>(PlayRequest.serializer())
 class SpotifyPlayCandidatesConverter : JsonListConverter<SpotifyPlayable>(SpotifyPlayable.serializer())
+class UseRequestConverter : JsonConverter<UseRequest>(UseRequest.serializer())
+class UseCandidatesConverter : JsonListConverter<LibraryItem>(LibraryItem.serializer())
 class ExtractorInfoConverter : JsonConverter<ExtractorInfo>(ExtractorInfo.serializer())
 class SpotifyPlayableConverter : JsonConverter<SpotifyPlayable>(SpotifyPlayable.serializer())
 class NlpQueryModelConverter : JsonListConverter<NlpQueryModel>(NlpQueryModel.serializer())

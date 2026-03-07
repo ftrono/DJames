@@ -367,6 +367,9 @@ class MessageUtils {
                 }
                 detailText = if (msgType == "") "" else "Type:  $msgType\n"
                 detailText += if (itemInfo.name == "") "" else "Contact:  ${itemInfo.name}"
+                if (itemInfo.phoneSet != null) {
+                    detailText += "\nPhone:  ${itemInfo.phoneSet!!.prefix} ${itemInfo.phoneSet!!.phone}"
+                }
 
             } else if (intentName.contains("Drive")) {
                 //Drive:

@@ -536,6 +536,11 @@ class LibraryUtils {
         var libItems = libraryBox!!.all
         for (item in libItems) {
             //TODO: update as needed!
+            if (item.type == "contact") {
+                item.uniId = "000" + utils.generateRandomString(7, numOnly = true)
+            } else {
+                item.uniId = ""
+            }
             libraryBox!!.put(item)
         }
         Log.d(TAG, "Library DB updated!")

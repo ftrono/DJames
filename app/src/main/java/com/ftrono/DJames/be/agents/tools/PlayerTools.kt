@@ -240,7 +240,7 @@ class ToolRetrievePlayer(
             }
             // TODO: match context!
 
-            Log.d(TAG, "PLAY CANDIDATES: $updAttachments.playCandidates!!")
+            Log.d(TAG, "PLAY CANDIDATES: ${updAttachments.playCandidates}!!")
 
             // 3) PREPARE TOOL RESPONSE:
             if (updAttachments.playCandidates!!.isEmpty()) {

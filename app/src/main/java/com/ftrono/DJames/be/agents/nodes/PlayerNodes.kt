@@ -54,6 +54,7 @@ class PlayerAgentNode (
             - **Reply in the same language in which the user is speaking!** 
             - **Always follow the indications you receive from the tools!**
         """.trimIndent()
+
         var inMessages = prepareInMessages(
             origMessages = prevState.messages,
             corePrompt = corePrompt,

@@ -18,7 +18,7 @@ import com.ftrono.DJames.be.database.UseRequest
 import kotlinx.serialization.json.*
 
 
-class ToolRetrieveContacts(): Tool() {
+class ToolRetrieveCallContacts(): Tool() {
     private val TAG = this::class.java.simpleName
     override val name = "tool_retrieve"
     override val type: ToolType = ToolType.INTERMEDIATE
@@ -30,7 +30,7 @@ class ToolRetrieveContacts(): Tool() {
                 name = name,
                 description = """
                     Get the phone number of the requested contact to call, if you don't have it already. You must pass here the **contact name** you collect from the user conversation. 
-                    **Always use this tool to retrieve the phone number** for a contact before playing them!""".trimIndent(),
+                    **Always use this tool to retrieve the phone number** for a contact before calling them!""".trimIndent(),
                 parameters = ToolParameters(
                     type = "object",
                     properties = mapOf(
@@ -201,48 +201,5 @@ class ToolCall(): Tool() {
                 )
             }
         }
-    }
-}
-
-
-class ToolSend(): Tool() {
-    private val TAG = this::class.java.simpleName
-    override val name = "tool_send"
-    override val type: ToolType = ToolType.ACTION
-
-    override fun getDefinition(): ToolDefinition {
-        return ToolDefinition(
-            type = "function",
-            function = ToolFunction(
-                name = name,
-                description = """
-                     Play the requested music item in Spotify. **Before calling this tool:**
-                     1) **Call 'tool_retrieve' first, to get the Spotify ID** for the specific item to play. 
-                     2) If 'tool_retrieve' returns multiple options, **ask confirmation** to the user before playing anything!""".trimIndent(),
-                parameters = ToolParameters(
-                    type = "object",
-                    properties = mapOf(
-                        "spotify_id" to ToolProperty(
-                            type = "string",   // Arg type
-                            description = "(Mandatory) Spotify ID of the requested item to play."   // Arg description
-                        ),
-                    ),
-                    required = mutableListOf("spotify_id")
-                )
-            )
-        )
-    }
-
-    override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
-        var spotifyID = args["spotify_id"]?: ""
-        val retString = if (spotifyID != "") {
-            "Playing the track with Spotify ID: $spotifyID. Do NOT make further questions to the user."
-        } else {
-            "Empty Spotify ID!"
-        }
-        return ToolResponse(
-            message = retString,
-            attachments = attachments,
-        )
     }
 }

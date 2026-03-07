@@ -73,7 +73,7 @@ class CallAgentNode (
             onFallback = onFallback,
             tools = mapOf<String, Tool>(
                 ToolHandoff().name to ToolHandoff(),
-                ToolRetrieveContacts().name to ToolRetrieveContacts(),
+                ToolRetrieveCallContacts().name to ToolRetrieveCallContacts(),
                 ToolCall().name to ToolCall(),
             ),
         )

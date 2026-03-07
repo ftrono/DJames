@@ -51,7 +51,7 @@ class MessageAgentNode (
             onFallback = onFallback,
             tools = mapOf<String, Tool>(
                 ToolHandoff().name to ToolHandoff(),
-                ToolRetrieveContacts().name to ToolRetrieveContacts(),
+                ToolRetrieveMsgContacts().name to ToolRetrieveMsgContacts(),
                 ToolSend().name to ToolSend(),
             ),
         )

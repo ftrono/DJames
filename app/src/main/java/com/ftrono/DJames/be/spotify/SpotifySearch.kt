@@ -144,38 +144,18 @@ class SpotifySearch(private val context: Context) {
         }
 
         //Check saved:
-        if (playType == "track" && idsToCheck.isNotEmpty()) {
-            val savedIds = checkSaved(idsToCheck)
+        if (idsToCheck.isNotEmpty()) {
+            val spotifyCalls = SpotifyCalls(context)
+            val savedIds = spotifyCalls.checkLibraryRequest(idsToCheck, playType)
             Log.d(TAG, "Check saved: $savedIds")
             // Add isSaved information:
             savedIds.takeIf { it.isNotEmpty() }?.forEachIndexed { i, isSaved ->
-                allMatches[i].track!!.saved = isSaved
+                allMatches[i].saved = isSaved
             }
         }
 
         //Sort matches by score:
         return allMatches.sortedByDescending { it.matchScore }.toMutableList()
-    }
-
-
-    // Get saved tracks info:
-    fun checkSaved(ids: MutableList<String>): List<Boolean> {
-        var savedList = listOf<Boolean>()
-        var url = "https://api.spotify.com/v1/me/tracks/contains?ids="
-
-        //Headers:
-        val jsonHeads = JsonObject()
-        jsonHeads.addProperty("Authorization", "Bearer ${prefs.spotifyToken}")
-
-        //Query params:
-        url += ids.joinToString(",", "", "")
-        Log.d(TAG, url)
-
-        val response = query.querySpotify(type = "get", url = url, jsonHeads = jsonHeads)
-        if (response.body != "") {
-            savedList = JsonParser.parseString(response.body).asJsonArray.map { it.asBoolean }
-        }
-        return savedList
     }
 
 
@@ -191,25 +171,44 @@ class SpotifySearch(private val context: Context) {
         // Key is original allMatches index, Value is score:
         var sortedMatches = origMatches.filter { it.matchScore >= scoreThreshold}.toMutableList()
 
-        // Sort full score items: priority+similarity if track, else similarity:
-        if (playType == "track") {
-            // Calculate priority-aware combined scores:
-            val scoredMatches = sortedMatches.map {
-                // Priority rules (0–3):
-                val priority = when {
-                    it.track!!.saved && it.track!!.album!!.type == "album" -> 3
-                    it.track!!.saved -> 2
-                    it.track!!.album!!.type == "album" -> 1
-                    else -> 0
+        // Sort full score items: priority+similarity:
+        val scoredMatches = sortedMatches.map {
+            // Priority rules (0–3):
+            val priority = when (playType) {
+                "track" -> {
+                    when {
+                        it.saved && it.track!!.album!!.type == "album" -> 3
+                        it.saved -> 2
+                        it.track!!.album!!.type == "album" -> 1
+                        else -> 0
+                    }
                 }
-                // Balance similarity and priority:
-                val combinedScore = it.matchScore + priority * 100  // tweakable weights
-                Pair(it, combinedScore)
+                "album" -> {
+                    when {
+                        it.saved && it.album!!.type == "album" -> 3
+                        it.saved -> 2
+                        it.album!!.type == "album" -> 1
+                        else -> 0
+                    }
+                }
+                else -> {
+                    when {
+                        it.saved -> 1
+                        else -> 0
+                    }
+                }
             }
-            // Sort by combined score, highest first:
-            sortedMatches = scoredMatches.sortedByDescending { it.second }.map { it.first }.toMutableList()
-            // Deduplicate:
+            // Balance similarity and priority:
+            val combinedScore = it.matchScore + priority * 100  // tweakable weights
+            Pair(it, combinedScore)
+        }
+        // Sort by combined score, highest first:
+        sortedMatches = scoredMatches.sortedByDescending { it.second }.map { it.first }.toMutableList()
+        // Deduplicate:
+        if (playType == "track") {
             sortedMatches = sortedMatches.distinctBy { it.track!!.name to it.track!!.artists.joinToString { art -> art.name } }.toMutableList()
+        } else if (playType == "artist") {
+            sortedMatches = sortedMatches.distinctBy { it.album!!.name to it.album!!.artists.joinToString { art -> art.name } }.toMutableList()
         }
         return sortedMatches
     }

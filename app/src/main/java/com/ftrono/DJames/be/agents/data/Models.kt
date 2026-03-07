@@ -1,7 +1,7 @@
 package com.ftrono.DJames.be.agents.data
 
 import com.ftrono.DJames.be.database.Attachments
-import com.ftrono.DJames.be.database.SpotifyPlayable
+import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.EnumTypeConverter
 import com.ftrono.DJames.be.models.JsonConverter
 import com.ftrono.DJames.be.models.JsonListConverter
@@ -163,4 +163,10 @@ data class SttReturn(
     var language: String = "",
     var transcription: String = "",
     var intent: String = "",   // Legacy only
+)
+
+@KxSerializable
+data class FinalizerReply(
+    var followUp: Boolean = false,
+    var spans: List<AiReply> = listOf(),
 )

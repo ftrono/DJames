@@ -39,6 +39,8 @@ import kotlin.streams.asSequence
 import androidx.core.content.edit
 import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.userNicknameUI
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 
 class Utilities {
@@ -111,6 +113,24 @@ class Utilities {
         }
         val cleaned = re.replace(text, " ").replace(Regex("\\s+"), " ").trim()
         return if (capitalize) capitalizeWords(cleaned).trim() else cleaned.trim()
+    }
+
+    // Make date readable by voice:
+    fun readDate(
+        date: String,
+        inputFormat: String,
+        outputFormat: String = "MMMM d, yyyy",
+        locale: Locale = Locale.getDefault()
+    ): String {
+        try {
+            val inputFormatter = DateTimeFormatter.ofPattern(inputFormat, locale)
+            val outputFormatter = DateTimeFormatter.ofPattern(outputFormat, locale)
+            val date = LocalDate.parse(date, inputFormatter)
+            return date.format(outputFormatter)
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR in readDate(): ", e)
+            return  date
+        }
     }
 
     //Check if string is made of alphabetic characters:

@@ -48,8 +48,8 @@ data class RecDetails(
 
 @Serializable
 data class AiReply(
-    val langCode: String,
-    val text: String
+    var langCode: String,
+    var text: String
 )
 
 

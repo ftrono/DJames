@@ -351,6 +351,7 @@ class ToolPlay(
             val playMatches = updAttachments.playCandidates!!.filter { it.id == spotifyID }
             if (playMatches.isNotEmpty()) {
                 val playMatch = playMatches[0]
+                var detailInfo = ""
 
                 if (playMatch.type == "podcast") {
                     // Podcast -> GET latest podcast episode:
@@ -364,6 +365,9 @@ class ToolPlay(
                         )[0]
                         playMatch.id = playMatch.episode!!.id
                         playMatch.type = "episode"
+                        detailInfo = ", latest episode dated ${utils.readDate(
+                            date=playMatch.episode!!.releaseDate, inputFormat="yyyy-MM-dd")
+                        } (read it)"
                         Log.d(TAG, "Episode: $playMatch")
 
                     } catch (e: Exception) {
@@ -378,7 +382,7 @@ class ToolPlay(
 
                 updAttachments.spotifyPlay = playMatch
                 return ToolResponse(
-                    message = "Playing the ${playMatch.type} with Spotify ID: $spotifyID. Do NOT ask further questions to the user.",
+                    message = "Playing the ${playMatch.type} with Spotify ID: $spotifyID$detailInfo. Always tell the user what you're playing and do NOT ask further questions to the user.",
                     attachments = updAttachments,
                     actionType = ActionType.PLAY,
                 )

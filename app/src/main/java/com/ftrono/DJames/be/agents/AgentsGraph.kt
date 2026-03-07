@@ -9,6 +9,8 @@ import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.defaultChatWait
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.minSpeechPct
+import com.ftrono.DJames.application.mistralLlmModelMedium
+import com.ftrono.DJames.application.mistralLlmModelSmall
 import com.ftrono.DJames.application.mistralSttModel
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
@@ -23,6 +25,8 @@ import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.be.agents.graph.Graph
 import com.ftrono.DJames.be.agents.llm.LlmAgent
 import com.ftrono.DJames.be.agents.data.ChatMessage
+import com.ftrono.DJames.be.agents.data.FinalizerReply
+import com.ftrono.DJames.be.agents.data.promptFinalizer
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.models.RecDetails
 import com.google.gson.JsonParser
@@ -206,6 +210,59 @@ class AgentsGraph(
         return updState
     }
 
+    // Extract process info from last agent's reply:
+    fun processAiReply(finalReply: String): FinalizerReply {
+        try {
+            Log.d(TAG, "Invoking FinalizerAgent...")
+            // Get out language & AI replies:
+            val finalizerAgent = LlmAgent(
+                context = context,
+                apiKey = apiKey,
+                model = mistralLlmModelMedium,
+                agentName = "Structured",
+            )
+            val inMessages = mutableListOf<ChatMessage>(
+                ChatMessage(
+                    role = "system",
+                    content = promptFinalizer + finalReply
+                )   // System prompt
+            )
+
+            val encodedReply = finalizerAgent.invoke(
+                llmMessages = inMessages,
+                attachments = Attachments()
+            )
+
+            val decodedReply = finalizerAgent.decodeJson<FinalizerReply>(encodedReply.messages[0].content)
+
+            // Clean detected spans: merge empty spans & spans with the same language:
+            val cleanedSpans = mutableListOf<AiReply>()
+            for (span in decodedReply.spans) {
+                if (utils.cleanString(span.text) == "") {
+                    // Merge empty spans:
+                    if (cleanedSpans.isNotEmpty()) {
+                        cleanedSpans.last().text += span.text
+                    }
+                } else if (cleanedSpans.isNotEmpty() && cleanedSpans.last().langCode == span.langCode) {
+                    // Merge spans with same langCode:
+                    cleanedSpans.last().text += span.text
+                } else {
+                    // Add current span:
+                    cleanedSpans.add(span)
+                }
+            }
+            decodedReply.spans = cleanedSpans
+            return decodedReply
+
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR in processAiReply(): ", e)
+            return FinalizerReply(
+                followUp = false,
+                spans = listOf()
+            )
+        }
+    }
+
     // MAIN: INVOKE:
     override fun invoke(
         prevState: StateInfo,
@@ -237,23 +294,39 @@ class AgentsGraph(
         updState = stream(updState, routerNode = "MainRouter")
         Log.d(TAG, "Messages size (output): ${updState.messages.size} items, fail: ${updState.fail}")
 
+        // Final reply:
+        val finalReply = when {
+            updState.isSilence -> defaultReplies.replyFallback()   // Fallback
+            updState.fail -> defaultReplies.replyError()   // Error
+            (updState.next == END && (
+                updState.messages.isEmpty() || updState.messages.last().role != "assistant"
+            )) -> defaultReplies.replyNevermind()   // Nevermind
+            else -> updState.messages.last().content   // Actual reply
+        }
+
+        // Process final reply:
+        val processedReply = processAiReply(finalReply)
+        if (processedReply.spans.isEmpty()) {
+            // FinalizerAgent FAIL -> Keep original output:
+            updState.next = if (processedReply.followUp && updState.next == END) updState.intentName else updState.next
+            updState.aiReplies = listOf(
+                AiReply(
+                    langCode = updState.reqLangCode,
+                    text = finalReply,
+                )
+            )
+        } else {
+            // FinalizerAgent SUCCESS -> Overwrite output:
+            updState.aiReplies = processedReply.spans
+            updState.next = if (processedReply.followUp && updState.next == END) {
+                updState.intentName
+            } else if (!processedReply.followUp && updState.next != END) {
+                END
+            } else updState.next
+        }
+
         //TODO: Add store messages to DB here!
 
-        // Returns:
-        updState.aiReplies = listOf(
-            AiReply(
-                langCode = updState.reqLangCode,
-                text = when {
-                    updState.isSilence -> defaultReplies.replyFallback()   // Fallback
-                    updState.fail -> defaultReplies.replyError()   // Error
-                    (updState.next == END && (
-                            updState.messages.isEmpty() || updState.messages.last().role != "assistant"
-                        )
-                    ) -> defaultReplies.replyNevermind()   // Nevermind
-                    else -> updState.messages.last().content   // Actual reply
-                }
-            )
-        )
         return updState
     }
 }

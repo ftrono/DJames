@@ -117,6 +117,16 @@ class LlmAgent(
         return httpResponse
     }
 
+    // Main: Decode structured JSON:
+    inline fun <reified T> decodeJson(text: String): T {
+        val cleanText = text
+            .replace("```json", "")
+            .replace("```", "")
+            .trim()
+
+        return Json.decodeFromString<T>(cleanText)
+    }
+
     // Main: Transcribe:
     fun transcribe(audioPath: String): SttReturn {
         try {

@@ -84,7 +84,6 @@ data class SpotifyTrack(
     var name: String = "",
     var artists: MutableList<SpotifyArtist> = mutableListOf<SpotifyArtist>(),
     var album: SpotifyAlbum? = null,
-    var saved: Boolean = false,   // Only for search
     var context: SpotifyContext? = null,
 )
 
@@ -110,6 +109,7 @@ data class SpotifyEpisode(
 data class SpotifyPlayable(
     var id: String = "",
     var matchScore: Int = 0,
+    var saved: Boolean = false,   // Only for search
     var type: String = "",
     var track: SpotifyTrack? = null,
     var artist: SpotifyArtist? = null,

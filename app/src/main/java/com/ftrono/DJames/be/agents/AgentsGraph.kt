@@ -298,7 +298,7 @@ class AgentsGraph(
         Log.d(TAG, "Messages size (output): ${updState.messages.size} items, fail: ${updState.fail}")
 
         // Final reply:
-        val finalReply = when {
+        updState.fullReply = when {
             updState.isSilence -> defaultReplies.replyFallback()   // Fallback
             updState.fail -> defaultReplies.replyError()   // Error
             (updState.next == END && (
@@ -308,14 +308,14 @@ class AgentsGraph(
         }
 
         // Process final reply:
-        val processedReply = processAiReply(finalReply)
+        val processedReply = processAiReply(updState.fullReply)
         if (processedReply.spans.isEmpty()) {
             // FinalizerAgent FAIL -> Keep original output:
             updState.next = if (processedReply.followUp && updState.next == END) updState.intentName else updState.next
             updState.aiReplies = listOf(
                 AiReply(
                     langCode = updState.reqLangCode,
-                    text = finalReply,
+                    text = updState.fullReply,
                 )
             )
         } else {

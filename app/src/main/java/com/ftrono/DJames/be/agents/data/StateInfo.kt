@@ -30,6 +30,7 @@ data class StateInfo(
     var messageType: String = "",
 
     // Replies & Actions:
+    var fullReply: String = "",
     var aiReplies: List<AiReply> = listOf(),
     var actionType: ActionType? = null,   //"call", ""
     var playAcknowledge: Boolean = false,   //play the acknowledge tone

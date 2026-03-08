@@ -330,10 +330,6 @@ class VoiceQueryService: Service() {
                     // A) First speak, then execute action:
                     // Read:
                     if (lastState.aiReplies.isNotEmpty()) {
-                        // Speak:
-                        tts.speak(
-                            aiReplies = lastState.aiReplies
-                        )
                         // Save reply:
                         if (!lastState.noSave) {
                             messageUtils.storeMessage(
@@ -341,12 +337,16 @@ class VoiceQueryService: Service() {
                                 langCode = prefs.queryLanguage,
                                 fromUser = false,
                                 fromVoice = true,
-                                text = lastState.aiReplies.joinToString(" ") { it.text },
+                                text = if (prefs.enableV3) lastState.fullReply else lastState.aiReplies.joinToString(" ") { it.text },
                                 intent = lastState.intentName,
                                 actionType = lastState.actionType,
                                 attachments = lastState.attachments,
                             )
                         }
+                        // Speak:
+                        tts.speak(
+                            aiReplies = lastState.aiReplies
+                        )
                     }
                     audioRequestsManager.releaseDuckedFocus()
                     // Execute (only if end):
@@ -370,11 +370,6 @@ class VoiceQueryService: Service() {
 
                     // Read:
                     if (lastState.aiReplies.isNotEmpty()) {
-                        // Speak:
-                        tts.speak(
-                            aiReplies = lastState.aiReplies,
-                        )
-
                         // Save reply:
                         if (!lastState.noSave) {
                             messageUtils.storeMessage(
@@ -382,12 +377,16 @@ class VoiceQueryService: Service() {
                                 langCode = prefs.queryLanguage,
                                 fromUser = false,
                                 fromVoice = true,
-                                text = lastState.aiReplies.joinToString(" ") { it.text },
+                                text = if (prefs.enableV3) lastState.fullReply else lastState.aiReplies.joinToString(" ") { it.text },
                                 intent = lastState.intentName,
                                 actionType = lastState.actionType,
                                 attachments = lastState.attachments,
                             )
                         }
+                        // Speak:
+                        tts.speak(
+                            aiReplies = lastState.aiReplies,
+                        )
                     }
                     audioRequestsManager.releaseDuckedFocus()
 

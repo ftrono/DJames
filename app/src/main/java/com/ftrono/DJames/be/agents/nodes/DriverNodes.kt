@@ -3,6 +3,7 @@ package com.ftrono.DJames.be.agents.nodes
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.END
+import com.ftrono.DJames.application.mistralLlmModelMedium
 import com.ftrono.DJames.application.mistralLlmModelSmall
 import com.ftrono.DJames.be.agents.data.ChatMessage
 import com.ftrono.DJames.be.agents.llm.LlmAgent
@@ -21,20 +22,41 @@ class DriverAgentNode (
 
     override val TAG = this::class.java.simpleName
     override val name: String = TAG.replace("Node", "")
-    val model = mistralLlmModelSmall
+    val model = mistralLlmModelMedium
 
     override fun invoke(prevState: StateInfo): StateInfo {
         Log.d(TAG, "${name} activated")
         var updState = prevState
 
         // Build prompt:
-        var corePrompt = """
+        val corePrompt = """
             ## TASK:
-            Your domain is places, maps and driving directions. Your task is to help the user find a place to drive to.
-            Any request not involving places, maps or driving directions is outside your tasks scope.
-            Use the available tools provided to get the list of available places the user can go nearby.
+            You're in charge of every request regarding getting driving directions, navigation routes, places or address search. You are connected to Google Maps and you can find and show the user the navigation route to a place or address they ask.
+            Consider the context in the conversation and **use the available tools** to search for a place / address and show the user the navigation route **before replying** to them.
+            
+            **General rules**: 
+            - You need to understand which place or address the user is asking from the context of the conversation.
+            - FIRST THING: always call the "tool_retrieve" tool to retrieve the Google Maps ID for the place name or address the user wants to go to (take the info as it is from the user message). 
+            - THEN: Only **after** you use "tool_retrieve", use the "tool_go" tool with that Google Maps ID to show the navigation route on the user's screen.
+            - If no place is mentioned in the conversation or the user is requesting if you can find or navigate to a place / address / route without giving you a place, ask the user directly to give you the name of the place or the address to navigate to.
+            
+            ## TOOLS:
+            You can use the following tools:
+                * **tool_handoff**: use this tool if either: 
+                    (i) the user or a tool are asking to end, stop or restart the conversation; 
+                    (ii) the user is requesting guidance or info about your capabilities; 
+                    (iii) in **any case* the user makes a request outside your tasks scope.
+                * **tool_retrieve**: get from Google Maps the Google Maps ID of the requested place / address. **Always use this tool to get the Google Maps ID BEFORE calling "tool_go"!**
+                * **tool_go**: finally show to the user the navigation route with the retrieved Google Maps ID. Use this tool only **AFTER you retrieved the Google Maps ID from 'tool_retrieve'**.
+            
+            ## FURTHER INFO:
+            - If the user's request is unclear, ask for clarification before proceeding with any tools. 
+            - If the user's request includes additional information that is not relevant to the task, focus on the primary request and ignore the additional information.
+            - **Reply in the same language in which the user is speaking!** 
+            - **Always follow the indications you receive from the tools!**
         """.trimIndent()
-        var inMessages = prepareInMessages(
+
+        val inMessages = prepareInMessages(
             origMessages = prevState.messages,
             corePrompt = corePrompt,
         )
@@ -48,8 +70,8 @@ class DriverAgentNode (
             onFallback = onFallback,
             tools = mapOf<String, Tool>(
                 ToolHandoff().name to ToolHandoff(),
-                ToolRetrieveDriver().name to ToolRetrieveDriver(),
-                ToolGo().name to ToolGo(),
+                ToolRetrievePlaces().name to ToolRetrievePlaces(),
+                ToolGo(context).name to ToolGo(context),
             ),
         )
 

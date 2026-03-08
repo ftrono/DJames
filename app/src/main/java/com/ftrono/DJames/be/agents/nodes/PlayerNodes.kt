@@ -3,6 +3,8 @@ package com.ftrono.DJames.be.agents.nodes
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.END
+import com.ftrono.DJames.application.currentArtistPlaying
+import com.ftrono.DJames.application.currentSongPlaying
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.mistralLlmModelMedium
 import com.ftrono.DJames.application.spotifyLoggedIn
@@ -30,7 +32,7 @@ class PlayerAgentNode (
         var updState = prevState
 
         // Build prompt:
-        var corePrompt = """
+        val corePrompt = """
             ## TASK:
             You're in charge of every request regarding playing music or podcasts.
             Help the user find music or podcasts they want to play. You are connected to Spotify and you can play songs, artists, albums, playlists, podcast episodes or their liked songs collection. Consider the context in the conversation and **use the available tools** to search and play the item the user is requesting **before replying** to them.
@@ -55,7 +57,7 @@ class PlayerAgentNode (
             - **Always follow the indications you receive from the tools!**
         """.trimIndent()
 
-        var inMessages = prepareInMessages(
+        val inMessages = prepareInMessages(
             origMessages = prevState.messages,
             corePrompt = corePrompt,
         )

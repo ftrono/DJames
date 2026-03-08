@@ -266,6 +266,18 @@ class LibraryUtils {
         return url
     }
 
+    //Place: build detail readable string from address:
+    fun buildPlaceReadableDetail(placeInfo: LibraryItem): String {
+        val detail = if (placeInfo.address!!.street == "" && placeInfo.address!!.number == "") {
+                placeInfo.address!!.town
+            } else if (placeInfo.address!!.number == "") {
+                placeInfo.address!!.town + ", " + placeInfo.address!!.street
+            } else {
+                placeInfo.address!!.town + ", " + placeInfo.address!!.street + " " + placeInfo.address!!.number
+            }
+        return detail
+    }
+
 
     // MODEL CONVERTER:
     fun libItemToPlayable(libItem: LibraryItem, matchScore: Int = 0): SpotifyPlayable {
@@ -319,13 +331,17 @@ class LibraryUtils {
         if (text != "" && libMap.isNotEmpty()) {
             //Init:
             var score = 0
-            val listEvalued = text.split(", ")
+            val listEvalued = if (filter == "artist") {
+                text.split(", ")
+            } else {
+                listOf(text)
+            }
             Log.d(TAG, "LIST EVALUED: $listEvalued")
             val scoresMap = mutableMapOf<Long, Int>()
 
             //Check each evaluated item:
             for (eval in listEvalued) {
-                //Check each artist id:
+                //Check each item id:
                 for (curId in libMap.keys) {
                     val aliasScores = mutableListOf<Int>()
                     //Check each alias:
@@ -538,6 +554,8 @@ class LibraryUtils {
             //TODO: update as needed!
             if (item.type == "contact") {
                 item.uniId = "000" + utils.generateRandomString(7, numOnly = true)
+            } else if (item.type == "place") {
+                item.uniId = "0x0" + utils.generateRandomString(5, numOnly = true)
             } else {
                 item.uniId = ""
             }

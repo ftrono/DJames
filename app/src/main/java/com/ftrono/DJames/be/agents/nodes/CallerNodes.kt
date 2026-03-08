@@ -31,7 +31,7 @@ class CallAgentNode (
         var updState = prevState
 
         // Build prompt:
-        var corePrompt = """
+        val corePrompt = """
             ## TASK:
             You're in charge of every request regarding making a call.
             You have access to the user's saved contacts and have the capabilities to find and call the requested contact or number.
@@ -59,7 +59,7 @@ class CallAgentNode (
             - **Always follow the indications you receive from the tools!**
         """.trimIndent()
 
-        var inMessages = prepareInMessages(
+        val inMessages = prepareInMessages(
             origMessages = prevState.messages,
             corePrompt = corePrompt,
         )

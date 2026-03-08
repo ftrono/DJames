@@ -171,14 +171,11 @@ data class Message(
 
 @Serializable
 data class Attachments(
+    var playFail: Boolean = false,   //play the fail tone
+    var playAcknowledge: Boolean = false,   //play the acknowledge tone
+
     @Convert(converter = ChatMessageConverter::class, dbType = String::class)
     var llmChatMessages: MutableList<ChatMessage> = mutableListOf<ChatMessage>(),
-
-    @Convert(converter = PlayRequestConverter::class, dbType = String::class)
-    var playRequest: PlayRequest? = null,
-
-    @Convert(converter = SpotifyPlayCandidatesConverter::class, dbType = String::class)
-    var playCandidates: MutableList<SpotifyPlayable>? = null,
 
     @Convert(converter = UseRequestConverter::class, dbType = String::class)
     var useRequest: UseRequest? = null,
@@ -186,14 +183,20 @@ data class Attachments(
     @Convert(converter = UseCandidatesConverter::class, dbType = String::class)
     var useCandidates: MutableList<LibraryItem>? = null,
 
+    @Convert(converter = LibraryItemConverter::class, dbType = String::class)
+    var usable: LibraryItem? = null,
+
+    @Convert(converter = PlayRequestConverter::class, dbType = String::class)
+    var playRequest: PlayRequest? = null,
+
+    @Convert(converter = SpotifyPlayCandidatesConverter::class, dbType = String::class)
+    var playCandidates: MutableList<SpotifyPlayable>? = null,
+
     @Convert(converter = SpotifyQueryModelConverter::class, dbType = String::class)
     var spotifyQueries: MutableList<SpotifyQueryModel>? = null,
 
     @Convert(converter = SpotifyPlayableConverter::class, dbType = String::class)
     var spotifyPlay: SpotifyPlayable? = null,
-
-    @Convert(converter = LibraryItemConverter::class, dbType = String::class)
-    var usable: LibraryItem? = null,
 
     // INTENTS:
     var entityArtists: MutableList<String> = mutableListOf<String>(),   // Fulfillment-only

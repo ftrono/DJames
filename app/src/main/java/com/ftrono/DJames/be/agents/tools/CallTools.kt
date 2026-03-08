@@ -22,6 +22,7 @@ class ToolRetrieveCallContacts(): Tool() {
     private val TAG = this::class.java.simpleName
     override val name = "tool_retrieve"
     override val type: ToolType = ToolType.INTERMEDIATE
+    private val filter = "contact"
 
     override fun getDefinition(): ToolDefinition {
         return ToolDefinition(
@@ -45,13 +46,13 @@ class ToolRetrieveCallContacts(): Tool() {
         )
     }
 
-    // Prepare original query + add Library matches (avoiding duplicates):
+    // Get Library matches:
     fun loadCandidates(query: String, maxMatches: Int = maxSearchMatches): MutableList<LibraryItem> {
         val matchedItems = mutableListOf<LibraryItem>()
 
         // Get library matches:
         val libMatches = libUtils.matchLibrary(
-            filter = "contact",
+            filter = filter,
             text = query.lowercase(),
             threshold = midThreshold
         )
@@ -59,11 +60,11 @@ class ToolRetrieveCallContacts(): Tool() {
         // Add sorted library matched items up to maxMatches:
         for (match in libMatches) {
             if (matchedItems.size < maxMatches) {
-                matchedItems.add(
-                    libUtils.getLibItemById(
-                        match.matchId
-                    )
+                val item = libUtils.getLibItemById(
+                    match.matchId
                 )
+                item.matchScore = match.matchScore
+                matchedItems.add(item)
             } else {
                 break
             }
@@ -74,50 +75,45 @@ class ToolRetrieveCallContacts(): Tool() {
     override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
         // INIT:
         var retString = ""
-        var updAttachments = attachments
 
-        updAttachments.useRequest = UseRequest(
-            type = "contact",   // TODO
+        attachments.useRequest = UseRequest(
+            type = filter,
             name = (args["contact_name"]?.jsonPrimitive?.content ?: "").lowercase().trim(),
         )
 
-        updAttachments.useCandidates = loadCandidates(updAttachments.useRequest!!.name)
-        Log.d(TAG, "MATCH NAMES: ${updAttachments.useCandidates!!.map { it.name }}")
+        attachments.useCandidates = loadCandidates(attachments.useRequest!!.name)
+        Log.d(TAG, "MATCH NAMES: ${attachments.useCandidates!!.map { it.name }}")
 
         // Fallback:
-        if (updAttachments.useCandidates!!.isEmpty()) {
+        if (attachments.useCandidates!!.isEmpty()) {
+            attachments.playFail = true
             retString = "End the conversation by simply saying that you could not find any saved contact with that name."
 
-        } else if (updAttachments.useCandidates!!.size == 1) {
+        } else if (attachments.useCandidates!!.size == 1) {
             // Success -> one match:
+            val match = attachments.useCandidates!![0]
+            attachments.playAcknowledge = true
             retString = """
-                Contact found! Phone number: ${updAttachments.useCandidates!![0].uniId}.
+                Contact found! Name: ${match.name}, phone number: ${match.uniId}.
                 Call tool 'tool_call' with this phone number.
                 """.trimMargin()
+
         } else {
+            // Success -> multiple matches:
             var candidateStr = ""
-            for (item in updAttachments.useCandidates!!) {
-                /// Use uniId instead of phone number for privacy:
+            for (item in attachments.useCandidates!!) {
+                // Use uniId instead of phone number for privacy:
                 candidateStr += "\n- phone number: ${item.uniId}, name: ${item.name}"
             }
-
-            if (candidateStr == "") {
-                // Fallback:
-                retString =
-                    "End the conversation by simply saying that you could not find any contact with that name."
-
-            } else {
-                // Success -> multiple matches:
-                retString = """
-                        Contacts found:
-                        (don't read the phone numbers to the user):
-                        [CANDIDATES]
-                       
-                        If you can clearly identify what the user is requesting among them, just call tool 'tool_call' with that contact's phone number.
-                        Otherwise, read to the user the most relevant contacts based on the query (in plain text, no markdown) and ask them which of these contacts they want to call.
-                        """.trimIndent()
-                retString = retString.replace("[CANDIDATES]", candidateStr)
-            }
+            retString = """
+                Contacts found:
+                (don't read the phone numbers to the user):
+                [CANDIDATES]
+               
+                If you can clearly identify who the user is requesting among them, just call tool 'tool_call' with that contact's phone number.
+                Otherwise, read to the user the most relevant contacts based on the query (in plain text, no markdown) and ask them which of these contacts they want to call.
+                """.trimIndent()
+            retString = retString.replace("[CANDIDATES]", candidateStr)
         }
 
         // Return:
@@ -160,6 +156,7 @@ class ToolCall(): Tool() {
         val updAttachments = attachments
 
         if (inputNumber == "") {
+            updAttachments.playFail = true
             return ToolResponse(
                 message = "Tell the user there was a problem. Then, END this conversation.",
                 attachments = updAttachments,
@@ -175,6 +172,7 @@ class ToolCall(): Tool() {
 
             if (callMatches.isEmpty()) {
                 // Phone number dictated by user -> call directly:
+                updAttachments.playAcknowledge = true
                 updAttachments.usable = LibraryItem(
                     name = "Dictated number",
                     source = "contact",
@@ -194,6 +192,7 @@ class ToolCall(): Tool() {
                 // Phone number from contact:
                 val callMatch = callMatches[0]
                 updAttachments.usable = callMatch
+                updAttachments.playAcknowledge = true
                 return ToolResponse(
                     message = "Calling ${callMatch.name}. Always tell the user who you're calling and do NOT ask further questions to the user.",
                     attachments = updAttachments,

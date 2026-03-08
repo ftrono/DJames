@@ -29,14 +29,14 @@ class ToolRetrieveMsgContacts(): Tool() {
             function = ToolFunction(
                 name = name,
                 description = """
-                    Get the phone number of the requested contact to call, if you don't have it already. You must pass here the **contact name** you collect from the user conversation. 
-                    **Always use this tool to retrieve the phone number** for a contact before calling them!""".trimIndent(),
+                    Get the phone number of the requested contact to message, if you don't have it already. You must pass here the **contact name** you collect from the user conversation. 
+                    **Always use this tool to retrieve the phone number** for a contact before messaging them!""".trimIndent(),
                 parameters = ToolParameters(
                     type = "object",
                     properties = mapOf(
                         "contact_name" to ToolProperty(
                             type = "string",   // Arg type
-                            description = "The name of the requested contact to call"   // Arg description
+                            description = "The name of the requested contact to message"   // Arg description
                         ),
                     ),
                     required = mutableListOf("contact_name")
@@ -90,9 +90,10 @@ class ToolRetrieveMsgContacts(): Tool() {
 
         } else if (updAttachments.useCandidates!!.size == 1) {
             // Success -> one match:
+            val match = updAttachments.useCandidates!![0]
             retString = """
-                Contact found! Phone number: ${updAttachments.useCandidates!![0].uniId}.
-                Call tool 'tool_call' with this phone number.
+                Contact found! Name: ${match.name}, phone number: ${match.uniId}.
+                You can call tool 'tool_send' with this phone number as soon as you have the user's desired message text ready.
                 """.trimMargin()
         } else {
             var candidateStr = ""
@@ -113,8 +114,8 @@ class ToolRetrieveMsgContacts(): Tool() {
                         (don't read the phone numbers to the user):
                         [CANDIDATES]
                        
-                        If you can clearly identify what the user is requesting among them, just call tool 'tool_call' with that contact's phone number.
-                        Otherwise, read to the user the most relevant contacts based on the query (in plain text, no markdown) and ask them which of these contacts they want to call.
+                        If you can clearly identify who the user is requesting among them, you can call tool 'tool_send' with that contact's phone number as soon as you have the user's desired message text ready.
+                        Otherwise, first read to the user the most relevant contacts based on the query (in plain text, no markdown) and ask them which of these contacts they want to call.
                         """.trimIndent()
                 retString = retString.replace("[CANDIDATES]", candidateStr)
             }
@@ -140,33 +141,66 @@ class ToolSend(): Tool() {
             function = ToolFunction(
                 name = name,
                 description = """
-                     Play the requested music item in Spotify. **Before calling this tool:**
-                     1) **Call 'tool_retrieve' first, to get the Spotify ID** for the specific item to play. 
-                     2) If 'tool_retrieve' returns multiple options, **ask confirmation** to the user before playing anything!""".trimIndent(),
+                     Sends the desired message text to the requested phone number. **Use this tool only after** you got the actual phone number from the user or from 'tool_retrieve'.""".trimIndent(),
                 parameters = ToolParameters(
                     type = "object",
                     properties = mapOf(
-                        "spotify_id" to ToolProperty(
+                        "phone_number" to ToolProperty(
                             type = "string",   // Arg type
-                            description = "(Mandatory) Spotify ID of the requested item to play."   // Arg description
+                            description = "(Mandatory) Phone number of the requested contact to message."   // Arg description
                         ),
                     ),
-                    required = mutableListOf("spotify_id")
+                    required = mutableListOf("phone_number")
                 )
             )
         )
     }
 
     override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
-        var spotifyID = args["spotify_id"]?: ""
-        val retString = if (spotifyID != "") {
-            "Playing the track with Spotify ID: $spotifyID. Do NOT make further questions to the user."
+        val inputNumber: String = (args["phone_number"]?.jsonPrimitive?.content ?: "")
+        val updAttachments = attachments
+
+        if (inputNumber == "") {
+            return ToolResponse(
+                message = "Tell the user there was a problem. Then, END this conversation.",
+                attachments = updAttachments,
+            )
+
         } else {
-            "Empty Spotify ID!"
+            // Retrieve from attachments:
+            val callMatches = if (updAttachments.useCandidates == null) {
+                listOf()
+            } else {
+                updAttachments.useCandidates!!.filter { it.uniId == inputNumber }
+            }
+
+            if (callMatches.isEmpty()) {
+                // Phone number dictated by user -> call directly:
+                updAttachments.usable = LibraryItem(
+                    name = "Dictated number",
+                    source = "contact",
+                    type = "contact",
+                    phoneSet = PhoneSet(
+                        prefix = if (inputNumber.first() == '+') "" else "+39",   // TODO
+                        phone = inputNumber
+                    )
+                )
+                return ToolResponse(
+                    message = "Sending the SMS to phone number ${inputNumber}. Read it to the user and do NOT ask further questions to them.",
+                    attachments = updAttachments,
+                    actionType = ActionType.SMS,
+                )
+
+            } else {
+                // Phone number from contact:
+                val callMatch = callMatches[0]
+                updAttachments.usable = callMatch
+                return ToolResponse(
+                    message = "Sending the SMS to ${callMatch.name}. Always tell the user who you're sending the SMS to and do NOT ask further questions to the user.",
+                    attachments = updAttachments,
+                    actionType = ActionType.CALL,
+                )
+            }
         }
-        return ToolResponse(
-            message = retString,
-            attachments = attachments,
-        )
     }
 }

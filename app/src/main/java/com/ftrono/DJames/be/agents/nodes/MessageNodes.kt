@@ -31,13 +31,13 @@ class MessageAgentNode (
         var updState = prevState
 
         // Build prompt:
-        var corePrompt = """
+        val corePrompt = """
             ## TASK:
             Your task is to help the user send a message to one of his contacts.
             Any request not involving sending an SMS, a Whatsapp text message or a Whatsapp audio/voice message is outside your tasks scope.
             Use the available tools provided to get the list of available contacts that the user can send messages to.
         """.trimIndent()
-        var inMessages = prepareInMessages(
+        val inMessages = prepareInMessages(
             origMessages = prevState.messages,
             corePrompt = corePrompt,
         )

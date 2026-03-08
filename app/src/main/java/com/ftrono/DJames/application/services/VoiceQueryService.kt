@@ -402,10 +402,13 @@ class VoiceQueryService: Service() {
                 } else {
                     // END:
                     queryStatus.postValue("ready")
-                    if (lastState.fail) {
+                    if (lastState.fail || lastState.attachments.playFail) {
                         toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                     } else {
-                        if (lastState.playAcknowledge) toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                        if (lastState.playAcknowledge || lastState.attachments.playAcknowledge) {
+                            //ACKNOWLEDGE
+                            toneGen.startTone(ToneGenerator.TONE_PROP_ACK)
+                        }
                     }
                     Thread.sleep(200)
                     stopSelf()

@@ -248,6 +248,9 @@ class AgentsGraph(
                     cleanedSpans.last().text += span.text
                 } else {
                     // Add current span:
+                    if (!span.text.first().isLetterOrDigit()) {
+                        span.text = span.text.slice(1..span.text.lastIndex)
+                    }
                     cleanedSpans.add(span)
                 }
             }

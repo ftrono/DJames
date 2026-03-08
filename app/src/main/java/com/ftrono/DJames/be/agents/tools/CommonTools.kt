@@ -9,7 +9,9 @@ import com.ftrono.DJames.be.database.Attachments
 import kotlinx.serialization.json.*
 
 
-class ToolHandoff(): Tool() {
+class ToolHandoff(
+    val description: String
+): Tool() {
     private val TAG = this::class.java.simpleName
     override val name = "tool_handoff"
     override val type: ToolType = ToolType.HANDOFF
@@ -19,12 +21,7 @@ class ToolHandoff(): Tool() {
             type = "function",
             function = ToolFunction(
                 name = name,
-                description = """
-                    Handoff tool. Use this tool if the user either: 
-                        (i) wants to end/stop the conversation; 
-                        (ii) is requesting guidance or info about your capabilities; 
-                        (iii) in **any case* the user makes a request outside your tasks scope.
-                    """.trimIndent(),
+                description = description,
                 parameters = ToolParameters(
                     type = "object",
                     properties = mapOf(),

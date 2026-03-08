@@ -11,6 +11,7 @@ import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.be.agents.data.ChatMessage
 import com.ftrono.DJames.be.agents.llm.LlmAgent
 import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.be.agents.data.handoffDescription
 import com.ftrono.DJames.be.agents.tools.*
 import com.ftrono.DJames.be.agents.fulfillment.SpotifyFulfillment
 
@@ -70,7 +71,7 @@ class PlayerAgentNode (
             onComplete = onComplete,
             onFallback = onFallback,
             tools = mapOf<String, Tool>(
-                ToolHandoff().name to ToolHandoff(),
+                ToolHandoff(handoffDescription).name to ToolHandoff(handoffDescription),
                 ToolRetrievePlayer(context).name to ToolRetrievePlayer(context),
                 ToolPlay(context).name to ToolPlay(context),
             ),

@@ -1,5 +1,6 @@
 package com.ftrono.DJames.be.agents.chat
 
+import com.ftrono.DJames.application.dictatedNumber
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.LibraryItem
@@ -82,24 +83,32 @@ class DefaultReplies() {
         return "Calling $contactName..."
     }
 
-    fun replyMessageRecord(contactName: String): String {
-        return "Please, record the voice message for $contactName!"
+    fun replyMessageRecord(contactName: String = ""): String {
+        return if (contactName != "") {
+            "Please, record the voice message for $contactName!"
+        } else {
+            "Please, record now the voice message to send via Whatsapp!"
+        }
     }
 
     fun replyMessageDictate(contactName: String, msgType: String = "", reqLangName: String): String {
         return "Please, dictate the $msgType message for $contactName in $reqLangName!".replace("  ", " ")
     }
 
-    fun replySmsSent(contactName: String): String {
-        return "SMS sent to $contactName!"
+    fun replySMSSent(contactName: String): String {
+        return if (contactName == dictatedNumber) {
+            "SMS sent to the number dictated!"
+        } else {
+            "SMS sent to $contactName!"
+        }
     }
 
-    fun replyWATextSent(contactName: String): String {
+    fun replyWATextReady(contactName: String): String {
         return "Message for $contactName ready: please, click on Send in Whatsapp!"
     }
 
-    fun replyWAVoiceSent(contactName: String): String {
-        return "Voice message for $contactName ready: please, select the contact in Whatsapp and Send it!"
+    fun replyWAVoiceReady(): String {
+        return "Voice message ready: please, select the contact in Whatsapp and Send it!"
     }
 
     // PLACES:

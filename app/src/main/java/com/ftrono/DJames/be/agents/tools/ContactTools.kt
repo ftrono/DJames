@@ -1,9 +1,12 @@
 package com.ftrono.DJames.be.agents.tools
 
+import android.content.Context
 import android.util.Log
+import com.ftrono.DJames.application.dictatedNumber
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.maxSearchMatches
 import com.ftrono.DJames.application.midThreshold
+import com.ftrono.DJames.be.agents.chat.ActionsExecutor
 import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.be.agents.data.ToolDefinition
 import com.ftrono.DJames.be.agents.data.ToolFunction
@@ -18,7 +21,11 @@ import com.ftrono.DJames.be.database.UseRequest
 import kotlinx.serialization.json.*
 
 
-class ToolRetrieveCallContacts(): Tool() {
+class ToolRetrieveContacts(
+    val word: String,
+    val verb: String,
+    val finalTool: String
+): Tool() {
     private val TAG = this::class.java.simpleName
     override val name = "tool_retrieve"
     override val type: ToolType = ToolType.INTERMEDIATE
@@ -30,14 +37,14 @@ class ToolRetrieveCallContacts(): Tool() {
             function = ToolFunction(
                 name = name,
                 description = """
-                    Get the phone number of the requested contact to call, if you don't have it already. You must pass here the **contact name** you collect from the user conversation. 
-                    **Always use this tool to retrieve the phone number** for a contact before calling them!""".trimIndent(),
+                    Get the phone number of the requested contact to $word, if you don't have it already. You must pass here the **contact name** you collect from the user conversation. 
+                    **Always use this tool to retrieve the phone number** for a contact before $verb them!""".trimIndent(),
                 parameters = ToolParameters(
                     type = "object",
                     properties = mapOf(
                         "contact_name" to ToolProperty(
                             type = "string",   // Arg type
-                            description = "The name of the requested contact to call"   // Arg description
+                            description = "The name of the requested contact to $word"   // Arg description
                         ),
                     ),
                     required = mutableListOf("contact_name")
@@ -95,7 +102,7 @@ class ToolRetrieveCallContacts(): Tool() {
             attachments.playAcknowledge = true
             retString = """
                 Contact found! Name: ${match.name}, phone number: ${match.uniId}.
-                Call tool 'tool_call' with this phone number.
+                Call tool '$finalTool' with this phone number.
                 """.trimMargin()
 
         } else {
@@ -110,8 +117,8 @@ class ToolRetrieveCallContacts(): Tool() {
                 (don't read the phone numbers to the user):
                 [CANDIDATES]
                
-                If you can clearly identify who the user is requesting among them, just call tool 'tool_call' with that contact's phone number.
-                Otherwise, read to the user the most relevant contacts based on the query (in plain text, no markdown) and ask them which of these contacts they want to call.
+                If you can clearly identify who the user is requesting among them, just call tool '$finalTool' with that contact's phone number.
+                Otherwise, read to the user the most relevant contacts based on the query (in plain text, no markdown) and ask them which of these contacts they want to $word.
                 """.trimIndent()
             retString = retString.replace("[CANDIDATES]", candidateStr)
         }
@@ -164,17 +171,17 @@ class ToolCall(): Tool() {
 
         } else {
             // Retrieve from attachments:
-            val callMatches = if (updAttachments.useCandidates == null) {
+            val sendMatches = if (updAttachments.useCandidates == null) {
                 listOf()
             } else {
                 updAttachments.useCandidates!!.filter { it.uniId == inputNumber }
             }
 
-            if (callMatches.isEmpty()) {
+            if (sendMatches.isEmpty()) {
                 // Phone number dictated by user -> call directly:
                 updAttachments.playAcknowledge = true
                 updAttachments.usable = LibraryItem(
-                    name = "Dictated number",
+                    name = dictatedNumber,
                     source = "contact",
                     type = "contact",
                     phoneSet = PhoneSet(
@@ -190,7 +197,7 @@ class ToolCall(): Tool() {
 
             } else {
                 // Phone number from contact:
-                val callMatch = callMatches[0]
+                val callMatch = sendMatches[0]
                 updAttachments.usable = callMatch
                 updAttachments.playAcknowledge = true
                 return ToolResponse(
@@ -199,6 +206,143 @@ class ToolCall(): Tool() {
                     actionType = ActionType.CALL,
                 )
             }
+        }
+    }
+}
+
+
+class ToolSendSMS(
+    private val context: Context
+): Tool() {
+    private val TAG = this::class.java.simpleName
+    override val name = "tool_send"
+    override val type: ToolType = ToolType.ACTION
+    private val actionsExecutor = ActionsExecutor(context)
+
+    override fun getDefinition(): ToolDefinition {
+        return ToolDefinition(
+            type = "function",
+            function = ToolFunction(
+                name = name,
+                description = """
+                     Send the approved SMS to the requested phone number. **Use this tool only **AFTER you retrieved the phone number from 'tool_retrieve' or from the user itself, you composed the message draft and you got the user's approval to send it.""".trimIndent(),
+                parameters = ToolParameters(
+                    type = "object",
+                    properties = mapOf(
+                        "phone_number" to ToolProperty(
+                            type = "string",   // Arg type
+                            description = "(Mandatory) Phone number of the requested contact to send the SMS to."   // Arg description
+                        ),
+                        "message_text" to ToolProperty(
+                            type = "string",   // Arg type
+                            description = "(Mandatory) Text of the message to send, as drafted and approved by the user."   // Arg description
+                        ),
+                    ),
+                    required = mutableListOf("phone_number", "message_text")
+                )
+            )
+        )
+    }
+
+    override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
+        val inputNumber: String = (args["phone_number"]?.jsonPrimitive?.content ?: "")
+        val messageText: String = (args["message_text"]?.jsonPrimitive?.content ?: "")
+
+        if (inputNumber == "" || messageText == "") {
+            attachments.playFail = true
+            return ToolResponse(
+                message = "Tell the user there was a problem. Then, END this conversation.",
+                attachments = attachments,
+            )
+
+        } else {
+            // Retrieve from attachments:
+            val sendMatches = if (attachments.useCandidates == null) {
+                listOf()
+            } else {
+                attachments.useCandidates!!.filter { it.uniId == inputNumber }
+            }
+
+            if (sendMatches.isEmpty()) {
+                // Phone number dictated by user -> call directly:
+                attachments.playAcknowledge = true
+                attachments.usable = LibraryItem(
+                    name = dictatedNumber,
+                    source = "contact",
+                    type = "contact",
+                    phoneSet = PhoneSet(
+                        prefix = if (inputNumber.first() == '+') "" else "+39",   // TODO
+                        phone = inputNumber
+                    )
+                )
+
+            } else {
+                // Phone number from contact:
+                val sendMatch = sendMatches[0]
+                attachments.usable = sendMatch
+                attachments.playAcknowledge = true
+            }
+
+            // Send the SMS:
+            val outcomeReply = actionsExecutor.sendSMS(messageText, attachments.usable)
+            return ToolResponse(
+                message = "Outcome: $outcomeReply. Tell the user this and do NOT ask them further questions.",
+                attachments = attachments,
+                actionType = ActionType.SMS,
+            )
+        }
+    }
+}
+
+
+class ToolSendWAText(
+    private val context: Context
+): Tool() {
+    private val TAG = this::class.java.simpleName
+    override val name = "tool_send"
+    override val type: ToolType = ToolType.ACTION
+    private val actionsExecutor = ActionsExecutor(context)
+
+    override fun getDefinition(): ToolDefinition {
+        return ToolDefinition(
+            type = "function",
+            function = ToolFunction(
+                name = name,
+                description = """
+                     Send the approved text message draft. **Use this tool only **AFTER you composed the message draft and you got the user's approval to send it.""".trimIndent(),
+                parameters = ToolParameters(
+                    type = "object",
+                    properties = mapOf(
+                        "message_text" to ToolProperty(
+                            type = "string",   // Arg type
+                            description = "(Mandatory) Text of the message to send, as drafted and approved by the user."   // Arg description
+                        ),
+                    ),
+                    required = mutableListOf("message_text")
+                )
+            )
+        )
+    }
+
+    override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
+        val messageText: String = (args["message_text"]?.jsonPrimitive?.content ?: "")
+
+        if (messageText == "") {
+            attachments.playFail = true
+            return ToolResponse(
+                message = "Tell the user there was a problem. Then, END this conversation.",
+                attachments = attachments,
+            )
+
+        } else {
+            // Send the WhatsApp message:
+            val outcomeReply = actionsExecutor.sendWhatsappText(messageText)
+            attachments.playAcknowledge = true
+            return ToolResponse(
+                message = "Outcome: $outcomeReply. Read this all to the user and do NOT ask them further questions.",
+                attachments = attachments,
+                actionType = ActionType.WA_TEXT,
+            )
         }
     }
 }

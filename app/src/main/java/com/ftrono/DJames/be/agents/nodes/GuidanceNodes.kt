@@ -5,6 +5,7 @@ import android.util.Log
 import com.ftrono.DJames.application.mistralLlmModelSmall
 import com.ftrono.DJames.be.agents.llm.LlmAgent
 import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.be.agents.data.handoffDescription
 import com.ftrono.DJames.be.agents.tools.*
 
 
@@ -55,7 +56,7 @@ class GuidanceAgentNode (
             onComplete = onComplete,
             onFallback = onFallback,
             tools = mapOf<String, Tool>(
-                ToolHandoff().name to ToolHandoff(),
+                ToolHandoff(handoffDescription).name to ToolHandoff(handoffDescription),
             ),
         )
 

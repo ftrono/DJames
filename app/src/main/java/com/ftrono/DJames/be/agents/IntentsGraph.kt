@@ -222,7 +222,7 @@ class IntentsGraph(
         Log.d(TAG, "Messages size (input): ${updState.messages.size} items.")
 
         // STREAMING LOOP:
-        updState = stream(updState, routerNode = "IntentRouter")
+        updState = stream(updState, routerNodes = listOf("IntentRouter"))
         Log.d(TAG, "Messages size (output): ${updState.messages.size} items, fail: ${updState.fail}")
 
         return updState

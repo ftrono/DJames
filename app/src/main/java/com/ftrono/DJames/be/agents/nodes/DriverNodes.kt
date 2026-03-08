@@ -7,6 +7,7 @@ import com.ftrono.DJames.application.mistralLlmModelMedium
 import com.ftrono.DJames.be.agents.data.ChatMessage
 import com.ftrono.DJames.be.agents.llm.LlmAgent
 import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.be.agents.data.handoffDescription
 import com.ftrono.DJames.be.agents.tools.*
 import com.ftrono.DJames.be.agents.fulfillment.GenericFulfillment
 
@@ -68,7 +69,7 @@ class DriverAgentNode (
             onComplete = onComplete,
             onFallback = onFallback,
             tools = mapOf<String, Tool>(
-                ToolHandoff().name to ToolHandoff(),
+                ToolHandoff(handoffDescription).name to ToolHandoff(handoffDescription),
                 ToolRetrievePlaces().name to ToolRetrievePlaces(),
                 ToolGo(context).name to ToolGo(context),
             ),

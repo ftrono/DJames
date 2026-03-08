@@ -34,7 +34,7 @@ class MainRouterNode (
             ## AVAILABLE CATEGORIES:
             - "PlayerAgent" -> for any request involving music, songs, music artists, albums or podcast episodes, or Spotify in general.
             - "CallAgent" -> for any request involving calling someone.
-            - "MessageAgent" -> for any request involving messaging someone.
+            - "MessageRouter" -> for any request involving messaging someone.
             - "DriverAgent" -> for any request involving requesting driving directions, routes, places, navigation or maps.
             - "__START__" -> if the user wants to restart the conversation.
             - "__END__" -> if the user wants to stop, exit or end the conversation.
@@ -58,9 +58,16 @@ class MainRouterNode (
             llmMessages = inMessages,
             attachments = updState.attachments
         )
+
+        // Reset:
+        updState.messageMode = false
+        updState.messageType = ""
+        updState.actionType = null
+
+        // Update:
         updState.attachments = llmReturn.attachments
         updState.actionType = llmReturn.actionType
-        updState = updateStateFromRouter(context, llmReturn, updState)
+        updState = updateStateFromRouter(context, llmReturn, updState, updateIntent=true)
         return updState
     }
 }

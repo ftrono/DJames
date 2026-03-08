@@ -39,8 +39,8 @@ class ActionsExecutor(
         return when (action) {
             ActionType.PLAY -> spotifyPlay(playable)
             ActionType.CALL -> makeCall(usable, fromOldChat)
-            ActionType.SMS -> sendSMS(text, usable, reqLanguage)
-            ActionType.WA_TEXT -> sendWhatsappText(text, usable, reqLanguage)
+            ActionType.SMS -> if (prefs.enableV3) "" else sendSMS(text, usable, reqLanguage)
+            ActionType.WA_TEXT -> if (prefs.enableV3) "" else sendWhatsappText(text, usable, reqLanguage)
             ActionType.WA_VOICE -> sendWhatsappAudio(usable, lastRecording)
             ActionType.OPEN_URL -> if (prefs.enableV3) "" else openLink(usable)
         }
@@ -106,25 +106,28 @@ class ActionsExecutor(
     fun sendSMS(
         text: String,
         usable: LibraryItem?,
-        reqLanguage: String
+        reqLanguage: String = "",
     ): String {
         try {
             var ttsToRead = ""
             val contactName = usable!!.name
             val phoneSet = usable.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
+            var messageText = text
             // SEND:
-            var messageText = "[DJ] ${
-                fulfillmentUtils.replaceEmojis(
-                    context = context,
-                    text = text,
-                    reqLanguage = reqLanguage
-                )
-            }"
+            if (reqLanguage != "") {
+                messageText = "[DJ] ${
+                    fulfillmentUtils.replaceEmojis(
+                        context = context,
+                        text = text,
+                        reqLanguage = reqLanguage
+                    )
+                }"
+            }
             val smsManager: SmsManager = SmsManager.getDefault()
             val parts = smsManager.divideMessage(messageText)
             smsManager.sendMultipartTextMessage(contactPhone, null, parts, null, null)
-            ttsToRead = defaultReplies.replySmsSent(contactName)
+            ttsToRead = defaultReplies.replySMSSent(contactName)
             Log.d(TAG, ttsToRead)
             return ttsToRead
 
@@ -137,22 +140,25 @@ class ActionsExecutor(
     //SEND WHATSAPP TEXT:
     fun sendWhatsappText(
         text: String,
-        usable: LibraryItem?,
-        reqLanguage: String,
+        usable: LibraryItem? = null,
+        reqLanguage: String = "",
     ): String {
         try {
             var ttsToRead = ""
             val contactName = usable!!.name
             val phoneSet = usable.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
+            var messageText = ""
             // SEND:
-            var messageText = "[DJ] ${
-                fulfillmentUtils.replaceEmojis(
-                    context = context,
-                    text = text,
-                    reqLanguage = reqLanguage
-                )
-            }"
+            if (reqLanguage != "") {
+                messageText = "[DJ] ${
+                    fulfillmentUtils.replaceEmojis(
+                        context = context,
+                        text = text,
+                        reqLanguage = reqLanguage
+                    )
+                }"
+            }
 
             //Open WA:
             val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -168,7 +174,7 @@ class ActionsExecutor(
 
             //Try to send:
             context.startActivity(intent)
-            ttsToRead = defaultReplies.replyWATextSent(contactName)
+            ttsToRead = defaultReplies.replyWATextReady(contactName)
             Log.d(TAG, "Whatsapp text message ready to be sent!")
             return ttsToRead
 
@@ -203,7 +209,7 @@ class ActionsExecutor(
 
                 //Try to send:
                 context.startActivity(intent)
-                ttsToRead = defaultReplies.replyWAVoiceSent(contactName)
+                ttsToRead = defaultReplies.replyWAVoiceReady()
                 Log.d(TAG, "Whatsapp audio message ready to be sent!")
             } else {
                 ttsToRead = defaultReplies.replyError()

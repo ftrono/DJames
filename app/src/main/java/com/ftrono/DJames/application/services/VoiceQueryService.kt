@@ -362,7 +362,7 @@ class VoiceQueryService: Service() {
                         // Reset:
                         if (lastState.messageMode) {
                             lastState.messageMode = false
-                            lastState.attachments.usable = null
+                            if (!prefs.enableV3) lastState.attachments.usable = null
                         }
                     }
                     // If received updated replies: replace!

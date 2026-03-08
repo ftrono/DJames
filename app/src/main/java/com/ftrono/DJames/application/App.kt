@@ -140,7 +140,7 @@ val clickAnimationCountdownTime: Int = 4000   //ms
 val clickCountdownTime: Long = 3000   //ms
 val clickSleepInterval: Long = 100   //ms
 val maxSearchMatches = 2
-val maxGraphLoops = 2
+val maxGraphLoops = 3
 val deltaSimilarity = 10   //5
 val midThreshold = 70
 val minThreshold = 50
@@ -155,6 +155,7 @@ val datetimeExportFormat = "yyyy-MM-dd HH_mm_ss"
 val datetimeFullFormat = "yyyy/MM/dd HH:mm"
 val datetimeShortFormat = "MMMM dd, HH:mm"
 val datetimePromptFormat = "EEEE dd MMMM yyyy, HH:mm"
+val dictatedNumber = "Dictated number"
 
 //Dropdowns:
 val genders = listOf<String>("Sir", "Madam", "Friend")
@@ -187,7 +188,7 @@ var songName: String = ""
 var artistName: String = ""
 var contextName: String = ""
 
-//HTTP:
+//Maps:
 val gMapsLinkFormat = "https://www.google.com/maps/dir//"
 
 //Spotify formats:

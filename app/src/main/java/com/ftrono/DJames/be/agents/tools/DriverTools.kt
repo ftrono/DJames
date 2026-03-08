@@ -99,7 +99,7 @@ class ToolRetrievePlaces(): Tool() {
             // Place NOT found in Library -> Build from message:
             Log.d(TAG, "DRIVE -> Place from Message")
             val placeInfo = LibraryItem(
-                type = "place",
+                type = filter,
                 name = utils.capitalizeWords(attachments.useRequest!!.name),
                 detail = "",
             )
@@ -155,7 +155,6 @@ class ToolGo(
     private val TAG = this::class.java.simpleName
     override val name = "tool_go"
     override val type: ToolType = ToolType.ACTION
-    private val filter = "place"
     private val actionsExecutor = ActionsExecutor(context)
 
     override fun getDefinition(): ToolDefinition {

@@ -71,9 +71,8 @@ open class Graph(
     // Stream graph:
     fun stream(
         prevState: StateInfo,
-        routerNode: String,
+        routerNodes: List<String>,
         onRestart: String = "",
-        resumeOnRouter: Boolean = false,
     ): StateInfo {
 
         var updState = prevState
@@ -84,7 +83,6 @@ open class Graph(
             updState.next = graph.keys.first()
         } else {
             updState.isStart = false
-            if (resumeOnRouter) updState.next = routerNode
         }
         Log.d(TAG, "Graph streaming loop STARTED from Node: '${updState.next}'.")
 
@@ -100,7 +98,7 @@ open class Graph(
                 Log.d(TAG, "Streaming from Node: ${updState.next}")
                 // Log.d(TAG, "State -> $updState")
                 val newNode = getNode(updState.next)
-                if (newNode.name == routerNode) loops += 1
+                if (routerNodes.contains(newNode.name)) loops += 1
                 updState = newNode.invoke(updState)   // invoke
                 // Human-in-the-Loop:
                 if (updState.interrupt) {

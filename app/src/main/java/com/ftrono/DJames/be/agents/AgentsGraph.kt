@@ -18,7 +18,7 @@ import com.ftrono.DJames.be.agents.nodes.CallAgentNode
 import com.ftrono.DJames.be.agents.nodes.DriverAgentNode
 import com.ftrono.DJames.be.agents.nodes.GuidanceAgentNode
 import com.ftrono.DJames.be.agents.nodes.MainRouterNode
-import com.ftrono.DJames.be.agents.nodes.MessageAgentNode
+import com.ftrono.DJames.be.agents.nodes.SMSAgentNode
 import com.ftrono.DJames.be.agents.nodes.PlayerAgentNode
 import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.agents.data.StateInfo
@@ -27,6 +27,9 @@ import com.ftrono.DJames.be.agents.llm.LlmAgent
 import com.ftrono.DJames.be.agents.data.ChatMessage
 import com.ftrono.DJames.be.agents.data.FinalizerReply
 import com.ftrono.DJames.be.agents.data.promptFinalizer
+import com.ftrono.DJames.be.agents.nodes.MessageRouterNode
+import com.ftrono.DJames.be.agents.nodes.WATextAgentNode
+import com.ftrono.DJames.be.agents.nodes.WAVoiceAgentNode
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.models.RecDetails
 import com.google.gson.JsonParser
@@ -50,22 +53,36 @@ class AgentsGraph(
         // Define the graph structure:
         addNodes(
             nodes = mutableListOf(
-                // MAIN ROUTER:
+                // LEVEL 0 - MAIN ROUTER:
                 MainRouterNode(
                     context = context,
                     apiKey = apiKey,
                     nextOptions = listOf(
+                        "GuidanceAgent",
+                        "DriverAgent",
                         "PlayerAgent",
                         "CallAgent",
-                        "MessageAgent",
-                        "DriverAgent",
-                        "GuidanceAgent",
+                        "MessageRouter",
                         START,
                         END
                     ),
                 ),
 
-                // NODES:
+                // LEVEL 1 - NODES:
+                GuidanceAgentNode(
+                    context = context,
+                    apiKey = apiKey,
+                    onComplete = END,
+                    onFallback = "MainRouter",
+                ),
+
+                DriverAgentNode(
+                    context = context,
+                    apiKey = apiKey,
+                    onComplete = END,
+                    onFallback = "MainRouter",
+                ),
+
                 PlayerAgentNode(
                     context = context,
                     apiKey = apiKey,
@@ -80,26 +97,39 @@ class AgentsGraph(
                     onFallback = "MainRouter",
                 ),
 
-                MessageAgentNode(
+                // LEVEL 1 - MESSAGE ROUTER:
+                MessageRouterNode(
                     context = context,
                     apiKey = apiKey,
-                    onComplete = END,
-                    onFallback = "MainRouter",
+                    nextOptions = listOf(
+                        "WAVoiceAgent",
+                        "WATextAgent",
+                        "SMSAgent",
+                        "MessageRouter",
+                    ),
                 ),
 
-                DriverAgentNode(
+                // LEVEL 2 - MESSAGE NODES:
+                SMSAgentNode(
                     context = context,
                     apiKey = apiKey,
                     onComplete = END,
-                    onFallback = "MainRouter",
+                    onFallback = "MessageRouter",
                 ),
 
-                GuidanceAgentNode(
+                WATextAgentNode(
                     context = context,
                     apiKey = apiKey,
                     onComplete = END,
-                    onFallback = "MainRouter",
-                )
+                    onFallback = "MessageRouter",
+                ),
+
+                WAVoiceAgentNode(
+                    context = context,
+                    apiKey = apiKey,
+                    onComplete = END,
+                    onFallback = END,   // Deterministic node
+                ),
             )
         )
         Log.d(TAG, "Graph built!")
@@ -146,11 +176,6 @@ class AgentsGraph(
                 updState.fail = true
                 updState.noSave = true
 
-            } else if (prevState.messageMode && prevState.messageType == "voice") {
-                //Whatsapp audio message -> no STT!
-                Log.d(TAG, "Message followup: audio message.")
-                transcription = "(private message)"
-
             } else {
                 // (LLM) STT transcribe:
                 Log.d(TAG, "STT activated")
@@ -191,7 +216,7 @@ class AgentsGraph(
                 ChatMessage(role = "user", content = transcription)
             )
             // DB: Store user message (anonymized):
-            val storedText = if (updState.messageMode) "(private message)" else transcription
+            val storedText = if (updState.messageMode && updState.messageType == "voice") "(voice message recorded)" else transcription
             val attachments = Attachments()
             attachments.llmChatMessages = mutableListOf<ChatMessage>(
                 ChatMessage(role = "user", content = storedText)
@@ -294,7 +319,7 @@ class AgentsGraph(
         Log.d(TAG, "Messages size (input): ${updState.messages.size} items.")
 
         // STREAMING LOOP:
-        updState = stream(updState, routerNode = "MainRouter")
+        updState = stream(updState, routerNodes = listOf("MainRouter", "MessageRouter"))
         Log.d(TAG, "Messages size (output): ${updState.messages.size} items, fail: ${updState.fail}")
 
         // Final reply:
@@ -308,14 +333,14 @@ class AgentsGraph(
         }
 
         // Process final reply:
-        val processedReply = processAiReply(updState.fullReply)
+        val processedReply = processAiReply(updState.fullReply.replace("*", ""))
         if (processedReply.spans.isEmpty()) {
             // FinalizerAgent FAIL -> Keep original output:
             updState.next = if (processedReply.followUp && updState.next == END) updState.intentName else updState.next
             updState.aiReplies = listOf(
                 AiReply(
                     langCode = updState.reqLangCode,
-                    text = updState.fullReply,
+                    text = updState.fullReply.replace("*", ""),
                 )
             )
         } else {

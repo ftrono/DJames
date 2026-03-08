@@ -93,7 +93,8 @@ open class Node() {
     fun updateStateFromRouter(
         context: Context,
         llmReturn: LlmReturn,
-        prevState: StateInfo
+        prevState: StateInfo,
+        updateIntent: Boolean = false,
     ): StateInfo {
         var updState = prevState
 
@@ -108,7 +109,7 @@ open class Node() {
                 )
             }
             // Route to next:
-            updState.intentName = llmReturn.next
+            if (updateIntent) updState.intentName = llmReturn.next
             updState.next = llmReturn.next
             if (updState.next == END) {
                 updState.messages = mutableListOf<ChatMessage>()

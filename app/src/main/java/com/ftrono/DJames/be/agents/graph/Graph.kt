@@ -91,6 +91,7 @@ open class Graph(
             if (loops >= maxGraphLoops) {
                 // Avoid infinite looping:
                 updState.fail = true
+                updState.messageMode = false
                 Log.d(TAG, "Max graph loops reached! Interrupting...")
                 break
 

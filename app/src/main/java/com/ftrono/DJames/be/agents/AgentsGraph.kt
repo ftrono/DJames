@@ -7,10 +7,10 @@ import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.START
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.defaultChatWait
+import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.minSpeechPct
 import com.ftrono.DJames.application.mistralLlmModelMedium
-import com.ftrono.DJames.application.mistralLlmModelSmall
 import com.ftrono.DJames.application.mistralSttModel
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
@@ -114,14 +114,14 @@ class AgentsGraph(
                     context = context,
                     apiKey = apiKey,
                     onComplete = END,
-                    onFallback = "MessageRouter",
+                    onFallback = "MainRouter",
                 ),
 
                 WATextAgentNode(
                     context = context,
                     apiKey = apiKey,
                     onComplete = END,
-                    onFallback = "MessageRouter",
+                    onFallback = "MainRouter",
                 ),
 
                 WAVoiceAgentNode(
@@ -138,12 +138,18 @@ class AgentsGraph(
     // State / DB:
     // Load latest message to State:
     override fun loadMessages(): MutableList<ChatMessage> {
-        // TODO: Build initial messages list:
-        val msgList = mutableListOf<ChatMessage>(
-            // ChatMessage(role = "user", content = inMessage)
-        )
+        val msgList = messageUtils.getMessagesByStarterId(lastStarterId)
+        val chatMsgList = mutableListOf<ChatMessage>()
+        for (msg in msgList) {
+            chatMsgList.add(
+                ChatMessage(
+                    role = if (msg.fromUser) "user" else "assistant",
+                    content = msg.text
+                )
+            )
+        }
         Log.d(TAG, "Messages size: ${msgList.size} items.")
-        return msgList
+        return chatMsgList
     }
 
     // Process new user message:
@@ -158,6 +164,7 @@ class AgentsGraph(
         var fromVoice = recDetails != null
         updState.fromVoice = fromVoice
         var isStart = prevState.next == START
+        if (isStart) lastStarterId = 0L
         var language = "en"
         Log.d(TAG, "Processing new user message...")
 
@@ -303,10 +310,8 @@ class AgentsGraph(
         Log.d(TAG, "Invoking Graph...")
 
         // Retrieve latest messages:
-        if (updState.messages.isEmpty()) {
-            updState.messages.addAll(
-                loadMessages()   // TODO
-            )
+        if (prevState.next == START) {
+            updState.messages = loadMessages()
         }
 
         // Process new message:
@@ -353,7 +358,9 @@ class AgentsGraph(
             } else updState.next
         }
 
-        //TODO: Add store messages to DB here!
+        if (updState.next == END) {
+            updState.messageMode = false
+        }
 
         return updState
     }

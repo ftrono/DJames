@@ -112,17 +112,13 @@ class SMSAgentNode (
             val corePrompt = """
             ## TASK:
             You're in charge of every request regarding preparing and sending a message.
-            You have access to the user's saved contacts and have the capabilities to search for a contact, compose a text message and send a SMS.
-            Consider the context in the conversation and **always use the available tools** find the right contact, compose a message and finally send the SMS message.
+            You have access to the user's saved contacts and have the capabilities to search for a contact, compose a text message and send it via SMS.
+            Consider the context in the conversation and **always use the available tools** find the right contact, compose a message and finally send the message.
             
             **General rules**: 
-            - From the context of the conversation, you need to understand:
-                1) Who the user wants to send the message to;
-                2) The content of the message to send.
-            - If none of this info is available from the conversation or the user is requesting if you can generically write or send a SMS to someone, ask the user to provide the information you need in steps (one by one).
+            - Extract the name of the contact from the context of the conversation (if not present, ask the user) and **immediately pass it to "tool_retrieve" to retrieve the corresponding phone number** (always, whoever the contact is - even the user itself).
             - If the user dictates a phone number, convert the dictated number(s) into a usable phone number (no country prefix, unless specifically provided) and **read it back to the user for a confirmation** before proceeding.
-            - If the user provides the name of a contact to send the message to, retrieve the needed phone number from 'tool_retrieve'.
-            - Ask the user to dictate the message they want to send, if there's no message content in the conversation context. 
+            - Ask the user to dictate the message they want to send, if there's no message content already in the conversation context. 
             - Compose an SMS draft with the content of the message provided by the user. 
             - **Always read back the message to the user before sending it and ask for the user'.**
             - Finally, **only after** you collected the target contact's phone number, message text and you got the user's approval to send the prepared message, **you must call "tool_send" to send it**.
@@ -130,8 +126,8 @@ class SMSAgentNode (
             ## TOOLS:
             You can use the following tools:
                 * **tool_handoff**: use this tool if either: 
-                    (i) the user or a tool are asking to end, stop or restart the conversation;
-                    (ii) the user wants to use Whatsapp or a voice/audio message;
+                    (i) the user is asking to end, stop or restart the conversation;
+                    (ii) the user starts asking for Whatsapp or to record a voice/audio message;
                     (iii) the user is requesting guidance or info about your capabilities; 
                     (iv) in **any case* the user makes a request outside your tasks scope.
                 * **tool_retrieve**: search from your knowledge base the phone number of the requested contact to send the SMS to. **Always use this tool if the user gives you the name of a contact but did not dictate to you a phone number!**
@@ -145,11 +141,11 @@ class SMSAgentNode (
         """.trimIndent()
 
             val handoffDescriptionSMS = """
-            Handoff tool. Use this tool if the user either: 
-                (i) wants to end/stop the conversation; 
-                (ii) wants to use Whatsapp or a voice/audio message; 
+            Handoff tool. Use this tool **only when**: 
+                (i) the user wants to end/stop the conversation; 
+                (ii) the user starts asking for Whatsapp or to record a voice/audio message;
                 (iii) is requesting guidance or info about your capabilities; 
-                (iv) in **any case* the user makes a request outside your tasks scope.
+                (iv) in **any case* the user makes a request outside your tasks scope (not related to messages).
         """.trimIndent()
 
             val inMessages = prepareInMessages(
@@ -233,8 +229,8 @@ class WATextAgentNode (
             ## TOOLS:
             You can use the following tools:
                 * **tool_handoff**: use this tool if either: 
-                    (i) the user or a tool are asking to end, stop or restart the conversation;
-                    (ii) the user wants to send an SMS or a voice/audio message instead of a Whatsapp text message;
+                    (i) the user is asking to end, stop or restart the conversation;
+                    (ii) the user starts asking for a SMS or to record a voice/audio message;
                     (iii) the user is requesting guidance or info about your capabilities; 
                     (iv) in **any case* the user makes a request outside your tasks scope.
                 * **tool_send**: finally send the Whatsapp text message. Use this tool only **AFTER you composed the message draft and you got the user's approval to send it**.
@@ -247,10 +243,10 @@ class WATextAgentNode (
         """.trimIndent()
 
         val handoffDescriptionWAText = """
-            Handoff tool. Use this tool if the user either: 
-                (i) wants to end/stop the conversation; 
-                (ii) wants to send an SMS or a voice/audio message instead of a Whatsapp text message; 
-                (iii) is requesting guidance or info about your capabilities; 
+            Handoff tool. Use this tool **only when**: 
+                (i) the user wants to end/stop the conversation; 
+                (ii) the user starts asking for a SMS or to record a voice/audio message;
+                (iii) the user is requesting guidance or info about your capabilities; 
                 (iv) in **any case* the user makes a request outside your tasks scope.
         """.trimIndent()
 

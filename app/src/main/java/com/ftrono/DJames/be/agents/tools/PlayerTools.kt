@@ -207,7 +207,7 @@ class ToolRetrievePlayer(
 
         // Fallback:
         if (playRequest.type == "" || matchNames.isEmpty()) {
-            retString = "End the conversation by simply saying that you did not understand."
+            retString = "Reply that you did not understand. Do NOT ask further questions to the user."
 
         } else {
             // 2) QUERY SPOTIFY:
@@ -246,7 +246,7 @@ class ToolRetrievePlayer(
             if (updAttachments.playCandidates!!.isEmpty()) {
                 // Fallback:
                 retString =
-                    "End the conversation by simply saying that you could not find any results."
+                    "Reply that you could not find any results. Do NOT ask further questions to the user."
 
             } else if (updAttachments.playCandidates!!.size == 1) {
                 // Success -> one match:
@@ -283,7 +283,7 @@ class ToolRetrievePlayer(
                 if (candidateStr == "") {
                     // Fallback:
                     retString =
-                        "End the conversation by simply saying that you could not find any results."
+                        "Reply that you could not find any results. Do NOT ask further questions to the user."
                 } else {
                     // Success -> multiple matches:
                     retString = """
@@ -342,7 +342,7 @@ class ToolPlay(
 
         if (spotifyID == "" || updAttachments.playCandidates == null) {
             return ToolResponse(
-                message = "Tell the user there was a problem and END the conversation.",
+                message = "Reply that there was a problem. Do NOT ask further questions to the user.",
                 attachments = updAttachments,
             )
 
@@ -374,7 +374,7 @@ class ToolPlay(
                         // Episodes not found:
                         Log.d(TAG, "Podcast episodes not found! ", e)
                         return ToolResponse(
-                            message = "Cannot find the latest episode for the requested podcast. End the conversation.",
+                            message = "Reply that you could not find the latest episode for the requested podcast. Do NOT ask further questions to the user.",
                             attachments = updAttachments,
                         )
                     }

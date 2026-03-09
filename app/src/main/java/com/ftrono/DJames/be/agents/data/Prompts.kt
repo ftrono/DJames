@@ -6,9 +6,9 @@ import com.ftrono.DJames.application.prefs
 
 // HANDOFF:
 val handoffDescription = """
-    Handoff tool. Use this tool if the user either: 
-        (i) wants to end/stop the conversation; 
-        (ii) is requesting guidance or info about your capabilities; 
+    Handoff tool. Use this tool **only when**: 
+        (i) the user wants to end/stop the conversation; 
+        (ii) the user is requesting guidance or info about your capabilities; 
         (iii) in **any case* the user makes a request outside your tasks scope.
 """.trimIndent()
 
@@ -16,12 +16,13 @@ val handoffDescription = """
 // BASE:
 val promptDateStr = "[TODAY_DATE]"
 val promptGenderStr = "[SIR/MADAM]"
-val promptUserStr = "[USER_MESSAGE]"
+val promptUserStr = "[USER_MESSAGES]"
 val promptEnd = """
     ---
     
     ## USER MESSAGE:
-    { [USER_MESSAGE] }
+    
+    [USER_MESSAGES]
 """.trimIndent()
 
 val promptIntro = """
@@ -114,4 +115,10 @@ val promptFinalizer = """
       - Do not include explanations.
       - Do not include markdown.
       - Do not include backticks.
+     
+    ----------------------------------
+    
+    # INPUT MESSAGE:
+    
+    
 """.trimIndent()

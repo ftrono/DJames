@@ -45,7 +45,7 @@ class PlayerAgentNode (
             ## TOOLS:
             You can use the following tools:
                 * **tool_handoff**: use this tool if either: 
-                    (i) the user or a tool are asking to end, stop or restart the conversation; 
+                    (i) the user is asking to end, stop or restart the conversation; 
                     (ii) the user is requesting guidance or info about your capabilities; 
                     (iii) in **any case* the user makes a request outside your tasks scope.
                 * **tool_retrieve**: get the Spotify ID of the requested item to play, if it exists in the knowledge base. **Always use this tool to retrieve the Spotify ID** for songs, artists, albums, playlists, podcast episodes or liked songs collection from your knowledge base before playing them!

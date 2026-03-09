@@ -205,6 +205,7 @@ class LlmAgent(
             )
 
             // Invoke LLM:
+            Log.d(TAG, "Invoking LLM with query -> ${llmRequest.messages.last()}!")
             var httpResponse = sendLlmRequest(
                 llmClassToRequestBody(llmRequest)
             )
@@ -319,7 +320,6 @@ class LlmAgent(
 
                 if (llmChoice != null && llmChoice.finishReason == "stop") {
                     // Return final AI response:
-                    Log.d(TAG, "Got LLM message: ${llmChoice.message.content}")
                     if (!isRouter) {
                         outMessages.add(
                             ChatMessage(

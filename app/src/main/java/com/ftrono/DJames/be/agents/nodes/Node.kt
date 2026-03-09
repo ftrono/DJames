@@ -35,7 +35,6 @@ open class Node() {
         origMessages: MutableList<ChatMessage>,
         corePrompt: String,
         isRouter: Boolean = false,
-        joinMessages: Boolean = false,
     ): MutableList<ChatMessage> {
 
         // 1) Build system prompt:
@@ -49,42 +48,39 @@ open class Node() {
             }
 
         // 2) Prepare user prompt:
-        var userPrompt = if (isRouter) {
+        val userPrompt = if (isRouter) {
                 systemPrompt + "\n" + corePrompt + "\n" + promptRouterOut
             } else {
                 systemPrompt + "\n" + corePrompt + "\n"
             }
 
-
         // 3) Prepare inMessages: must contain prompt + llmMessages + new updates:
-        var inMessages = mutableListOf<ChatMessage>(
+        val inMessages = mutableListOf<ChatMessage>(
             ChatMessage(role = "system", content = systemPrompt + userPrompt)   // System prompt
         )
 
-        if (joinMessages) {
-            // Join the entire conversation in one message only:
-            var fullConv = "## FULL CONVERSATION TRANSCRIPTION:"
-            for (msg in origMessages) {
-                fullConv = "$fullConv\n   - ${msg.role.uppercase()}: \"${msg.content} \""
+        // Join the entire conversation in one message only:
+        var fullConv = ""
+        if (isRouter) {
+            fullConv = "**## USER MESSAGE:**\n\n"
+            val msg = try {
+                origMessages.subList(0, origMessages.lastIndex).last()
+            } catch (e: Exception) {
+                origMessages.last()
             }
-            inMessages.add(
-                ChatMessage(
-                    role = "user", content = fullConv
-                )
-            )
+            fullConv += "   - **${msg.role.uppercase()}**: \"${msg.content} \""
 
         } else {
-            // Prepend user prompt to last user message:
-            userPrompt = userPrompt + "\n" + promptEnd
-            inMessages.addAll(origMessages.subList(0, origMessages.lastIndex))  // History
-            inMessages.add(
-                ChatMessage(
-                    role = "user",
-                    content = userPrompt.replace(promptUserStr, origMessages.last().content)
-                )
-            )   // User prompt + user message
+            fullConv = "**## FULL CONVERSATION TRANSCRIPTION:**\n\n"
+            for (msg in origMessages) {
+                fullConv += "   - **${msg.role.uppercase()}**: \"${msg.content} \"\n\n"
+            }
         }
-
+        inMessages.add(
+            ChatMessage(
+                role = "user", content = fullConv
+            )
+        )
         return inMessages
     }
 
@@ -101,19 +97,18 @@ open class Node() {
         if (llmReturn.next in nextOptions) {
             Log.d(TAG, "Routing to -> ${llmReturn.next}")
             // Update last user message:
+            if (updateIntent) {
+                updState.intentName = if (llmReturn.next == "MessageRouter" || name == "MessageRouter") "MessageAgent" else llmReturn. next
+            }
             if (prevState.lastUserMsgId != 0L) {
                 messageUtils.updateMessage(
                     context = context,
                     id = prevState.lastUserMsgId,
-                    requestIntent = llmReturn.next,
+                    requestIntent = updState.intentName,
                 )
             }
             // Route to next:
-            if (updateIntent) updState.intentName = llmReturn.next
             updState.next = llmReturn.next
-            if (updState.next == END) {
-                updState.messages = mutableListOf<ChatMessage>()
-            }
 
         } else {
             // Non-existent 'next' option:

@@ -43,7 +43,7 @@ class DriverAgentNode (
             ## TOOLS:
             You can use the following tools:
                 * **tool_handoff**: use this tool if either: 
-                    (i) the user or a tool are asking to end, stop or restart the conversation; 
+                    (i) the user is asking to end, stop or restart the conversation; 
                     (ii) the user is requesting guidance or info about your capabilities; 
                     (iii) in **any case* the user makes a request outside your tasks scope.
                 * **tool_retrieve**: get from Google Maps the Google Maps ID of the requested place / address. **Always use this tool to get the Google Maps ID BEFORE calling "tool_go"!**

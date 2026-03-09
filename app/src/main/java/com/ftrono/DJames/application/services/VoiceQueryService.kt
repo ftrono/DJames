@@ -21,6 +21,7 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_REC_STOP
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.defaultReplies
+import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.prefs
@@ -132,6 +133,7 @@ class VoiceQueryService: Service() {
         voiceQueryOn = false
         sourceIsVolume.postValue(false)
         lastState = StateInfo()
+        lastStarterId = 0L
         //Set overlay READY color:
         queryStatus.postValue("ready")
         Log.d(TAG, "VOICE QUERY SERVICE TERMINATED.")

@@ -94,7 +94,7 @@ class ToolRetrieveContacts(
         // Fallback:
         if (attachments.useCandidates!!.isEmpty()) {
             attachments.playFail = true
-            retString = "End the conversation by simply saying that you could not find any saved contact with that name."
+            retString = "Repky that you could not find any saved contact with that name. Do NOT ask further questions to the user."
 
         } else if (attachments.useCandidates!!.size == 1) {
             // Success -> one match:

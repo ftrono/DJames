@@ -64,7 +64,7 @@ class CallAgentNode (
             ## TOOLS:
             You can use the following tools:
                 * **tool_handoff**: use this tool if either: 
-                    (i) the user or a tool are asking to end, stop or restart the conversation; 
+                    (i) the user is asking to end, stop or restart the conversation; 
                     (ii) the user is requesting guidance or info about your capabilities; 
                     (iii) in **any case* the user makes a request outside your tasks scope.
                 * **tool_retrieve**: search from your knowledge base the phone number of the requested contact to call. **Always use this tool if the user gives you the name of a contact but did not dictate to you a phone number!**

@@ -205,7 +205,7 @@ class LlmAgent(
             )
 
             // Invoke LLM:
-            Log.d(TAG, "Invoking LLM with query -> ${llmRequest.messages.last()}!")
+            // Log.d(TAG, "Invoking LLM with query -> ${llmRequest.messages.last()}!")
             var httpResponse = sendLlmRequest(
                 llmClassToRequestBody(llmRequest)
             )

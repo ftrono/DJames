@@ -384,6 +384,18 @@ class LibraryUtils {
 
 
     //DB UPDATE:
+    // Create uniId:
+    fun createUniId(filter: String): String {
+        return if (filter == "contact") {
+            "000" + utils.generateRandomString(7, numOnly = true)
+        } else if (filter == "place") {
+            "0x0" + utils.generateRandomString(5, numOnly = true)
+        } else {
+            ""
+        }
+    }
+
+
     //Update / store item to DB:
     fun storeLibItem(context: Context, item: LibraryItem) {
         val type = utils.capitalizeWords(item.type)

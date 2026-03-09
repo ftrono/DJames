@@ -160,27 +160,26 @@ class ToolCall(): Tool() {
 
     override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
         val inputNumber: String = (args["phone_number"]?.jsonPrimitive?.content ?: "")
-        val updAttachments = attachments
 
         if (inputNumber == "") {
-            updAttachments.playFail = true
+            attachments.playFail = true
             return ToolResponse(
                 message = "Tell the user there was a problem. Then, END this conversation.",
-                attachments = updAttachments,
+                attachments = attachments,
             )
 
         } else {
             // Retrieve from attachments:
-            val sendMatches = if (updAttachments.useCandidates == null) {
+            val sendMatches = if (attachments.useCandidates == null) {
                 listOf()
             } else {
-                updAttachments.useCandidates!!.filter { it.uniId == inputNumber }
+                attachments.useCandidates!!.filter { it.uniId == inputNumber }
             }
 
             if (sendMatches.isEmpty()) {
                 // Phone number dictated by user -> call directly:
-                updAttachments.playAcknowledge = true
-                updAttachments.usable = LibraryItem(
+                attachments.playAcknowledge = true
+                attachments.usable = LibraryItem(
                     name = dictatedNumber,
                     source = "contact",
                     type = "contact",
@@ -191,18 +190,18 @@ class ToolCall(): Tool() {
                 )
                 return ToolResponse(
                     message = "Calling the phone number ${inputNumber}. Read it to the user and do NOT ask further questions to them.",
-                    attachments = updAttachments,
+                    attachments = attachments,
                     actionType = ActionType.CALL,
                 )
 
             } else {
                 // Phone number from contact:
                 val callMatch = sendMatches[0]
-                updAttachments.usable = callMatch
-                updAttachments.playAcknowledge = true
+                attachments.usable = callMatch
+                attachments.playAcknowledge = true
                 return ToolResponse(
                     message = "Calling ${callMatch.name}. Always tell the user who you're calling and do NOT ask further questions to the user.",
-                    attachments = updAttachments,
+                    attachments = attachments,
                     actionType = ActionType.CALL,
                 )
             }

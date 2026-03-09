@@ -187,6 +187,7 @@ fun EditLibPlace(
 
 
                     //3) Update / store to DB:
+                    itemPlace.uniId = libUtils.createUniId(filter)
                     libUtils.storeLibItem(context, itemPlace)
 
                     //4) End & close:

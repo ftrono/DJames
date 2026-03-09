@@ -42,7 +42,7 @@ class ActionsExecutor(
             ActionType.SMS -> if (prefs.enableV3) "" else sendSMS(text, usable, reqLanguage)
             ActionType.WA_TEXT -> if (prefs.enableV3) "" else sendWhatsappText(text, usable, reqLanguage)
             ActionType.WA_VOICE -> sendWhatsappAudio(usable, lastRecording)
-            ActionType.OPEN_URL -> if (prefs.enableV3) "" else openLink(usable)
+            ActionType.OPEN_URL -> if (prefs.enableV3 && !fromOldChat) "" else openLink(usable)
         }
     }
 

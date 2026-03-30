@@ -116,8 +116,7 @@ class VoiceQueryService: Service() {
             toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
         }
         //Abandon audio focus:
-        audioRequestsManager.releaseDuckedFocus()
-        audioRequestsManager.releaseExclusiveFocus()
+        audioRequestsManager.releaseAudioFocus()
 
         //unregister receiver:
         try {
@@ -208,7 +207,7 @@ class VoiceQueryService: Service() {
                             },
                             onFail = { stopSelf() }
                         )
-                        audioRequestsManager.releaseDuckedFocus()
+                        audioRequestsManager.releaseAudioFocus()
                     }
 
                     // 2) RECORD:
@@ -263,7 +262,7 @@ class VoiceQueryService: Service() {
                 //B) RECORDING SUCCESS:
                 //Play STOP tone:
                 toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
-                audioRequestsManager.releaseExclusiveFocus()
+                audioRequestsManager.releaseAudioFocus()
                 audioRequestsManager.requestDuckedFocus(
                     onGranted = {
                         if (voiceQueryOn) {
@@ -350,7 +349,7 @@ class VoiceQueryService: Service() {
                             aiReplies = lastState.aiReplies
                         )
                     }
-                    audioRequestsManager.releaseDuckedFocus()
+                    audioRequestsManager.releaseAudioFocus()
                     // Execute (only if end):
                     if (end && lastState.actionType != null) {
                         actionsExecutor.execute(lastState)
@@ -390,7 +389,7 @@ class VoiceQueryService: Service() {
                             aiReplies = lastState.aiReplies,
                         )
                     }
-                    audioRequestsManager.releaseDuckedFocus()
+                    audioRequestsManager.releaseAudioFocus()
 
                 } else {
                     stopSelf()

@@ -11,12 +11,11 @@ class DefaultReplies() {
     //INTRO:
     fun speakIntro(): String {
         val defaultSents = listOf(
-            "Tell me ${prefs.userGender}!",
-            "Ask me ${prefs.userGender}!",
+            "Tell me, ${prefs.userGender}!",
             "Hi ${prefs.userGender}! Tell me.",
             "${prefs.userGender}? Tell me!",
-            "Ready ${prefs.userGender}!",
-            "Listening ${prefs.userGender}!",
+            "Ready for you, ${prefs.userGender}!",
+            "Listening, ${prefs.userGender}!",
             "${prefs.userGender}, here to help!",
         )
         return defaultSents.random()
@@ -79,8 +78,12 @@ class DefaultReplies() {
     }
 
     // CONTACTS:
-    fun replyCalling(contactName: String): String {
-        return "Calling $contactName..."
+    fun replyCalling(contactName: String, contactPhone: String = ""): String {
+        return if (contactName == "" || contactName == dictatedNumber) {
+            "Calling the number: $contactPhone..."
+        } else {
+            "Calling $contactName..."
+        }
     }
 
     fun replyMessageRecord(contactName: String = ""): String {

@@ -85,9 +85,8 @@ class ToolRetrievePlaces(): Tool() {
 
         // Fallback:
         if (attachments.useRequest!!.name == "") {
-            attachments.playFail = true
             return ToolResponse(
-                message = "Tell the user there was a problem. Then, END this conversation.",
+                message = "This tool was called with no input args: try again passing the correct input information.",
                 attachments = attachments,
             )
         }
@@ -181,8 +180,8 @@ class ToolGo(
     override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
         val gMapsId: String = (args["google_maps_id"]?.jsonPrimitive?.content ?: "")
 
-        if (gMapsId == "") {
-            attachments.playFail = true
+        if (gMapsId == "" || attachments.useCandidates == null) {
+            Log.w(TAG, "ERROR: ToolGo invoked with either missing gMapsId ($gMapsId) or useCandidates!")
             return ToolResponse(
                 message = "Tell the user there was a problem. Then, END this conversation.",
                 attachments = attachments,
@@ -190,10 +189,13 @@ class ToolGo(
 
         } else {
             // Retrieve from attachments:
-            val candidates = if (attachments.useCandidates == null) {
-                listOf()
-            } else {
-                attachments.useCandidates!!.filter { it.uniId == gMapsId }
+            val candidates = attachments.useCandidates!!.filter { it.uniId == gMapsId }
+            if (candidates.isEmpty()) {
+                Log.w(TAG, "ERROR: No useCandidate with gMapsId $gMapsId!")
+                return ToolResponse(
+                    message = "Tell the user there was a problem. Then, END this conversation.",
+                    attachments = attachments,
+                )
             }
 
             // Navigate:

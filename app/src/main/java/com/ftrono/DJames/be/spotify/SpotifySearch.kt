@@ -207,7 +207,7 @@ class SpotifySearch(private val context: Context) {
         // Deduplicate:
         if (playType == "track") {
             sortedMatches = sortedMatches.distinctBy { it.track!!.name to it.track!!.artists.joinToString { art -> art.name } }.toMutableList()
-        } else if (playType == "artist") {
+        } else if (playType == "album") {
             sortedMatches = sortedMatches.distinctBy { it.album!!.name to it.album!!.artists.joinToString { art -> art.name } }.toMutableList()
         }
         return sortedMatches

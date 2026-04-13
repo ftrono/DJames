@@ -88,13 +88,20 @@ class ToolRetrieveContacts(
             name = (args["contact_name"]?.jsonPrimitive?.content ?: "").lowercase().trim(),
         )
 
+        // Fallback:
+        if (attachments.useRequest!!.name == "") {
+            return ToolResponse(
+                message = "This tool was called with no input args: try again passing the correct input information.",
+                attachments = attachments,
+            )
+        }
+
         attachments.useCandidates = loadCandidates(attachments.useRequest!!.name)
         Log.d(TAG, "MATCH NAMES: ${attachments.useCandidates!!.map { it.name }}")
 
         // Fallback:
         if (attachments.useCandidates!!.isEmpty()) {
-            attachments.playFail = true
-            retString = "Repky that you could not find any saved contact with that name. Do NOT ask further questions to the user."
+            retString = "Reply that you could not find any saved contact with that name. Ask the user if he/she wants to search for someone else or to specify better who to search for."
 
         } else if (attachments.useCandidates!!.size == 1) {
             // Success -> one match:
@@ -161,8 +168,8 @@ class ToolCall(): Tool() {
     override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
         val inputNumber: String = (args["phone_number"]?.jsonPrimitive?.content ?: "")
 
-        if (inputNumber == "") {
-            attachments.playFail = true
+        if (inputNumber == "" || attachments.useCandidates == null) {
+            Log.w(TAG, "ERROR: ToolGo invoked with either missing inputNumber ($inputNumber) or useCandidates!")
             return ToolResponse(
                 message = "Tell the user there was a problem. Then, END this conversation.",
                 attachments = attachments,
@@ -170,11 +177,7 @@ class ToolCall(): Tool() {
 
         } else {
             // Retrieve from attachments:
-            val sendMatches = if (attachments.useCandidates == null) {
-                listOf()
-            } else {
-                attachments.useCandidates!!.filter { it.uniId == inputNumber }
-            }
+            val sendMatches = attachments.useCandidates!!.filter { it.uniId == inputNumber }
 
             if (sendMatches.isEmpty()) {
                 // Phone number dictated by user -> call directly:
@@ -247,32 +250,21 @@ class ToolSendSMS(
         val inputNumber: String = (args["phone_number"]?.jsonPrimitive?.content ?: "")
         val messageText: String = (args["message_text"]?.jsonPrimitive?.content ?: "")
 
-        if (inputNumber == "" || messageText == "") {
-            attachments.playFail = true
+        if (inputNumber == "" || messageText == "" || attachments.useCandidates == null) {
             return ToolResponse(
-                message = "Tell the user there was a problem. Then, END this conversation.",
+                message = "This tool was called with no input args: try again passing the correct input information.",
                 attachments = attachments,
             )
 
         } else {
             // Retrieve from attachments:
-            val sendMatches = if (attachments.useCandidates == null) {
-                listOf()
-            } else {
-                attachments.useCandidates!!.filter { it.uniId == inputNumber }
-            }
+            val sendMatches = attachments.useCandidates!!.filter { it.uniId == inputNumber }
 
             if (sendMatches.isEmpty()) {
-                // Phone number dictated by user -> call directly:
-                attachments.playAcknowledge = true
-                attachments.usable = LibraryItem(
-                    name = dictatedNumber,
-                    source = "contact",
-                    type = "contact",
-                    phoneSet = PhoneSet(
-                        prefix = if (inputNumber.first() == '+') "" else "+39",   // TODO
-                        phone = inputNumber
-                    )
+                Log.w(TAG, "ERROR: No contact with uniId $inputNumber!")
+                return ToolResponse(
+                    message = "Tell the user there was a problem. Then, END this conversation.",
+                    attachments = attachments,
                 )
 
             } else {
@@ -280,15 +272,15 @@ class ToolSendSMS(
                 val sendMatch = sendMatches[0]
                 attachments.usable = sendMatch
                 attachments.playAcknowledge = true
-            }
 
-            // Send the SMS:
-            val outcomeReply = actionsExecutor.sendSMS(messageText, attachments.usable)
-            return ToolResponse(
-                message = "Outcome: $outcomeReply. Tell the user this and do NOT ask them further questions.",
-                attachments = attachments,
-                actionType = ActionType.SMS,
-            )
+                // Send the SMS:
+                val outcomeReply = actionsExecutor.sendSMS(messageText, attachments.usable)
+                return ToolResponse(
+                    message = "Outcome: $outcomeReply. Tell the user this and do NOT ask them further questions.",
+                    attachments = attachments,
+                    actionType = ActionType.SMS,
+                )
+            }
         }
     }
 }
@@ -327,16 +319,15 @@ class ToolSendWAText(
         val messageText: String = (args["message_text"]?.jsonPrimitive?.content ?: "")
 
         if (messageText == "") {
-            attachments.playFail = true
             return ToolResponse(
-                message = "Tell the user there was a problem. Then, END this conversation.",
+                message = "This tool was called with no input args: try again passing the correct input information.",
                 attachments = attachments,
             )
 
         } else {
             // Send the WhatsApp message:
-            val outcomeReply = actionsExecutor.sendWhatsappText(messageText)
             attachments.playAcknowledge = true
+            val outcomeReply = actionsExecutor.sendWhatsappText(messageText)
             return ToolResponse(
                 message = "Outcome: $outcomeReply. Read this all to the user and do NOT ask them further questions.",
                 attachments = attachments,

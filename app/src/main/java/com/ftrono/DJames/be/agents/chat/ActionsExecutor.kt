@@ -96,10 +96,11 @@ class ActionsExecutor(
             val phoneSet = usable!!.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
             utils.makeCall(context, contactPhone, fromService = !fromOldChat)
+            return defaultReplies.replyCalling(usable.name, contactPhone)
         } catch (e: Exception) {
             Log.w(TAG, "makeCall(): ACTION ERROR: ", e)
+            return defaultReplies.replyError()
         }
-        return ""
     }
 
     //SEND SMS:

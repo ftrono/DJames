@@ -225,6 +225,7 @@ class IntentsGraph(
         updState = stream(updState, routerNodes = listOf("IntentRouter"))
         Log.d(TAG, "Messages size (output): ${updState.messages.size} items, fail: ${updState.fail}")
 
+        updState.fullReply = updState.aiReplies.joinToString(" ") { it.text }
         return updState
     }
 }

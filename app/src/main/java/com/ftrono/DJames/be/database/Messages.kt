@@ -171,7 +171,6 @@ data class Message(
 
 @Serializable
 data class Attachments(
-    var playFail: Boolean = false,   //play the fail tone
     var playAcknowledge: Boolean = false,   //play the acknowledge tone
 
     @Convert(converter = ChatMessageConverter::class, dbType = String::class)

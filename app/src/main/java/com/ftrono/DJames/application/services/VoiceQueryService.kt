@@ -39,6 +39,9 @@ import com.ftrono.DJames.be.audio.AudioRequestsManager
 import com.ftrono.DJames.be.audio.TTSReader
 import com.ftrono.DJames.be.agents.chat.ActionsExecutor
 import com.ftrono.DJames.be.models.RecDetails
+import com.google.gson.JsonParser
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 
 class VoiceQueryService: Service() {
@@ -73,7 +76,11 @@ class VoiceQueryService: Service() {
         try {
             startForeground()
             voiceQueryOn = true
-            tts = TTSReader(applicationContext)
+            //GET LLM CREDENTIALS:
+            val reader = BufferedReader(InputStreamReader(applicationContext.resources.openRawResource(R.raw.env)))
+            val ttsApiKey = JsonParser.parseReader(reader).asJsonObject.get("elevenlabs_api_key").asString
+
+            tts = TTSReader(applicationContext, ttsApiKey)
             Log.d(TAG, "VOICE QUERY SERVICE STARTED.")
 
             val actFilter = IntentFilter()
@@ -197,12 +204,8 @@ class VoiceQueryService: Service() {
                                 Thread.sleep(500)
                                 //Read TTS:
                                 tts.speak(
-                                    aiReplies = listOf(
-                                        AiReply(
-                                            langCode = prefs.queryLanguage,
-                                            text = defaultReplies.speakIntro()
-                                        )
-                                    )
+                                    message = defaultReplies.speakIntro(),
+                                    isIntro = true,
                                 )
                             },
                             onFail = { stopSelf() }
@@ -338,7 +341,7 @@ class VoiceQueryService: Service() {
                                 langCode = prefs.queryLanguage,
                                 fromUser = false,
                                 fromVoice = true,
-                                text = if (prefs.enableV3) lastState.fullReply else lastState.aiReplies.joinToString(" ") { it.text },
+                                text = lastState.fullReply,
                                 intent = lastState.intentName,
                                 actionType = lastState.actionType,
                                 attachments = lastState.attachments,
@@ -346,7 +349,8 @@ class VoiceQueryService: Service() {
                         }
                         // Speak:
                         tts.speak(
-                            aiReplies = lastState.aiReplies
+                            message = lastState.fullReply,
+                            aiReplies = lastState.aiReplies,
                         )
                     }
                     audioRequestsManager.releaseAudioFocus()
@@ -367,7 +371,10 @@ class VoiceQueryService: Service() {
                         }
                     }
                     // If received updated replies: replace!
-                    if (newReplies.isNotEmpty())  lastState.aiReplies = newReplies
+                    if (newReplies.isNotEmpty()) {
+                        lastState.aiReplies = newReplies
+                        lastState.fullReply = newReplies.joinToString(" ") { it.text }
+                    }
 
                     // Read:
                     if (lastState.aiReplies.isNotEmpty()) {
@@ -378,7 +385,7 @@ class VoiceQueryService: Service() {
                                 langCode = prefs.queryLanguage,
                                 fromUser = false,
                                 fromVoice = true,
-                                text = if (prefs.enableV3) lastState.fullReply else lastState.aiReplies.joinToString(" ") { it.text },
+                                text = lastState.fullReply,
                                 intent = lastState.intentName,
                                 actionType = lastState.actionType,
                                 attachments = lastState.attachments,
@@ -386,6 +393,7 @@ class VoiceQueryService: Service() {
                         }
                         // Speak:
                         tts.speak(
+                            message = lastState.fullReply,
                             aiReplies = lastState.aiReplies,
                         )
                     }
@@ -402,7 +410,7 @@ class VoiceQueryService: Service() {
                 } else {
                     // END:
                     queryStatus.postValue("ready")
-                    if (lastState.fail || lastState.attachments.playFail) {
+                    if (lastState.fail) {
                         toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                     } else {
                         if (lastState.playAcknowledge || lastState.attachments.playAcknowledge) {

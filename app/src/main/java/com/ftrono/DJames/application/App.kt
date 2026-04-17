@@ -161,6 +161,7 @@ val dictatedNumber = "Dictated number"
 val genders = listOf<String>("Sir", "Madam", "Friend")
 var queryLangCodes = listOf<String>("en", "it")
 val queryLangFull = listOf<String>("English", "Italian")
+val voiceAccents = listOf<String>("British", "Canadian")
 var messLangCodes = listOf<String>("en", "it", "fr", "de", "es")
 val messLangFull = listOf<String>("English", "Italian", "French", "German", "Spanish")
 var messLangLower = listOf<String>("english", "italian", "french", "german", "spanish")
@@ -224,8 +225,11 @@ val mistralLlmTemperature = 0.3F
 val mistralLlmTimeout = 20L
 
 // TTS:
-// Voice: "Edward - British, dark, seductive, low (English – British)"
-val ttsVoiceId: String = "goT3UYdM9bhm0n2lmKQx"
+// Voice:
+val ttsVoiceIdMap: Map<String, String> = mapOf(
+    "British" to "goT3UYdM9bhm0n2lmKQx",   // Edward - British, dark, seductive, low
+    "Canadian" to "cjArIjDxxZm7Kw6xbz5t"   // Seann - Warm, natural & confident
+)
 val ttsModelId: String = "eleven_flash_v2_5"
 val ttsOutputFormat: String = "pcm_32000"
 val ttsSampleRate: Int = 32000

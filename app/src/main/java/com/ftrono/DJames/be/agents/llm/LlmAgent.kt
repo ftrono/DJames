@@ -66,8 +66,7 @@ class LlmAgent(
 
     // Clean LLM message:
     private fun cleanLlmMessage(text: String): String {
-        var re = Regex("[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+")
-        return re.replace(text, " ").replace("**", "\n").replace("* ", "- ").trim()
+        return text.replace("**", "\n").replace("* ", "- ").trim()
     }
 
     // Send LLM API request:

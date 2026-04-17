@@ -49,8 +49,11 @@ import com.ftrono.DJames.application.extraOpen
 import com.ftrono.DJames.application.messLangFull
 import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.queryLangCodes
+import com.ftrono.DJames.application.queryLangFull
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.services.OverlayService
+import com.ftrono.DJames.application.ttsVoiceIdMap
 import com.ftrono.DJames.application.volumeUpEnabledUI
 import com.ftrono.DJames.ui.components.CustomRangeSlider
 import com.ftrono.DJames.ui.components.CustomSlider
@@ -95,6 +98,9 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val checkedAutoClock = remember { mutableStateOf(if (preview) true else prefs.autoClock) }
     val checkedClockRedirect = remember { mutableStateOf(if (preview) true else prefs.clockRedirectEnabled) }
     val checkedVolumeEnabled = remember { mutableStateOf(if (preview) true else prefs.volumeUpEnabled) }
+
+    val queryLangState = rememberSaveable { mutableStateOf(if (preview) "English" else queryLangFull[queryLangCodes.indexOf(prefs.queryLanguage)]) }
+    val voiceAccentState = rememberSaveable { mutableStateOf(if (preview) "British" else prefs.voiceAccent) }
     val textMessLangState = rememberSaveable { mutableStateOf(if (preview) "English" else messLangFull[messLangCodes.indexOf(prefs.messageLanguage)]) }
 
     val focusRequester = remember { FocusRequester() }
@@ -135,194 +141,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
         ) {
-
-            //SECTION: EXPERIMENTAL:
-            SettingsSection(
-                modifier = Modifier
-                    .padding(top=8.dp, end=8.dp, bottom=4.dp),
-                title = "Experimental",
-                signColor = colorResource(id = R.color.yellowSign),
-                iconPainter = painterResource(id = R.drawable.icon_warning)
-            ) {
-                //Experimental: Enable v3:
-                Row(
-                    modifier = Modifier
-                        .padding(bottom = 4.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = "Enable v3 (alpha)",
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
-                        lineHeight = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Switch(
-                        checked = checkedV3.value,
-                        colors = getSwitchColors(
-                            color = colorResource(id = R.color.yellowSign)
-                        ),
-                        onCheckedChange = {
-                            checkedV3.value = it
-                            prefs.enableV3 = it
-                        }
-                    )
-                }
-
-
-                //Experimental: Enable Noise Suppression:
-                Row(
-                    modifier = Modifier
-                        .padding(bottom = 4.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = "Enable noise suppression",
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
-                        lineHeight = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Switch(
-                        checked = checkedNoise.value,
-                        colors = getSwitchColors(
-                            color = colorResource(id = R.color.yellowSign)
-                        ),
-                        onCheckedChange = {
-                            checkedNoise.value = it
-                            prefs.enableNoiseSuppression = it
-                        }
-                    )
-                }
-
-                
-                if (checkedNoise.value) {
-                    // Experimental: Rec frequencies range:
-                    Text(
-                        modifier = Modifier
-                            .padding(top = 8.dp, bottom = 4.dp),
-                        text = "Noise: audio cutout frequencies",
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    CustomRangeSlider(
-                        modifier = Modifier
-                            .padding(top = 4.dp),
-                        rangePosition = sliderRecFreqPos,
-                        range = recFreqRange,
-                        steps = 15,   // (max - min) / (steps + 1),
-                        unit = "Hz",
-                        trackColor = colorResource(R.color.yellowSign),
-                        thumbColor = colorResource(R.color.yellowSignLight),
-                        tickColor = colorResource(R.color.faded_grey),
-                        onDone = {
-                            // Update prefs:
-                            prefs.recMinFreq = sliderRecFreqPos.value.start.roundToInt()
-                            prefs.recMaxFreq = sliderRecFreqPos.value.endInclusive.roundToInt()
-                        }
-                    )
-
-
-                    //Experimental: Enable Second Noise Suppression:
-                    Row(
-                        modifier = Modifier
-                            .padding(bottom = 4.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            modifier = Modifier.weight(1f),
-                            text = "Noise: apply suppression twice",
-                            color = colorResource(id = R.color.light_grey),
-                            textAlign = TextAlign.Start,
-                            fontSize = 14.sp,
-                            lineHeight = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Switch(
-                            checked = checkedSecondNoise.value,
-                            colors = getSwitchColors(
-                                color = colorResource(id = R.color.yellowSign)
-                            ),
-                            onCheckedChange = {
-                                checkedSecondNoise.value = it
-                                prefs.enableSecondNoiseSuppression = it
-                            }
-                        )
-                    }
-
-
-                    if (checkedSecondNoise.value) {
-                        //Noise: additional cutout:
-                        Text(
-                            modifier = Modifier
-                                .padding(bottom = 4.dp),
-                            //.padding(top=8.dp, bottom = 4.dp),
-                            text = "Noise: increase 2nd pass cutout of",
-                            color = colorResource(id = R.color.light_grey),
-                            textAlign = TextAlign.Start,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        CustomSlider(
-                            modifier = Modifier
-                                .padding(top = 4.dp),
-                            position = sliderSecNoiseDeltaPos,
-                            range = 0f..600f,
-                            steps = 5,   // (max - min) / (steps + 1),
-                            unit = "Hz",
-                            trackColor = colorResource(R.color.yellowSign),
-                            thumbColor = colorResource(R.color.yellowSignLight),
-                            tickColor = colorResource(R.color.faded_grey),
-                            onDone = {
-                                // Update prefs:
-                                prefs.secondNoiseDelta = sliderSecNoiseDeltaPos.value.roundToInt()
-                            }
-                        )
-                    }
-                }
-
-
-                //Experimental: Save recs to Downloads folder:
-                Row(
-                    modifier = Modifier
-                        .padding(bottom = 4.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = "Save recordings to Downloads",
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
-                        lineHeight = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Switch(
-                        checked = checkedRecToDownloads.value,
-                        colors = getSwitchColors(
-                            color = colorResource(id = R.color.yellowSign)
-                        ),
-                        onCheckedChange = {
-                            checkedRecToDownloads.value = it
-                            prefs.recToDownloads = it
-                        }
-                    )
-                }
-            }
 
             //SECTION: OVERLAY BUTTON:
             SettingsSection(
@@ -405,13 +223,85 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 signColor = colorResource(id = R.color.yellowSign),
                 iconPainter = painterResource(id = R.drawable.icon_speak)
             ) {
+                //Experimental: Enable v3:
+                Row(
+                    modifier = Modifier
+                        .padding(bottom = 8.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = "Enable v3 (beta)",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        lineHeight = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Switch(
+                        checked = checkedV3.value,
+                        colors = getSwitchColors(
+                            color = colorResource(id = R.color.yellowSign)
+                        ),
+                        onCheckedChange = {
+                            checkedV3.value = it
+                            prefs.enableV3 = it
+                        }
+                    )
+                }
+
+                // Voice language:
+                Text(
+                    modifier = Modifier
+                        .padding(bottom = 4.dp),
+                    text = "Default language",
+                    color = colorResource(id = R.color.light_grey),
+                    textAlign = TextAlign.Start,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                DropdownSpinner(
+                    context = mContext,
+                    parentOptions = queryLangFull,
+                    init = queryLangState.value,
+                    state = queryLangState,
+                    focusColorLight = colorResource(id = R.color.yellowSignLight),
+                    focusColorDark = colorResource(id = R.color.yellowSign),
+                    optionsBackground = colorResource(id = R.color.dark_grey),
+                    prefName = "queryLanguage",
+                    width = 200
+                )
+
+                // Voice accent:
+                Text(
+                    modifier = Modifier
+                        .padding(bottom = 4.dp),
+                    text = "Voice accent",
+                    color = colorResource(id = R.color.light_grey),
+                    textAlign = TextAlign.Start,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                DropdownSpinner(
+                    context = mContext,
+                    parentOptions = ttsVoiceIdMap.keys.toList(),
+                    init = voiceAccentState.value,
+                    state = voiceAccentState,
+                    focusColorLight = colorResource(id = R.color.yellowSignLight),
+                    focusColorDark = colorResource(id = R.color.yellowSign),
+                    optionsBackground = colorResource(id = R.color.dark_grey),
+                    prefName = "voiceAccent",
+                    width = 200
+                )
 
                 //Voice queries: Req timeout:
                 Text(
                     modifier = Modifier
                         .padding(bottom = 4.dp),
                         //.padding(top=8.dp, bottom = 4.dp),
-                    text = "Voice queries: timeout recording after",
+                    text = "Timeout query recording after",
                     color = colorResource(id = R.color.light_grey),
                     textAlign = TextAlign.Start,
                     fontSize = 14.sp,
@@ -443,7 +333,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 ) {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = "Voice queries: stop recording\nwhen silence is detected",
+                        text = "Stop recording query\nwhen silence is detected",
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
@@ -496,6 +386,135 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
             }
 
 
+            //SECTION: AUDIO RECORDING:
+            SettingsSection(
+                modifier = Modifier
+                    .padding(top=8.dp, end=8.dp, bottom=4.dp),
+                title = "Audio recording",
+                signColor = colorResource(id = R.color.violetSign),
+                iconPainter = painterResource(id = R.drawable.icon_mic)
+            ) {
+                //Experimental: Enable Noise Suppression:
+                Row(
+                    modifier = Modifier
+                        .padding(bottom = 4.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = "Enable noise suppression",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        lineHeight = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Switch(
+                        checked = checkedNoise.value,
+                        colors = getSwitchColors(
+                            color = colorResource(id = R.color.violetSign)
+                        ),
+                        onCheckedChange = {
+                            checkedNoise.value = it
+                            prefs.enableNoiseSuppression = it
+                        }
+                    )
+                }
+
+
+                if (checkedNoise.value) {
+                    // Experimental: Rec frequencies range:
+                    Text(
+                        modifier = Modifier
+                            .padding(top = 8.dp, bottom = 4.dp),
+                        text = "Noise: audio cutout frequencies",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    CustomRangeSlider(
+                        modifier = Modifier
+                            .padding(top = 4.dp),
+                        rangePosition = sliderRecFreqPos,
+                        range = recFreqRange,
+                        steps = 15,   // (max - min) / (steps + 1),
+                        unit = "Hz",
+                        trackColor = colorResource(R.color.violetSign),
+                        thumbColor = colorResource(R.color.violetSignLight),
+                        tickColor = colorResource(R.color.faded_grey),
+                        onDone = {
+                            // Update prefs:
+                            prefs.recMinFreq = sliderRecFreqPos.value.start.roundToInt()
+                            prefs.recMaxFreq = sliderRecFreqPos.value.endInclusive.roundToInt()
+                        }
+                    )
+
+
+                    //Experimental: Enable Second Noise Suppression:
+                    Row(
+                        modifier = Modifier
+                            .padding(bottom = 4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            modifier = Modifier.weight(1f),
+                            text = "Noise: apply suppression twice",
+                            color = colorResource(id = R.color.light_grey),
+                            textAlign = TextAlign.Start,
+                            fontSize = 14.sp,
+                            lineHeight = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Switch(
+                            checked = checkedSecondNoise.value,
+                            colors = getSwitchColors(
+                                color = colorResource(id = R.color.violetSign)
+                            ),
+                            onCheckedChange = {
+                                checkedSecondNoise.value = it
+                                prefs.enableSecondNoiseSuppression = it
+                            }
+                        )
+                    }
+
+
+                    if (checkedSecondNoise.value) {
+                        //Noise: additional cutout:
+                        Text(
+                            modifier = Modifier
+                                .padding(bottom = 4.dp),
+                            //.padding(top=8.dp, bottom = 4.dp),
+                            text = "Noise: increase 2nd pass cutout of",
+                            color = colorResource(id = R.color.light_grey),
+                            textAlign = TextAlign.Start,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        CustomSlider(
+                            modifier = Modifier
+                                .padding(top = 4.dp),
+                            position = sliderSecNoiseDeltaPos,
+                            range = 0f..600f,
+                            steps = 5,   // (max - min) / (steps + 1),
+                            unit = "Hz",
+                            trackColor = colorResource(R.color.violetSign),
+                            thumbColor = colorResource(R.color.violetSignLight),
+                            tickColor = colorResource(R.color.faded_grey),
+                            onDone = {
+                                // Update prefs:
+                                prefs.secondNoiseDelta = sliderSecNoiseDeltaPos.value.roundToInt()
+                            }
+                        )
+                    }
+                }
+            }
+
+
             //SECTION: MESSAGING:
             SettingsSection(
                 modifier = Modifier
@@ -509,7 +528,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 Text(
                     modifier = Modifier
                         .padding(bottom = 4.dp),
-                    text = "Messages: default language",
+                    text = "Default messaging language",
                     color = colorResource(id = R.color.light_grey),
                     textAlign = TextAlign.Start,
                     fontSize = 14.sp,
@@ -531,7 +550,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 Text(
                     modifier = Modifier
                         .padding(top = 8.dp, bottom = 4.dp),
-                    text = "Messages: timeout recording after",
+                    text = "Timeout message recording after",
                     color = colorResource(id = R.color.light_grey),
                     textAlign = TextAlign.Start,
                     fontSize = 14.sp,
@@ -563,7 +582,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 ) {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = "Messages: stop recording\nwhen silence is detected",
+                        text = "Stop recording message\nwhen silence is detected",
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
@@ -767,6 +786,35 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             prefs.volumeUpEnabled = it
                             volumeUpEnabledUI.postValue(it)
                             restartOverlay(mContext)
+                        }
+                    )
+                }
+
+                //Save recs to Downloads folder:
+                Row(
+                    modifier = Modifier
+                        .padding(bottom = 4.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = "Save recordings to Downloads",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        lineHeight = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Switch(
+                        checked = checkedRecToDownloads.value,
+                        colors = getSwitchColors(
+                            color = colorResource(id = R.color.redSign)
+                        ),
+                        onCheckedChange = {
+                            checkedRecToDownloads.value = it
+                            prefs.recToDownloads = it
                         }
                     )
                 }

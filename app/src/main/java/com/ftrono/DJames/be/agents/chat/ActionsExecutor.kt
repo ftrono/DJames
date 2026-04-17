@@ -114,16 +114,14 @@ class ActionsExecutor(
             val contactName = usable!!.name
             val phoneSet = usable.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
-            var messageText = text
+            var messageText = "[DJ] $text"
             // SEND:
             if (reqLanguage != "") {
-                messageText = "[DJ] ${
-                    fulfillmentUtils.replaceEmojis(
-                        context = context,
-                        text = text,
-                        reqLanguage = reqLanguage
-                    )
-                }"
+                messageText = fulfillmentUtils.replaceEmojis(
+                    context = context,
+                    text = messageText,
+                    reqLanguage = reqLanguage
+                )
             }
             val smsManager: SmsManager = SmsManager.getDefault()
             val parts = smsManager.divideMessage(messageText)
@@ -149,16 +147,14 @@ class ActionsExecutor(
             val contactName = usable!!.name
             val phoneSet = usable.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
-            var messageText = ""
+            var messageText = "[DJ] $text"
             // SEND:
             if (reqLanguage != "") {
-                messageText = "[DJ] ${
-                    fulfillmentUtils.replaceEmojis(
-                        context = context,
-                        text = text,
-                        reqLanguage = reqLanguage
-                    )
-                }"
+                messageText = fulfillmentUtils.replaceEmojis(
+                    context = context,
+                    text = messageText,
+                    reqLanguage = reqLanguage
+                )
             }
 
             //Open WA:

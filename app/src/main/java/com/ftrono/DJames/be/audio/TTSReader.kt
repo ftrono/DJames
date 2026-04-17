@@ -23,7 +23,7 @@ import com.ftrono.DJames.application.ttsSimilarityBoost
 import com.ftrono.DJames.application.ttsSpeed
 import com.ftrono.DJames.application.ttsStability
 import com.ftrono.DJames.application.ttsTimeoutMs
-import com.ftrono.DJames.application.ttsVoiceId
+import com.ftrono.DJames.application.ttsVoiceIdMap
 import com.ftrono.DJames.be.utils.HttpClient
 import com.ftrono.DJames.be.models.TTSRequest
 import com.ftrono.DJames.be.models.TTSVoiceSettings
@@ -51,6 +51,7 @@ class TTSReader(
         aiReplies: List<AiReply> = listOf(),
         isIntro: Boolean = false,
     ) {
+        val text = utils.cleanString(message, emojiOnly = true)
         runBlocking {
             if (!prefs.enableV3) {
                 // (TEMP) V2 compatibility:
@@ -65,7 +66,7 @@ class TTSReader(
                 } else {
                     ttsReadNative(
                         context = context,
-                        message = message,
+                        message = text,
                         langCode = prefs.queryLanguage,
                     )
                 }
@@ -80,7 +81,7 @@ class TTSReader(
                 } catch (e: Exception) {
                     ttsReadNative(
                         context = context,
-                        message = message,
+                        message = text,
                         langCode = prefs.queryLanguage,
                     )
                 }
@@ -202,6 +203,7 @@ class TTSReader(
 
         val httpClient = HttpClient()
         val client = httpClient.getClient(ttsTimeoutMs)
+        val ttsVoiceId = ttsVoiceIdMap[prefs.voiceAccent]
 
         val url = "https://api.elevenlabs.io/v1/text-to-speech/$ttsVoiceId?output_format=$ttsOutputFormat"
 

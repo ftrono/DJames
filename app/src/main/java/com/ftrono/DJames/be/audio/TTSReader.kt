@@ -74,7 +74,16 @@ class TTSReader(
             //     ttsReadFile(message)
 
             } else {
-                ttsReadApi(message, isIntro)
+                // Read V3:
+                try {
+                    ttsReadApi(message, isIntro)
+                } catch (e: Exception) {
+                    ttsReadNative(
+                        context = context,
+                        message = message,
+                        langCode = prefs.queryLanguage,
+                    )
+                }
             }
         }
     }
@@ -91,13 +100,22 @@ class TTSReader(
 
             if (audioBytes == null || audioBytes.isEmpty()) {
                 Log.w(TAG, "ttsRead(): empty TTS audio response.")
-                return
+                return ttsReadNative(
+                    context = context,
+                    message = message,
+                    langCode = prefs.queryLanguage,
+                )
             }
 
             playVoice(audioBytes = audioBytes)
             release()
         } catch (t: Throwable) {
             Log.e(TAG, "ttsRead(): failed.", t)
+            ttsReadNative(
+                context = context,
+                message = message,
+                langCode = prefs.queryLanguage,
+            )
         }
     }
 

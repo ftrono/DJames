@@ -32,7 +32,7 @@ class MainRouterNode (
             You have **only one task*: to **classify** the user request into **ONE of the following literal categories**.
 
             ## AVAILABLE CATEGORIES:
-            - "PlayerAgent" -> for any request involving music, songs, music artists, albums or podcast episodes, or Spotify in general.
+            - "PlayerAgent" -> for any request involving playing or finding music, songs, music artists, albums or podcast episodes, or Spotify in general.
             - "CallAgent" -> for any request involving calling someone.
             - "MessageRouter" -> for any request involving messaging someone.
             - "DriverAgent" -> for any request involving requesting driving directions, routes, places, navigation or maps.

@@ -258,7 +258,7 @@ class LlmAgent(
                         // Store "assistant" tool request message:
                         updMessage = ChatMessage(
                             role = "assistant",
-                            content = "Calling tool $toolCall...",
+                            content = "Calling tool $toolName...",
                             toolCalls = listOf(toolCall)
                         )
                         inMessages.add(updMessage)
@@ -355,6 +355,7 @@ class LlmAgent(
     private fun getFallbackReply(attachments: Attachments): LlmReturn {
         return LlmReturn(
             fail = true,
+            next = END,
             messages = mutableListOf(),
             attachments = attachments,
         )

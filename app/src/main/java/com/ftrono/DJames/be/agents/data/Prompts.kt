@@ -21,14 +21,6 @@ val toolsPolicy = """
 // BASE:
 val promptDateStr = "[TODAY_DATE]"
 val promptGenderStr = "[SIR/MADAM]"
-val promptUserStr = "[USER_MESSAGES]"
-val promptEnd = """
-    ---
-    
-    ## USER MESSAGE:
-    
-    [USER_MESSAGES]
-""".trimIndent()
 
 val promptIntro = """
     You are DJames, a smart driving assistant and personal virtual DJ! 
@@ -44,6 +36,7 @@ val promptRouterIntro = """
 val promptRouterOut = """
     ## IMPORTANT: 
        - **You must NOT answer to the user question**: another agent will take care of that.
+       - **Carefully reflect** before choosing your pick.
        - **Strictly reply with only ONE of these classification categories and NOTHING ELSE**. Don't use quotes.
 """.trimIndent()
 
@@ -77,11 +70,5 @@ val promptFinalizer = """
       - The response must be valid JSON.
       - Do not include explanations.
       - Do not include markdown.
-      - Do not include backticks.
-     
-    ----------------------------------
-    
-    # INPUT MESSAGE:
-    
-    
+      - Do not include backticks.    
 """.trimIndent()

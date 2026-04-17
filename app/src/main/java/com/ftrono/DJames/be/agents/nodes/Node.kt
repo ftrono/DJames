@@ -12,12 +12,10 @@ import com.ftrono.DJames.be.agents.data.LlmReturn
 import com.ftrono.DJames.be.agents.data.NodeType
 import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.be.agents.data.promptDateStr
-import com.ftrono.DJames.be.agents.data.promptEnd
 import com.ftrono.DJames.be.agents.data.promptGenderStr
 import com.ftrono.DJames.be.agents.data.promptIntro
 import com.ftrono.DJames.be.agents.data.promptRouterIntro
 import com.ftrono.DJames.be.agents.data.promptRouterOut
-import com.ftrono.DJames.be.agents.data.promptUserStr
 
 
 open class Node() {
@@ -38,7 +36,7 @@ open class Node() {
     ): MutableList<ChatMessage> {
 
         // 1) Build system prompt:
-        val systemPrompt = if (isRouter) {
+        var systemPrompt = if (isRouter) {
                 promptRouterIntro
             } else {
                 val curDate = utils.convertTimestamp(
@@ -48,39 +46,30 @@ open class Node() {
             }
 
         // 2) Prepare user prompt:
-        val userPrompt = if (isRouter) {
-                systemPrompt + "\n" + corePrompt + "\n" + promptRouterOut
-            } else {
-                systemPrompt + "\n" + corePrompt + "\n"
-            }
+        systemPrompt = if (isRouter) {
+            systemPrompt + "\n" + corePrompt + "\n" + promptRouterOut
+        } else {
+            systemPrompt + "\n" + corePrompt + "\n"
+        }
 
         // 3) Prepare inMessages: must contain prompt + llmMessages + new updates:
+        // System prompt
         val inMessages = mutableListOf<ChatMessage>(
-            ChatMessage(role = "system", content = systemPrompt + userPrompt)   // System prompt
+            ChatMessage(role = "system", content = systemPrompt)
         )
-
-        // Join the entire conversation in one message only:
-        var fullConv = ""
+        // Message history:
         if (isRouter) {
-            fullConv = "**## USER MESSAGE:**\n\n"
-            val msg = try {
-                origMessages.subList(0, origMessages.lastIndex).last()
-            } catch (e: Exception) {
-                origMessages.last()
-            }
-            fullConv += "   - **${msg.role.uppercase()}**: \"${msg.content} \""
+            val msg = origMessages.last()
+            inMessages.add(
+                ChatMessage(
+                    role = "user", content = "**## USER MESSAGE:** \"${msg.content} \""
+                )
+            )
 
         } else {
-            fullConv = "**## FULL CONVERSATION TRANSCRIPTION:**\n\n"
-            for (msg in origMessages) {
-                fullConv += "   - **${msg.role.uppercase()}**: \"${msg.content} \"\n\n"
-            }
+            inMessages.addAll(origMessages)
         }
-        inMessages.add(
-            ChatMessage(
-                role = "user", content = fullConv
-            )
-        )
+        // Log.d(TAG, "I'M SEEING THIS: $inMessages")
         return inMessages
     }
 

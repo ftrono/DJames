@@ -257,8 +257,12 @@ class AgentsGraph(
             val inMessages = mutableListOf<ChatMessage>(
                 ChatMessage(
                     role = "system",
-                    content = promptFinalizer + finalReply
-                )   // System prompt
+                    content = promptFinalizer
+                ),
+                ChatMessage(
+                    role = "user",
+                    content = finalReply
+                )
             )
 
             val encodedReply = finalizerAgent.invoke(
@@ -323,12 +327,14 @@ class AgentsGraph(
         )
 
         // Finalize process:
-        val followUp = finalize(updState.fullReply.replace("*", ""))
-        updState.next = if (followUp && updState.next == END) {
-            updState.intentName
-        } else if (!followUp && updState.next != END) {
-            END
-        } else updState.next
+        if (!updState.fail) {
+            val followUp = finalize(updState.fullReply.replace("*", ""))
+            updState.next = if (followUp && updState.next == END) {
+                updState.intentName
+            } else if (!followUp && updState.next != END) {
+                END
+            } else updState.next
+        }
 
         // End message mode:
         if (updState.next == END) {

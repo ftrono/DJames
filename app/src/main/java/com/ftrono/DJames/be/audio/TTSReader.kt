@@ -74,17 +74,18 @@ class TTSReader(
             //     ttsReadFile(message)
 
             } else {
-                ttsReadApi(message)
+                ttsReadApi(message, isIntro)
             }
         }
     }
 
     // HELPERS: TTS directly read:
-    private suspend fun ttsReadApi(message: String) {
+    private suspend fun ttsReadApi(message: String, isIntro: Boolean = false) {
         try {
             val audioBytes = withContext(Dispatchers.IO) {
                 ttsRequestApi(
-                    text = message
+                    text = message,
+                    isIntro = isIntro,
                 )
             }
 
@@ -168,13 +169,13 @@ class TTSReader(
     }
 
     // API request:
-    private fun ttsRequestApi(text: String): ByteArray? {
+    private fun ttsRequestApi(text: String, isIntro: Boolean = false): ByteArray? {
         val requestBody = TTSClassToRequestBody(
             TTSRequest(
                 text = text,
                 model_id = ttsModelId,
                 voice_settings = TTSVoiceSettings(
-                    speed = ttsSpeed,
+                    speed = if (isIntro) ttsSpeed - 0.1 else ttsSpeed,
                     stability = ttsStability,
                     similarity_boost = ttsSimilarityBoost,
                 )

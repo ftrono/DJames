@@ -224,14 +224,14 @@ val mistralLlmTemperature = 0.3F
 val mistralLlmTimeout = 20L
 
 // TTS:
-// Voice: "Nathaniel – Deep, rich & mature (English – British)"
-val ttsVoiceId: String = "7S3KNdLDL7aRgBVRQb1z"
+// Voice: "Edward - British, dark, seductive, low (English – British)"
+val ttsVoiceId: String = "goT3UYdM9bhm0n2lmKQx"
 val ttsModelId: String = "eleven_flash_v2_5"
-val ttsOutputFormat: String = "pcm_16000"
-val ttsSampleRate: Int = 16000
+val ttsOutputFormat: String = "pcm_32000"
+val ttsSampleRate: Int = 32000
 val ttsTimeoutMs: Long = 10000L
-val ttsSpeed: Double = 0.95
-val ttsStability: Double = 0.75
+val ttsSpeed: Double = 1.0
+val ttsStability: Double = 0.50
 val ttsSimilarityBoost: Double = 0.75
 
 //BROADCASTS:

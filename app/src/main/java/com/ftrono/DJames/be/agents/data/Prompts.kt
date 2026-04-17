@@ -1,8 +1,5 @@
 package com.ftrono.DJames.be.agents.data
 
-import com.ftrono.DJames.application.messLangCodes
-import com.ftrono.DJames.application.prefs
-
 
 // HANDOFF:
 val handoffDescription = """
@@ -12,6 +9,14 @@ val handoffDescription = """
         (iii) in **any case* the user makes a request outside your tasks scope.
 """.trimIndent()
 
+val toolsPolicy = """
+    # Tool policy:
+    - Use a tool only when external data or computation is required.
+    - If the answer can be produced from the conversation alone, do not call tools.
+    - Before calling a tool, verify that the tool’s input arguments are fully grounded in the latest user request.
+    - Never call a tool just to restate or summarize prior conversation.
+    - If uncertain whether a tool is needed, ask internally whether the answer is already in context; prefer answering directly when it is.
+""".trimIndent()
 
 // BASE:
 val promptDateStr = "[TODAY_DATE]"

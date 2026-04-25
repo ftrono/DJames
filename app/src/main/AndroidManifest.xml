@@ -12,6 +12,8 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+<!--    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"-->
+<!--        tools:ignore="ProtectedPermissions" />-->
 
     <application
         android:name=".application.App"
@@ -99,6 +101,17 @@
             android:exported="false"
             android:foregroundServiceType="microphone">
         </service>
+
+<!--        <service-->
+<!--            android:name=".application.services.DJamesNotificationListener"-->
+<!--            android:label="Media Listener"-->
+<!--            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"-->
+<!--            android:exported="true">-->
+
+<!--            <intent-filter>-->
+<!--                <action android:name="android.service.notification.NotificationListenerService"/>-->
+<!--            </intent-filter>-->
+<!--        </service>-->
 
     </application>
 

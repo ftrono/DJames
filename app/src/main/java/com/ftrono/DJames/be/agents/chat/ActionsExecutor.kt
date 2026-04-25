@@ -14,9 +14,9 @@ import com.ftrono.DJames.application.recDir
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.SpotifyPlayable
-import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.kaigraph.data.StateInfo
+import com.ftrono.DJames.be.database.ActionType
 import com.ftrono.DJames.be.spotify.SpotifyPlayer
 import java.io.File
 
@@ -39,10 +39,10 @@ class ActionsExecutor(
         return when (action) {
             ActionType.PLAY -> spotifyPlay(playable)
             ActionType.CALL -> makeCall(usable, fromOldChat)
-            ActionType.SMS -> sendSMS(text, usable, reqLanguage)
-            ActionType.WA_TEXT -> sendWhatsappText(text, usable, reqLanguage)
-            ActionType.WA_VOICE -> sendWhatsappAudio(usable, lastRecording)
-            ActionType.OPEN_URL -> openLink(usable)
+            ActionType.SMS -> if (prefs.enableV3) "" else sendSMS(text, usable, reqLanguage)
+            ActionType.WA_TEXT -> if (prefs.enableV3) "" else sendWhatsappText(text, usable, reqLanguage)
+            ActionType.WA_VOICE -> sendWhatsappAudio(lastRecording)
+            ActionType.OPEN_URL -> if (prefs.enableV3 && !fromOldChat) "" else openLink(usable)
         }
     }
 
@@ -96,35 +96,37 @@ class ActionsExecutor(
             val phoneSet = usable!!.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
             utils.makeCall(context, contactPhone, fromService = !fromOldChat)
+            return defaultReplies.replyCalling(usable.name, contactPhone)
         } catch (e: Exception) {
             Log.w(TAG, "makeCall(): ACTION ERROR: ", e)
+            return defaultReplies.replyError()
         }
-        return ""
     }
 
     //SEND SMS:
     fun sendSMS(
         text: String,
         usable: LibraryItem?,
-        reqLanguage: String
+        reqLanguage: String = "",
     ): String {
         try {
             var ttsToRead = ""
             val contactName = usable!!.name
             val phoneSet = usable.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
+            var messageText = "[DJ] $text"
             // SEND:
-            var messageText = "[DJ] ${
-                fulfillmentUtils.replaceEmojis(
+            if (reqLanguage != "") {
+                messageText = fulfillmentUtils.replaceEmojis(
                     context = context,
-                    text = text,
+                    text = messageText,
                     reqLanguage = reqLanguage
                 )
-            }"
+            }
             val smsManager: SmsManager = SmsManager.getDefault()
             val parts = smsManager.divideMessage(messageText)
             smsManager.sendMultipartTextMessage(contactPhone, null, parts, null, null)
-            ttsToRead = defaultReplies.replySmsSent(contactName)
+            ttsToRead = defaultReplies.replySMSSent(contactName)
             Log.d(TAG, ttsToRead)
             return ttsToRead
 
@@ -137,22 +139,23 @@ class ActionsExecutor(
     //SEND WHATSAPP TEXT:
     fun sendWhatsappText(
         text: String,
-        usable: LibraryItem?,
-        reqLanguage: String,
+        usable: LibraryItem? = null,
+        reqLanguage: String = "",
     ): String {
         try {
             var ttsToRead = ""
             val contactName = usable!!.name
             val phoneSet = usable.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
+            var messageText = "[DJ] $text"
             // SEND:
-            var messageText = "[DJ] ${
-                fulfillmentUtils.replaceEmojis(
+            if (reqLanguage != "") {
+                messageText = fulfillmentUtils.replaceEmojis(
                     context = context,
-                    text = text,
+                    text = messageText,
                     reqLanguage = reqLanguage
                 )
-            }"
+            }
 
             //Open WA:
             val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -168,7 +171,7 @@ class ActionsExecutor(
 
             //Try to send:
             context.startActivity(intent)
-            ttsToRead = defaultReplies.replyWATextSent(contactName)
+            ttsToRead = defaultReplies.replyWATextReady(contactName)
             Log.d(TAG, "Whatsapp text message ready to be sent!")
             return ttsToRead
 
@@ -180,12 +183,10 @@ class ActionsExecutor(
 
     //SEND WHATSAPP AUDIO:
     fun sendWhatsappAudio(
-        usable: LibraryItem?,
         lastRecording: String,
     ): String {
         try {
             var ttsToRead = ""
-            val contactName = usable!!.name
             if (lastRecording != "") {
                 //Get audio file:
                 val audioFile = File(recDir, lastRecording)   //Flac
@@ -203,7 +204,7 @@ class ActionsExecutor(
 
                 //Try to send:
                 context.startActivity(intent)
-                ttsToRead = defaultReplies.replyWAVoiceSent(contactName)
+                ttsToRead = defaultReplies.replyWAVoiceReady()
                 Log.d(TAG, "Whatsapp audio message ready to be sent!")
             } else {
                 ttsToRead = defaultReplies.replyError()

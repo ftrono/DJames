@@ -1,6 +1,7 @@
 package com.ftrono.DJames.be.collections
 
 import com.ftrono.DJames.application.appVersion
+import com.ftrono.DJames.be.database.ActionType
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.Message
@@ -9,7 +10,6 @@ import com.ftrono.DJames.be.database.SpotifyArtist
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.database.SpotifyPlaylist
 import com.ftrono.DJames.be.database.SpotifyTrack
-import com.ftrono.DJames.be.agents.data.ActionType
 
 
 val testMessages = listOf<Message>(

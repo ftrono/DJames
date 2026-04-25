@@ -326,6 +326,9 @@ fun DropdownSpinner(
                         } else if (prefName == "queryLanguage") {
                             prefs.queryLanguage = queryLangCodes[queryLangFull.indexOf(selectionOption)]
                             state.value = selectionOption
+                        } else if (prefName == "voiceAccent") {
+                            prefs.voiceAccent = selectionOption
+                            state.value = selectionOption
                         } else if (prefName == "messageLanguage") {
                             prefs.messageLanguage = messLangCodes[messLangFull.indexOf(selectionOption)]
                             state.value = selectionOption

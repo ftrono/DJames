@@ -5,7 +5,7 @@ import android.util.Log
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.kaigraph.data.StateInfo
 import com.ftrono.DJames.be.models.AiReply
 import com.google.gson.JsonParser
 import java.io.BufferedReader

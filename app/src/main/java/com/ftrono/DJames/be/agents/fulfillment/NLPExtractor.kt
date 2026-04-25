@@ -221,7 +221,7 @@ class NLPExtractor (private val context: Context) {
         if (queryText.contains("voice") || queryText.contains("vocal") || queryText.contains("audio")) {
             messageType = "voice"
         } else if (queryText.contains("whatsapp")) {
-            messageType = "whatsapp"
+            messageType = "wa_text"
         }
         return messageType
     }

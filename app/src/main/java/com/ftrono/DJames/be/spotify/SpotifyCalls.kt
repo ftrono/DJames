@@ -6,6 +6,7 @@ import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.spotIntroUri
 import com.ftrono.DJames.be.models.HttpResponse
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 
 
 class SpotifyCalls(private val context: Context) {
@@ -13,7 +14,29 @@ class SpotifyCalls(private val context: Context) {
     private var query = SpotifyQuery(context)
 
 
-    //SAVE CURRENT TRACK:
+    //CHECK LIBRARY REQUEST:
+    fun checkLibraryRequest(ids: MutableList<String>, type: String): List<Boolean> {
+        var savedList = listOf<Boolean>()
+        val url = "https://api.spotify.com/v1/me/library/contains"
+
+        //Data:
+        val uris = ids.joinToString(",") { "$spotIntroUri%3A${type}%3A${it}" }
+
+        //Headers:
+        val jsonHeads = JsonObject()
+        jsonHeads.addProperty("Authorization", "Bearer ${prefs.spotifyToken}")
+
+        //PUT REQUEST:
+        val response = query.querySpotify(type = "get", url = "$url?uris=$uris", jsonHeads = jsonHeads)
+        Log.d(TAG, "checkLibraryRequest: response code: ${response.code}")
+        Log.d(TAG, "checkLibraryRequest: response: ${response}")
+        if (response.body != "") {
+            savedList = JsonParser.parseString(response.body).asJsonArray.map { it.asBoolean }
+        }
+        return savedList
+    }
+
+    //SAVE CURRENT ITEM:
     fun saveLibraryRequest(ids: List<String>, type: String): Int {
         var url = "https://api.spotify.com/v1/me/library"
 

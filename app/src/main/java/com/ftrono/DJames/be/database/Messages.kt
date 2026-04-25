@@ -1,8 +1,7 @@
 package com.ftrono.DJames.be.database
 
-import com.ftrono.DJames.be.agents.data.ChatMessage
-import com.ftrono.DJames.be.agents.data.ActionType
-import com.ftrono.DJames.be.agents.data.ActionTypeConverter
+import com.ftrono.DJames.kaigraph.data.ChatMessage
+import com.ftrono.DJames.be.models.EnumTypeConverter
 import com.ftrono.DJames.be.models.JsonConverter
 import com.ftrono.DJames.be.models.JsonListConverter
 import io.objectbox.annotation.Entity
@@ -12,6 +11,11 @@ import kotlinx.serialization.Serializable
 
 
 //SUPPORT CLASSES:
+enum class ActionType {
+    PLAY, CALL, SMS, WA_TEXT, WA_VOICE, OPEN_URL
+}
+class ActionTypeConverter : EnumTypeConverter<ActionType>(ActionType.entries.toTypedArray())
+
 @Serializable
 data class NlpQueryModel(
     var recFile: String = "",
@@ -21,6 +25,12 @@ data class NlpQueryModel(
     var artists: MutableList<String> = mutableListOf<String>(),
     var genre: String = "",
     var reqLanguage: String = "",
+)
+
+@Serializable
+data class UseRequest(
+    var type: String = "",
+    var name: String = ""
 )
 
 @Serializable
@@ -84,7 +94,6 @@ data class SpotifyTrack(
     var name: String = "",
     var artists: MutableList<SpotifyArtist> = mutableListOf<SpotifyArtist>(),
     var album: SpotifyAlbum? = null,
-    var saved: Boolean = false,   // Only for search
     var context: SpotifyContext? = null,
 )
 
@@ -110,6 +119,7 @@ data class SpotifyEpisode(
 data class SpotifyPlayable(
     var id: String = "",
     var matchScore: Int = 0,
+    var saved: Boolean = false,   // Only for search
     var type: String = "",
     var track: SpotifyTrack? = null,
     var artist: SpotifyArtist? = null,
@@ -166,7 +176,19 @@ data class Message(
 @Serializable
 data class Attachments(
     @Convert(converter = ChatMessageConverter::class, dbType = String::class)
-    var llmChatMessages: MutableList<ChatMessage> = mutableListOf<ChatMessage>(),
+    var latestTurnFlow: MutableList<ChatMessage> = mutableListOf<ChatMessage>(),
+
+    var actionType: ActionType? = null,   //"call", ""
+    var playAcknowledge: Boolean = false,   //play the acknowledge tone
+
+    @Convert(converter = UseRequestConverter::class, dbType = String::class)
+    var useRequest: UseRequest? = null,
+
+    @Convert(converter = UseCandidatesConverter::class, dbType = String::class)
+    var useCandidates: MutableList<LibraryItem>? = null,
+
+    @Convert(converter = LibraryItemConverter::class, dbType = String::class)
+    var usable: LibraryItem? = null,
 
     @Convert(converter = PlayRequestConverter::class, dbType = String::class)
     var playRequest: PlayRequest? = null,
@@ -179,9 +201,6 @@ data class Attachments(
 
     @Convert(converter = SpotifyPlayableConverter::class, dbType = String::class)
     var spotifyPlay: SpotifyPlayable? = null,
-
-    @Convert(converter = LibraryItemConverter::class, dbType = String::class)
-    var usable: LibraryItem? = null,
 
     // INTENTS:
     var entityArtists: MutableList<String> = mutableListOf<String>(),   // Fulfillment-only
@@ -197,6 +216,8 @@ data class Attachments(
 class AttachmentsConverter : JsonConverter<Attachments>(Attachments.serializer())
 class PlayRequestConverter : JsonConverter<PlayRequest>(PlayRequest.serializer())
 class SpotifyPlayCandidatesConverter : JsonListConverter<SpotifyPlayable>(SpotifyPlayable.serializer())
+class UseRequestConverter : JsonConverter<UseRequest>(UseRequest.serializer())
+class UseCandidatesConverter : JsonListConverter<LibraryItem>(LibraryItem.serializer())
 class ExtractorInfoConverter : JsonConverter<ExtractorInfo>(ExtractorInfo.serializer())
 class SpotifyPlayableConverter : JsonConverter<SpotifyPlayable>(SpotifyPlayable.serializer())
 class NlpQueryModelConverter : JsonListConverter<NlpQueryModel>(NlpQueryModel.serializer())

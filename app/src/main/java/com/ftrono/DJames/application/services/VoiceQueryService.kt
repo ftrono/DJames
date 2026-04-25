@@ -21,6 +21,7 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_REC_STOP
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.defaultReplies
+import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.prefs
@@ -32,12 +33,15 @@ import com.ftrono.DJames.application.sourceIsVolume
 import com.ftrono.DJames.be.agents.AgentsGraph
 import com.ftrono.DJames.be.agents.IntentsGraph
 import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.kaigraph.data.StateInfo
 import com.ftrono.DJames.be.audio.AndroidAudioRecorder
 import com.ftrono.DJames.be.audio.AudioRequestsManager
 import com.ftrono.DJames.be.audio.TTSReader
 import com.ftrono.DJames.be.agents.chat.ActionsExecutor
 import com.ftrono.DJames.be.models.RecDetails
+import com.google.gson.JsonParser
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 
 class VoiceQueryService: Service() {
@@ -72,7 +76,11 @@ class VoiceQueryService: Service() {
         try {
             startForeground()
             voiceQueryOn = true
-            tts = TTSReader(applicationContext)
+            //GET LLM CREDENTIALS:
+            val reader = BufferedReader(InputStreamReader(applicationContext.resources.openRawResource(R.raw.env)))
+            val ttsApiKey = JsonParser.parseReader(reader).asJsonObject.get("elevenlabs_api_key").asString
+
+            tts = TTSReader(applicationContext, ttsApiKey)
             Log.d(TAG, "VOICE QUERY SERVICE STARTED.")
 
             val actFilter = IntentFilter()
@@ -115,8 +123,7 @@ class VoiceQueryService: Service() {
             toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
         }
         //Abandon audio focus:
-        audioRequestsManager.releaseDuckedFocus()
-        audioRequestsManager.releaseExclusiveFocus()
+        audioRequestsManager.releaseAudioFocus()
 
         //unregister receiver:
         try {
@@ -132,6 +139,7 @@ class VoiceQueryService: Service() {
         voiceQueryOn = false
         sourceIsVolume.postValue(false)
         lastState = StateInfo()
+        lastStarterId = 0L
         //Set overlay READY color:
         queryStatus.postValue("ready")
         Log.d(TAG, "VOICE QUERY SERVICE TERMINATED.")
@@ -196,17 +204,13 @@ class VoiceQueryService: Service() {
                                 Thread.sleep(500)
                                 //Read TTS:
                                 tts.speak(
-                                    aiReplies = listOf(
-                                        AiReply(
-                                            langCode = prefs.queryLanguage,
-                                            text = defaultReplies.speakIntro()
-                                        )
-                                    )
+                                    message = defaultReplies.speakIntro(),
+                                    isIntro = true,
                                 )
                             },
                             onFail = { stopSelf() }
                         )
-                        audioRequestsManager.releaseDuckedFocus()
+                        audioRequestsManager.releaseAudioFocus()
                     }
 
                     // 2) RECORD:
@@ -261,7 +265,7 @@ class VoiceQueryService: Service() {
                 //B) RECORDING SUCCESS:
                 //Play STOP tone:
                 toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
-                audioRequestsManager.releaseExclusiveFocus()
+                audioRequestsManager.releaseAudioFocus()
                 audioRequestsManager.requestDuckedFocus(
                     onGranted = {
                         if (voiceQueryOn) {
@@ -330,10 +334,6 @@ class VoiceQueryService: Service() {
                     // A) First speak, then execute action:
                     // Read:
                     if (lastState.aiReplies.isNotEmpty()) {
-                        // Speak:
-                        tts.speak(
-                            aiReplies = lastState.aiReplies
-                        )
                         // Save reply:
                         if (!lastState.noSave) {
                             messageUtils.storeMessage(
@@ -341,14 +341,19 @@ class VoiceQueryService: Service() {
                                 langCode = prefs.queryLanguage,
                                 fromUser = false,
                                 fromVoice = true,
-                                text = lastState.aiReplies.joinToString(" ") { it.text },
+                                text = lastState.fullReply,
                                 intent = lastState.intentName,
                                 actionType = lastState.actionType,
                                 attachments = lastState.attachments,
                             )
                         }
+                        // Speak:
+                        tts.speak(
+                            message = lastState.fullReply,
+                            aiReplies = lastState.aiReplies,
+                        )
                     }
-                    audioRequestsManager.releaseDuckedFocus()
+                    audioRequestsManager.releaseAudioFocus()
                     // Execute (only if end):
                     if (end && lastState.actionType != null) {
                         actionsExecutor.execute(lastState)
@@ -362,19 +367,17 @@ class VoiceQueryService: Service() {
                         // Reset:
                         if (lastState.messageMode) {
                             lastState.messageMode = false
-                            lastState.attachments.usable = null
+                            if (!prefs.enableV3) lastState.attachments.usable = null
                         }
                     }
                     // If received updated replies: replace!
-                    if (newReplies.isNotEmpty())  lastState.aiReplies = newReplies
+                    if (newReplies.isNotEmpty()) {
+                        lastState.aiReplies = newReplies
+                        lastState.fullReply = newReplies.joinToString(" ") { it.text }
+                    }
 
                     // Read:
                     if (lastState.aiReplies.isNotEmpty()) {
-                        // Speak:
-                        tts.speak(
-                            aiReplies = lastState.aiReplies,
-                        )
-
                         // Save reply:
                         if (!lastState.noSave) {
                             messageUtils.storeMessage(
@@ -382,14 +385,19 @@ class VoiceQueryService: Service() {
                                 langCode = prefs.queryLanguage,
                                 fromUser = false,
                                 fromVoice = true,
-                                text = lastState.aiReplies.joinToString(" ") { it.text },
+                                text = lastState.fullReply,
                                 intent = lastState.intentName,
                                 actionType = lastState.actionType,
                                 attachments = lastState.attachments,
                             )
                         }
+                        // Speak:
+                        tts.speak(
+                            message = lastState.fullReply,
+                            aiReplies = lastState.aiReplies,
+                        )
                     }
-                    audioRequestsManager.releaseDuckedFocus()
+                    audioRequestsManager.releaseAudioFocus()
 
                 } else {
                     stopSelf()
@@ -405,7 +413,10 @@ class VoiceQueryService: Service() {
                     if (lastState.fail) {
                         toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                     } else {
-                        if (lastState.playAcknowledge) toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                        if (lastState.playAcknowledge || lastState.attachments.playAcknowledge) {
+                            //ACKNOWLEDGE
+                            toneGen.startTone(ToneGenerator.TONE_PROP_ACK)
+                        }
                     }
                     Thread.sleep(200)
                     stopSelf()

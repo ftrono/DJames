@@ -1,12 +1,10 @@
-package com.ftrono.DJames.be.agents.data
+package com.ftrono.DJames.kaigraph.data
 
 import com.ftrono.DJames.application.START
+import com.ftrono.DJames.be.database.ActionType
 import com.ftrono.DJames.be.database.Attachments
-import com.ftrono.DJames.be.database.LibraryItem
-import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.models.AiReply
 import kotlinx.serialization.Serializable
-
 
 // STATE:
 @Serializable
@@ -19,26 +17,27 @@ data class StateInfo(
     var fail: Boolean = false,   //fulfillment complete
     var lastUserMsgId: Long = 0L,
     var fromVoice: Boolean = false,
-
-    // Fulfillment:
-    var intentName: String = "Fallback",
     var isStart: Boolean = false,
+    var attachments: Attachments = Attachments(),
+
+    // Replies & Actions:
+    var fullReply: String = "",
+    var actionType: ActionType? = null,   //"call", ""
+    var playAcknowledge: Boolean = false,   //play the acknowledge tone
 
     // Modes:
     var noSave: Boolean = false,   // don't store message
     var messageMode: Boolean = false,   //specific for messages only
     var messageType: String = "",
 
-    // Replies & Actions:
+    // Fulfillment:
+    var intentName: String = "Fallback",
     var aiReplies: List<AiReply> = listOf(),
-    var actionType: ActionType? = null,   //"call", ""
-    var playAcknowledge: Boolean = false,   //play the acknowledge tone
 
     // More:
     var reqLangCode: String = "en",   // Default
     var reqLangName: String = "english",   // Default
     var lastRecording: String = "",   //Flac only
-    var attachments: Attachments = Attachments(),
     var playType: String = "",
     var contextType: String = "",
 )

@@ -34,6 +34,7 @@ data class Address(
 data class LibraryItem(
     //Primary key:
     @Id var id: Long = 0,
+    var uniId: String = "",   // For tools
     var lastUpdated: Long = 0,   // Timestamp
     var matchScore: Int = 0,
     var name: String = "",

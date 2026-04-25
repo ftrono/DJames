@@ -1,14 +1,13 @@
-package com.ftrono.DJames.be.agents.graph
+package com.ftrono.DJames.kaigraph.graph
 
 import android.content.Context
 import android.util.Log
-import com.ftrono.DJames.be.agents.nodes.Node
-import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.kaigraph.node.Node
+import com.ftrono.DJames.kaigraph.data.StateInfo
 import com.ftrono.DJames.application.START
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.maxGraphLoops
-import com.ftrono.DJames.be.agents.data.ChatMessage
-import com.ftrono.DJames.be.agents.data.LlmReturn
+import com.ftrono.DJames.kaigraph.data.ChatMessage
 import com.ftrono.DJames.be.models.RecDetails
 
 
@@ -71,20 +70,19 @@ open class Graph(
     // Stream graph:
     fun stream(
         prevState: StateInfo,
-        routerNode: String,
+        routerNodes: List<String>,
         onRestart: String = "",
-        resumeOnRouter: Boolean = false,
     ): StateInfo {
 
         var updState = prevState
         var loops = 0
         updState.interrupt = false   // turn off from previous run
+        updState.attachments.latestTurnFlow = mutableListOf()   // Reset turn flow
         if (updState.next == START) {
             updState.isStart = true
             updState.next = graph.keys.first()
         } else {
             updState.isStart = false
-            if (resumeOnRouter) updState.next = routerNode
         }
         Log.d(TAG, "Graph streaming loop STARTED from Node: '${updState.next}'.")
 
@@ -93,6 +91,7 @@ open class Graph(
             if (loops >= maxGraphLoops) {
                 // Avoid infinite looping:
                 updState.fail = true
+                updState.messageMode = false
                 Log.d(TAG, "Max graph loops reached! Interrupting...")
                 break
 
@@ -100,7 +99,7 @@ open class Graph(
                 Log.d(TAG, "Streaming from Node: ${updState.next}")
                 // Log.d(TAG, "State -> $updState")
                 val newNode = getNode(updState.next)
-                if (newNode.name == routerNode) loops += 1
+                if (routerNodes.contains(newNode.name)) loops += 1
                 updState = newNode.invoke(updState)   // invoke
                 // Human-in-the-Loop:
                 if (updState.interrupt) {

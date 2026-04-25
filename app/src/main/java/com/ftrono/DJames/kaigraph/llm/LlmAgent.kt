@@ -1,28 +1,25 @@
-package com.ftrono.DJames.be.agents.llm
+package com.ftrono.DJames.kaigraph.llm
 
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.jsonNoPrint
 import com.ftrono.DJames.application.jsonUnknown
-import com.ftrono.DJames.application.mistralLlmModelSmall
 import com.ftrono.DJames.application.mistralLlmTemperature
 import com.ftrono.DJames.application.mistralLlmTimeout
 import com.ftrono.DJames.application.mistralLlmUrl
 import com.ftrono.DJames.application.mistralSttUrl
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.agents.data.ActionType
-import com.ftrono.DJames.be.agents.data.ChatMessage
-import com.ftrono.DJames.be.agents.data.LlmRequest
-import com.ftrono.DJames.be.agents.data.LlmResponse
-import com.ftrono.DJames.be.agents.data.LlmReturn
-import com.ftrono.DJames.be.agents.data.StateInfo
-import com.ftrono.DJames.be.agents.data.SttResponse
-import com.ftrono.DJames.be.agents.data.SttReturn
-import com.ftrono.DJames.be.agents.data.ToolDefinition
-import com.ftrono.DJames.be.agents.data.ToolType
-import com.ftrono.DJames.be.agents.tools.Tool
+import com.ftrono.DJames.kaigraph.data.ChatMessage
+import com.ftrono.DJames.kaigraph.data.LlmRequest
+import com.ftrono.DJames.kaigraph.data.LlmResponse
+import com.ftrono.DJames.kaigraph.data.LlmReturn
+import com.ftrono.DJames.kaigraph.data.SttResponse
+import com.ftrono.DJames.kaigraph.data.SttReturn
+import com.ftrono.DJames.kaigraph.data.ToolDefinition
+import com.ftrono.DJames.kaigraph.data.ToolType
+import com.ftrono.DJames.kaigraph.tool.Tool
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.models.HttpResponse
 import com.ftrono.DJames.be.utils.HttpClient
@@ -194,7 +191,6 @@ class LlmAgent(
         try {
             val inMessages = llmMessages   // editable
             var next = ""
-            var actionType: ActionType? = null
 
             // Build request:
             var llmRequest = LlmRequest(
@@ -269,7 +265,6 @@ class LlmAgent(
                         val toolResponseMsg = if (toolResponse.message != "") toolResponse.message else "Technical issue: the tool could not be contacted."
                         Log.d(TAG, "Got tool response: ${toolResponse.message}")
                         updAttachments = toolResponse.attachments
-                        actionType = toolResponse.actionType
 
                         // Store "tool" response message:
                         updMessage =
@@ -284,7 +279,7 @@ class LlmAgent(
                         // Send tool response to LLM:
                         llmRequest = LlmRequest(
                             messages = inMessages.toList(),
-                            model = if (actionType != null) mistralLlmModelSmall else model,
+                            model = model,
                             temperature = mistralLlmTemperature,
                             toolChoice = "auto",
                             parallelToolCalls = false,
@@ -332,7 +327,6 @@ class LlmAgent(
                         next = if (isRouter) llmChoice.message.content else next,
                         messages = outMessages,
                         attachments = updAttachments,
-                        actionType = actionType,
                     )
                 } else {
                     // Error:

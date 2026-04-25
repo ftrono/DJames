@@ -1,8 +1,7 @@
 package com.ftrono.DJames.be.database
 
-import com.ftrono.DJames.be.agents.data.ChatMessage
-import com.ftrono.DJames.be.agents.data.ActionType
-import com.ftrono.DJames.be.agents.data.ActionTypeConverter
+import com.ftrono.DJames.kaigraph.data.ChatMessage
+import com.ftrono.DJames.be.models.EnumTypeConverter
 import com.ftrono.DJames.be.models.JsonConverter
 import com.ftrono.DJames.be.models.JsonListConverter
 import io.objectbox.annotation.Entity
@@ -12,6 +11,11 @@ import kotlinx.serialization.Serializable
 
 
 //SUPPORT CLASSES:
+enum class ActionType {
+    PLAY, CALL, SMS, WA_TEXT, WA_VOICE, OPEN_URL
+}
+class ActionTypeConverter : EnumTypeConverter<ActionType>(ActionType.entries.toTypedArray())
+
 @Serializable
 data class NlpQueryModel(
     var recFile: String = "",
@@ -171,10 +175,11 @@ data class Message(
 
 @Serializable
 data class Attachments(
-    var playAcknowledge: Boolean = false,   //play the acknowledge tone
-
     @Convert(converter = ChatMessageConverter::class, dbType = String::class)
     var latestTurnFlow: MutableList<ChatMessage> = mutableListOf<ChatMessage>(),
+
+    var actionType: ActionType? = null,   //"call", ""
+    var playAcknowledge: Boolean = false,   //play the acknowledge tone
 
     @Convert(converter = UseRequestConverter::class, dbType = String::class)
     var useRequest: UseRequest? = null,

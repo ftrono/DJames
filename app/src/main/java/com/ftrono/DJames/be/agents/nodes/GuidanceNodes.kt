@@ -3,10 +3,12 @@ package com.ftrono.DJames.be.agents.nodes
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.mistralLlmModelSmall
-import com.ftrono.DJames.be.agents.llm.LlmAgent
-import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.kaigraph.llm.LlmAgent
+import com.ftrono.DJames.kaigraph.data.StateInfo
 import com.ftrono.DJames.be.agents.data.handoffDescription
 import com.ftrono.DJames.be.agents.tools.*
+import com.ftrono.DJames.kaigraph.node.Node
+import com.ftrono.DJames.kaigraph.tool.Tool
 
 
 // (LLM-based) ReAct agent node:
@@ -64,8 +66,7 @@ class GuidanceAgentNode (
             llmMessages = inMessages,
             attachments = updState.attachments
         )
-        updState.attachments = llmReturn.attachments
-        updState.actionType = llmReturn.actionType
+
         updState = updateStateFromNode(updState, llmReturn)
         return updState
     }

@@ -7,16 +7,17 @@ import com.ftrono.DJames.application.maxSearchMatches
 import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.chat.ActionsExecutor
-import com.ftrono.DJames.be.agents.data.ActionType
-import com.ftrono.DJames.be.agents.data.ToolDefinition
-import com.ftrono.DJames.be.agents.data.ToolFunction
-import com.ftrono.DJames.be.agents.data.ToolParameters
-import com.ftrono.DJames.be.agents.data.ToolProperty
-import com.ftrono.DJames.be.agents.data.ToolResponse
-import com.ftrono.DJames.be.agents.data.ToolType
+import com.ftrono.DJames.kaigraph.data.ToolDefinition
+import com.ftrono.DJames.kaigraph.data.ToolFunction
+import com.ftrono.DJames.kaigraph.data.ToolParameters
+import com.ftrono.DJames.kaigraph.data.ToolProperty
+import com.ftrono.DJames.kaigraph.data.ToolResponse
+import com.ftrono.DJames.kaigraph.data.ToolType
+import com.ftrono.DJames.be.database.ActionType
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.UseRequest
+import com.ftrono.DJames.kaigraph.tool.Tool
 import kotlinx.serialization.json.*
 
 
@@ -202,13 +203,13 @@ class ToolGo(
             val placeInfo = candidates[0]
             attachments.usable = placeInfo
             attachments.playAcknowledge = true
+            attachments.actionType = ActionType.OPEN_URL
             actionsExecutor.openLink(attachments.usable)
             val detailString = if (placeInfo.detail != "") "${placeInfo.name}, ${placeInfo.detail}" else placeInfo.name
 
             return ToolResponse(
                 message = "Showing the route towards: $detailString (read this to the user). Do NOT ask further questions to the user.",
-                attachments = attachments,
-                actionType = ActionType.OPEN_URL,
+                attachments = attachments
             )
         }
     }

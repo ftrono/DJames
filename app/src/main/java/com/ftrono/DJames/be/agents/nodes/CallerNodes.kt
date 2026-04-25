@@ -8,13 +8,15 @@ import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.mistralLlmModelMedium
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.agents.data.ChatMessage
-import com.ftrono.DJames.be.agents.data.LlmReturn
-import com.ftrono.DJames.be.agents.llm.LlmAgent
-import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.kaigraph.data.ChatMessage
+import com.ftrono.DJames.kaigraph.data.LlmReturn
+import com.ftrono.DJames.kaigraph.llm.LlmAgent
+import com.ftrono.DJames.kaigraph.data.StateInfo
 import com.ftrono.DJames.be.agents.data.handoffDescription
 import com.ftrono.DJames.be.agents.tools.*
 import com.ftrono.DJames.be.agents.fulfillment.GenericFulfillment
+import com.ftrono.DJames.kaigraph.node.Node
+import com.ftrono.DJames.kaigraph.tool.Tool
 
 
 // (LLM-based) ReAct agent node:
@@ -110,8 +112,6 @@ class CallAgentNode (
             )
         }
 
-        updState.attachments = llmReturn.attachments
-        updState.actionType = llmReturn.actionType
         updState = updateStateFromNode(updState, llmReturn)
         return updState
     }

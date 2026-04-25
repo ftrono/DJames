@@ -3,17 +3,17 @@ package com.ftrono.DJames.be.agents.nodes
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.END
-import com.ftrono.DJames.application.currentArtistPlaying
-import com.ftrono.DJames.application.currentSongPlaying
 import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.mistralLlmModelMedium
 import com.ftrono.DJames.application.spotifyLoggedIn
-import com.ftrono.DJames.be.agents.data.ChatMessage
-import com.ftrono.DJames.be.agents.llm.LlmAgent
-import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.kaigraph.data.ChatMessage
+import com.ftrono.DJames.kaigraph.llm.LlmAgent
+import com.ftrono.DJames.kaigraph.data.StateInfo
 import com.ftrono.DJames.be.agents.data.handoffDescription
 import com.ftrono.DJames.be.agents.tools.*
 import com.ftrono.DJames.be.agents.fulfillment.SpotifyFulfillment
+import com.ftrono.DJames.kaigraph.node.Node
+import com.ftrono.DJames.kaigraph.tool.Tool
 
 
 // (LLM-based) ReAct agent node:
@@ -81,8 +81,7 @@ class PlayerAgentNode (
             llmMessages = inMessages,
             attachments = updState.attachments
         )
-        updState.attachments = llmReturn.attachments
-        updState.actionType = llmReturn.actionType
+
         updState = updateStateFromNode(updState, llmReturn)
         return updState
     }

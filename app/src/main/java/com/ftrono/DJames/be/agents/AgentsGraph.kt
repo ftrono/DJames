@@ -10,7 +10,6 @@ import com.ftrono.DJames.application.defaultChatWait
 import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.minSpeechPct
-import com.ftrono.DJames.application.mistralLlmModelMedium
 import com.ftrono.DJames.application.mistralLlmModelSmall
 import com.ftrono.DJames.application.mistralSttModel
 import com.ftrono.DJames.application.prefs
@@ -21,11 +20,11 @@ import com.ftrono.DJames.be.agents.nodes.GuidanceAgentNode
 import com.ftrono.DJames.be.agents.nodes.MainRouterNode
 import com.ftrono.DJames.be.agents.nodes.TextAgentNode
 import com.ftrono.DJames.be.agents.nodes.PlayerAgentNode
-import com.ftrono.DJames.be.agents.data.StateInfo
-import com.ftrono.DJames.be.agents.graph.Graph
-import com.ftrono.DJames.be.agents.llm.LlmAgent
-import com.ftrono.DJames.be.agents.data.ChatMessage
-import com.ftrono.DJames.be.agents.data.FinalizerReply
+import com.ftrono.DJames.kaigraph.data.StateInfo
+import com.ftrono.DJames.kaigraph.graph.Graph
+import com.ftrono.DJames.kaigraph.llm.LlmAgent
+import com.ftrono.DJames.kaigraph.data.ChatMessage
+import com.ftrono.DJames.kaigraph.data.FinalizerReply
 import com.ftrono.DJames.be.agents.data.promptFinalizer
 import com.ftrono.DJames.be.agents.nodes.MessageRouterNode
 import com.ftrono.DJames.be.agents.nodes.WAVoiceAgentNode

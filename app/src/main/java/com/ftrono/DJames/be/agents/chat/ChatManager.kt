@@ -12,7 +12,7 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.AgentsGraph
 import com.ftrono.DJames.be.agents.IntentsGraph
 import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.kaigraph.data.StateInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

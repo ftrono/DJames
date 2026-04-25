@@ -1,6 +1,10 @@
 # 🎧 DJames
 
-DJames is a vocal Spotify remote & smart driving assistant for Android. It makes use of a Multi-Agent AI architecture based on *Mistral AI* & *Google Dialogflow* for Speech-to-Text and NLP, *Spotify's Web API* and custom extraction and matching algorithms. The UI is based on Jetpack Compose.
+DJames is a vocal Spotify remote & smart driving assistant for Android. It makes use of a **Multi-Agent AI architecture** based on *Mistral AI* for Speech-to-Text and NLP, *ElevenLabs* for Text-To-Speech, *Spotify's Web API* and custom matching algorithms. The UI is based on Jetpack Compose.
+
+DJames integrates a **self-made agentic orchestration library**, ***KAIGraph***, which I built for Kotlin, inspired by LangGraph.
+
+Earlier versions (1.* and 2.*) used *Google Dialogflow* for Speech-to-Text and NLP, native Android TTS and custom NLP extraction and algorithms. Version 1.* was inially build using xmls instead of Jetpack Compose.
 
 <img src="./app/src/main/res/drawable-nodpi/app_icon_round.png" alt="DJames" width="100"/>
 
@@ -11,7 +15,7 @@ DJames is supported by **Android >= 10**.
 
 ## Versions history
 
-**Version 3.0.a11 (2026-04-25)** - V3 FINALIZED! Reworked all Graph nodes. Add new ElevenLabs TTS voice for V3. Last version with co-existing IntentGraph & AgentGraph.
+**Version 3.0.a11 (2026-04-25)** - V3 FINALIZED! Reworked all Graph nodes. Add new ElevenLabs TTS voice for V3. Starts repackaging agentic library as KAIGraph (WIP). Last version with co-existing IntentGraph & AgentGraph.
 
 **Version 3.0.a10 (2025-12-28)** - Add AccountsScreen, backup & restore, notification icon, remove FFmpeg. Add DualApp debug variant. SpotifyQuery: fix legacy bug (!) and code modularization. Align to new Spotify Development Mode policy. Start rework of Graph nodes for V3. Add new ElevenLabs TTS voice for V3.
 

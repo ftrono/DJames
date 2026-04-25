@@ -1,13 +1,13 @@
 package com.ftrono.DJames.be.agents.nodes
 
-import android.Manifest
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.mistralLlmModelSmall
-import com.ftrono.DJames.be.agents.llm.LlmAgent
-import com.ftrono.DJames.be.agents.data.NodeType
-import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.kaigraph.llm.LlmAgent
+import com.ftrono.DJames.kaigraph.data.NodeType
+import com.ftrono.DJames.kaigraph.data.StateInfo
+import com.ftrono.DJames.kaigraph.node.Node
 
 
 // (LLM-based) Router node:
@@ -65,8 +65,6 @@ class MainRouterNode (
         updState.actionType = null
 
         // Update:
-        updState.attachments = llmReturn.attachments
-        updState.actionType = llmReturn.actionType
         updState = updateStateFromRouter(context, llmReturn, updState, updateIntent=true)
         return updState
     }

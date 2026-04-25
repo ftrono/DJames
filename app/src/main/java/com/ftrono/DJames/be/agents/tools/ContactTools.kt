@@ -9,17 +9,18 @@ import com.ftrono.DJames.application.maxSearchMatches
 import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.chat.ActionsExecutor
-import com.ftrono.DJames.be.agents.data.ActionType
-import com.ftrono.DJames.be.agents.data.ToolDefinition
-import com.ftrono.DJames.be.agents.data.ToolFunction
-import com.ftrono.DJames.be.agents.data.ToolParameters
-import com.ftrono.DJames.be.agents.data.ToolProperty
-import com.ftrono.DJames.be.agents.data.ToolResponse
-import com.ftrono.DJames.be.agents.data.ToolType
+import com.ftrono.DJames.kaigraph.data.ToolDefinition
+import com.ftrono.DJames.kaigraph.data.ToolFunction
+import com.ftrono.DJames.kaigraph.data.ToolParameters
+import com.ftrono.DJames.kaigraph.data.ToolProperty
+import com.ftrono.DJames.kaigraph.data.ToolResponse
+import com.ftrono.DJames.kaigraph.data.ToolType
+import com.ftrono.DJames.be.database.ActionType
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.PhoneSet
 import com.ftrono.DJames.be.database.UseRequest
+import com.ftrono.DJames.kaigraph.tool.Tool
 import kotlinx.serialization.json.*
 
 
@@ -184,6 +185,7 @@ class ToolCall(): Tool() {
             if (sendMatches.isEmpty()) {
                 // Phone number dictated by user -> call directly:
                 attachments.playAcknowledge = true
+                attachments.actionType = ActionType.CALL
                 attachments.usable = LibraryItem(
                     name = dictatedNumber,
                     source = "contact",
@@ -195,8 +197,7 @@ class ToolCall(): Tool() {
                 )
                 return ToolResponse(
                     message = "Calling the phone number ${inputNumber}. Read it to the user and do NOT ask further questions to them.",
-                    attachments = attachments,
-                    actionType = ActionType.CALL,
+                    attachments = attachments
                 )
 
             } else {
@@ -204,10 +205,10 @@ class ToolCall(): Tool() {
                 val callMatch = sendMatches[0]
                 attachments.usable = callMatch
                 attachments.playAcknowledge = true
+                attachments.actionType = ActionType.CALL
                 return ToolResponse(
                     message = "Calling ${callMatch.name}. Always tell the user who you're calling and do NOT ask further questions to the user.",
                     attachments = attachments,
-                    actionType = ActionType.CALL,
                 )
             }
         }
@@ -283,10 +284,10 @@ class ToolSendText(
                 if (messageType == "WHATSAPP") {
                     // Send the WhatsApp text message:
                     val outcomeReply = actionsExecutor.sendWhatsappText(messageText, sendMatch)
+                    attachments.actionType = ActionType.WA_TEXT
                     return ToolResponse(
                         message = "Outcome: $outcomeReply. Read this to the user EXACTLY AS IT IS and do NOT ask them further questions.",
                         attachments = attachments,
-                        actionType = ActionType.WA_TEXT,
                     )
                 } else if (!utils.checkPermission(context, Manifest.permission.SEND_SMS)) {
                     return ToolResponse(
@@ -296,10 +297,10 @@ class ToolSendText(
                 } else {
                     // Send the SMS:
                     val outcomeReply = actionsExecutor.sendSMS(messageText, attachments.usable)
+                    attachments.actionType = ActionType.SMS
                     return ToolResponse(
                         message = "Outcome: $outcomeReply. Tell the user this and do NOT ask them further questions.",
                         attachments = attachments,
-                        actionType = ActionType.SMS,
                     )
                 }
             }

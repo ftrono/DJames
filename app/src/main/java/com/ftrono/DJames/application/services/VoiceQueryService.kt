@@ -33,7 +33,7 @@ import com.ftrono.DJames.application.sourceIsVolume
 import com.ftrono.DJames.be.agents.AgentsGraph
 import com.ftrono.DJames.be.agents.IntentsGraph
 import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.kaigraph.data.StateInfo
 import com.ftrono.DJames.be.audio.AndroidAudioRecorder
 import com.ftrono.DJames.be.audio.AudioRequestsManager
 import com.ftrono.DJames.be.audio.TTSReader

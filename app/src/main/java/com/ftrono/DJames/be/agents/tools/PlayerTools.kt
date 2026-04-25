@@ -7,18 +7,19 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.maxSearchMatches
 import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.spotifyUtils
-import com.ftrono.DJames.be.agents.data.ActionType
-import com.ftrono.DJames.be.agents.data.ToolDefinition
-import com.ftrono.DJames.be.agents.data.ToolFunction
-import com.ftrono.DJames.be.agents.data.ToolParameters
-import com.ftrono.DJames.be.agents.data.ToolProperty
-import com.ftrono.DJames.be.agents.data.ToolResponse
-import com.ftrono.DJames.be.agents.data.ToolType
+import com.ftrono.DJames.kaigraph.data.ToolDefinition
+import com.ftrono.DJames.kaigraph.data.ToolFunction
+import com.ftrono.DJames.kaigraph.data.ToolParameters
+import com.ftrono.DJames.kaigraph.data.ToolProperty
+import com.ftrono.DJames.kaigraph.data.ToolResponse
+import com.ftrono.DJames.kaigraph.data.ToolType
+import com.ftrono.DJames.be.database.ActionType
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.database.LibMatch
 import com.ftrono.DJames.be.database.PlayRequest
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.spotify.SpotifySearch
+import com.ftrono.DJames.kaigraph.tool.Tool
 import kotlinx.serialization.json.*
 
 data class QueryAPIReturn(
@@ -376,10 +377,10 @@ class ToolPlay(
                 }
 
                 attachments.spotifyPlay = playMatch
+                attachments.actionType = ActionType.PLAY
                 return ToolResponse(
                     message = "Playing the ${playMatch.type} with Spotify ID: $spotifyID$detailInfo. Always tell the user what you're playing and do NOT ask further questions to the user.",
                     attachments = attachments,
-                    actionType = ActionType.PLAY,
                 )
 
             } else {

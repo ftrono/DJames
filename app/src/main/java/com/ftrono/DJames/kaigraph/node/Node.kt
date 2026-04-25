@@ -1,22 +1,20 @@
-package com.ftrono.DJames.be.agents.nodes
+package com.ftrono.DJames.kaigraph.node
 
 import android.content.Context
 import android.util.Log
-import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.datetimePromptFormat
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.agents.data.ChatMessage
-import com.ftrono.DJames.be.agents.data.LlmReturn
-import com.ftrono.DJames.be.agents.data.NodeType
-import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.be.agents.data.promptDateStr
 import com.ftrono.DJames.be.agents.data.promptGenderStr
 import com.ftrono.DJames.be.agents.data.promptIntro
 import com.ftrono.DJames.be.agents.data.promptRouterIntro
 import com.ftrono.DJames.be.agents.data.promptRouterOut
-
+import com.ftrono.DJames.kaigraph.data.ChatMessage
+import com.ftrono.DJames.kaigraph.data.LlmReturn
+import com.ftrono.DJames.kaigraph.data.NodeType
+import com.ftrono.DJames.kaigraph.data.StateInfo
 
 open class Node() {
 
@@ -39,7 +37,7 @@ open class Node() {
 
         // 1) Build system prompt:
         var systemPrompt = if (isRouter) {
-                promptRouterIntro
+            promptRouterIntro
             } else {
                 val curDate = utils.convertTimestamp(
                     utils.getCurrentTimestamp(), datetimePromptFormat
@@ -106,6 +104,7 @@ open class Node() {
             Log.w(TAG, "ERROR: Next ID '${llmReturn.next}' not in nextIds array!")
             updState.fail = true
         }
+        updState.attachments = llmReturn.attachments
         return updState
     }
 
@@ -135,13 +134,17 @@ open class Node() {
                 }
             }
         }
+        updState.attachments = llmReturn.attachments
         updState.attachments.latestTurnFlow.addAll(llmReturn.messages)
+        updState.actionType = llmReturn.attachments.actionType
+        updState.attachments.actionType = null
         return updState
     }
 
     // (Open) Custom invoke logic:
     open fun invoke(
-        prevState: StateInfo): StateInfo {
+        prevState: StateInfo
+    ): StateInfo {
         // TODO
         var updState = prevState
         return updState

@@ -4,12 +4,14 @@ import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.mistralLlmModelMedium
-import com.ftrono.DJames.be.agents.data.ChatMessage
-import com.ftrono.DJames.be.agents.llm.LlmAgent
-import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.kaigraph.data.ChatMessage
+import com.ftrono.DJames.kaigraph.llm.LlmAgent
+import com.ftrono.DJames.kaigraph.data.StateInfo
 import com.ftrono.DJames.be.agents.data.handoffDescription
 import com.ftrono.DJames.be.agents.tools.*
 import com.ftrono.DJames.be.agents.fulfillment.GenericFulfillment
+import com.ftrono.DJames.kaigraph.node.Node
+import com.ftrono.DJames.kaigraph.tool.Tool
 
 
 // (LLM-based) ReAct agent node:
@@ -79,8 +81,7 @@ class DriverAgentNode (
             llmMessages = inMessages,
             attachments = updState.attachments
         )
-        updState.attachments = llmReturn.attachments
-        updState.actionType = llmReturn.actionType
+
         updState = updateStateFromNode(updState, llmReturn)
         return updState
     }

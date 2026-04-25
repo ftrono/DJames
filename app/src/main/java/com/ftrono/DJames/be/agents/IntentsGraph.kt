@@ -10,9 +10,9 @@ import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.minSpeechPct
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.agents.data.StateInfo
-import com.ftrono.DJames.be.agents.graph.Graph
-import com.ftrono.DJames.be.agents.data.ChatMessage
+import com.ftrono.DJames.kaigraph.data.StateInfo
+import com.ftrono.DJames.kaigraph.graph.Graph
+import com.ftrono.DJames.kaigraph.data.ChatMessage
 import com.ftrono.DJames.be.agents.nodes.CallIntentNode
 import com.ftrono.DJames.be.agents.nodes.DriverIntentNode
 import com.ftrono.DJames.be.agents.nodes.IntentRouterNode

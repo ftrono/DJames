@@ -1,4 +1,4 @@
-package com.ftrono.DJames.be.agents.data
+package com.ftrono.DJames.kaigraph.data
 
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.models.EnumTypeConverter
@@ -19,12 +19,6 @@ class NodeTypeConverter : EnumTypeConverter<NodeType>(NodeType.entries.toTypedAr
 enum class ToolType {
     HANDOFF, ACTION, INTERMEDIATE
 }
-
-enum class ActionType {
-    PLAY, CALL, SMS, WA_TEXT, WA_VOICE, OPEN_URL
-}
-class ActionTypeConverter : EnumTypeConverter<ActionType>(ActionType.entries.toTypedArray())
-
 
 // MODELS:
 // Tools:
@@ -58,7 +52,6 @@ data class ToolDefinition(
 data class ToolResponse(
     var message: String,
     var attachments: Attachments,
-    var actionType: ActionType? = null,   //"call", ""
 )
 
 
@@ -152,7 +145,6 @@ data class LlmReturn(
     var language: String = "",
     var messages: MutableList<ChatMessage> = mutableListOf(),
     var attachments: Attachments = Attachments(),
-    var actionType: ActionType? = null,   //"call", ""
 )
 
 @KxSerializable

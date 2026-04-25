@@ -9,14 +9,16 @@ import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.mistralLlmModelMedium
 import com.ftrono.DJames.application.mistralLlmModelSmall
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.agents.data.ActionType
-import com.ftrono.DJames.be.agents.data.ChatMessage
-import com.ftrono.DJames.be.agents.data.LlmReturn
-import com.ftrono.DJames.be.agents.data.NodeType
-import com.ftrono.DJames.be.agents.llm.LlmAgent
-import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.kaigraph.data.ChatMessage
+import com.ftrono.DJames.kaigraph.data.LlmReturn
+import com.ftrono.DJames.kaigraph.data.NodeType
+import com.ftrono.DJames.kaigraph.llm.LlmAgent
+import com.ftrono.DJames.kaigraph.data.StateInfo
 import com.ftrono.DJames.be.agents.tools.*
 import com.ftrono.DJames.be.agents.fulfillment.GenericFulfillment
+import com.ftrono.DJames.be.database.ActionType
+import com.ftrono.DJames.kaigraph.node.Node
+import com.ftrono.DJames.kaigraph.tool.Tool
 
 
 // (LLM-based) Message router node:
@@ -63,8 +65,7 @@ class MessageRouterNode (
             llmMessages = inMessages,
             attachments = updState.attachments
         )
-        updState.attachments = llmReturn.attachments
-        updState.actionType = llmReturn.actionType
+
         updState = updateStateFromRouter(context, llmReturn, updState)
         return updState
     }
@@ -164,14 +165,12 @@ class TextAgentNode (
             attachments = updState.attachments
         )
 
-        updState.attachments = llmReturn.attachments
-        updState.actionType = llmReturn.actionType
+        updState = updateStateFromNode(updState, llmReturn)
         when (updState.actionType) {
             ActionType.SMS -> updState.messageType = "sms"
             ActionType.WA_TEXT -> updState.messageType = "wa_text"
             else -> null
         }
-        updState = updateStateFromNode(updState, llmReturn)
         return updState
     }
 }

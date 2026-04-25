@@ -1,14 +1,13 @@
-package com.ftrono.DJames.be.agents.graph
+package com.ftrono.DJames.kaigraph.graph
 
 import android.content.Context
 import android.util.Log
-import com.ftrono.DJames.be.agents.nodes.Node
-import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.kaigraph.node.Node
+import com.ftrono.DJames.kaigraph.data.StateInfo
 import com.ftrono.DJames.application.START
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.maxGraphLoops
-import com.ftrono.DJames.be.agents.data.ChatMessage
-import com.ftrono.DJames.be.agents.data.LlmReturn
+import com.ftrono.DJames.kaigraph.data.ChatMessage
 import com.ftrono.DJames.be.models.RecDetails
 
 

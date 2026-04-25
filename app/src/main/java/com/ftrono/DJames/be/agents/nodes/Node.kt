@@ -135,7 +135,7 @@ open class Node() {
                 }
             }
         }
-        updState.attachments.latestTurnFlow = llmReturn.messages
+        updState.attachments.latestTurnFlow.addAll(llmReturn.messages)
         return updState
     }
 

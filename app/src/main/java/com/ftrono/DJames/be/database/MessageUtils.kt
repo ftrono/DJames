@@ -355,13 +355,15 @@ class MessageUtils {
         val intentName = message.requestIntent
         val attachments = message.attachments
 
-        if (attachments.usable != null) {
+        if (message.actionType == ActionType.WA_VOICE && intentName.contains("Message")) {
+            detailText = "Type:  Whatsapp Voice"
+
+        } else if (attachments.usable != null) {
             if (intentName.contains("Call") || intentName.contains("Message")) {
                 //Calls & Messages:
                 val itemInfo = attachments.usable!!
                 val msgType = when (message.actionType) {
                     ActionType.WA_TEXT -> "Whatsapp Text"
-                    ActionType.WA_VOICE -> "Whatsapp Voice"
                     ActionType.SMS -> "SMS"
                     else -> ""
                 }

@@ -78,6 +78,7 @@ open class Graph(
         var updState = prevState
         var loops = 0
         updState.interrupt = false   // turn off from previous run
+        updState.attachments.latestTurnFlow = mutableListOf()   // Reset turn flow
         if (updState.next == START) {
             updState.isStart = true
             updState.next = graph.keys.first()

@@ -1,11 +1,13 @@
 package com.ftrono.DJames.be.agents.tools
 
+import android.Manifest
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.dictatedNumber
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.maxSearchMatches
 import com.ftrono.DJames.application.midThreshold
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.chat.ActionsExecutor
 import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.be.agents.data.ToolDefinition
@@ -213,7 +215,7 @@ class ToolCall(): Tool() {
 }
 
 
-class ToolSendSMS(
+class ToolSendText(
     private val context: Context
 ): Tool() {
     private val TAG = this::class.java.simpleName
@@ -227,26 +229,31 @@ class ToolSendSMS(
             function = ToolFunction(
                 name = name,
                 description = """
-                     Send the approved SMS to the requested phone number. **Use this tool only **AFTER you retrieved the phone number from 'tool_retrieve' or from the user itself, you composed the message draft and you got the user's approval to send it.""".trimIndent(),
+                     Send the approved message to the requested phone number. **Use this tool only **AFTER you retrieved the phone number from 'tool_retrieve' or from the user itself, you composed the message draft and you got the user's approval to send it.""".trimIndent(),
                 parameters = ToolParameters(
                     type = "object",
                     properties = mapOf(
+                        "message_type" to ToolProperty(
+                            type = "string",   // Arg type
+                            description = "(Mandatory) Type of text message to send: can be exclusively one of 'SMS' or 'WHATSAPP'. Use 'SMS' as default, unless the user specifically asks for Whatsapp."   // Arg description
+                        ),
                         "phone_number" to ToolProperty(
                             type = "string",   // Arg type
-                            description = "(Mandatory) Phone number of the requested contact to send the SMS to."   // Arg description
+                            description = "(Mandatory) Phone number of the requested contact to send the message to."   // Arg description
                         ),
                         "message_text" to ToolProperty(
                             type = "string",   // Arg type
                             description = "(Mandatory) Text of the message to send, as drafted and approved by the user."   // Arg description
                         ),
                     ),
-                    required = mutableListOf("phone_number", "message_text")
+                    required = mutableListOf("message_type", "phone_number", "message_text")
                 )
             )
         )
     }
 
     override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
+        val messageType: String = (args["message_type"]?.jsonPrimitive?.content ?: "SMS").uppercase()
         val inputNumber: String = (args["phone_number"]?.jsonPrimitive?.content ?: "")
         val messageText: String = (args["message_text"]?.jsonPrimitive?.content ?: "")
 
@@ -273,66 +280,29 @@ class ToolSendSMS(
                 attachments.usable = sendMatch
                 attachments.playAcknowledge = true
 
-                // Send the SMS:
-                val outcomeReply = actionsExecutor.sendSMS(messageText, attachments.usable)
-                return ToolResponse(
-                    message = "Outcome: $outcomeReply. Tell the user this and do NOT ask them further questions.",
-                    attachments = attachments,
-                    actionType = ActionType.SMS,
-                )
+                if (messageType == "WHATSAPP") {
+                    // Send the WhatsApp text message:
+                    val outcomeReply = actionsExecutor.sendWhatsappText(messageText, sendMatch)
+                    return ToolResponse(
+                        message = "Outcome: $outcomeReply. Read this to the user EXACTLY AS IT IS and do NOT ask them further questions.",
+                        attachments = attachments,
+                        actionType = ActionType.WA_TEXT,
+                    )
+                } else if (!utils.checkPermission(context, Manifest.permission.SEND_SMS)) {
+                    return ToolResponse(
+                        message = "Tell the user that you're sorry but you must be given the Android permission to send SMS first - he can do it from within the DJames app when he's not driving. Ask the user if he wants to send the message via Whatsapp instead.",
+                        attachments = attachments,
+                    )
+                } else {
+                    // Send the SMS:
+                    val outcomeReply = actionsExecutor.sendSMS(messageText, attachments.usable)
+                    return ToolResponse(
+                        message = "Outcome: $outcomeReply. Tell the user this and do NOT ask them further questions.",
+                        attachments = attachments,
+                        actionType = ActionType.SMS,
+                    )
+                }
             }
-        }
-    }
-}
-
-
-class ToolSendWAText(
-    private val context: Context
-): Tool() {
-    private val TAG = this::class.java.simpleName
-    override val name = "tool_send"
-    override val type: ToolType = ToolType.ACTION
-    private val actionsExecutor = ActionsExecutor(context)
-
-    override fun getDefinition(): ToolDefinition {
-        return ToolDefinition(
-            type = "function",
-            function = ToolFunction(
-                name = name,
-                description = """
-                     Send the approved text message draft. **Use this tool only **AFTER you composed the message draft and you got the user's approval to send it.""".trimIndent(),
-                parameters = ToolParameters(
-                    type = "object",
-                    properties = mapOf(
-                        "message_text" to ToolProperty(
-                            type = "string",   // Arg type
-                            description = "(Mandatory) Text of the message to send, as drafted and approved by the user."   // Arg description
-                        ),
-                    ),
-                    required = mutableListOf("message_text")
-                )
-            )
-        )
-    }
-
-    override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
-        val messageText: String = (args["message_text"]?.jsonPrimitive?.content ?: "")
-
-        if (messageText == "") {
-            return ToolResponse(
-                message = "This tool was called with no input args: try again passing the correct input information.",
-                attachments = attachments,
-            )
-
-        } else {
-            // Send the WhatsApp message:
-            attachments.playAcknowledge = true
-            val outcomeReply = actionsExecutor.sendWhatsappText(messageText)
-            return ToolResponse(
-                message = "Outcome: $outcomeReply. Read this all to the user and do NOT ask them further questions.",
-                attachments = attachments,
-                actionType = ActionType.WA_TEXT,
-            )
         }
     }
 }

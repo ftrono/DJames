@@ -107,11 +107,11 @@ class DefaultReplies() {
     }
 
     fun replyWATextReady(contactName: String): String {
-        return "Message for $contactName ready: please, click on Send in Whatsapp!"
+        return "Message ready for $contactName: please, click on 'Send' in Whatsapp to send it!"
     }
 
     fun replyWAVoiceReady(): String {
-        return "Voice message ready: please, select the contact in Whatsapp and Send it!"
+        return "Voice message ready: please, select the contact in Whatsapp and click 'Send' to send it!"
     }
 
     // PLACES:

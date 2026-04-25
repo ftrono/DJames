@@ -10,6 +10,7 @@ import com.ftrono.DJames.application.mistralLlmTemperature
 import com.ftrono.DJames.application.mistralLlmTimeout
 import com.ftrono.DJames.application.mistralLlmUrl
 import com.ftrono.DJames.application.mistralSttUrl
+import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.be.agents.data.ChatMessage
@@ -138,7 +139,7 @@ class LlmAgent(
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("file", audioFile.name, fileBody)
                 .addFormDataPart("model", model)
-                .addFormDataPart("language", "en")
+                .addFormDataPart("language", prefs.queryLanguage)
                 .build()
 
             var httpResponse = sendLlmRequest(

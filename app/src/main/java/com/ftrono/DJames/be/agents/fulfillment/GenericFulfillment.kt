@@ -99,7 +99,7 @@ class GenericFulfillment (private var context: Context) {
                         //Fallback:
                         return fulfillmentUtils.fallback(updState, cannotRecordWAVoice=true)
                     }
-                } else if (updState.messageType == "whatsapp") {
+                } else if (updState.messageType == "wa_text") {
                     updState.actionType = ActionType.WA_TEXT
                 } else {
                     updState.actionType = ActionType.SMS

@@ -19,7 +19,7 @@ import com.ftrono.DJames.be.agents.nodes.CallAgentNode
 import com.ftrono.DJames.be.agents.nodes.DriverAgentNode
 import com.ftrono.DJames.be.agents.nodes.GuidanceAgentNode
 import com.ftrono.DJames.be.agents.nodes.MainRouterNode
-import com.ftrono.DJames.be.agents.nodes.SMSAgentNode
+import com.ftrono.DJames.be.agents.nodes.TextAgentNode
 import com.ftrono.DJames.be.agents.nodes.PlayerAgentNode
 import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.be.agents.graph.Graph
@@ -28,7 +28,6 @@ import com.ftrono.DJames.be.agents.data.ChatMessage
 import com.ftrono.DJames.be.agents.data.FinalizerReply
 import com.ftrono.DJames.be.agents.data.promptFinalizer
 import com.ftrono.DJames.be.agents.nodes.MessageRouterNode
-import com.ftrono.DJames.be.agents.nodes.WATextAgentNode
 import com.ftrono.DJames.be.agents.nodes.WAVoiceAgentNode
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.models.AiReply
@@ -104,21 +103,13 @@ class AgentsGraph(
                     apiKey = apiKey,
                     nextOptions = listOf(
                         "WAVoiceAgent",
-                        "WATextAgent",
-                        "SMSAgent",
+                        "TextAgent",
                         "MessageRouter",
                     ),
                 ),
 
                 // LEVEL 2 - MESSAGE NODES:
-                SMSAgentNode(
-                    context = context,
-                    apiKey = apiKey,
-                    onComplete = END,
-                    onFallback = "MainRouter",
-                ),
-
-                WATextAgentNode(
+                TextAgentNode(
                     context = context,
                     apiKey = apiKey,
                     onComplete = END,

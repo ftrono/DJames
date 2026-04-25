@@ -15,7 +15,6 @@ import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.maxHistoryDays
 import com.ftrono.DJames.application.messageBox
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.be.collections.testMessages
 import io.objectbox.query.QueryBuilder
 import kotlinx.serialization.json.Json
@@ -355,18 +354,23 @@ class MessageUtils {
         val intentName = message.requestIntent
         val attachments = message.attachments
 
-        if (attachments.usable != null) {
+        if (message.actionType == ActionType.WA_VOICE && intentName.contains("Message")) {
+            detailText = "Type:  Whatsapp Voice"
+
+        } else if (attachments.usable != null) {
             if (intentName.contains("Call") || intentName.contains("Message")) {
                 //Calls & Messages:
                 val itemInfo = attachments.usable!!
                 val msgType = when (message.actionType) {
                     ActionType.WA_TEXT -> "Whatsapp Text"
-                    ActionType.WA_VOICE -> "Whatsapp Voice"
                     ActionType.SMS -> "SMS"
                     else -> ""
                 }
                 detailText = if (msgType == "") "" else "Type:  $msgType\n"
                 detailText += if (itemInfo.name == "") "" else "Contact:  ${itemInfo.name}"
+                if (itemInfo.phoneSet != null) {
+                    detailText += "\nPhone:  ${itemInfo.phoneSet!!.prefix} ${itemInfo.phoneSet!!.phone}"
+                }
 
             } else if (intentName.contains("Drive")) {
                 //Drive:

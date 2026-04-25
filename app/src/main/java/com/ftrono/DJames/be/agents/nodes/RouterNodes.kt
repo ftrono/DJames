@@ -1,13 +1,13 @@
 package com.ftrono.DJames.be.agents.nodes
 
-import android.Manifest
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.mistralLlmModelSmall
-import com.ftrono.DJames.be.agents.llm.LlmAgent
-import com.ftrono.DJames.be.agents.data.NodeType
-import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.kaigraph.llm.LlmAgent
+import com.ftrono.DJames.kaigraph.data.NodeType
+import com.ftrono.DJames.kaigraph.data.StateInfo
+import com.ftrono.DJames.kaigraph.node.Node
 
 
 // (LLM-based) Router node:
@@ -32,9 +32,9 @@ class MainRouterNode (
             You have **only one task*: to **classify** the user request into **ONE of the following literal categories**.
 
             ## AVAILABLE CATEGORIES:
-            - "PlayerAgent" -> for any request involving music, songs, music artists, albums or podcast episodes, or Spotify in general.
+            - "PlayerAgent" -> for any request involving playing or finding music, songs, music artists, albums or podcast episodes, or Spotify in general.
             - "CallAgent" -> for any request involving calling someone.
-            - "MessageAgent" -> for any request involving messaging someone.
+            - "MessageRouter" -> for any request involving messaging someone.
             - "DriverAgent" -> for any request involving requesting driving directions, routes, places, navigation or maps.
             - "__START__" -> if the user wants to restart the conversation.
             - "__END__" -> if the user wants to stop, exit or end the conversation.
@@ -58,9 +58,14 @@ class MainRouterNode (
             llmMessages = inMessages,
             attachments = updState.attachments
         )
-        updState.attachments = llmReturn.attachments
-        updState.actionType = llmReturn.actionType
-        updState = updateStateFromRouter(context, llmReturn, updState)
+
+        // Reset:
+        updState.messageMode = false
+        updState.messageType = ""
+        updState.actionType = null
+
+        // Update:
+        updState = updateStateFromRouter(context, llmReturn, updState, updateIntent=true)
         return updState
     }
 }

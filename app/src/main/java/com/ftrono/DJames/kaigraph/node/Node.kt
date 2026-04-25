@@ -1,24 +1,20 @@
-package com.ftrono.DJames.be.agents.nodes
+package com.ftrono.DJames.kaigraph.node
 
 import android.content.Context
 import android.util.Log
-import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.datetimePromptFormat
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.agents.data.ChatMessage
-import com.ftrono.DJames.be.agents.data.LlmReturn
-import com.ftrono.DJames.be.agents.data.NodeType
-import com.ftrono.DJames.be.agents.data.StateInfo
 import com.ftrono.DJames.be.agents.data.promptDateStr
-import com.ftrono.DJames.be.agents.data.promptEnd
 import com.ftrono.DJames.be.agents.data.promptGenderStr
 import com.ftrono.DJames.be.agents.data.promptIntro
 import com.ftrono.DJames.be.agents.data.promptRouterIntro
 import com.ftrono.DJames.be.agents.data.promptRouterOut
-import com.ftrono.DJames.be.agents.data.promptUserStr
-
+import com.ftrono.DJames.kaigraph.data.ChatMessage
+import com.ftrono.DJames.kaigraph.data.LlmReturn
+import com.ftrono.DJames.kaigraph.data.NodeType
+import com.ftrono.DJames.kaigraph.data.StateInfo
 
 open class Node() {
 
@@ -35,12 +31,13 @@ open class Node() {
         origMessages: MutableList<ChatMessage>,
         corePrompt: String,
         isRouter: Boolean = false,
-        joinMessages: Boolean = false,
     ): MutableList<ChatMessage> {
+        // inMessages contains the system prompt + the chosen input messages. They are NOT added to the message history.
+        // outMessages (in LlmAgent) contains the newly-generated messages for the current agentic turn.
 
         // 1) Build system prompt:
-        val systemPrompt = if (isRouter) {
-                promptRouterIntro
+        var systemPrompt = if (isRouter) {
+            promptRouterIntro
             } else {
                 val curDate = utils.convertTimestamp(
                     utils.getCurrentTimestamp(), datetimePromptFormat
@@ -49,42 +46,30 @@ open class Node() {
             }
 
         // 2) Prepare user prompt:
-        var userPrompt = if (isRouter) {
-                systemPrompt + "\n" + corePrompt + "\n" + promptRouterOut
-            } else {
-                systemPrompt + "\n" + corePrompt + "\n"
-            }
-
+        systemPrompt = if (isRouter) {
+            systemPrompt + "\n" + corePrompt + "\n" + promptRouterOut
+        } else {
+            systemPrompt + "\n" + corePrompt + "\n"
+        }
 
         // 3) Prepare inMessages: must contain prompt + llmMessages + new updates:
-        var inMessages = mutableListOf<ChatMessage>(
-            ChatMessage(role = "system", content = systemPrompt + userPrompt)   // System prompt
+        // System prompt
+        val inMessages = mutableListOf<ChatMessage>(
+            ChatMessage(role = "system", content = systemPrompt)
         )
-
-        if (joinMessages) {
-            // Join the entire conversation in one message only:
-            var fullConv = "## FULL CONVERSATION TRANSCRIPTION:"
-            for (msg in origMessages) {
-                fullConv = "$fullConv\n   - ${msg.role.uppercase()}: \"${msg.content} \""
-            }
+        // Message history:
+        if (isRouter) {
+            val msg = origMessages.last()
             inMessages.add(
                 ChatMessage(
-                    role = "user", content = fullConv
+                    role = "user", content = "**## USER MESSAGE:** \"${msg.content} \""
                 )
             )
 
         } else {
-            // Prepend user prompt to last user message:
-            userPrompt = userPrompt + "\n" + promptEnd
-            inMessages.addAll(origMessages.subList(0, origMessages.lastIndex))  // History
-            inMessages.add(
-                ChatMessage(
-                    role = "user",
-                    content = userPrompt.replace(promptUserStr, origMessages.last().content)
-                )
-            )   // User prompt + user message
+            inMessages.addAll(origMessages)
         }
-
+        // Log.d(TAG, "inMessages for node $name: $inMessages")
         return inMessages
     }
 
@@ -93,32 +78,33 @@ open class Node() {
     fun updateStateFromRouter(
         context: Context,
         llmReturn: LlmReturn,
-        prevState: StateInfo
+        prevState: StateInfo,
+        updateIntent: Boolean = false,
     ): StateInfo {
         var updState = prevState
 
         if (llmReturn.next in nextOptions) {
             Log.d(TAG, "Routing to -> ${llmReturn.next}")
             // Update last user message:
+            if (updateIntent) {
+                updState.intentName = if (llmReturn.next == "MessageRouter" || name == "MessageRouter") "MessageAgent" else llmReturn. next
+            }
             if (prevState.lastUserMsgId != 0L) {
                 messageUtils.updateMessage(
                     context = context,
                     id = prevState.lastUserMsgId,
-                    requestIntent = llmReturn.next,
+                    requestIntent = updState.intentName,
                 )
             }
             // Route to next:
-            updState.intentName = llmReturn.next
             updState.next = llmReturn.next
-            if (updState.next == END) {
-                updState.messages = mutableListOf<ChatMessage>()
-            }
 
         } else {
             // Non-existent 'next' option:
             Log.w(TAG, "ERROR: Next ID '${llmReturn.next}' not in nextIds array!")
             updState.fail = true
         }
+        updState.attachments = llmReturn.attachments
         return updState
     }
 
@@ -126,6 +112,9 @@ open class Node() {
         prevState: StateInfo,
         llmReturn: LlmReturn,
     ): StateInfo {
+        // inMessages contains the system prompt + the chosen input messages. They are NOT added to the message history.
+        // outMessages (in LlmAgent) contains the newly-generated messages for the current agentic turn.
+
         var updState = prevState
         if (llmReturn.fail) {
             updState.fail = true
@@ -145,12 +134,17 @@ open class Node() {
                 }
             }
         }
+        updState.attachments = llmReturn.attachments
+        updState.attachments.latestTurnFlow.addAll(llmReturn.messages)
+        updState.actionType = llmReturn.attachments.actionType
+        updState.attachments.actionType = null
         return updState
     }
 
     // (Open) Custom invoke logic:
     open fun invoke(
-        prevState: StateInfo): StateInfo {
+        prevState: StateInfo
+    ): StateInfo {
         // TODO
         var updState = prevState
         return updState

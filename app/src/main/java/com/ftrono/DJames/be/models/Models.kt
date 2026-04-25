@@ -19,6 +19,21 @@ data class HttpResponse(
 )
 
 
+@Serializable
+data class TTSVoiceSettings(
+    val speed: Double,
+    val stability: Double,
+    val similarity_boost: Double,
+)
+
+@Serializable
+data class TTSRequest(
+    val text: String,
+    val model_id: String,
+    val voice_settings: TTSVoiceSettings
+)
+
+
 data class RawLinkPreview(
     var title: String = "",
     var description: String = "",
@@ -48,8 +63,8 @@ data class RecDetails(
 
 @Serializable
 data class AiReply(
-    val langCode: String,
-    val text: String
+    var langCode: String,
+    var text: String
 )
 
 

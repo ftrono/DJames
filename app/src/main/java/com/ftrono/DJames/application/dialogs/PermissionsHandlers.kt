@@ -14,6 +14,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.notificationListenerPermissionDescription
 import com.ftrono.DJames.application.overlayPermissionDescription
 import com.ftrono.DJames.application.permissionDescriptions
 import com.ftrono.DJames.application.permsRequested
@@ -152,6 +153,39 @@ fun DialogRequestOverlay(
             val intent = Intent(
                 Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 Uri.parse("package:${mContext.packageName}")
+            )
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            mContext.startActivity(intent)
+        },
+        onDismiss = {
+            dialogOnState.value = false
+        }
+    )
+}
+
+
+@Composable
+fun DialogRequestNotificationListener(
+    mContext: Context,
+    dialogOnState: MutableState<Boolean>,
+) {
+    GeneralDialog(
+        dialogOnState = dialogOnState,
+        backgroundColor = colorResource(id = R.color.colorPrimaryDark),
+        title = "Notification access permission",
+        content = {
+            Text(
+                text = notificationListenerPermissionDescription,
+                color = colorResource(id = R.color.light_grey),
+                fontSize = 14.sp
+            )
+        },
+        dismissText = "Not now",
+        confirmText = "Yes",
+        onConfirm = {
+            dialogOnState.value = false
+            val intent = Intent(
+                Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
             )
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             mContext.startActivity(intent)

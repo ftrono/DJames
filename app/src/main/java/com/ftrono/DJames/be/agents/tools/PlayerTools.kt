@@ -2,26 +2,24 @@ package com.ftrono.DJames.be.agents.tools
 
 import android.content.Context
 import android.util.Log
-import com.ftrono.DJames.application.episodeUrlIntro
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.maxSearchMatches
 import com.ftrono.DJames.application.midThreshold
-import com.ftrono.DJames.application.showUrlIntro
 import com.ftrono.DJames.application.spotifyUtils
-import com.ftrono.DJames.be.agents.data.ActionType
-import com.ftrono.DJames.be.agents.data.ToolDefinition
-import com.ftrono.DJames.be.agents.data.ToolFunction
-import com.ftrono.DJames.be.agents.data.ToolParameters
-import com.ftrono.DJames.be.agents.data.ToolProperty
-import com.ftrono.DJames.be.agents.data.ToolResponse
-import com.ftrono.DJames.be.agents.data.ToolType
+import com.ftrono.DJames.kaigraph.data.ToolDefinition
+import com.ftrono.DJames.kaigraph.data.ToolFunction
+import com.ftrono.DJames.kaigraph.data.ToolParameters
+import com.ftrono.DJames.kaigraph.data.ToolProperty
+import com.ftrono.DJames.kaigraph.data.ToolResponse
+import com.ftrono.DJames.kaigraph.data.ToolType
+import com.ftrono.DJames.be.database.ActionType
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.database.LibMatch
-import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.PlayRequest
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.spotify.SpotifySearch
+import com.ftrono.DJames.kaigraph.tool.Tool
 import kotlinx.serialization.json.*
 
 data class QueryAPIReturn(
@@ -193,7 +191,6 @@ class ToolRetrievePlayer(
             playRequest.type = "playlist"
             matchNames.addAll(loadCandidates("playlist", playRequest.playlist))
 
-
         } else if (playRequest.artist != "") {
             // PLAY ARTIST:
             playRequest.type = "artist"
@@ -207,7 +204,7 @@ class ToolRetrievePlayer(
 
         // Fallback:
         if (playRequest.type == "" || matchNames.isEmpty()) {
-            retString = "End the conversation by simply saying that you did not understand."
+            retString = "This tool was called with no input args: try again passing the correct input information."
 
         } else {
             // 2) QUERY SPOTIFY:
@@ -240,13 +237,12 @@ class ToolRetrievePlayer(
             }
             // TODO: match context!
 
-            Log.d(TAG, "PLAY CANDIDATES: $updAttachments.playCandidates!!")
+            Log.d(TAG, "PLAY CANDIDATES: ${updAttachments.playCandidates}!!")
 
             // 3) PREPARE TOOL RESPONSE:
             if (updAttachments.playCandidates!!.isEmpty()) {
                 // Fallback:
-                retString =
-                    "End the conversation by simply saying that you could not find any results."
+                retString = "Reply that you could not find any results. Ask the user if he/she wants to search for something else or to specify better what to search for."
 
             } else if (updAttachments.playCandidates!!.size == 1) {
                 // Success -> one match:
@@ -283,7 +279,7 @@ class ToolRetrievePlayer(
                 if (candidateStr == "") {
                     // Fallback:
                     retString =
-                        "End the conversation by simply saying that you could not find any results."
+                        "Reply that you could not find any results. Ask the user if he/she wants to search for something else or to specify better what to search for."
                 } else {
                     // Success -> multiple matches:
                     retString = """
@@ -338,19 +334,20 @@ class ToolPlay(
 
     override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
         val spotifyID: String = (args["spotify_id"]?.jsonPrimitive?.content ?: "")
-        val updAttachments = attachments
 
-        if (spotifyID == "" || updAttachments.playCandidates == null) {
+        if (spotifyID == "" || attachments.playCandidates == null) {
+            Log.w(TAG, "ERROR: ToolPlay invoked with either missing spotifyID ($spotifyID) or attachments!")
             return ToolResponse(
-                message = "Tell the user there was a problem and END the conversation.",
-                attachments = updAttachments,
+                message = "Reply that there was a problem. Do NOT ask further questions to the user.",
+                attachments = attachments,
             )
 
         } else {
             // Retrieve from attachments:
-            val playMatches = updAttachments.playCandidates!!.filter { it.id == spotifyID }
+            val playMatches = attachments.playCandidates!!.filter { it.id == spotifyID }
             if (playMatches.isNotEmpty()) {
                 val playMatch = playMatches[0]
+                var detailInfo = ""
 
                 if (playMatch.type == "podcast") {
                     // Podcast -> GET latest podcast episode:
@@ -364,29 +361,32 @@ class ToolPlay(
                         )[0]
                         playMatch.id = playMatch.episode!!.id
                         playMatch.type = "episode"
+                        detailInfo = ", latest episode dated ${utils.readDate(
+                            date=playMatch.episode!!.releaseDate, inputFormat="yyyy-MM-dd")
+                        } (read it)"
                         Log.d(TAG, "Episode: $playMatch")
 
                     } catch (e: Exception) {
                         // Episodes not found:
                         Log.d(TAG, "Podcast episodes not found! ", e)
                         return ToolResponse(
-                            message = "Cannot find the latest episode for the requested podcast. End the conversation.",
-                            attachments = updAttachments,
+                            message = "Reply that you could not find the latest episode for the requested podcast.",
+                            attachments = attachments,
                         )
                     }
                 }
 
-                updAttachments.spotifyPlay = playMatch
+                attachments.spotifyPlay = playMatch
+                attachments.actionType = ActionType.PLAY
                 return ToolResponse(
-                    message = "Playing the track with Spotify ID: $spotifyID. Do NOT ask further questions to the user.",
-                    attachments = updAttachments,
-                    actionType = ActionType.PLAY,
+                    message = "Playing the ${playMatch.type} with Spotify ID: $spotifyID$detailInfo. Always tell the user what you're playing and do NOT ask further questions to the user.",
+                    attachments = attachments,
                 )
 
             } else {
                 return ToolResponse(
                     message = "Cannot find the requested song. Read them again to the user.",
-                    attachments = updAttachments,
+                    attachments = attachments,
                 )
             }
         }

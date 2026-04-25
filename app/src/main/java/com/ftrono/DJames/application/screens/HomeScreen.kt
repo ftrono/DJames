@@ -46,6 +46,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.chatInputPlaceholder
 import com.ftrono.DJames.application.curNavId
+import com.ftrono.DJames.application.dialogs.DialogRequestNotificationListener
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.extraOpen
@@ -124,6 +125,16 @@ fun HomeScreen(
             permission = Manifest.permission.RECORD_AUDIO
         )
     }
+//    //Notifications Listener permission management:
+//    val requestNotificationListenerOn = rememberSaveable { mutableStateOf(
+//        !utils.isNotificationServiceEnabled(mContext)
+//    ) }
+//    if (requestNotificationListenerOn.value) {
+//        DialogRequestNotificationListener(
+//            mContext = mContext,
+//            dialogOnState = requestNotificationListenerOn
+//        )
+//    }
 
     StreetUIScaffold(
         modifier = Modifier

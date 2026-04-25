@@ -9,6 +9,7 @@ import com.ftrono.DJames.application.audioManager
 
 class AudioRequestsManager() {
     private val TAG = this::class.java.simpleName
+    var requestsStack: MutableList<AudioFocusRequest> = mutableListOf()
 
     //AudioManager:
     private val duckedAttributes = AudioAttributes.Builder()
@@ -20,9 +21,6 @@ class AudioRequestsManager() {
         .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
         .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
         .build()
-
-    private lateinit var duckedFocusRequest: AudioFocusRequest
-    private lateinit var exclusiveFocusRequest: AudioFocusRequest
 
 
     // Helpers:
@@ -47,14 +45,15 @@ class AudioRequestsManager() {
     ) {
         try {
             //REQUEST AUDIO FOCUS:
-            val focusRequest = audioManager!!.requestAudioFocus(focusRequest)
-            when (focusRequest) {
+            val res = audioManager!!.requestAudioFocus(focusRequest)
+            when (res) {
                 AudioManager.AUDIOFOCUS_REQUEST_FAILED -> {
                     Log.d(TAG, "Cannot gain audio focus! Try again.")
                     onFail()
                 }
                 AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {
                     Log.d(TAG, "Audio focus granted!")
+                    requestsStack.add(focusRequest)
                     onGranted()
                 }
             }
@@ -72,7 +71,7 @@ class AudioRequestsManager() {
     ) {
         try {
             // Build DUCKED focus request:
-            duckedFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+            val duckedFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
                 .setAudioAttributes(duckedAttributes)
                 .setOnAudioFocusChangeListener(
                     getAudioFocusChangeListener { onFail() }
@@ -82,8 +81,14 @@ class AudioRequestsManager() {
             //REQUEST AUDIO FOCUS:
             requestFocus(
                 duckedFocusRequest,
-                { onGranted() },
-                { onFail() }
+                onGranted = { onGranted() },
+                onFail = {
+                    // Fallback to exclusive focus:
+                    requestExclusiveFocus(
+                        onGranted = { onGranted() },
+                        onFail = { onFail() },
+                    )
+                }
             )
         } catch (e: Exception) {
             Log.w(TAG, "AUDIOFOCUS: EXCEPTION: ", e)
@@ -98,7 +103,7 @@ class AudioRequestsManager() {
     ) {
         try {
             // Build EXCLUSIVE focus request:
-            exclusiveFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
+            val exclusiveFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
                 .setAudioAttributes(exclusiveAttributes)
                 .setOnAudioFocusChangeListener(
                     getAudioFocusChangeListener { onFail() }
@@ -118,19 +123,15 @@ class AudioRequestsManager() {
 
 
     //RELEASE AUDIO FOCUS:
-    fun releaseDuckedFocus() {
-        try {
-            audioManager!!.abandonAudioFocusRequest(duckedFocusRequest)
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: AudioFocus - Ducked focus already released.")
-        }
-    }
-
-    fun releaseExclusiveFocus() {
-        try {
-            audioManager!!.abandonAudioFocusRequest(exclusiveFocusRequest)
-        } catch (e: Exception) {
-            Log.w(TAG, "ERROR: AudioFocus - Exclusive focus already released.")
+    fun releaseAudioFocus() {
+        // Clean stack:
+        for (req in requestsStack.reversed()) {
+            try {
+                audioManager!!.abandonAudioFocusRequest(req)
+            } catch (e: Exception) {
+                Log.w(TAG, "ERROR: AudioFocus - Focus already released for the current request.")
+            }
+            requestsStack.removeAt(requestsStack.lastIndex)
         }
     }
 

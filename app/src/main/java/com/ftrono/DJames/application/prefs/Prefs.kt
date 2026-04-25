@@ -103,6 +103,11 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getString(KEY_QUERY_LANGUAGE, "en") as String
         set(value) = sharedPrefs.edit { putString(KEY_QUERY_LANGUAGE, value) }
 
+    //Voice queries: Voice accent:
+    var voiceAccent: String
+        get() = sharedPrefs.getString(KEY_VOICE_ACCENT, "British") as String
+        set(value) = sharedPrefs.edit { putString(KEY_VOICE_ACCENT, value) }
+
     //Voice queries: Rec timeout:
     var recTimeout: Int
         get() = sharedPrefs.getInt(KEY_REC_TIMEOUT, 10)
@@ -204,6 +209,7 @@ class Prefs (context: Context) {
         const val KEY_AUTO_STARTUP = ".key.auto_startup"
         const val KEY_OVERLAY_POSITION = ".key.overlay_position"
         const val KEY_QUERY_LANGUAGE = ".key.query_language"
+        const val KEY_VOICE_ACCENT = ".key.voice_accent"
         const val KEY_REC_TIMEOUT = ".key.rec_timeout"
         const val KEY_SILENCE_ENABLED_QUERIES = ".key.enable_silence_queries"
         const val KEY_MESSAGE_LANGUAGE = ".key.message_language"

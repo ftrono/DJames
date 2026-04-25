@@ -1,10 +1,11 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.ksp)
+
     id("io.objectbox")
-    kotlin("plugin.serialization") version "2.1.20"
-    id("org.jetbrains.kotlin.plugin.compose") version "2.1.20"
+    id("org.jetbrains.kotlin.plugin.serialization")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
@@ -16,7 +17,7 @@ android {
         minSdk = 29
         targetSdk = 35
         versionCode = 1
-        versionName = "3.0.a10"
+        versionName = "3.0.a11"
 
         manifestPlaceholders["appAuthRedirectScheme"] = "djames-oauth"
 
@@ -116,6 +117,9 @@ dependencies {
 
     //implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
+
+    // KAIGraph Library:
+    implementation(project(":kaigraph"))
 
     // OkHTTP: define a BOM and its version
     implementation(platform("com.squareup.okhttp3:okhttp-bom:4.12.0"))

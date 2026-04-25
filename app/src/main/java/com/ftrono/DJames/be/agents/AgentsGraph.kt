@@ -7,8 +7,10 @@ import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.START
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.defaultChatWait
+import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.minSpeechPct
+import com.ftrono.DJames.application.mistralLlmModelSmall
 import com.ftrono.DJames.application.mistralSttModel
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
@@ -16,14 +18,18 @@ import com.ftrono.DJames.be.agents.nodes.CallAgentNode
 import com.ftrono.DJames.be.agents.nodes.DriverAgentNode
 import com.ftrono.DJames.be.agents.nodes.GuidanceAgentNode
 import com.ftrono.DJames.be.agents.nodes.MainRouterNode
-import com.ftrono.DJames.be.agents.nodes.MessageAgentNode
+import com.ftrono.DJames.be.agents.nodes.TextAgentNode
 import com.ftrono.DJames.be.agents.nodes.PlayerAgentNode
-import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.agents.data.StateInfo
-import com.ftrono.DJames.be.agents.graph.Graph
-import com.ftrono.DJames.be.agents.llm.LlmAgent
-import com.ftrono.DJames.be.agents.data.ChatMessage
+import com.ftrono.DJames.kaigraph.data.StateInfo
+import com.ftrono.DJames.kaigraph.graph.Graph
+import com.ftrono.DJames.kaigraph.llm.LlmAgent
+import com.ftrono.DJames.kaigraph.data.ChatMessage
+import com.ftrono.DJames.kaigraph.data.FinalizerReply
+import com.ftrono.DJames.be.agents.data.promptFinalizer
+import com.ftrono.DJames.be.agents.nodes.MessageRouterNode
+import com.ftrono.DJames.be.agents.nodes.WAVoiceAgentNode
 import com.ftrono.DJames.be.database.Attachments
+import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.RecDetails
 import com.google.gson.JsonParser
 import java.io.BufferedReader
@@ -46,22 +52,36 @@ class AgentsGraph(
         // Define the graph structure:
         addNodes(
             nodes = mutableListOf(
-                // MAIN ROUTER:
+                // LEVEL 0 - MAIN ROUTER:
                 MainRouterNode(
                     context = context,
                     apiKey = apiKey,
                     nextOptions = listOf(
+                        "GuidanceAgent",
+                        "DriverAgent",
                         "PlayerAgent",
                         "CallAgent",
-                        "MessageAgent",
-                        "DriverAgent",
-                        "GuidanceAgent",
+                        "MessageRouter",
                         START,
                         END
                     ),
                 ),
 
-                // NODES:
+                // LEVEL 1 - NODES:
+                GuidanceAgentNode(
+                    context = context,
+                    apiKey = apiKey,
+                    onComplete = END,
+                    onFallback = "MainRouter",
+                ),
+
+                DriverAgentNode(
+                    context = context,
+                    apiKey = apiKey,
+                    onComplete = END,
+                    onFallback = "MainRouter",
+                ),
+
                 PlayerAgentNode(
                     context = context,
                     apiKey = apiKey,
@@ -76,26 +96,31 @@ class AgentsGraph(
                     onFallback = "MainRouter",
                 ),
 
-                MessageAgentNode(
+                // LEVEL 1 - MESSAGE ROUTER:
+                MessageRouterNode(
+                    context = context,
+                    apiKey = apiKey,
+                    nextOptions = listOf(
+                        "WAVoiceAgent",
+                        "TextAgent",
+                        "MessageRouter",
+                    ),
+                ),
+
+                // LEVEL 2 - MESSAGE NODES:
+                TextAgentNode(
                     context = context,
                     apiKey = apiKey,
                     onComplete = END,
                     onFallback = "MainRouter",
                 ),
 
-                DriverAgentNode(
+                WAVoiceAgentNode(
                     context = context,
                     apiKey = apiKey,
                     onComplete = END,
-                    onFallback = "MainRouter",
+                    onFallback = END,   // Deterministic node
                 ),
-
-                GuidanceAgentNode(
-                    context = context,
-                    apiKey = apiKey,
-                    onComplete = END,
-                    onFallback = "MainRouter",
-                )
             )
         )
         Log.d(TAG, "Graph built!")
@@ -104,12 +129,18 @@ class AgentsGraph(
     // State / DB:
     // Load latest message to State:
     override fun loadMessages(): MutableList<ChatMessage> {
-        // TODO: Build initial messages list:
-        val msgList = mutableListOf<ChatMessage>(
-            // ChatMessage(role = "user", content = inMessage)
-        )
+        val msgList = messageUtils.getMessagesByStarterId(lastStarterId)
+        val chatMsgList = mutableListOf<ChatMessage>()
+        for (msg in msgList) {
+            chatMsgList.add(
+                ChatMessage(
+                    role = if (msg.fromUser) "user" else "assistant",
+                    content = msg.text
+                )
+            )
+        }
         Log.d(TAG, "Messages size: ${msgList.size} items.")
-        return msgList
+        return chatMsgList
     }
 
     // Process new user message:
@@ -124,13 +155,17 @@ class AgentsGraph(
         var fromVoice = recDetails != null
         updState.fromVoice = fromVoice
         var isStart = prevState.next == START
-        var language = "en"
+        if (isStart) lastStarterId = 0L
         Log.d(TAG, "Processing new user message...")
 
         // Parse new message:
-        // LLM version: transcribe only if voice:
+        // LLM version: transcribe only if voice and not voice message:
         var transcription = ""
-        if (fromVoice) {
+        if (updState.messageMode && updState.messageType == "voice") {
+            transcription = "(voice message recorded)"
+            Log.d(TAG, "Voice message recorded - no STT transcription.")
+
+        } else if (fromVoice) {
             // FROM VOICE:
             updState.lastRecording = recDetails!!.recName
             updState.noSave = false
@@ -141,11 +176,6 @@ class AgentsGraph(
                 updState.isSilence = true
                 updState.fail = true
                 updState.noSave = true
-
-            } else if (prevState.messageMode && prevState.messageType == "voice") {
-                //Whatsapp audio message -> no STT!
-                Log.d(TAG, "Message followup: audio message.")
-                transcription = "(private message)"
 
             } else {
                 // (LLM) STT transcribe:
@@ -186,24 +216,55 @@ class AgentsGraph(
             updState.messages.add(
                 ChatMessage(role = "user", content = transcription)
             )
-            // DB: Store user message (anonymized):
-            val storedText = if (updState.messageMode) "(private message)" else transcription
-            val attachments = Attachments()
-            attachments.llmChatMessages = mutableListOf<ChatMessage>(
-                ChatMessage(role = "user", content = storedText)
-            )
+            // DB: Store user message:
             updState.lastUserMsgId = messageUtils.storeMessage(
                 context = context,
                 langCode = updState.reqLangCode,
                 fromUser = true,
                 fromVoice = fromVoice,
                 isStart = isStart,
-                text = storedText,
+                text = transcription,
                 intent = updState.intentName,
-                attachments = attachments,
+                attachments = Attachments(),
             )
         }
         return updState
+    }
+
+    // Extract finalization info from last agent's reply:
+    fun finalize(finalReply: String): Boolean {
+        try {
+            Log.d(TAG, "Invoking FinalizerAgent...")
+            // Get out followUp info (true / false):
+            val finalizerAgent = LlmAgent(
+                context = context,
+                apiKey = apiKey,
+                model = mistralLlmModelSmall,
+                agentName = "Structured",
+            )
+            val inMessages = mutableListOf<ChatMessage>(
+                ChatMessage(
+                    role = "system",
+                    content = promptFinalizer
+                ),
+                ChatMessage(
+                    role = "user",
+                    content = finalReply
+                )
+            )
+
+            val encodedReply = finalizerAgent.invoke(
+                llmMessages = inMessages,
+                attachments = Attachments()
+            )
+
+            val decodedReply = finalizerAgent.decodeJson<FinalizerReply>(encodedReply.messages[0].content)
+            return decodedReply.followUp
+
+        } catch (e: Exception) {
+            Log.w(TAG, "ERROR in finalize(): ", e)
+            return false
+        }
     }
 
     // MAIN: INVOKE:
@@ -218,10 +279,8 @@ class AgentsGraph(
         Log.d(TAG, "Invoking Graph...")
 
         // Retrieve latest messages:
-        if (updState.messages.isEmpty()) {
-            updState.messages.addAll(
-                loadMessages()   // TODO
-            )
+        if (prevState.next == START) {
+            updState.messages = loadMessages()
         }
 
         // Process new message:
@@ -234,26 +293,42 @@ class AgentsGraph(
         Log.d(TAG, "Messages size (input): ${updState.messages.size} items.")
 
         // STREAMING LOOP:
-        updState = stream(updState, routerNode = "MainRouter")
+        updState = stream(updState, routerNodes = listOf("MainRouter", "MessageRouter"))
         Log.d(TAG, "Messages size (output): ${updState.messages.size} items, fail: ${updState.fail}")
 
-        //TODO: Add store messages to DB here!
+        // Final reply:
+        updState.fullReply = when {
+            updState.isSilence -> defaultReplies.replyFallback()   // Fallback
+            updState.fail -> defaultReplies.replyError()   // Error
+            (updState.next == END && (
+                updState.messages.isEmpty() || updState.messages.last().role != "assistant"
+            )) -> defaultReplies.replyNevermind()   // Nevermind
+            else -> updState.messages.last().content   // Actual reply
+        }
 
-        // Returns:
+        // TEMP: for V2 compatibility:
         updState.aiReplies = listOf(
             AiReply(
-                langCode = updState.reqLangCode,
-                text = when {
-                    updState.isSilence -> defaultReplies.replyFallback()   // Fallback
-                    updState.fail -> defaultReplies.replyError()   // Error
-                    (updState.next == END && (
-                            updState.messages.isEmpty() || updState.messages.last().role != "assistant"
-                        )
-                    ) -> defaultReplies.replyNevermind()   // Nevermind
-                    else -> updState.messages.last().content   // Actual reply
-                }
+                text = updState.fullReply,
+                langCode = prefs.queryLanguage
             )
         )
+
+        // Finalize process:
+        if (!updState.fail) {
+            val followUp = finalize(updState.fullReply.replace("*", ""))
+            updState.next = if (followUp && updState.next == END) {
+                updState.intentName
+            } else if (!followUp && updState.next != END) {
+                END
+            } else updState.next
+        }
+
+        // End message mode:
+        if (updState.next == END) {
+            updState.messageMode = false
+        }
+
         return updState
     }
 }

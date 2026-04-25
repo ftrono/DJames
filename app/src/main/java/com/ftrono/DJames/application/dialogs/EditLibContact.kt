@@ -184,6 +184,7 @@ fun EditLibContact(
                     )
 
                     //3) Update / store to DB:
+                    itemContact.uniId = libUtils.createUniId(filter)
                     libUtils.storeLibItem(context, itemContact)
 
                     //4) End & close:

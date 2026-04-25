@@ -33,7 +33,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.0.a10"
+val appVersion = "3.0.a11"
 val copyrightYear = 2024
 
 //DB:
@@ -91,6 +91,7 @@ val permissionDescriptions = buildMap {
     }
 }
 val overlayPermissionDescription = "DJames needs your permission to show its Overlay button over other apps! Through this button, you will be able to record voice requests.\n\nPlease tap 'Yes' and enable DJames from the app list!"
+val notificationListenerPermissionDescription = "DJames needs your permission to read your notifications. It will only do so while the Overlay button is visible, to read your notifications.\n\nPlease tap 'Yes' and enable DJames from the app list!"
 
 //STATUS VARS:
 var curNavId = 0
@@ -139,12 +140,12 @@ val clickAnimationCountdownTime: Int = 4000   //ms
 val clickCountdownTime: Long = 3000   //ms
 val clickSleepInterval: Long = 100   //ms
 val maxSearchMatches = 2
-val maxGraphLoops = 2
+val maxGraphLoops = 3
 val deltaSimilarity = 10   //5
 val midThreshold = 70
 val minThreshold = 50
 val recSamplingRate = 48000 // 44100
-val silencePatienceQueries = 2   //seconds
+val silencePatienceQueries = 3   //seconds
 val silencePatienceMess = 3   //seconds
 val minSpeechPct = 10   // %
 val defaultHttpTimeout = 10L   //seconds
@@ -154,11 +155,13 @@ val datetimeExportFormat = "yyyy-MM-dd HH_mm_ss"
 val datetimeFullFormat = "yyyy/MM/dd HH:mm"
 val datetimeShortFormat = "MMMM dd, HH:mm"
 val datetimePromptFormat = "EEEE dd MMMM yyyy, HH:mm"
+val dictatedNumber = "Dictated number"
 
 //Dropdowns:
 val genders = listOf<String>("Sir", "Madam", "Friend")
 var queryLangCodes = listOf<String>("en", "it")
 val queryLangFull = listOf<String>("English", "Italian")
+val voiceAccents = listOf<String>("British", "Canadian")
 var messLangCodes = listOf<String>("en", "it", "fr", "de", "es")
 val messLangFull = listOf<String>("English", "Italian", "French", "German", "Spanish")
 var messLangLower = listOf<String>("english", "italian", "french", "german", "spanish")
@@ -186,7 +189,7 @@ var songName: String = ""
 var artistName: String = ""
 var contextName: String = ""
 
-//HTTP:
+//Maps:
 val gMapsLinkFormat = "https://www.google.com/maps/dir//"
 
 //Spotify formats:
@@ -220,6 +223,20 @@ val mistralLlmModelMedium = "mistral-medium-latest"
 val mistralLlmUrl = "https://api.mistral.ai/v1/chat/completions"
 val mistralLlmTemperature = 0.3F
 val mistralLlmTimeout = 20L
+
+// TTS:
+// Voice:
+val ttsVoiceIdMap: Map<String, String> = mapOf(
+    "British" to "goT3UYdM9bhm0n2lmKQx",   // Edward - British, dark, seductive, low
+    "Canadian" to "cjArIjDxxZm7Kw6xbz5t"   // Seann - Warm, natural & confident
+)
+val ttsModelId: String = "eleven_flash_v2_5"
+val ttsOutputFormat: String = "pcm_32000"
+val ttsSampleRate: Int = 32000
+val ttsTimeoutMs: Long = 10000L
+val ttsSpeed: Double = 1.0
+val ttsStability: Double = 0.50
+val ttsSimilarityBoost: Double = 0.75
 
 //BROADCASTS:
 //Event receiver:

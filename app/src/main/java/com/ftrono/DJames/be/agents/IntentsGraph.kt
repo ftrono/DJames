@@ -10,9 +10,9 @@ import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.minSpeechPct
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.agents.data.StateInfo
-import com.ftrono.DJames.be.agents.graph.Graph
-import com.ftrono.DJames.be.agents.data.ChatMessage
+import com.ftrono.DJames.kaigraph.data.StateInfo
+import com.ftrono.DJames.kaigraph.graph.Graph
+import com.ftrono.DJames.kaigraph.data.ChatMessage
 import com.ftrono.DJames.be.agents.nodes.CallIntentNode
 import com.ftrono.DJames.be.agents.nodes.DriverIntentNode
 import com.ftrono.DJames.be.agents.nodes.IntentRouterNode
@@ -103,8 +103,8 @@ class IntentsGraph(
 
         } else if (updState.messageMode && updState.messageType == "voice" && fromVoice) {
             //Whatsapp audio message -> no NLP query!
-            Log.d(TAG, "Message followup: audio message.")
-            transcription = "(private message)"
+            transcription = "(voice message recorded)"
+            Log.d(TAG, "Voice message recorded - no STT transcription.")
 
         } else {
             if (fromVoice) updState.lastRecording = recDetails!!.recName
@@ -172,10 +172,7 @@ class IntentsGraph(
             )
             updState.attachments = attachments   // Reset attachments
             // DB: Store user message (anonymized):
-            val storedText = if (updState.messageMode) "(private message)" else transcription
-            attachments.llmChatMessages = mutableListOf<ChatMessage>(
-                ChatMessage(role = "user", content = storedText)
-            )
+            val storedText = if (updState.messageMode && updState.messageType != "voice") "(private message)" else transcription
             updState.lastUserMsgId = messageUtils.storeMessage(
                 context = context,
                 langCode = if (updState.reqLangCode != "") updState.reqLangCode else "en",
@@ -192,7 +189,7 @@ class IntentsGraph(
             updState.noSave = true
             updState.messageMode = false
             updState.actionType = null
-            updState.next == END
+            updState.next = END
         }
 
         // Typing delay:
@@ -222,9 +219,10 @@ class IntentsGraph(
         Log.d(TAG, "Messages size (input): ${updState.messages.size} items.")
 
         // STREAMING LOOP:
-        updState = stream(updState, routerNode = "IntentRouter")
+        updState = stream(updState, routerNodes = listOf("IntentRouter"))
         Log.d(TAG, "Messages size (output): ${updState.messages.size} items, fail: ${updState.fail}")
 
+        updState.fullReply = updState.aiReplies.joinToString(" ") { it.text }
         return updState
     }
 }

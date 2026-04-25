@@ -12,9 +12,9 @@ import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.messLangLower
 import com.ftrono.DJames.be.database.ExtractorInfo
 import com.ftrono.DJames.be.database.LibraryItem
-import com.ftrono.DJames.be.agents.data.ActionType
 import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.be.agents.data.StateInfo
+import com.ftrono.DJames.kaigraph.data.StateInfo
+import com.ftrono.DJames.be.database.ActionType
 
 
 class GenericFulfillment (private var context: Context) {
@@ -99,7 +99,7 @@ class GenericFulfillment (private var context: Context) {
                         //Fallback:
                         return fulfillmentUtils.fallback(updState, cannotRecordWAVoice=true)
                     }
-                } else if (updState.messageType == "whatsapp") {
+                } else if (updState.messageType == "wa_text") {
                     updState.actionType = ActionType.WA_TEXT
                 } else {
                     updState.actionType = ActionType.SMS

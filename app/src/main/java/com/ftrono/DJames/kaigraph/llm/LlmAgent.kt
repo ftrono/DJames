@@ -1,27 +1,25 @@
-package com.ftrono.DJames.be.agents.llm
+package com.ftrono.DJames.kaigraph.llm
 
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.jsonNoPrint
 import com.ftrono.DJames.application.jsonUnknown
-import com.ftrono.DJames.application.mistralLlmModelSmall
 import com.ftrono.DJames.application.mistralLlmTemperature
 import com.ftrono.DJames.application.mistralLlmTimeout
 import com.ftrono.DJames.application.mistralLlmUrl
 import com.ftrono.DJames.application.mistralSttUrl
+import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.agents.data.ActionType
-import com.ftrono.DJames.be.agents.data.ChatMessage
-import com.ftrono.DJames.be.agents.data.LlmRequest
-import com.ftrono.DJames.be.agents.data.LlmResponse
-import com.ftrono.DJames.be.agents.data.LlmReturn
-import com.ftrono.DJames.be.agents.data.StateInfo
-import com.ftrono.DJames.be.agents.data.SttResponse
-import com.ftrono.DJames.be.agents.data.SttReturn
-import com.ftrono.DJames.be.agents.data.ToolDefinition
-import com.ftrono.DJames.be.agents.data.ToolType
-import com.ftrono.DJames.be.agents.tools.Tool
+import com.ftrono.DJames.kaigraph.data.ChatMessage
+import com.ftrono.DJames.kaigraph.data.LlmRequest
+import com.ftrono.DJames.kaigraph.data.LlmResponse
+import com.ftrono.DJames.kaigraph.data.LlmReturn
+import com.ftrono.DJames.kaigraph.data.SttResponse
+import com.ftrono.DJames.kaigraph.data.SttReturn
+import com.ftrono.DJames.kaigraph.data.ToolDefinition
+import com.ftrono.DJames.kaigraph.data.ToolType
+import com.ftrono.DJames.kaigraph.tool.Tool
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.models.HttpResponse
 import com.ftrono.DJames.be.utils.HttpClient
@@ -66,8 +64,7 @@ class LlmAgent(
 
     // Clean LLM message:
     private fun cleanLlmMessage(text: String): String {
-        var re = Regex("[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+")
-        return re.replace(text, " ").replace("**", "\n").replace("* ", "- ").trim()
+        return text.replace("**", "\n").replace("* ", "- ").trim()
     }
 
     // Send LLM API request:
@@ -117,6 +114,16 @@ class LlmAgent(
         return httpResponse
     }
 
+    // Main: Decode structured JSON:
+    inline fun <reified T> decodeJson(text: String): T {
+        val cleanText = text
+            .replace("```json", "")
+            .replace("```", "")
+            .trim()
+
+        return Json.decodeFromString<T>(cleanText)
+    }
+
     // Main: Transcribe:
     fun transcribe(audioPath: String): SttReturn {
         try {
@@ -129,7 +136,7 @@ class LlmAgent(
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("file", audioFile.name, fileBody)
                 .addFormDataPart("model", model)
-                .addFormDataPart("language", "en")
+                .addFormDataPart("language", prefs.queryLanguage)
                 .build()
 
             var httpResponse = sendLlmRequest(
@@ -175,13 +182,15 @@ class LlmAgent(
         llmMessages: MutableList<ChatMessage>,
         attachments: Attachments,
     ): LlmReturn {
+        // inMessages contains the system prompt + the chosen input messages. They are NOT added to the message history.
+        // outMessages contains the newly-generated messages for the current agentic turn.
+
+        val outMessages = mutableListOf<ChatMessage>()
+        var updAttachments = attachments
+
         try {
-            // outMessages: must contain new updates only:
-            var outMessages = mutableListOf<ChatMessage>()
-            var inMessages = llmMessages   // editable
+            val inMessages = llmMessages   // editable
             var next = ""
-            var updAttachments = attachments
-            var actionType: ActionType? = null
 
             // Build request:
             var llmRequest = LlmRequest(
@@ -194,6 +203,7 @@ class LlmAgent(
             )
 
             // Invoke LLM:
+            // Log.d(TAG, "Invoking LLM with query -> ${llmRequest.messages.last()}!")
             var httpResponse = sendLlmRequest(
                 llmClassToRequestBody(llmRequest)
             )
@@ -201,7 +211,7 @@ class LlmAgent(
             if (httpResponse.code != 200) {
                 // Error:
                 Log.w(TAG, "LLM invoking error: status code ${httpResponse.code}!")
-                return getFallbackReply(updAttachments)
+                return getFallbackReply(outMessages, updAttachments)
 
             } else {
                 var llmResponse = jsonUnknown.decodeFromString<LlmResponse>(httpResponse.body)
@@ -225,7 +235,7 @@ class LlmAgent(
                             return LlmReturn(
                                 fail = false,
                                 next = onFallback,
-                                messages = mutableListOf(),
+                                messages = outMessages,
                                 attachments = updAttachments
                             )
                         } else if (curTool.type == ToolType.ACTION) {
@@ -244,7 +254,7 @@ class LlmAgent(
                         // Store "assistant" tool request message:
                         updMessage = ChatMessage(
                             role = "assistant",
-                            content = "Calling tool $toolCall...",
+                            content = "Calling tool $toolName...",
                             toolCalls = listOf(toolCall)
                         )
                         inMessages.add(updMessage)
@@ -255,7 +265,6 @@ class LlmAgent(
                         val toolResponseMsg = if (toolResponse.message != "") toolResponse.message else "Technical issue: the tool could not be contacted."
                         Log.d(TAG, "Got tool response: ${toolResponse.message}")
                         updAttachments = toolResponse.attachments
-                        actionType = toolResponse.actionType
 
                         // Store "tool" response message:
                         updMessage =
@@ -270,7 +279,7 @@ class LlmAgent(
                         // Send tool response to LLM:
                         llmRequest = LlmRequest(
                             messages = inMessages.toList(),
-                            model = if (actionType != null) mistralLlmModelSmall else model,
+                            model = model,
                             temperature = mistralLlmTemperature,
                             toolChoice = "auto",
                             parallelToolCalls = false,
@@ -292,7 +301,7 @@ class LlmAgent(
                         } else {
                             // Error:
                             Log.w(TAG, "LLM invoking error: status code ${httpResponse.code}!")
-                            return getFallbackReply(updAttachments)
+                            return getFallbackReply(outMessages, updAttachments)
                         }
 
                     } else {
@@ -305,7 +314,6 @@ class LlmAgent(
 
                 if (llmChoice != null && llmChoice.finishReason == "stop") {
                     // Return final AI response:
-                    Log.d(TAG, "Got LLM message: ${llmChoice.message.content}")
                     if (!isRouter) {
                         outMessages.add(
                             ChatMessage(
@@ -317,28 +325,28 @@ class LlmAgent(
                     return LlmReturn(
                         fail = false,
                         next = if (isRouter) llmChoice.message.content else next,
-                        messages = if (!isRouter) outMessages else mutableListOf(),
+                        messages = outMessages,
                         attachments = updAttachments,
-                        actionType = actionType,
                     )
                 } else {
                     // Error:
                     Log.w(TAG, "LLM invoking error! Check LLM response.")
-                    return getFallbackReply(updAttachments)
+                    return getFallbackReply(outMessages, updAttachments)
                 }
             }
         } catch (e: Exception) {
             // Error:
             Log.w(TAG, "LLM invoking error: ", e)
-            return getFallbackReply(attachments)
+            return getFallbackReply(outMessages, attachments)
         }
     }
 
     // Get fallback reply:
-    private fun getFallbackReply(attachments: Attachments): LlmReturn {
+    private fun getFallbackReply(messages: MutableList<ChatMessage>, attachments: Attachments): LlmReturn {
         return LlmReturn(
             fail = true,
-            messages = mutableListOf(),
+            next = END,
+            messages = messages,
             attachments = attachments,
         )
     }

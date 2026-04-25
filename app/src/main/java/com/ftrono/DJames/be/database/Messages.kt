@@ -174,7 +174,7 @@ data class Attachments(
     var playAcknowledge: Boolean = false,   //play the acknowledge tone
 
     @Convert(converter = ChatMessageConverter::class, dbType = String::class)
-    var llmChatMessages: MutableList<ChatMessage> = mutableListOf<ChatMessage>(),
+    var latestTurnFlow: MutableList<ChatMessage> = mutableListOf<ChatMessage>(),
 
     @Convert(converter = UseRequestConverter::class, dbType = String::class)
     var useRequest: UseRequest? = null,

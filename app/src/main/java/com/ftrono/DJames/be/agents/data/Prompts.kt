@@ -59,6 +59,7 @@ val promptFinalizer = """
     Rules:
       - If the message only informs the user or performs an action, return false.
       - If the message contains a request to explicitly click the 'Send' button in Whatsapp, return false.
+      - If the message contains a request to explicitly record a voice message in Whatsapp, return true.
       - If you are uncertain, return false.
     
     # OVERALL OUTPUT:

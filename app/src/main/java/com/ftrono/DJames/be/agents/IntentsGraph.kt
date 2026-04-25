@@ -103,8 +103,8 @@ class IntentsGraph(
 
         } else if (updState.messageMode && updState.messageType == "voice" && fromVoice) {
             //Whatsapp audio message -> no NLP query!
-            Log.d(TAG, "Message followup: audio message.")
-            transcription = "(private message)"
+            transcription = "(voice message recorded)"
+            Log.d(TAG, "Voice message recorded - no STT transcription.")
 
         } else {
             if (fromVoice) updState.lastRecording = recDetails!!.recName
@@ -172,10 +172,7 @@ class IntentsGraph(
             )
             updState.attachments = attachments   // Reset attachments
             // DB: Store user message (anonymized):
-            val storedText = if (updState.messageMode) "(private message)" else transcription
-            attachments.llmChatMessages = mutableListOf<ChatMessage>(
-                ChatMessage(role = "user", content = storedText)
-            )
+            val storedText = if (updState.messageMode && updState.messageType != "voice") "(private message)" else transcription
             updState.lastUserMsgId = messageUtils.storeMessage(
                 context = context,
                 langCode = if (updState.reqLangCode != "") updState.reqLangCode else "en",
@@ -192,7 +189,7 @@ class IntentsGraph(
             updState.noSave = true
             updState.messageMode = false
             updState.actionType = null
-            updState.next == END
+            updState.next = END
         }
 
         // Typing delay:

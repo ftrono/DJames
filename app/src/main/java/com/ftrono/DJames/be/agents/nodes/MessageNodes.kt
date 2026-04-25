@@ -197,7 +197,6 @@ class WAVoiceAgentNode (
         // Control params:
         updState.messageMode = true
         updState.messageType = "voice"
-        updState.actionType = ActionType.WA_VOICE
 
         if (!updState.fromVoice) {
             // Chat mode -> FAIL:
@@ -237,12 +236,10 @@ class WAVoiceAgentNode (
                     ),
                 )
                 updState.playAcknowledge = true
+                updState.actionType = ActionType.WA_VOICE
             }
         }
 
-        updState.actionType = ActionType.WA_VOICE
-        updState.attachments = llmReturn.attachments
-        updState.actionType = llmReturn.actionType
         updState = updateStateFromNode(updState, llmReturn)
         return updState
     }

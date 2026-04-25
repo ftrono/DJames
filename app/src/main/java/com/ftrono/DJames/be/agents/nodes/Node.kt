@@ -34,6 +34,8 @@ open class Node() {
         corePrompt: String,
         isRouter: Boolean = false,
     ): MutableList<ChatMessage> {
+        // inMessages contains the system prompt + the chosen input messages. They are NOT added to the message history.
+        // outMessages (in LlmAgent) contains the newly-generated messages for the current agentic turn.
 
         // 1) Build system prompt:
         var systemPrompt = if (isRouter) {
@@ -69,7 +71,7 @@ open class Node() {
         } else {
             inMessages.addAll(origMessages)
         }
-        // Log.d(TAG, "I'M SEEING THIS: $inMessages")
+        // Log.d(TAG, "inMessages for node $name: $inMessages")
         return inMessages
     }
 
@@ -111,6 +113,9 @@ open class Node() {
         prevState: StateInfo,
         llmReturn: LlmReturn,
     ): StateInfo {
+        // inMessages contains the system prompt + the chosen input messages. They are NOT added to the message history.
+        // outMessages (in LlmAgent) contains the newly-generated messages for the current agentic turn.
+
         var updState = prevState
         if (llmReturn.fail) {
             updState.fail = true
@@ -130,6 +135,7 @@ open class Node() {
                 }
             }
         }
+        updState.attachments.latestTurnFlow = llmReturn.messages
         return updState
     }
 

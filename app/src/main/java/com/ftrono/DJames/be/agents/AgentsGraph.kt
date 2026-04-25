@@ -157,13 +157,16 @@ class AgentsGraph(
         updState.fromVoice = fromVoice
         var isStart = prevState.next == START
         if (isStart) lastStarterId = 0L
-        var language = "en"
         Log.d(TAG, "Processing new user message...")
 
         // Parse new message:
-        // LLM version: transcribe only if voice:
+        // LLM version: transcribe only if voice and not voice message:
         var transcription = ""
-        if (fromVoice) {
+        if (updState.messageMode && updState.messageType == "voice") {
+            transcription = "(voice message recorded)"
+            Log.d(TAG, "Voice message recorded - no STT transcription.")
+
+        } else if (fromVoice) {
             // FROM VOICE:
             updState.lastRecording = recDetails!!.recName
             updState.noSave = false
@@ -214,21 +217,16 @@ class AgentsGraph(
             updState.messages.add(
                 ChatMessage(role = "user", content = transcription)
             )
-            // DB: Store user message (anonymized):
-            val storedText = if (updState.messageMode && updState.messageType == "voice") "(voice message recorded)" else transcription
-            val attachments = Attachments()
-            attachments.llmChatMessages = mutableListOf<ChatMessage>(
-                ChatMessage(role = "user", content = storedText)
-            )
+            // DB: Store user message:
             updState.lastUserMsgId = messageUtils.storeMessage(
                 context = context,
                 langCode = updState.reqLangCode,
                 fromUser = true,
                 fromVoice = fromVoice,
                 isStart = isStart,
-                text = storedText,
+                text = transcription,
                 intent = updState.intentName,
-                attachments = attachments,
+                attachments = Attachments(),
             )
         }
         return updState

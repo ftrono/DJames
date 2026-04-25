@@ -4,7 +4,7 @@ DJames is a vocal Spotify remote & smart driving assistant for Android. It makes
 
 DJames integrates a **self-made agentic orchestration library**, ***KAIGraph***, which I built for Kotlin, inspired by LangGraph.
 
-Earlier versions (1.* and 2.*) used *Google Dialogflow* for Speech-to-Text and NLP, native Android TTS and custom NLP extraction and algorithms. Version 1.* was inially build using xmls instead of Jetpack Compose.
+Earlier versions ( 1.* and 2.* ) used *Google Dialogflow* for Speech-to-Text and NLP, native Android TTS and custom NLP extraction and algorithms. Version 1.* was inially build using xmls instead of Jetpack Compose.
 
 <img src="./app/src/main/res/drawable-nodpi/app_icon_round.png" alt="DJames" width="100"/>
 

@@ -208,7 +208,7 @@ class ToolGo(
             val detailString = if (placeInfo.detail != "") "${placeInfo.name}, ${placeInfo.detail}" else placeInfo.name
 
             return ToolResponse(
-                message = "Showing the route towards: $detailString (read this to the user). Do NOT ask further questions to the user.",
+                message = "Showing the route towards: $detailString (read the destination to the user AS IT IS). Do NOT invent and do NOT ask further questions to the user.",
                 attachments = attachments
             )
         }

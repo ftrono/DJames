@@ -21,6 +21,7 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_REC_STOP
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.defaultReplies
+import com.ftrono.DJames.application.lastMessageText
 import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.queryStatus
@@ -31,8 +32,6 @@ import com.ftrono.DJames.application.recordingFail
 import com.ftrono.DJames.application.recordingTime
 import com.ftrono.DJames.application.sourceIsVolume
 import com.ftrono.DJames.be.agents.AgentsGraph
-import com.ftrono.DJames.be.agents.IntentsGraph
-import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.kaigraph.data.StateInfo
 import com.ftrono.DJames.be.audio.AndroidAudioRecorder
 import com.ftrono.DJames.be.audio.AudioRequestsManager
@@ -52,7 +51,6 @@ class VoiceQueryService: Service() {
     private val audioRequestsManager = AudioRequestsManager()
     private lateinit var tts: TTSReader
     private lateinit var agentsGraph: AgentsGraph
-    private lateinit var intentsGraph: IntentsGraph
 
     //Recorder:
     private val MyRecorder by lazy {
@@ -93,8 +91,6 @@ class VoiceQueryService: Service() {
             // Init conv orchestrator:
             agentsGraph = AgentsGraph(applicationContext)
             agentsGraph.build()
-            intentsGraph = IntentsGraph(applicationContext)
-            intentsGraph.build()
 
             //Start recording:
             startVoiceRecording(speakIntro = true)
@@ -142,6 +138,7 @@ class VoiceQueryService: Service() {
         lastStarterId = 0L
         //Set overlay READY color:
         queryStatus.postValue("ready")
+        lastMessageText.postValue("")
         Log.d(TAG, "VOICE QUERY SERVICE TERMINATED.")
     }
 
@@ -194,17 +191,18 @@ class VoiceQueryService: Service() {
             recordingThread = Thread {
                 synchronized(this) {
                     // 1) SPEAK INTRO:
-                    if (voiceQueryOn && speakIntro) {
-
+                    if (voiceQueryOn && prefs.enableIntro && speakIntro) {
                         audioRequestsManager.requestDuckedFocus(
                             onGranted = {
                                 //START:
+                                val intro = defaultReplies.speakIntro()
                                 queryStatus.postValue("processing")
+                                lastMessageText.postValue(intro)
                                 lastState = StateInfo()
                                 Thread.sleep(500)
                                 //Read TTS:
                                 tts.speak(
-                                    message = defaultReplies.speakIntro(),
+                                    message = intro,
                                     isIntro = true,
                                 )
                             },
@@ -219,18 +217,17 @@ class VoiceQueryService: Service() {
                             onGranted = {
                                 //Set overlay BUSY color:
                                 queryStatus.postValue("busy")
+                                lastMessageText.postValue("")
 
                                 //Play START tone:
                                 toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
-                                // toneGen.startTone(ToneGenerator.TONE_CDMA_ONE_MIN_BEEP)   //FOLLOW UP
 
                                 //Start recording (default: cacheDir):
                                 if (
                                     ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
                                 ) {
                                     MyRecorder.start(
-                                        messageMode = lastState.messageMode,
-                                        messageType = lastState.messageType,
+                                        voiceMessageMode = lastState.voiceMessageMode,
                                     )
                                 }
                             },
@@ -299,111 +296,70 @@ class VoiceQueryService: Service() {
             //PROCESS REQUEST:
             lastState.lastRecording = recDetails.recName
             if (voiceQueryOn) {
-                lastState = if (prefs.enableV3) {
-                    agentsGraph.invoke(
-                        recDetails = recDetails,
-                        prevState = lastState,
-                    )
-                } else {
-                    intentsGraph.invoke(
-                        recDetails = recDetails,
-                        prevState = lastState,
-                    )
-                }
-                // Enable FollowUp:
-                var end = lastState.next == END
-                val followUp = !end && !lastState.fail
-
-                val actionsExecutor = ActionsExecutor(applicationContext)
-                var newReplies = listOf<AiReply>()
-
-                if (lastState.fail && lastState.aiReplies.isEmpty()) {
-                    // Default fail replies:
-                    newReplies = listOf(
-                        AiReply(
-                            langCode = prefs.queryLanguage,
-                            text = defaultReplies.replyError()
-                        )
-                    )
-                }
+                lastState = agentsGraph.invoke(
+                    recDetails = recDetails,
+                    prevState = lastState,
+                )
+                lastMessageText.postValue(lastState.fullReply)
 
                 // Speak & execute:
-                val intentName = lastState.intentName
+                val actionsExecutor = ActionsExecutor(applicationContext)
                 Thread.sleep(300)
-                if (voiceQueryOn && intentName.contains("Play") || intentName.contains("Call")) {
+                if (voiceQueryOn && lastState.agentName.contains("Play") || lastState.agentName.contains("Call")) {
                     // A) First speak, then execute action:
-                    // Read:
-                    if (lastState.aiReplies.isNotEmpty()) {
-                        // Save reply:
-                        if (!lastState.noSave) {
-                            messageUtils.storeMessage(
-                                context = applicationContext,
-                                langCode = prefs.queryLanguage,
-                                fromUser = false,
-                                fromVoice = true,
-                                text = lastState.fullReply,
-                                intent = lastState.intentName,
-                                actionType = lastState.actionType,
-                                attachments = lastState.attachments,
-                            )
-                        }
-                        // Speak:
-                        tts.speak(
-                            message = lastState.fullReply,
-                            aiReplies = lastState.aiReplies,
+                    // Save reply:
+                    if (!lastState.noSave) {
+                        messageUtils.storeMessage(
+                            context = applicationContext,
+                            langCode = prefs.queryLanguage,
+                            fromUser = false,
+                            fromVoice = true,
+                            text = lastState.fullReply,
+                            agentName = lastState.agentName,
+                            actionType = lastState.actionType,
+                            attachments = lastState.attachments,
                         )
                     }
+                    // Speak:
+                    tts.speak(
+                        message = lastState.fullReply,
+                    )
                     audioRequestsManager.releaseAudioFocus()
                     // Execute (only if end):
-                    if (end && lastState.actionType != null) {
+                    if (!lastState.interrupt && lastState.actionType != null) {
                         actionsExecutor.execute(lastState)
                     }
 
                 } else if (voiceQueryOn) {
                     // B) First execute action, then speak:
                     // Execute (only if end):
-                    if (end && lastState.actionType != null) {
-                        newReplies = actionsExecutor.execute(lastState)
-                        // Reset:
-                        if (lastState.messageMode) {
-                            lastState.messageMode = false
-                            if (!prefs.enableV3) lastState.attachments.usable = null
-                        }
+                    if (!lastState.interrupt && lastState.actionType != null) {
+                        actionsExecutor.execute(lastState)
                     }
-                    // If received updated replies: replace!
-                    if (newReplies.isNotEmpty()) {
-                        lastState.aiReplies = newReplies
-                        lastState.fullReply = newReplies.joinToString(" ") { it.text }
-                    }
-
-                    // Read:
-                    if (lastState.aiReplies.isNotEmpty()) {
-                        // Save reply:
-                        if (!lastState.noSave) {
-                            messageUtils.storeMessage(
-                                context = applicationContext,
-                                langCode = prefs.queryLanguage,
-                                fromUser = false,
-                                fromVoice = true,
-                                text = lastState.fullReply,
-                                intent = lastState.intentName,
-                                actionType = lastState.actionType,
-                                attachments = lastState.attachments,
-                            )
-                        }
-                        // Speak:
-                        tts.speak(
-                            message = lastState.fullReply,
-                            aiReplies = lastState.aiReplies,
+                    // Save reply:
+                    if (!lastState.noSave) {
+                        messageUtils.storeMessage(
+                            context = applicationContext,
+                            langCode = prefs.queryLanguage,
+                            fromUser = false,
+                            fromVoice = true,
+                            text = lastState.fullReply,
+                            agentName = lastState.agentName,
+                            actionType = lastState.actionType,
+                            attachments = lastState.attachments,
                         )
                     }
+                    // Speak:
+                    tts.speak(
+                        message = lastState.fullReply,
+                    )
                     audioRequestsManager.releaseAudioFocus()
 
                 } else {
                     stopSelf()
                 }
 
-                if (voiceQueryOn && (lastState.messageMode || followUp)) {
+                if (voiceQueryOn && (lastState.voiceMessageMode || lastState.interrupt)) {
                     // START FOLLOWUP INTERACTION:
                     startVoiceRecording()
 

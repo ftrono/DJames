@@ -79,21 +79,18 @@ open class Node() {
         context: Context,
         llmReturn: LlmReturn,
         prevState: StateInfo,
-        updateIntent: Boolean = false,
     ): StateInfo {
         var updState = prevState
 
         if (llmReturn.next in nextOptions) {
             Log.d(TAG, "Routing to -> ${llmReturn.next}")
+            updState.agentName = llmReturn.next
             // Update last user message:
-            if (updateIntent) {
-                updState.intentName = if (llmReturn.next == "MessageRouter" || name == "MessageRouter") "MessageAgent" else llmReturn. next
-            }
             if (prevState.lastUserMsgId != 0L) {
                 messageUtils.updateMessage(
                     context = context,
                     id = prevState.lastUserMsgId,
-                    requestIntent = updState.intentName,
+                    agentName = updState.agentName,
                 )
             }
             // Route to next:

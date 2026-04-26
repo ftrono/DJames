@@ -651,11 +651,11 @@ class OverlayService : Service() {
             } else if (clickCounter.value!! > 1) {
                 val actionIndex = clickCounter.value!! - 2
                 actionName = overlayOptions[actionIndex]
-                when (actionName) {
-                    "speak" -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
-                    "clock" -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
-                    "save" -> toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
-                    "custom" -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                when {
+                    (actionName == "speak" && prefs.enableIntro) -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                    (actionName == "speak") -> { }   // Do nothing
+                    (actionName == "clock") -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                    (actionName == "save") -> toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
                     else -> toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                 }
                 //TRIGGER ACTION:

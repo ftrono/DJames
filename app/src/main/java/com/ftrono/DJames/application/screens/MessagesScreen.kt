@@ -431,7 +431,6 @@ fun MessageDetail(
                     text = message.text,
                     usable = message.attachments.usable,
                     playable = message.attachments.spotifyPlay,
-                    reqLanguage = message.langCode,
                     fromOldChat = true,
                 )
             }

@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -14,25 +13,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.compose.rememberNavController
-import com.ftrono.DJames.R
 import com.ftrono.DJames.application.aliasFieldDescription
 import com.ftrono.DJames.application.libUtils
-import com.ftrono.DJames.application.messLangFull
-import com.ftrono.DJames.application.messLangCodes
-import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.PhoneSet
 import com.ftrono.DJames.application.screens.LibraryScreen
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.collections.testLibrary
-import com.ftrono.DJames.ui.components.CustomCheckbox
-import com.ftrono.DJames.ui.components.DropdownSpinner
 import com.ftrono.DJames.ui.dialogs.DialogRequestDetail
 import com.ftrono.DJames.ui.components.EditPhoneDynamicField
 import com.ftrono.DJames.ui.dialogs.EditLibDialog
@@ -79,7 +70,6 @@ fun EditLibContact(
             phoneSet = PhoneSet(),
         )
     }
-    val checkedLang = remember { mutableStateOf(false) }
 
     //Init aliases:
     val initAliases = itemContact.aliases.toMutableList()
@@ -87,23 +77,11 @@ fun EditLibContact(
         initAliases.removeAt(0)
     }
 
-    //Init default language:
-    var defaultPrefLanguage = if (preview) "it" else prefs.messageLanguage
-    var initLanguage = itemContact.language
-    if (initLanguage == "") {
-        //No custom language:
-        initLanguage = if (preview) "it" else prefs.messageLanguage
-    } else {
-        //There is a custom language:
-        checkedLang.value = true
-    }
-
     //States:
     val textName = rememberSaveable { mutableStateOf(itemContact.name) }
     val textSubtitle = rememberSaveable { mutableStateOf("") }
     val textAliases = rememberSaveable { mutableStateOf(initAliases.joinToString(", ")) }
     val imageUrlState = rememberSaveable { mutableStateOf("") }
-    val textLanguage = rememberSaveable { mutableStateOf(messLangFull[messLangCodes.indexOf(initLanguage)]) }
     val textPrefix = rememberSaveable { mutableStateOf(itemContact.phoneSet!!.prefix) }
     val textPhone = rememberSaveable { mutableStateOf(itemContact.phoneSet!!.phone) }
 
@@ -167,17 +145,6 @@ fun EditLibContact(
                     }
                     itemContact.name = utils.capitalizeWords(textName.value).trim()
                     itemContact.aliases = aliasesList
-                    //Language:
-                    if (checkedLang.value) {
-                        if (textLanguage.value != "") {
-                            itemContact.language =
-                                messLangCodes[messLangFull.indexOf(textLanguage.value)]
-                        } else {
-                            itemContact.language = prefs.messageLanguage
-                        }
-                    } else {
-                        itemContact.language = ""
-                    }
                     itemContact.phoneSet = PhoneSet(
                         prefix = textPrefix.value.replace(" ", ""),
                         phone = textPhone.value.replace(" ", "")
@@ -229,39 +196,6 @@ fun EditLibContact(
                 textPrefix = textPrefix,
                 textPhone = textPhone
             )
-
-            //CONTACTS: CHECKBOX:
-            CustomCheckbox(
-                modifier = Modifier
-                    .padding(bottom = if (checkedLang.value) 0.dp else 6.dp),
-                checkedState = checkedLang,
-                checkedColor = libColorSelectorLight(cat = filter),
-                textColor = if (checkedLang.value) colorResource(id = R.color.light_grey) else colorResource(
-                    id = R.color.mid_grey
-                ),
-                text = if (checkedLang.value) {
-                    "Set custom messaging language"
-                } else {
-                    "Set custom messaging language\n(default: ${
-                        messLangFull[messLangCodes.indexOf(
-                            defaultPrefLanguage
-                        )]
-                    })"
-                }
-            )
-            if (checkedLang.value) {
-                //CONTACTS: DROPDOWN:
-                DropdownSpinner(
-                    context = context,
-                    parentOptions = messLangFull,
-                    init = messLangFull[messLangCodes.indexOf(initLanguage)],
-                    state = textLanguage,
-                    focusColorLight = libColorSelectorLight(cat = filter),
-                    focusColorDark = libColorSelector(cat = filter)
-                )
-            } else {
-                textLanguage.value = ""
-            }
         }
     }
 }

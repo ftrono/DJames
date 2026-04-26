@@ -97,24 +97,18 @@ fun getQuickActionOnTap(
                 context.sendBroadcast(intent)
             }
         }
-    } else if (name == "volume") {
-        {
-            //TODO: Raise Volume!
-        }
-    } else if (name == "custom") {
+    } else {
         {
             //TRIGGER ENABLE/DISABLE USE EXPERIMENTAL SETTING:
-            val modeToTrigger = if (prefs.enableV3) "OFF" else "ON"
-            prefs.enableV3 = !prefs.enableV3
-            //TOAST -> Send broadcast:
-            Intent().also { intent ->
-                intent.setAction(ACTION_TOASTER)
-                intent.putExtra("toastText", "V3 mode: $modeToTrigger")
-                context.sendBroadcast(intent)
-            }
+//            val modeToTrigger = if (prefs.enableV3) "OFF" else "ON"
+//            prefs.enableV3 = !prefs.enableV3
+//            //TOAST -> Send broadcast:
+//            Intent().also { intent ->
+//                intent.setAction(ACTION_TOASTER)
+//                intent.putExtra("toastText", "V3 mode: $modeToTrigger")
+//                context.sendBroadcast(intent)
+//            }
         }
-    } else {
-        { }   // Do nothing
     }
 }
 
@@ -199,7 +193,7 @@ fun getQuickAction(
                 }
             },
         )
-    } else if (name == "volume") {
+    } else {
         QuickAction(
             description = if (short) "volume up" else "raise volume",
             content = {
@@ -227,20 +221,6 @@ fun getQuickAction(
                     )
                 }
             },
-        )
-    } else {
-        // "custom":
-        QuickAction(
-            description = "v3 mode",
-            content = {
-                Icon(
-                    modifier = Modifier
-                        .size(34.dp),
-                    painter = painterResource(id = R.drawable.icon_settings),
-                    tint = if (isActive) colorActive else colorInactive,
-                    contentDescription = "Custom"
-                )
-            }
         )
     }
 }

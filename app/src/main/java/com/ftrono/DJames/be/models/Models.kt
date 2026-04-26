@@ -61,13 +61,6 @@ data class RecDetails(
 )
 
 
-@Serializable
-data class AiReply(
-    var langCode: String,
-    var text: String
-)
-
-
 // CONVERTERS:
 open class JsonConverter<T>(
     private val serializer: KSerializer<T>

@@ -11,7 +11,7 @@ import com.ftrono.DJames.kaigraph.node.Node
 import com.ftrono.DJames.kaigraph.tool.Tool
 
 
-// (LLM-based) ReAct agent node:
+// ReAct agent node:
 class GuidanceAgentNode (
     private val context: Context,
     private val apiKey: String,

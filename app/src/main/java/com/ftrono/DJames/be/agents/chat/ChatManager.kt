@@ -10,8 +10,6 @@ import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.AgentsGraph
-import com.ftrono.DJames.be.agents.IntentsGraph
-import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.kaigraph.data.StateInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +23,6 @@ class ChatManager(private val context: Context) {
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private lateinit var agentsGraph: AgentsGraph
-    private lateinit var intentsGraph: IntentsGraph
 
     private var lastState = StateInfo()   // Reset
 
@@ -33,9 +30,6 @@ class ChatManager(private val context: Context) {
         // Agents:
         agentsGraph = AgentsGraph(context)
         agentsGraph.build()
-        // (Compat) Intents:
-        intentsGraph = IntentsGraph(context)
-        intentsGraph.build()
     }
 
     fun processQuery(text: String, restart: Boolean = false) {
@@ -55,30 +49,15 @@ class ChatManager(private val context: Context) {
         // PROCESS:
         coroutineScope.launch {
             withContext(coroutineScope.coroutineContext) {
-                lastState = if (prefs.enableV3) {
-                    agentsGraph.invoke(
-                        inMessage = text,
-                        prevState = lastState,
-                    )
-                } else {
-                    intentsGraph.invoke(
-                        inMessage = text,
-                        prevState = lastState,
-                    )
-                }
+                lastState = agentsGraph.invoke(
+                    inMessage = text,
+                    prevState = lastState,
+                )
 
                 // Execute action:
-                var newReplies = listOf<AiReply>()
                 if (lastState.next == END && lastState.actionType != null) {
                     val actionsExecutor = ActionsExecutor(context)
-                    newReplies = actionsExecutor.execute(lastState)   // Updated reply
-                    if (newReplies.isNotEmpty()) lastState.aiReplies = newReplies
-                    // Reset:
-                    if (lastState.messageMode) {
-                        lastState.messageMode = false
-                        lastState.attachments.usable = null
-                        lastState.next = END
-                    }
+                    actionsExecutor.execute(lastState)
                 }
 
                 // Save reply:
@@ -88,8 +67,8 @@ class ChatManager(private val context: Context) {
                         langCode = prefs.queryLanguage,
                         fromUser = false,
                         fromVoice = true,
-                        text = lastState.aiReplies.joinToString(" ") { it.text },
-                        intent = lastState.intentName,
+                        text = lastState.fullReply,
+                        agentName = lastState.agentName,
                         actionType = lastState.actionType,
                         attachments = lastState.attachments,
                     )

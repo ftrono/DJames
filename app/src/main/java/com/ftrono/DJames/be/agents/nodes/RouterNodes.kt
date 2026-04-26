@@ -2,7 +2,6 @@ package com.ftrono.DJames.be.agents.nodes
 
 import android.content.Context
 import android.util.Log
-import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.mistralLlmModelSmall
 import com.ftrono.DJames.kaigraph.llm.LlmAgent
 import com.ftrono.DJames.kaigraph.data.NodeType
@@ -10,7 +9,7 @@ import com.ftrono.DJames.kaigraph.data.StateInfo
 import com.ftrono.DJames.kaigraph.node.Node
 
 
-// (LLM-based) Router node:
+// Router node:
 class MainRouterNode (
     private val context: Context,
     private val apiKey: String,
@@ -60,44 +59,11 @@ class MainRouterNode (
         )
 
         // Reset:
-        updState.messageMode = false
-        updState.messageType = ""
+        updState.voiceMessageMode = false
         updState.actionType = null
 
         // Update:
-        updState = updateStateFromRouter(context, llmReturn, updState, updateIntent=true)
-        return updState
-    }
-}
-
-
-// (Intent-based) Router node:
-class IntentRouterNode (
-    private val context: Context,
-    override val nextOptions: List<String> = listOf(),
-) : Node() {
-
-    override val TAG = this::class.java.simpleName
-    override val name: String = TAG.replace("Node", "")
-    override val type: NodeType = NodeType.ROUTER
-
-    override fun invoke(prevState: StateInfo): StateInfo {
-        Log.d(TAG, "$name activated")
-        var updState = prevState
-        // Route:
-        updState.next = when {
-            (updState.intentName == "CallRequest") -> "CallIntent"
-            (updState.intentName == "MessageRequest") -> "MessageIntent"
-            (updState.intentName == "DriveRequest") -> "DriverIntent"
-            (updState.intentName.contains("Play")) -> "PlayerIntent"
-            (updState.intentName == "Cancel") -> END
-            else -> {
-                updState.fail = true
-                updState.isSilence = true   // trigger Fallback reply
-                END
-            }
-        }
-
+        updState = updateStateFromRouter(context, llmReturn, updState)
         return updState
     }
 }

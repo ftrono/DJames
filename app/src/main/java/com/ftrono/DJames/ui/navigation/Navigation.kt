@@ -26,7 +26,6 @@ import com.ftrono.DJames.application.curNavId
 import com.ftrono.DJames.application.innerNavOpen
 import com.ftrono.DJames.application.extraOpen
 import com.ftrono.DJames.application.screens.AccountsScreen
-import com.ftrono.DJames.application.screens.GuideScreen
 import com.ftrono.DJames.application.screens.HomeScreen
 import com.ftrono.DJames.application.screens.SettingsScreen
 import com.ftrono.DJames.application.screens.LibraryScreen
@@ -154,22 +153,6 @@ fun Navigation(
             innerNavOpen.postValue(false)
             extraOpen.postValue(true)
             SettingsScreen(navController, preview)
-        }
-
-        //0 -> GUIDE:
-        composable(
-            NavigationItem.Guide.route,
-            enterTransition = {
-                scaleIn() + expandVertically(expandFrom = Alignment.Bottom)
-            },
-            exitTransition = {
-                scaleOut() + shrinkVertically(shrinkTowards = Alignment.Bottom)
-            }
-        ) {
-            curNavId = 0
-            innerNavOpen.postValue(false)
-            extraOpen.postValue(true)
-            GuideScreen(navController, preview)
         }
     }
 }

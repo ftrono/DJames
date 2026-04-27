@@ -344,17 +344,7 @@ fun MainGuideInfo(
     val extraOpenState by extraOpen.observeAsState()
     
     Column(
-        modifier = modifier
-            .clickable {
-                //Navigate:
-                val curNavRoute = NavigationItem.Guide.route
-                if (curNavRoute == lastNavRoute && (extraOpenState!!)) {
-                    navController.popBackStack()
-                } else {
-                    navigateTo(navController, curNavRoute)
-                }
-                lastNavRoute = curNavRoute
-            },
+        modifier = modifier,
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = if (isLandscape) Alignment.Start else Alignment.CenterHorizontally,
     ) {
@@ -596,13 +586,13 @@ fun GuideIconsRow(
             painter = painterResource(R.drawable.logo_whatsapp),
             contentDescription = "Whatsapp icon"
         )
-        // GO ICON:
-        Icon(
-            modifier = Modifier
-                .padding(start=6.dp),
-            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-            tint = colorResource(R.color.light_grey),
-            contentDescription = "Go"
-        )
+//        // GO ICON:
+//        Icon(
+//            modifier = Modifier
+//                .padding(start=6.dp),
+//            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+//            tint = colorResource(R.color.light_grey),
+//            contentDescription = "Go"
+//        )
     }
 }

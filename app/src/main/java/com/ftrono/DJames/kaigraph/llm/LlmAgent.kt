@@ -64,7 +64,7 @@ class LlmAgent(
 
     // Clean LLM message:
     private fun cleanLlmMessage(text: String): String {
-        return text.replace("**", "\n").replace("* ", "- ").trim()
+        return text.replace("**", "").replace("\n* ", "\n- ").replace("*", "").trim()
     }
 
     // Send LLM API request:

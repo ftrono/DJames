@@ -1,4 +1,4 @@
-package com.ftrono.DJames.kaigraph.data
+package com.ftrono.DJames.kaigraph
 
 import com.ftrono.DJames.application.START
 import com.ftrono.DJames.be.database.ActionType

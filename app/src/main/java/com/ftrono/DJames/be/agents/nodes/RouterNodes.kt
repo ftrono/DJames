@@ -3,10 +3,10 @@ package com.ftrono.DJames.be.agents.nodes
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.mistralLlmModelSmall
-import com.ftrono.DJames.kaigraph.llm.LlmAgent
-import com.ftrono.DJames.kaigraph.data.NodeType
-import com.ftrono.DJames.kaigraph.data.StateInfo
-import com.ftrono.DJames.kaigraph.node.Node
+import com.ftrono.DJames.kaigraph.LlmAgent
+import com.ftrono.DJames.kaigraph.NodeType
+import com.ftrono.DJames.kaigraph.StateInfo
+import com.ftrono.DJames.kaigraph.Node
 
 
 // Router node:
@@ -32,8 +32,8 @@ class MainRouterNode (
 
             ## AVAILABLE CATEGORIES:
             - "PlayerAgent" -> for any request involving playing or finding music, songs, music artists, albums or podcast episodes, or Spotify in general.
-            - "CallAgent" -> for any request involving calling someone.
-            - "MessageRouter" -> for any request involving messaging someone.
+            - "CallAgent" -> for any request involving making phone calls and calling people.
+            - "MessageRouter" -> for any request involving sending messages (text or voice/audio, SMS or Whatsapp).
             - "DriverAgent" -> for any request involving requesting driving directions, routes, places, navigation or maps.
             - "__START__" -> if the user wants to restart the conversation.
             - "__END__" -> if the user wants to stop, exit or end the conversation.

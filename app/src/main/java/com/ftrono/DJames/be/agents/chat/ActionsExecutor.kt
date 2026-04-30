@@ -12,7 +12,7 @@ import com.ftrono.DJames.application.recDir
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.SpotifyPlayable
-import com.ftrono.DJames.kaigraph.data.StateInfo
+import com.ftrono.DJames.kaigraph.StateInfo
 import com.ftrono.DJames.be.database.ActionType
 import com.ftrono.DJames.be.spotify.SpotifyPlayer
 import java.io.File

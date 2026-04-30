@@ -7,14 +7,14 @@ import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.mistralLlmModelMedium
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.kaigraph.data.ChatMessage
-import com.ftrono.DJames.kaigraph.data.LlmReturn
-import com.ftrono.DJames.kaigraph.llm.LlmAgent
-import com.ftrono.DJames.kaigraph.data.StateInfo
-import com.ftrono.DJames.be.agents.data.handoffDescription
+import com.ftrono.DJames.kaigraph.ChatMessage
+import com.ftrono.DJames.kaigraph.LlmReturn
+import com.ftrono.DJames.kaigraph.LlmAgent
+import com.ftrono.DJames.kaigraph.StateInfo
+import com.ftrono.DJames.be.agents.handoffDescription
 import com.ftrono.DJames.be.agents.tools.*
-import com.ftrono.DJames.kaigraph.node.Node
-import com.ftrono.DJames.kaigraph.tool.Tool
+import com.ftrono.DJames.kaigraph.Node
+import com.ftrono.DJames.kaigraph.Tool
 
 
 // ReAct agent node:

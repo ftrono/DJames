@@ -1,12 +1,12 @@
 package com.ftrono.DJames.be.agents.tools
 
-import com.ftrono.DJames.kaigraph.data.ToolDefinition
-import com.ftrono.DJames.kaigraph.data.ToolFunction
-import com.ftrono.DJames.kaigraph.data.ToolParameters
-import com.ftrono.DJames.kaigraph.data.ToolResponse
-import com.ftrono.DJames.kaigraph.data.ToolType
+import com.ftrono.DJames.kaigraph.ToolDefinition
+import com.ftrono.DJames.kaigraph.ToolFunction
+import com.ftrono.DJames.kaigraph.ToolParameters
+import com.ftrono.DJames.kaigraph.ToolResponse
+import com.ftrono.DJames.kaigraph.ToolType
 import com.ftrono.DJames.be.database.Attachments
-import com.ftrono.DJames.kaigraph.tool.Tool
+import com.ftrono.DJames.kaigraph.Tool
 import kotlinx.serialization.json.*
 
 

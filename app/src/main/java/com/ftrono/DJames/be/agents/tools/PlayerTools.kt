@@ -8,19 +8,19 @@ import com.ftrono.DJames.application.maxSearchMatches
 import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.spotifyUtils
-import com.ftrono.DJames.kaigraph.data.ToolDefinition
-import com.ftrono.DJames.kaigraph.data.ToolFunction
-import com.ftrono.DJames.kaigraph.data.ToolParameters
-import com.ftrono.DJames.kaigraph.data.ToolProperty
-import com.ftrono.DJames.kaigraph.data.ToolResponse
-import com.ftrono.DJames.kaigraph.data.ToolType
+import com.ftrono.DJames.kaigraph.ToolDefinition
+import com.ftrono.DJames.kaigraph.ToolFunction
+import com.ftrono.DJames.kaigraph.ToolParameters
+import com.ftrono.DJames.kaigraph.ToolProperty
+import com.ftrono.DJames.kaigraph.ToolResponse
+import com.ftrono.DJames.kaigraph.ToolType
 import com.ftrono.DJames.be.database.ActionType
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.database.LibMatch
 import com.ftrono.DJames.be.database.PlayRequest
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.spotify.SpotifySearch
-import com.ftrono.DJames.kaigraph.tool.Tool
+import com.ftrono.DJames.kaigraph.Tool
 import kotlinx.serialization.json.*
 
 data class QueryAPIReturn(

@@ -19,7 +19,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_REC_STOP
-import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.lastMessageText
 import com.ftrono.DJames.application.lastStarterId
@@ -32,7 +31,7 @@ import com.ftrono.DJames.application.recordingFail
 import com.ftrono.DJames.application.recordingTime
 import com.ftrono.DJames.application.sourceIsVolume
 import com.ftrono.DJames.be.agents.AgentsGraph
-import com.ftrono.DJames.kaigraph.data.StateInfo
+import com.ftrono.DJames.kaigraph.StateInfo
 import com.ftrono.DJames.be.audio.AndroidAudioRecorder
 import com.ftrono.DJames.be.audio.AudioRequestsManager
 import com.ftrono.DJames.be.audio.TTSReader

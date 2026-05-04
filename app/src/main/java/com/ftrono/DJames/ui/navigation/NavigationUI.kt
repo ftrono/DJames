@@ -436,7 +436,7 @@ fun SplitterCat(
                         .padding(top = 4.dp)
                         .width(30.dp),
                     thickness = 2.dp,
-                    color = item.color!!
+                    color = if (disabled) colorResource(id = R.color.mid_grey) else item.color!!
                 )
             }
         }

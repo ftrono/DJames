@@ -250,7 +250,7 @@ class MainActivity : ComponentActivity() {
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             //SIDE NAV BAR (LEFT):
-            if (isLandscape && overlayPosState == "Left") {
+            if (isLandscape && overlayPosState == "Right") {   // TODO: invert!
                 MainNavBar(
                     navController = navController,
                     clickCounterState = clickCounterState!!,
@@ -305,7 +305,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
             //SIDE NAV BAR (RIGHT):
-            if (isLandscape && overlayPosState == "Right") {
+            if (isLandscape && overlayPosState == "Left") {   // TODO: invert!
                 MainNavBar(
                     navController = navController,
                     clickCounterState = clickCounterState!!,

@@ -20,7 +20,8 @@ import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_REC_STOP
 import com.ftrono.DJames.application.defaultReplies
-import com.ftrono.DJames.application.lastMessageText
+import com.ftrono.DJames.application.lastUserMessageText
+import com.ftrono.DJames.application.lastAiMessageText
 import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.queryStatus
@@ -58,6 +59,7 @@ class VoiceQueryService: Service() {
 
     //Status:
     private var lastState = StateInfo()   // Reset
+    private var intro: String = ""
 
     //JOBS:
     private var recordingThread: Thread? = null
@@ -73,6 +75,8 @@ class VoiceQueryService: Service() {
         try {
             startForeground()
             voiceQueryOn = true
+            lastUserMessageText.postValue("")
+            lastAiMessageText.postValue("")
             //GET LLM CREDENTIALS:
             val reader = BufferedReader(InputStreamReader(applicationContext.resources.openRawResource(R.raw.env)))
             val ttsApiKey = JsonParser.parseReader(reader).asJsonObject.get("elevenlabs_api_key").asString
@@ -137,7 +141,9 @@ class VoiceQueryService: Service() {
         lastStarterId = 0L
         //Set overlay READY color:
         queryStatus.postValue("ready")
-        lastMessageText.postValue("")
+        lastUserMessageText.postValue("")
+        lastAiMessageText.postValue("")
+        intro = ""
         Log.d(TAG, "VOICE QUERY SERVICE TERMINATED.")
     }
 
@@ -190,24 +196,26 @@ class VoiceQueryService: Service() {
             recordingThread = Thread {
                 synchronized(this) {
                     // 1) SPEAK INTRO:
-                    if (voiceQueryOn && prefs.enableIntro && speakIntro) {
-                        audioRequestsManager.requestDuckedFocus(
-                            onGranted = {
-                                //START:
-                                val intro = defaultReplies.speakIntro()
-                                queryStatus.postValue("processing")
-                                lastMessageText.postValue(intro)
-                                lastState = StateInfo()
-                                Thread.sleep(500)
-                                //Read TTS:
-                                tts.speak(
-                                    message = intro,
-                                    isIntro = true,
-                                )
-                            },
-                            onFail = { stopSelf() }
-                        )
-                        audioRequestsManager.releaseAudioFocus()
+                    if (voiceQueryOn && speakIntro) {
+                        intro = defaultReplies.speakIntro()
+                        lastAiMessageText.postValue(intro)
+                        if (prefs.enableIntro) {
+                            audioRequestsManager.requestDuckedFocus(
+                                onGranted = {
+                                    //START:
+                                    queryStatus.postValue("processing")
+                                    lastState = StateInfo()
+                                    Thread.sleep(500)
+                                    //Read TTS:
+                                    tts.speak(
+                                        message = intro,
+                                        isIntro = true,
+                                    )
+                                },
+                                onFail = { stopSelf() }
+                            )
+                            audioRequestsManager.releaseAudioFocus()
+                        }
                     }
 
                     // 2) RECORD:
@@ -216,7 +224,7 @@ class VoiceQueryService: Service() {
                             onGranted = {
                                 //Set overlay BUSY color:
                                 queryStatus.postValue("busy")
-                                lastMessageText.postValue("")
+                                lastUserMessageText.postValue("")
 
                                 //Play START tone:
                                 toneGen.startTone(ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE)   //START
@@ -299,7 +307,7 @@ class VoiceQueryService: Service() {
                     recDetails = recDetails,
                     prevState = lastState,
                 )
-                lastMessageText.postValue(lastState.fullReply)
+                lastAiMessageText.postValue(lastState.fullReply)
 
                 // Speak & execute:
                 val actionsExecutor = ActionsExecutor(applicationContext)

@@ -23,7 +23,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.ftrono.DJames.application.curNavId
-import com.ftrono.DJames.application.innerNavOpen
 import com.ftrono.DJames.application.extraOpen
 import com.ftrono.DJames.application.screens.AccountsScreen
 import com.ftrono.DJames.application.screens.HomeScreen
@@ -71,7 +70,6 @@ fun Navigation(
                 )
             }) {
             curNavId = 1
-            innerNavOpen.postValue(false)
             extraOpen.postValue(false)
             HomeScreen(navController, chatManager, sharedViewModel, preview)
         }
@@ -94,7 +92,6 @@ fun Navigation(
                 )
             }) {
             curNavId = 0
-            innerNavOpen.postValue(false)
             extraOpen.postValue(false)
             LibraryScreen(navController, preview=preview)
         }
@@ -117,7 +114,6 @@ fun Navigation(
                 )
             }) {
             curNavId = 2
-            innerNavOpen.postValue(false)
             extraOpen.postValue(false)
             MessagesScreen(navController, chatManager, sharedViewModel, preview)
         }
@@ -134,7 +130,6 @@ fun Navigation(
             }
         ) {
             curNavId = 0
-            innerNavOpen.postValue(false)
             extraOpen.postValue(true)
             AccountsScreen(navController, preview)
         }
@@ -150,7 +145,6 @@ fun Navigation(
             }
         ) {
             curNavId = 0
-            innerNavOpen.postValue(false)
             extraOpen.postValue(true)
             SettingsScreen(navController, preview)
         }

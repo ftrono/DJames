@@ -34,6 +34,7 @@
   <color name="midfaded_grey">#747474</color>
   <color name="faded_grey">#525252</color>
   <color name="transparent_green">#5F00684D</color>
+  <color name="transparent_busy">#7FAC4E00</color>
   <color name="transparent_grey">#7F9c9c9c</color>
   <color name="transparent_dark_grey">#7F262626</color>
   <color name="transparent_bg">#9F00100C</color>

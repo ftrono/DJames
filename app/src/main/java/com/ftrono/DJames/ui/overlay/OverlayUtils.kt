@@ -3,6 +3,7 @@ package com.ftrono.DJames.ui.overlay
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -18,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,21 +32,28 @@ import com.ftrono.DJames.application.ACTION_FINISH_MAIN
 import com.ftrono.DJames.application.ACTION_SAVE_TRACK
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.ClockActivity
+import com.ftrono.DJames.application.overlayPos
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.services.VoiceQueryService
+import com.ftrono.DJames.application.volumeUpEnabledUI
 import com.ftrono.DJames.be.models.QuickAction
 
 
 // Calculate toes arc (in degrees):
-fun getToesPositions(size: Int, interval: Float, posRight: Boolean = false): List<Float> {
+fun getToesPositions(
+    size: Int,
+    interval: Float,
+    posRight: Boolean = false,
+    bottomDocked: Boolean = false
+): List<Float> {
     val sizeMultipliers = mapOf(
         2 to 0.5f,
         3 to 1f,
         4 to 1.5f,
         5 to 2f
     )
-    val center = if (posRight) 180f else 0f
+    val center = if (bottomDocked) 270f else if (posRight) 180f else 0f
     var lowerBound = center - interval * sizeMultipliers[size]!!
     val positions = mutableListOf<Float>()
 
@@ -53,7 +64,7 @@ fun getToesPositions(size: Int, interval: Float, posRight: Boolean = false): Lis
         }
         positions.add(temp)
     }
-    if (posRight) positions.sortDescending()
+    if (posRight && !bottomDocked) positions.sortDescending()
     return positions
 }
 
@@ -97,6 +108,19 @@ fun getQuickActionOnTap(
                 context.sendBroadcast(intent)
             }
         }
+    } else if (name == "volume") {
+        {
+            if (volumeUpEnabledUI.value!!) {   //THIS must not change!
+                // Disable volume-up trigger temporarily:
+                queryStatus.postValue("volume")
+                prefs.volumeUpEnabled = false   //THIS is used by EventReceiver!
+                Toast.makeText(context, "Raise volume now!", Toast.LENGTH_SHORT).show()
+            }
+        }
+    } else if (name == "pos") {
+        {
+            if (overlayPos.value == "Right") overlayPos.value = "Left" else overlayPos.value = "Right"
+        }
     } else {
         {
             //TRIGGER ENABLE/DISABLE USE EXPERIMENTAL SETTING:
@@ -120,24 +144,26 @@ fun getQuickAction(
     colorActive: Color,
     colorInactive: Color,
     currentTimeState: String,
-    short: Boolean = false,
+    overlayPosState: String,
 ): QuickAction {
     return if (name == "speak") {
         QuickAction(
-            description = "speak",
+            id = "speak",
+            title = "Ask",
             content = {
                 Icon(
                     modifier = Modifier
                         .size(34.dp),
-                    painter = painterResource(id = R.drawable.icon_speak),
+                    painter = painterResource(id = R.drawable.icon_mic),
                     tint = if (isActive) colorActive else colorInactive,
-                    contentDescription = "Voice request"
+                    contentDescription = "Ask"
                 )
             }
         )
     } else if (name == "save") {
         QuickAction(
-            description = if (short) "save" else "save track",
+            id = "save",
+            title = "Save",
             content = {
                 Row(
                     modifier = Modifier
@@ -166,60 +192,44 @@ fun getQuickAction(
         )
     } else if (name == "clock") {
         QuickAction(
-            description = if (short) "open" else "open clock",
+            id = "clock",
+            title = "Clock",
             content = {
-                Column(
+                Text(
+                    modifier = Modifier,
+                    text = currentTimeState,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isActive) colorActive else colorInactive,
+                )
+            },
+        )
+    } else if (name == "volume") {
+        QuickAction(
+            id = "volume",
+            title = "Volume",
+            content = {
+                Icon(
                     modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        modifier = Modifier,
-                        text = currentTimeState,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isActive) colorActive else colorInactive,
-                    )
-                    Text(
-                        modifier = Modifier
-                            .padding(top = 2.dp),
-                        text = "CLOCK",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        color = if (isActive) colorActive else colorInactive,
-                    )
-                }
+                        .size(34.dp),
+                    painter = painterResource(R.drawable.icon_lock),
+                    tint = if (isActive) colorActive else colorInactive,
+                    contentDescription = "Raise Volume"
+                )
             },
         )
     } else {
         QuickAction(
-            description = if (short) "volume up" else "raise volume",
+            id = "pos",
+            title = "Move",
             content = {
-                Row(
+                Icon(
                     modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        modifier = Modifier
-                            .offset(x = 6.dp)
-                            .size(24.dp),
-                        painter = painterResource(R.drawable.arrow_up),
-                        tint = if (isActive) colorActive else colorInactive,
-                        contentDescription = "Raise Volume"
-                    )
-                    Icon(
-                        modifier = Modifier
-                            .padding(end = 8.dp)
-                            .size(34.dp),
-                        painter = painterResource(R.drawable.icon_volume),
-                        tint = if (isActive) colorActive else colorInactive,
-                        contentDescription = "Raise Volume"
-                    )
-                }
+                        .size(34.dp),
+                    imageVector = if (overlayPosState == "Right") Icons.AutoMirrored.Default.ArrowBack else Icons.AutoMirrored.Default.ArrowForward,
+                    tint = if (isActive) colorActive else colorInactive,
+                    contentDescription = "Raise Volume"
+                )
             },
         )
     }

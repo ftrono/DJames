@@ -2,6 +2,9 @@ package com.ftrono.DJames.be.models
 
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -42,8 +45,35 @@ data class RawLinkPreview(
 )
 
 
+data class GuideText(
+    var intro: String = "",
+    var content: String = "",
+    var outro: String = ""
+)
+
+
+data class Coordinates(
+    var x: Int,
+    var y: Int
+)
+
+
+data class SelectorItem(
+    var id: String = "",
+    var title: String = "",
+    var iconVector: ImageVector? = null,
+    var iconPainter: Painter? = null,
+    var color: Color? = null,
+    var useImage: Boolean = false,
+    var disableGray: Boolean = false,
+    var useCustomClick: Boolean = false,
+    var onClick: () -> Unit = {},
+)
+
+
 data class QuickAction(
-    var description: String,
+    var id: String,
+    var title: String,
     var content: @Composable () -> Unit,
 )
 

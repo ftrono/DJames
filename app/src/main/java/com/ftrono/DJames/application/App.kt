@@ -32,7 +32,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.0.0"
+val appVersion = "3.0.1"
 val copyrightYear = 2024
 
 //DB:
@@ -105,7 +105,6 @@ var overlayPos = MutableLiveData<String>("Right")
 var volumeUpEnabledUI = MutableLiveData<Boolean>(true)
 var sourceIsVolume = MutableLiveData<Boolean>(false)
 var extraOpen = MutableLiveData<Boolean>(false)
-var innerNavOpen = MutableLiveData<Boolean>(false)
 var currentPlayingPrefix = MutableLiveData<String>("")
 var currentSongPlaying = MutableLiveData<String>("Don't turn off the screen!")
 var currentArtistPlaying = MutableLiveData<String>("You can keep this Clock\nScreen on to save battery")
@@ -126,11 +125,19 @@ val sourceToCatMap = mapOf(
 )
 val libCats = sourceToCatMap.keys.toList()
 var allMessageIds = MutableLiveData<List<Long>>(listOf<Long>())
-val lastMessageText = MutableLiveData<String>("")
+val lastUserMessageText = MutableLiveData<String>("")
+val lastAiMessageText = MutableLiveData<String>("")
 val chatInputPlaceholder = "Ask via chat..."
 var lastStarterId: Long = 0L
+val guidePosPlaceholder: String = "[POS]"
 
 //Preferences:
+var overlayBubbleSize = 100
+var overlayToeSize = 75
+var overlayTimeoutCenterWidth = 7
+var overlayTimeoutToeWidth = 5
+var overlayBoxMax = 300
+val overlayBoxMin = 220
 val maxHistoryDays: Long = 15L
 val defaultChatResetTime: Long = 3*60*1000   //minutes
 val defaultChatWait = 2000L
@@ -159,7 +166,6 @@ val dictatedNumber = "Dictated number"
 val genders = listOf<String>("Sir", "Madam", "Friend")
 var queryLangCodes = listOf<String>("en", "it")
 val queryLangFull = listOf<String>("English", "Italian")
-val voiceAccents = listOf<String>("British", "Canadian")
 
 //Modes:
 var density: Float = 0F

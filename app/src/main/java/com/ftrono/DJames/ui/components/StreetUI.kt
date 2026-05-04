@@ -73,6 +73,7 @@ import com.ftrono.DJames.ui.selectors.libIconSelector
 @Composable
 fun StreetUIScaffold(
     modifier: Modifier = Modifier,
+    hideLine: Boolean = false,
     lineDistance: Dp,
     topBar: @Composable () -> Unit = {},
     fab: @Composable () -> Unit = {},
@@ -92,13 +93,15 @@ fun StreetUIScaffold(
                 .padding(it)
                 .background(colorResource(id = R.color.windowBackground))
         ) {
-            //Street line canvas:
-            StreetLine (
-                modifier = Modifier
-                    .padding(start = lineDistance)
-                    .matchParentSize()
-                    .width(20.dp)
-            )
+            if (!hideLine) {
+                //Street line canvas:
+                StreetLine(
+                    modifier = Modifier
+                        .padding(start = lineDistance)
+                        .matchParentSize()
+                        .width(20.dp)
+                )
+            }
             //Content container:
             Column(
                 modifier = Modifier

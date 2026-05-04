@@ -65,6 +65,7 @@ import com.ftrono.DJames.application.dialogs.EditLibSpotify
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.be.database.LibraryItem
+import com.ftrono.DJames.be.models.SelectorItem
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.components.OptionsItem
 import com.ftrono.DJames.ui.components.OptionsMenu
@@ -78,6 +79,8 @@ import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
 import com.ftrono.DJames.ui.navigation.TopSplitterBar
 import com.ftrono.DJames.ui.selectors.libColorSelector
+import com.ftrono.DJames.ui.selectors.libColorSelectorLight
+import com.ftrono.DJames.ui.selectors.libIconSelector
 import kotlin.String
 
 
@@ -114,6 +117,20 @@ fun LibraryScreen(
     val snapshot = rememberSaveable { mutableStateOf(0L) }
     val curLibrarySizeState by curLibrarySize.observeAsState()
 
+    // Load splitter cats:
+    val libSplitterItems = mutableListOf<SelectorItem>()
+    for (cat in libCats) {
+        libSplitterItems.add(
+            SelectorItem(
+                id = cat,
+                title = if (cat == "spotify") "Spotify links" else "${utils.capitalizeWords(cat)}s",
+                iconPainter = libIconSelector(cat),
+                color = libColorSelectorLight(cat),
+            )
+        )
+    }
+
+    // Load dialogs:
     val deleteLibOn = rememberSaveable { mutableStateOf(false) }
     if (deleteLibOn.value) {
         DialogDeleteLibrary(mContext, deleteLibOn, snapshot, idState, nameState, currentCatState, currentSubCatState)
@@ -239,8 +256,8 @@ fun LibraryScreen(
             } else {
                 // HORIZONTAL -> TOP SPLITTER BAR:
                 TopSplitterBar(
-                    currentCatState = currentCatState,
-                    currentSubCatState = currentSubCatState,
+                    currentItemState = currentCatState,
+                    items = libSplitterItems,
                     showBack = true,
                     onBack = { navController.popBackStack() },
                     onNavClick = {
@@ -315,9 +332,14 @@ fun LibraryScreen(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     SplitterSign(
-                        currentCatState = currentCatState,
-                        currentSubCatState = currentSubCatState,
+                        currentItemState = currentCatState,
+                        items = libSplitterItems,
                         onNavClick = {
+                            if (currentCatState.value == "spotify") {
+                                currentSubCatState.value = ""
+                            } else {
+                                currentSubCatState.value = currentCatState.value
+                            }
                             snapshot.value = utils.getCurrentTimestamp()   //Refresh list
                         },
                     )

@@ -226,53 +226,58 @@ class Utilities {
         requestPermissions: MutableState<Boolean>,
         openClock: Boolean = false,
     ) {
-        if (overlayActive.value == false) {
-            if (!Settings.canDrawOverlays(context)) {
-                // REQUEST OVERLAY PERMISSION:
-                requestOverlayOn.value = true
-                overlayActive.postValue(false)
+        try {
+            if (overlayActive.value == false) {
+                if (!Settings.canDrawOverlays(context)) {
+                    // REQUEST OVERLAY PERMISSION:
+                    requestOverlayOn.value = true
+                    overlayActive.postValue(false)
 
-            } else if (!checkPermission(context, Manifest.permission.RECORD_AUDIO)) {
-                Log.d("Home", "${checkPermission(context, Manifest.permission.RECORD_AUDIO)}")
-                // REQUEST MISSING PERMISSIONS:
-                requestPermissions.value = true
+                } else if (!checkPermission(context, Manifest.permission.RECORD_AUDIO)) {
+                    Log.d("Home", "${checkPermission(context, Manifest.permission.RECORD_AUDIO)}")
+                    // REQUEST MISSING PERMISSIONS:
+                    requestPermissions.value = true
 
-            } else {
-                //START DRIVE MODE:
-                requestOverlayOn.value = false
-                overlayActive.postValue(true)
-                //Overlay service:
-                if (!isMyServiceRunning(OverlayService::class.java, context)) {
-                    var intentOS = Intent(context, OverlayService::class.java)
-                    context.startService(intentOS)
-                    if (openClock) {
-                        if (prefs.volumeUpEnabled) {
-                            Toast.makeText(
-                                context,
-                                "Use the OVERLAY or VOLUME UP / SHUTTER button to speak!",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "Use the OVERLAY button to speak!",
-                                Toast.LENGTH_LONG
-                            ).show()
+                } else {
+                    //START DRIVE MODE:
+                    requestOverlayOn.value = false
+                    overlayActive.postValue(true)
+                    //Overlay service:
+                    if (!isMyServiceRunning(OverlayService::class.java, context)) {
+                        val intentOS = Intent(context, OverlayService::class.java)
+                        context.startService(intentOS)
+                        if (openClock) {
+                            if (prefs.volumeUpEnabled) {
+                                Toast.makeText(
+                                    context,
+                                    "Use the OVERLAY or VOLUME UP / SHUTTER button to speak!",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Use the OVERLAY button to speak!",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
                         }
                     }
+                    //Start Clock screen:
+                    if (openClock) {
+                        val intent1 = Intent(context, ClockActivity::class.java)
+                        context.startActivity(intent1)
+                    }
                 }
-                //Start Clock screen:
-                if (openClock) {
-                    val intent1 = Intent(context, ClockActivity::class.java)
-                    context.startActivity(intent1)
+            } else {
+                //STOP DRIVE MODE:
+                overlayActive.postValue(false)
+                if (isMyServiceRunning(OverlayService::class.java, context)) {
+                    context.stopService(Intent(context, OverlayService::class.java))
                 }
             }
-        } else {
-            //STOP DRIVE MODE:
+        } catch (e: Exception) {
             overlayActive.postValue(false)
-            if (isMyServiceRunning(OverlayService::class.java, context)) {
-                context.stopService(Intent(context, OverlayService::class.java))
-            }
+            Log.d(TAG, "StartStopDriveMode ERROR: $e")
         }
     }
 

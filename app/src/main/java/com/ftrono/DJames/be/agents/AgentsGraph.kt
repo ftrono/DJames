@@ -7,7 +7,7 @@ import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.START
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.defaultChatWait
-import com.ftrono.DJames.application.lastMessageText
+import com.ftrono.DJames.application.lastUserMessageText
 import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.minSpeechPct
@@ -210,7 +210,7 @@ class AgentsGraph(
 
         if (!updState.fail && !updState.isSilence) {
             // STATE: Append last user message (original) to conversation:
-            if (fromVoice) lastMessageText.postValue(transcription)
+            if (fromVoice) lastUserMessageText.postValue(transcription)
             updState.messages.add(
                 ChatMessage(role = "user", content = transcription)
             )

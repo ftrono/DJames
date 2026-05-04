@@ -1,6 +1,5 @@
 package com.ftrono.DJames.application.screens
 
-import android.Manifest
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -49,8 +48,6 @@ import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.allMessageIds
 import com.ftrono.DJames.application.chatInputPlaceholder
-import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
-import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.maxHistoryDays
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.queryStatus
@@ -96,25 +93,6 @@ fun MessagesScreen(
     preview: Boolean = false
 ) {
     val mContext = LocalContext.current
-
-    //Overlay permission management:
-    val requestOverlayOn = rememberSaveable { mutableStateOf(false) }
-    if (requestOverlayOn.value) {
-        DialogRequestOverlay(
-            mContext = mContext,
-            dialogOnState = requestOverlayOn
-        )
-    }
-    // Mic permissions management:
-    val requestPermissions = rememberSaveable { mutableStateOf(false) }
-    if (requestPermissions.value) {
-        SinglePermissionHandler(
-            context = mContext,
-            dialogOnState = requestPermissions,
-            permission = Manifest.permission.RECORD_AUDIO
-        )
-    }
-
     // States:
     val focusManager = LocalFocusManager.current
     val selectedMessageIds = remember { mutableStateListOf<Long>() }
@@ -295,8 +273,6 @@ fun MessagesScreen(
         ChatInputField(
             context = mContext,
             sharedViewModel = sharedViewModel,
-            requestPermissions = requestPermissions,
-            requestOverlayOn = requestOverlayOn,
             modifier = Modifier
                 .padding(
                     start = 32.dp,
@@ -307,7 +283,6 @@ fun MessagesScreen(
                 .imePadding()
                 .fillMaxWidth(),
             placeholder = chatInputPlaceholder,
-            enableLeftButton = true,
             onSend = {
                 val curText = sharedViewModel.text.trim()
                 if (curText != "") {

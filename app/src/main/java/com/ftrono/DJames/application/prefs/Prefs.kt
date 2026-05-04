@@ -165,11 +165,6 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getString(KEY_SPOTIFY_USER_IMAGE, "") as String
         set(value) = sharedPrefs.edit { putString(KEY_SPOTIFY_USER_IMAGE, value) }
 
-    //NLP user ID:
-    var nlpUserId: String
-        get() = sharedPrefs.getString(KEY_NLP_USER_ID, "") as String
-        set(value) = sharedPrefs.edit { putString(KEY_NLP_USER_ID, value) }
-
 
     //ENCRYPTED PREFS:
     //(Encrypted) Spotify auth token:
@@ -210,7 +205,6 @@ class Prefs (context: Context) {
         const val KEY_SPOTIFY_USER_ID = ".key.spotify_user_id"
         const val KEY_SPOTIFY_USER_NAME = ".key.spotify_user_name"
         const val KEY_SPOTIFY_USER_IMAGE = ".key.spotify_user_image"
-        const val KEY_NLP_USER_ID = ".key.nlp_user_id"
 
         //Encrypted prefs:
         const val KEY_SPOTIFY_TOKEN = ".key.spotify_token"

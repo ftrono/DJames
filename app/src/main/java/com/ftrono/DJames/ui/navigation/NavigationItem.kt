@@ -9,9 +9,8 @@ sealed class NavigationItem(
 
     //MAIN NAV:
     object Home : NavigationItem("home", R.drawable.icon_home, "Home")
-    object Guide : NavigationItem("guide", R.drawable.icon_info, "Guide")
-    object Library : NavigationItem("library", R.drawable.icon_star, "Saved")
-    object Messages : NavigationItem("messages", R.drawable.icon_message, "Messages")
+    object Library : NavigationItem("library", R.drawable.icon_favorites, "Library")
+    object Messages : NavigationItem("messages", R.drawable.icon_message, "Chat")
     //SETTINGS:
     object Accounts : NavigationItem("accounts", R.drawable.icon_user, "Accounts")
     object Settings : NavigationItem("settings", R.drawable.icon_settings, "Preferences")

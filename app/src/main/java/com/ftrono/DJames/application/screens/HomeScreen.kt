@@ -410,7 +410,7 @@ fun LogoHome(
                 } else if (queryState == "processing") {
                     "Thinking..."
                 } else {
-                    "Ready for you,\n${if (preview) "Sir" else genderState}!"
+                    "Hi ${if (preview) "Sir" else genderState}, I'm DJames,\nyour driving\nassistant!"
                 }
                 Text(
                     modifier = Modifier,

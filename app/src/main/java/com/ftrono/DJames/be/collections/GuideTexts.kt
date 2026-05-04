@@ -6,7 +6,7 @@ import com.ftrono.DJames.be.models.GuideText
 
 val guideTexts = mapOf<String, GuideText>(
     "info" to GuideText(
-        intro = "I'm DJames, your driving assistant!",
+        intro = "",
         content = "Ask me to play music,\nget driving directions,\ncall or message your contacts!",   //TODO: add "or YouTube"
         outro = "Tap on the button $guidePosPlaceholder, or press Volume Up, or use a Bluetooth remote!"
     ),
@@ -22,8 +22,8 @@ val guideTexts = mapOf<String, GuideText>(
     ),
     "messages" to GuideText(
         intro = "Try saying:",
-        content = "\"Send a SMS to Ricky\"\n\"Send a WhatsApp message to Frank\"\n\"Send a voice message to mom\"",
-        outro = "I can help you draft and send SMS, WhatApp text messages or voice messages to any contact of yours!"
+        content = "\"Send a message to Ricky\"\n\"Send a voice message to Frank\"",
+        outro = "I can help you draft and send SMS, WhatApp text / voice messages to any contact of yours!"
     ),
     "gmaps" to GuideText(
         intro = "Try saying:",

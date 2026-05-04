@@ -457,9 +457,14 @@ fun TimeoutButton(
 
         // Countdown arc
         if (isActive) {
-            Canvas(modifier = Modifier
-                .fillMaxSize()
-                .padding(5.dp)
+            Canvas(
+                modifier = if (isCircle) {
+                    Modifier
+                        .fillMaxSize()
+                        .padding(5.dp)
+                } else {
+                    Modifier.matchParentSize()
+                }
             ) {
                 if (isCircle) {
                     // Circle arc:
@@ -652,7 +657,7 @@ fun CenterPad(
                     // RAISE VOLUME:
                     Text (
                         modifier = Modifier,
-                        text = "RAISE\nVOLUME\nNOW",
+                        text = "RAISE\nVOLUME\nNOW!",
                         textAlign = TextAlign.Center,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
@@ -808,11 +813,11 @@ fun OverlayClose(
         modifier = Modifier
             .padding(bottom = 25.dp)
             .zIndex(1f),  //avoid the oval shape
-        signSize = 60.dp,
+        signSize = 80.dp,
         contentSize = 40,
-        backgroundColor = colorResource(R.color.transparent_grey),
-        borderColor = colorResource(id = R.color.light_grey),
-        contentColor = colorResource(id = R.color.light_grey),
+        backgroundColor = colorResource(R.color.greenSignLight),
+        borderColor = colorResource(id = R.color.greenSignLight),
+        contentColor = colorResource(id = R.color.colorPrimaryDark),
         borderWidth = 2.5.dp,
         iconVector = Icons.Default.Close,
     )

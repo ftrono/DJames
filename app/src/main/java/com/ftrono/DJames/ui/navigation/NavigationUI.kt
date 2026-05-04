@@ -612,8 +612,8 @@ fun NavSideItem(
     val extraOpenState by extraOpen.observeAsState()
 
     // Colours:
-    val itemColor = colorResource(R.color.mid_grey)
-    val selectedColor = colorResource(R.color.greenSignLight)
+    val itemColor = colorResource(R.color.midfaded_grey)
+    val selectedColor = colorResource(R.color.light_grey)
 
     Column(
         modifier = modifier

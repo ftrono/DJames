@@ -64,6 +64,7 @@ data class SelectorItem(
     var iconVector: ImageVector? = null,
     var iconPainter: Painter? = null,
     var color: Color? = null,
+    var colorBackground: Color? = null,
     var useImage: Boolean = false,
     var disableGray: Boolean = false,
     var useCustomClick: Boolean = false,

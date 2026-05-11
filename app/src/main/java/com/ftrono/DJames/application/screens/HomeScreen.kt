@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,6 +41,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -142,43 +145,48 @@ fun HomeScreen(
         )
     }
 
-    val guideItems = mutableListOf(
-        SelectorItem(
+    val guideItemsMap = mutableMapOf(
+        "info" to SelectorItem(
             id = "info",
-            iconPainter = painterResource(R.drawable.icon_info),
+            iconPainter = painterResource(R.drawable.icon_fork),
             color = colorResource(R.color.light_grey),
+            colorBackground = colorResource(R.color.colorPrimary),
             disableGray = true,
             useCustomClick = true,
             onClick = {}
         ),
-        SelectorItem(
+        "spotify" to SelectorItem(
             id = "spotify",
             iconPainter = painterResource(R.drawable.logo_spotify),
             color = colorResource(R.color.greenSignLight),
+            colorBackground = colorResource(R.color.yellowSign),
             useImage = true,
             useCustomClick = true,
             onClick = {}
         ),
-        SelectorItem(
+        "phone" to SelectorItem(
             id = "phone",
             iconPainter = painterResource(R.drawable.icon_phone),
             color = colorResource(R.color.colorAccentMid),
+            colorBackground = colorResource(R.color.greenSign),
             disableGray = true,
             useCustomClick = true,
             onClick = {}
         ),
-        SelectorItem(
+        "messages" to SelectorItem(
             id = "messages",
             iconPainter = painterResource(R.drawable.icon_message),
             color = colorResource(R.color.blueSignLight),
+            colorBackground = colorResource(R.color.blueSign),
             disableGray = true,
             useCustomClick = true,
             onClick = {}
         ),
-        SelectorItem(
+        "gmaps" to SelectorItem(
             id = "gmaps",
             iconPainter = painterResource(R.drawable.logo_gmaps),
             color = colorResource(R.color.yellowSignLight),
+            colorBackground = colorResource(R.color.brownSign),
             useImage = true,
             useCustomClick = true,
             onClick = {}
@@ -254,7 +262,7 @@ fun HomeScreen(
                         context = mContext,
                         isLandscape = true,
                         queryState = queryState!!,
-                        items = guideItems,
+                        itemsMap = guideItemsMap,
                     )
                 }
             } else {
@@ -274,7 +282,7 @@ fun HomeScreen(
                     context = mContext,
                     isLandscape = false,
                     queryState = queryState!!,
-                    items = guideItems,
+                    itemsMap = guideItemsMap,
                 )
             }
 
@@ -371,58 +379,65 @@ fun LogoHome(
             modifier = Modifier
                 .size(animatedSize.roundToInt().dp)
                 .clip(CircleShape)
-                .border(BorderStroke(1.dp, colorResource(id = R.color.dark_grey)), CircleShape)
+                // .border(BorderStroke(1.dp, colorResource(id = R.color.dark_grey)), CircleShape)
                 .background(
-                    if (queryState == "busy") {
-                        colorResource(R.color.transparent_busy)
-                    } else colorResource(R.color.transparent_dark_grey)
+                    brush = if (queryState == "busy") {
+                        SolidColor(colorResource(R.color.transparent_busy))
+                    } else {
+                        Brush.radialGradient(
+                            radius = if (isLandscape) 300f else 380f,
+                            colors = listOf(
+                                colorResource(R.color.colorPrimary), // center
+                                colorResource(R.color.transparent_full)   // outer
+                            )
+                        )
+                    },
+                    shape = CircleShape
                 ),
-            contentAlignment = Alignment.Center,
+        )
+        Column(
+            modifier = Modifier,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
-            Column(
-                modifier = Modifier,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                // DJames logo:
-                Image(
-                    modifier = Modifier
-                        .size(if (isLandscape) 90.dp else 130.dp)
-                        .clickable {
-                            var toastText = if (overlayActiveState!! && volumeUpEnabledState!!) {
-                                "Use the OVERLAY or VOLUME UP / SHUTTER button to speak!"
-                            } else if (overlayActiveState!!) {
-                                "Use the OVERLAY button to speak!"
-                            } else if (!spotifyLoggedInState) {
-                                "Log in from Accounts to unlock music functions!"
-                            } else {
-                                "Logged in to Spotify as: $userNameState!"
-                            }
-                            Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
-                        },
-                    painter = painterResource(id = R.drawable.djames),
-                    contentDescription = "DJames logo"
-                )
+            // DJames logo:
+            Image(
+                modifier = Modifier
+                    .size(if (isLandscape) 90.dp else 130.dp)
+                    .clickable {
+                        var toastText = if (overlayActiveState!! && volumeUpEnabledState!!) {
+                            "Use the OVERLAY or VOLUME UP / SHUTTER button to speak!"
+                        } else if (overlayActiveState!!) {
+                            "Use the OVERLAY button to speak!"
+                        } else if (!spotifyLoggedInState) {
+                            "Log in from Accounts to unlock music functions!"
+                        } else {
+                            "Logged in to Spotify as: $userNameState!"
+                        }
+                        Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
+                    },
+                painter = painterResource(id = R.drawable.djames),
+                contentDescription = "DJames logo"
+            )
 
-                // Intro text:
-                val introText = if (queryState == "busy") {
-                    "Speak now!"
-                } else if (queryState == "processing") {
-                    "Thinking..."
-                } else {
-                    "Hi ${if (preview) "Sir" else genderState}, I'm DJames,\nyour driving\nassistant!"
-                }
-                Text(
-                    modifier = Modifier,
-                    text = introText,
-                    fontSize = if (isLandscape) 16.sp else 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontStyle = FontStyle.Italic,
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Center,
-                    lineHeight = if (isLandscape) 16.sp else 20.sp,
-                )
+            // Intro text:
+            val introText = if (queryState == "busy") {
+                "Speak now!"
+            } else if (queryState == "processing") {
+                "Thinking..."
+            } else {
+                "Hi ${if (preview) "Sir" else genderState}, I'm DJames,\nyour driving\nassistant!"
             }
+            Text(
+                modifier = Modifier,
+                text = introText,
+                fontSize = if (isLandscape) 16.sp else 20.sp,
+                fontWeight = FontWeight.Bold,
+                fontStyle = FontStyle.Italic,
+                color = colorResource(id = R.color.light_grey),
+                textAlign = TextAlign.Center,
+                lineHeight = if (isLandscape) 16.sp else 20.sp,
+            )
         }
     }
 }
@@ -434,7 +449,7 @@ fun GuideViewer(
     context: Context,
     isLandscape: Boolean,
     queryState: String,
-    items: MutableList<SelectorItem>,
+    itemsMap: MutableMap<String, SelectorItem>,
 ) {
     val guideItemState = rememberSaveable() { mutableStateOf("info") }
     val overlayPosState by overlayPos.observeAsState()
@@ -453,80 +468,105 @@ fun GuideViewer(
             modifier = Modifier
                 .padding(top=24.dp),
             currentItemState = guideItemState,
-            items = items,
+            items = itemsMap.values.toMutableList(),
             disabled = (queryState == "busy" || queryState == "processing"),
         )
+
+        val guideText = guideTexts[guideItemState.value]!!
+        val item = itemsMap[guideItemState.value]!!
+
         // CONTAINER:
         Card(
             modifier = Modifier
                 .padding(top = 12.dp, bottom = 20.dp, start = 32.dp, end = 32.dp),
-            border = BorderStroke(2.dp, colorResource(id = R.color.dark_grey)),
+            border = BorderStroke(4.dp, colorResource(id = R.color.mid_grey)),
             shape = RoundedCornerShape(18.dp),
             colors = CardDefaults.cardColors (
-                containerColor = colorResource(id = R.color.dark_grey_background)
+                containerColor = item.colorBackground!!
             )
         ) {
-            Column(
+            Row(
                 modifier = Modifier
                     .padding(start = 20.dp, end = 20.dp)
-                    .fillMaxSize()
-                    .scrollable(rememberScrollState(), orientation = Orientation.Vertical),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    .fillMaxSize(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                val guideText = guideTexts[guideItemState.value]!!
-                val guideIntro = if (queryState == "busy" || queryState == "processing") lastUserMsgState!! else guideText.intro
-                val guideOutro = if (guideText.outro.contains(guidePosPlaceholder)) {
-                    when {
-                        (isLandscape && overlayPosState!! == "Right") -> {
-                            guideText.outro.replace(guidePosPlaceholder, "on the right")
-                        }
-                        (isLandscape) -> {
-                            guideText.outro.replace(guidePosPlaceholder, "on the left")
-                        }
-                        else -> {
-                            guideText.outro.replace(guidePosPlaceholder, "below")
-                        }
-                    }
-                } else guideText.outro
+                Icon(
+                    modifier = Modifier
+                        .size(60.dp),
+                    painter = if (queryState == "busy") {
+                        painterResource(R.drawable.icon_speak)
+                    } else if (queryState == "processing") {
+                        painterResource(R.drawable.icon_clock)
+                    } else item.iconPainter!!,
+                    contentDescription = "Item image",
+                    tint = colorResource(R.color.light_grey)
+                )
 
-                // Intro:
-                if (guideIntro != "") {
+                Column(
+                    modifier = Modifier
+                        .padding(start = 4.dp)
+                        .scrollable(rememberScrollState(), orientation = Orientation.Vertical),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    val guideIntro =
+                        if (queryState == "busy" || queryState == "processing") lastUserMsgState!! else guideText.intro
+                    val guideOutro = if (guideText.outro.contains(guidePosPlaceholder)) {
+                        when {
+                            (isLandscape && overlayPosState!! == "Right") -> {
+                                guideText.outro.replace(guidePosPlaceholder, "on the right")
+                            }
+
+                            (isLandscape) -> {
+                                guideText.outro.replace(guidePosPlaceholder, "on the left")
+                            }
+
+                            else -> {
+                                guideText.outro.replace(guidePosPlaceholder, "below")
+                            }
+                        }
+                    } else guideText.outro
+
+                    // Intro:
+                    if (guideIntro != "") {
+                        Text(
+                            modifier = Modifier
+                                .padding(top = 8.dp),
+                            text = guideIntro,
+                            textAlign = TextAlign.Center,
+                            color = colorResource(id = R.color.light_grey),
+                            fontSize = 14.sp,
+                            lineHeight = 14.sp,
+                        )
+                    }
+                    // Content:
                     Text(
                         modifier = Modifier
                             .padding(top = 8.dp),
-                        text = guideIntro,
+                        text = if (queryState == "busy" || queryState == "processing") lastAiMsgState!! else guideText.content,
                         textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        fontStyle = FontStyle.Italic,
                         color = colorResource(id = R.color.light_grey),
-                        fontSize = 16.sp,
-                        lineHeight = 16.sp,
+                        fontSize = 18.sp,
+                        lineHeight = 18.sp,
                     )
-                }
-                // Content:
-                Text(
-                    modifier = Modifier
-                        .padding(top=8.dp),
-                    text = if (queryState == "busy" || queryState == "processing") lastAiMsgState!! else guideText.content,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    fontStyle = FontStyle.Italic,
-                    color = colorResource(id = R.color.light_grey),
-                    fontSize = 20.sp,
-                    lineHeight = 20.sp,
-                )
-                if (queryState != "busy" && queryState != "processing" && guideOutro != "") {
-                    // Outro:
-                    Text(
-                        modifier = Modifier
-                            .padding(top = 8.dp, bottom = 8.dp),
-                        text = if (!loggedInState!! && guideItemState.value == "spotify") {
-                            "$guideOutro\nLog in from Accounts to unlock music functions!"
-                        } else guideOutro,
-                        textAlign = TextAlign.Center,
-                        color = colorResource(id = R.color.light_grey),
-                        fontSize = 16.sp,
-                        lineHeight = 16.sp,
-                    )
+                    if (queryState != "busy" && queryState != "processing" && guideOutro != "") {
+                        // Outro:
+                        Text(
+                            modifier = Modifier
+                                .padding(top = 8.dp, bottom = 8.dp),
+                            text = if (!loggedInState!! && guideItemState.value == "spotify") {
+                                "$guideOutro\nLog in from Accounts to unlock music functions!"
+                            } else guideOutro,
+                            textAlign = TextAlign.Center,
+                            color = colorResource(id = R.color.light_grey),
+                            fontSize = 14.sp,
+                            lineHeight = 14.sp,
+                        )
+                    }
                 }
             }
         }

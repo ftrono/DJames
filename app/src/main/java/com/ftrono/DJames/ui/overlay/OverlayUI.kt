@@ -232,7 +232,7 @@ fun DJamesPads(
     val overlayOptionsState by overlayOptionsStr.observeAsState()
 
     // Colours:
-    val colorBgActive = colorResource(R.color.colorAccent)
+    val colorBgActive = colorResource(R.color.colorAccentMid)
     val colorBgInactive = colorResource(R.color.dark_grey)
     val colorIconActive = colorResource(R.color.light_grey)
     val colorIconInactive = colorResource(R.color.light_grey)

@@ -111,7 +111,7 @@ class Prefs (context: Context) {
 
     //Rec max freq:
     var recMaxFreq: Int
-        get() = sharedPrefs.getInt(KEY_REC_MAX_FREQ, 3100)
+        get() = sharedPrefs.getInt(KEY_REC_MAX_FREQ, 2100)
         set(value) = sharedPrefs.edit { putInt(KEY_REC_MAX_FREQ, value) }
 
     //Enable second noise suppression:

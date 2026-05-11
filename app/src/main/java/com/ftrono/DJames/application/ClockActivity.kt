@@ -57,8 +57,8 @@ import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.R
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.components.RoundedSign
-import com.ftrono.DJames.ui.selectors.libColorSelector
-import com.ftrono.DJames.ui.selectors.libIconSelector
+import com.ftrono.DJames.ui.selectors.colorSelector
+import com.ftrono.DJames.ui.selectors.iconSelector
 import com.ftrono.DJames.ui.theme.ClockTheme
 import com.ftrono.DJames.ui.theme.black
 import java.time.LocalDateTime

@@ -71,8 +71,9 @@ import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.models.SelectorItem
 import com.ftrono.DJames.ui.components.RoundedSign
-import com.ftrono.DJames.ui.selectors.libColorSelectorLight
-import com.ftrono.DJames.ui.selectors.libIconSelector
+import com.ftrono.DJames.ui.selectors.iconSelector
+import com.ftrono.DJames.ui.selectors.colorSelectorLight
+import com.ftrono.DJames.ui.selectors.iconSelector
 
 
 @Composable
@@ -239,8 +240,8 @@ fun TopSplitterBarPreview() {
             SelectorItem(
                 id = cat,
                 title = if (cat == "spotify") "Spotify links" else "${utils.capitalizeWords(cat)}s",
-                iconPainter = libIconSelector(cat),
-                color = libColorSelectorLight(cat),
+                iconPainter = iconSelector(cat),
+                color = colorSelectorLight(cat),
             )
         )
     }
@@ -407,7 +408,7 @@ fun SplitterCat(
                             end = if (isLandscape && selected) 4.dp else 6.dp
                         )
                         .size(if (selected) (iconSize + 4.dp) else iconSize),
-                    painter = item.iconPainter!!,
+                    painter = iconSelector(item.id),
                     contentDescription = item.title,
                 )
             } else {
@@ -418,12 +419,12 @@ fun SplitterCat(
                             end = if (isLandscape && selected) 4.dp else 6.dp
                         )
                         .size(if (selected) (iconSize + 4.dp) else iconSize),
-                    painter = item.iconPainter!!,
+                    painter = iconSelector(item.id),
                     contentDescription = item.title,
                     tint = if (disabled) {
                             colorResource(id = R.color.mid_grey)
                         } else if (selected || item.disableGray) {
-                            item.color!!
+                            colorSelectorLight(item.id)
                         } else {
                             colorResource(id = R.color.light_grey)
                         }
@@ -436,7 +437,7 @@ fun SplitterCat(
                         .padding(top = 4.dp)
                         .width(30.dp),
                     thickness = 2.dp,
-                    color = if (disabled) colorResource(id = R.color.mid_grey) else item.color!!
+                    color = if (disabled) colorResource(id = R.color.mid_grey) else colorSelectorLight(item.id)
                 )
             }
         }
@@ -448,7 +449,7 @@ fun SplitterCat(
                 text = item.title,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = item.color!!,
+                color = colorSelectorLight(item.id),
                 maxLines = 1
             )
         }

@@ -1,6 +1,7 @@
 package com.ftrono.DJames.be.models
 
 
+import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter

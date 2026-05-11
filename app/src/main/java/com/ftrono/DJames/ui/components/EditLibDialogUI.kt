@@ -46,9 +46,9 @@ import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
-import com.ftrono.DJames.ui.selectors.libColorSelector
-import com.ftrono.DJames.ui.selectors.libColorSelectorLight
-import com.ftrono.DJames.ui.selectors.libIconSelector
+import com.ftrono.DJames.ui.selectors.colorSelector
+import com.ftrono.DJames.ui.selectors.colorSelectorLight
+import com.ftrono.DJames.ui.selectors.iconSelector
 
 
 //EDIT LIB COMPONENTS:
@@ -112,8 +112,8 @@ fun EditLibDynamicNameSection(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     val textFieldColors = getTextFieldColors(
-        colorLight = libColorSelectorLight(cat = if (filter == "user") "contact" else if (filter == "collection") "playlist" else filter),
-        colorDark = libColorSelector(cat = if (filter == "user") "contact" else if (filter == "collection") "playlist" else filter),
+        colorLight = colorSelectorLight(cat = if (filter == "user") "contact" else if (filter == "collection") "playlist" else filter),
+        colorDark = colorSelector(cat = if (filter == "user") "contact" else if (filter == "collection") "playlist" else filter),
         fullyTransparent = true,
     )
 
@@ -150,7 +150,7 @@ fun EditLibDynamicNameSection(
             } else if (filter == "user") {
                 colorResource(id = R.color.faded_grey)
             } else {
-                libColorSelector(
+                colorSelector(
                     cat = filter
                 )
             },
@@ -158,7 +158,7 @@ fun EditLibDynamicNameSection(
             contentColor = colorResource(id = R.color.light_grey),
             borderWidth = 2.0.dp,
             iconVector = if (filter == "collection") Icons.Default.Favorite else if (filter == "user") Icons.Outlined.Person else null,
-            iconPainter = if (filter == "collection" || filter == "user") null else libIconSelector(cat = filter),
+            iconPainter = if (filter == "collection" || filter == "user") null else iconSelector(cat = filter),
             imageUrl = if (preview || filter == "collection") "" else imageUrl,
             circle = filter == "artist" || filter == "contact" || filter == "user"
         )
@@ -250,10 +250,10 @@ fun EditLibDynamicNameSection(
 @Composable
 fun EditLibDynamicFieldPreview() {
     val textName = rememberSaveable { mutableStateOf("sample text") }
-    val textHeaderColor = libColorSelectorLight(cat = "artist")
+    val textHeaderColor = colorSelectorLight(cat = "artist")
     val textFieldColors = getTextFieldColors(
-        colorLight = libColorSelectorLight(cat = "artist"),
-        colorDark = libColorSelector(cat = "artist")
+        colorLight = colorSelectorLight(cat = "artist"),
+        colorDark = colorSelector(cat = "artist")
     )
 
     EditLibDynamicField(

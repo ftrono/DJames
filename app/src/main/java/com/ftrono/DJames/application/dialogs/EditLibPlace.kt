@@ -24,8 +24,8 @@ import com.ftrono.DJames.ui.dialogs.EditLibDialog
 import com.ftrono.DJames.ui.components.EditLibDynamicField
 import com.ftrono.DJames.ui.components.EditLibDynamicNameSection
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
-import com.ftrono.DJames.ui.selectors.libColorSelector
-import com.ftrono.DJames.ui.selectors.libColorSelectorLight
+import com.ftrono.DJames.ui.selectors.colorSelector
+import com.ftrono.DJames.ui.selectors.colorSelectorLight
 import android.util.Log
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -210,10 +210,10 @@ fun EditLibPlace(
             EditLibDynamicField(
                 modifier = Modifier
                     .fillMaxWidth(),
-                textHeaderColor = libColorSelectorLight(cat = filter),
+                textHeaderColor = colorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
-                    colorLight = libColorSelectorLight(cat = filter),
-                    colorDark = libColorSelector(cat = filter)
+                    colorLight = colorSelectorLight(cat = filter),
+                    colorDark = colorSelector(cat = filter)
                 ),
                 title = "Aliases (separate with commas)",
                 description = aliasFieldDescription,
@@ -260,10 +260,10 @@ fun AddressGroup(
     EditLibDynamicField(
         modifier = Modifier
             .fillMaxWidth(),
-        textHeaderColor = libColorSelectorLight(cat = filter),
+        textHeaderColor = colorSelectorLight(cat = filter),
         textFieldColors = getTextFieldColors(
-            colorLight = libColorSelectorLight(cat = filter),
-            colorDark = libColorSelector(cat = filter)
+            colorLight = colorSelectorLight(cat = filter),
+            colorDark = colorSelector(cat = filter)
         ),
         title = "Place / Business name",
         placeholder = "(optional)",
@@ -274,10 +274,10 @@ fun AddressGroup(
     EditLibDynamicField(
         modifier = Modifier
             .fillMaxWidth(),
-        textHeaderColor = libColorSelectorLight(cat = filter),
+        textHeaderColor = colorSelectorLight(cat = filter),
         textFieldColors = getTextFieldColors(
-            colorLight = libColorSelectorLight(cat = filter),
-            colorDark = libColorSelector(cat = filter)
+            colorLight = colorSelectorLight(cat = filter),
+            colorDark = colorSelector(cat = filter)
         ),
         title = "Street name",
         placeholder = "Write street...",
@@ -295,10 +295,10 @@ fun AddressGroup(
             modifier = Modifier
                 .weight(0.5f)
                 .padding(end = 2.dp),
-            textHeaderColor = libColorSelectorLight(cat = filter),
+            textHeaderColor = colorSelectorLight(cat = filter),
             textFieldColors = getTextFieldColors(
-                colorLight = libColorSelectorLight(cat = filter),
-                colorDark = libColorSelector(cat = filter)
+                colorLight = colorSelectorLight(cat = filter),
+                colorDark = colorSelector(cat = filter)
             ),
             title = "Number",
             placeholder = "...",
@@ -311,10 +311,10 @@ fun AddressGroup(
             modifier = Modifier
                 .weight(0.5f)
                 .padding(start = 2.dp),
-            textHeaderColor = libColorSelectorLight(cat = filter),
+            textHeaderColor = colorSelectorLight(cat = filter),
             textFieldColors = getTextFieldColors(
-                colorLight = libColorSelectorLight(cat = filter),
-                colorDark = libColorSelector(cat = filter)
+                colorLight = colorSelectorLight(cat = filter),
+                colorDark = colorSelector(cat = filter)
             ),
             title = "Zip code",
             placeholder = "...",
@@ -327,10 +327,10 @@ fun AddressGroup(
     EditLibDynamicField(
         modifier = Modifier
             .fillMaxWidth(),
-        textHeaderColor = libColorSelectorLight(cat = filter),
+        textHeaderColor = colorSelectorLight(cat = filter),
         textFieldColors = getTextFieldColors(
-            colorLight = libColorSelectorLight(cat = filter),
-            colorDark = libColorSelector(cat = filter)
+            colorLight = colorSelectorLight(cat = filter),
+            colorDark = colorSelector(cat = filter)
         ),
         title = "Town name",
         placeholder = "Write town...",
@@ -348,10 +348,10 @@ fun AddressGroup(
             modifier = Modifier
                 .weight(0.4f)
                 .padding(end = 2.dp),
-            textHeaderColor = libColorSelectorLight(cat = filter),
+            textHeaderColor = colorSelectorLight(cat = filter),
             textFieldColors = getTextFieldColors(
-                colorLight = libColorSelectorLight(cat = filter),
-                colorDark = libColorSelector(cat = filter)
+                colorLight = colorSelectorLight(cat = filter),
+                colorDark = colorSelector(cat = filter)
             ),
             title = "Province",
             placeholder = "...",
@@ -364,10 +364,10 @@ fun AddressGroup(
             modifier = Modifier
                 .weight(0.6f)
                 .padding(start = 2.dp),
-            textHeaderColor = libColorSelectorLight(cat = filter),
+            textHeaderColor = colorSelectorLight(cat = filter),
             textFieldColors = getTextFieldColors(
-                colorLight = libColorSelectorLight(cat = filter),
-                colorDark = libColorSelector(cat = filter)
+                colorLight = colorSelectorLight(cat = filter),
+                colorDark = colorSelector(cat = filter)
             ),
             title = "Country",
             placeholder = "Country...",

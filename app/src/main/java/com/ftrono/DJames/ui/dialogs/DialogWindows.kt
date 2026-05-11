@@ -66,9 +66,9 @@ import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.ui.components.EditLibTitle
 import com.ftrono.DJames.ui.selectors.getSwitchColors
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
-import com.ftrono.DJames.ui.selectors.libColorSelector
-import com.ftrono.DJames.ui.selectors.libColorSelectorLight
-import com.ftrono.DJames.ui.selectors.libIconSelector
+import com.ftrono.DJames.ui.selectors.colorSelector
+import com.ftrono.DJames.ui.selectors.colorSelectorLight
+import com.ftrono.DJames.ui.selectors.iconSelector
 
 
 // DIALOG WINDOWS:
@@ -293,18 +293,18 @@ fun EditLibHeader(
                 modifier = Modifier
                     .padding(end = 4.dp)
                     .size(if (small) 20.dp else 36.dp),
-                painter = libIconSelector(cat=cat),
+                painter = iconSelector(cat=cat),
                 contentDescription = title,
-                tint = if (cat == "spotify") libColorSelector(cat=cat) else libColorSelectorLight(cat=cat),
+                tint = if (cat == "spotify") colorSelector(cat=cat) else colorSelectorLight(cat=cat),
             )
             if (subcat != "") {
                 Icon(
                     modifier = Modifier
                         .padding(end = 4.dp)
                         .size(if (small) 20.dp else 36.dp),
-                    painter = libIconSelector(cat=subcat),
+                    painter = iconSelector(cat=subcat),
                     contentDescription = title,
-                    tint = libColorSelectorLight(cat=subcat),
+                    tint = colorSelectorLight(cat=subcat),
                 )
             }
             //TITLE:
@@ -329,7 +329,7 @@ fun EditLibHeader(
                         },
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = "Go",
-                    tint = libColorSelectorLight(cat = if (subcat != "") subcat else cat),
+                    tint = colorSelectorLight(cat = if (subcat != "") subcat else cat),
                 )
             }
             if (showRefresh) {
@@ -343,7 +343,7 @@ fun EditLibHeader(
                         },
                     imageVector = Icons.Filled.Refresh,
                     contentDescription = "Refresh",
-                    tint = libColorSelectorLight(cat = if (subcat != "") subcat else cat),
+                    tint = colorSelectorLight(cat = if (subcat != "") subcat else cat),
                 )
             }
             //BACK BUTTON:
@@ -356,7 +356,7 @@ fun EditLibHeader(
                     },
                 imageVector = Icons.Filled.Close,
                 contentDescription = "Cancel",
-                tint = libColorSelectorLight(cat = if (subcat != "") subcat else cat),
+                tint = colorSelectorLight(cat = if (subcat != "") subcat else cat),
             )
             //SAVE BUTTON:
             Icon(
@@ -367,7 +367,7 @@ fun EditLibHeader(
                     },
                 imageVector = Icons.Default.Check,
                 contentDescription = "Save",
-                tint = libColorSelectorLight(cat = if (subcat != "") subcat else cat),
+                tint = colorSelectorLight(cat = if (subcat != "") subcat else cat),
             )
         }
     }
@@ -445,7 +445,7 @@ fun AddLinkDialog(
         ) {
             EditLibTitle(
                 title = textBoxHeader,
-                textHeaderColor = libColorSelector(cat = cat),
+                textHeaderColor = colorSelector(cat = cat),
             )
 
             OutlinedTextField(
@@ -454,8 +454,8 @@ fun AddLinkDialog(
                     .fillMaxWidth()
                     .focusRequester(focusRequester),
                 colors = getTextFieldColors(
-                    colorLight = libColorSelectorLight("spotify"),
-                    colorDark = libColorSelector("spotify")
+                    colorLight = colorSelectorLight("spotify"),
+                    colorDark = colorSelector("spotify")
                 ),
                 value = textState.value,
                 textStyle = TextStyle(
@@ -501,7 +501,7 @@ fun AddLinkDialog(
                     Switch(
                         checked = useParentState.value,
                         colors = getSwitchColors(
-                            color = libColorSelector(cat = cat),
+                            color = colorSelector(cat = cat),
                         ),
                         onCheckedChange = {
                             //UPDATE:

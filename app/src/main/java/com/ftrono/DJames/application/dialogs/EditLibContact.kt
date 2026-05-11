@@ -30,8 +30,8 @@ import com.ftrono.DJames.ui.dialogs.EditLibDialog
 import com.ftrono.DJames.ui.components.EditLibDynamicField
 import com.ftrono.DJames.ui.components.EditLibDynamicNameSection
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
-import com.ftrono.DJames.ui.selectors.libColorSelector
-import com.ftrono.DJames.ui.selectors.libColorSelectorLight
+import com.ftrono.DJames.ui.selectors.colorSelector
+import com.ftrono.DJames.ui.selectors.colorSelectorLight
 
 
 @Preview
@@ -173,10 +173,10 @@ fun EditLibContact(
             EditLibDynamicField(
                 modifier = Modifier
                     .fillMaxWidth(),
-                textHeaderColor = libColorSelectorLight(cat = filter),
+                textHeaderColor = colorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
-                    colorLight = libColorSelectorLight(cat = filter),
-                    colorDark = libColorSelector(cat = filter)
+                    colorLight = colorSelectorLight(cat = filter),
+                    colorDark = colorSelector(cat = filter)
                 ),
                 title = "Aliases (separate with commas)",
                 description = aliasFieldDescription,
@@ -187,10 +187,10 @@ fun EditLibContact(
 
             //CONTACT PHONE:
             EditPhoneDynamicField(
-                textHeaderColor = libColorSelectorLight(cat = filter),
+                textHeaderColor = colorSelectorLight(cat = filter),
                 textFieldColors = getTextFieldColors(
-                    colorLight = libColorSelectorLight(cat = filter),
-                    colorDark = libColorSelector(cat = filter)
+                    colorLight = colorSelectorLight(cat = filter),
+                    colorDark = colorSelector(cat = filter)
                 ),
                 title = "Main phone",
                 textPrefix = textPrefix,

@@ -67,8 +67,8 @@ import com.ftrono.DJames.ui.overlay.TypingIndicator
 import com.ftrono.DJames.ui.navigation.SharedViewModel
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
-import com.ftrono.DJames.ui.selectors.libColorSelector
-import com.ftrono.DJames.ui.selectors.libIconSelector
+import com.ftrono.DJames.ui.selectors.colorSelector
+import com.ftrono.DJames.ui.selectors.iconSelector
 import com.ftrono.DJames.ui.selectors.messagesColorSelectorLight
 import com.ftrono.DJames.ui.selectors.messagesIconSelector
 
@@ -124,7 +124,7 @@ fun MessagesScreen(
         topBar = {
             StreetUITopBar(
                 pretitle = "",
-                title = "Messages",
+                title = "Chat",
                 subtitle = if (selectedMessageIds.isNotEmpty()) "Selected" else "Last $maxHistoryDays days",
                 showBack = true,
                 onBack = { navController.popBackStack() },
@@ -434,9 +434,9 @@ fun MessageDetail(
                                 bottom = 2.dp
                             )
                             .size(16.dp),
-                        painter = libIconSelector("spotify"),
+                        painter = iconSelector("spotify"),
                         contentDescription = "spotify",
-                        tint = libColorSelector("spotify")
+                        tint = colorSelector("spotify")
                     )
                 }
                 //CAT ICON:

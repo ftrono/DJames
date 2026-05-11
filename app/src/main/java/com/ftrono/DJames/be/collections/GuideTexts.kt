@@ -10,7 +10,7 @@ val guideTexts = mapOf<String, GuideText>(
         content = "Ask me to play music,\nget driving directions,\ncall or message your contacts!",   //TODO: add "or YouTube"
         outro = "Tap on the button $guidePosPlaceholder, or press Volume Up, or use a Bluetooth remote!"
     ),
-    "spotify" to GuideText(
+    "music" to GuideText(
         intro = "Try saying:",
         content = "\"Play Lost by Linkin Park\"\n\"Play my liked songs\"",
         outro = "I can play via Spotify any song, album, artist, playlist or podcast!"

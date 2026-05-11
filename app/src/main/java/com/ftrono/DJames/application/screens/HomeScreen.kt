@@ -79,6 +79,7 @@ import com.ftrono.DJames.application.volumeUpEnabledUI
 import com.ftrono.DJames.be.agents.chat.ChatManager
 import com.ftrono.DJames.be.collections.guideTexts
 import com.ftrono.DJames.be.models.SelectorItem
+import com.ftrono.DJames.ui.components.CardSign
 import com.ftrono.DJames.ui.components.StreetLine
 import com.ftrono.DJames.ui.components.StreetUIScaffold
 import com.ftrono.DJames.ui.navigation.SharedViewModel
@@ -86,6 +87,8 @@ import com.ftrono.DJames.ui.navigation.SplitterSign
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.UserOptions
 import com.ftrono.DJames.ui.navigation.navigateTo
+import com.ftrono.DJames.ui.selectors.colorSelector
+import com.ftrono.DJames.ui.selectors.iconSelector
 import com.ftrono.DJames.ui.theme.NavigationItem
 import kotlin.Boolean
 import kotlin.math.roundToInt
@@ -119,6 +122,7 @@ fun HomeScreen(
     val overlayActiveState by overlayActive.observeAsState()
     val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
     val queryState by queryStatus.observeAsState()
+    val guideItemState = rememberSaveable { mutableStateOf("info") }
 
     val sharedLinkState by sharedLink.observeAsState()
     if (sharedLinkState != "" && curNavId != 0) {
@@ -148,45 +152,30 @@ fun HomeScreen(
     val guideItemsMap = mutableMapOf(
         "info" to SelectorItem(
             id = "info",
-            iconPainter = painterResource(R.drawable.icon_fork),
-            color = colorResource(R.color.light_grey),
-            colorBackground = colorResource(R.color.colorPrimary),
             disableGray = true,
             useCustomClick = true,
             onClick = {}
         ),
-        "spotify" to SelectorItem(
-            id = "spotify",
-            iconPainter = painterResource(R.drawable.logo_spotify),
-            color = colorResource(R.color.greenSignLight),
-            colorBackground = colorResource(R.color.yellowSign),
+        "music" to SelectorItem(
+            id = "music",
             useImage = true,
             useCustomClick = true,
             onClick = {}
         ),
         "phone" to SelectorItem(
             id = "phone",
-            iconPainter = painterResource(R.drawable.icon_phone),
-            color = colorResource(R.color.colorAccentMid),
-            colorBackground = colorResource(R.color.greenSign),
             disableGray = true,
             useCustomClick = true,
             onClick = {}
         ),
         "messages" to SelectorItem(
             id = "messages",
-            iconPainter = painterResource(R.drawable.icon_message),
-            color = colorResource(R.color.blueSignLight),
-            colorBackground = colorResource(R.color.blueSign),
             disableGray = true,
             useCustomClick = true,
             onClick = {}
         ),
         "gmaps" to SelectorItem(
             id = "gmaps",
-            iconPainter = painterResource(R.drawable.logo_gmaps),
-            color = colorResource(R.color.yellowSignLight),
-            colorBackground = colorResource(R.color.brownSign),
             useImage = true,
             useCustomClick = true,
             onClick = {}
@@ -259,8 +248,11 @@ fun HomeScreen(
                             .width(20.dp)
                     )
                     GuideViewer(
-                        context = mContext,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
                         isLandscape = true,
+                        itemState = guideItemState,
                         queryState = queryState!!,
                         itemsMap = guideItemsMap,
                     )
@@ -279,13 +271,15 @@ fun HomeScreen(
                     spotifyLoggedInState = spotifyLoggedInState!!,
                 )
                 GuideViewer(
-                    context = mContext,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                     isLandscape = false,
+                    itemState = guideItemState,
                     queryState = queryState!!,
                     itemsMap = guideItemsMap,
                 )
             }
-
         }
     }
 }
@@ -298,25 +292,20 @@ fun SplitterDriveMode(
     requestPermissions: MutableState<Boolean>,
     requestOverlayOn: MutableState<Boolean>,
 ) {
-    val driveModeState = rememberSaveable() { mutableStateOf("phone") }
-    val queryState by queryStatus.observeAsState()
+    val driveModeState = rememberSaveable() { mutableStateOf("mobile") }
 
     val items = mutableListOf(
         SelectorItem(
-            id = "phone",
-            iconPainter = painterResource(R.drawable.icon_mobile),
-            color = if (queryState == "busy") colorResource(R.color.colorBusy) else colorResource(R.color.colorAccentMid),
+            id = "mobile",
             useCustomClick = true,
             onClick = {}
         ),
         SelectorItem(
             id = "car",
-            iconPainter = painterResource(R.drawable.icon_car),
-            color = if (queryState == "busy") colorResource(R.color.colorBusy) else colorResource(R.color.colorAccentMid),
             useCustomClick = true,
             onClick = {
                 // Open Drive mode:
-                driveModeState.value = "phone"
+                driveModeState.value = "mobile"
                 utils.startStopDriveMode(
                     context = context,
                     requestOverlayOn = requestOverlayOn,
@@ -382,7 +371,9 @@ fun LogoHome(
                 // .border(BorderStroke(1.dp, colorResource(id = R.color.dark_grey)), CircleShape)
                 .background(
                     brush = if (queryState == "busy") {
-                        SolidColor(colorResource(R.color.transparent_busy))
+                        SolidColor(colorResource(R.color.colorBusy))
+                    } else if (queryState == "processing") {
+                        SolidColor(colorResource(R.color.dark_grey))
                     } else {
                         Brush.radialGradient(
                             radius = if (isLandscape) 300f else 380f,
@@ -434,7 +425,9 @@ fun LogoHome(
                 fontSize = if (isLandscape) 16.sp else 20.sp,
                 fontWeight = FontWeight.Bold,
                 fontStyle = FontStyle.Italic,
-                color = colorResource(id = R.color.light_grey),
+                color = if (queryState == "busy") {
+                    colorResource(R.color.white)
+                } else colorResource(id = R.color.light_grey),
                 textAlign = TextAlign.Center,
                 lineHeight = if (isLandscape) 16.sp else 20.sp,
             )
@@ -446,44 +439,63 @@ fun LogoHome(
 // GUIDE VIEWER:
 @Composable
 fun GuideViewer(
-    context: Context,
+    modifier: Modifier = Modifier,
+    itemState: MutableState<String>,
     isLandscape: Boolean,
     queryState: String,
     itemsMap: MutableMap<String, SelectorItem>,
 ) {
-    val guideItemState = rememberSaveable() { mutableStateOf("info") }
     val overlayPosState by overlayPos.observeAsState()
     val loggedInState by spotifyLoggedIn.observeAsState()
     val lastUserMsgState by lastUserMessageText.observeAsState()
     val lastAiMsgState by lastAiMessageText.observeAsState()
 
+    // Item:
+    val guideText = guideTexts[itemState.value]!!
+    val guideIntro = if (queryState == "busy" || queryState == "processing") lastUserMsgState!! else guideText.intro
+    val guideOutro = if (guideText.outro.contains(guidePosPlaceholder)) {
+        when {
+            (isLandscape && overlayPosState!! == "Right") -> {
+                guideText.outro.replace(guidePosPlaceholder, "on the right")
+            }
+
+            (isLandscape) -> {
+                guideText.outro.replace(guidePosPlaceholder, "on the left")
+            }
+
+            else -> {
+                guideText.outro.replace(guidePosPlaceholder, "below")
+            }
+        }
+    } else guideText.outro
+
     // SPLITTER SIGN:
     Column(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         SplitterSign(
             modifier = Modifier
                 .padding(top=24.dp),
-            currentItemState = guideItemState,
+            currentItemState = itemState,
             items = itemsMap.values.toMutableList(),
             disabled = (queryState == "busy" || queryState == "processing"),
         )
 
-        val guideText = guideTexts[guideItemState.value]!!
-        val item = itemsMap[guideItemState.value]!!
-
         // CONTAINER:
-        Card(
+        CardSign (
             modifier = Modifier
-                .padding(top = 12.dp, bottom = 20.dp, start = 32.dp, end = 32.dp),
-            border = BorderStroke(4.dp, colorResource(id = R.color.mid_grey)),
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors (
-                containerColor = item.colorBackground!!
-            )
+                .padding(top = 12.dp, bottom = 20.dp, start = 32.dp, end = 32.dp)
+                .fillMaxWidth()
+                .weight(1f),
+            borderColor = if (queryState == "busy" || queryState == "processing") {
+                colorResource(id = R.color.dark_grey)
+            } else colorResource(id = R.color.mid_grey),
+            borderWidth = 4.dp,
+            backgroundColor = if (queryState == "busy" || queryState == "processing") {
+                colorResource(R.color.dark_grey_background)
+            } else colorSelector(itemState.value),
         ) {
             Row(
                 modifier = Modifier
@@ -492,48 +504,30 @@ fun GuideViewer(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    modifier = Modifier
-                        .size(60.dp),
-                    painter = if (queryState == "busy") {
-                        painterResource(R.drawable.icon_speak)
-                    } else if (queryState == "processing") {
-                        painterResource(R.drawable.icon_clock)
-                    } else item.iconPainter!!,
-                    contentDescription = "Item image",
-                    tint = colorResource(R.color.light_grey)
-                )
+                if (queryState != "busy" && queryState != "processing") {
+                    Icon(
+                        modifier = Modifier
+                            .size(52.dp),
+                        painter = iconSelector(itemState.value),
+                        contentDescription = "Item image",
+                        tint = colorResource(R.color.light_grey)
+                    )
+                }
 
                 Column(
                     modifier = Modifier
                         .padding(start = 4.dp)
-                        .scrollable(rememberScrollState(), orientation = Orientation.Vertical),
+                        .weight(1F)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    val guideIntro =
-                        if (queryState == "busy" || queryState == "processing") lastUserMsgState!! else guideText.intro
-                    val guideOutro = if (guideText.outro.contains(guidePosPlaceholder)) {
-                        when {
-                            (isLandscape && overlayPosState!! == "Right") -> {
-                                guideText.outro.replace(guidePosPlaceholder, "on the right")
-                            }
-
-                            (isLandscape) -> {
-                                guideText.outro.replace(guidePosPlaceholder, "on the left")
-                            }
-
-                            else -> {
-                                guideText.outro.replace(guidePosPlaceholder, "below")
-                            }
-                        }
-                    } else guideText.outro
-
                     // Intro:
                     if (guideIntro != "") {
                         Text(
                             modifier = Modifier
-                                .padding(top = 8.dp),
+                                .padding(top = 12.dp),
                             text = guideIntro,
                             textAlign = TextAlign.Center,
                             color = colorResource(id = R.color.light_grey),
@@ -544,7 +538,7 @@ fun GuideViewer(
                     // Content:
                     Text(
                         modifier = Modifier
-                            .padding(top = 8.dp),
+                            .padding(top = 12.dp, bottom = 12.dp),
                         text = if (queryState == "busy" || queryState == "processing") lastAiMsgState!! else guideText.content,
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold,
@@ -557,8 +551,8 @@ fun GuideViewer(
                         // Outro:
                         Text(
                             modifier = Modifier
-                                .padding(top = 8.dp, bottom = 8.dp),
-                            text = if (!loggedInState!! && guideItemState.value == "spotify") {
+                                .padding(bottom = 12.dp),
+                            text = if (!loggedInState!! && itemState.value == "music") {
                                 "$guideOutro\nLog in from Accounts to unlock music functions!"
                             } else guideOutro,
                             textAlign = TextAlign.Center,

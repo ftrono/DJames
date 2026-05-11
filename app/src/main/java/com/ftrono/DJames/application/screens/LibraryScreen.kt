@@ -1,6 +1,7 @@
 package com.ftrono.DJames.application.screens
 
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import android.util.Log
@@ -78,9 +79,9 @@ import com.ftrono.DJames.ui.navigation.SplitterSign
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
 import com.ftrono.DJames.ui.navigation.TopSplitterBar
-import com.ftrono.DJames.ui.selectors.libColorSelector
-import com.ftrono.DJames.ui.selectors.libColorSelectorLight
-import com.ftrono.DJames.ui.selectors.libIconSelector
+import com.ftrono.DJames.ui.selectors.colorSelector
+import com.ftrono.DJames.ui.selectors.colorSelectorLight
+import com.ftrono.DJames.ui.selectors.iconSelector
 import kotlin.String
 
 
@@ -124,8 +125,8 @@ fun LibraryScreen(
             SelectorItem(
                 id = cat,
                 title = if (cat == "spotify") "Spotify links" else "${utils.capitalizeWords(cat)}s",
-                iconPainter = libIconSelector(cat),
-                color = libColorSelectorLight(cat),
+                iconPainter = iconSelector(cat),
+                color = colorSelectorLight(cat),
             )
         )
     }
@@ -230,7 +231,7 @@ fun LibraryScreen(
             if (!isLandscape) {
                 // VERTICAL -> TOP APP BAR:
                 StreetUITopBar(
-                    pretitle = "Saved items",
+                    pretitle = "Library",
                     title = if (currentCatState.value == "spotify") "Spotify links" else "${utils.capitalizeWords(currentCatState.value)}s",
                     showBack = true,
                     onBack = { navController.popBackStack() },
@@ -238,7 +239,7 @@ fun LibraryScreen(
                         // CAT MENU:
                         TopBarMenu(
                             contentText = if (curLibrarySizeState!! > 999) "999+" else "$curLibrarySizeState",
-                            backgroundColor = libColorSelector(cat = currentCatState.value),
+                            backgroundColor = colorSelector(cat = currentCatState.value),
                             onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
                         ) {
                             CatOptions(
@@ -267,7 +268,7 @@ fun LibraryScreen(
                         // CAT MENU:
                         TopBarMenu(
                             contentText = if (curLibrarySizeState!! > 999) "999+" else "$curLibrarySizeState",
-                            backgroundColor = libColorSelector(cat = currentCatState.value),
+                            backgroundColor = colorSelector(cat = currentCatState.value),
                             onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
                         ) {
                             CatOptions(
@@ -615,10 +616,22 @@ fun CatOptions(
 
     // IMPORTER:
     val filePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
+        Log.d("IMPORT", "Picker callback triggered. uri=$uri")
+        if (uri == null) {
+            Log.w("IMPORT", "User cancelled or no URI returned")
+            Toast.makeText(context, "ERROR: Invalid file URI!", Toast.LENGTH_SHORT).show()
+            return@rememberLauncherForActivityResult
+        }
+
+        context.contentResolver.takePersistableUriPermission(
+            uri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+        )
+
         // Assign stream & read JSON content from the selected file
-        uri?.let {
+        uri.let {
             try {
                 val inputStream = context.contentResolver.openInputStream(it)
                 jsonImport = inputStream?.bufferedReader().use { reader -> reader?.readText() }
@@ -666,7 +679,7 @@ fun CatOptions(
                 iconVector = Icons.AutoMirrored.Filled.ExitToApp,
                 onClick = {
                     mDisplayMenu.value = false
-                    filePickerLauncher.launch("application/json")   // Json MIME type
+                    filePickerLauncher.launch(arrayOf("application/json"))   // Json MIME type
                 }
             )
             //3) Item: EXPORT CATEGORY ITEMS

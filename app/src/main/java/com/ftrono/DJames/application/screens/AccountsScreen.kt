@@ -152,6 +152,7 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
         ZipInputStream(inputStream).use { zip ->
             var entry = zip.nextEntry
             while (entry != null) {
+                Log.d("RESTORE", "ZIP entry found: ${entry.name}")
                 val buffer = ByteArrayOutputStream()
                 val data = ByteArray(1024)
                 var count: Int
@@ -198,11 +199,23 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
     }
 
     val filePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
-        uri?.let {
+        Log.d("RESTORE", "Picker callback triggered. uri=$uri")
+        if (uri == null) {
+            Log.w("RESTORE", "User cancelled or no URI returned")
+            Toast.makeText(mContext, "ERROR: Invalid file URI!", Toast.LENGTH_SHORT).show()
+            return@rememberLauncherForActivityResult
+        }
+
+        mContext.contentResolver.takePersistableUriPermission(
+            uri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+        )
+
+        uri.let {
             try {
-                mContext.contentResolver.openInputStream(it)?.use { inputStream ->
+                val result = mContext.contentResolver.openInputStream(it)?.use { inputStream ->
                     readJsonsFromZip(inputStream).also { result ->
                         jsonPrefs = result.jsonPrefs
                         jsonLibrary = result.jsonLibrary
@@ -210,15 +223,18 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
                 }
 
                 // Update prefs using imported JSON:
-                jsonPrefs?.let {
+                result?.jsonPrefs?.let {
+                    Log.d("RESTORE", "Calling importSharedPreferences")
                     utils.importSharedPreferences(mContext, it)
                 }
 
                 // Update library using imported JSON:
-                jsonLibrary?.let {
+                result?.jsonLibrary?.let {
+                    Log.d("RESTORE", "Calling importLibrary")
                     libUtils.importLibrary(mContext, it)
                 }
 
+                Log.d("RESTORE", "Restore finished")
                 Toast.makeText(mContext, "Data restored successfully!", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Log.w("AccountsScreen", "ERROR: Cannot read ZIP!", e)
@@ -389,7 +405,7 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
                 modifier = Modifier
                     .padding(top=8.dp, end=8.dp, bottom=4.dp),
                 title = "Backup & restore",
-                subtitle = "Saved items & app preferences",
+                subtitle = "Library & app preferences",
                 signColor = colorResource(id = R.color.redSignDark),
                 iconVector = Icons.Default.Build,
             ) {
@@ -453,7 +469,14 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
                         clickable = true,
                         onClick = {
                             //IMPORT:
-                            filePickerLauncher.launch("application/zip")   // Json MIME type
+                            filePickerLauncher.launch(
+                                arrayOf(
+                                    "application/zip",
+                                    "application/x-zip-compressed",
+                                    "application/octet-stream",
+                                    "*/*"
+                                )   // Json MIME type
+                            )
                         }
                     )
                 }

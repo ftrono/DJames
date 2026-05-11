@@ -326,25 +326,31 @@ class Utilities {
         context: Context,
         jsonString: String
     ) {
-        val shPrefs = context.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
-        shPrefs.edit {
-            val json = JSONObject(jsonString)
+        try {
+            val shPrefs =
+                context.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+            shPrefs.edit {
+                val json = JSONObject(jsonString)
 
-            json.keys().forEach { key ->
-                when (val value = json.get(key)) {
-                    is Boolean -> putBoolean(key, value)
-                    is Int -> putInt(key, value)
-                    is Long -> putLong(key, value)
-                    is Double -> putFloat(key, value.toFloat())
-                    is String -> putString(key, value)
+                json.keys().forEach { key ->
+                    when (val value = json.get(key)) {
+                        is Boolean -> putBoolean(key, value)
+                        is Int -> putInt(key, value)
+                        is Long -> putLong(key, value)
+                        is Double -> putFloat(key, value.toFloat())
+                        is String -> putString(key, value)
+                    }
                 }
+
             }
 
-        }
+            // Profile info:
+            userNicknameUI.postValue(prefs.userNickname)
+            userGender.postValue(prefs.userGender)
 
-        // Profile info:
-        userNicknameUI.postValue(prefs.userNickname)
-        userGender.postValue(prefs.userGender)
+        } catch (e: Exception) {
+            Log.w(TAG, "Prefs import error: $e")
+        }
     }
 
 

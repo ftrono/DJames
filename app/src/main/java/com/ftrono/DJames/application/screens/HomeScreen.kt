@@ -371,7 +371,7 @@ fun LogoHome(
                 // .border(BorderStroke(1.dp, colorResource(id = R.color.dark_grey)), CircleShape)
                 .background(
                     brush = if (queryState == "busy") {
-                        SolidColor(colorResource(R.color.colorBusy))
+                        SolidColor(colorResource(R.color.transparent_busy))
                     } else if (queryState == "processing") {
                         SolidColor(colorResource(R.color.dark_grey))
                     } else {

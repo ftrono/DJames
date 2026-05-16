@@ -149,39 +149,6 @@ fun HomeScreen(
         )
     }
 
-    val guideItemsMap = mutableMapOf(
-        "info" to SelectorItem(
-            id = "info",
-            disableGray = true,
-            useCustomClick = true,
-            onClick = {}
-        ),
-        "music" to SelectorItem(
-            id = "music",
-            useImage = true,
-            useCustomClick = true,
-            onClick = {}
-        ),
-        "phone" to SelectorItem(
-            id = "phone",
-            disableGray = true,
-            useCustomClick = true,
-            onClick = {}
-        ),
-        "messages" to SelectorItem(
-            id = "messages",
-            disableGray = true,
-            useCustomClick = true,
-            onClick = {}
-        ),
-        "gmaps" to SelectorItem(
-            id = "gmaps",
-            useImage = true,
-            useCustomClick = true,
-            onClick = {}
-        ),
-    )
-
     StreetUIScaffold(
         modifier = Modifier
             .clickable(
@@ -213,7 +180,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (isLandscape) {
@@ -254,7 +221,6 @@ fun HomeScreen(
                         isLandscape = true,
                         itemState = guideItemState,
                         queryState = queryState!!,
-                        itemsMap = guideItemsMap,
                     )
                 }
             } else {
@@ -277,7 +243,6 @@ fun HomeScreen(
                     isLandscape = false,
                     itemState = guideItemState,
                     queryState = queryState!!,
-                    itemsMap = guideItemsMap,
                 )
             }
         }
@@ -444,12 +409,44 @@ fun GuideViewer(
     itemState: MutableState<String>,
     isLandscape: Boolean,
     queryState: String,
-    itemsMap: MutableMap<String, SelectorItem>,
 ) {
     val overlayPosState by overlayPos.observeAsState()
     val loggedInState by spotifyLoggedIn.observeAsState()
     val lastUserMsgState by lastUserMessageText.observeAsState()
     val lastAiMsgState by lastAiMessageText.observeAsState()
+
+    val items = mutableListOf(
+        SelectorItem(
+            id = "info",
+            disableGray = true,
+            useCustomClick = true,
+            onClick = {}
+        ),
+        SelectorItem(
+            id = "music",
+            useImage = true,
+            useCustomClick = true,
+            onClick = {}
+        ),
+        SelectorItem(
+            id = "phone",
+            disableGray = true,
+            useCustomClick = true,
+            onClick = {}
+        ),
+        SelectorItem(
+            id = "messages",
+            disableGray = true,
+            useCustomClick = true,
+            onClick = {}
+        ),
+        SelectorItem(
+            id = "gmaps",
+            useImage = true,
+            useCustomClick = true,
+            onClick = {}
+        ),
+    )
 
     // Item:
     val guideText = guideTexts[itemState.value]!!
@@ -480,7 +477,7 @@ fun GuideViewer(
             modifier = Modifier
                 .padding(top=24.dp),
             currentItemState = itemState,
-            items = itemsMap.values.toMutableList(),
+            items = items,
             disabled = (queryState == "busy" || queryState == "processing"),
         )
 

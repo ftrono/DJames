@@ -1,6 +1,5 @@
 package com.ftrono.DJames.application.screens
 
-import android.Manifest
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -49,8 +48,6 @@ import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.allMessageIds
 import com.ftrono.DJames.application.chatInputPlaceholder
-import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
-import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.maxHistoryDays
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.queryStatus
@@ -70,8 +67,8 @@ import com.ftrono.DJames.ui.overlay.TypingIndicator
 import com.ftrono.DJames.ui.navigation.SharedViewModel
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
-import com.ftrono.DJames.ui.selectors.libColorSelector
-import com.ftrono.DJames.ui.selectors.libIconSelector
+import com.ftrono.DJames.ui.selectors.colorSelector
+import com.ftrono.DJames.ui.selectors.iconSelector
 import com.ftrono.DJames.ui.selectors.messagesColorSelectorLight
 import com.ftrono.DJames.ui.selectors.messagesIconSelector
 
@@ -96,25 +93,6 @@ fun MessagesScreen(
     preview: Boolean = false
 ) {
     val mContext = LocalContext.current
-
-    //Overlay permission management:
-    val requestOverlayOn = rememberSaveable { mutableStateOf(false) }
-    if (requestOverlayOn.value) {
-        DialogRequestOverlay(
-            mContext = mContext,
-            dialogOnState = requestOverlayOn
-        )
-    }
-    // Mic permissions management:
-    val requestPermissions = rememberSaveable { mutableStateOf(false) }
-    if (requestPermissions.value) {
-        SinglePermissionHandler(
-            context = mContext,
-            dialogOnState = requestPermissions,
-            permission = Manifest.permission.RECORD_AUDIO
-        )
-    }
-
     // States:
     val focusManager = LocalFocusManager.current
     val selectedMessageIds = remember { mutableStateListOf<Long>() }
@@ -146,7 +124,7 @@ fun MessagesScreen(
         topBar = {
             StreetUITopBar(
                 pretitle = "",
-                title = "Messages",
+                title = "Chat",
                 subtitle = if (selectedMessageIds.isNotEmpty()) "Selected" else "Last $maxHistoryDays days",
                 showBack = true,
                 onBack = { navController.popBackStack() },
@@ -295,8 +273,6 @@ fun MessagesScreen(
         ChatInputField(
             context = mContext,
             sharedViewModel = sharedViewModel,
-            requestPermissions = requestPermissions,
-            requestOverlayOn = requestOverlayOn,
             modifier = Modifier
                 .padding(
                     start = 32.dp,
@@ -307,7 +283,6 @@ fun MessagesScreen(
                 .imePadding()
                 .fillMaxWidth(),
             placeholder = chatInputPlaceholder,
-            enableLeftButton = true,
             onSend = {
                 val curText = sharedViewModel.text.trim()
                 if (curText != "") {
@@ -431,7 +406,6 @@ fun MessageDetail(
                     text = message.text,
                     usable = message.attachments.usable,
                     playable = message.attachments.spotifyPlay,
-                    reqLanguage = message.langCode,
                     fromOldChat = true,
                 )
             }
@@ -460,9 +434,9 @@ fun MessageDetail(
                                 bottom = 2.dp
                             )
                             .size(16.dp),
-                        painter = libIconSelector("spotify"),
+                        painter = iconSelector("spotify"),
                         contentDescription = "spotify",
-                        tint = libColorSelector("spotify")
+                        tint = colorSelector("spotify")
                     )
                 }
                 //CAT ICON:

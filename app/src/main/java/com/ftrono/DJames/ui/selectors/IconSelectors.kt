@@ -15,10 +15,20 @@ import com.ftrono.DJames.R
 
 //LIBRARY:
 @Composable
-fun libIconSelector(
+fun iconSelector(
     cat: String
 ): Painter {
     return when (cat) {
+        // Modes:
+        "mobile" -> painterResource(R.drawable.icon_mobile)
+        "car" -> painterResource(R.drawable.icon_car)
+        // Guide:
+        "info" -> painterResource(R.drawable.icon_fork)
+        "music" -> painterResource(R.drawable.logo_spotify)
+        "phone" -> painterResource(R.drawable.icon_phone)
+        "messages" -> painterResource(R.drawable.icon_message)
+        "gmaps" -> painterResource(R.drawable.logo_gmaps)
+        // Library:
         "spotify" -> painterResource(R.drawable.logo_spotify)
         "track" -> painterResource(R.drawable.icon_note)
         "artist" -> painterResource(R.drawable.icon_people)
@@ -28,22 +38,6 @@ fun libIconSelector(
         "episode" -> painterResource(R.drawable.icon_mic)
         "contact" -> painterResource(R.drawable.icon_phone)
         "place" -> painterResource(R.drawable.icon_place)
-        else -> painterResource(R.drawable.icon_help)
-    }
-}
-
-
-//GUIDE:
-@Composable
-fun guideIconSelector(
-    cat: String
-): Painter {
-    return when (cat) {
-        "calls" -> painterResource(R.drawable.icon_phone)
-        "messages" -> painterResource(R.drawable.icon_message)
-        "places" -> painterResource(R.drawable.icon_place)
-        "car" -> painterResource(R.drawable.icon_car)
-        "play" -> painterResource(R.drawable.icon_headphones)
         else -> painterResource(R.drawable.icon_help)
     }
 }

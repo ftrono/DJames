@@ -93,7 +93,8 @@ fun ConvStarterBubble(
                         detectTapGestures(
                             onLongPress = {
                                 // Add / remove entire conversation to selection:
-                                val idsToAdd = messageUtils.getMessageIDsByStarterId(message.starterId)
+                                val idsToAdd =
+                                    messageUtils.getMessageIDsByStarterId(message.starterId)
                                 for (id in idsToAdd) {
                                     if (!selectedMessageIds.contains(id)) {
                                         selectedMessageIds.add(id)
@@ -105,7 +106,8 @@ fun ConvStarterBubble(
                             onTap = {
                                 if (selectedMessageIds.isNotEmpty()) {
                                     // Add / remove entire conversation to selection:
-                                    val idsToAdd = messageUtils.getMessageIDsByStarterId(message.starterId)
+                                    val idsToAdd =
+                                        messageUtils.getMessageIDsByStarterId(message.starterId)
                                     for (id in idsToAdd) {
                                         if (!selectedMessageIds.contains(id)) {
                                             selectedMessageIds.add(id)
@@ -281,68 +283,33 @@ fun MessageBubble(
 
 @Preview
 @Composable
-fun SplitSendButtonPreview() {
-    SplitSendButton(
-        enableLeftButton = true,
-        onLeftClick = {},
-        onRightClick = {},
-        testChat = true
+fun ChatSendButtonPreview() {
+    ChatSendButton(
+        onClick = {},
     )
 }
 
 
 @Composable
-fun SplitSendButton(
-    enableLeftButton: Boolean = true,
-    onLeftClick: () -> Unit,
-    onRightClick: () -> Unit,
-    testChat: Boolean = false,
+fun ChatSendButton(
+    onClick: () -> Unit,
 ) {
-    val overlayActiveState by overlayActive.observeAsState()
     val queryStatusState by queryStatus.observeAsState()
 
     Row(
         modifier = Modifier
-            .padding(2.dp)
+            .padding(4.dp)
             .height(48.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-
-        // LEFT:
-        if (enableLeftButton && !isKeyboardOpen()) {
-            Card(
-                modifier = Modifier
-                    .padding(end = 1.dp)
-                    .fillMaxHeight(),
-                onClick = onLeftClick,
-                shape = RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (testChat || overlayActiveState!!) colorResource(id = R.color.colorStop) else colorResource(id = R.color.colorAccent)
-                ),
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(start = 16.dp, end = 16.dp)
-                        .fillMaxHeight(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    DriveIcon(
-                        iconSize = 24.dp,
-                        showForbidden = testChat || overlayActiveState!!
-                    )
-                }
-            }
-        }
-
         // RIGHT:
         Card(
             modifier = Modifier
                 .padding(start = 1.dp)
                 .fillMaxHeight(),
-            onClick = onRightClick,
-            shape = if (!enableLeftButton || isKeyboardOpen()) RoundedCornerShape(20.dp) else RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp),
+            onClick = onClick,
+            shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
                 containerColor = if (queryStatusState != "ready") colorResource(id = R.color.faded_grey) else colorResource(id = R.color.colorAccent)
             ),
@@ -382,16 +349,11 @@ fun SplitSendButton(
 fun ChatInputPreview() {
     val mContext = LocalContext.current
     val sharedViewModel: SharedViewModel = viewModel()
-    val requestPermissions = rememberSaveable { mutableStateOf(false) }
-    val requestOverlayOn = rememberSaveable { mutableStateOf(false) }
 
     ChatInputField(
         context = mContext,
         sharedViewModel = sharedViewModel,
-        requestPermissions = requestPermissions,
-        requestOverlayOn = requestOverlayOn,
         placeholder = chatInputPlaceholder,
-        enableLeftButton = true
     )
 }
 
@@ -401,10 +363,7 @@ fun ChatInputField(
     context: Context,
     modifier: Modifier = Modifier,
     sharedViewModel: SharedViewModel,
-    requestOverlayOn: MutableState<Boolean>,
-    requestPermissions: MutableState<Boolean>,
     placeholder: String,
-    enableLeftButton: Boolean = true,
     onSend: () -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -435,6 +394,7 @@ fun ChatInputField(
             }
             .focusRequester(focusRequester),
         // enabled = queryState == "ready",
+        shape = RoundedCornerShape(20.dp),
         colors = textFieldColors,
         value = sharedViewModel.text,
         interactionSource = interactionSource,
@@ -460,18 +420,8 @@ fun ChatInputField(
             )
         },
         trailingIcon = {
-            SplitSendButton(
-                enableLeftButton = enableLeftButton,
-                onLeftClick = {
-                    // Start / Stop DRIVE mode:
-                    utils.startStopDriveMode(
-                        context = context,
-                        requestOverlayOn = requestOverlayOn,
-                        requestPermissions = requestPermissions,
-                        openClock = false,
-                    )
-                },
-                onRightClick = { onKeyboardDone() },
+            ChatSendButton(
+                onClick = { onKeyboardDone() },
             )
         }
     )

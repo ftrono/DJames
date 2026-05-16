@@ -14,7 +14,6 @@ import com.ftrono.DJames.be.database.Message
 import com.ftrono.DJames.be.database.MessageUtils
 import com.ftrono.DJames.be.database.MyObjectBox
 import com.ftrono.DJames.be.database.LibraryItem
-import com.ftrono.DJames.be.agents.fulfillment.FulfillmentUtils
 import com.ftrono.DJames.be.agents.chat.DefaultReplies
 import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
 import com.ftrono.DJames.be.spotify.SpotifyUtils
@@ -33,7 +32,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.0.a11"
+val appVersion = "3.0.1"
 val copyrightYear = 2024
 
 //DB:
@@ -61,7 +60,6 @@ val messageUtils = MessageUtils()
 val spotifyUtils = SpotifyUtils()
 val spotifyParsers = SpotifyParsers()
 val spotifyLoginUtils = SpotifyLoginUtils()
-val fulfillmentUtils = FulfillmentUtils()
 val defaultReplies = DefaultReplies()
 
 //Navigation:
@@ -107,11 +105,10 @@ var overlayPos = MutableLiveData<String>("Right")
 var volumeUpEnabledUI = MutableLiveData<Boolean>(true)
 var sourceIsVolume = MutableLiveData<Boolean>(false)
 var extraOpen = MutableLiveData<Boolean>(false)
-var innerNavOpen = MutableLiveData<Boolean>(false)
 var currentPlayingPrefix = MutableLiveData<String>("")
 var currentSongPlaying = MutableLiveData<String>("Don't turn off the screen!")
 var currentArtistPlaying = MutableLiveData<String>("You can keep this Clock\nScreen on to save battery")
-val overlayOptionsStr = MutableLiveData<String>("speak, save, clock, custom")   //volume
+val overlayOptionsStr = MutableLiveData<String>("speak, save, clock")   //custom
 var clickCounter = MutableLiveData<Int>(0)
 var allowVolumeClick = true
 var userNicknameUI = MutableLiveData<String>("")
@@ -128,10 +125,19 @@ val sourceToCatMap = mapOf(
 )
 val libCats = sourceToCatMap.keys.toList()
 var allMessageIds = MutableLiveData<List<Long>>(listOf<Long>())
+val lastUserMessageText = MutableLiveData<String>("")
+val lastAiMessageText = MutableLiveData<String>("")
 val chatInputPlaceholder = "Ask via chat..."
 var lastStarterId: Long = 0L
+val guidePosPlaceholder: String = "[POS]"
 
 //Preferences:
+var overlayBubbleSize = 100
+var overlayToeSize = 75
+var overlayTimeoutCenterWidth = 7
+var overlayTimeoutToeWidth = 5
+var overlayBoxMax = 300
+val overlayBoxMin = 220
 val maxHistoryDays: Long = 15L
 val defaultChatResetTime: Long = 3*60*1000   //minutes
 val defaultChatWait = 2000L
@@ -149,7 +155,6 @@ val silencePatienceQueries = 3   //seconds
 val silencePatienceMess = 3   //seconds
 val minSpeechPct = 10   // %
 val defaultHttpTimeout = 10L   //seconds
-val maxAudioRecTimeout = 120L   //for voice messages
 var enablePlayerInfo = false
 val datetimeExportFormat = "yyyy-MM-dd HH_mm_ss"
 val datetimeFullFormat = "yyyy/MM/dd HH:mm"
@@ -161,10 +166,6 @@ val dictatedNumber = "Dictated number"
 val genders = listOf<String>("Sir", "Madam", "Friend")
 var queryLangCodes = listOf<String>("en", "it")
 val queryLangFull = listOf<String>("English", "Italian")
-val voiceAccents = listOf<String>("British", "Canadian")
-var messLangCodes = listOf<String>("en", "it", "fr", "de", "es")
-val messLangFull = listOf<String>("English", "Italian", "French", "German", "Spanish")
-var messLangLower = listOf<String>("english", "italian", "french", "german", "spanish")
 
 //Modes:
 var density: Float = 0F

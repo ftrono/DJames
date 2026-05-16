@@ -4,29 +4,45 @@ import android.Manifest
 import android.content.Context
 import android.content.res.Configuration
 import android.widget.Toast
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -38,21 +54,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.ftrono.DJames.R
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.ftrono.DJames.application.chatInputPlaceholder
 import com.ftrono.DJames.application.curNavId
-import com.ftrono.DJames.application.dialogs.DialogRequestNotificationListener
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
-import com.ftrono.DJames.application.extraOpen
+import com.ftrono.DJames.application.guidePosPlaceholder
+import com.ftrono.DJames.application.lastAiMessageText
 import com.ftrono.DJames.application.lastNavRoute
+import com.ftrono.DJames.application.lastUserMessageText
 import com.ftrono.DJames.application.overlayActive
+import com.ftrono.DJames.application.overlayPos
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.userGender
@@ -60,17 +77,21 @@ import com.ftrono.DJames.application.spotUserName
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.volumeUpEnabledUI
 import com.ftrono.DJames.be.agents.chat.ChatManager
+import com.ftrono.DJames.be.collections.guideTexts
+import com.ftrono.DJames.be.models.SelectorItem
 import com.ftrono.DJames.ui.components.CardSign
-import com.ftrono.DJames.ui.components.ChatInputField
-import com.ftrono.DJames.ui.components.DriveIcon
+import com.ftrono.DJames.ui.components.StreetLine
 import com.ftrono.DJames.ui.components.StreetUIScaffold
 import com.ftrono.DJames.ui.navigation.SharedViewModel
+import com.ftrono.DJames.ui.navigation.SplitterSign
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.UserOptions
 import com.ftrono.DJames.ui.navigation.navigateTo
-import com.ftrono.DJames.ui.selectors.guideIconSelector
+import com.ftrono.DJames.ui.selectors.colorSelector
+import com.ftrono.DJames.ui.selectors.iconSelector
 import com.ftrono.DJames.ui.theme.NavigationItem
 import kotlin.Boolean
+import kotlin.math.roundToInt
 
 
 @Preview
@@ -100,6 +121,8 @@ fun HomeScreen(
     val focusManager = LocalFocusManager.current
     val overlayActiveState by overlayActive.observeAsState()
     val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
+    val queryState by queryStatus.observeAsState()
+    val guideItemState = rememberSaveable { mutableStateOf("info") }
 
     val sharedLinkState by sharedLink.observeAsState()
     if (sharedLinkState != "" && curNavId != 0) {
@@ -125,16 +148,6 @@ fun HomeScreen(
             permission = Manifest.permission.RECORD_AUDIO
         )
     }
-//    //Notifications Listener permission management:
-//    val requestNotificationListenerOn = rememberSaveable { mutableStateOf(
-//        !utils.isNotificationServiceEnabled(mContext)
-//    ) }
-//    if (requestNotificationListenerOn.value) {
-//        DialogRequestNotificationListener(
-//            mContext = mContext,
-//            dialogOnState = requestNotificationListenerOn
-//        )
-//    }
 
     StreetUIScaffold(
         modifier = Modifier
@@ -145,6 +158,7 @@ fun HomeScreen(
             ) {
                 focusManager.clearFocus()
             },
+        hideLine = isLandscape,
         lineDistance = 70.dp,
         topBar = {
             StreetUITopBar(
@@ -165,9 +179,8 @@ fun HomeScreen(
         //WRAPPER:
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.Center,
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (isLandscape) {
@@ -177,108 +190,105 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    LogoHome(
-                        context = mContext,
+                    Column(
+                        modifier = Modifier,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        SplitterDriveMode(
+                            context = mContext,
+                            requestPermissions = requestPermissions,
+                            requestOverlayOn = requestOverlayOn,
+                        )
+                        LogoHome(
+                            context = mContext,
+                            isLandscape = true,
+                            queryState = queryState!!,
+                            spotifyLoggedInState = spotifyLoggedInState!!,
+                        )
+                    }
+                    //Street line canvas:
+                    StreetLine(
                         modifier = Modifier
-                            .padding(bottom = 10.dp, end = 20.dp)
-                            .width(90.dp)
-                            .height(90.dp),
-                        spotifyLoggedInState = spotifyLoggedInState!!,
+                            .padding(start = 12.dp)
+                            .fillMaxHeight()
+                            .width(20.dp)
                     )
-                    HomeIntroText(
+                    GuideViewer(
                         modifier = Modifier
-                            .padding(bottom = 10.dp),
-                        isLandscape = isLandscape,
-                        preview = preview,
-                    )
-                    VerticalDivider(
-                        modifier = Modifier
-                            .height(100.dp)
-                            .padding(start = 32.dp, end = 32.dp, bottom = 10.dp),
-                        color = colorResource(id = R.color.faded_grey)
-                    )
-                    MainGuideInfo(
-                        modifier = Modifier
-                            .padding(bottom = 10.dp),
-                        navController = navController,
-                        isLandscape = isLandscape,
-                    )
-                }
-                // CHAT INPUT FIELD:
-                HomeChatWrapper(
-                    context = mContext,
-                    requestPermissions = requestPermissions,
-                    requestOverlayOn = requestOverlayOn,
-                    navController = navController,
-                    chatManager = chatManager,
-                    sharedViewModel = sharedViewModel,
-                )
-                // BUTTONS ROW:
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 24.dp)
-                        .horizontalScroll(rememberScrollState()),
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    DriveModeButton(
-                        modifier = Modifier.padding(end=20.dp),
-                        context = mContext,
-                        requestPermissions = requestPermissions,
-                        requestOverlayOn = requestOverlayOn,
-                        isLandscape = isLandscape,
-                        overlayActiveState = overlayActiveState!!
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        isLandscape = true,
+                        itemState = guideItemState,
+                        queryState = queryState!!,
                     )
                 }
             } else {
                 //DISPLAY VERTICALLY:
+                SplitterDriveMode(
+                    context = mContext,
+                    requestPermissions = requestPermissions,
+                    requestOverlayOn = requestOverlayOn,
+                )
                 LogoHome(
                     context = mContext,
-                    modifier = Modifier
-                        .padding(bottom = 20.dp)
-                        .width(160.dp)
-                        .height(160.dp),
+                    isLandscape = false,
+                    queryState = queryState!!,
                     spotifyLoggedInState = spotifyLoggedInState!!,
                 )
-                HomeIntroText(
-                    modifier = Modifier,
-                    isLandscape = isLandscape,
-                    preview = preview,
-                )
-                HorizontalDivider(
+                GuideViewer(
                     modifier = Modifier
-                        .width(190.dp)
-                        .padding(top=18.dp, bottom = 18.dp),
-                    color = colorResource(id = R.color.faded_grey)
-                )
-                MainGuideInfo(
-                    modifier = Modifier
-                        .padding(bottom=20.dp),
-                    navController = navController,
-                    isLandscape = isLandscape,
-                )
-                HomeChatWrapper(
-                    context = mContext,
-                    requestPermissions = requestPermissions,
-                    requestOverlayOn = requestOverlayOn,
-                    navController = navController,
-                    chatManager = chatManager,
-                    sharedViewModel = sharedViewModel,
-                )
-                DriveModeButton(
-                    modifier = Modifier
-                        .padding(top=28.dp),
-                    context = mContext,
-                    requestPermissions = requestPermissions,
-                    requestOverlayOn = requestOverlayOn,
-                    isLandscape = isLandscape,
-                    overlayActiveState = overlayActiveState!!
+                        .fillMaxWidth()
+                        .weight(1f),
+                    isLandscape = false,
+                    itemState = guideItemState,
+                    queryState = queryState!!,
                 )
             }
-
         }
     }
+}
+
+
+// SPLITTER DRIVE MODE:
+@Composable
+fun SplitterDriveMode(
+    context: Context,
+    requestPermissions: MutableState<Boolean>,
+    requestOverlayOn: MutableState<Boolean>,
+) {
+    val driveModeState = rememberSaveable() { mutableStateOf("mobile") }
+
+    val items = mutableListOf(
+        SelectorItem(
+            id = "mobile",
+            useCustomClick = true,
+            onClick = {}
+        ),
+        SelectorItem(
+            id = "car",
+            useCustomClick = true,
+            onClick = {
+                // Open Drive mode:
+                driveModeState.value = "mobile"
+                utils.startStopDriveMode(
+                    context = context,
+                    requestOverlayOn = requestOverlayOn,
+                    requestPermissions = requestPermissions,
+                    openClock = true,
+                    startOnly = true,
+                )
+            }
+        )
+    )
+
+    // SPLITTER SIGN:
+    SplitterSign(
+        modifier = Modifier
+            .padding(top=24.dp, bottom=8.dp),
+        currentItemState = driveModeState,
+        items = items,
+    )
 }
 
 
@@ -286,323 +296,271 @@ fun HomeScreen(
 @Composable
 fun LogoHome(
     context: Context,
-    modifier: Modifier,
     spotifyLoggedInState: Boolean,
-) {
-    val overlayActiveState by overlayActive.observeAsState()
-    val userNameState by spotUserName.observeAsState()
-    val volumeUpEnabledState by volumeUpEnabledUI.observeAsState()
-
-    Image(
-        modifier = modifier
-            .clickable {
-                var toastText = if (overlayActiveState!! && volumeUpEnabledState!!) {
-                    "Use the OVERLAY or VOLUME UP / SHUTTER button to speak!"
-                } else if (overlayActiveState!!) {
-                    "Use the OVERLAY button to speak!"
-                } else if (!spotifyLoggedInState) {
-                    "Log in from Settings to unlock music functions!"
-                } else {
-                    "Logged in to Spotify as: $userNameState!"
-                }
-                Toast.makeText(context, toastText, Toast.LENGTH_LONG) .show()
-            },
-        painter = painterResource(id = R.drawable.djames),
-        contentDescription = "DJames logo"
-    )
-}
-
-
-// MAIN INTRO TEXT:
-@Composable
-fun HomeIntroText(
-    modifier: Modifier = Modifier,
     isLandscape: Boolean,
+    queryState: String,
     preview: Boolean = false,
 ) {
+    val overlayActiveState by overlayActive.observeAsState()
+    val volumeUpEnabledState by volumeUpEnabledUI.observeAsState()
+    val userNameState by spotUserName.observeAsState()
     val genderState by userGender.observeAsState()
 
-    Text(
-        modifier = modifier,
-        text = "Hi ${if (preview) "Sir" else genderState}! I'm DJames,\nyour car assistant!",
-        fontSize = 20.sp,
-        fontWeight = FontWeight.Bold,
-        fontStyle = FontStyle.Italic,
-        color = colorResource(id = R.color.light_grey),
-        textAlign = if (isLandscape) TextAlign.Start else TextAlign.Center,
-        lineHeight = 22.sp,
-    )
-}
-
-
-@Composable
-fun MainGuideInfo(
-    modifier: Modifier = Modifier,
-    navController: NavController,
-    isLandscape: Boolean,
-) {
-    val extraOpenState by extraOpen.observeAsState()
-    
-    Column(
-        modifier = modifier
-            .clickable {
-                //Navigate:
-                val curNavRoute = NavigationItem.Guide.route
-                if (curNavRoute == lastNavRoute && (extraOpenState!!)) {
-                    navController.popBackStack()
-                } else {
-                    navigateTo(navController, curNavRoute)
-                }
-                lastNavRoute = curNavRoute
-            },
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = if (isLandscape) Alignment.Start else Alignment.CenterHorizontally,
-    ) {
-        Text(
-            modifier = Modifier,
-            text = "Ask me to:",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            color = colorResource(id = R.color.light_grey),
-            textAlign = if (isLandscape) TextAlign.Start else TextAlign.Center,
+    // Pulsating animation:
+    val baseSize = if (isLandscape) 200F else 250F
+    val infiniteTransition = rememberInfiniteTransition(label = "")
+    val animatedSize by if (queryState == "busy" || queryState == "processing") {
+        infiniteTransition.animateFloat(
+            initialValue = baseSize,
+            targetValue = baseSize + 10F,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1000),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = ""
         )
-        Text(
-            modifier = Modifier
-                .padding(top=6.dp),
-            text = "Play music via Spotify,\nget driving directions,\ncall or message your contacts!",   //TOOD: add "or YouTube"
-            fontSize = 14.sp,
-            color = colorResource(id = R.color.light_grey),
-            textAlign = if (isLandscape) TextAlign.Start else TextAlign.Center,
-            lineHeight = 16.sp,
-        )
-        // Icons:
-        GuideIconsRow(
-            modifier = Modifier
-                .padding(top=12.dp),
-        )
-    }
-}
-
-
-// CHAT INPUT FIELD:
-@Composable
-fun HomeChatWrapper(
-    context: Context,
-    requestPermissions: MutableState<Boolean>,
-    requestOverlayOn: MutableState<Boolean>,
-    navController: NavController,
-    chatManager: ChatManager,
-    sharedViewModel: SharedViewModel
-) {
-
-    ChatInputField(
-        context = context,
-        sharedViewModel = sharedViewModel,
-        requestPermissions = requestPermissions,
-        requestOverlayOn = requestOverlayOn,
-        modifier = Modifier
-            .padding(
-                start = 32.dp,
-                end = 24.dp,
-                top = 6.dp,
-                bottom = 2.dp
-            )
-            .imePadding()
-            .fillMaxWidth(),
-        placeholder = chatInputPlaceholder,
-        enableLeftButton = false,
-        onSend = {
-            val curText = sharedViewModel.text.trim()
-            if (curText != "") {
-                navigateTo(navController, NavigationItem.Messages.route)
-                chatManager.processQuery(curText)
-                sharedViewModel.text = ""
-            }
-        }
-    )
-}
-
-
-@Composable
-fun DriveModeContent(
-    context: Context,
-    requestPermissions: MutableState<Boolean>,
-    requestOverlayOn: MutableState<Boolean>,
-    isLandscape: Boolean,
-    overlayActiveState: Boolean
-) {
-    val spacer = remember { mutableStateOf( if (isLandscape) " " else "\n" ) }
-
-    // DRIVE INTRO TEXT:
-    Text(
-        modifier = Modifier
-            .padding(end = if (isLandscape) 20.dp else 0.dp),
-        text = if (overlayActiveState) "Not driving?" else "Are you driving?",
-        fontSize = 14.sp,
-        color = colorResource(id = R.color.light_grey),
-    )
-
-    CardSign(
-        modifier = Modifier
-            .padding(top = if (isLandscape) 0.dp else 10.dp)
-            .clickable {
-                utils.startStopDriveMode(
-                    context = context,
-                    requestOverlayOn = requestOverlayOn,
-                    requestPermissions = requestPermissions,
-                    openClock = true,
-                )
-            },
-        backgroundColor = if (overlayActiveState) {
-            colorResource(id = R.color.colorStop)
-        } else {
-            colorResource(id = R.color.colorAccent)
-        },
-        borderColor = colorResource(id = R.color.mid_grey),
-        borderWidth = 2.dp,
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-
-            // DRIVE ICON
-            DriveIcon(
-                iconSize = 36.dp,
-                showForbidden = overlayActiveState
-            )
-            // TEXT:
-            Column(
-                modifier = Modifier
-                    .padding(top = 4.dp, bottom = 4.dp, start = 12.dp, end = 12.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.Start
-            ) {
-                Text(
-                    modifier = Modifier,
-                    color = colorResource(id = R.color.light_grey),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    text = if (overlayActiveState) "Close${spacer.value}Drive mode" else "Open${spacer.value}Drive mode",
-                )
-            }
-            // GO ICON:
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                tint = colorResource(R.color.light_grey),
-                contentDescription = "Go"
-            )
-        }
-    }
-}
-
-
-@Composable
-fun DriveModeButton(
-    modifier: Modifier = Modifier,
-    context: Context,
-    requestPermissions: MutableState<Boolean>,
-    requestOverlayOn: MutableState<Boolean>,
-    isLandscape: Boolean,
-    overlayActiveState: Boolean
-) {
-
-    if (isLandscape) {
-        Row(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            DriveModeContent(
-                context = context,
-                requestPermissions = requestPermissions,
-                requestOverlayOn = requestOverlayOn,
-                isLandscape = isLandscape,
-                overlayActiveState = overlayActiveState,
-            )
-        }
     } else {
+        rememberUpdatedState(baseSize)
+    }
+
+    // CONTENT:
+    Box(
+        modifier = Modifier
+            .padding(top = 12.dp, bottom = 12.dp, start = 32.dp, end = 32.dp)
+            .size((baseSize + 20F).dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(animatedSize.roundToInt().dp)
+                .clip(CircleShape)
+                // .border(BorderStroke(1.dp, colorResource(id = R.color.dark_grey)), CircleShape)
+                .background(
+                    brush = if (queryState == "busy") {
+                        SolidColor(colorResource(R.color.transparent_busy))
+                    } else if (queryState == "processing") {
+                        SolidColor(colorResource(R.color.dark_grey))
+                    } else {
+                        Brush.radialGradient(
+                            radius = if (isLandscape) 300f else 380f,
+                            colors = listOf(
+                                colorResource(R.color.colorPrimary), // center
+                                colorResource(R.color.transparent_full)   // outer
+                            )
+                        )
+                    },
+                    shape = CircleShape
+                ),
+        )
         Column(
-            modifier = modifier,
+            modifier = Modifier,
+            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            DriveModeContent(
-                context = context,
-                requestPermissions = requestPermissions,
-                requestOverlayOn = requestOverlayOn,
-                isLandscape = isLandscape,
-                overlayActiveState = overlayActiveState,
+            // DJames logo:
+            Image(
+                modifier = Modifier
+                    .size(if (isLandscape) 90.dp else 130.dp)
+                    .clickable {
+                        var toastText = if (overlayActiveState!! && volumeUpEnabledState!!) {
+                            "Use the OVERLAY or VOLUME UP / SHUTTER button to speak!"
+                        } else if (overlayActiveState!!) {
+                            "Use the OVERLAY button to speak!"
+                        } else if (!spotifyLoggedInState) {
+                            "Log in from Accounts to unlock music functions!"
+                        } else {
+                            "Logged in to Spotify as: $userNameState!"
+                        }
+                        Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
+                    },
+                painter = painterResource(id = R.drawable.djames),
+                contentDescription = "DJames logo"
+            )
+
+            // Intro text:
+            val introText = if (queryState == "busy") {
+                "Speak now!"
+            } else if (queryState == "processing") {
+                "Thinking..."
+            } else {
+                "Hi ${if (preview) "Sir" else genderState}, I'm DJames,\nyour driving\nassistant!"
+            }
+            Text(
+                modifier = Modifier,
+                text = introText,
+                fontSize = if (isLandscape) 16.sp else 20.sp,
+                fontWeight = FontWeight.Bold,
+                fontStyle = FontStyle.Italic,
+                color = if (queryState == "busy") {
+                    colorResource(R.color.white)
+                } else colorResource(id = R.color.light_grey),
+                textAlign = TextAlign.Center,
+                lineHeight = if (isLandscape) 16.sp else 20.sp,
             )
         }
     }
-
 }
 
+
+// GUIDE VIEWER:
 @Composable
-fun GuideIconsRow(
+fun GuideViewer(
     modifier: Modifier = Modifier,
-    iconSize: Dp = 20.dp,
-    iconSpacing: Dp = 4.dp,
+    itemState: MutableState<String>,
+    isLandscape: Boolean,
+    queryState: String,
 ) {
-    Row(
+    val overlayPosState by overlayPos.observeAsState()
+    val loggedInState by spotifyLoggedIn.observeAsState()
+    val lastUserMsgState by lastUserMessageText.observeAsState()
+    val lastAiMsgState by lastAiMessageText.observeAsState()
+
+    val items = mutableListOf(
+        SelectorItem(
+            id = "info",
+            disableGray = true,
+            useCustomClick = true,
+            onClick = {}
+        ),
+        SelectorItem(
+            id = "music",
+            useImage = true,
+            useCustomClick = true,
+            onClick = {}
+        ),
+        SelectorItem(
+            id = "phone",
+            disableGray = true,
+            useCustomClick = true,
+            onClick = {}
+        ),
+        SelectorItem(
+            id = "messages",
+            disableGray = true,
+            useCustomClick = true,
+            onClick = {}
+        ),
+        SelectorItem(
+            id = "gmaps",
+            useImage = true,
+            useCustomClick = true,
+            onClick = {}
+        ),
+    )
+
+    // Item:
+    val guideText = guideTexts[itemState.value]!!
+    val guideIntro = if (queryState == "busy" || queryState == "processing") lastUserMsgState!! else guideText.intro
+    val guideOutro = if (guideText.outro.contains(guidePosPlaceholder)) {
+        when {
+            (isLandscape && overlayPosState!! == "Right") -> {
+                guideText.outro.replace(guidePosPlaceholder, "on the right")
+            }
+
+            (isLandscape) -> {
+                guideText.outro.replace(guidePosPlaceholder, "on the left")
+            }
+
+            else -> {
+                guideText.outro.replace(guidePosPlaceholder, "below")
+            }
+        }
+    } else guideText.outro
+
+    // SPLITTER SIGN:
+    Column(
         modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Image(
+        SplitterSign(
             modifier = Modifier
-                .padding(start = iconSpacing, end = iconSpacing)
-                .size(iconSize),
-            painter = painterResource(R.drawable.logo_spotify),
-            contentDescription = "Spotify logo"
+                .padding(top=24.dp),
+            currentItemState = itemState,
+            items = items,
+            disabled = (queryState == "busy" || queryState == "processing"),
         )
-//        Image(
-//            modifier = Modifier
-//                .padding(start = iconSpacing, end = iconSpacing)
-//                .size(iconSize),
-//            painter = painterResource(R.drawable.logo_youtube),
-//            contentDescription = "YouTube logo"
-//        )
-        Image(
+
+        // CONTAINER:
+        CardSign (
             modifier = Modifier
-                .padding(start = iconSpacing, end = iconSpacing)
-                .size(iconSize),
-            painter = painterResource(R.drawable.logo_gmaps),
-            contentDescription = "GMaps logo"
-        )
-        Icon(
-            modifier = Modifier
-                .padding(start = iconSpacing, end = iconSpacing)
-                .size(iconSize),
-            painter = guideIconSelector("calls"),
-            tint = colorResource(R.color.colorAccentMid),
-            contentDescription = "Call icon"
-        )
-        Icon(
-            modifier = Modifier
-                .padding(start = iconSpacing, end = iconSpacing)
-                .size(iconSize),
-            painter = guideIconSelector("messages"),
-            tint = colorResource(R.color.blueSignMid),
-            contentDescription = "Message icon"
-        )
-        Image(
-            modifier = Modifier
-                .padding(start = iconSpacing, end = iconSpacing)
-                .size(iconSize),
-            painter = painterResource(R.drawable.logo_whatsapp),
-            contentDescription = "Whatsapp icon"
-        )
-        // GO ICON:
-        Icon(
-            modifier = Modifier
-                .padding(start=6.dp),
-            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-            tint = colorResource(R.color.light_grey),
-            contentDescription = "Go"
-        )
+                .padding(top = 12.dp, bottom = 20.dp, start = 32.dp, end = 32.dp)
+                .fillMaxWidth()
+                .weight(1f),
+            borderColor = if (queryState == "busy" || queryState == "processing") {
+                colorResource(id = R.color.dark_grey)
+            } else colorResource(id = R.color.mid_grey),
+            borderWidth = 4.dp,
+            backgroundColor = if (queryState == "busy" || queryState == "processing") {
+                colorResource(R.color.dark_grey_background)
+            } else colorSelector(itemState.value),
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(start = 20.dp, end = 20.dp)
+                    .fillMaxSize(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (queryState != "busy" && queryState != "processing") {
+                    Icon(
+                        modifier = Modifier
+                            .size(52.dp),
+                        painter = iconSelector(itemState.value),
+                        contentDescription = "Item image",
+                        tint = colorResource(R.color.light_grey)
+                    )
+                }
+
+                Column(
+                    modifier = Modifier
+                        .padding(start = 4.dp)
+                        .weight(1F)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    // Intro:
+                    if (guideIntro != "") {
+                        Text(
+                            modifier = Modifier
+                                .padding(top = 12.dp),
+                            text = guideIntro,
+                            textAlign = TextAlign.Center,
+                            color = colorResource(id = R.color.light_grey),
+                            fontSize = 14.sp,
+                            lineHeight = 14.sp,
+                        )
+                    }
+                    // Content:
+                    Text(
+                        modifier = Modifier
+                            .padding(top = 12.dp, bottom = 12.dp),
+                        text = if (queryState == "busy" || queryState == "processing") lastAiMsgState!! else guideText.content,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        fontStyle = FontStyle.Italic,
+                        color = colorResource(id = R.color.light_grey),
+                        fontSize = 18.sp,
+                        lineHeight = 18.sp,
+                    )
+                    if (queryState != "busy" && queryState != "processing" && guideOutro != "") {
+                        // Outro:
+                        Text(
+                            modifier = Modifier
+                                .padding(bottom = 12.dp),
+                            text = if (!loggedInState!! && itemState.value == "music") {
+                                "$guideOutro\nLog in from Accounts to unlock music functions!"
+                            } else guideOutro,
+                            textAlign = TextAlign.Center,
+                            color = colorResource(id = R.color.light_grey),
+                            fontSize = 14.sp,
+                            lineHeight = 14.sp,
+                        )
+                    }
+                }
+            }
+        }
     }
 }

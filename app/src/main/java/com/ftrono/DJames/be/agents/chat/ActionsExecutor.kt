@@ -8,14 +8,11 @@ import androidx.core.content.FileProvider
 import android.net.Uri
 import com.ftrono.DJames.BuildConfig
 import com.ftrono.DJames.application.defaultReplies
-import com.ftrono.DJames.application.fulfillmentUtils
-import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.recDir
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.SpotifyPlayable
-import com.ftrono.DJames.be.models.AiReply
-import com.ftrono.DJames.kaigraph.data.StateInfo
+import com.ftrono.DJames.kaigraph.StateInfo
 import com.ftrono.DJames.be.database.ActionType
 import com.ftrono.DJames.be.spotify.SpotifyPlayer
 import java.io.File
@@ -32,46 +29,37 @@ class ActionsExecutor(
         text: String,
         usable: LibraryItem? = null,
         playable: SpotifyPlayable? = null,
-        reqLanguage: String = "",
         fromOldChat: Boolean = false,
         lastRecording: String = "",
+        forceExecute: Boolean = false,
     ): String {
         return when (action) {
+            // Deferred (after TTS):
             ActionType.PLAY -> spotifyPlay(playable)
             ActionType.CALL -> makeCall(usable, fromOldChat)
-            ActionType.SMS -> if (prefs.enableV3) "" else sendSMS(text, usable, reqLanguage)
-            ActionType.WA_TEXT -> if (prefs.enableV3) "" else sendWhatsappText(text, usable, reqLanguage)
+            // Immediate (before TTS):
+            ActionType.SMS -> if (forceExecute) sendSMS(text, usable) else ""
+            ActionType.WA_TEXT -> if (forceExecute) sendWhatsappText(text, usable) else ""
             ActionType.WA_VOICE -> sendWhatsappAudio(lastRecording)
-            ActionType.OPEN_URL -> if (prefs.enableV3 && !fromOldChat) "" else openLink(usable)
+            ActionType.OPEN_URL -> if (forceExecute || fromOldChat) openLink(usable) else ""
         }
     }
 
     // MAIN: EXECUTOR:
     fun execute(
         latestState: StateInfo
-    ): List<AiReply> {
-        var updatedReplies = listOf<AiReply>()
+    ): String {
         // Execute action:
-        var stringReply = if (latestState.actionType == null) "" else {
+        val updReply = if (latestState.actionType == null) "" else {
             launchAction(
                 action = latestState.actionType!!,
                 text = latestState.messages.last().content,
                 usable = latestState.attachments.usable,
                 playable = latestState.attachments.spotifyPlay,
-                reqLanguage = latestState.reqLangCode,
                 lastRecording = latestState.lastRecording
             )
         }
-        // Update replies:
-        if (stringReply != "") {
-            updatedReplies = listOf<AiReply>(
-                AiReply(
-                    langCode = prefs.queryLanguage,
-                    text = stringReply
-                )
-            )
-        }
-        return updatedReplies
+        return updReply
     }
 
     // SPOTIFY PLAY:
@@ -107,7 +95,6 @@ class ActionsExecutor(
     fun sendSMS(
         text: String,
         usable: LibraryItem?,
-        reqLanguage: String = "",
     ): String {
         try {
             var ttsToRead = ""
@@ -115,14 +102,6 @@ class ActionsExecutor(
             val phoneSet = usable.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
             var messageText = "[DJ] $text"
-            // SEND:
-            if (reqLanguage != "") {
-                messageText = fulfillmentUtils.replaceEmojis(
-                    context = context,
-                    text = messageText,
-                    reqLanguage = reqLanguage
-                )
-            }
             val smsManager: SmsManager = SmsManager.getDefault()
             val parts = smsManager.divideMessage(messageText)
             smsManager.sendMultipartTextMessage(contactPhone, null, parts, null, null)
@@ -140,7 +119,6 @@ class ActionsExecutor(
     fun sendWhatsappText(
         text: String,
         usable: LibraryItem? = null,
-        reqLanguage: String = "",
     ): String {
         try {
             var ttsToRead = ""
@@ -148,14 +126,6 @@ class ActionsExecutor(
             val phoneSet = usable.phoneSet!!
             val contactPhone = "${phoneSet.prefix}${phoneSet.phone}"
             var messageText = "[DJ] $text"
-            // SEND:
-            if (reqLanguage != "") {
-                messageText = fulfillmentUtils.replaceEmojis(
-                    context = context,
-                    text = messageText,
-                    reqLanguage = reqLanguage
-                )
-            }
 
             //Open WA:
             val intent = Intent(Intent.ACTION_VIEW).apply {

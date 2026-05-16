@@ -57,8 +57,8 @@ import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.R
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.components.RoundedSign
-import com.ftrono.DJames.ui.selectors.libColorSelector
-import com.ftrono.DJames.ui.selectors.libIconSelector
+import com.ftrono.DJames.ui.selectors.colorSelector
+import com.ftrono.DJames.ui.selectors.iconSelector
 import com.ftrono.DJames.ui.theme.ClockTheme
 import com.ftrono.DJames.ui.theme.black
 import java.time.LocalDateTime
@@ -328,8 +328,7 @@ class ClockActivity: ComponentActivity() {
                 .padding(start = 20.dp, end = 20.dp)
                 .clickable {
                     //Start Main:
-                    val intent1 = Intent(this, MainActivity::class.java)
-                    startActivity(intent1)
+                    utils.openActivity(this, MainActivity::class.java)
                     finish()
                 },
             signSize = 50.dp,
@@ -417,8 +416,7 @@ class ClockActivity: ComponentActivity() {
         if (!overlayActive.value!!) {
             //Start Main:
             finish()
-            val intent1 = Intent(applicationContext, MainActivity::class.java)
-            startActivity(intent1)
+            utils.openActivity(this, MainActivity::class.java)
         } else {
             clockActive.postValue(true)
         }
@@ -429,8 +427,7 @@ class ClockActivity: ComponentActivity() {
         if (!overlayActive.value!!) {
             //Start Main:
             finish()
-            val intent1 = Intent(applicationContext, MainActivity::class.java)
-            startActivity(intent1)
+            utils.openActivity(this, MainActivity::class.java)
         } else {
             clockActive.postValue(true)
         }
@@ -440,8 +437,7 @@ class ClockActivity: ComponentActivity() {
     override fun onBackPressed() {
         finish()
         //Start Main:
-        val intent1 = Intent(this, MainActivity::class.java)
-        startActivity(intent1)
+        utils.openActivity(this, MainActivity::class.java)
     }
 
     fun updateDateClock() {
@@ -488,8 +484,7 @@ class ClockActivity: ComponentActivity() {
                 finish()
                 if (clockActive.value!!) {
                     //Start Main:
-                    val intent1 = Intent(applicationContext, MainActivity::class.java)
-                    startActivity(intent1)
+                    utils.openActivity(applicationContext, MainActivity::class.java)
                 }
             }
 

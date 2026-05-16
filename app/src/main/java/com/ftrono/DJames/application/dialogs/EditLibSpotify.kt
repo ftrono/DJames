@@ -23,8 +23,8 @@ import com.ftrono.DJames.ui.dialogs.EditLibDialog
 import com.ftrono.DJames.ui.components.EditLibDynamicField
 import com.ftrono.DJames.ui.components.EditLibDynamicNameSection
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
-import com.ftrono.DJames.ui.selectors.libColorSelector
-import com.ftrono.DJames.ui.selectors.libColorSelectorLight
+import com.ftrono.DJames.ui.selectors.colorSelector
+import com.ftrono.DJames.ui.selectors.colorSelectorLight
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -201,10 +201,10 @@ fun EditLibSpotify(
             EditLibDynamicField(
                 modifier = Modifier
                     .fillMaxWidth(),
-                textHeaderColor = libColorSelectorLight(cat = textType.value),
+                textHeaderColor = colorSelectorLight(cat = textType.value),
                 textFieldColors = getTextFieldColors(
-                    colorLight = libColorSelectorLight(cat = textType.value),
-                    colorDark = libColorSelector(cat = textType.value)
+                    colorLight = colorSelectorLight(cat = textType.value),
+                    colorDark = colorSelector(cat = textType.value)
                 ),
                 title = "Aliases (separate with commas)",
                 description = aliasFieldDescription,
@@ -217,10 +217,10 @@ fun EditLibSpotify(
             EditLibDynamicField(
                 modifier = Modifier
                     .fillMaxWidth(),
-                textHeaderColor = libColorSelectorLight(cat = textType.value),
+                textHeaderColor = colorSelectorLight(cat = textType.value),
                 textFieldColors = getTextFieldColors(
-                    colorLight = libColorSelectorLight(cat = textType.value),
-                    colorDark = libColorSelector(cat = textType.value)
+                    colorLight = colorSelectorLight(cat = textType.value),
+                    colorDark = colorSelector(cat = textType.value)
                 ),
                 title = "Spotify Link",
                 placeholder = "Paste Spotify link...",

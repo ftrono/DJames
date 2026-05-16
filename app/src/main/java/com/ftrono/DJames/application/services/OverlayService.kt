@@ -16,7 +16,6 @@ import android.media.AudioManager
 import android.media.ToneGenerator
 import android.net.Uri
 import android.os.IBinder
-import android.provider.Settings
 import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.Gravity
@@ -82,13 +81,14 @@ import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.abs
-import kotlin.math.round
 import kotlin.math.roundToInt
 import com.ftrono.DJames.application.ACTION_OVERLAY_CLICK
 import com.ftrono.DJames.application.allowVolumeClick
 import com.ftrono.DJames.application.clickCountdownTime
 import com.ftrono.DJames.application.clickSleepInterval
+import com.ftrono.DJames.application.overlayBubbleSize
 import com.ftrono.DJames.application.overlayOptionsStr
+import com.ftrono.DJames.application.overlayToeSize
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.volumeUpEnabledUI
@@ -100,6 +100,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlin.math.round
 
 
 class OverlayService : Service() {
@@ -182,8 +183,8 @@ class OverlayService : Service() {
                 it.setContent {
                     OverlayBubble(
                         context = applicationContext,
-                        centerSize = 100,
-                        toeSize = 70,
+                        centerSize = overlayBubbleSize,
+                        toeSize = overlayToeSize,
                         onDrag = { x, y ->
                             bubbleParams.x += x
                             if (bubbleParams.y + y >= 0) {
@@ -283,19 +284,11 @@ class OverlayService : Service() {
         } catch (e: Exception) {
             Log.w(TAG, "Overlay Service ERROR: ", e)
             stopSelf()
-            //Redirect to App Permissions:
             Toast.makeText(
                 applicationContext,
-                "Please enable the 'Display over other apps' permission first!",
+                "Cannot start overlay bubble!",
                 Toast.LENGTH_LONG
             ).show()
-            //Show Permissions page:
-            val intent1 = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-            val uri = Uri.fromParts("package", packageName, null)
-            intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            intent1.putExtra("fromwhere", "ser")
-            intent1.setData(uri)
-            startActivity(intent1)
         }
     }
 
@@ -323,15 +316,16 @@ class OverlayService : Service() {
         val configuration = LocalConfiguration.current
         val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
         val coroutineScope = rememberCoroutineScope()
+        val queryState by queryStatus.observeAsState()
         val clockActiveState by clockActive.observeAsState()
         val clickCounterState by clickCounter.observeAsState()
         val sourceIsVolumeState by sourceIsVolume.observeAsState()
         val overlayPosState by overlayPos.observeAsState()
+
         // Animating the horizontal offset based on the state
         val rightPadding by animateDpAsState(targetValue = if (
             clickCounterState!! > 0 && overlayPosState == "Right" && sourceIsVolumeState!!
         ) (70.dp) else 0.dp)
-
 
         //CONTAINER:
         Column(
@@ -417,14 +411,16 @@ class OverlayService : Service() {
                     onToesPadClick()
                 },
                 onCenterTap = {
-                    if (!voiceQueryOn) {
-                        // CENTER TAP:
-                        onCenterPadClick(enable = clickCounterState == 0)
-                    } else if (recordingMode) {
-                        //EARLY STOP RECORDING:
-                        Intent().also { intent ->
-                            intent.setAction(ACTION_REC_STOP)
-                            sendBroadcast(intent)
+                    if (queryState != "volume") {
+                        if (!voiceQueryOn) {
+                            // CENTER TAP:
+                            onCenterPadClick(enable = clickCounterState == 0)
+                        } else if (recordingMode) {
+                            //EARLY STOP RECORDING:
+                            Intent().also { intent ->
+                                intent.setAction(ACTION_REC_STOP)
+                                sendBroadcast(intent)
+                            }
                         }
                     }
                 }
@@ -651,11 +647,12 @@ class OverlayService : Service() {
             } else if (clickCounter.value!! > 1) {
                 val actionIndex = clickCounter.value!! - 2
                 actionName = overlayOptions[actionIndex]
-                when (actionName) {
-                    "speak" -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
-                    "clock" -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
-                    "save" -> toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
-                    "custom" -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                when {
+                    (actionName == "speak" && prefs.enableIntro) -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                    (actionName == "speak") -> { }   // Do nothing
+                    (actionName == "clock") -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                    (actionName == "volume") -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                    (actionName == "save") -> toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
                     else -> toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                 }
                 //TRIGGER ACTION:

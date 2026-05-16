@@ -2,6 +2,7 @@ package com.ftrono.DJames.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -10,7 +11,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +21,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -47,9 +52,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -57,22 +65,25 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.ui.selectors.guideColorSelector
-import com.ftrono.DJames.ui.selectors.guideColorSelectorLight
-import com.ftrono.DJames.ui.selectors.guideIconSelector
-import com.ftrono.DJames.ui.selectors.libColorSelector
-import com.ftrono.DJames.ui.selectors.libColorSelectorLight
-import com.ftrono.DJames.ui.selectors.libIconSelector
+import com.ftrono.DJames.ui.selectors.colorSelector
+import com.ftrono.DJames.ui.selectors.colorSelectorLight
+import com.ftrono.DJames.ui.selectors.iconSelector
+import com.ftrono.DJames.ui.selectors.colorSelector
+import com.ftrono.DJames.ui.selectors.colorSelectorLight
+import com.ftrono.DJames.ui.selectors.iconSelector
+import kotlin.math.absoluteValue
 
 
 // STREET UI LANGUAGE COMPONENTS
 @Composable
 fun StreetUIScaffold(
     modifier: Modifier = Modifier,
+    hideLine: Boolean = false,
     lineDistance: Dp,
     topBar: @Composable () -> Unit = {},
     fab: @Composable () -> Unit = {},
@@ -92,13 +103,15 @@ fun StreetUIScaffold(
                 .padding(it)
                 .background(colorResource(id = R.color.windowBackground))
         ) {
-            //Street line canvas:
-            StreetLine (
-                modifier = Modifier
-                    .padding(start = lineDistance)
-                    .matchParentSize()
-                    .width(20.dp)
-            )
+            if (!hideLine) {
+                //Street line canvas:
+                StreetLine(
+                    modifier = Modifier
+                        .padding(start = lineDistance)
+                        .matchParentSize()
+                        .width(20.dp)
+                )
+            }
             //Content container:
             Column(
                 modifier = Modifier
@@ -252,6 +265,54 @@ fun ClickableZebraSign(
 }
 
 
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun SignsCarousel(
+    modifier: Modifier = Modifier,
+    items: List<() -> Unit>,
+) {
+    val pagerState = rememberPagerState { items.size }
+
+    Column(
+        modifier
+            .defaultMinSize(minHeight = 300.dp)
+            .fillMaxWidth()
+    ) {
+
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxWidth(),
+            pageSpacing = 10.dp,
+            contentPadding = PaddingValues(horizontal = 30.dp)
+        ) { page ->
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .graphicsLayer {
+                        val pageOffset =
+                            (pagerState.currentPage - page + pagerState.currentPageOffsetFraction).absoluteValue
+
+                        lerp(
+                            start = 75.dp,
+                            stop = 100.dp,
+                            fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                        ).also { scale ->
+                            scaleY = scale / 100.dp
+                        }
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                items[page]()
+            }
+        }
+
+    }
+
+}
+
+
 @Composable
 fun RoundedSign(
     modifier: Modifier = Modifier,
@@ -391,9 +452,9 @@ fun LetterStarter(
 fun GeneralSectionClosedPreview() {
     GeneralSectionHeader(
         title = "Title",
-        signColor = guideColorSelector(cat = "songs"),
-        iconPainter = guideIconSelector(cat = "songs"),
-        arrowColor = guideColorSelectorLight(cat = "songs"),
+        signColor = colorSelector(cat = "phone"),
+        iconPainter = iconSelector(cat = "phone"),
+        arrowColor = colorSelectorLight(cat = "phone"),
         expandable = true,
         isExpanded = false
     )
@@ -406,9 +467,9 @@ fun GeneralSectionOpenPreview() {
     GeneralSectionHeader(
         title = "Title",
         subtitle = "Subtitle",
-        signColor = guideColorSelector(cat = "songs"),
-        iconPainter = guideIconSelector(cat = "songs"),
-        arrowColor = guideColorSelectorLight(cat = "songs"),
+        signColor = colorSelector(cat = "phone"),
+        iconPainter = iconSelector(cat = "phone"),
+        arrowColor = colorSelectorLight(cat = "phone"),
         expandable = true,
         isExpanded = true
     )
@@ -609,10 +670,10 @@ fun LibItemCard(
 ) {
     val isMultiline = rememberSaveable { mutableStateOf(false) }
     val cardBorderColor = colorResource(id = R.color.dark_grey)
-    val signBackgroundColor = if (isCollection) colorResource(R.color.violetSign) else libColorSelector(cat = type)
+    val signBackgroundColor = if (isCollection) colorResource(R.color.violetSign) else colorSelector(cat = type)
     val signBorderColor = colorResource(id = R.color.midfaded_grey)
     val signIconColor = colorResource(id = R.color.light_grey)
-    val signIconPainter = if (isCollection) null else libIconSelector(cat = type)
+    val signIconPainter = if (isCollection) null else iconSelector(cat = type)
     val circle = type == "artist" || source == "contact"
 
     Card(
@@ -656,24 +717,24 @@ fun LibItemCard(
                             modifier = Modifier
                                 .padding(end = 4.dp)
                                 .size(12.dp),
-                            painter = libIconSelector(source),
+                            painter = iconSelector(source),
                             contentDescription = type,
-                            tint = libColorSelector(source)
+                            tint = colorSelector(source)
                         )
                         //CAT ICON:
                         Icon(
                             modifier = Modifier
                                 .padding(end = 2.dp)
                                 .size(12.dp),
-                            painter = libIconSelector(type),
+                            painter = iconSelector(type),
                             contentDescription = type,
-                            tint = libColorSelectorLight(type)
+                            tint = colorSelectorLight(type)
                         )
                         //CAT NAME:
                         Text(
                             modifier = Modifier
                                 .padding(end = 4.dp),
-                            color = libColorSelectorLight(cat = type),
+                            color = colorSelectorLight(cat = type),
                             fontSize = 10.sp,
                             lineHeight = 12.sp,
                             // fontWeight = FontWeight.Bold,

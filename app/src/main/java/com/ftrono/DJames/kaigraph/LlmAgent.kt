@@ -1,4 +1,4 @@
-package com.ftrono.DJames.kaigraph.llm
+package com.ftrono.DJames.kaigraph
 
 import android.content.Context
 import android.util.Log
@@ -9,29 +9,23 @@ import com.ftrono.DJames.application.mistralLlmTemperature
 import com.ftrono.DJames.application.mistralLlmTimeout
 import com.ftrono.DJames.application.mistralLlmUrl
 import com.ftrono.DJames.application.mistralSttUrl
-import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.kaigraph.data.ChatMessage
-import com.ftrono.DJames.kaigraph.data.LlmRequest
-import com.ftrono.DJames.kaigraph.data.LlmResponse
-import com.ftrono.DJames.kaigraph.data.LlmReturn
-import com.ftrono.DJames.kaigraph.data.SttResponse
-import com.ftrono.DJames.kaigraph.data.SttReturn
-import com.ftrono.DJames.kaigraph.data.ToolDefinition
-import com.ftrono.DJames.kaigraph.data.ToolType
-import com.ftrono.DJames.kaigraph.tool.Tool
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.models.HttpResponse
 import com.ftrono.DJames.be.utils.HttpClient
+import com.ftrono.DJames.application.prefs
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
-import okhttp3.*
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
-
 
 class LlmAgent(
     private val context: Context,
@@ -64,7 +58,7 @@ class LlmAgent(
 
     // Clean LLM message:
     private fun cleanLlmMessage(text: String): String {
-        return text.replace("**", "\n").replace("* ", "- ").trim()
+        return text.replace("**", "").replace("\n* ", "\n- ").replace("*", "").trim()
     }
 
     // Send LLM API request:
@@ -103,7 +97,10 @@ class LlmAgent(
             if (response.code == 200) {
                 Log.d(TAG, "sendLlmRequest(): query success. Status code: ${response.code}.")
             } else {
-                Log.w(TAG, "sendLlmRequest(): cannot query. Status code: ${response.code}, details: ${response.body}")
+                Log.w(
+                    TAG,
+                    "sendLlmRequest(): cannot query. Status code: ${response.code}, details: ${response.body}"
+                )
             }
             httpResponse = HttpResponse(
                 code = response.code,
@@ -121,7 +118,7 @@ class LlmAgent(
             .replace("```", "")
             .trim()
 
-        return Json.decodeFromString<T>(cleanText)
+        return Json.Default.decodeFromString<T>(cleanText)
     }
 
     // Main: Transcribe:
@@ -133,7 +130,7 @@ class LlmAgent(
                 contentType = "audio/flac".toMediaTypeOrNull()
             )
             val audioRequestBody = MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
+                .setType(MultipartBody.Companion.FORM)
                 .addFormDataPart("file", audioFile.name, fileBody)
                 .addFormDataPart("model", model)
                 .addFormDataPart("language", prefs.queryLanguage)

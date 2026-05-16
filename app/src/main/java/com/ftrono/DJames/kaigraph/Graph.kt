@@ -1,15 +1,12 @@
-package com.ftrono.DJames.kaigraph.graph
+package com.ftrono.DJames.kaigraph
 
 import android.content.Context
 import android.util.Log
-import com.ftrono.DJames.kaigraph.node.Node
-import com.ftrono.DJames.kaigraph.data.StateInfo
-import com.ftrono.DJames.application.START
 import com.ftrono.DJames.application.END
+import com.ftrono.DJames.application.START
 import com.ftrono.DJames.application.maxGraphLoops
-import com.ftrono.DJames.kaigraph.data.ChatMessage
 import com.ftrono.DJames.be.models.RecDetails
-
+import com.ftrono.DJames.kaigraph.Node
 
 open class Graph(
     private val context: Context,
@@ -91,7 +88,7 @@ open class Graph(
             if (loops >= maxGraphLoops) {
                 // Avoid infinite looping:
                 updState.fail = true
-                updState.messageMode = false
+                updState.voiceMessageMode = false
                 Log.d(TAG, "Max graph loops reached! Interrupting...")
                 break
 

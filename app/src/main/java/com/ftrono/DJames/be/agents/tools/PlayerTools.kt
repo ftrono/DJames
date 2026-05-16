@@ -6,20 +6,21 @@ import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.maxSearchMatches
 import com.ftrono.DJames.application.midThreshold
+import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.spotifyUtils
-import com.ftrono.DJames.kaigraph.data.ToolDefinition
-import com.ftrono.DJames.kaigraph.data.ToolFunction
-import com.ftrono.DJames.kaigraph.data.ToolParameters
-import com.ftrono.DJames.kaigraph.data.ToolProperty
-import com.ftrono.DJames.kaigraph.data.ToolResponse
-import com.ftrono.DJames.kaigraph.data.ToolType
+import com.ftrono.DJames.kaigraph.ToolDefinition
+import com.ftrono.DJames.kaigraph.ToolFunction
+import com.ftrono.DJames.kaigraph.ToolParameters
+import com.ftrono.DJames.kaigraph.ToolProperty
+import com.ftrono.DJames.kaigraph.ToolResponse
+import com.ftrono.DJames.kaigraph.ToolType
 import com.ftrono.DJames.be.database.ActionType
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.database.LibMatch
 import com.ftrono.DJames.be.database.PlayRequest
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.spotify.SpotifySearch
-import com.ftrono.DJames.kaigraph.tool.Tool
+import com.ftrono.DJames.kaigraph.Tool
 import kotlinx.serialization.json.*
 
 data class QueryAPIReturn(
@@ -146,151 +147,165 @@ class ToolRetrievePlayer(
         var updAttachments = attachments
         updAttachments.spotifyQueries = mutableListOf()   // Reset
 
-        val playRequest = PlayRequest(
-            source = "spotify",   // TODO
-            track = (args["track"]?.jsonPrimitive?.content ?: "").lowercase().trim(),
-            artist = (args["artist"]?.jsonPrimitive?.content ?: "").lowercase().trim(),
-            album = (args["album"]?.jsonPrimitive?.content ?: "").lowercase().trim(),
-            playlist = (args["playlist"]?.jsonPrimitive?.content ?: "").lowercase().trim(),
-            podcast = (args["podcast"]?.jsonPrimitive?.content ?: "").lowercase().trim(),
-        )
-
-        // Queries (max 2 items per list):
-        val matchNames = mutableListOf<LibMatch>()   // all
-        val matchDetails = mutableListOf<LibMatch>()   // artist only
-        val matchContexts = mutableListOf<LibMatch>()   // playlist or collection
-
-        // 1) PLAY HIERARCHY:
-        if (playRequest.podcast != "") {
-            // PLAY PODCAST:
-            playRequest.type = "podcast"
-            matchNames.addAll(loadCandidates("podcast", playRequest.podcast))
-
-        } else if (playRequest.album != "") {
-            // PLAY ALBUM:
-            playRequest.type = "album"
-            matchNames.addAll(loadCandidates("album", playRequest.album))
-            if (playRequest.artist != "") {
-                matchDetails.addAll(loadCandidates("artist", playRequest.artist))
-            }
-
-        } else if (playRequest.track != "") {
-            // PLAY TRACK:
-            playRequest.type = "track"
-            matchNames.addAll(loadCandidates("track", playRequest.track))
-            if (playRequest.artist != "") {
-                matchDetails.addAll(loadCandidates("artist", playRequest.artist))
-            }
-            if (playRequest.playlist != "") {
-                matchContexts.addAll(loadCandidates("playlist", playRequest.playlist))
-                playRequest.context = "playlist"
-            }
-
-        } else if (playRequest.playlist != "") {
-            // PLAY PLAYLIST:
-            playRequest.type = "playlist"
-            matchNames.addAll(loadCandidates("playlist", playRequest.playlist))
-
-        } else if (playRequest.artist != "") {
-            // PLAY ARTIST:
-            playRequest.type = "artist"
-            matchNames.addAll(loadCandidates("artist", playRequest.artist))
-        }
-
-        Log.d(TAG, "PLAY TYPE: ${playRequest.type}")
-        Log.d(TAG, "MATCH NAMES: $matchNames")
-        Log.d(TAG, "MATCH DETAILS: $matchDetails")
-        Log.d(TAG, "MATCH CONTEXTS: $matchContexts")
-
         // Fallback:
-        if (playRequest.type == "" || matchNames.isEmpty()) {
-            retString = "This tool was called with no input args: try again passing the correct input information."
+        if (spotifyLoggedIn.value != true) {
+            retString = "Tell the user that you're sorry, but the user must first connect the DJames app to Spotify, he can do it in the app when he's not driving. Do NOT ask further questions to the user."
 
         } else {
-            // 2) QUERY SPOTIFY:
-            updAttachments.playCandidates = mutableListOf<SpotifyPlayable>()
-            for (nameMatch in matchNames) {
-                if (nameMatch.matchId != -1L) {
-                    // Add from library (no API search):
-                    updAttachments.playCandidates!!.add(
-                        libUtils.libItemToPlayable(
-                            libItem = libUtils.getLibItemById(nameMatch.matchId),
-                            matchScore = nameMatch.matchScore
-                        )
-                    )
-                } else {
-                    // API search:
-                    if (matchDetails.isEmpty()) {
-                        // Query name only:
-                        val queryAPIReturn = queryAPI(playRequest.type, updAttachments, nameMatch.matchName)
-                        updAttachments = queryAPIReturn.attachments
-                        updAttachments.playCandidates!!.addAll(queryAPIReturn.candidates)
-                    } else {
-                        // Add artist filter:
-                        for (detailMatch in matchDetails) {
-                            val queryAPIReturn = queryAPI(playRequest.type, updAttachments, nameMatch.matchName, detailMatch.matchName)
-                            updAttachments = queryAPIReturn.attachments
-                            updAttachments.playCandidates!!.addAll(queryAPIReturn.candidates)
-                        }
-                    }
+            val playRequest = PlayRequest(
+                source = "spotify",   // TODO
+                track = (args["track"]?.jsonPrimitive?.content ?: "").lowercase().trim(),
+                artist = (args["artist"]?.jsonPrimitive?.content ?: "").lowercase().trim(),
+                album = (args["album"]?.jsonPrimitive?.content ?: "").lowercase().trim(),
+                playlist = (args["playlist"]?.jsonPrimitive?.content ?: "").lowercase().trim(),
+                podcast = (args["podcast"]?.jsonPrimitive?.content ?: "").lowercase().trim(),
+            )
+
+            // Queries (max 2 items per list):
+            val matchNames = mutableListOf<LibMatch>()   // all
+            val matchDetails = mutableListOf<LibMatch>()   // artist only
+            val matchContexts = mutableListOf<LibMatch>()   // playlist or collection
+
+            // 1) PLAY HIERARCHY:
+            if (playRequest.podcast != "") {
+                // PLAY PODCAST:
+                playRequest.type = "podcast"
+                matchNames.addAll(loadCandidates("podcast", playRequest.podcast))
+
+            } else if (playRequest.album != "") {
+                // PLAY ALBUM:
+                playRequest.type = "album"
+                matchNames.addAll(loadCandidates("album", playRequest.album))
+                if (playRequest.artist != "") {
+                    matchDetails.addAll(loadCandidates("artist", playRequest.artist))
                 }
+
+            } else if (playRequest.track != "") {
+                // PLAY TRACK:
+                playRequest.type = "track"
+                matchNames.addAll(loadCandidates("track", playRequest.track))
+                if (playRequest.artist != "") {
+                    matchDetails.addAll(loadCandidates("artist", playRequest.artist))
+                }
+                if (playRequest.playlist != "") {
+                    matchContexts.addAll(loadCandidates("playlist", playRequest.playlist))
+                    playRequest.context = "playlist"
+                }
+
+            } else if (playRequest.playlist != "") {
+                // PLAY PLAYLIST:
+                playRequest.type = "playlist"
+                matchNames.addAll(loadCandidates("playlist", playRequest.playlist))
+
+            } else if (playRequest.artist != "") {
+                // PLAY ARTIST:
+                playRequest.type = "artist"
+                matchNames.addAll(loadCandidates("artist", playRequest.artist))
             }
-            // TODO: match context!
 
-            Log.d(TAG, "PLAY CANDIDATES: ${updAttachments.playCandidates}!!")
+            Log.d(TAG, "PLAY TYPE: ${playRequest.type}")
+            Log.d(TAG, "MATCH NAMES: $matchNames")
+            Log.d(TAG, "MATCH DETAILS: $matchDetails")
+            Log.d(TAG, "MATCH CONTEXTS: $matchContexts")
 
-            // 3) PREPARE TOOL RESPONSE:
-            if (updAttachments.playCandidates!!.isEmpty()) {
-                // Fallback:
-                retString = "Reply that you could not find any results. Ask the user if he/she wants to search for something else or to specify better what to search for."
-
-            } else if (updAttachments.playCandidates!!.size == 1) {
-                // Success -> one match:
-                retString = """
-                ${utils.capitalizeWords(playRequest.type)} found! Spotify ID: ${updAttachments.playCandidates!![0].id}.
-                Call tool 'tool_play' with this ID.
-                """.trimMargin()
+            // Fallback:
+            if (playRequest.type == "" || matchNames.isEmpty()) {
+                retString =
+                    "This tool was called with no input args: try again passing the correct input information."
 
             } else {
-                var candidateStr = ""
-                for (playable in updAttachments.playCandidates!!) {
-                    when (playable.type) {
-                        "artist" -> {
-                            candidateStr += "\n- spotifyId: ${playable.id}, name: ${playable.artist!!.name}"
-                        }
-
-                        "podcast" -> {
-                            candidateStr += "\n- spotifyId: ${playable.id}, name: ${playable.podcast!!.name}"
-                        }
-
-                        "playlist" -> {
-                            candidateStr += "\n- spotifyId: ${playable.id}, name: ${playable.playlist!!.name}, by: ${playable.playlist!!.owner}"   // TODO: Collection!!!
-                        }
-
-                        "album" -> {
-                            candidateStr += "\n- spotifyId: ${playable.id}, name: ${playable.album!!.name}, by: ${playable.album!!.artists.joinToString { it.name }}"
-                        }
-
-                        "track" -> {
-                            candidateStr += "\n- spotifyId: ${playable.id}, name: ${playable.track!!.name}, by: ${playable.track!!.artists.joinToString { it.name }}"
+                // 2) QUERY SPOTIFY:
+                updAttachments.playCandidates = mutableListOf<SpotifyPlayable>()
+                for (nameMatch in matchNames) {
+                    if (nameMatch.matchId != -1L) {
+                        // Add from library (no API search):
+                        updAttachments.playCandidates!!.add(
+                            libUtils.libItemToPlayable(
+                                libItem = libUtils.getLibItemById(nameMatch.matchId),
+                                matchScore = nameMatch.matchScore
+                            )
+                        )
+                    } else {
+                        // API search:
+                        if (matchDetails.isEmpty()) {
+                            // Query name only:
+                            val queryAPIReturn =
+                                queryAPI(playRequest.type, updAttachments, nameMatch.matchName)
+                            updAttachments = queryAPIReturn.attachments
+                            updAttachments.playCandidates!!.addAll(queryAPIReturn.candidates)
+                        } else {
+                            // Add artist filter:
+                            for (detailMatch in matchDetails) {
+                                val queryAPIReturn = queryAPI(
+                                    playRequest.type,
+                                    updAttachments,
+                                    nameMatch.matchName,
+                                    detailMatch.matchName
+                                )
+                                updAttachments = queryAPIReturn.attachments
+                                updAttachments.playCandidates!!.addAll(queryAPIReturn.candidates)
+                            }
                         }
                     }
                 }
-                if (candidateStr == "") {
+                // TODO: match context!
+
+                Log.d(TAG, "PLAY CANDIDATES: ${updAttachments.playCandidates}!!")
+
+                // 3) PREPARE TOOL RESPONSE:
+                if (updAttachments.playCandidates!!.isEmpty()) {
                     // Fallback:
                     retString =
                         "Reply that you could not find any results. Ask the user if he/she wants to search for something else or to specify better what to search for."
-                } else {
-                    // Success -> multiple matches:
+
+                } else if (updAttachments.playCandidates!!.size == 1) {
+                    // Success -> one match:
                     retString = """
-                        ${utils.capitalizeWords(playRequest.type)}s found:
-                        (don't read Spotify IDs to the user):
-                        [CANDIDATES]
-                       
-                        If you can clearly identify what the user is requesting among them, just call tool 'tool_play' with that result's Spotify ID.
-                        Otherwise, read to the user the most relevant results based on the query (in plain text, no markdown) and ask them which of these results they want to play.
-                        """.trimIndent()
-                    retString = retString.replace("[CANDIDATES]", candidateStr)
+                    ${utils.capitalizeWords(playRequest.type)} found! Spotify ID: ${updAttachments.playCandidates!![0].id}.
+                    Call tool 'tool_play' with this ID.
+                    """.trimMargin()
+
+                } else {
+                    var candidateStr = ""
+                    for (playable in updAttachments.playCandidates!!) {
+                        when (playable.type) {
+                            "artist" -> {
+                                candidateStr += "\n- spotifyId: ${playable.id}, name: ${playable.artist!!.name}"
+                            }
+
+                            "podcast" -> {
+                                candidateStr += "\n- spotifyId: ${playable.id}, name: ${playable.podcast!!.name}"
+                            }
+
+                            "playlist" -> {
+                                candidateStr += "\n- spotifyId: ${playable.id}, name: ${playable.playlist!!.name}, by: ${playable.playlist!!.owner}"   // TODO: Collection!!!
+                            }
+
+                            "album" -> {
+                                candidateStr += "\n- spotifyId: ${playable.id}, name: ${playable.album!!.name}, by: ${playable.album!!.artists.joinToString { it.name }}"
+                            }
+
+                            "track" -> {
+                                candidateStr += "\n- spotifyId: ${playable.id}, name: ${playable.track!!.name}, by: ${playable.track!!.artists.joinToString { it.name }}"
+                            }
+                        }
+                    }
+                    if (candidateStr == "") {
+                        // Fallback:
+                        retString =
+                            "Reply that you could not find any results. Ask the user if he/she wants to search for something else or to specify better what to search for."
+                    } else {
+                        // Success -> multiple matches:
+                        retString = """
+                            ${utils.capitalizeWords(playRequest.type)}s found:
+                            (don't read Spotify IDs to the user):
+                            [CANDIDATES]
+                           
+                            If you can clearly identify what the user is requesting among them, just call tool 'tool_play' with that result's Spotify ID.
+                            Otherwise, read to the user the most relevant results based on the query (in plain text, no markdown) and ask them which of these results they want to play.
+                            """.trimIndent()
+                        retString = retString.replace("[CANDIDATES]", candidateStr)
+                    }
                 }
             }
         }
@@ -335,7 +350,13 @@ class ToolPlay(
     override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
         val spotifyID: String = (args["spotify_id"]?.jsonPrimitive?.content ?: "")
 
-        if (spotifyID == "" || attachments.playCandidates == null) {
+        if (spotifyLoggedIn.value != true) {
+            return ToolResponse(
+                message = "Tell the user that you're sorry, but the user must first connect the DJames app to Spotify, he can do it in the app when he's not driving. Do NOT ask further questions to the user.",
+                attachments = attachments,
+            )
+
+        } else if (spotifyID == "" || attachments.playCandidates == null) {
             Log.w(TAG, "ERROR: ToolPlay invoked with either missing spotifyID ($spotifyID) or attachments!")
             return ToolResponse(
                 message = "Reply that there was a problem. Do NOT ask further questions to the user.",

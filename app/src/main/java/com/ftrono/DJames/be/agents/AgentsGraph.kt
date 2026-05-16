@@ -7,29 +7,28 @@ import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.START
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.defaultChatWait
+import com.ftrono.DJames.application.lastAiMessageText
+import com.ftrono.DJames.application.lastUserMessageText
 import com.ftrono.DJames.application.lastStarterId
 import com.ftrono.DJames.application.messageUtils
 import com.ftrono.DJames.application.minSpeechPct
 import com.ftrono.DJames.application.mistralLlmModelSmall
 import com.ftrono.DJames.application.mistralSttModel
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.nodes.CallAgentNode
 import com.ftrono.DJames.be.agents.nodes.DriverAgentNode
 import com.ftrono.DJames.be.agents.nodes.GuidanceAgentNode
 import com.ftrono.DJames.be.agents.nodes.MainRouterNode
-import com.ftrono.DJames.be.agents.nodes.TextAgentNode
+import com.ftrono.DJames.be.agents.nodes.MessageTextAgentNode
 import com.ftrono.DJames.be.agents.nodes.PlayerAgentNode
-import com.ftrono.DJames.kaigraph.data.StateInfo
-import com.ftrono.DJames.kaigraph.graph.Graph
-import com.ftrono.DJames.kaigraph.llm.LlmAgent
-import com.ftrono.DJames.kaigraph.data.ChatMessage
-import com.ftrono.DJames.kaigraph.data.FinalizerReply
-import com.ftrono.DJames.be.agents.data.promptFinalizer
+import com.ftrono.DJames.kaigraph.StateInfo
+import com.ftrono.DJames.kaigraph.Graph
+import com.ftrono.DJames.kaigraph.LlmAgent
+import com.ftrono.DJames.kaigraph.ChatMessage
+import com.ftrono.DJames.kaigraph.FinalizerReply
 import com.ftrono.DJames.be.agents.nodes.MessageRouterNode
-import com.ftrono.DJames.be.agents.nodes.WAVoiceAgentNode
+import com.ftrono.DJames.be.agents.nodes.MessageVoiceAgentNode
 import com.ftrono.DJames.be.database.Attachments
-import com.ftrono.DJames.be.models.AiReply
 import com.ftrono.DJames.be.models.RecDetails
 import com.google.gson.JsonParser
 import java.io.BufferedReader
@@ -101,21 +100,21 @@ class AgentsGraph(
                     context = context,
                     apiKey = apiKey,
                     nextOptions = listOf(
-                        "WAVoiceAgent",
-                        "TextAgent",
-                        "MessageRouter",
+                        "MessageVoiceAgent",
+                        "MessageTextAgent",
+                        "MainRouter",
                     ),
                 ),
 
                 // LEVEL 2 - MESSAGE NODES:
-                TextAgentNode(
+                MessageTextAgentNode(
                     context = context,
                     apiKey = apiKey,
                     onComplete = END,
                     onFallback = "MainRouter",
                 ),
 
-                WAVoiceAgentNode(
+                MessageVoiceAgentNode(
                     context = context,
                     apiKey = apiKey,
                     onComplete = END,
@@ -161,7 +160,7 @@ class AgentsGraph(
         // Parse new message:
         // LLM version: transcribe only if voice and not voice message:
         var transcription = ""
-        if (updState.messageMode && updState.messageType == "voice") {
+        if (updState.voiceMessageMode) {
             transcription = "(voice message recorded)"
             Log.d(TAG, "Voice message recorded - no STT transcription.")
 
@@ -195,8 +194,7 @@ class AgentsGraph(
                 updState.isSilence = sttReturn.isSilence
                 updState.fail = sttReturn.fail
                 updState.reqLangCode = if (sttReturn.language != "") sttReturn.language else prefs.queryLanguage
-                updState.reqLangName = utils.getLanguageName(updState.reqLangCode)
-                Log.d(TAG, "TRANSCR. LANGUAGE: '${updState.reqLangCode}' - '${updState.reqLangName}'")
+                Log.d(TAG, "TRANSCR. LANGUAGE: '${updState.reqLangCode}'")
 
                 if (updState.isSilence) {
                     updState.noSave = true
@@ -213,6 +211,10 @@ class AgentsGraph(
 
         if (!updState.fail && !updState.isSilence) {
             // STATE: Append last user message (original) to conversation:
+            if (fromVoice) {
+                lastUserMessageText.postValue(transcription)
+                lastAiMessageText.postValue("...")
+            }
             updState.messages.add(
                 ChatMessage(role = "user", content = transcription)
             )
@@ -224,7 +226,7 @@ class AgentsGraph(
                 fromVoice = fromVoice,
                 isStart = isStart,
                 text = transcription,
-                intent = updState.intentName,
+                agentName = updState.agentName,
                 attachments = Attachments(),
             )
         }
@@ -306,29 +308,38 @@ class AgentsGraph(
             else -> updState.messages.last().content   // Actual reply
         }
 
-        // TEMP: for V2 compatibility:
-        updState.aiReplies = listOf(
-            AiReply(
-                text = updState.fullReply,
-                langCode = prefs.queryLanguage
-            )
-        )
+        // Safety check:
+        if (updState.fullReply == "") {
+            updState.fullReply = defaultReplies.replyError()
+            updState.fail = true
+            updState.interrupt = false
+            updState.next = END
+        }
 
         // Finalize process:
-        if (!updState.fail) {
-            val followUp = finalize(updState.fullReply.replace("*", ""))
-            updState.next = if (followUp && updState.next == END) {
-                updState.intentName
-            } else if (!followUp && updState.next != END) {
-                END
-            } else updState.next
-        }
+        if (updState.fail) {
+            // Fail:
+            updState.voiceMessageMode = false
+            updState.interrupt = false
+            updState.next = END
 
-        // End message mode:
-        if (updState.next == END) {
-            updState.messageMode = false
-        }
+        } else {
+            // Check with Finalizer agent:
+            val followUp = if (updState.fullReply.contains("?")) true else {
+                finalize(updState.fullReply.replace("*", ""))
+            }
+            if (followUp) {
+                // Follow-up -> interrupt:
+                updState.next = updState.agentName
+                updState.interrupt = true
 
+            } else {
+                // END:
+                updState.next = END
+                updState.interrupt = false
+                updState.voiceMessageMode = false
+            }
+        }
         return updState
     }
 }

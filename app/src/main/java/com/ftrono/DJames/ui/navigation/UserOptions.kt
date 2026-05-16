@@ -35,8 +35,6 @@ fun UserOptions(
     preview: Boolean = false
 ) {
     val extraOpenState by extraOpen.observeAsState()
-    val checkedV3 = remember { mutableStateOf(if (preview) true else prefs.enableV3) }
-
     var mDisplayMenu = rememberSaveable {
         mutableStateOf(false)
     }
@@ -82,16 +80,6 @@ fun UserOptions(
                         }
                         lastNavRoute = curNavRoute
                         mDisplayMenu.value = false
-                    }
-                )
-                //3) TODO: TEMP: Item: Enable / disable V3 engine:
-                OptionsItem(
-                    title = "Enable v3 engine",
-                    iconVector = Icons.Default.Check,
-                    showIcon = checkedV3.value,
-                    onClick = {
-                        prefs.enableV3 = !checkedV3.value
-                        checkedV3.value = !checkedV3.value
                     }
                 )
             }

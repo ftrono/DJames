@@ -23,10 +23,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.ftrono.DJames.application.curNavId
-import com.ftrono.DJames.application.innerNavOpen
 import com.ftrono.DJames.application.extraOpen
 import com.ftrono.DJames.application.screens.AccountsScreen
-import com.ftrono.DJames.application.screens.GuideScreen
 import com.ftrono.DJames.application.screens.HomeScreen
 import com.ftrono.DJames.application.screens.SettingsScreen
 import com.ftrono.DJames.application.screens.LibraryScreen
@@ -72,7 +70,6 @@ fun Navigation(
                 )
             }) {
             curNavId = 1
-            innerNavOpen.postValue(false)
             extraOpen.postValue(false)
             HomeScreen(navController, chatManager, sharedViewModel, preview)
         }
@@ -95,7 +92,6 @@ fun Navigation(
                 )
             }) {
             curNavId = 0
-            innerNavOpen.postValue(false)
             extraOpen.postValue(false)
             LibraryScreen(navController, preview=preview)
         }
@@ -118,7 +114,6 @@ fun Navigation(
                 )
             }) {
             curNavId = 2
-            innerNavOpen.postValue(false)
             extraOpen.postValue(false)
             MessagesScreen(navController, chatManager, sharedViewModel, preview)
         }
@@ -135,7 +130,6 @@ fun Navigation(
             }
         ) {
             curNavId = 0
-            innerNavOpen.postValue(false)
             extraOpen.postValue(true)
             AccountsScreen(navController, preview)
         }
@@ -151,25 +145,8 @@ fun Navigation(
             }
         ) {
             curNavId = 0
-            innerNavOpen.postValue(false)
             extraOpen.postValue(true)
             SettingsScreen(navController, preview)
-        }
-
-        //0 -> GUIDE:
-        composable(
-            NavigationItem.Guide.route,
-            enterTransition = {
-                scaleIn() + expandVertically(expandFrom = Alignment.Bottom)
-            },
-            exitTransition = {
-                scaleOut() + shrinkVertically(shrinkTowards = Alignment.Bottom)
-            }
-        ) {
-            curNavId = 0
-            innerNavOpen.postValue(false)
-            extraOpen.postValue(true)
-            GuideScreen(navController, preview)
         }
     }
 }

@@ -1,6 +1,8 @@
 package com.ftrono.DJames.ui.overlay
 
 import android.content.Context
+import android.content.res.Configuration
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -56,15 +58,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
@@ -81,12 +88,18 @@ import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.clickAnimationCountdownTime
 import com.ftrono.DJames.application.clickCounter
+import com.ftrono.DJames.application.overlayBoxMax
+import com.ftrono.DJames.application.overlayBoxMin
+import com.ftrono.DJames.application.overlayBubbleSize
 import com.ftrono.DJames.application.overlayOptionsStr
+import com.ftrono.DJames.application.overlayPos
+import com.ftrono.DJames.application.overlayTimeoutCenterWidth
+import com.ftrono.DJames.application.overlayTimeoutToeWidth
+import com.ftrono.DJames.application.overlayToeSize
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.raiseVolumeCountdownTime
 import com.ftrono.DJames.application.sourceIsVolume
 import com.ftrono.DJames.application.volumeUpEnabledUI
-import com.ftrono.DJames.be.models.QuickAction
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.theme.light_grey
 import kotlinx.coroutines.Job
@@ -112,7 +125,6 @@ fun PadsPreview1() {
         clickCounterState = clickCounterState,
         clockActiveState = clockActiveState,
         currentTime = MutableLiveData<String>("00:00"),
-        preview = true,
     )
 }
 
@@ -120,7 +132,7 @@ fun PadsPreview1() {
 @Composable
 fun PadsPreview2() {
     val mContext = LocalContext.current
-    val overlayPosState by remember { mutableStateOf("Right") }
+    val overlayPosState by remember { mutableStateOf("Left") }
     val clickCounterState by remember { mutableStateOf(2) }
     val clockActiveState by remember { mutableStateOf(false) }
 
@@ -131,13 +143,31 @@ fun PadsPreview2() {
         clickCounterState = clickCounterState,
         clockActiveState = clockActiveState,
         currentTime = MutableLiveData<String>("00:00"),
-        preview = true,
     )
 }
 
 @Preview
 @Composable
 fun PadsPreview3() {
+    val mContext = LocalContext.current
+    val overlayPosState by remember { mutableStateOf("Right") }
+    val clickCounterState by remember { mutableStateOf(2) }
+    val clockActiveState by remember { mutableStateOf(false) }
+
+    DJamesPads(
+        context = mContext,
+        queryStatus = MutableLiveData<String>("ready"),
+        isDocked = true,
+        overlayPosState = overlayPosState,
+        clickCounterState = clickCounterState,
+        clockActiveState = clockActiveState,
+        currentTime = MutableLiveData<String>("00:00"),
+    )
+}
+
+@Preview
+@Composable
+fun PadsPreview4() {
     val mContext = LocalContext.current
     val overlayPosState by remember { mutableStateOf("Right") }
     val clickCounterState by remember { mutableStateOf(0) }
@@ -150,7 +180,26 @@ fun PadsPreview3() {
         clickCounterState = clickCounterState,
         clockActiveState = clockActiveState,
         currentTime = MutableLiveData<String>("00:00"),
-        preview = true,
+        previewCenter = true,
+    )
+}
+
+@Preview
+@Composable
+fun PadsPreview5() {
+    val mContext = LocalContext.current
+    val overlayPosState by remember { mutableStateOf("Right") }
+    val clickCounterState by remember { mutableStateOf(0) }
+    val clockActiveState by remember { mutableStateOf(false) }
+
+    DJamesPads(
+        context = mContext,
+        queryStatus = MutableLiveData<String>("ready"),
+        overlayPosState = overlayPosState,
+        clickCounterState = clickCounterState,
+        clockActiveState = clockActiveState,
+        currentTime = MutableLiveData<String>("00:00"),
+        previewVolume = true,
     )
 }
 
@@ -160,31 +209,33 @@ fun DJamesPads(
     context: Context,
     modifier: Modifier = Modifier,
     queryStatus: MutableLiveData<String>,
+    isDocked: Boolean = false,
     overlayPosState: String,
     clickCounterState: Int,
     clockActiveState: Boolean,
     currentTime: MutableLiveData<String>,
-    centerSize: Int = 100,
-    toeSize: Int = 70,
-    targetRadius: Dp = 40.dp,   // distance from center pad to toes
+    centerSize: Int = overlayBubbleSize,
+    toeSize: Int = overlayToeSize,
+    targetRadius: Dp = 44.dp,   // distance from center pad to toes
     interval: Float = 50f,   // distance between each toe angle
-    preview: Boolean = false,
+    previewCenter: Boolean = false,
+    previewVolume: Boolean = false,
     onToesTapCommon: (Offset) -> Unit = { offset -> },
     onCenterTap: (Offset) -> Unit = { offset -> },
 ) {
     // Parameters & states:
     val mContext = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
+
     val currentTimeState by currentTime.observeAsState()
-    val sourceIsVolumeState by sourceIsVolume.observeAsState()
     val overlayOptionsState by overlayOptionsStr.observeAsState()
-    val overlayOptions = overlayOptionsState!!.split(", ")
 
     // Colours:
     val colorBgActive = colorResource(R.color.colorAccentMid)
-    val colorBgInactive = colorResource(R.color.faded_grey)
+    val colorBgInactive = colorResource(R.color.dark_grey)
     val colorIconActive = colorResource(R.color.light_grey)
     val colorIconInactive = colorResource(R.color.light_grey)
-    val colorCardActive = colorResource(R.color.colorPrimary)
     val colorTimeoutActive = colorResource(R.color.light_grey)
 
     // Animate radius based on expansion state:
@@ -193,6 +244,18 @@ fun DJamesPads(
         animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
         label = "toeRadius"
     )
+
+    LaunchedEffect(clockActiveState, isLandscape) {
+        if (isDocked && isLandscape) {
+            overlayOptionsStr.postValue("speak, save, volume, pos")
+        } else if (isDocked) {
+            overlayOptionsStr.postValue("speak, save, volume")
+        } else if (clockActiveState) {
+            overlayOptionsStr.postValue("speak, save")
+        } else {
+            overlayOptionsStr.postValue("speak, save, clock")
+        }
+    }
 
     // Bounding box:
     Box(
@@ -203,19 +266,29 @@ fun DJamesPads(
                     end = if (overlayPosState == "Right") 4.dp else 0.dp,
                 )
                 .width(
-                    if (overlayPosState == "Right" && sourceIsVolumeState!!) 370.dp else 300.dp
+                    if (isDocked) overlayBoxMax.dp else overlayBoxMin.dp
                 )
-                .height(300.dp)
+                .height(
+                    if (isDocked) overlayBoxMin.dp else overlayBoxMax.dp
+                )
         } else modifier,
-        contentAlignment = if (overlayPosState == "Right") Alignment.CenterEnd else Alignment.CenterStart,
+        contentAlignment = if (isDocked && !isLandscape) {
+            Alignment.BottomCenter
+        } else if (overlayPosState == "Right") {
+            Alignment.CenterEnd
+        } else {
+            Alignment.CenterStart
+        },
     ) {
 
         // TOES PADS:
         // Calculate toes position (min 2 toes, max 5 toes):
+        val overlayOptions = overlayOptionsState!!.split(", ")
         var angles = getToesPositions(
             size = overlayOptions.size,
             interval = interval,
-            posRight = overlayPosState == "Right"
+            posRight = overlayPosState == "Right",
+            bottomDocked = isDocked && !isLandscape,
         )
 
         // Place N toes along a semi-circle on the left:
@@ -250,7 +323,7 @@ fun DJamesPads(
                     colorActive = colorIconActive,
                     colorInactive = colorIconInactive,
                     currentTimeState = currentTimeState!!,
-                    short = overlayPosState == "Right" && sourceIsVolumeState!!,
+                    overlayPosState = overlayPosState,
                 )
 
                 Row(
@@ -260,39 +333,22 @@ fun DJamesPads(
                     verticalAlignment = Alignment.CenterVertically,
                 )
                 {
-                    if (isActive && overlayPosState == "Right") {
-                        QuickActionDescription(
-                            curAction = curAction,
-                            backgroundColor = colorCardActive,
-                            textColor = colorIconInactive,
-                            posRight = true,
-                        )
-                    }
-
                     TimeoutButton (
                         modifier = Modifier
                             .zIndex(1f),
                         isActive = isActive,
+                        title = curAction.title,
                         backgroundColor = if (isActive) colorBgActive else colorBgInactive,
+                        itemColor = if (isActive) colorIconActive else colorIconInactive,
                         timeoutColor = colorTimeoutActive,
                         bubbleSize = toeSize.dp,
-                        timeoutWidth = 7.dp,
-                        enlarge = true,
+                        timeoutWidth = overlayTimeoutToeWidth.dp,
                         onTap = {
                             clickCounter.postValue(isState)
                             onToesTapCommon(it)
                         }
                     ) {
                         curAction.content()
-                    }
-
-                    if (isActive && overlayPosState == "Left") {
-                        QuickActionDescription(
-                            curAction = curAction,
-                            backgroundColor = colorCardActive,
-                            textColor = colorIconInactive,
-                            posRight = false,
-                        )
                     }
                 }
             }
@@ -303,7 +359,8 @@ fun DJamesPads(
             context = context,
             bubbleSize = centerSize,
             toeSize = toeSize+4,
-            toeOffset = 22,
+            toeOffset = 26,
+            isDocked = isDocked,
             queryStatus = queryStatus,
             clickCounterState = clickCounterState,
             clockActiveState = clockActiveState,
@@ -313,7 +370,8 @@ fun DJamesPads(
             colorBgActive = colorBgActive,
             colorBgInactive = colorBgInactive,
             colorTimeout = colorTimeoutActive,
-            preview = preview,
+            previewFull = previewCenter,
+            previewVolume = previewVolume,
             onClockTap = {
                 getQuickActionOnTap(context = mContext, name = "clock")()
             },
@@ -326,55 +384,20 @@ fun DJamesPads(
 
 
 @Composable
-fun QuickActionDescription(
-    curAction: QuickAction,
-    backgroundColor: Color,
-    textColor: Color,
-    posRight: Boolean
-) {
-    Card(
-        modifier = Modifier
-            .offset(x = if (posRight) 6.dp else (-6).dp),
-        shape = RoundedCornerShape(
-            topStart = if (posRight) 20.dp else 0.dp,
-            bottomStart = if (posRight) 20.dp else 0.dp,
-            topEnd = if (posRight) 0.dp else 20.dp,
-            bottomEnd = if (posRight) 0.dp else 20.dp,
-        ),
-        colors = CardDefaults.cardColors(
-            containerColor = backgroundColor
-        )
-    ) {
-        Text(
-            modifier = Modifier
-                .padding(
-                    start = 20.dp,
-                    end = 20.dp,
-                    top = 8.dp,
-                    bottom = 8.dp
-                ),
-            text = curAction.description.uppercase(),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            color = textColor
-        )
-    }
-}
-
-
-@Composable
 fun TimeoutButton(
     modifier: Modifier = Modifier,
     isActive: Boolean,
-    bubbleSize: Dp = 100.dp,
-    timeoutWidth: Dp = 8.dp,
+    isCircle: Boolean = false,
+    title: String = "",
+    bubbleSize: Dp = overlayBubbleSize.dp,
+    timeoutWidth: Dp = overlayTimeoutCenterWidth.dp,
     backgroundColor: Color,
+    itemColor: Color? = null,
     timeoutColor: Color,
     timeoutMs: Int = clickAnimationCountdownTime,
-    enlarge: Boolean = false,
     onTap: (Offset) -> Unit = { offset -> },
     onTimeout: () -> Unit = {},
+    cornerRadius: Dp = 20.dp,
     icon: @Composable () -> Unit = {}
 ) {
     // States:
@@ -411,7 +434,7 @@ fun TimeoutButton(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .size(if (enlarge && isActive) bubbleSize + 10.dp else bubbleSize)
+            .size(bubbleSize)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
@@ -422,22 +445,107 @@ fun TimeoutButton(
     ) {
         // Background circle
         Canvas(modifier = Modifier.matchParentSize()) {
-            drawCircle(color = backgroundColor)
+            if (isCircle) {
+                drawCircle(color = backgroundColor)
+            } else {
+                drawRoundRect(
+                    color = backgroundColor,
+                    cornerRadius = CornerRadius(cornerRadius.toPx(), cornerRadius.toPx())
+                )
+            }
         }
 
         // Countdown arc
         if (isActive) {
-            Canvas(modifier = Modifier.matchParentSize()) {
-                drawArc(
-                    color = timeoutColor,
-                    startAngle = -90f,
-                    sweepAngle = -sweepAngle.value,
-                    useCenter = false,
-                    style = Stroke(width = timeoutWidth.toPx(), cap = StrokeCap.Round)
+            Canvas(
+                modifier = if (isCircle) {
+                    Modifier
+                        .fillMaxSize()
+                        .padding(5.dp)
+                } else {
+                    Modifier.matchParentSize()
+                }
+            ) {
+                if (isCircle) {
+                    // Circle arc:
+                    drawArc(
+                        color = timeoutColor,
+                        startAngle = -90f,
+                        sweepAngle = -sweepAngle.value,
+                        useCenter = false,
+                        style = Stroke(width = timeoutWidth.toPx(), cap = StrokeCap.Round)
+                    )
+
+                } else {
+                    // RoundedRect arc:
+                    val strokeWidth = timeoutWidth.toPx()
+                    val inset = strokeWidth / 2f
+
+                    val rect = Rect(
+                        left = inset,
+                        top = inset,
+                        right = size.width - inset,
+                        bottom = size.height - inset
+                    )
+
+                    val radius = cornerRadius.toPx().coerceAtMost(
+                        minOf(rect.width, rect.height) / 2f
+                    )
+
+                    val path = Path().apply {
+                        addRoundRect(
+                            RoundRect(
+                                rect = rect,
+                                cornerRadius = CornerRadius(radius, radius)
+                            )
+                        )
+                    }
+
+                    val pathMeasure = PathMeasure()
+                    pathMeasure.setPath(path, true)
+
+                    val progressPath = Path()
+                    val progress = sweepAngle.value / 360f
+                    val length = pathMeasure.length * progress
+
+                    pathMeasure.getSegment(
+                        startDistance = 0f,
+                        stopDistance = length,
+                        destination = progressPath,
+                        startWithMoveTo = true
+                    )
+
+                    drawPath(
+                        path = progressPath,
+                        color = timeoutColor,
+                        style = Stroke(
+                            width = strokeWidth,
+                            cap = StrokeCap.Round,
+                            join = StrokeJoin.Round
+                        )
+                    )
+                }
+            }
+        }
+
+        // Item visuals:
+        Column(
+            modifier = Modifier,
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            icon()
+            if (title != "" && itemColor != null) {
+                Text(
+                    modifier = Modifier
+                        .padding(top=6.dp),
+                    text = title,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = itemColor
                 )
             }
         }
-        icon()
     }
 }
 
@@ -448,6 +556,7 @@ fun CenterPad(
     bubbleSize: Int,
     toeSize: Int,
     toeOffset: Int,
+    isDocked: Boolean = false,
     queryStatus: MutableLiveData<String>,
     clickCounterState: Int,
     clockActiveState: Boolean,
@@ -459,10 +568,10 @@ fun CenterPad(
     colorTimeout: Color,
     onClockTap: (Offset) -> Unit,
     onCenterTap: (Offset) -> Unit,
-    preview: Boolean = false,
+    previewFull: Boolean = false,
+    previewVolume: Boolean = true,
 ) {
     val queryState by queryStatus.observeAsState()
-    val isRaiseVolumeActive = rememberSaveable { mutableStateOf(false) }   //HERE FOR PREVIEW!
     val volumeUpEnabledUIState by volumeUpEnabledUI.observeAsState()   // Use UI here, not the prefs!
 
     LaunchedEffect(queryState) {
@@ -477,7 +586,7 @@ fun CenterPad(
     ) {
 
         //CLOCK BUTTON:
-        if (!clockActiveState && clickCounterState == 0) {
+        if ((!isDocked && !clockActiveState && clickCounterState == 0) || previewFull) {
             ClockButton(
                 modifier = Modifier
                     .offset(y=toeOffset.dp),
@@ -491,20 +600,25 @@ fun CenterPad(
         TimeoutButton(
             modifier = Modifier
                 .zIndex(1f),
-            isActive = clickCounterState == 1,
+            isActive = (clickCounterState == 1 || queryState == "volume" || previewVolume),
+            isCircle = true,
             bubbleSize = bubbleSize.dp,
-            timeoutWidth = 8.dp,
+            timeoutWidth = overlayTimeoutCenterWidth.dp,
             backgroundColor = if (clickCounterState == 1) {
                 colorBgActive   // Center pad active
             } else if (clickCounterState > 0) {
                 colorBgInactive   // Toes active
             } else {
-                when (queryState) {
-                    "busy" -> {
+                when {
+                    (queryState == "volume" || previewVolume) -> {
+                        colorResource(id = R.color.yellowSignDark)
+                    }
+
+                    (queryState == "busy") -> {
                         colorResource(id = R.color.colorBusy)
                     }
 
-                    "processing" -> {
+                    (queryState == "processing") -> {
                         colorResource(id = R.color.faded_grey)
                     }
 
@@ -513,56 +627,72 @@ fun CenterPad(
                     }
                 }
             },
-            timeoutMs = clickAnimationCountdownTime,
+            timeoutMs = if (queryState == "volume") raiseVolumeCountdownTime else clickAnimationCountdownTime,
             timeoutColor = colorTimeout,
-            onTap = {
-//            if (clickCounterState != 1) {
-//                clickCounter.postValue(1)
-//            } else {
-//                clickCounter.postValue(0)
-//            }
-                onCenterTap(it)
+            onTap = { onCenterTap(it) },
+            onTimeout = {
+                if (queryState == "volume" && volumeUpEnabledUI.value!!) {
+                    // Re-enable volume-up trigger:
+                    queryStatus.postValue("ready")
+                    prefs.volumeUpEnabled = true   //THIS is used by EventReceiver!
+                }
             }
         ) {
-            if (clickCounterState > 0) {
-                // EXPANDED:
-                Icon(
-                    modifier = Modifier
-                        .size(50.dp),
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Cancel",
-                    tint = if (clickCounterState == 1) colorIconActive else colorIconInactive,
-                )
-            } else if (queryState == "processing") {
-                //PROCESSING:
-                CircularProgressIndicator(
-                    modifier = Modifier.width(40.dp),
-                    color = colorResource(id = R.color.light_grey),
-                    trackColor = colorResource(id = R.color.dark_grey),
-                    strokeWidth = 8.dp
-                )
-            } else if (queryState == "busy") {
-                //BUSY:
-                PulsatingWaveform()
-            } else {
-                //READY:
-                Image(
-                    modifier = Modifier
-                        .size(50.dp),
-                    painter = painterResource(id = R.drawable.djames),
-                    contentDescription = "DJames Overlay Bubble"
-                )
+            Column(
+                modifier = Modifier,
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (clickCounterState > 0) {
+                    // EXPANDED:
+                    Icon(
+                        modifier = Modifier
+                            .size(50.dp),
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cancel",
+                        tint = if (clickCounterState == 1) colorIconActive else colorIconInactive,
+                    )
+
+                } else if (queryState == "volume" || previewVolume) {
+                    // RAISE VOLUME:
+                    Text (
+                        modifier = Modifier,
+                        text = "RAISE\nVOLUME\nNOW!",
+                        textAlign = TextAlign.Center,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colorResource(id = R.color.light_grey)
+                    )
+
+                } else if (queryState == "processing") {
+                    //PROCESSING:
+                    CircularProgressIndicator(
+                        modifier = Modifier.width(40.dp),
+                        color = colorResource(id = R.color.light_grey),
+                        trackColor = colorResource(id = R.color.dark_grey),
+                        strokeWidth = 8.dp
+                    )
+                } else if (queryState == "busy") {
+                    //BUSY:
+                    PulsatingWaveform()
+
+                } else {
+                    //READY:
+                    Image(
+                        modifier = Modifier
+                            .size(50.dp),
+                        painter = painterResource(id = R.drawable.djames),
+                        contentDescription = "DJames Overlay Bubble"
+                    )
+                }
             }
         }
 
-        //CLOCK BUTTON:
-        if (volumeUpEnabledUIState!! && clickCounterState == 0) {
+        //VOLUME BUTTON:
+        if ((!isDocked && volumeUpEnabledUIState!! && clickCounterState == 0 && queryState != "volume") || previewFull) {
             RaiseVolumeButton(
-                isActive = isRaiseVolumeActive,
                 context = context,
-                modifier = Modifier,
                 size = toeSize,
-                preview = preview,
             )
         }
     }
@@ -623,109 +753,52 @@ fun ClockButton(
 
 
 @Composable
-fun VolumeContent(
-    isActive: MutableState<Boolean>,
-    iconSize: Dp = 20.dp,
-) {
-    Row (
-        modifier = Modifier
-            .padding(top=8.dp, bottom=8.dp)
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            modifier = Modifier
-                .padding(top=4.dp, bottom=4.dp)
-                .size(if (isActive.value) iconSize+5.dp else iconSize),
-            painter = painterResource(if (isActive.value) R.drawable.icon_unlock else R.drawable.icon_lock),
-            tint = colorResource(id = R.color.light_grey),
-            contentDescription = "Raise Volume"
-        )
-        Text (
-            modifier = Modifier
-                .padding(start=4.dp),
-            text = "RAISE\nVOLUME" + if (isActive.value) "\nNOW!" else "",
-            fontSize = if (isActive.value) 10.sp else 8.sp,
-            fontWeight = FontWeight.Bold,
-            //textAlign = TextAlign.Center,
-            color = if (isActive.value) colorResource(id = R.color.light_grey) else colorResource(id = R.color.mid_grey)
-        )
-    }
-}
-
-
-@Composable
 fun RaiseVolumeButton(
     context: Context,
-    isActive: MutableState<Boolean>,
-    modifier: Modifier = Modifier,
-    size: Int = 70,
-    preview: Boolean = false,
+    size: Int = overlayToeSize,
 ) {
 
-    // Colours:
-    val colorBgActive = colorResource(R.color.yellowSign)
-    val colorBgInactive = colorResource(R.color.colorPrimaryDark)
-    val colorTimeoutActive = colorResource(R.color.light_grey)
-
-    fun onTap() {
-        if (volumeUpEnabledUI.value!!) {   //THIS must not change!
-            // Disable volume-up trigger temporarily:
-            isActive.value = true
-            prefs.volumeUpEnabled = false   //THIS is used by EventReceiver!
-            if (isActive.value) {
-                Toast.makeText(context, "Raise volume now!", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    if (isActive.value) {
-        // ACTIVE UI:
-        TimeoutButton(
-            modifier = modifier
-                .padding(top = 2.dp, bottom = 2.dp),
-            isActive = isActive.value,
-            backgroundColor = if (isActive.value) colorBgActive else colorBgInactive,
-            timeoutColor = colorTimeoutActive,
-            timeoutMs = raiseVolumeCountdownTime,
-            bubbleSize = size.dp,
-            timeoutWidth = 5.dp,
-            enlarge = true,
-            onTap = { onTap() },
-            onTimeout = {
-                if (volumeUpEnabledUI.value!!) {
-                    // Re-enable volume-up trigger:
-                    isActive.value = false
-                    prefs.volumeUpEnabled = true   //THIS is used by EventReceiver!
-                }
+    Card(
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .width(size.dp)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    //ON SINGLE TAP:
+                    onTap = {
+                        getQuickActionOnTap(context, "volume")()
+                    }
+                )
             },
-        ) {
-            VolumeContent(
-                isActive = isActive,
-            )
-        }
-
-    } else {
-        // INACTIVE UI:
-        Card(
+        border = BorderStroke(0.5.dp, colorResource(id = R.color.faded_grey)),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors (
+            containerColor = colorResource(R.color.dark_grey_background)
+        )
+    ) {
+        Row (
             modifier = Modifier
-                .padding(top = 8.dp)
-                .width(size.dp)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        //ON SINGLE TAP:
-                        onTap = { onTap() }
-                    )
-                },
-            border = BorderStroke(0.5.dp, colorResource(id = R.color.faded_grey)),
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors (
-                containerColor = colorBgInactive
-            )
+                .padding(top = 8.dp, bottom = 8.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            VolumeContent(
-                isActive = isActive,
+            // Content:
+            Icon(
+                modifier = Modifier
+                    .padding(top = 4.dp, bottom = 4.dp)
+                    .size(20.dp),
+                painter = painterResource(R.drawable.icon_lock),
+                tint = colorResource(id = R.color.light_grey),
+                contentDescription = "Raise Volume"
+            )
+            Text (
+                modifier = Modifier
+                    .padding(start=4.dp),
+                text = "Volume",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = colorResource(id = R.color.light_grey)
             )
         }
     }
@@ -740,13 +813,13 @@ fun OverlayClose(
         modifier = Modifier
             .padding(bottom = 25.dp)
             .zIndex(1f),  //avoid the oval shape
-        signSize = 60.dp,
+        signSize = 80.dp,
         contentSize = 40,
-        backgroundColor = colorResource(R.color.transparent_grey),
-        borderColor = colorResource(id = R.color.light_grey),
-        contentColor = colorResource(id = R.color.light_grey),
+        backgroundColor = colorResource(R.color.greenSignLight),
+        borderColor = colorResource(id = R.color.greenSignLight),
+        contentColor = colorResource(id = R.color.colorPrimaryDark),
         borderWidth = 2.5.dp,
-        iconPainter = painterResource(R.drawable.arrow_down),
+        iconVector = Icons.Default.Close,
     )
 }
 

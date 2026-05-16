@@ -5,21 +5,19 @@ import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.defaultReplies
-import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.mistralLlmModelMedium
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.kaigraph.data.ChatMessage
-import com.ftrono.DJames.kaigraph.data.LlmReturn
-import com.ftrono.DJames.kaigraph.llm.LlmAgent
-import com.ftrono.DJames.kaigraph.data.StateInfo
-import com.ftrono.DJames.be.agents.data.handoffDescription
+import com.ftrono.DJames.kaigraph.ChatMessage
+import com.ftrono.DJames.kaigraph.LlmReturn
+import com.ftrono.DJames.kaigraph.LlmAgent
+import com.ftrono.DJames.kaigraph.StateInfo
+import com.ftrono.DJames.be.agents.handoffDescription
 import com.ftrono.DJames.be.agents.tools.*
-import com.ftrono.DJames.be.agents.fulfillment.GenericFulfillment
-import com.ftrono.DJames.kaigraph.node.Node
-import com.ftrono.DJames.kaigraph.tool.Tool
+import com.ftrono.DJames.kaigraph.Node
+import com.ftrono.DJames.kaigraph.Tool
 
 
-// (LLM-based) ReAct agent node:
+// ReAct agent node:
 class CallAgentNode (
     private val context: Context,
     private val apiKey: String,
@@ -113,43 +111,6 @@ class CallAgentNode (
         }
 
         updState = updateStateFromNode(updState, llmReturn)
-        return updState
-    }
-}
-
-
-// (Intent-based) Fulfillment node:
-class CallIntentNode (
-    private val context: Context,
-    override val onComplete: String = "",
-    override val onFallback: String = "",
-) : Node() {
-
-    override val TAG = this::class.java.simpleName
-    override val name: String = TAG.replace("Node", "")
-
-    override fun invoke(prevState: StateInfo): StateInfo {
-        Log.d(TAG, "$name activated")
-        var updState = prevState
-
-        // Fork:
-        var fulfillment = GenericFulfillment(context)
-        if (!utils.checkPermission(context, Manifest.permission.CALL_PHONE)) {
-            updState = fulfillmentUtils.fallback(updState, noPermission=true)
-        } else {
-            updState = fulfillment.contactRequest(updState)
-            updState.next = END   // Mono
-        }
-
-        // Update messages:
-        if (updState.aiReplies.isNotEmpty()) {
-            updState.messages.add(
-                ChatMessage(
-                    role = "assistant",
-                    content = updState.aiReplies.joinToString(" ") { it.text },
-                )
-            )
-        }
         return updState
     }
 }

@@ -70,8 +70,6 @@ class SpotifyLoginUtils {
                         Log.w(TAG, "Unable to retrieve user image: ", e)
                         prefs.spotUserImage = ""
                     }
-                    //Generate NLP user ID:
-                    prefs.nlpUserId = utils.generateRandomString(30, numOnly = true)
 
                     sleep(1000)
                     Log.d(TAG, "Spotify.me: success! User is enabled.")

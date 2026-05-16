@@ -1,20 +1,16 @@
-package com.ftrono.DJames.kaigraph.node
+package com.ftrono.DJames.kaigraph
 
 import android.content.Context
 import android.util.Log
+import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.datetimePromptFormat
 import com.ftrono.DJames.application.messageUtils
-import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.agents.data.promptDateStr
-import com.ftrono.DJames.be.agents.data.promptGenderStr
-import com.ftrono.DJames.be.agents.data.promptIntro
-import com.ftrono.DJames.be.agents.data.promptRouterIntro
-import com.ftrono.DJames.be.agents.data.promptRouterOut
-import com.ftrono.DJames.kaigraph.data.ChatMessage
-import com.ftrono.DJames.kaigraph.data.LlmReturn
-import com.ftrono.DJames.kaigraph.data.NodeType
-import com.ftrono.DJames.kaigraph.data.StateInfo
+import com.ftrono.DJames.be.agents.promptDateStr
+import com.ftrono.DJames.be.agents.promptGenderStr
+import com.ftrono.DJames.be.agents.promptIntro
+import com.ftrono.DJames.be.agents.promptRouterIntro
+import com.ftrono.DJames.be.agents.promptRouterOut
 
 open class Node() {
 
@@ -79,21 +75,18 @@ open class Node() {
         context: Context,
         llmReturn: LlmReturn,
         prevState: StateInfo,
-        updateIntent: Boolean = false,
     ): StateInfo {
         var updState = prevState
 
         if (llmReturn.next in nextOptions) {
             Log.d(TAG, "Routing to -> ${llmReturn.next}")
+            updState.agentName = llmReturn.next
             // Update last user message:
-            if (updateIntent) {
-                updState.intentName = if (llmReturn.next == "MessageRouter" || name == "MessageRouter") "MessageAgent" else llmReturn. next
-            }
             if (prevState.lastUserMsgId != 0L) {
                 messageUtils.updateMessage(
                     context = context,
                     id = prevState.lastUserMsgId,
-                    requestIntent = updState.intentName,
+                    agentName = updState.agentName,
                 )
             }
             // Route to next:

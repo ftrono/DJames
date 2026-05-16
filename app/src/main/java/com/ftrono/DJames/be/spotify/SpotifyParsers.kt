@@ -144,11 +144,9 @@ class SpotifyParsers() {
                 playable.playlist = spotifyParsers.extractPlaylist(itemJson)
             }
             "podcast" -> {
-                //TODO: add to Fulfillment!
                 playable.podcast = spotifyParsers.extractPodcast(itemJson)
             }
             "episode" -> {
-                //TODO: add to Fulfillment!
                 playable.episode = spotifyParsers.extractEpisodeFromPodcast(itemJson)
             }
         }

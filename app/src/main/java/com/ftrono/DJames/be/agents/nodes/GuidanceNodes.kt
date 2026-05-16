@@ -3,15 +3,15 @@ package com.ftrono.DJames.be.agents.nodes
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.mistralLlmModelSmall
-import com.ftrono.DJames.kaigraph.llm.LlmAgent
-import com.ftrono.DJames.kaigraph.data.StateInfo
-import com.ftrono.DJames.be.agents.data.handoffDescription
+import com.ftrono.DJames.kaigraph.LlmAgent
+import com.ftrono.DJames.kaigraph.StateInfo
+import com.ftrono.DJames.be.agents.handoffDescription
 import com.ftrono.DJames.be.agents.tools.*
-import com.ftrono.DJames.kaigraph.node.Node
-import com.ftrono.DJames.kaigraph.tool.Tool
+import com.ftrono.DJames.kaigraph.Node
+import com.ftrono.DJames.kaigraph.Tool
 
 
-// (LLM-based) ReAct agent node:
+// ReAct agent node:
 class GuidanceAgentNode (
     private val context: Context,
     private val apiKey: String,

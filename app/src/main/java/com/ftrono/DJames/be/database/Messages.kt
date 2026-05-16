@@ -1,6 +1,6 @@
 package com.ftrono.DJames.be.database
 
-import com.ftrono.DJames.kaigraph.data.ChatMessage
+import com.ftrono.DJames.kaigraph.ChatMessage
 import com.ftrono.DJames.be.models.EnumTypeConverter
 import com.ftrono.DJames.be.models.JsonConverter
 import com.ftrono.DJames.be.models.JsonListConverter
@@ -16,16 +16,6 @@ enum class ActionType {
 }
 class ActionTypeConverter : EnumTypeConverter<ActionType>(ActionType.entries.toTypedArray())
 
-@Serializable
-data class NlpQueryModel(
-    var recFile: String = "",
-    var language: String = "en",   // AudioLanguage
-    var queryText: String = "",
-    var intentName: String = "Fallback",
-    var artists: MutableList<String> = mutableListOf<String>(),
-    var genre: String = "",
-    var reqLanguage: String = "",
-)
 
 @Serializable
 data class UseRequest(
@@ -43,19 +33,6 @@ data class PlayRequest(
     var album: String = "",
     var playlist: String = "",
     var podcast: String = "",
-)
-
-@Serializable
-data class ExtractorInfo(
-    var reqLanguage: String = "",
-    var playType: String = "",
-    var matchExtracted: String = "",   //main text
-    var matchConfirmed: String = "",   //after match (for contacts / places)
-    var artistExtracted: String = "",   //original
-    var artistConfirmed: String = "",   //after match (store to search Spotify)
-    var contextType: String = "",
-    var contextExtracted: String = "",
-    var contextConfirmed: String = ""
 )
 
 
@@ -160,7 +137,7 @@ data class Message(
     var fromUser: Boolean = false,
     var text: String = "",
     var langCode: String = "",
-    var requestIntent: String = "",   // IntentName from the original request
+    var requestIntent: String = "",   // responding agentName
     var isStart: Boolean = false,
     var starterId: Long = 0,
     //Attachments management:
@@ -201,15 +178,6 @@ data class Attachments(
 
     @Convert(converter = SpotifyPlayableConverter::class, dbType = String::class)
     var spotifyPlay: SpotifyPlayable? = null,
-
-    // INTENTS:
-    var entityArtists: MutableList<String> = mutableListOf<String>(),   // Fulfillment-only
-
-    @Convert(converter = NlpQueryModelConverter::class, dbType = String::class)
-    var nlpQueries: MutableList<NlpQueryModel>? = null,   // Fulfillment-only
-
-    @Convert(converter = ExtractorInfoConverter::class, dbType = String::class)
-    var nlpExtractor: ExtractorInfo? = null,   // Fulfillment-only
 )
 
 
@@ -218,8 +186,6 @@ class PlayRequestConverter : JsonConverter<PlayRequest>(PlayRequest.serializer()
 class SpotifyPlayCandidatesConverter : JsonListConverter<SpotifyPlayable>(SpotifyPlayable.serializer())
 class UseRequestConverter : JsonConverter<UseRequest>(UseRequest.serializer())
 class UseCandidatesConverter : JsonListConverter<LibraryItem>(LibraryItem.serializer())
-class ExtractorInfoConverter : JsonConverter<ExtractorInfo>(ExtractorInfo.serializer())
 class SpotifyPlayableConverter : JsonConverter<SpotifyPlayable>(SpotifyPlayable.serializer())
-class NlpQueryModelConverter : JsonListConverter<NlpQueryModel>(NlpQueryModel.serializer())
 class SpotifyQueryModelConverter : JsonListConverter<SpotifyQueryModel>(SpotifyQueryModel.serializer())
 class ChatMessageConverter : JsonListConverter<ChatMessage>(ChatMessage.serializer())

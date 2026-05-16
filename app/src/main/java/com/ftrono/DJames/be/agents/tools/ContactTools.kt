@@ -9,18 +9,18 @@ import com.ftrono.DJames.application.maxSearchMatches
 import com.ftrono.DJames.application.midThreshold
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.chat.ActionsExecutor
-import com.ftrono.DJames.kaigraph.data.ToolDefinition
-import com.ftrono.DJames.kaigraph.data.ToolFunction
-import com.ftrono.DJames.kaigraph.data.ToolParameters
-import com.ftrono.DJames.kaigraph.data.ToolProperty
-import com.ftrono.DJames.kaigraph.data.ToolResponse
-import com.ftrono.DJames.kaigraph.data.ToolType
+import com.ftrono.DJames.kaigraph.ToolDefinition
+import com.ftrono.DJames.kaigraph.ToolFunction
+import com.ftrono.DJames.kaigraph.ToolParameters
+import com.ftrono.DJames.kaigraph.ToolProperty
+import com.ftrono.DJames.kaigraph.ToolResponse
+import com.ftrono.DJames.kaigraph.ToolType
 import com.ftrono.DJames.be.database.ActionType
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.database.PhoneSet
 import com.ftrono.DJames.be.database.UseRequest
-import com.ftrono.DJames.kaigraph.tool.Tool
+import com.ftrono.DJames.kaigraph.Tool
 import kotlinx.serialization.json.*
 
 

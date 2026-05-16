@@ -34,8 +34,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.messLangFull
-import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryLangFull
 import com.ftrono.DJames.application.queryLangCodes
@@ -328,12 +326,6 @@ fun DropdownSpinner(
                             state.value = selectionOption
                         } else if (prefName == "voiceAccent") {
                             prefs.voiceAccent = selectionOption
-                            state.value = selectionOption
-                        } else if (prefName == "messageLanguage") {
-                            prefs.messageLanguage = messLangCodes[messLangFull.indexOf(selectionOption)]
-                            state.value = selectionOption
-                        } else if (prefName == "placeLanguage") {
-                            prefs.placeLanguage = messLangCodes[messLangFull.indexOf(selectionOption)]
                             state.value = selectionOption
                         } else {
                             state.value = selectionOption

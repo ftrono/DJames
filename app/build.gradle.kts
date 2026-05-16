@@ -17,7 +17,7 @@ android {
         minSdk = 29
         targetSdk = 35
         versionCode = 1
-        versionName = "3.0.a11"
+        versionName = "3.0.1"
 
         manifestPlaceholders["appAuthRedirectScheme"] = "djames-oauth"
 
@@ -69,9 +69,6 @@ android {
             excludes.add("draftv3/*")
             excludes.add("draftv4/*")
             excludes.add("arrow-git.*")
-            excludes.add("protobuf-java")
-            excludes.add("com.google.protobuf:protobuf-javalite:3.25.1")
-            excludes.add("com.google.protobuf:protobuf-java:3.25.2")
         }
     }
 }
@@ -132,24 +129,6 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     //KotlinX-Serialization:
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
-    //DialogFlow:
-    implementation("com.google.cloud:google-cloud-dialogflow:4.40.0") {
-        exclude("org.apache.commons")
-        exclude("commons-logging")
-    }
-    //GRPC:
-    implementation("io.grpc:grpc-okhttp:1.61.0") {
-        exclude("com.google.protobuf")
-    }
-    implementation("io.grpc:grpc-protobuf-lite:1.61.0") {
-        exclude("com.google.protobuf")
-    }
-    implementation("io.grpc:grpc-stub:1.61.0") {
-        exclude("com.google.protobuf")
-    }
-    compileOnly("org.apache.tomcat:annotations-api:6.0.53") {
-        exclude("com.google.protobuf")
-    }
     //FuzzyWuzzy:
     implementation("me.xdrop:fuzzywuzzy:1.4.0")
     //AppAuth:

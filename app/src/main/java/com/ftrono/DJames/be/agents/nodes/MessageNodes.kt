@@ -1,27 +1,23 @@
 package com.ftrono.DJames.be.agents.nodes
 
-import android.Manifest
 import android.content.Context
 import android.util.Log
 import com.ftrono.DJames.application.END
 import com.ftrono.DJames.application.defaultReplies
-import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.mistralLlmModelMedium
 import com.ftrono.DJames.application.mistralLlmModelSmall
-import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.kaigraph.data.ChatMessage
-import com.ftrono.DJames.kaigraph.data.LlmReturn
-import com.ftrono.DJames.kaigraph.data.NodeType
-import com.ftrono.DJames.kaigraph.llm.LlmAgent
-import com.ftrono.DJames.kaigraph.data.StateInfo
+import com.ftrono.DJames.kaigraph.ChatMessage
+import com.ftrono.DJames.kaigraph.LlmReturn
+import com.ftrono.DJames.kaigraph.NodeType
+import com.ftrono.DJames.kaigraph.LlmAgent
+import com.ftrono.DJames.kaigraph.StateInfo
 import com.ftrono.DJames.be.agents.tools.*
-import com.ftrono.DJames.be.agents.fulfillment.GenericFulfillment
 import com.ftrono.DJames.be.database.ActionType
-import com.ftrono.DJames.kaigraph.node.Node
-import com.ftrono.DJames.kaigraph.tool.Tool
+import com.ftrono.DJames.kaigraph.Node
+import com.ftrono.DJames.kaigraph.Tool
 
 
-// (LLM-based) Message router node:
+// Message router node:
 class MessageRouterNode (
     private val context: Context,
     private val apiKey: String,
@@ -43,9 +39,9 @@ class MessageRouterNode (
             You have **only one task*: to **classify** the user request into **ONE of the following literal categories**.
 
             ## AVAILABLE CATEGORIES:
-            - "WAVoiceAgent" -> a Whatsapp voice/audio message (if the user asks for a "voice" or "audio" message or to "record" a message);
-            - "TextAgent" -> in any other case involving sending messages, like SMS and Whatsapp text messages, but NOT audio / voice messages);
-            - "MessageRouter" -> in any other case NOT involving messages or involving ending the conversation.
+            - "MessageVoiceAgent" -> a Whatsapp voice/audio message (if the user asks for a "voice" or "audio" message or to "record" a message);
+            - "MessageTextAgent" -> in any other case involving sending messages, like SMS and Whatsapp text messages, but NOT audio / voice messages);
+            - "MainRouter" -> in any other case NOT involving messages or involving ending the conversation.
         """.trimIndent()
         val inMessages = prepareInMessages(
             origMessages = prevState.messages,
@@ -72,8 +68,8 @@ class MessageRouterNode (
 }
 
 
-// (LLM-based) ReAct agent node:
-class TextAgentNode (
+// ReAct agent node:
+class MessageTextAgentNode (
     private val context: Context,
     private val apiKey: String,
     override val onComplete: String,
@@ -88,9 +84,6 @@ class TextAgentNode (
         Log.d(TAG, "${name} activated")
         var updState = prevState
         var llmReturn: LlmReturn? = null
-
-        // Control params:
-        updState.messageMode = true
 
         // Build prompt:
         val corePrompt = """
@@ -166,18 +159,13 @@ class TextAgentNode (
         )
 
         updState = updateStateFromNode(updState, llmReturn)
-        when (updState.actionType) {
-            ActionType.SMS -> updState.messageType = "sms"
-            ActionType.WA_TEXT -> updState.messageType = "wa_text"
-            else -> null
-        }
         return updState
     }
 }
 
 
-// (LLM-based) ReAct agent node:
-class WAVoiceAgentNode (
+// Deterministic agent node:
+class MessageVoiceAgentNode (
     private val context: Context,
     private val apiKey: String,
     override val onComplete: String,
@@ -192,10 +180,6 @@ class WAVoiceAgentNode (
         Log.d(TAG, "${name} activated")
         var updState = prevState
         var llmReturn: LlmReturn? = null
-
-        // Control params:
-        updState.messageMode = true
-        updState.messageType = "voice"
 
         if (!updState.fromVoice) {
             // Chat mode -> FAIL:
@@ -222,6 +206,7 @@ class WAVoiceAgentNode (
                         )
                     ),
                 )
+                updState.voiceMessageMode = true
 
             } else {
                 // Simulate LLM return:
@@ -235,48 +220,12 @@ class WAVoiceAgentNode (
                     ),
                 )
                 updState.playAcknowledge = true
-                updState.actionType = ActionType.WA_VOICE
+                llmReturn.attachments.actionType = ActionType.WA_VOICE
+                updState.voiceMessageMode = false
             }
         }
 
         updState = updateStateFromNode(updState, llmReturn)
-        return updState
-    }
-}
-
-
-// (Intent-based) Fulfillment node:
-class MessageIntentNode (
-    private val context: Context,
-    override val onComplete: String = "",
-    override val onFallback: String = "",
-) : Node() {
-
-    override val TAG = this::class.java.simpleName
-    override val name: String = TAG.replace("Node", "")
-
-    override fun invoke(prevState: StateInfo): StateInfo {
-        Log.d(TAG, "$name activated")
-        var updState = prevState
-
-        // Fork:
-        var fulfillment = GenericFulfillment(context)
-        if (!utils.checkPermission(context, Manifest.permission.SEND_SMS)) {
-            updState = fulfillmentUtils.fallback(updState, noPermission=true)
-        } else {
-            updState = if (updState.isStart) fulfillment.contactRequest(updState) else fulfillment.sendMessage2(prevState)
-            updState.next = if (updState.isStart) name else END
-        }
-
-        // Update messages:
-        if (updState.aiReplies.isNotEmpty()) {
-            updState.messages.add(
-                ChatMessage(
-                    role = "assistant",
-                    content = updState.aiReplies.joinToString(" ") { it.text },
-                )
-            )
-        }
         return updState
     }
 }

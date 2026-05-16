@@ -65,13 +65,23 @@ fun getTextFieldColors(
 }
 
 
-//LIBRARY:
+//MAIN:
 @Composable
-fun libColorSelector(
+fun colorSelector(
     cat: String
 ): Color {
     return when (cat) {
-        "spotify" -> colorResource(id = R.color.colorAccentMid)
+        // Modes:
+        "mobile" -> colorResource(R.color.colorAccentMid)
+        "car" -> colorResource(R.color.colorAccentMid)
+        // Guide:
+        "info" -> colorResource(id = R.color.colorPrimary)
+        "music" -> colorResource(R.color.yellowSign)
+        "phone" -> colorResource(R.color.greenSign)
+        "messages" -> colorResource(R.color.blueSign)
+        "gmaps" -> colorResource(R.color.brownSign)
+        // Library:
+        "spotify" -> colorResource(R.color.colorAccentMid)
         "artist" -> colorResource(id = R.color.blueSign)
         "album" -> colorResource(id = R.color.violetSign)
         "playlist" -> colorResource(id = R.color.yellowSign)
@@ -84,48 +94,27 @@ fun libColorSelector(
 
 
 @Composable
-fun libColorSelectorLight(
+fun colorSelectorLight(
     cat: String
 ): Color {
     return when (cat) {
-        "spotify" -> colorResource(id = R.color.colorAccentMid)
+        // Modes:
+        "mobile" -> colorResource(R.color.colorAccentMid)
+        "car" -> colorResource(R.color.colorAccentMid)
+        // Guide:
+        "info" -> colorResource(R.color.light_grey)
+        "music" -> colorResource(R.color.greenSignLight)
+        "phone" -> colorResource(R.color.colorAccentMid)
+        "messages" -> colorResource(R.color.blueSignLight)
+        "gmaps" -> colorResource(R.color.yellowSignLight)
+        // Library:
+        "spotify" -> colorResource(R.color.greenSignLight)
         "artist" -> colorResource(id = R.color.blueSignLight)
         "album" -> colorResource(id = R.color.violetSignLight)
         "playlist" -> colorResource(id = R.color.yellowSignLight)
         "podcast" -> colorResource(id = R.color.redSignLight)
         "contact" -> colorResource(id = R.color.greenSignLight)
         "place" -> colorResource(id = R.color.brownSignLight)
-        else -> colorResource(id = R.color.mid_grey)
-    }
-}
-
-
-//GUIDE:
-@Composable
-fun guideColorSelector(
-    cat: String
-): Color {
-    return when (cat) {
-        "calls" -> colorResource(id = R.color.greenSign)
-        "messages" -> colorResource(id = R.color.blueSign)
-        "places" -> colorResource(id = R.color.brownSign)
-        "car" -> colorResource(id = R.color.brownSign)
-        "play" -> colorResource(id = R.color.yellowSign)
-        else -> colorResource(id = R.color.midfaded_grey)
-    }
-}
-
-
-@Composable
-fun guideColorSelectorLight(
-    cat: String
-): Color {
-    return when (cat) {
-        "calls" -> colorResource(id = R.color.greenSignLight)
-        "messages" -> colorResource(id = R.color.blueSignLight)
-        "places" -> colorResource(id = R.color.brownSignLight)
-        "car" -> colorResource(id = R.color.brownSignLight)
-        "play" -> colorResource(id = R.color.yellowSignLight)
         else -> colorResource(id = R.color.mid_grey)
     }
 }

@@ -2,21 +2,16 @@ package com.ftrono.DJames.be.agents.nodes
 
 import android.content.Context
 import android.util.Log
-import com.ftrono.DJames.application.END
-import com.ftrono.DJames.application.fulfillmentUtils
 import com.ftrono.DJames.application.mistralLlmModelMedium
-import com.ftrono.DJames.application.spotifyLoggedIn
-import com.ftrono.DJames.kaigraph.data.ChatMessage
-import com.ftrono.DJames.kaigraph.llm.LlmAgent
-import com.ftrono.DJames.kaigraph.data.StateInfo
-import com.ftrono.DJames.be.agents.data.handoffDescription
+import com.ftrono.DJames.kaigraph.LlmAgent
+import com.ftrono.DJames.kaigraph.StateInfo
+import com.ftrono.DJames.be.agents.handoffDescription
 import com.ftrono.DJames.be.agents.tools.*
-import com.ftrono.DJames.be.agents.fulfillment.SpotifyFulfillment
-import com.ftrono.DJames.kaigraph.node.Node
-import com.ftrono.DJames.kaigraph.tool.Tool
+import com.ftrono.DJames.kaigraph.Node
+import com.ftrono.DJames.kaigraph.Tool
 
 
-// (LLM-based) ReAct agent node:
+// ReAct agent node:
 class PlayerAgentNode (
     private val context: Context,
     private val apiKey: String,
@@ -83,69 +78,6 @@ class PlayerAgentNode (
         )
 
         updState = updateStateFromNode(updState, llmReturn)
-        return updState
-    }
-}
-
-
-// (Intent-based) Fulfillment node:
-class PlayerIntentNode (
-    private val context: Context,
-    override val onComplete: String = "",
-    override val onFallback: String = "",
-) : Node() {
-
-    override val TAG = this::class.java.simpleName
-    override val name: String = TAG.replace("Node", "")
-
-    override fun invoke(prevState: StateInfo): StateInfo {
-        Log.d(TAG, "$name activated")
-        var updState = prevState
-        var intentName = updState.intentName
-
-        // Fork:
-        var spotify = SpotifyFulfillment(context)
-        if (!spotifyLoggedIn.value!!) {
-            updState = fulfillmentUtils.fallback(updState, notLoggedIn=true)
-        } else {
-            when (intentName) {
-                "PlaySong" -> {
-                    updState = if (updState.isStart) spotify.playItem1(updState) else spotify.playSongAlbum2(updState)
-                    updState.next = if (updState.isStart) name else END
-                }
-                "PlayAlbum" -> {
-                    updState = if (updState.isStart) spotify.playItem1(updState) else spotify.playSongAlbum2(updState)
-                    updState.next = if (updState.isStart) name else END
-                }
-                "PlayArtist" -> {
-                    updState = if (updState.isStart) spotify.playItem1(updState) else spotify.playArtistPlaylist2(updState)
-                    updState.next = if (updState.isStart) name else END
-                }
-                "PlayPlaylist" -> {
-                    updState = if (updState.isStart) spotify.playItem1(updState) else spotify.playArtistPlaylist2(updState)
-                    updState.next = if (updState.isStart) name else END
-                }
-                "PlayPodcast" -> {
-                    updState = if (updState.isStart) spotify.playItem1(updState) else spotify.playPodcast2(updState)
-                    updState.next = if (updState.isStart) name else END
-                }
-                "PlayCollection" -> {
-                    updState = spotify.playCollection(updState)   // Mono
-                    updState.next = END
-                }
-                else -> fulfillmentUtils.fallback(updState)
-            }
-        }
-
-        // Update messages:
-        if (updState.aiReplies.isNotEmpty()) {
-            updState.messages.add(
-                ChatMessage(
-                    role = "assistant",
-                    content = updState.aiReplies.joinToString(" ") { it.text },
-                )
-            )
-        }
         return updState
     }
 }

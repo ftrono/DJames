@@ -1,4 +1,4 @@
-package com.ftrono.DJames.kaigraph.data
+package com.ftrono.DJames.kaigraph
 
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.models.EnumTypeConverter

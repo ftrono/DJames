@@ -4,8 +4,6 @@ DJames is a vocal Spotify remote & smart driving assistant for Android. It makes
 
 DJames integrates a **self-made agentic orchestration library**, ***KAIGraph***, which I built for Kotlin, inspired by LangGraph.
 
-Earlier versions ( 1.* and 2.* ) used *Google Dialogflow* for Speech-to-Text and NLP, native Android TTS and custom NLP extraction and algorithms. Version 1.* was inially build using xmls instead of Jetpack Compose.
-
 <img src="./app/src/main/res/drawable-nodpi/app_icon_round.png" alt="DJames" width="100"/>
 
 
@@ -13,7 +11,18 @@ Earlier versions ( 1.* and 2.* ) used *Google Dialogflow* for Speech-to-Text and
 DJames is supported by **Android >= 10**.
 
 
-## Versions history
+## Major versions history
+**Version 3.*** **(alpha 8/2025, major 4/2026)** - BE based on *KAIGraph* for agents orchestration, *Mistral AI* for LLM APIs, *ElevenLabs* for TTS APIs, *Spotify* APIs, *ObjectBox* for DBs; FE based on *Jetpack Compose*.
+
+**Version 2.*** **(major 8/2024)** - BE based on *Google Dialogflow* for Speech-to-Text and NLP, native *Android TTS* and custom NLP extraction and algorithms, *Spotify* APIs, *ObjectBox* for DBs; FE based on *Jetpack Compose*.
+
+**Version 1.*** **(alpha 12/2023, major 2/2024)** - BE based on *Google Dialogflow* for Speech-to-Text and NLP, custom NLP extraction and algorithms, *Spotify* APIs; FE based on xmls.
+
+
+## All versions history
+**Version 3.0.1 (2026-05-05)** - New UI for Home Screen & Overlay button (WIP).
+
+**Version 3.0.0 (2026-04-26)** - First V3-only version. Kept v3.0.alpha's UI.
 
 **Version 3.0.a11 (2026-04-25)** - V3 FINALIZED! Reworked all Graph nodes. Add new ElevenLabs TTS voice for V3. Starts repackaging agentic library as KAIGraph (WIP). Last version with co-existing IntentGraph & AgentGraph.
 

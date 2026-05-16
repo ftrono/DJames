@@ -5,7 +5,6 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.be.models.AiReply
 import kotlinx.coroutines.runBlocking
 import java.util.Locale
 import kotlin.coroutines.resume
@@ -48,43 +47,18 @@ class TTSReader(
 
     fun speak(
         message: String,
-        aiReplies: List<AiReply> = listOf(),
         isIntro: Boolean = false,
     ) {
         val text = utils.cleanString(message, emojiOnly = true)
         runBlocking {
-            if (!prefs.enableV3) {
-                // (TEMP) V2 compatibility:
-                if (aiReplies.isNotEmpty()) {
-                    for (aiReply in aiReplies) {
-                        ttsReadNative(
-                            context = context,
-                            message = aiReply.text,
-                            langCode = aiReply.langCode,
-                        )
-                    }
-                } else {
-                    ttsReadNative(
-                        context = context,
-                        message = text,
-                        langCode = prefs.queryLanguage,
-                    )
-                }
-
-            // } else if (isIntro) {
-            //     ttsReadFile(message)
-
-            } else {
-                // Read V3:
-                try {
-                    ttsReadApi(message, isIntro)
-                } catch (e: Exception) {
-                    ttsReadNative(
-                        context = context,
-                        message = text,
-                        langCode = prefs.queryLanguage,
-                    )
-                }
+            try {
+                ttsReadApi(message, isIntro)
+            } catch (e: Exception) {
+                ttsReadNative(
+                    context = context,
+                    message = text,
+                    langCode = prefs.queryLanguage,
+                )
             }
         }
     }

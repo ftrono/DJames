@@ -98,7 +98,7 @@ class MessageUtils {
         fromVoice: Boolean = false,
         isStart: Boolean = false,
         text: String,
-        intent: String = "",
+        agentName: String = "",
         actionType: ActionType? = null,
         attachments: Attachments = Attachments(),
     ): Long {
@@ -116,7 +116,7 @@ class MessageUtils {
                     text = text,
                     fromVoice = fromVoice,
                     langCode = langCode,
-                    requestIntent = intent,
+                    requestIntent = mapAgentToIntent(agentName),
                     actionType = actionType,
                     attachments = attachments
                 )
@@ -147,14 +147,13 @@ class MessageUtils {
         context: Context,
         id: Long,
         langCode: String = "",
-        requestIntent: String = "",
+        agentName: String = "",
         isStart: Boolean = false,
     ) {
         try {
             val message = messageBox!!.get(id)
             message.langCode = if (langCode != "") langCode else message.langCode
-            message.requestIntent =
-                if (requestIntent != "") requestIntent else message.requestIntent
+            message.requestIntent = if (agentName != "") mapAgentToIntent(agentName) else message.requestIntent
             if (isStart) {
                 // NEW CONVERSATION:
                 lastStarterId = message.timestamp
@@ -348,17 +347,29 @@ class MessageUtils {
 
 
     //BUILD MESSAGE VIEW INFO:
+    // Map Agent name to Intent name:
+    fun mapAgentToIntent(agentName: String): String {
+        return when {
+            (agentName.contains("Call")) -> "CallRequest"
+            (agentName.contains("Message")) -> "MessageRequest"
+            (agentName.contains("Drive")) -> "DriveRequest"
+            (agentName.contains("Play")) -> "PlayRequest"
+            else -> agentName
+        }
+    }
+
+    // Build full detail string:
     fun buildExtraDetails(message: Message): String {
         var detailText = ""
         val trimLength = 40
         val intentName = message.requestIntent
         val attachments = message.attachments
 
-        if (message.actionType == ActionType.WA_VOICE && intentName.contains("Message")) {
+        if (message.actionType == ActionType.WA_VOICE && intentName == "MessageRequest") {
             detailText = "Type:  Whatsapp Voice"
 
         } else if (attachments.usable != null) {
-            if (intentName.contains("Call") || intentName.contains("Message")) {
+            if (intentName == "CallRequest" || intentName == "MessageRequest") {
                 //Calls & Messages:
                 val itemInfo = attachments.usable!!
                 val msgType = when (message.actionType) {
@@ -372,7 +383,7 @@ class MessageUtils {
                     detailText += "\nPhone:  ${itemInfo.phoneSet!!.prefix} ${itemInfo.phoneSet!!.phone}"
                 }
 
-            } else if (intentName.contains("Drive")) {
+            } else if (intentName == "DriveRequest") {
                 //Drive:
                 val itemInfo = attachments.usable!!
                 if (itemInfo.detail == "") {
@@ -388,7 +399,7 @@ class MessageUtils {
                 detailText += "\nMatch:  ${attachments.usable!!.matchScore}%"
             }
 
-        } else if (intentName.contains("Play") && attachments.spotifyPlay != null) {
+        } else if (intentName == "PlayRequest" && attachments.spotifyPlay != null) {
             //Play requests:
             val playable = attachments.spotifyPlay!!
 

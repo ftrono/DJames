@@ -21,8 +21,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -45,9 +43,6 @@ import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.appVersion
 import com.ftrono.DJames.application.copyrightYear
-import com.ftrono.DJames.application.extraOpen
-import com.ftrono.DJames.application.messLangFull
-import com.ftrono.DJames.application.messLangCodes
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryLangCodes
 import com.ftrono.DJames.application.queryLangFull
@@ -77,10 +72,8 @@ fun SettingsScreenPreview() {
 @Composable
 fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val mContext = LocalContext.current
-    val extraOpenState by extraOpen.observeAsState()
 
     // STATUSES:
-    val checkedV3 = remember { mutableStateOf(if (preview) true else prefs.enableV3) }
     val checkedNoise = remember { mutableStateOf(if (preview) true else prefs.enableNoiseSuppression) }
     val checkedSecondNoise = remember { mutableStateOf(if (preview) true else prefs.enableSecondNoiseSuppression) }
 
@@ -88,7 +81,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     var sliderRecFreqPos = remember { mutableStateOf(if (preview) 900f..2500f else prefs.recMinFreq.toFloat()..prefs.recMaxFreq.toFloat()) }
     var sliderSecNoiseDeltaPos = remember { mutableStateOf(if (preview) 500f else prefs.secondNoiseDelta.toFloat()) }
     var sliderRecTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.recTimeout.toFloat()) }
-    var sliderMessTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.messageTimeout.toFloat()) }
+    var sliderMessTimeoutPos = remember { mutableStateOf(if (preview) 60f else prefs.messageTimeout.toFloat()) }
     var sliderClockTimeoutPos = remember { mutableStateOf(if (preview) 10f else prefs.clockTimeout.toFloat()) }
 
     val checkedRecToDownloads = remember { mutableStateOf(if (preview) false else prefs.recToDownloads) }
@@ -99,9 +92,9 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val checkedClockRedirect = remember { mutableStateOf(if (preview) true else prefs.clockRedirectEnabled) }
     val checkedVolumeEnabled = remember { mutableStateOf(if (preview) true else prefs.volumeUpEnabled) }
 
+    val checkedIntro = remember { mutableStateOf(if (preview) true else prefs.enableIntro) }
     val queryLangState = rememberSaveable { mutableStateOf(if (preview) "English" else queryLangFull[queryLangCodes.indexOf(prefs.queryLanguage)]) }
     val voiceAccentState = rememberSaveable { mutableStateOf(if (preview) "British" else prefs.voiceAccent) }
-    val textMessLangState = rememberSaveable { mutableStateOf(if (preview) "English" else messLangFull[messLangCodes.indexOf(prefs.messageLanguage)]) }
 
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -142,39 +135,86 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
             horizontalAlignment = Alignment.Start,
         ) {
 
-            //SECTION: OVERLAY BUTTON:
+            //SECTION: VOICE & SYSTEM SETTINGS:
             SettingsSection(
                 modifier = Modifier
-                    .padding(top=8.dp, end=8.dp, bottom=4.dp),
-                title = "Overlay button",
+                    .padding(end=8.dp, bottom=4.dp),
+                title = "Voice & system",
                 signColor = colorResource(id = R.color.greenSign),
-                iconPainter = painterResource(id = R.drawable.icon_touch)
+                iconPainter = painterResource(id = R.drawable.icon_speak)
             ) {
+                // Voice language:
+                Text(
+                    modifier = Modifier
+                        .padding(bottom = 4.dp),
+                    text = "Default language",
+                    color = colorResource(id = R.color.light_grey),
+                    textAlign = TextAlign.Start,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                DropdownSpinner(
+                    context = mContext,
+                    parentOptions = queryLangFull,
+                    init = queryLangState.value,
+                    state = queryLangState,
+                    focusColorLight = colorResource(id = R.color.greenSignLight),
+                    focusColorDark = colorResource(id = R.color.greenSign),
+                    optionsBackground = colorResource(id = R.color.dark_grey),
+                    prefName = "queryLanguage",
+                    width = 200
+                )
 
-                //Auto Startup:
+                // Voice accent:
+                Text(
+                    modifier = Modifier
+                        .padding(bottom = 4.dp),
+                    text = "Voice accent",
+                    color = colorResource(id = R.color.light_grey),
+                    textAlign = TextAlign.Start,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                DropdownSpinner(
+                    context = mContext,
+                    parentOptions = ttsVoiceIdMap.keys.toList(),
+                    init = voiceAccentState.value,
+                    state = voiceAccentState,
+                    focusColorLight = colorResource(id = R.color.greenSignLight),
+                    focusColorDark = colorResource(id = R.color.greenSign),
+                    optionsBackground = colorResource(id = R.color.dark_grey),
+                    prefName = "voiceAccent",
+                    width = 200
+                )
+
+                //Android TTS settings:
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        modifier = Modifier.weight(1f),
-                        text = "Start Overlay when app is opened",
+                        text = "Android TTS settings",
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Switch(
-                        checked = checkedStartup.value,
-                        colors = getSwitchColors(
-                            color = colorResource(id = R.color.greenSign)
-                        ),
-                        onCheckedChange = {
-                            //UPDATE:
-                            checkedStartup.value = it
-                            prefs.autoStartup = it
+                    Spacer(Modifier.weight(1f))
+                    RoundedSign(
+                        signSize = 40.dp,
+                        contentSize = 20,
+                        backgroundColor = colorResource(id = R.color.greenSign),
+                        borderColor = colorResource(id = R.color.greenSign),
+                        contentColor = colorResource(id = R.color.light_grey),
+                        iconVector = Icons.AutoMirrored.Default.ArrowForward,
+                        clickable = true,
+                        onClick = {
+                            //Open system voice settings:
+                            val intent1 = Intent("com.android.settings.TTS_SETTINGS")
+                            mContext.startActivity(intent1)
                         }
                     )
                 }
@@ -212,28 +252,57 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         }
                     )
                 }
+
+                //Auto Startup:
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top=8.dp),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = "Start Overlay when app is opened",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Switch(
+                        checked = checkedStartup.value,
+                        colors = getSwitchColors(
+                            color = colorResource(id = R.color.greenSign)
+                        ),
+                        onCheckedChange = {
+                            //UPDATE:
+                            checkedStartup.value = it
+                            prefs.autoStartup = it
+                        }
+                    )
+                }
             }
 
 
-            //SECTION: VOICE QUERIES:
+            //SECTION: QUERY RECORDING:
             SettingsSection(
                 modifier = Modifier
                     .padding(end=8.dp, top=16.dp, bottom=4.dp),
-                title = "Voice queries",
+                title = "Query recording",
                 signColor = colorResource(id = R.color.yellowSign),
-                iconPainter = painterResource(id = R.drawable.icon_speak)
+                iconPainter = painterResource(id = R.drawable.icon_mic)
             ) {
-                //Experimental: Enable v3:
+                //Enable spoken intro:
                 Row(
                     modifier = Modifier
-                        .padding(bottom = 8.dp)
+                        .padding(bottom = 14.dp)
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = "Enable v3 (beta)",
+                        text = "Make DJames say hello\nbefore starting a voice query",
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
@@ -241,67 +310,23 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         fontWeight = FontWeight.Bold
                     )
                     Switch(
-                        checked = checkedV3.value,
+                        checked = checkedIntro.value,
                         colors = getSwitchColors(
                             color = colorResource(id = R.color.yellowSign)
                         ),
                         onCheckedChange = {
-                            checkedV3.value = it
-                            prefs.enableV3 = it
+                            checkedIntro.value = it
+                            prefs.enableIntro = it
                         }
                     )
                 }
-
-                // Voice language:
-                Text(
-                    modifier = Modifier
-                        .padding(bottom = 4.dp),
-                    text = "Default language",
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                DropdownSpinner(
-                    context = mContext,
-                    parentOptions = queryLangFull,
-                    init = queryLangState.value,
-                    state = queryLangState,
-                    focusColorLight = colorResource(id = R.color.yellowSignLight),
-                    focusColorDark = colorResource(id = R.color.yellowSign),
-                    optionsBackground = colorResource(id = R.color.dark_grey),
-                    prefName = "queryLanguage",
-                    width = 200
-                )
-
-                // Voice accent:
-                Text(
-                    modifier = Modifier
-                        .padding(bottom = 4.dp),
-                    text = "Voice accent",
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                DropdownSpinner(
-                    context = mContext,
-                    parentOptions = ttsVoiceIdMap.keys.toList(),
-                    init = voiceAccentState.value,
-                    state = voiceAccentState,
-                    focusColorLight = colorResource(id = R.color.yellowSignLight),
-                    focusColorDark = colorResource(id = R.color.yellowSign),
-                    optionsBackground = colorResource(id = R.color.dark_grey),
-                    prefName = "voiceAccent",
-                    width = 200
-                )
 
                 //Voice queries: Req timeout:
                 Text(
                     modifier = Modifier
                         .padding(bottom = 4.dp),
-                        //.padding(top=8.dp, bottom = 4.dp),
-                    text = "Timeout query recording after",
+                    //.padding(top=8.dp, bottom = 4.dp),
+                    text = "Timeout voice query recording after",
                     color = colorResource(id = R.color.light_grey),
                     textAlign = TextAlign.Start,
                     fontSize = 14.sp,
@@ -323,17 +348,17 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     }
                 )
 
-
                 //Voice queries: Silence detection:
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .padding(top=4.dp, bottom = 8.dp),
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = "Stop recording query\nwhen silence is detected",
+                        text = "Stop recording voice query\nwhen silence is detected",
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
@@ -351,48 +376,81 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         }
                     )
                 }
+            }
 
-                //Go to App Permissions:
+
+            //SECTION: VOICE MESSAGES:
+            SettingsSection(
+                modifier = Modifier
+                    .padding(end=8.dp, top=16.dp, bottom=4.dp),
+                title = "WhatsApp voice message",
+                signColor = colorResource(id = R.color.blueSign),
+                iconPainter = painterResource(id = R.drawable.logo_whatsapp)
+            ) {
+                //Mess timeout:
+                Text(
+                    modifier = Modifier
+                        .padding(top=8.dp, bottom=4.dp),
+                    text = "Timeout message recording after",
+                    color = colorResource(id = R.color.light_grey),
+                    textAlign = TextAlign.Start,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                CustomSlider(
+                    modifier =  Modifier
+                        .padding(top=4.dp),
+                    position = sliderMessTimeoutPos,
+                    range = 30f..120f,
+                    steps = 15,   // (max - min) / (steps + 1),
+                    unit = "seconds",
+                    trackColor = colorResource(R.color.blueSign),
+                    thumbColor = colorResource(R.color.blueSignLight),
+                    tickColor = colorResource(R.color.faded_grey),
+                    onDone = {
+                        // Update prefs:
+                        prefs.messageTimeout = sliderMessTimeoutPos.value.roundToInt()
+                    }
+                )
+
+                //Voice messages: Silence detection:
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 12.dp),
+                        .padding(top=4.dp, bottom=8.dp),
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Manage system voice",
+                        modifier = Modifier.weight(1f),
+                        text = "Stop recording WhatsApp voice\nmessage when silence is detected",
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
+                        lineHeight = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(Modifier.weight(1f))
-                    RoundedSign(
-                        signSize = 40.dp,
-                        contentSize = 20,
-                        backgroundColor = colorResource(id = R.color.yellowSign),
-                        borderColor = colorResource(id = R.color.yellowSign),
-                        contentColor = colorResource(id = R.color.light_grey),
-                        iconVector = Icons.AutoMirrored.Default.ArrowForward,
-                        clickable = true,
-                        onClick = {
-                            //Open system voice settings:
-                            val intent1 = Intent("com.android.settings.TTS_SETTINGS")
-                            mContext.startActivity(intent1)
+                    Switch(
+                        checked = checkedSilenceMess.value,
+                        colors = getSwitchColors(
+                            color = colorResource(id = R.color.blueSign)
+                        ),
+                        onCheckedChange = {
+                            checkedSilenceMess.value = it
+                            prefs.silenceEnabledMess = it
                         }
                     )
                 }
             }
 
 
-            //SECTION: AUDIO RECORDING:
+            //SECTION: NOISE FILTERING:
             SettingsSection(
                 modifier = Modifier
                     .padding(top=8.dp, end=8.dp, bottom=4.dp),
-                title = "Audio recording",
-                signColor = colorResource(id = R.color.violetSign),
-                iconPainter = painterResource(id = R.drawable.icon_mic)
+                title = "Noise filtering",
+                signColor = colorResource(id = R.color.brownSign),
+                iconPainter = painterResource(id = R.drawable.icon_headphones)
             ) {
                 //Experimental: Enable Noise Suppression:
                 Row(
@@ -414,7 +472,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     Switch(
                         checked = checkedNoise.value,
                         colors = getSwitchColors(
-                            color = colorResource(id = R.color.violetSign)
+                            color = colorResource(id = R.color.brownSign)
                         ),
                         onCheckedChange = {
                             checkedNoise.value = it
@@ -442,8 +500,8 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         range = recFreqRange,
                         steps = 15,   // (max - min) / (steps + 1),
                         unit = "Hz",
-                        trackColor = colorResource(R.color.violetSign),
-                        thumbColor = colorResource(R.color.violetSignLight),
+                        trackColor = colorResource(R.color.brownSign),
+                        thumbColor = colorResource(R.color.brownSignLight),
                         tickColor = colorResource(R.color.faded_grey),
                         onDone = {
                             // Update prefs:
@@ -473,7 +531,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         Switch(
                             checked = checkedSecondNoise.value,
                             colors = getSwitchColors(
-                                color = colorResource(id = R.color.violetSign)
+                                color = colorResource(id = R.color.brownSign)
                             ),
                             onCheckedChange = {
                                 checkedSecondNoise.value = it
@@ -502,8 +560,8 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             range = 0f..600f,
                             steps = 5,   // (max - min) / (steps + 1),
                             unit = "Hz",
-                            trackColor = colorResource(R.color.violetSign),
-                            thumbColor = colorResource(R.color.violetSignLight),
+                            trackColor = colorResource(R.color.brownSign),
+                            thumbColor = colorResource(R.color.brownSignLight),
                             tickColor = colorResource(R.color.faded_grey),
                             onDone = {
                                 // Update prefs:
@@ -512,127 +570,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         )
                     }
                 }
-            }
-
-
-            //SECTION: MESSAGING:
-            SettingsSection(
-                modifier = Modifier
-                    .padding(end=8.dp, top=16.dp, bottom=4.dp),
-                title = "Messaging",
-                signColor = colorResource(id = R.color.blueSign),
-                iconPainter = painterResource(id = R.drawable.icon_message)
-            ) {
-
-                //Mess language:
-                Text(
-                    modifier = Modifier
-                        .padding(bottom = 4.dp),
-                    text = "Default messaging language",
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                DropdownSpinner(
-                    context = mContext,
-                    parentOptions = messLangFull,
-                    init = textMessLangState.value,
-                    state = textMessLangState,
-                    focusColorLight = colorResource(id = R.color.blueSignLight),
-                    focusColorDark = colorResource(id = R.color.blueSign),
-                    optionsBackground = colorResource(id = R.color.dark_grey),
-                    prefName = "messageLanguage",
-                    width = 200
-                )
-
-                //Mess timeout:
-                Text(
-                    modifier = Modifier
-                        .padding(top = 8.dp, bottom = 4.dp),
-                    text = "Timeout message recording after",
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                CustomSlider(
-                    modifier =  Modifier
-                        .padding(top=4.dp),
-                    position = sliderMessTimeoutPos,
-                    range = 5f..20f,
-                    steps = 15,   // (max - min) / (steps + 1),
-                    unit = "seconds",
-                    trackColor = colorResource(R.color.blueSign),
-                    thumbColor = colorResource(R.color.blueSignLight),
-                    tickColor = colorResource(R.color.faded_grey),
-                    onDone = {
-                        // Update prefs:
-                        prefs.messageTimeout = sliderMessTimeoutPos.value.roundToInt()
-                    }
-                )
-
-
-                //Messages: Silence detection:
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = "Stop recording message\nwhen silence is detected",
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
-                        lineHeight = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Switch(
-                        checked = checkedSilenceMess.value,
-                        colors = getSwitchColors(
-                            color = colorResource(id = R.color.blueSign)
-                        ),
-                        onCheckedChange = {
-                            checkedSilenceMess.value = it
-                            prefs.silenceEnabledMess = it
-                        }
-                    )
-                }
-            }
-
-
-            //SECTION: PLACES:
-            SettingsSection(
-                modifier = Modifier
-                    .padding(end=8.dp, top=16.dp, bottom=4.dp),
-                title = "Places",
-                signColor = colorResource(id = R.color.brownSign),
-                iconPainter = painterResource(id = R.drawable.icon_place)
-            ) {
-
-                //Places language:
-                Text(
-                    modifier = Modifier
-                        .padding(bottom = 4.dp),
-                    text = "Places: default language",
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                DropdownSpinner(
-                    context = mContext,
-                    parentOptions = messLangFull,
-                    init = textMessLangState.value,
-                    state = textMessLangState,
-                    focusColorLight = colorResource(id = R.color.brownSignLight),
-                    focusColorDark = colorResource(id = R.color.brownSign),
-                    optionsBackground = colorResource(id = R.color.dark_grey),
-                    prefName = "placeLanguage",
-                    width = 200
-                )
             }
 
 

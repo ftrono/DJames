@@ -37,6 +37,7 @@ import java.util.Locale
 import java.util.Random
 import kotlin.streams.asSequence
 import androidx.core.content.edit
+import com.ftrono.DJames.R
 import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.userNicknameUI
 import java.time.LocalDate
@@ -155,6 +156,16 @@ class Utilities {
         return textTrimmed
     }
 
+    // Start activity:
+    fun openActivity(context: Context, cls: Class<*>, fromService: Boolean = false) {
+        val intent = Intent(context, cls)
+        intent.setFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        )
+        if (fromService) intent.putExtra("fromwhere", "ser")
+        context.startActivity(intent)
+    }
+
     //Make call:
     fun makeCall(context: Context, contactPhone: String, fromService: Boolean = false) {
         if (fromService) {
@@ -225,54 +236,62 @@ class Utilities {
         requestOverlayOn: MutableState<Boolean>,
         requestPermissions: MutableState<Boolean>,
         openClock: Boolean = false,
+        startOnly: Boolean = false,
     ) {
-        if (overlayActive.value == false) {
-            if (!Settings.canDrawOverlays(context)) {
-                // REQUEST OVERLAY PERMISSION:
-                requestOverlayOn.value = true
-                overlayActive.postValue(false)
+        try {
+            if (overlayActive.value == false) {
+                if (!Settings.canDrawOverlays(context)) {
+                    // REQUEST OVERLAY PERMISSION:
+                    requestOverlayOn.value = true
+                    overlayActive.postValue(false)
 
-            } else if (!checkPermission(context, Manifest.permission.RECORD_AUDIO)) {
-                Log.d("Home", "${checkPermission(context, Manifest.permission.RECORD_AUDIO)}")
-                // REQUEST MISSING PERMISSIONS:
-                requestPermissions.value = true
+                } else if (!checkPermission(context, Manifest.permission.RECORD_AUDIO)) {
+                    Log.d("Home", "${checkPermission(context, Manifest.permission.RECORD_AUDIO)}")
+                    // REQUEST MISSING PERMISSIONS:
+                    requestPermissions.value = true
 
-            } else {
-                //START DRIVE MODE:
-                requestOverlayOn.value = false
-                overlayActive.postValue(true)
-                //Overlay service:
-                if (!isMyServiceRunning(OverlayService::class.java, context)) {
-                    var intentOS = Intent(context, OverlayService::class.java)
-                    context.startService(intentOS)
-                    if (openClock) {
-                        if (prefs.volumeUpEnabled) {
-                            Toast.makeText(
-                                context,
-                                "Use the OVERLAY or VOLUME UP / SHUTTER button to speak!",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "Use the OVERLAY button to speak!",
-                                Toast.LENGTH_LONG
-                            ).show()
+                } else {
+                    //START DRIVE MODE:
+                    requestOverlayOn.value = false
+                    overlayActive.postValue(true)
+                    //Overlay service:
+                    if (!isMyServiceRunning(OverlayService::class.java, context)) {
+                        val intentOS = Intent(context, OverlayService::class.java)
+                        context.startService(intentOS)
+                        if (openClock) {
+                            if (prefs.volumeUpEnabled) {
+                                Toast.makeText(
+                                    context,
+                                    "Use the OVERLAY or VOLUME UP / SHUTTER button to speak!",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Use the OVERLAY button to speak!",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
                         }
                     }
+                    //Start Clock screen:
+                    if (openClock) {
+                        openActivity(context, ClockActivity::class.java)
+                    }
                 }
+            } else if (startOnly && openClock) {
                 //Start Clock screen:
-                if (openClock) {
-                    val intent1 = Intent(context, ClockActivity::class.java)
-                    context.startActivity(intent1)
+                openActivity(context, ClockActivity::class.java)
+            } else {
+                //STOP DRIVE MODE:
+                overlayActive.postValue(false)
+                if (isMyServiceRunning(OverlayService::class.java, context)) {
+                    context.stopService(Intent(context, OverlayService::class.java))
                 }
             }
-        } else {
-            //STOP DRIVE MODE:
+        } catch (e: Exception) {
             overlayActive.postValue(false)
-            if (isMyServiceRunning(OverlayService::class.java, context)) {
-                context.stopService(Intent(context, OverlayService::class.java))
-            }
+            Log.d(TAG, "StartStopDriveMode ERROR: $e")
         }
     }
 
@@ -321,25 +340,31 @@ class Utilities {
         context: Context,
         jsonString: String
     ) {
-        val shPrefs = context.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
-        shPrefs.edit {
-            val json = JSONObject(jsonString)
+        try {
+            val shPrefs =
+                context.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+            shPrefs.edit {
+                val json = JSONObject(jsonString)
 
-            json.keys().forEach { key ->
-                when (val value = json.get(key)) {
-                    is Boolean -> putBoolean(key, value)
-                    is Int -> putInt(key, value)
-                    is Long -> putLong(key, value)
-                    is Double -> putFloat(key, value.toFloat())
-                    is String -> putString(key, value)
+                json.keys().forEach { key ->
+                    when (val value = json.get(key)) {
+                        is Boolean -> putBoolean(key, value)
+                        is Int -> putInt(key, value)
+                        is Long -> putLong(key, value)
+                        is Double -> putFloat(key, value.toFloat())
+                        is String -> putString(key, value)
+                    }
                 }
+
             }
 
-        }
+            // Profile info:
+            userNicknameUI.postValue(prefs.userNickname)
+            userGender.postValue(prefs.userGender)
 
-        // Profile info:
-        userNicknameUI.postValue(prefs.userNickname)
-        userGender.postValue(prefs.userGender)
+        } catch (e: Exception) {
+            Log.w(TAG, "Prefs import error: $e")
+        }
     }
 
 

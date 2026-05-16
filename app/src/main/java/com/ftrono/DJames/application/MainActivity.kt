@@ -19,6 +19,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -26,23 +29,28 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.MultiPermissionsHandler
+import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.services.OverlayService
 import com.ftrono.DJames.be.agents.chat.ChatManager
+import com.ftrono.DJames.be.models.SelectorItem
 import com.ftrono.DJames.ui.components.isKeyboardOpen
-import com.ftrono.DJames.ui.navigation.BottomNavigationBar
+import com.ftrono.DJames.ui.navigation.MainNavBar
 import com.ftrono.DJames.ui.navigation.Navigation
-import com.ftrono.DJames.ui.navigation.SideNavigationRail
 import com.ftrono.DJames.ui.theme.DJamesTheme
+import com.ftrono.DJames.ui.theme.NavigationItem
 import com.ftrono.DJames.ui.theme.windowBackground
 import java.io.File
 
@@ -117,26 +125,11 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        //NLP USER ID:
-        if (prefs.nlpUserId == "") {
-            prefs.nlpUserId = utils.generateRandomString(12)
-        }
+        // VolumeUp:
+        volumeUpEnabledUI.postValue(prefs.volumeUpEnabled)
 
         //AUTO START-UP:
-        if (
-            Settings.canDrawOverlays(context)
-            && utils.checkPermission(context, Manifest.permission.RECORD_AUDIO)
-            && prefs.autoStartup && !main_initialized && prefs.spotifyToken != ""
-            && !utils.isMyServiceRunning(OverlayService::class.java, context)
-            ) {
-            try {
-                var intentOS = Intent(context, OverlayService::class.java)
-                context.startService(intentOS)
-            } catch (e: Exception) {
-                Log.w(TAG, "Cannot auto-start Overlay Service. EXCEPTION: ", e)
-            }
-
-        }
+        startOverlay(context)
 
         //Done:
         overlayPos.postValue(prefs.overlayPosition)
@@ -171,8 +164,11 @@ class MainActivity : ComponentActivity() {
         val navController = rememberNavController()
         val configuration = LocalConfiguration.current
         val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
+        val overlayPosState by overlayPos.observeAsState()
+        val clickCounterState by clickCounter.observeAsState()
+        val queryState by queryStatus.observeAsState()
 
-        //PERMISSIONS HANDLER:
+        // PERMISSIONS HANDLER:
         val permsRequestedState by permsRequested.observeAsState()
         if (!permsRequestedState!!) {
             MultiPermissionsHandler(
@@ -180,9 +176,70 @@ class MainActivity : ComponentActivity() {
             )
         }
 
+        //Overlay permission management:
+        val requestOverlayOn = rememberSaveable { mutableStateOf(false) }
+        if (requestOverlayOn.value) {
+            DialogRequestOverlay(
+                mContext = mContext,
+                dialogOnState = requestOverlayOn
+            )
+        }
+        // Mic permissions management:
+        val requestPermissions = rememberSaveable { mutableStateOf(false) }
+        if (requestPermissions.value) {
+            SinglePermissionHandler(
+                context = mContext,
+                dialogOnState = requestPermissions,
+                permission = Manifest.permission.RECORD_AUDIO
+            )
+        }
+
+        //    //Notifications Listener permission management:
+//    val requestNotificationListenerOn = rememberSaveable { mutableStateOf(
+//        !utils.isNotificationServiceEnabled(mContext)
+//    ) }
+//    if (requestNotificationListenerOn.value) {
+//        DialogRequestNotificationListener(
+//            mContext = mContext,
+//            dialogOnState = requestNotificationListenerOn
+//        )
+//    }
+
         // ChatManager:
         val chatManager = ChatManager(mContext)
         chatManager.init()
+
+        // NavBar items:
+        // Default:
+        val navItemLeft = NavigationItem.Library
+        val navItemRight = NavigationItem.Messages
+        val navItemsDefault = mutableListOf(
+            SelectorItem(
+                id = navItemLeft.route,
+                title = navItemLeft.title,
+                iconPainter = painterResource(navItemLeft.icon),
+                useCustomClick = true,
+            ),
+            SelectorItem(
+                id = navItemRight.route,
+                title = navItemRight.title,
+                iconPainter = painterResource(navItemRight.icon),
+                useCustomClick = true,
+            )
+        )
+        // Busy:
+        val navItemsBusy = mutableListOf(
+            SelectorItem(
+                id = "restart",
+                title = "Restart",
+                iconVector = Icons.Default.Refresh,
+            ),
+            SelectorItem(
+                id = "cancel",
+                title = "Cancel",
+                iconVector = Icons.Default.Close,
+            )
+        )
 
 
         //MAIN SCREEN:
@@ -192,9 +249,25 @@ class MainActivity : ComponentActivity() {
                 .safeDrawingPadding(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            //SIDE NAV RAIL:
-            if (isLandscape) {
-                SideNavigationRail(navigationItems, navController)
+            //SIDE NAV BAR (LEFT):
+            if (isLandscape && overlayPosState == "Right") {   // TODO: invert!
+                MainNavBar(
+                    navController = navController,
+                    clickCounterState = clickCounterState!!,
+                    isLandscape = true,
+                    items = if (queryState == "busy" || queryState == "processing") {
+                        navItemsBusy
+                    } else navItemsDefault,
+                    preview = preview,
+                    onClickCenter = {
+                        utils.startStopDriveMode(
+                            context = mContext,
+                            requestOverlayOn = requestOverlayOn,
+                            requestPermissions = requestPermissions,
+                            openClock = true,
+                        )
+                    }
+                )
             }
             //SCAFFOLD:
             Scaffold(
@@ -203,7 +276,23 @@ class MainActivity : ComponentActivity() {
                 containerColor = colorResource(id = R.color.windowBackground),
                 bottomBar = {
                     if (!isLandscape && !isKeyboardOpen()) {
-                        BottomNavigationBar(navigationItems, navController)
+                        MainNavBar(
+                            navController = navController,
+                            clickCounterState = clickCounterState!!,
+                            isLandscape = false,
+                            items = if (queryState != "busy" && queryState != "processing") {
+                                navItemsDefault
+                            } else navItemsBusy,
+                            preview = preview,
+                            onClickCenter = {
+                                utils.startStopDriveMode(
+                                    context = mContext,
+                                    requestOverlayOn = requestOverlayOn,
+                                    requestPermissions = requestPermissions,
+                                    openClock = true,
+                                )
+                            }
+                        )
                     }
                 },
             ) {
@@ -214,6 +303,24 @@ class MainActivity : ComponentActivity() {
                     //SET CURRENT SCREEN FROM NAVIGATION HOST:
                     Navigation(navController, chatManager, preview)
                 }
+            }
+            //SIDE NAV BAR (RIGHT):
+            if (isLandscape && overlayPosState == "Left") {   // TODO: invert!
+                MainNavBar(
+                    navController = navController,
+                    clickCounterState = clickCounterState!!,
+                    isLandscape = true,
+                    items = if (queryState != "busy" && queryState != "processing") navItemsDefault else navItemsBusy,
+                    preview = preview,
+                    onClickCenter = {
+                        utils.startStopDriveMode(
+                            context = mContext,
+                            requestOverlayOn = requestOverlayOn,
+                            requestPermissions = requestPermissions,
+                            openClock = true,
+                        )
+                    }
+                )
             }
         }
     }
@@ -239,6 +346,25 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+
+    private fun startOverlay(context: Context) {
+        //AUTO START-UP:
+        if (
+            Settings.canDrawOverlays(context)
+            && utils.checkPermission(context, Manifest.permission.RECORD_AUDIO)
+            && prefs.autoStartup && !main_initialized && prefs.spotifyToken != ""
+            && !utils.isMyServiceRunning(OverlayService::class.java, context)
+        ) {
+            try {
+                val intentOS = Intent(context, OverlayService::class.java)
+                context.startService(intentOS)
+            } catch (e: Exception) {
+                Log.w(TAG, "Cannot auto-start Overlay Service. EXCEPTION: ", e)
+            }
+
         }
     }
 

@@ -35,8 +35,7 @@ class AndroidAudioRecorder(private val context: Context) {
 
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     fun start(
-        messageMode: Boolean = false,
-        messageType: String = "",
+        voiceMessageMode: Boolean = false,
     ) {
         try {
             //Create dir:
@@ -56,16 +55,14 @@ class AndroidAudioRecorder(private val context: Context) {
             val channelConfig = AudioFormat.CHANNEL_IN_MONO
             val audioFormat = AudioFormat.ENCODING_PCM_16BIT
             val bufferSize = AudioRecord.getMinBufferSize(recSamplingRate, channelConfig, audioFormat)
-            val silenceThreshold = if (messageMode) {
+            val silenceThreshold = if (voiceMessageMode) {
                     silencePatienceMess * 1000   // ms
                 } else {
                     silencePatienceQueries * 1000   // ms
                 }
 
             // Max time:
-            var maxTime = if (messageMode && messageType == "voice") {
-                    maxAudioRecTimeout
-                } else if (messageMode) {
+            var maxTime = if (voiceMessageMode) {
                     prefs.messageTimeout.toLong()
                 } else {
                     prefs.recTimeout.toLong()
@@ -73,7 +70,7 @@ class AndroidAudioRecorder(private val context: Context) {
             maxTime = maxTime*1000
 
             // Silence detection enabled:
-            var silenceEnabled = if (messageMode) {
+            var silenceEnabled = if (voiceMessageMode) {
                 prefs.silenceEnabledMess
             } else {
                 prefs.silenceEnabledQueries

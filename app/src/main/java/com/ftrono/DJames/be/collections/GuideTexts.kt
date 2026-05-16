@@ -23,7 +23,7 @@ val guideTexts = mapOf<String, GuideText>(
     "messages" to GuideText(
         intro = "Try saying:",
         content = "\"Send a message to Ricky\"\n\"Send a voice message to Frank\"",
-        outro = "I can help you draft and send SMS, WhatApp text / voice messages to any contact of yours!"
+        outro = "I can help you draft and send SMS, WhatApp text / voice messages!"
     ),
     "gmaps" to GuideText(
         intro = "Try saying:",

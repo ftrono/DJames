@@ -36,6 +36,7 @@ import com.ftrono.DJames.application.overlayPos
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.services.VoiceQueryService
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.volumeUpEnabledUI
 import com.ftrono.DJames.be.models.QuickAction
 
@@ -96,11 +97,7 @@ fun getQuickActionOnTap(
     } else if (name == "clock") {
         {
             //Start Clock screen:
-            val intent1 = Intent(context, ClockActivity::class.java)
-            intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            intent1.putExtra("fromwhere", "ser")
-            context.startActivity(intent1)
-
+            utils.openActivity(context, ClockActivity::class.java, fromService = true)
             //End Main():
             //Send broadcast:
             Intent().also { intent ->

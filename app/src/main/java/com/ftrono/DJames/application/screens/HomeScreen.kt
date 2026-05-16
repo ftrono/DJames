@@ -311,6 +311,7 @@ fun SplitterDriveMode(
                     requestOverlayOn = requestOverlayOn,
                     requestPermissions = requestPermissions,
                     openClock = true,
+                    startOnly = true,
                 )
             }
         )

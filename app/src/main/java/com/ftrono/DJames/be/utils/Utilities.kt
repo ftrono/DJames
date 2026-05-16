@@ -37,6 +37,7 @@ import java.util.Locale
 import java.util.Random
 import kotlin.streams.asSequence
 import androidx.core.content.edit
+import com.ftrono.DJames.R
 import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.userNicknameUI
 import java.time.LocalDate
@@ -155,6 +156,16 @@ class Utilities {
         return textTrimmed
     }
 
+    // Start activity:
+    fun openActivity(context: Context, cls: Class<*>, fromService: Boolean = false) {
+        val intent = Intent(context, cls)
+        intent.setFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        )
+        if (fromService) intent.putExtra("fromwhere", "ser")
+        context.startActivity(intent)
+    }
+
     //Make call:
     fun makeCall(context: Context, contactPhone: String, fromService: Boolean = false) {
         if (fromService) {
@@ -225,6 +236,7 @@ class Utilities {
         requestOverlayOn: MutableState<Boolean>,
         requestPermissions: MutableState<Boolean>,
         openClock: Boolean = false,
+        startOnly: Boolean = false,
     ) {
         try {
             if (overlayActive.value == false) {
@@ -264,10 +276,12 @@ class Utilities {
                     }
                     //Start Clock screen:
                     if (openClock) {
-                        val intent1 = Intent(context, ClockActivity::class.java)
-                        context.startActivity(intent1)
+                        openActivity(context, ClockActivity::class.java)
                     }
                 }
+            } else if (startOnly && openClock) {
+                //Start Clock screen:
+                openActivity(context, ClockActivity::class.java)
             } else {
                 //STOP DRIVE MODE:
                 overlayActive.postValue(false)

@@ -2,7 +2,6 @@ package com.ftrono.DJames.ui.overlay
 
 import android.content.Context
 import android.content.res.Configuration
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -47,13 +46,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -92,14 +89,12 @@ import com.ftrono.DJames.application.overlayBoxMax
 import com.ftrono.DJames.application.overlayBoxMin
 import com.ftrono.DJames.application.overlayBubbleSize
 import com.ftrono.DJames.application.overlayOptionsStr
-import com.ftrono.DJames.application.overlayPos
 import com.ftrono.DJames.application.overlayTimeoutCenterWidth
 import com.ftrono.DJames.application.overlayTimeoutToeWidth
 import com.ftrono.DJames.application.overlayToeSize
-import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.raiseVolumeCountdownTime
-import com.ftrono.DJames.application.sourceIsVolume
-import com.ftrono.DJames.application.volumeUpEnabledUI
+import com.ftrono.DJames.application.isVolumeUpPreferenceSet
+import com.ftrono.DJames.application.isVolumeUpUnlocked
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.theme.light_grey
 import kotlinx.coroutines.Job
@@ -572,7 +567,8 @@ fun CenterPad(
     previewVolume: Boolean = true,
 ) {
     val queryState by queryStatus.observeAsState()
-    val volumeUpEnabledUIState by volumeUpEnabledUI.observeAsState()   // Use UI here, not the prefs!
+    val isVolumeUpPreferenceSetState by isVolumeUpPreferenceSet.observeAsState()
+    val isVolumeUpUnlockedState by isVolumeUpUnlocked.observeAsState()
 
     LaunchedEffect(queryState) {
         if (queryState == "busy") {
@@ -600,7 +596,7 @@ fun CenterPad(
         TimeoutButton(
             modifier = Modifier
                 .zIndex(1f),
-            isActive = (clickCounterState == 1 || queryState == "volume" || previewVolume),
+            isActive = (clickCounterState == 1 || isVolumeUpUnlockedState!! || previewVolume),
             isCircle = true,
             bubbleSize = bubbleSize.dp,
             timeoutWidth = overlayTimeoutCenterWidth.dp,
@@ -610,7 +606,7 @@ fun CenterPad(
                 colorBgInactive   // Toes active
             } else {
                 when {
-                    (queryState == "volume" || previewVolume) -> {
+                    (isVolumeUpUnlockedState!! || previewVolume) -> {
                         colorResource(id = R.color.yellowSignDark)
                     }
 
@@ -627,14 +623,13 @@ fun CenterPad(
                     }
                 }
             },
-            timeoutMs = if (queryState == "volume") raiseVolumeCountdownTime else clickAnimationCountdownTime,
+            timeoutMs = if (isVolumeUpUnlockedState!!) raiseVolumeCountdownTime else clickAnimationCountdownTime,
             timeoutColor = colorTimeout,
             onTap = { onCenterTap(it) },
             onTimeout = {
-                if (queryState == "volume" && volumeUpEnabledUI.value!!) {
+                if (isVolumeUpUnlockedState!!) {
                     // Re-enable volume-up trigger:
-                    queryStatus.postValue("ready")
-                    prefs.volumeUpEnabled = true   //THIS is used by EventReceiver!
+                    isVolumeUpUnlocked.postValue(false)
                 }
             }
         ) {
@@ -653,7 +648,7 @@ fun CenterPad(
                         tint = if (clickCounterState == 1) colorIconActive else colorIconInactive,
                     )
 
-                } else if (queryState == "volume" || previewVolume) {
+                } else if (isVolumeUpUnlockedState!! || previewVolume) {
                     // RAISE VOLUME:
                     Text (
                         modifier = Modifier,
@@ -689,7 +684,7 @@ fun CenterPad(
         }
 
         //VOLUME BUTTON:
-        if ((!isDocked && volumeUpEnabledUIState!! && clickCounterState == 0 && queryState != "volume") || previewFull) {
+        if ((!isDocked && isVolumeUpPreferenceSetState!! && clickCounterState == 0 && !isVolumeUpUnlockedState!!) || previewFull) {
             RaiseVolumeButton(
                 context = context,
                 size = toeSize,

@@ -125,8 +125,8 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // VolumeUp:
-        volumeUpEnabledUI.postValue(prefs.volumeUpEnabled)
+        // VolumeUp pref:
+        isVolumeUpPreferenceSet.postValue(prefs.volumeUpEnabled)
 
         //AUTO START-UP:
         startOverlay(context)

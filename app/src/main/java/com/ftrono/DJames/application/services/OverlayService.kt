@@ -91,7 +91,7 @@ import com.ftrono.DJames.application.overlayOptionsStr
 import com.ftrono.DJames.application.overlayToeSize
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.application.volumeUpEnabledUI
+import com.ftrono.DJames.application.isVolumeUpUnlocked
 import com.ftrono.DJames.ui.overlay.DJamesPads
 import com.ftrono.DJames.ui.overlay.getQuickActionOnTap
 import kotlinx.coroutines.CoroutineScope
@@ -316,10 +316,10 @@ class OverlayService : Service() {
         val configuration = LocalConfiguration.current
         val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
         val coroutineScope = rememberCoroutineScope()
-        val queryState by queryStatus.observeAsState()
         val clockActiveState by clockActive.observeAsState()
         val clickCounterState by clickCounter.observeAsState()
         val sourceIsVolumeState by sourceIsVolume.observeAsState()
+        val isVolumeUpUnlockedState by isVolumeUpUnlocked.observeAsState()
         val overlayPosState by overlayPos.observeAsState()
 
         // Animating the horizontal offset based on the state
@@ -411,7 +411,10 @@ class OverlayService : Service() {
                     onToesPadClick()
                 },
                 onCenterTap = {
-                    if (queryState != "volume") {
+                    if (isVolumeUpUnlockedState!!) {
+                        // Re-enable volume-up trigger:
+                        isVolumeUpUnlocked.postValue(false)
+                    } else {
                         if (!voiceQueryOn) {
                             // CENTER TAP:
                             onCenterPadClick(enable = clickCounterState == 0)
@@ -518,11 +521,9 @@ class OverlayService : Service() {
         super.onDestroy()
         overlayActive.postValue(false)
         voiceQueryOn = false
+        // Re-enable volume-up trigger:
         clickCounter.postValue(0)
-        if (volumeUpEnabledUI.value!!) {
-            // Re-enable volume-up trigger:
-            prefs.volumeUpEnabled = true   //THIS is used by EventReceiver!
-        }
+        isVolumeUpUnlocked.postValue(false)
         //Stop Voice Query service:
         if (isMyServiceRunning(VoiceQueryService::class.java)) {
             stopService(Intent(applicationContext, VoiceQueryService::class.java))

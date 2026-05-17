@@ -49,7 +49,7 @@ import com.ftrono.DJames.application.queryLangFull
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.services.OverlayService
 import com.ftrono.DJames.application.ttsVoiceIdMap
-import com.ftrono.DJames.application.volumeUpEnabledUI
+import com.ftrono.DJames.application.isVolumeUpPreferenceSet
 import com.ftrono.DJames.ui.components.CustomRangeSlider
 import com.ftrono.DJames.ui.components.CustomSlider
 import com.ftrono.DJames.ui.components.DropdownSpinner
@@ -721,7 +721,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         onCheckedChange = {
                             checkedVolumeEnabled.value = it
                             prefs.volumeUpEnabled = it
-                            volumeUpEnabledUI.postValue(it)
+                            isVolumeUpPreferenceSet.postValue(it)
                             restartOverlay(mContext)
                         }
                     )

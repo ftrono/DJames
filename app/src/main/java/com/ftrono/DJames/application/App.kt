@@ -32,7 +32,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.0.1"
+val appVersion = "3.0.2"
 val copyrightYear = 2024
 
 //DB:

@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,7 +25,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
@@ -47,17 +45,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -69,11 +63,8 @@ import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.ui.selectors.colorSelector
-import com.ftrono.DJames.ui.selectors.colorSelectorLight
-import com.ftrono.DJames.ui.selectors.iconSelector
-import com.ftrono.DJames.ui.selectors.colorSelector
+import com.ftrono.DJames.ui.selectors.colorSelectorDark
 import com.ftrono.DJames.ui.selectors.colorSelectorLight
 import com.ftrono.DJames.ui.selectors.iconSelector
 import kotlin.math.absoluteValue
@@ -643,13 +634,13 @@ fun LibItemCardPreview() {
     val currentCatState = remember { mutableStateOf("artist") }
     LibItemCard(
         modifier = Modifier
-            .height(70.dp)
-            .width(180.dp),
+            .height(140.dp)
+            .width(140.dp),
         cardColors = CardDefaults.cardColors(
             containerColor = colorResource(id = R.color.dark_grey_background)
         ),
         source = "spotify",
-        type = "artist",
+        type = "playlist",
         title = "Item name",
         subtitle = "subtitle",
     )
@@ -671,123 +662,119 @@ fun LibItemCard(
     val isMultiline = rememberSaveable { mutableStateOf(false) }
     val cardBorderColor = colorResource(id = R.color.dark_grey)
     val signBackgroundColor = if (isCollection) colorResource(R.color.violetSign) else colorSelector(cat = type)
-    val signBorderColor = colorResource(id = R.color.midfaded_grey)
+    val signBorderColor = colorResource(id = R.color.transparent_full)   // midfaded_grey
     val signIconColor = colorResource(id = R.color.light_grey)
-    val signIconPainter = if (isCollection) null else iconSelector(cat = type)
     val circle = type == "artist" || source == "contact"
+    var initials = ""
+    if (!isCollection && imageUrl == "") {
+        try {
+            initials = title
+                .lowercase()
+                .replace(" & ", " ")
+                .replace(" and ", " ")
+                .split(" ")
+                .joinToString("") { it.first().toString() }
+        } catch (e: Exception) {
+        }
+        initials = if (initials.length < 2 && title.length >= 2) {
+            title.slice(0..1).uppercase()
+        } else {
+            initials.slice(0..1).uppercase()
+        }
+    }
+    val signIconPainter = if (!isCollection && initials == "") iconSelector(cat = type) else null
 
     Card(
         modifier = modifier
-            .clickable {
-                onClick()
-            },
+            .clickable { onClick() },
         shape = RoundedCornerShape(14.dp),
         border = BorderStroke(1.dp, cardBorderColor),
         colors = cardColors
     ) {
-
         // ROW: INFO + SIGN:
-        Row (
+        Column(
             modifier = Modifier
-                .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
+                .padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 4.dp)
                 .fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
-        ){
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(60.dp),
+                contentAlignment = Alignment.BottomStart
+            ) {
+                //SIGN: ITEM ARTWORK / ICON:
+                RoundedSign(
+                    modifier = Modifier,
+                    signSize = 60.dp,
+                    contentSize = 20,
+                    backgroundColor = signBackgroundColor,
+                    borderColor = signBorderColor,
+                    borderWidth = 1.5.dp,
+                    contentColor = signIconColor,
+                    iconPainter = signIconPainter,
+                    contentText = initials,
+                    iconVector = if (isCollection) Icons.Default.Favorite else null,
+                    imageUrl = imageUrl,
+                    circle = circle
+                )
+                Card(
+                    modifier = Modifier,
+                    shape = RoundedCornerShape(2.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (source == "spotify") colorSelector(type) else colorSelectorDark(source)
+                    ),
+                ) {
+                    //CAT ICON:
+                    Icon(
+                        modifier = Modifier
+                            .padding(2.dp)
+                            .size(12.dp),
+                        painter = if (source == "spotify") iconSelector(type) else iconSelector(source),
+                        contentDescription = type,
+                        tint = colorResource(R.color.light_grey)
+                    )
+                }
+            }
 
-            // INFO COLUMN:
             Column(
                 modifier = Modifier
-                    .padding(start = 4.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
-                    .fillMaxHeight()   // Vertical
-                    .weight(1F),   // Horizontal
-                horizontalAlignment = Alignment.Start,
+                    .padding(start=4.dp, end=4.dp, top=4.dp, bottom=2.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                if (source == "spotify") {
-                    //CAT ROW:
-                    Row(
-                        modifier = Modifier
-                            .padding(bottom = 2.dp),
-                        horizontalArrangement = Arrangement.Start,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        //SOURCE ICON:
-                        Icon(
-                            modifier = Modifier
-                                .padding(end = 4.dp)
-                                .size(12.dp),
-                            painter = iconSelector(source),
-                            contentDescription = type,
-                            tint = colorSelector(source)
-                        )
-                        //CAT ICON:
-                        Icon(
-                            modifier = Modifier
-                                .padding(end = 2.dp)
-                                .size(12.dp),
-                            painter = iconSelector(type),
-                            contentDescription = type,
-                            tint = colorSelectorLight(type)
-                        )
-                        //CAT NAME:
-                        Text(
-                            modifier = Modifier
-                                .padding(end = 4.dp),
-                            color = colorSelectorLight(cat = type),
-                            fontSize = 10.sp,
-                            lineHeight = 12.sp,
-                            // fontWeight = FontWeight.Bold,
-                            text = utils.capitalizeWords((type)),
-                        )
-                    }
-                }
-
                 //ITEM INFO:
                 //Item name:
                 Text(
                     modifier = Modifier,
                     color = colorResource(id = R.color.light_grey),
                     fontSize = 14.sp,
-                    lineHeight = 16.sp,
+                    lineHeight = 12.sp,
                     maxLines = 2,
                     text = title,
+                    textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     onTextLayout = { textLayoutResult ->
-                        isMultiline.value = textLayoutResult.lineCount > if (source == "spotify") 1 else 2
+                        isMultiline.value =
+                            textLayoutResult.lineCount > 1
                     }
                 )
                 //Item detail:
-                if (subtitle != "" && !isMultiline.value) {
+                if (!isMultiline.value) {
                     Text(
-                        modifier = Modifier
-                            .padding(top = 2.dp),
+                        modifier = Modifier,
+                        //.padding(top = 2.dp),
                         color = colorResource(id = R.color.mid_grey),
                         fontSize = 10.sp,
                         maxLines = 1,
                         lineHeight = 12.sp,
                         fontStyle = FontStyle.Italic,
-                        text = subtitle
+                        textAlign = TextAlign.Center,
+                        text = subtitle,
                     )
                 }
-
             }
-
-            //SIGN: ITEM ARTWORK / ICON:
-            RoundedSign(
-                modifier = Modifier
-                    .padding(end=4.dp),
-                signSize = 46.dp,
-                contentSize = 20,
-                backgroundColor = signBackgroundColor,
-                borderColor = signBorderColor,
-                borderWidth = 1.5.dp,
-                contentColor = signIconColor,
-                iconPainter = signIconPainter,
-                iconVector = if (isCollection) Icons.Default.Favorite else null,
-                imageUrl = imageUrl,
-                circle = circle
-            )
         }
     }
 }

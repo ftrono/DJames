@@ -485,7 +485,7 @@ fun LibSectionContent(
                 modifier = Modifier
                     .padding(start = 32.dp, end = 24.dp, bottom = 12.dp)
                     .fillMaxSize(),
-                columns = GridCells.Fixed(if (isLandscape) 3 else 2),
+                columns = GridCells.Fixed(if (isLandscape) 5 else 3),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
@@ -568,7 +568,7 @@ fun LibItem(
         //Card:
         LibItemCard(
             modifier = modifier
-                .height(70.dp),
+                .fillMaxSize(),
             cardColors = CardDefaults.cardColors(
                 containerColor = if (mDisplayMenu.value) {
                     colorResource(id = R.color.dark_grey)
@@ -578,7 +578,7 @@ fun LibItem(
             ),
             source = item.source,
             type = item.type,
-            title = utils.trimString(item.name, 20),
+            title = utils.trimString(item.name, 18),
             subtitle = utils.trimString(libUtils.getDetail(item), 16),
             imageUrl = if (preview) "" else item.imageUrl,
             isCollection = item.id == -2L,

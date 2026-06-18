@@ -120,6 +120,33 @@ fun colorSelectorLight(
 }
 
 
+@Composable
+fun colorSelectorDark(
+    cat: String
+): Color {
+    return when (cat) {
+        // Modes:
+        "mobile" -> colorResource(R.color.greenSignDark)
+        "car" -> colorResource(R.color.greenSignDark)
+        // Guide:
+        "info" -> colorResource(R.color.dark_grey)
+        "music" -> colorResource(R.color.greenSignDark)
+        "phone" -> colorResource(R.color.greenSignDark)
+        "messages" -> colorResource(R.color.blueSignDark)
+        "gmaps" -> colorResource(R.color.yellowSignDark)
+        // Library:
+        "spotify" -> colorResource(R.color.greenSignDark)
+        "artist" -> colorResource(id = R.color.blueSignDark)
+        "album" -> colorResource(id = R.color.violetSignDark)
+        "playlist" -> colorResource(id = R.color.yellowSignDark)
+        "podcast" -> colorResource(id = R.color.redSignDark)
+        "contact" -> colorResource(id = R.color.greenSignDark)
+        "place" -> colorResource(id = R.color.brownSignDark)
+        else -> colorResource(id = R.color.dark_grey)
+    }
+}
+
+
 //MESSAGES:
 @Composable
 fun messagesColorSelector(

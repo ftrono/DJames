@@ -51,6 +51,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -335,6 +336,7 @@ fun RoundedSign(
                 ),
             painter = imageRes,
             contentDescription = "Item image",
+            contentScale = ContentScale.Crop,
         )
     } else if (imageUrl != "") {
         AsyncImage(
@@ -347,7 +349,8 @@ fun RoundedSign(
                     if (circle) CircleShape else RoundedCornerShape(4.dp)
                 ),
             model = imageUrl,
-            contentDescription = "Item image"
+            contentDescription = "Item image",
+            contentScale = ContentScale.Crop,
         )
     } else {
         Box(
@@ -749,12 +752,12 @@ fun LibItemCard(
                 Text(
                     modifier = Modifier,
                     color = colorResource(id = R.color.light_grey),
-                    fontSize = 14.sp,
+                    fontSize = 12.sp,
                     lineHeight = 12.sp,
                     maxLines = 2,
                     text = title,
                     textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
+                    //fontWeight = FontWeight.Bold,
                     onTextLayout = { textLayoutResult ->
                         isMultiline.value =
                             textLayoutResult.lineCount > 1

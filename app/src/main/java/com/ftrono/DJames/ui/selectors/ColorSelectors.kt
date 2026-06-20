@@ -77,9 +77,9 @@ fun colorSelector(
         // Guide:
         "info" -> colorResource(id = R.color.colorPrimary)
         "music" -> colorResource(R.color.yellowSign)
-        "phone" -> colorResource(R.color.greenSign)
+        "phone" -> colorResource(R.color.brownSign)
         "messages" -> colorResource(R.color.blueSign)
-        "gmaps" -> colorResource(R.color.brownSign)
+        "gmaps" -> colorResource(R.color.redSign)
         // Library:
         "spotify" -> colorResource(R.color.colorAccentMid)
         "artist" -> colorResource(id = R.color.blueSign)

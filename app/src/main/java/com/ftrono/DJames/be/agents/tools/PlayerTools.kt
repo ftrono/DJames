@@ -162,6 +162,7 @@ class ToolRetrievePlayer(
             )
 
             // Queries (max 2 items per list):
+            val foundIds = mutableListOf<String>()
             val matchNames = mutableListOf<LibMatch>()   // all
             val matchDetails = mutableListOf<LibMatch>()   // artist only
             val matchContexts = mutableListOf<LibMatch>()   // playlist or collection
@@ -219,12 +220,14 @@ class ToolRetrievePlayer(
                 for (nameMatch in matchNames) {
                     if (nameMatch.matchId != -1L) {
                         // Add from library (no API search):
-                        updAttachments.playCandidates!!.add(
-                            libUtils.libItemToPlayable(
-                                libItem = libUtils.getLibItemById(nameMatch.matchId),
-                                matchScore = nameMatch.matchScore
-                            )
+                        val libItem = libUtils.libItemToPlayable(
+                            libItem = libUtils.getLibItemById(nameMatch.matchId),
+                            matchScore = nameMatch.matchScore
                         )
+                        if (!foundIds.contains(libItem.id)) {
+                            updAttachments.playCandidates!!.add(libItem)
+                            foundIds.add(libItem.id)
+                        }
                     } else {
                         // API search:
                         if (matchDetails.isEmpty()) {
@@ -232,7 +235,11 @@ class ToolRetrievePlayer(
                             val queryAPIReturn =
                                 queryAPI(playRequest.type, updAttachments, nameMatch.matchName)
                             updAttachments = queryAPIReturn.attachments
-                            updAttachments.playCandidates!!.addAll(queryAPIReturn.candidates)
+                            val newItems = queryAPIReturn.candidates.filter { !foundIds.contains(it.id) }
+                            if (newItems.isNotEmpty()) {
+                                updAttachments.playCandidates!!.addAll(newItems)
+                                foundIds.addAll(newItems.map { it.id })
+                            }
                         } else {
                             // Add artist filter:
                             for (detailMatch in matchDetails) {
@@ -243,7 +250,11 @@ class ToolRetrievePlayer(
                                     detailMatch.matchName
                                 )
                                 updAttachments = queryAPIReturn.attachments
-                                updAttachments.playCandidates!!.addAll(queryAPIReturn.candidates)
+                                val newItems = queryAPIReturn.candidates.filter { !foundIds.contains(it.id) }
+                                if (newItems.isNotEmpty()) {
+                                    updAttachments.playCandidates!!.addAll(newItems)
+                                    foundIds.addAll(newItems.map { it.id })
+                                }
                             }
                         }
                     }

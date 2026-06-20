@@ -20,7 +20,7 @@ DJames is supported by **Android >= 10**.
 
 
 ## All versions history
-**Version 3.0.2 (2026-06-20)** - New collection-like UI for Library.
+**Version 3.0.2 (2026-06-20)** - New Highway-inspired, collection-like UI for Library (!).
 
 **Version 3.0.1 (2026-05-05)** - New UI for Home Screen & Overlay button (WIP).
 

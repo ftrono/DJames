@@ -53,12 +53,6 @@ data class GuideText(
 )
 
 
-data class Coordinates(
-    var x: Int,
-    var y: Int
-)
-
-
 data class SelectorItem(
     var id: String = "",
     var title: String = "",

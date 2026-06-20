@@ -154,7 +154,7 @@ fun EditLibDynamicNameSection(
                     cat = filter
                 )
             },
-            borderColor = colorResource(id = R.color.midfaded_grey),
+            borderColor = colorResource(id = R.color.transparent_full),
             contentColor = colorResource(id = R.color.light_grey),
             borderWidth = 2.0.dp,
             iconVector = if (filter == "collection") Icons.Default.Favorite else if (filter == "user") Icons.Outlined.Person else null,

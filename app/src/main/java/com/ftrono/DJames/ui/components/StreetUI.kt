@@ -45,14 +45,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -428,15 +432,31 @@ fun LetterStarter(
             containerColor = backgroundColor
         )
     ) {
-        //LETTER:
-        Text(
+        Row(
             modifier = Modifier
                 .padding(top=4.dp, bottom=4.dp, start=8.dp, end=8.dp),
-            text = text,
-            color = fontColor,
-            fontSize = fontSize,
-            fontWeight = FontWeight.Bold
-        )
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            // SIGN:
+            Icon(
+                modifier = Modifier
+                    .padding(end = 2.dp)
+                    .size(12.dp),
+                painter = painterResource(R.drawable.arrow_down),
+                tint = colorResource(R.color.black),
+                contentDescription = text
+            )
+            //LETTER:
+            Text(
+                modifier = Modifier
+                    .padding(start = 2.dp),
+                text = text,
+                color = fontColor,
+                fontSize = fontSize,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 
@@ -663,7 +683,7 @@ fun LibItemCard(
     onClick: () -> Unit = {}
 ) {
     val isMultiline = rememberSaveable { mutableStateOf(false) }
-    val cardBorderColor = colorResource(id = R.color.dark_grey)
+    val cardBorderColor = colorResource(id = R.color.transparent_full)
     val signBackgroundColor = if (isCollection) colorResource(R.color.violetSign) else colorSelector(cat = type)
     val signBorderColor = colorResource(id = R.color.transparent_full)   // midfaded_grey
     val signIconColor = colorResource(id = R.color.light_grey)
@@ -736,7 +756,7 @@ fun LibItemCard(
                             .size(12.dp),
                         painter = if (source == "spotify") iconSelector(type) else iconSelector(source),
                         contentDescription = type,
-                        tint = colorResource(R.color.light_grey)
+                        tint = colorResource(R.color.white)
                     )
                 }
             }
@@ -779,5 +799,39 @@ fun LibItemCard(
                 }
             }
         }
+    }
+}
+
+
+fun Modifier.verticalDottedGridGuides(
+    columns: Int,
+    color: Color,
+    strokeWidth: Dp = 5.dp,
+    dotLength: Dp = 32.dp,
+    gapLength: Dp = 32.dp,
+): Modifier = this.drawBehind {
+    if (columns <= 1) return@drawBehind
+
+    val stroke = strokeWidth.toPx()
+
+    val pathEffect = PathEffect.dashPathEffect(
+        intervals = floatArrayOf(
+            dotLength.toPx(),
+            gapLength.toPx()
+        ),
+        phase = 0f
+    )
+
+    for (i in 1 until columns) {
+        val x = size.width * i / columns
+
+        drawLine(
+            color = color,
+            start = Offset(x, 0f),
+            end = Offset(x, size.height),
+            strokeWidth = stroke,
+            pathEffect = pathEffect,
+            cap = StrokeCap.Round
+        )
     }
 }

@@ -71,7 +71,7 @@ fun Navigation(
             }) {
             curNavId = 1
             extraOpen.postValue(false)
-            HomeScreen(navController, chatManager, sharedViewModel, preview)
+            HomeScreen(navController, preview)
         }
 
         //2 -> LIBRARY:

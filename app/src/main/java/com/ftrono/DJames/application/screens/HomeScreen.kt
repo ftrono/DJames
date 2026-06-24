@@ -105,19 +105,13 @@ import kotlin.math.roundToInt
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
 fun HomeScreenPreview() {
-    val context = LocalContext.current
     val navController = rememberNavController()
-    val chatManager = ChatManager(context)
-    chatManager.init()
-    val sharedViewModel: SharedViewModel = viewModel()
-    HomeScreen(navController, chatManager, sharedViewModel, preview = true)
+    HomeScreen(navController, preview = true)
 }
 
 @Composable
 fun HomeScreen(
     navController: NavController,
-    chatManager: ChatManager,
-    sharedViewModel: SharedViewModel,
     preview: Boolean = false
 ) {
     val configuration = LocalConfiguration.current
@@ -126,7 +120,6 @@ fun HomeScreen(
     val mContext = LocalContext.current
 
     val focusManager = LocalFocusManager.current
-    val overlayActiveState by overlayActive.observeAsState()
     val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
     val queryState by queryStatus.observeAsState()
     val guideItemState = rememberSaveable { mutableStateOf("info") }

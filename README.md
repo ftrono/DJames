@@ -30,17 +30,17 @@ Add to "app/res/raw" an "*env.json*" file with the following variables and perso
 
 
 ## All versions history
-**Version 3.0.2 (2026-06-20)** - New Highway-inspired, collection-like UI for Library (!).
+**Version 3.0.2 (2026-06-20)** - New Highway-inspired, collection-like UI for Library.
 
-**Version 3.0.1 (2026-05-05)** - New UI for Home Screen & Overlay button (WIP).
+**Version 3.0.1 (2026-05-05)** - New UI for Home Screen & Overlay button.
 
 **Version 3.0.0 (2026-04-26)** - First V3-only version. Kept v3.0.alpha's UI.
 
-**Version 3.0.a11 (2026-04-25)** - V3 FINALIZED! Reworked all Graph nodes. Add new ElevenLabs TTS voice for V3. Starts repackaging agentic library as KAIGraph (WIP). Last version with co-existing IntentGraph & AgentGraph.
+**Version 3.0.a11 (v3 alpha) (2026-04-25)** - V3 FINALIZED! Completed all intent nodes' migration to V3 AgentsGraph. Add new ElevenLabs TTS voice for V3. Starts repackaging agentic library as KAIGraph (WIP). Last version with co-existing IntentGraph & AgentGraph.
 
-**Version 3.0.a10 (2025-12-28)** - Add AccountsScreen, backup & restore, notification icon, remove FFmpeg. Add DualApp debug variant. SpotifyQuery: fix legacy bug (!) and code modularization. Align to new Spotify Development Mode policy. Start rework of Graph nodes for V3. Add new ElevenLabs TTS voice for V3.
+**Version 3.0.a10 (v3 alpha) (2025-12-28)** - Add AccountsScreen, backup & restore, notification icon, remove FFmpeg. Add DualApp debug variant. SpotifyQuery: fix legacy bug (!) and code modularization. Align to new Spotify Development Mode policy. Start migration of V2 intent nodes to V3 AgentsGraph.
 
-**Version 3.0.a9 (v3 alpha) (2025-10-28)** - MULTI-AGENT ARCHITECTURE! Implemented new LangGraph-inspired Conversational Graph with State, Nodes & Tools. Migrated NLPDispatcher to IntentsGraph. Init LLM AgentsGraph works.
+**Version 3.0.a9 (v3 alpha) (2025-10-28)** - MULTI-AGENT ARCHITECTURE! Implemented new LangGraph-inspired Conversational Graph framework with State, Nodes & Tools. Migrated NLPDispatcher to IntentsGraph, wrapping V2 intent nodes. Init LLM AgentsGraph works.
 
 **Version 3.0.a8 (v3 alpha) (2025-10-20)** - Add noise-cleaning Band-Pass Filter as support to VAD. Reworked Home screen: improved tips & guidance. Add open links from Library item options. Tested many alternative VADs and noise filters (i.e. RTNR NoiseSuppressor, Silero VAD, Yamnet VAD, constant wind dynamic suppression, ...), then all removed.
 
@@ -56,7 +56,7 @@ Add to "app/res/raw" an "*env.json*" file with the following variables and perso
 
 **Version 3.0.a2 (v3 alpha) (2025-08-02)** - New v3 FE! Add isKeyboardOpen(). Fixed Messages leftovers deletion.
 
-**Version 3.0.a1 (v3 alpha) (2025-07-26)** - Init reworks for V3. Replaces Logs with Messages. Replaced History with Messages screen. Re-add Threads to VoiceQueryService.
+**Version 3.0.a1 (v3 alpha) (2025-07-26)** - Init reworks for V3. Replaced History with Messages screen. Re-add Threads to VoiceQueryService.
 
 **Version 2.6.2 (2025-07-24)** - Add get parent Artist / Podcast from Track / Episode URL.
 

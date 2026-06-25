@@ -452,9 +452,18 @@ fun GuideViewer(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        Text(
+            modifier = Modifier
+                .padding(top=20.dp),
+            text = "What I can do:",
+            fontSize = 14.sp,
+            color = colorResource(R.color.light_grey),
+            textAlign = TextAlign.Center,
+        )
+
         SplitterSign(
             modifier = Modifier
-                .padding(top=24.dp),
+                .padding(top=8.dp),
             currentItemState = itemState,
             items = items,
             disabled = (queryState == "busy" || queryState == "processing"),

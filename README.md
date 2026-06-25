@@ -21,7 +21,6 @@ Add to "app/res/raw" an "*env.json*" file with the following variables and perso
 }
 ```
 
-
 ## Major versions history
 **Version 3.*** **(alpha 8/2025, major 4/2026)** - BE based on *KAIGraph* for agents orchestration, *Mistral AI* for LLM APIs, *ElevenLabs* for TTS APIs, *Spotify* APIs, *ObjectBox* for DBs; FE based on *Jetpack Compose*.
 

@@ -17,17 +17,17 @@ val guideTexts = mapOf<String, GuideText>(
     ),
     "phone" to GuideText(
         intro = "Try saying:",
-        content = "\"Call Ricky\"\n\"Make a phone call to mom\"",
+        content = "\"Make a phone call to Ricky\"",
         outro = "I can call any contact of yours - just save them to Library first!"
     ),
     "messages" to GuideText(
         intro = "Try saying:",
-        content = "\"Send a message to Ricky\"\n\"Send a voice message to Frank\"",
+        content = "\"Send a message / voice message to Amal\"",
         outro = "I can help you draft and send SMS, WhatApp text / voice messages!"
     ),
     "gmaps" to GuideText(
         intro = "Try saying:",
         content = "\"Drive me to Copertino Castle\"\n\"Drive me to work\"",
-        outro = "I can open Google Maps for you and show you the route to any place you need!"
+        outro = "I can open Google Maps and show you the route to any place you need!"
     ),
 )

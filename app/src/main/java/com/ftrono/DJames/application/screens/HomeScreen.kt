@@ -454,10 +454,14 @@ fun GuideViewer(
     ) {
         Text(
             modifier = Modifier
-                .padding(top=20.dp),
+                .padding(top=16.dp),
             text = "What I can do:",
             fontSize = 14.sp,
-            color = colorResource(R.color.light_grey),
+            color = if (queryState == "busy" || queryState == "processing") {
+                colorResource(R.color.faded_grey)
+            } else {
+                colorResource(R.color.light_grey)
+            },
             textAlign = TextAlign.Center,
         )
 

@@ -32,7 +32,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.0.1"
+val appVersion = "3.0.2"
 val copyrightYear = 2024
 
 //DB:
@@ -99,10 +99,11 @@ var spotifyLoggedIn = MutableLiveData<Boolean>(false)
 var spotUserName = MutableLiveData<String>("")
 var userGender = MutableLiveData<String>("Sir")
 var overlayActive = MutableLiveData<Boolean>(false)
-var queryStatus = MutableLiveData<String>("ready")   // MAIN PROCESS STATE FOR BOTH VOICE & CHAT!!!
+var queryStatus = MutableLiveData<String>("ready")   // MAIN PROCESS STATE for voice & chat ("ready", "busy", "processing")
 var clockActive = MutableLiveData<Boolean>(false)
 var overlayPos = MutableLiveData<String>("Right")
-var volumeUpEnabledUI = MutableLiveData<Boolean>(true)
+var isVolumeUpPreferenceSet = MutableLiveData<Boolean>(true)   // Live observation of the pref (must change only with pref)
+var isVolumeUpUnlocked = MutableLiveData<Boolean>(false)   // Temporary: true only if prefs == True and volume unlocked
 var sourceIsVolume = MutableLiveData<Boolean>(false)
 var extraOpen = MutableLiveData<Boolean>(false)
 var currentPlayingPrefix = MutableLiveData<String>("")
@@ -110,7 +111,7 @@ var currentSongPlaying = MutableLiveData<String>("Don't turn off the screen!")
 var currentArtistPlaying = MutableLiveData<String>("You can keep this Clock\nScreen on to save battery")
 val overlayOptionsStr = MutableLiveData<String>("speak, save, clock")   //custom
 var clickCounter = MutableLiveData<Int>(0)
-var allowVolumeClick = true
+var allowVolumeClick = true   // ensure interval between volume clicks
 var userNicknameUI = MutableLiveData<String>("")
 var spotUserImageState = MutableLiveData<String>("")
 var sharedLink = MutableLiveData<String>("")

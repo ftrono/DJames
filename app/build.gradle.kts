@@ -17,7 +17,7 @@ android {
         minSdk = 29
         targetSdk = 35
         versionCode = 1
-        versionName = "3.0.1"
+        versionName = "3.0.2"
 
         manifestPlaceholders["appAuthRedirectScheme"] = "djames-oauth"
 
@@ -116,7 +116,7 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
 
     // KAIGraph Library:
-    implementation(project(":kaigraph"))
+    // implementation(project(":kaigraph"))
 
     // OkHTTP: define a BOM and its version
     implementation(platform("com.squareup.okhttp3:okhttp-bom:4.12.0"))

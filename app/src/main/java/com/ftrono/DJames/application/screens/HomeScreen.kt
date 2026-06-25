@@ -11,6 +11,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,6 +21,8 @@ import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -43,6 +46,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -55,6 +60,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.ftrono.DJames.R
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -75,7 +81,7 @@ import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.spotUserName
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.application.volumeUpEnabledUI
+import com.ftrono.DJames.application.isVolumeUpPreferenceSet
 import com.ftrono.DJames.be.agents.chat.ChatManager
 import com.ftrono.DJames.be.collections.guideTexts
 import com.ftrono.DJames.be.models.SelectorItem
@@ -91,6 +97,7 @@ import com.ftrono.DJames.ui.selectors.colorSelector
 import com.ftrono.DJames.ui.selectors.iconSelector
 import com.ftrono.DJames.ui.theme.NavigationItem
 import kotlin.Boolean
+import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 
 
@@ -98,19 +105,13 @@ import kotlin.math.roundToInt
 @Preview(heightDp = 360, widthDp = 800)
 @Composable
 fun HomeScreenPreview() {
-    val context = LocalContext.current
     val navController = rememberNavController()
-    val chatManager = ChatManager(context)
-    chatManager.init()
-    val sharedViewModel: SharedViewModel = viewModel()
-    HomeScreen(navController, chatManager, sharedViewModel, preview = true)
+    HomeScreen(navController, preview = true)
 }
 
 @Composable
 fun HomeScreen(
     navController: NavController,
-    chatManager: ChatManager,
-    sharedViewModel: SharedViewModel,
     preview: Boolean = false
 ) {
     val configuration = LocalConfiguration.current
@@ -119,7 +120,6 @@ fun HomeScreen(
     val mContext = LocalContext.current
 
     val focusManager = LocalFocusManager.current
-    val overlayActiveState by overlayActive.observeAsState()
     val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
     val queryState by queryStatus.observeAsState()
     val guideItemState = rememberSaveable { mutableStateOf("info") }
@@ -302,7 +302,7 @@ fun LogoHome(
     preview: Boolean = false,
 ) {
     val overlayActiveState by overlayActive.observeAsState()
-    val volumeUpEnabledState by volumeUpEnabledUI.observeAsState()
+    val volumeUpEnabledState by isVolumeUpPreferenceSet.observeAsState()
     val userNameState by spotUserName.observeAsState()
     val genderState by userGender.observeAsState()
 
@@ -410,8 +410,6 @@ fun GuideViewer(
     isLandscape: Boolean,
     queryState: String,
 ) {
-    val overlayPosState by overlayPos.observeAsState()
-    val loggedInState by spotifyLoggedIn.observeAsState()
     val lastUserMsgState by lastUserMessageText.observeAsState()
     val lastAiMsgState by lastAiMessageText.observeAsState()
 
@@ -448,52 +446,167 @@ fun GuideViewer(
         ),
     )
 
-    // Item:
-    val guideText = guideTexts[itemState.value]!!
-    val guideIntro = if (queryState == "busy" || queryState == "processing") lastUserMsgState!! else guideText.intro
-    val guideOutro = if (guideText.outro.contains(guidePosPlaceholder)) {
-        when {
-            (isLandscape && overlayPosState!! == "Right") -> {
-                guideText.outro.replace(guidePosPlaceholder, "on the right")
-            }
-
-            (isLandscape) -> {
-                guideText.outro.replace(guidePosPlaceholder, "on the left")
-            }
-
-            else -> {
-                guideText.outro.replace(guidePosPlaceholder, "below")
-            }
-        }
-    } else guideText.outro
-
     // SPLITTER SIGN:
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        Text(
+            modifier = Modifier
+                .padding(top=16.dp),
+            text = "What I can do:",
+            fontSize = 14.sp,
+            color = if (queryState == "busy" || queryState == "processing") {
+                colorResource(R.color.faded_grey)
+            } else {
+                colorResource(R.color.light_grey)
+            },
+            textAlign = TextAlign.Center,
+        )
+
         SplitterSign(
             modifier = Modifier
-                .padding(top=24.dp),
+                .padding(top=8.dp),
             currentItemState = itemState,
             items = items,
             disabled = (queryState == "busy" || queryState == "processing"),
         )
 
+        if (queryState != "busy" && queryState != "processing") {
+            // CARDS CAROUSEL:
+            GuideCardsCarousel(
+                modifier = Modifier
+                    .padding(top = 12.dp, bottom = 20.dp)
+                    .fillMaxWidth()
+                    .weight(1f),
+                items = items,
+                itemState = itemState,
+                isLandscape = isLandscape,
+            )
+        } else {
+            // CONTAINER:
+            CardSign(
+                modifier = Modifier
+                    .padding(top = 12.dp, bottom = 20.dp, start = 32.dp, end = 32.dp)
+                    .fillMaxWidth()
+                    .weight(1f),
+                borderColor = colorResource(id = R.color.dark_grey),
+                borderWidth = 4.dp,
+                backgroundColor = colorResource(R.color.dark_grey_background),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(start = 20.dp, end = 20.dp)
+                        .weight(1F)
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    // Intro:
+                    if (lastUserMsgState!! != "") {
+                        Text(
+                            modifier = Modifier
+                                .padding(top = 12.dp),
+                            text = lastUserMsgState!!,
+                            textAlign = TextAlign.Center,
+                            color = colorResource(id = R.color.light_grey),
+                            fontSize = 14.sp,
+                            lineHeight = 14.sp,
+                        )
+                    }
+                    // Content:
+                    Text(
+                        modifier = Modifier
+                            .padding(top = 12.dp, bottom = 12.dp),
+                        text = lastAiMsgState!!,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        fontStyle = FontStyle.Italic,
+                        color = colorResource(id = R.color.light_grey),
+                        fontSize = 18.sp,
+                        lineHeight = 18.sp,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun GuideCardsCarousel(
+    modifier: Modifier = Modifier,
+    items: MutableList<SelectorItem>,
+    itemState: MutableState<String>,
+    isLandscape: Boolean,
+) {
+    // States:
+    val overlayPosState by overlayPos.observeAsState()
+    val loggedInState by spotifyLoggedIn.observeAsState()
+    val pagerState = rememberPagerState { items.size }
+    val guideIds = items.map{it.id}
+
+    // On page swipe:
+    LaunchedEffect(pagerState.currentPage) {
+        itemState.value = items[pagerState.currentPage].id
+    }
+    // On guide icon tap:
+    LaunchedEffect(itemState.value) {
+        val newPage = guideIds.indexOf(itemState.value)
+        if ((newPage - pagerState.currentPage).absoluteValue == 1) {
+            pagerState.animateScrollToPage(newPage)
+        } else {
+            pagerState.scrollToPage(newPage)
+        }
+    }
+
+    HorizontalPager(
+        state = pagerState,
+        modifier = modifier,
+        pageSpacing = 10.dp,
+        contentPadding = PaddingValues(horizontal = 30.dp)
+    ) { page ->
+        val curItem = items[page].id
+        val guideText = guideTexts[curItem]!!
+        val guideIntro = guideText.intro
+        val guideOutro = if (guideText.outro.contains(guidePosPlaceholder)) {
+            when {
+                (isLandscape && overlayPosState!! == "Right") -> {
+                    guideText.outro.replace(guidePosPlaceholder, "on the right")
+                }
+
+                (isLandscape) -> {
+                    guideText.outro.replace(guidePosPlaceholder, "on the left")
+                }
+
+                else -> {
+                    guideText.outro.replace(guidePosPlaceholder, "below")
+                }
+            }
+        } else guideText.outro
+
         // CONTAINER:
         CardSign (
             modifier = Modifier
-                .padding(top = 12.dp, bottom = 20.dp, start = 32.dp, end = 32.dp)
                 .fillMaxWidth()
-                .weight(1f),
-            borderColor = if (queryState == "busy" || queryState == "processing") {
-                colorResource(id = R.color.dark_grey)
-            } else colorResource(id = R.color.mid_grey),
+                .graphicsLayer {
+                    val pageOffset = pagerState
+                        .getOffsetDistanceInPages(page)
+                        .absoluteValue
+                    lerp(
+                        start = 75.dp,
+                        stop = 100.dp,
+                        fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                    ).also { scale ->
+                        scaleY = scale / 100.dp
+                    }
+                }
+                .fillMaxHeight(),
+            borderColor = colorResource(id = R.color.mid_grey),
             borderWidth = 4.dp,
-            backgroundColor = if (queryState == "busy" || queryState == "processing") {
-                colorResource(R.color.dark_grey_background)
-            } else colorSelector(itemState.value),
+            backgroundColor = colorSelector(curItem),
         ) {
             Row(
                 modifier = Modifier
@@ -502,15 +615,13 @@ fun GuideViewer(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (queryState != "busy" && queryState != "processing") {
-                    Icon(
-                        modifier = Modifier
-                            .size(52.dp),
-                        painter = iconSelector(itemState.value),
-                        contentDescription = "Item image",
-                        tint = colorResource(R.color.light_grey)
-                    )
-                }
+                Icon(
+                    modifier = Modifier
+                        .size(52.dp),
+                    painter = iconSelector(curItem),
+                    contentDescription = "Item image",
+                    tint = colorResource(R.color.light_grey)
+                )
 
                 Column(
                     modifier = Modifier
@@ -537,7 +648,7 @@ fun GuideViewer(
                     Text(
                         modifier = Modifier
                             .padding(top = 12.dp, bottom = 12.dp),
-                        text = if (queryState == "busy" || queryState == "processing") lastAiMsgState!! else guideText.content,
+                        text = guideText.content,
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold,
                         fontStyle = FontStyle.Italic,
@@ -545,20 +656,18 @@ fun GuideViewer(
                         fontSize = 18.sp,
                         lineHeight = 18.sp,
                     )
-                    if (queryState != "busy" && queryState != "processing" && guideOutro != "") {
-                        // Outro:
-                        Text(
-                            modifier = Modifier
-                                .padding(bottom = 12.dp),
-                            text = if (!loggedInState!! && itemState.value == "music") {
-                                "$guideOutro\nLog in from Accounts to unlock music functions!"
-                            } else guideOutro,
-                            textAlign = TextAlign.Center,
-                            color = colorResource(id = R.color.light_grey),
-                            fontSize = 14.sp,
-                            lineHeight = 14.sp,
-                        )
-                    }
+                    // Outro:
+                    Text(
+                        modifier = Modifier
+                            .padding(bottom = 12.dp),
+                        text = if (!loggedInState!! && curItem == "music") {
+                            "$guideOutro\nLog in from Accounts to unlock music functions!"
+                        } else guideOutro,
+                        textAlign = TextAlign.Center,
+                        color = colorResource(id = R.color.light_grey),
+                        fontSize = 14.sp,
+                        lineHeight = 14.sp,
+                    )
                 }
             }
         }

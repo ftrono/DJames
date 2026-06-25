@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
@@ -73,6 +74,7 @@ import com.ftrono.DJames.ui.components.OptionsMenu
 import com.ftrono.DJames.ui.components.LetterStarter
 import com.ftrono.DJames.ui.components.LibItemCard
 import com.ftrono.DJames.ui.components.StreetUIScaffold
+import com.ftrono.DJames.ui.components.verticalDottedGridGuides
 import com.ftrono.DJames.ui.dialogs.AddLinkDialog
 import com.ftrono.DJames.ui.navigation.FiltersRow
 import com.ftrono.DJames.ui.navigation.SplitterSign
@@ -481,13 +483,20 @@ fun LibSectionContent(
             )
         } else {
             //LIBRARY LIST:
+            val columns = if (isLandscape) 5 else 3
+            val spacing = 8.dp
+
             LazyVerticalGrid(
                 modifier = Modifier
                     .padding(start = 32.dp, end = 24.dp, bottom = 12.dp)
-                    .fillMaxSize(),
-                columns = GridCells.Fixed(if (isLandscape) 3 else 2),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                    .fillMaxSize()
+                    .verticalDottedGridGuides(
+                        columns = columns,
+                        color = colorResource(R.color.faded_grey),
+                    ),
+                columns = GridCells.Fixed(columns),
+                horizontalArrangement = Arrangement.spacedBy(spacing),
+                verticalArrangement = Arrangement.spacedBy(spacing)
             ) {
                 //ITEMS:
                 libraryItems.forEach { item ->
@@ -515,7 +524,11 @@ fun LibSectionContent(
                                 deleteLibOn = deleteLibOn,
                                 preview = preview,
                             )
-                            if (item == libraryItems.last()) Spacer(modifier = Modifier.padding(80.dp))
+                            if (item == libraryItems.last()) Spacer(
+                                modifier = Modifier.padding(
+                                    90.dp
+                                )
+                            )
                         }
                     }
 
@@ -568,12 +581,12 @@ fun LibItem(
         //Card:
         LibItemCard(
             modifier = modifier
-                .height(70.dp),
+                .fillMaxSize(),
             cardColors = CardDefaults.cardColors(
                 containerColor = if (mDisplayMenu.value) {
-                    colorResource(id = R.color.dark_grey)
+                    colorResource(id = R.color.faded_grey)
                 } else {
-                    colorResource(id = R.color.dark_grey_background)
+                    colorResource(id = R.color.transparent_full)
                 }
             ),
             source = item.source,

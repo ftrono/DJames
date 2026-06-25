@@ -10,6 +10,16 @@ DJames integrates a **self-made agentic orchestration library**, ***KAIGraph***,
 ## Software requirements
 DJames is supported by **Android >= 10**.
 
+## Before build
+Add to "app/res/raw" an "*env.json*" file with the following variables and personal keys:
+```
+{
+   "spotify_client": "...",
+   "spotify_sct": "...",
+   "mistral_api_key": "...",
+   "elevenlabs_api_key": "..."
+}
+```
 
 ## Major versions history
 **Version 3.*** **(alpha 8/2025, major 4/2026)** - BE based on *KAIGraph* for agents orchestration, *Mistral AI* for LLM APIs, *ElevenLabs* for TTS APIs, *Spotify* APIs, *ObjectBox* for DBs; FE based on *Jetpack Compose*.
@@ -20,6 +30,8 @@ DJames is supported by **Android >= 10**.
 
 
 ## All versions history
+**Version 3.0.2 (2026-06-20)** - New Highway-inspired, collection-like UI for Library (!).
+
 **Version 3.0.1 (2026-05-05)** - New UI for Home Screen & Overlay button (WIP).
 
 **Version 3.0.0 (2026-04-26)** - First V3-only version. Kept v3.0.alpha's UI.

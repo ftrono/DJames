@@ -5,11 +5,9 @@ import android.content.Intent
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -21,23 +19,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_FINISH_MAIN
 import com.ftrono.DJames.application.ACTION_SAVE_TRACK
-import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.overlayPos
-import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.services.VoiceQueryService
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.application.volumeUpEnabledUI
+import com.ftrono.DJames.application.isVolumeUpPreferenceSet
+import com.ftrono.DJames.application.isVolumeUpUnlocked
 import com.ftrono.DJames.be.models.QuickAction
 
 
@@ -107,10 +102,9 @@ fun getQuickActionOnTap(
         }
     } else if (name == "volume") {
         {
-            if (volumeUpEnabledUI.value!!) {   //THIS must not change!
+            if (isVolumeUpPreferenceSet.value!!) {   //THIS must not change!
                 // Disable volume-up trigger temporarily:
-                queryStatus.postValue("volume")
-                prefs.volumeUpEnabled = false   //THIS is used by EventReceiver!
+                isVolumeUpUnlocked.postValue(true)
                 Toast.makeText(context, "Raise volume now!", Toast.LENGTH_SHORT).show()
             }
         }

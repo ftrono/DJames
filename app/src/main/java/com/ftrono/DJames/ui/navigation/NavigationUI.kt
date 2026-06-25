@@ -605,6 +605,7 @@ fun MainNavBarPreview2() {
 fun NavSideItem(
     modifier: Modifier,
     navController: NavController,
+    backgroundColor: Color,
     item: SelectorItem,
 ) {
     // States:
@@ -616,9 +617,8 @@ fun NavSideItem(
     val itemColor = colorResource(R.color.midfaded_grey)
     val selectedColor = colorResource(R.color.light_grey)
 
-    Column(
+    Card(
         modifier = modifier
-            .size(52.dp)
             .clickable {
                 if (item.useCustomClick) {
                     //Navigate:
@@ -634,35 +634,44 @@ fun NavSideItem(
                     item.onClick()
                 }
             },
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor
+        ),
     ) {
-        if (item.iconVector != null) {
-            Icon(
+        Column(
+            modifier = Modifier
+                .size(52.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            if (item.iconVector != null) {
+                Icon(
+                    modifier = Modifier
+                        .size(28.dp),
+                    imageVector = item.iconVector!!,
+                    contentDescription = item.title,
+                    tint = if (item.useCustomClick && currentRoute == item.id) selectedColor else itemColor,
+                )
+            } else {
+                Icon(
+                    modifier = Modifier
+                        .size(28.dp),
+                    painter = item.iconPainter!!,
+                    contentDescription = item.title,
+                    tint = if (item.useCustomClick && currentRoute == item.id) selectedColor else itemColor,
+                )
+            }
+            Text(
                 modifier = Modifier
-                    .size(28.dp),
-                imageVector = item.iconVector!!,
-                contentDescription = item.title,
-                tint = if (item.useCustomClick && currentRoute == item.id) selectedColor else itemColor,
-            )
-        } else {
-            Icon(
-                modifier = Modifier
-                    .size(28.dp),
-                painter = item.iconPainter!!,
-                contentDescription = item.title,
-                tint = if (item.useCustomClick && currentRoute == item.id) selectedColor else itemColor,
+                    .padding(top = 4.dp),
+                text = item.title,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (item.useCustomClick && currentRoute == item.id) selectedColor else itemColor,
+                textAlign = TextAlign.Center,
             )
         }
-        Text(
-            modifier = Modifier
-                .padding(top=4.dp),
-            text = item.title,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            color = if (item.useCustomClick && currentRoute == item.id) selectedColor else itemColor,
-            textAlign = TextAlign.Center,
-        )
     }
 }
 
@@ -686,6 +695,7 @@ fun NavBarContent(
                     end = if (isLandscape) 0.dp else 14.dp,
                 ),
             navController = navController,
+            backgroundColor = backgroundColor,
             item = items[0],
         )
 
@@ -709,6 +719,7 @@ fun NavBarContent(
                     end = if (isLandscape) 0.dp else 14.dp,
                 ),
             navController = navController,
+            backgroundColor = backgroundColor,
             item = items[1],
         )
     }
@@ -804,11 +815,13 @@ fun MainNavBar(
             modifier = Modifier
                 .clip(CircleShape)
                 .size(100.dp)
-                .background(if (overlayActiveState!!) {
+                .background(
+                    if (overlayActiveState!!) {
                         colorResource(R.color.colorStop)
                     } else {
                         colorResource(R.color.colorPrimary)
-                    })
+                    }
+                )
                 .clickable { onClickCenter() },
             contentAlignment = Alignment.Center,
             ) {

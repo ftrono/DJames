@@ -45,6 +45,15 @@ val testLibrary = listOf<LibraryItem>(
         imageUrl = "https://i.scdn.co/image/ab6761610000e5eb7e58b86655f447e0ef0278b8",
     ),
     LibraryItem(
+        id = 2,
+        source = "spotify",
+        type = "artist",
+        name = "Augustana",
+        aliases = mutableListOf(""),
+        url = "https://open.spotify.com/artist/0bAsR2unSRpn6BQPEnNlZm",
+        imageUrl = "https://i.scdn.co/image/ab6761610000e5eb7e58b86655f447e0ef0278b8",
+    ),
+    LibraryItem(
         id = 3,
         source = "spotify",
         type = "artist",

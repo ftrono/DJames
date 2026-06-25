@@ -16,6 +16,7 @@
   <color name="blueSignDark">#0A253E</color>
   <color name="greenSign">#004C38</color>
   <color name="greenSignLight">#00D69E</color>
+  <color name="greenSignDark">#002A1F</color>
   <color name="yellowSign">#926F00</color>
   <color name="yellowSignLight">#FFD243</color>
   <color name="yellowSignDark">#4C3A00</color>
@@ -23,8 +24,10 @@
   <color name="orangeSignLight">#FF9C4B</color>
   <color name="brownSign">#7B4D31</color>
   <color name="brownSignLight">#CF8C63</color>
+  <color name="brownSignDark">#54321F</color>
   <color name="violetSign">#3D3DDF</color>
   <color name="violetSignLight">#8888EC</color>
+  <color name="violetSignDark">#222285</color>
   <color name="redSign">#7E0000</color>
   <color name="redSignLight">#FF6565</color>
   <color name="redSignDark">#460000</color>

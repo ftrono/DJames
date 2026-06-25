@@ -282,7 +282,7 @@ class Utilities {
             } else if (startOnly && openClock) {
                 //Start Clock screen:
                 openActivity(context, ClockActivity::class.java)
-            } else {
+            } else if (!startOnly) {
                 //STOP DRIVE MODE:
                 overlayActive.postValue(false)
                 if (isMyServiceRunning(OverlayService::class.java, context)) {

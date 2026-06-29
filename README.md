@@ -1,8 +1,13 @@
 # 🎧 DJames
 
-DJames is a vocal Spotify remote & smart driving assistant for Android. It makes use of a **Multi-Agent AI architecture** based on *Mistral AI* for Speech-to-Text and NLP, *ElevenLabs* for Text-To-Speech, *Spotify's Web API* and custom matching algorithms. The UI is based on Jetpack Compose.
+DJames is a vocal Spotify remote & smart driving assistant for Android. It makes use of a **Multi-Agent AI architecture**, currently based on *Mistral AI* for Speech-to-Text and NLP, *ElevenLabs* for Text-To-Speech, *Spotify's Web API* and custom matching algorithms. The UI is based on *Jetpack Compose*.
 
-DJames integrates a **self-made agentic orchestration library**, ***KAIGraph***, which I built for Kotlin, inspired by LangGraph.
+DJames integrates ***KAIGraph***, an **agentic orchestration framework** I built for Kotlin, inspired by LangGraph.
+
+Future planned works will involve the testing and integration of:
+* *smaller, local open-source LLM models* to replace the cloud LLM API calls;
+* *local open-source speech-to-text and text-to-speech models* to replace the cloud STT-TTS API calls;
+* more and more infotaining functionalities.
 
 <img src="./app/src/main/res/drawable-nodpi/app_icon_round.png" alt="DJames" width="100"/>
 

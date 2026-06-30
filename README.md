@@ -16,13 +16,17 @@ Future work will involve the testing and integration of:
 DJames is supported by **Android >= 10**.
 
 ## Before build
-Add to "app/res/raw" an "*env.json*" file with the following variables and personal keys:
+First, create a personal app in [Spotify for developers](https://developer.spotify.com/) and get the app's client and secret keys.
+Configure it to use Spotify's "Web API" and set as redirect callback the following URI: `djames-oauth://callback`
+Then, get a personal API token for [Mistral AI](https://mistral.ai) (for STT and LLMs) and [ElevenLabs](https://elevenlabs.io) (for TTS).
+
+In DJames' local repo clone, add to "*app/res/raw*" an "*env.json*" file with the following variables and personal keys, then build the app:
 ```
 {
-   "spotify_client": "...",
-   "spotify_sct": "...",
-   "mistral_api_key": "...",
-   "elevenlabs_api_key": "..."
+   "spotify_client": "...",          // Spotify app's client key
+   "spotify_sct": "...",             // Spotify app's secret key
+   "mistral_api_key": "...",         // For STT and LLMs
+   "elevenlabs_api_key": "..."       // For TTS
 }
 ```
 
@@ -39,7 +43,7 @@ Add to "app/res/raw" an "*env.json*" file with the following variables and perso
 
 **Version 3.0.1 (2026-05-05)** - New UI for Home Screen & Overlay button.
 
-**Version 3.0.0 (2026-04-26)** - First V3-only version. Kept v3.0.alpha's UI.
+**Version 3.0.0 (2026-04-26)** - First V3-only version (removed V2 IntentGraph and V2 fulfillment's leftovers). Kept v3.0.alpha's UI.
 
 **Version 3.0.a11 (v3 alpha) (2026-04-25)** - V3 FINALIZED! Completed all intent nodes' migration to V3 AgentsGraph. Add new ElevenLabs TTS voice for V3. Starts repackaging agentic library as KAIGraph (WIP). Last version with co-existing IntentGraph & AgentGraph.
 

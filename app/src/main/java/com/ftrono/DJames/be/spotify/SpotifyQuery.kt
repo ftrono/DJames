@@ -5,6 +5,7 @@ import android.util.Log
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.defaultHttpTimeout
 import com.ftrono.DJames.application.prefs
+import com.ftrono.DJames.application.spotifyLoginUtils
 import com.ftrono.DJames.be.models.HttpResponse
 import com.ftrono.DJames.be.utils.HttpClient
 import com.google.gson.JsonObject
@@ -66,11 +67,17 @@ class SpotifyQuery(private val context: Context) {
                     prefs.spotifyToken = respJSON.get("access_token").asString
                     if (respJSON.has("refresh_token")) {
                         prefs.spotRefreshToken = respJSON.get("refresh_token").asString
+                        prefs.spotLastRefreshAuth = System.currentTimeMillis()
                     }
                     Log.d(TAG, "TOKEN REFRESH SUCCESS: new Refresh tokens received!")
                 } catch (e: Exception) {
                     Log.w(TAG, "REFRESH: ERROR IN RESPONSE PARSING: ", e)
                 }
+            } else if (response.code == 401) {
+                val msg = "Invalid auth tokens -> Logging user out."
+                Log.d(TAG, msg)
+                spotifyLoginUtils.logout(context, expired = true)
+                throw Exception(msg)
             } else {
                 Log.d(TAG, "Token Refresh ERROR: not refreshed.")
             }

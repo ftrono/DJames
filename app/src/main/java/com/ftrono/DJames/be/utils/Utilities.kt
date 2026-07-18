@@ -62,7 +62,7 @@ class Utilities {
         val now = System.currentTimeMillis()
         // N months in milliseconds (approximation: 30 days * N * 24 * 60 * 60 * 1000)
         val nMonthsInMillis = nMonths * 30 * 24 * 60 * 60 * 1000
-        return (now - timestamp) <= nMonthsInMillis
+        return (now - timestamp) >= nMonthsInMillis
     }
 
     //Check service running:

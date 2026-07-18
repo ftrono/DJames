@@ -57,6 +57,14 @@ class Utilities {
         return datetimeStr
     }
 
+    // Check if a given number of months are already passed or not:
+    fun isTimeExpired(timestamp: Long, nMonths: Long): Boolean {
+        val now = System.currentTimeMillis()
+        // N months in milliseconds (approximation: 30 days * N * 24 * 60 * 60 * 1000)
+        val nMonthsInMillis = nMonths * 30 * 24 * 60 * 60 * 1000
+        return (now - timestamp) <= nMonthsInMillis
+    }
+
     //Check service running:
     fun isMyServiceRunning(serviceClass: Class<*>, context: Context): Boolean {
         val manager = context.getSystemService(AppCompatActivity.ACTIVITY_SERVICE) as ActivityManager

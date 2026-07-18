@@ -58,6 +58,7 @@ class SpotifyLoginUtils {
                     //SUCCESS!
                     prefs.spotifyToken = spotTempToken
                     prefs.spotRefreshToken = refrTempToken
+                    prefs.spotLastRefreshAuth = System.currentTimeMillis()
                     prefs.spotUserName = respJSON.get("display_name").asString
                     spotUserName.postValue(respJSON.get("display_name").asString)
                     prefs.spotUserId = respJSON.get("id").asString
@@ -101,18 +102,23 @@ class SpotifyLoginUtils {
 
 
     //LOGOUT:
-    fun logout(context: Context) {
+    fun logout(context: Context, expired: Boolean = false) {
         //Delete tokens & user details:
         spotifyLoggedIn.postValue(false)
         prefs.spotifyToken = ""
         prefs.spotRefreshToken = ""
+        prefs.spotLastRefreshAuth = 0L
         prefs.spotUserId = ""
         prefs.spotUserName = ""
         prefs.spotUserImage = ""
         spotUserName.postValue("")
         spotUserImageState.postValue("")
         //utils.deleteUserCache(context)
-        Toast.makeText(context, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()
+        if (expired) {
+            Toast.makeText(context, "ERROR: Spotify login expired! Please login again.", Toast.LENGTH_LONG).show()
+        } else {
+            Toast.makeText(context, "Djames is now LOGGED OUT from your Spotify.", Toast.LENGTH_LONG).show()
+        }
     }
 
 

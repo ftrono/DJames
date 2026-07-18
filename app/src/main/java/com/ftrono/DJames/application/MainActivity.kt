@@ -9,6 +9,7 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -92,6 +93,8 @@ class MainActivity : ComponentActivity() {
         //Check Spotify Login status:
         if (prefs.spotifyToken == "") {
             spotifyLoggedIn.postValue(false)
+        } else if (utils.isTimeExpired(prefs.spotLastRefreshAuth, 5L)) {
+            spotifyLoginUtils.logout(context, expired=true)
         } else {
             spotifyLoggedIn.postValue(true)
             spotUserName.postValue(prefs.spotUserName)

@@ -39,6 +39,8 @@ In DJames' local repo clone, add to "*app/res/raw*" an "*env.json*" file with th
 
 
 ## All versions history
+**Version 3.0.3 (2026-07-18)** - Add Spotify refresh token expiration to reflect new Spotify for Developers API policy.
+
 **Version 3.0.2 (2026-06-20)** - New Highway-inspired, collection-like UI for Library.
 
 **Version 3.0.1 (2026-05-05)** - New UI for Home Screen & Overlay button.

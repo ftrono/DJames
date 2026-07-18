@@ -165,6 +165,11 @@ class Prefs (context: Context) {
         get() = sharedPrefs.getString(KEY_SPOTIFY_USER_IMAGE, "") as String
         set(value) = sharedPrefs.edit { putString(KEY_SPOTIFY_USER_IMAGE, value) }
 
+    //Spotify last refresh token timestamp:
+    var spotLastRefreshAuth: Long
+        get() = sharedPrefs.getLong(KEY_SPOTIFY_LAST_REFRESH_AUTH, 0L) as Long
+        set(value) = sharedPrefs.edit { putLong(KEY_SPOTIFY_LAST_REFRESH_AUTH, value) }
+
 
     //ENCRYPTED PREFS:
     //(Encrypted) Spotify auth token:
@@ -205,6 +210,7 @@ class Prefs (context: Context) {
         const val KEY_SPOTIFY_USER_ID = ".key.spotify_user_id"
         const val KEY_SPOTIFY_USER_NAME = ".key.spotify_user_name"
         const val KEY_SPOTIFY_USER_IMAGE = ".key.spotify_user_image"
+        const val KEY_SPOTIFY_LAST_REFRESH_AUTH = ".key.spotify_last_refresh_auth"
 
         //Encrypted prefs:
         const val KEY_SPOTIFY_TOKEN = ".key.spotify_token"

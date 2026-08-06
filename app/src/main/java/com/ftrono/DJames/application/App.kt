@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Application
 import android.content.Context
 import android.media.AudioManager
+import android.media.ToneGenerator
 import android.net.Uri
 import android.os.Build
 import net.openid.appauth.AuthorizationServiceConfiguration
@@ -21,6 +22,7 @@ import com.ftrono.DJames.ui.theme.NavigationItem
 import com.ftrono.DJames.application.prefs.Prefs
 import com.ftrono.DJames.be.spotify.SpotifyParsers
 import com.ftrono.DJames.be.utils.Utilities
+import com.ftrono.DJames.ui.overlay.Overlay
 import com.google.gson.JsonObject
 import io.objectbox.Box
 import io.objectbox.BoxStore
@@ -32,7 +34,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.0.3"
+val appVersion = "3.0.4"
 val copyrightYear = 2024
 
 //DB:
@@ -102,6 +104,7 @@ var overlayActive = MutableLiveData<Boolean>(false)
 var queryStatus = MutableLiveData<String>("ready")   // MAIN PROCESS STATE for voice & chat ("ready", "busy", "processing")
 var clockActive = MutableLiveData<Boolean>(false)
 var overlayPos = MutableLiveData<String>("Right")
+var overlayDocked = MutableLiveData<Boolean>(false)
 var isVolumeUpPreferenceSet = MutableLiveData<Boolean>(true)   // Live observation of the pref (must change only with pref)
 var isVolumeUpUnlocked = MutableLiveData<Boolean>(false)   // Temporary: true only if prefs == True and volume unlocked
 var sourceIsVolume = MutableLiveData<Boolean>(false)
@@ -115,6 +118,7 @@ var allowVolumeClick = true   // ensure interval between volume clicks
 var userNicknameUI = MutableLiveData<String>("")
 var spotUserImageState = MutableLiveData<String>("")
 var sharedLink = MutableLiveData<String>("")
+var currentTime = MutableLiveData<String>("00:00")
 
 //Library & Messages:
 var curLibrarySize = MutableLiveData<Int>(0)
@@ -257,6 +261,8 @@ const val ACTION_UPDATE_PLAYER = "com.ftrono.DJames.eventReceiver.ACTION_UPDATE_
 const val ACTION_FINISH_CLOCK = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_CLOCK"
 
 //Overlay receiver:
+const val ACTION_OVERLAY_SHOW = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_SHOW"
+const val ACTION_OVERLAY_HIDE = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_HIDE"
 const val ACTION_OVERLAY_CLICK = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_CLICK"
 const val ACTION_SAVE_TRACK = "com.ftrono.DJames.eventReceiver.ACTION_SAVE_TRACK"
 const val ACTION_MAKE_CALL = "com.ftrono.DJames.eventReceiver.ACTION_MAKE_CALL"
@@ -270,6 +276,8 @@ class App: Application()
 {
     companion object {
         var prefs: Prefs? = null
+        var overlay = Overlay()
+        val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
         lateinit var instance: App
             private set
     }

@@ -7,12 +7,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -21,7 +16,6 @@ import androidx.compose.animation.slideOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -35,7 +29,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -54,8 +47,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -70,7 +61,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -85,6 +75,7 @@ import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.clickAnimationCountdownTime
 import com.ftrono.DJames.application.clickCounter
+import com.ftrono.DJames.application.currentTime
 import com.ftrono.DJames.application.overlayBoxMax
 import com.ftrono.DJames.application.overlayBoxMin
 import com.ftrono.DJames.application.overlayBubbleSize
@@ -95,7 +86,9 @@ import com.ftrono.DJames.application.overlayToeSize
 import com.ftrono.DJames.application.raiseVolumeCountdownTime
 import com.ftrono.DJames.application.isVolumeUpPreferenceSet
 import com.ftrono.DJames.application.isVolumeUpUnlocked
+import com.ftrono.DJames.application.overlayDocked
 import com.ftrono.DJames.ui.components.RoundedSign
+import com.ftrono.DJames.ui.components.toPx
 import com.ftrono.DJames.ui.theme.light_grey
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -119,7 +112,6 @@ fun PadsPreview1() {
         overlayPosState = overlayPosState,
         clickCounterState = clickCounterState,
         clockActiveState = clockActiveState,
-        currentTime = MutableLiveData<String>("00:00"),
     )
 }
 
@@ -137,7 +129,6 @@ fun PadsPreview2() {
         overlayPosState = overlayPosState,
         clickCounterState = clickCounterState,
         clockActiveState = clockActiveState,
-        currentTime = MutableLiveData<String>("00:00"),
     )
 }
 
@@ -152,11 +143,10 @@ fun PadsPreview3() {
     DJamesPads(
         context = mContext,
         queryStatus = MutableLiveData<String>("ready"),
-        isDocked = true,
+        previewDocked = true,
         overlayPosState = overlayPosState,
         clickCounterState = clickCounterState,
         clockActiveState = clockActiveState,
-        currentTime = MutableLiveData<String>("00:00"),
     )
 }
 
@@ -174,7 +164,6 @@ fun PadsPreview4() {
         overlayPosState = overlayPosState,
         clickCounterState = clickCounterState,
         clockActiveState = clockActiveState,
-        currentTime = MutableLiveData<String>("00:00"),
         previewCenter = true,
     )
 }
@@ -193,7 +182,6 @@ fun PadsPreview5() {
         overlayPosState = overlayPosState,
         clickCounterState = clickCounterState,
         clockActiveState = clockActiveState,
-        currentTime = MutableLiveData<String>("00:00"),
         previewVolume = true,
     )
 }
@@ -204,17 +192,16 @@ fun DJamesPads(
     context: Context,
     modifier: Modifier = Modifier,
     queryStatus: MutableLiveData<String>,
-    isDocked: Boolean = false,
     overlayPosState: String,
     clickCounterState: Int,
     clockActiveState: Boolean,
-    currentTime: MutableLiveData<String>,
     centerSize: Int = overlayBubbleSize,
     toeSize: Int = overlayToeSize,
     targetRadius: Dp = 44.dp,   // distance from center pad to toes
     interval: Float = 50f,   // distance between each toe angle
     previewCenter: Boolean = false,
     previewVolume: Boolean = false,
+    previewDocked: Boolean = false,
     onToesTapCommon: (Offset) -> Unit = { offset -> },
     onCenterTap: (Offset) -> Unit = { offset -> },
 ) {
@@ -225,6 +212,7 @@ fun DJamesPads(
 
     val currentTimeState by currentTime.observeAsState()
     val overlayOptionsState by overlayOptionsStr.observeAsState()
+    val isDocked by overlayDocked.observeAsState()
 
     // Colours:
     val colorBgActive = colorResource(R.color.colorAccentMid)
@@ -241,9 +229,9 @@ fun DJamesPads(
     )
 
     LaunchedEffect(clockActiveState, isLandscape) {
-        if (isDocked && isLandscape) {
+        if ((isDocked!! || previewDocked) && isLandscape) {
             overlayOptionsStr.postValue("speak, save, volume, pos")
-        } else if (isDocked) {
+        } else if (isDocked!! || previewDocked) {
             overlayOptionsStr.postValue("speak, save, volume")
         } else if (clockActiveState) {
             overlayOptionsStr.postValue("speak, save")
@@ -261,13 +249,13 @@ fun DJamesPads(
                     end = if (overlayPosState == "Right") 4.dp else 0.dp,
                 )
                 .width(
-                    if (isDocked) overlayBoxMax.dp else overlayBoxMin.dp
+                    if (isDocked!! || previewDocked) overlayBoxMax.dp else overlayBoxMin.dp
                 )
                 .height(
-                    if (isDocked) overlayBoxMin.dp else overlayBoxMax.dp
+                    if (isDocked!! || previewDocked) overlayBoxMin.dp else overlayBoxMax.dp
                 )
         } else modifier,
-        contentAlignment = if (isDocked && !isLandscape) {
+        contentAlignment = if ((isDocked!! || previewDocked) && !isLandscape) {
             Alignment.BottomCenter
         } else if (overlayPosState == "Right") {
             Alignment.CenterEnd
@@ -283,7 +271,7 @@ fun DJamesPads(
             size = overlayOptions.size,
             interval = interval,
             posRight = overlayPosState == "Right",
-            bottomDocked = isDocked && !isLandscape,
+            bottomDocked = (isDocked!! || previewDocked) && !isLandscape,
         )
 
         // Place N toes along a semi-circle on the left:
@@ -355,7 +343,7 @@ fun DJamesPads(
             bubbleSize = centerSize,
             toeSize = toeSize+4,
             toeOffset = 26,
-            isDocked = isDocked,
+            isDocked = isDocked!! || previewDocked,
             queryStatus = queryStatus,
             clickCounterState = clickCounterState,
             clockActiveState = clockActiveState,
@@ -866,54 +854,3 @@ fun PulsatingWaveform() {
         }
     }
 }
-
-// Extension function to convert Dp to Px
-@Composable
-fun Dp.toPx(): Float {
-    return with(LocalDensity.current) { this@toPx.toPx() }
-}
-
-
-@Composable
-fun TypingIndicator(
-    dotSize: Dp = 8.dp,
-    dotColor: Color = Color.Gray,
-    spaceBetween: Dp = 6.dp,
-    animationDelay: Int = 1000
-) {
-    val dotCount = 3
-    val infiniteTransition = rememberInfiniteTransition()
-
-    val animations = List(dotCount) { index ->
-        infiniteTransition.animateFloat(
-            initialValue = 0.3f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(
-                animation = keyframes {
-                    durationMillis = animationDelay * dotCount
-                    0.3f at (index * animationDelay)
-                    1f at (index * animationDelay + animationDelay / 2)
-                    0.3f at (index * animationDelay + animationDelay)
-                },
-                repeatMode = RepeatMode.Restart
-            )
-        )
-    }
-
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(spaceBetween),
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-    ) {
-        animations.forEach { anim ->
-            Box(
-                modifier = Modifier
-                    .size(dotSize)
-                    .scale(anim.value)
-                    .alpha(anim.value)
-                    .background(color = dotColor, shape = CircleShape)
-            )
-        }
-    }
-}
-

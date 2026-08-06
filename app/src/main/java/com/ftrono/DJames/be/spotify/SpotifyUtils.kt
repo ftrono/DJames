@@ -9,6 +9,7 @@ import android.webkit.URLUtil
 import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import com.ftrono.DJames.application.ACTION_TOASTER
+import com.ftrono.DJames.application.App.Companion.toneGen
 import com.ftrono.DJames.application.albumUrlIntro
 import com.ftrono.DJames.application.artistUrlIntro
 import com.ftrono.DJames.application.currentTrackId
@@ -255,7 +256,7 @@ class SpotifyUtils {
 
 
     //Save currently playing track:
-    fun saveCurrentTrack(context: Context, toneGen: ToneGenerator){
+    fun saveCurrentTrack(context: Context){
         Log.d(TAG, "SaveTrack: job start!")
         var toastText = ""
         try {

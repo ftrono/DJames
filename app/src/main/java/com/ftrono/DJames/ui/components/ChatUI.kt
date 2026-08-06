@@ -1,7 +1,13 @@
 package com.ftrono.DJames.ui.components
 
 import android.content.Context
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -45,15 +51,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ftrono.DJames.application.chatInputPlaceholder
 import com.ftrono.DJames.application.datetimeShortFormat
@@ -425,4 +436,48 @@ fun ChatInputField(
             )
         }
     )
+}
+
+
+@Composable
+fun TypingIndicator(
+    dotSize: Dp = 8.dp,
+    dotColor: Color = Color.Gray,
+    spaceBetween: Dp = 6.dp,
+    animationDelay: Int = 1000
+) {
+    val dotCount = 3
+    val infiniteTransition = rememberInfiniteTransition()
+
+    val animations = List(dotCount) { index ->
+        infiniteTransition.animateFloat(
+            initialValue = 0.3f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = keyframes {
+                    durationMillis = animationDelay * dotCount
+                    0.3f at (index * animationDelay)
+                    1f at (index * animationDelay + animationDelay / 2)
+                    0.3f at (index * animationDelay + animationDelay)
+                },
+                repeatMode = RepeatMode.Restart
+            )
+        )
+    }
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(spaceBetween),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+    ) {
+        animations.forEach { anim ->
+            Box(
+                modifier = Modifier
+                    .size(dotSize)
+                    .scale(anim.value)
+                    .alpha(anim.value)
+                    .background(color = dotColor, shape = CircleShape)
+            )
+        }
+    }
 }

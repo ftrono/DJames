@@ -46,6 +46,7 @@ import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import kotlin.math.roundToInt
 
 
@@ -53,6 +54,13 @@ import kotlin.math.roundToInt
 fun isKeyboardOpen(): Boolean {
     val ime = WindowInsets.ime
     return ime.getBottom(LocalDensity.current) > 0
+}
+
+
+// Extension function to convert Dp to Px
+@Composable
+fun Dp.toPx(): Float {
+    return with(LocalDensity.current) { this@toPx.toPx() }
 }
 
 

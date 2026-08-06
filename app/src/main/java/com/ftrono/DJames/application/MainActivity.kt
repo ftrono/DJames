@@ -9,7 +9,6 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -197,7 +196,7 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        //    //Notifications Listener permission management:
+//    //Notifications Listener permission management:
 //    val requestNotificationListenerOn = rememberSaveable { mutableStateOf(
 //        !utils.isNotificationServiceEnabled(mContext)
 //    ) }

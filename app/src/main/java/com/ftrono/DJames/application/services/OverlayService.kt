@@ -29,8 +29,6 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
@@ -39,7 +37,6 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
@@ -47,13 +44,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_FINISH_CLOCK
 import com.ftrono.DJames.application.ACTION_MAKE_CALL
-import com.ftrono.DJames.application.ACTION_REC_STOP
 import com.ftrono.DJames.application.ACTION_SAVE_TRACK
 import com.ftrono.DJames.application.ACTION_TIME_TICK
 import com.ftrono.DJames.application.ACTION_TOASTER
@@ -64,12 +59,9 @@ import com.ftrono.DJames.application.acts_active
 import com.ftrono.DJames.application.audioManager
 import com.ftrono.DJames.application.callMode
 import com.ftrono.DJames.application.clickCounter
-import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.overlayPos
-import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.recordingMode
 import com.ftrono.DJames.application.sourceIsVolume
 import com.ftrono.DJames.application.streamMaxVolume
 import com.ftrono.DJames.application.voiceQueryOn
@@ -78,22 +70,19 @@ import com.ftrono.DJames.ui.overlay.OverlayClose
 import com.ftrono.DJames.ui.defaults.OverlayLifecycleOwner
 import com.ftrono.DJames.ui.defaults.OverlaySavedStateRegistryOwner
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import com.ftrono.DJames.application.ACTION_OVERLAY_CLICK
-import com.ftrono.DJames.application.allowVolumeClick
-import com.ftrono.DJames.application.clickCountdownTime
-import com.ftrono.DJames.application.clickSleepInterval
+import com.ftrono.DJames.application.ACTION_OVERLAY_HIDE
+import com.ftrono.DJames.application.ACTION_OVERLAY_SHOW
+import com.ftrono.DJames.application.App.Companion.toneGen
 import com.ftrono.DJames.application.overlayBubbleSize
-import com.ftrono.DJames.application.overlayOptionsStr
 import com.ftrono.DJames.application.overlayToeSize
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.isVolumeUpUnlocked
-import com.ftrono.DJames.ui.overlay.DJamesPads
-import com.ftrono.DJames.ui.overlay.getQuickActionOnTap
+import com.ftrono.DJames.ui.overlay.Overlay
+import com.ftrono.DJames.ui.overlay.OverlayBubble
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -103,9 +92,8 @@ import kotlinx.coroutines.delay
 import kotlin.math.round
 
 
-class OverlayService : Service() {
+class OverlayService : Service () {
     private val TAG = this::class.java.simpleName
-    private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
 
     //Compose Views:
     private lateinit var bubbleView : ComposeView
@@ -113,7 +101,6 @@ class OverlayService : Service() {
 
     // Coroutine scope to handle countdown
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-    private var countdownJob: Job? = null
     private var loadJob: Job? = null
     private var saveTrackJob: Job? = null
 
@@ -124,12 +111,11 @@ class OverlayService : Service() {
     private lateinit var bubbleParams: LayoutParams
     private lateinit var closeParams: LayoutParams
 
-    //Mini Clock:
-    private var currentTime = MutableLiveData<String>("00:00")
-    private var now: LocalDateTime? = null
-    private val miniClockFormat = DateTimeFormatter.ofPattern("HH:mm")
+    //Overlay:
+    private var overlay = Overlay()
 
     //Vars:
+    var overlayViewOn = false
     var screenHeight = 0
     var screenWidth = 0
     var restarting = false
@@ -181,17 +167,15 @@ class OverlayService : Service() {
             //Compose:
             bubbleView = ComposeView(this).also {
                 it.setContent {
-                    OverlayBubble(
+                    OverlayCaller(
                         context = applicationContext,
-                        centerSize = overlayBubbleSize,
-                        toeSize = overlayToeSize,
                         onDrag = { x, y ->
                             bubbleParams.x += x
                             if (bubbleParams.y + y >= 0) {
                                 bubbleParams.y += y
                             }
                             windowManager.updateViewLayout(it, bubbleParams)
-                        }
+                        },
                     )
                 }
                 it.setViewTreeLifecycleOwner(lifecycleOwner)
@@ -199,10 +183,10 @@ class OverlayService : Service() {
             }
 
             //Set current time:
-            updateMiniClock()
+            overlay.updateMiniClock()
 
             //Add the overlay view to the window
-            windowManager.addView(bubbleView, bubbleParams)
+            showOverlayView()
 
             // Start the lifecycle
             lifecycleOwner.setCurrentState(Lifecycle.State.STARTED)
@@ -268,6 +252,8 @@ class OverlayService : Service() {
             //Start personal Receiver:
             val actFilter = IntentFilter()
             actFilter.addAction(ACTION_TIME_TICK)
+            actFilter.addAction(ACTION_OVERLAY_SHOW)
+            actFilter.addAction(ACTION_OVERLAY_HIDE)
             actFilter.addAction(ACTION_OVERLAY_CLICK)
             actFilter.addAction(ACTION_SAVE_TRACK)
             actFilter.addAction(ACTION_MAKE_CALL)
@@ -278,7 +264,7 @@ class OverlayService : Service() {
             Log.d(TAG, "OverlayReceiver started.")
 
             //Set current time:
-            updateMiniClock()
+            overlay.updateMiniClock()
 
 
         } catch (e: Exception) {
@@ -306,20 +292,18 @@ class OverlayService : Service() {
 
 
     @Composable
-    fun OverlayBubble(
+    fun OverlayCaller(
         context: Context,
-        centerSize: Int,
-        toeSize: Int,
+        centerSize: Int = overlayBubbleSize,
+        toeSize: Int = overlayToeSize,
         onDrag: (Int, Int) -> Unit
     ) {
         // Coroutine scope for animating drag events
         val configuration = LocalConfiguration.current
         val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
         val coroutineScope = rememberCoroutineScope()
-        val clockActiveState by clockActive.observeAsState()
         val clickCounterState by clickCounter.observeAsState()
         val sourceIsVolumeState by sourceIsVolume.observeAsState()
-        val isVolumeUpUnlockedState by isVolumeUpUnlocked.observeAsState()
         val overlayPosState by overlayPos.observeAsState()
 
         // Animating the horizontal offset based on the state
@@ -327,10 +311,11 @@ class OverlayService : Service() {
             clickCounterState!! > 0 && overlayPosState == "Right" && sourceIsVolumeState!!
         ) (70.dp) else 0.dp)
 
-        //CONTAINER:
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+        OverlayBubble(
+            context = context,
+            overlay = overlay,
+            centerSize = centerSize,
+            toeSize = toeSize,
             modifier = Modifier
                 .padding(end = rightPadding)
                 .wrapContentSize()
@@ -397,38 +382,7 @@ class OverlayService : Service() {
                         }
                     )
                 }
-        ) {
-            DJamesPads(
-                context = context,
-                queryStatus = queryStatus,
-                overlayPosState = overlayPosState!!,
-                clickCounterState = clickCounterState!!,
-                clockActiveState = clockActiveState!!,
-                currentTime = currentTime,
-                centerSize = centerSize,
-                toeSize = toeSize,
-                onToesTapCommon = {
-                    onToesPadClick()
-                },
-                onCenterTap = {
-                    if (isVolumeUpUnlockedState!!) {
-                        // Re-enable volume-up trigger:
-                        isVolumeUpUnlocked.postValue(false)
-                    } else {
-                        if (!voiceQueryOn) {
-                            // CENTER TAP:
-                            onCenterPadClick(enable = clickCounterState == 0)
-                        } else if (recordingMode) {
-                            //EARLY STOP RECORDING:
-                            Intent().also { intent ->
-                                intent.setAction(ACTION_REC_STOP)
-                                sendBroadcast(intent)
-                            }
-                        }
-                    }
-                }
-            )
-        }
+        )
     }
 
 
@@ -475,10 +429,38 @@ class OverlayService : Service() {
     }
 
 
-    //Clock:
-    fun updateMiniClock() {
-        now = LocalDateTime.now()
-        currentTime.postValue(now!!.format(miniClockFormat))
+    // Show overlay:
+    fun showOverlayView() {
+        if (!overlayViewOn) {
+            windowManager.addView(bubbleView, bubbleParams)
+            overlayViewOn = true
+        }
+    }
+
+
+    // Remove views:
+    fun removeOverlayView() {
+        if (overlayViewOn) {
+            try {
+                bubbleView.let {
+                    windowManager.removeView(it)
+                    it.setViewTreeLifecycleOwner(null)
+                    it.setViewTreeSavedStateRegistryOwner(null)
+                }
+                overlayViewOn = false
+            } catch (e: Exception) {
+                Log.w(TAG, "BubbleView: cannot remove. ", e)
+            }
+            try {
+                closeView.let {
+                    windowManager.removeView(it)
+                    it.setViewTreeLifecycleOwner(null)
+                    it.setViewTreeSavedStateRegistryOwner(null)
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "CloseView: cannot remove. ")
+            }
+        }
     }
 
 
@@ -535,7 +517,7 @@ class OverlayService : Service() {
             Log.w(TAG, "SaveTrackJob not active.")
         }
         try {
-            countdownJob?.cancel()
+            overlay.countdownJob?.cancel()
         } catch (e: Exception) {
             Log.w(TAG, "SaveTrackJob not active.")
         }
@@ -561,24 +543,7 @@ class OverlayService : Service() {
                 sendBroadcast(intent)
             }
         }
-        try {
-            bubbleView.let {
-                windowManager.removeView(it)
-                it.setViewTreeLifecycleOwner(null)
-                it.setViewTreeSavedStateRegistryOwner(null)
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "BubbleView: cannot remove. ", e)
-        }
-        try {
-            closeView.let {
-                windowManager.removeView(it)
-                it.setViewTreeLifecycleOwner(null)
-                it.setViewTreeSavedStateRegistryOwner(null)
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "CloseView: cannot remove. ")
-        }
+        removeOverlayView()
         //If no activities active -> CLOSE APP:
         Log.d(TAG, "$acts_active")
         if (acts_active.size == 0) {
@@ -586,86 +551,6 @@ class OverlayService : Service() {
         }
     }
 
-
-    // COUNTDOWN FUNCTIONS:
-    fun onToesPadClick() {
-        //CLICK ONLY -> Play ALERT tone:
-        sourceIsVolume.postValue(false)
-        restartCountdown()
-        toneGen.startTone(ToneGenerator.TONE_CDMA_KEYPAD_VOLUME_KEY_LITE)   //ALERT
-    }
-
-    fun onCenterPadClick(enable: Boolean) {
-        //CLICK ONLY -> Play ALERT tone:
-        sourceIsVolume.postValue(false)
-        restartCountdown()
-        if (enable) {
-            clickCounter.postValue(1)
-            toneGen.startTone(ToneGenerator.TONE_CDMA_KEYPAD_VOLUME_KEY_LITE)   //ALERT
-        } else {
-            clickCounter.postValue(0)
-            //Play FAIL tone:
-            toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-        }
-    }
-
-    fun loopPads(fromVolume: Boolean = false) {
-        //VOLUME UP ONLY -> Play ALERT tone:
-        sourceIsVolume.postValue(fromVolume)
-        restartCountdown()
-        val maxClickOptions = 1 + overlayOptionsStr.value!!.split(", ").size
-        if (clickCounter.value!! == maxClickOptions) {
-            clickCounter.postValue(0)
-            //Play FAIL tone:
-            toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-        } else {
-            clickCounter.postValue(clickCounter.value!! + 1)
-            toneGen.startTone(ToneGenerator.TONE_CDMA_KEYPAD_VOLUME_KEY_LITE)   //ALERT
-        }
-    }
-
-
-    fun restartCountdown() {
-        countdownJob?.cancel() // Cancel any running countdown
-        Log.d(TAG, "CountdownJob canceled!")
-
-        // THREAD:
-        countdownJob = CoroutineScope(Dispatchers.IO).launch {
-            Log.d(TAG, "CountdownJob start!")
-            //Countdown: ensure interval between clicks:
-            delay(clickSleepInterval)
-            if (!allowVolumeClick) {
-                allowVolumeClick = true
-            }
-            delay(clickCountdownTime-clickSleepInterval)
-            //After countdown:
-            val overlayOptions = overlayOptionsStr.value!!.split(", ")
-            var actionName = ""
-
-            if (clickCounter.value!! == 1) {
-                //Play FAIL tone:
-                toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-            } else if (clickCounter.value!! > 1) {
-                val actionIndex = clickCounter.value!! - 2
-                actionName = overlayOptions[actionIndex]
-                when {
-                    (actionName == "speak" && prefs.enableIntro) -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
-                    (actionName == "speak") -> { }   // Do nothing
-                    (actionName == "clock") -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
-                    (actionName == "volume") -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
-                    (actionName == "save") -> toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
-                    else -> toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
-                }
-                //TRIGGER ACTION:
-                getQuickActionOnTap(applicationContext, actionName)()
-            }
-            //Reset counter:
-            clickCounter.postValue(0)
-            sourceIsVolume.postValue(false)
-            allowVolumeClick = true
-            Log.d(TAG, "CountdownJob end!")
-        }
-    }
 
     //Restart service:
     fun restartService(context: Context) {
@@ -693,12 +578,22 @@ class OverlayService : Service() {
 
             //Update clock (every minute):
             if (intent!!.action == ACTION_TIME_TICK) {
-                updateMiniClock()
+                overlay.updateMiniClock()
+            }
+
+            //Show overlay:
+            if (intent.action == ACTION_OVERLAY_SHOW) {
+                showOverlayView()
+            }
+
+            // Hide overlay:
+            if (intent.action == ACTION_OVERLAY_HIDE) {
+                removeOverlayView()
             }
 
             //Trigger overlay click:
             if (intent.action == ACTION_OVERLAY_CLICK) {
-                loopPads(true)
+                overlay.loopPads(applicationContext, true)
             }
 
             //Save current track:
@@ -708,7 +603,7 @@ class OverlayService : Service() {
                     //PROCESS QUERY:
                     saveTrackJob = CoroutineScope(Dispatchers.IO).launch {
                         delay(1000)
-                        spotifyUtils.saveCurrentTrack(context!!, toneGen)
+                        spotifyUtils.saveCurrentTrack(context!!)
                     }
                 } catch (e: Exception) {
                     Log.w(TAG, "ERROR: Cannot save current track! ", e)

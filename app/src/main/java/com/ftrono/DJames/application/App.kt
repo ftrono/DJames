@@ -276,8 +276,8 @@ class App: Application()
 {
     companion object {
         var prefs: Prefs? = null
-        var overlay = Overlay()
         val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
+        var overlay = Overlay(toneGen)
         lateinit var instance: App
             private set
     }

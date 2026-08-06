@@ -1,6 +1,7 @@
 package com.ftrono.DJames.ui.overlay
 
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
@@ -73,8 +74,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.ACTION_REC_STOP
 import com.ftrono.DJames.application.clickAnimationCountdownTime
 import com.ftrono.DJames.application.clickCounter
+import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.currentTime
 import com.ftrono.DJames.application.overlayBoxMax
 import com.ftrono.DJames.application.overlayBoxMin
@@ -87,6 +90,10 @@ import com.ftrono.DJames.application.raiseVolumeCountdownTime
 import com.ftrono.DJames.application.isVolumeUpPreferenceSet
 import com.ftrono.DJames.application.isVolumeUpUnlocked
 import com.ftrono.DJames.application.overlayDocked
+import com.ftrono.DJames.application.overlayPos
+import com.ftrono.DJames.application.queryStatus
+import com.ftrono.DJames.application.recordingMode
+import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.components.toPx
 import com.ftrono.DJames.ui.theme.light_grey
@@ -96,6 +103,67 @@ import kotlinx.coroutines.launch
 import kotlin.String
 import kotlin.math.cos
 import kotlin.math.sin
+
+
+// MAIN OverlayBubble UI wrapper:
+@Composable
+fun OverlayBubble(
+    context: Context,
+    overlay: Overlay,
+    centerSize: Int = overlayBubbleSize,
+    toeSize: Int = overlayToeSize,
+    modifier: Modifier,
+    preview: Boolean = false,
+) {
+    // States:
+    val clockActiveState by clockActive.observeAsState()
+    val clickCounterState by clickCounter.observeAsState()
+    val isVolumeUpUnlockedState by isVolumeUpUnlocked.observeAsState()
+    val overlayPosState by overlayPos.observeAsState()
+
+    //CONTAINER:
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        // MAIN:
+        DJamesPads(
+            context = context,
+            queryStatus = queryStatus,
+            overlayPosState = overlayPosState!!,
+            clickCounterState = clickCounterState!!,
+            clockActiveState = clockActiveState!!,
+            centerSize = centerSize,
+            toeSize = toeSize,
+            onToesTapCommon = {
+                if (!preview) overlay.onToesPadClick(context)
+            },
+            onCenterTap = {
+                if (!preview) {
+                    if (isVolumeUpUnlockedState!!) {
+                        // Re-enable volume-up trigger:
+                        isVolumeUpUnlocked.postValue(false)
+                    } else {
+                        if (!voiceQueryOn) {
+                            // CENTER TAP:
+                            overlay.onCenterPadClick(
+                                context = context,
+                                enable = clickCounterState == 0,
+                            )
+                        } else if (recordingMode) {
+                            //EARLY STOP RECORDING:
+                            Intent().also { intent ->
+                                intent.setAction(ACTION_REC_STOP)
+                                context.sendBroadcast(intent)
+                            }
+                        }
+                    }
+                }
+            }
+        )
+    }
+}
 
 
 @Preview

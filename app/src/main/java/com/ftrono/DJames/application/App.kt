@@ -276,8 +276,10 @@ class App: Application()
 {
     companion object {
         var prefs: Prefs? = null
-        val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
-        var overlay = Overlay(toneGen)
+        lateinit var toneGen: ToneGenerator
+            private set
+        lateinit var overlay: Overlay
+            private set
         lateinit var instance: App
             private set
     }
@@ -305,5 +307,9 @@ class App: Application()
         ObjectBox.init(this)
         libraryBox = store.boxFor(LibraryItem::class.java)
         messageBox = store.boxFor(Message::class.java)
+
+        //Overlay:
+        toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
+        overlay = Overlay()
     }
 }

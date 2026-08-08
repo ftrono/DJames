@@ -3,6 +3,7 @@ package com.ftrono.DJames.ui.overlay
 import android.content.Context
 import android.media.ToneGenerator
 import android.util.Log
+import com.ftrono.DJames.application.App.Companion.toneGen
 import com.ftrono.DJames.application.allowVolumeClick
 import com.ftrono.DJames.application.clickCountdownTime
 import com.ftrono.DJames.application.clickCounter
@@ -21,9 +22,7 @@ import java.time.format.DateTimeFormatter
 
 
 // Main Overlay class, with all needed Overlay methods:
-class Overlay(
-    val toneGen: ToneGenerator? = null
-) {
+class Overlay() {
     private val TAG = this::class.java.simpleName
 
     var countdownJob: Job? = null
@@ -44,7 +43,7 @@ class Overlay(
         //CLICK ONLY -> Play ALERT tone:
         sourceIsVolume.postValue(false)
         restartCountdown(context)
-        toneGen?.startTone(ToneGenerator.TONE_CDMA_KEYPAD_VOLUME_KEY_LITE)   //ALERT
+        toneGen.startTone(ToneGenerator.TONE_CDMA_KEYPAD_VOLUME_KEY_LITE)   //ALERT
     }
 
     fun onCenterPadClick(context: Context, enable: Boolean) {
@@ -53,11 +52,11 @@ class Overlay(
         restartCountdown(context)
         if (enable) {
             clickCounter.postValue(1)
-            toneGen?.startTone(ToneGenerator.TONE_CDMA_KEYPAD_VOLUME_KEY_LITE)   //ALERT
+            toneGen.startTone(ToneGenerator.TONE_CDMA_KEYPAD_VOLUME_KEY_LITE)   //ALERT
         } else {
             clickCounter.postValue(0)
             //Play FAIL tone:
-            toneGen?.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+            toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
         }
     }
 
@@ -69,10 +68,10 @@ class Overlay(
         if (clickCounter.value!! == maxClickOptions) {
             clickCounter.postValue(0)
             //Play FAIL tone:
-            toneGen?.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+            toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
         } else {
             clickCounter.postValue(clickCounter.value!! + 1)
-            toneGen?.startTone(ToneGenerator.TONE_CDMA_KEYPAD_VOLUME_KEY_LITE)   //ALERT
+            toneGen.startTone(ToneGenerator.TONE_CDMA_KEYPAD_VOLUME_KEY_LITE)   //ALERT
         }
     }
 
@@ -96,18 +95,18 @@ class Overlay(
 
             if (clickCounter.value!! == 1) {
                 //Play FAIL tone:
-                toneGen?.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
 
             } else if (clickCounter.value!! > 1) {
                 val actionIndex = clickCounter.value!! - 2
                 actionName = overlayOptions[actionIndex]
                 when {
-                    (actionName == "speak" && prefs.enableIntro) -> toneGen?.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                    (actionName == "speak" && prefs.enableIntro) -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
                     (actionName == "speak") -> { }   // Do nothing
-                    (actionName == "clock") -> toneGen?.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
-                    (actionName == "volume") -> toneGen?.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
-                    (actionName == "save") -> toneGen?.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
-                    else -> toneGen?.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
+                    (actionName == "clock") -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                    (actionName == "volume") -> toneGen.startTone(ToneGenerator.TONE_PROP_ACK)   //ACKNOWLEDGE
+                    (actionName == "save") -> toneGen.startTone(ToneGenerator.TONE_CDMA_ANSWER)   //STOP
+                    else -> toneGen.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE)   //FAIL
                 }
                 //TRIGGER ACTION:
                 getQuickActionOnTap(context, actionName)()

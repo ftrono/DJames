@@ -210,7 +210,7 @@ fun StreetUITopBar(
             }
             Text(
                 text = title,
-                fontSize = 24.sp,
+                fontSize = if (pretitle == "" && subtitle == "") 20.sp else 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorResource(id = R.color.light_grey),
             )

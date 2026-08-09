@@ -101,6 +101,8 @@ fun ExtServiceLoginButton(
     modifier: Modifier = Modifier,
     backgroundColor: Color,
     loggedInState: Boolean,
+    label: String = "",
+    showIcon: Boolean = true,
     onClick: () -> Unit = {}
 ) {
     //SPOTIFY LOGIN STATUS:
@@ -119,23 +121,30 @@ fun ExtServiceLoginButton(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            //Spotify logo:
-            Icon(
-                modifier = Modifier
-                    .padding(12.dp)
-                    .size(20.dp),
-                imageVector = if (loggedInState) Icons.Default.Close else Icons.AutoMirrored.Filled.ExitToApp,
-                tint = colorResource(R.color.light_grey),
-                contentDescription = if (loggedInState) "Disconnect" else "Connect",
-            )
+            if (showIcon) {
+                //Icon:
+                Icon(
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .size(20.dp),
+                    imageVector = if (loggedInState) Icons.Default.Close else Icons.AutoMirrored.Filled.ExitToApp,
+                    tint = colorResource(R.color.light_grey),
+                    contentDescription = if (label != "" && loggedInState) "Manage" else if (loggedInState) "Disconnect" else "Connect",
+                )
+            }
             //Text:
             Text(
+                modifier = Modifier
+                    .padding(
+                        top = if (showIcon) 0.dp else 4.dp,
+                        bottom = if (showIcon) 0.dp else 4.dp,
+                        start = if (showIcon) 0.dp else 12.dp,
+                        end = 12.dp
+                    ),
                 text = if (loggedInState) "Disconnect" else "Connect",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorResource(id = R.color.light_grey),
-                modifier = Modifier
-                    .padding(end=12.dp),
             )
         }
     }
@@ -162,7 +171,7 @@ fun ExtServiceAccountItem(
         // Logo:
         Image(
             modifier = Modifier
-                .padding(end=8.dp)
+                .padding(end = 8.dp)
                 .size(28.dp),
             painter = iconPainter,
             contentDescription = name,

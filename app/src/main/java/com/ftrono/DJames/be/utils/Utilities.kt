@@ -41,6 +41,7 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.userNicknameUI
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 
@@ -63,6 +64,17 @@ class Utilities {
         // N months in milliseconds (approximation: 30 days * N * 24 * 60 * 60 * 1000)
         val nMonthsInMillis = nMonths * 30 * 24 * 60 * 60 * 1000
         return (now - timestamp) >= nMonthsInMillis
+    }
+
+    // Build user greeting:
+    fun getTimeOfDay(): String {
+        val hour = LocalDateTime.now().hour
+        return when {
+            (hour < 6) -> "night"
+            (hour < 13) -> "morning"
+            (hour < 18) -> "afternoon"
+            else -> "evening"
+        }
     }
 
     //Check service running:

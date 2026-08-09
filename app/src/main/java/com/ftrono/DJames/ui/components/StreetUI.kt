@@ -70,6 +70,8 @@ import coil3.compose.AsyncImage
 import com.ftrono.DJames.R
 import com.ftrono.DJames.ui.selectors.colorSelector
 import com.ftrono.DJames.ui.selectors.colorSelectorDark
+import com.ftrono.DJames.ui.selectors.colorSelectorHomeDark
+import com.ftrono.DJames.ui.selectors.colorSelectorHomeLight
 import com.ftrono.DJames.ui.selectors.colorSelectorLight
 import com.ftrono.DJames.ui.selectors.iconSelector
 import kotlin.math.absoluteValue
@@ -122,15 +124,19 @@ fun StreetUIScaffold(
 
 @Composable
 fun StreetLine(
-    modifier: Modifier
+    modifier: Modifier,
+    isHorizontal: Boolean = false,
 ) {
     Canvas(
         modifier = modifier
     ) {
         drawLine(
             color = Color.Gray,
-            start = Offset(0f, 0f),
-            end = Offset(0f, size.height),
+            start = Offset(x = 0f, y = 0f),
+            end = Offset(
+                x = if (isHorizontal) size.width else 0f,
+                y = if (isHorizontal) 0f else size.height,
+            ),
             strokeWidth = 20f,
             pathEffect = PathEffect.dashPathEffect(floatArrayOf(160f, 80f), 0f)
         )
@@ -143,14 +149,14 @@ fun CardSign(
     modifier: Modifier,
     roundedCorners: Dp = 20.dp,
     backgroundColor: Color,
-    borderColor: Color,
-    borderWidth: Dp,
+    borderColor: Color? = null,
+    borderWidth: Dp? = null,
     content: @Composable () -> Unit,
 ) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(roundedCorners),
-        border = BorderStroke(borderWidth, borderColor),
+        border = if (borderColor != null && borderWidth != null) BorderStroke(borderWidth, borderColor) else null,
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor
         )
@@ -680,11 +686,16 @@ fun LibItemCard(
     subtitle: String = "",
     imageUrl: String = "",
     isCollection: Boolean = false,
+    fromHome: Boolean = false,
     onClick: () -> Unit = {}
 ) {
     val isMultiline = rememberSaveable { mutableStateOf(false) }
     val cardBorderColor = colorResource(id = R.color.transparent_full)
-    val signBackgroundColor = if (isCollection) colorResource(R.color.violetSign) else colorSelector(cat = type)
+    val signBackgroundColor = if (isCollection) {
+        colorResource(R.color.violetSign)
+    } else if (fromHome && source != "spotify") {
+        colorSelectorHomeDark(cat = type)
+    } else colorSelector(cat = type)
     val signBorderColor = colorResource(id = R.color.transparent_full)   // midfaded_grey
     val signIconColor = colorResource(id = R.color.light_grey)
     val circle = type == "artist" || source == "contact"
@@ -746,7 +757,13 @@ fun LibItemCard(
                     modifier = Modifier,
                     shape = RoundedCornerShape(2.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (source == "spotify") colorSelector(type) else colorSelectorDark(source)
+                        containerColor = if (source == "spotify") {
+                            colorSelector(type)
+                        } else if (fromHome) {
+                            colorSelectorHomeLight(source)
+                        } else {
+                            colorSelectorDark(source)
+                        }
                     ),
                 ) {
                     //CAT ICON:
@@ -788,7 +805,7 @@ fun LibItemCard(
                     Text(
                         modifier = Modifier,
                         //.padding(top = 2.dp),
-                        color = colorResource(id = R.color.mid_grey),
+                        color = if (fromHome) colorResource(id = R.color.light_grey) else colorResource(id = R.color.mid_grey),
                         fontSize = 10.sp,
                         maxLines = 1,
                         lineHeight = 12.sp,

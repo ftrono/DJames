@@ -212,12 +212,18 @@ fun HomeScreen(
                 //DISPLAY HORIZONTALLY:
                 Row(
                     modifier = Modifier,
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.Center
                 ) {
                     IntroArea(
                         context = mContext,
                         navController = navController,
+                        modifier = Modifier
+                            .padding(
+                                top = 12.dp, bottom = 12.dp
+                            )
+                            .width(200.dp)
+                            .fillMaxHeight(),
                         isLandscape = true,
                         spotifyLoggedInState = spotifyLoggedInState!!,
                     )
@@ -242,6 +248,11 @@ fun HomeScreen(
                 IntroArea(
                     context = mContext,
                     navController = navController,
+                    modifier = Modifier
+                        .padding(
+                            top = 12.dp, bottom = 12.dp
+                        )
+                        .fillMaxWidth(),
                     isLandscape = false,
                     spotifyLoggedInState = spotifyLoggedInState!!,
                 )
@@ -258,90 +269,125 @@ fun HomeScreen(
     }
 }
 
+
+// DJAMES LOGO:
+@Composable
+fun DJamesLogo(
+    context: Context,
+    modifier: Modifier,
+    spotifyLoggedInState: Boolean,
+) {
+    val spotNameState by spotUserName.observeAsState()
+    // DJames logo:
+    Image(
+        modifier = modifier
+            .clickable {
+                val toastText = if (!spotifyLoggedInState) {
+                    "Log in from Accounts to unlock music functions!"
+                } else {
+                    "Logged in to Spotify as: $spotNameState!"
+                }
+                Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
+            },
+        painter = painterResource(id = R.drawable.djames),
+        contentDescription = "DJames logo"
+    )
+}
+
+
+@Composable
+fun HomeIntroText(
+    navController: NavController,
+) {
+    val userNameState by userNicknameUI.observeAsState()
+    val genderState by userGender.observeAsState()
+
+    Text(
+        text = "Good ${utils.getTimeOfDay()},",
+        fontSize = 24.sp,
+        fontWeight = FontWeight.Bold,
+        color = colorResource(id = R.color.light_grey),
+    )
+    Row(
+        modifier = Modifier
+            .background(color = colorResource(R.color.windowBackground))
+            .clickable {
+                //Navigate:
+                val curNavRoute = NavigationItem.Accounts.route
+                navigateTo(navController, curNavRoute)
+                lastNavRoute = curNavRoute
+            },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        Icon(
+            modifier = Modifier
+                .padding(end = 8.dp)
+                .size(24.dp),
+            contentDescription = "Edit",
+            imageVector = Icons.Outlined.Edit,
+            tint = colorResource(R.color.mid_grey)
+        )
+        Text(
+            text = if (userNameState == "") genderState!! else prefs.userNickname,
+            fontSize = 30.sp,
+            fontWeight = FontWeight.Bold,
+            color = colorResource(id = R.color.light_grey),
+        )
+    }
+}
+
 // INTRO AREA:
 @Composable
 fun IntroArea(
     context: Context,
     navController: NavController,
+    modifier: Modifier,
     spotifyLoggedInState: Boolean,
     isLandscape: Boolean,
     preview: Boolean = false,
 ) {
-    val userNameState by userNicknameUI.observeAsState()
-    val genderState by userGender.observeAsState()
-    val spotNameState by spotUserName.observeAsState()
-
     Column(
-        modifier = Modifier
-            .padding(
-                top = 12.dp, bottom = 12.dp
-            )
-            .fillMaxWidth(),
+        modifier = modifier,
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Center,
     ) {
-        // DJames row:
-        Row(
-            modifier = Modifier,
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-        ) {
-            // Intro text:
-            Column(
-                modifier = Modifier
-                    .weight(1F),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    text = "Good ${utils.getTimeOfDay()},",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colorResource(id = R.color.light_grey),
-                )
-                Row(
-                    modifier = Modifier,
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    Icon(
-                        modifier = Modifier
-                            .padding(end = 8.dp)
-                            .size(24.dp)
-                            .clickable {
-                                //Navigate:
-                                val curNavRoute = NavigationItem.Accounts.route
-                                navigateTo(navController, curNavRoute)
-                                lastNavRoute = curNavRoute
-                            },
-                        contentDescription = "Edit",
-                        imageVector = Icons.Outlined.Edit,
-                        tint = colorResource(R.color.mid_grey)
-                    )
-                    Text(
-                        text = if (userNameState == "") genderState!! else prefs.userNickname,
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = colorResource(id = R.color.light_grey),
-                    )
-                }
-            }
-
+        if (isLandscape) {
             // DJames logo:
-            Image(
+            DJamesLogo(
+                context = context,
                 modifier = Modifier
-                    .size(70.dp)
-                    .clickable {
-                        val toastText = if (!spotifyLoggedInState) {
-                            "Log in from Accounts to unlock music functions!"
-                        } else {
-                            "Logged in to Spotify as: $spotNameState!"
-                        }
-                        Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
-                    },
-                painter = painterResource(id = R.drawable.djames),
-                contentDescription = "DJames logo"
+                    .padding(bottom=8.dp)
+                    .size(60.dp),
+                spotifyLoggedInState = spotifyLoggedInState
             )
+            // Intro text:
+            HomeIntroText(navController)
+
+        } else {
+            // DJames row:
+            Row(
+                modifier = Modifier,
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+            ) {
+                // Intro text:
+                Column(
+                    modifier = Modifier
+                        .weight(1F),
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    HomeIntroText(navController)
+                }
+                // DJames logo:
+                DJamesLogo(
+                    context = context,
+                    modifier = Modifier
+                        .size(70.dp),
+                    spotifyLoggedInState = spotifyLoggedInState,
+                )
+            }
         }
 
         // Usage tip:

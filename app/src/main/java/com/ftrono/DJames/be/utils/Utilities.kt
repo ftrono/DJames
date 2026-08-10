@@ -19,7 +19,7 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import com.ftrono.DJames.BuildConfig
 import com.ftrono.DJames.application.ACTION_MAKE_CALL
-import com.ftrono.DJames.application.ClockActivity
+import com.ftrono.DJames.application.MainActivity
 import com.ftrono.DJames.application.libCats
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.messageUtils
@@ -37,9 +37,15 @@ import java.util.Locale
 import java.util.Random
 import kotlin.streams.asSequence
 import androidx.core.content.edit
-import com.ftrono.DJames.R
+import androidx.navigation.NavController
+import com.ftrono.DJames.application.clockActive
+import com.ftrono.DJames.application.clockMode
+import com.ftrono.DJames.application.lastNavRoute
+import com.ftrono.DJames.application.mainActive
 import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.userNicknameUI
+import com.ftrono.DJames.ui.navigation.navigateTo
+import com.ftrono.DJames.ui.theme.NavigationItem
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -250,9 +256,30 @@ class Utilities {
         }
     }
 
-    //Start/Stop DRIVE Mode:
-    fun startStopDriveMode(
+    //Open Clock:
+    fun openClock(
         context: Context,
+        navController: NavController? = null,
+        fromService: Boolean = false,
+    ) {
+        if (!clockActive.value!!) {
+            if (mainActive.value!! && navController != null) {
+                // Navigate:
+                val curNavRoute = NavigationItem.Clock.route
+                navigateTo(navController, curNavRoute)
+                lastNavRoute = curNavRoute
+            } else {
+                // Open Activity:
+                clockMode = true
+                openActivity(context, MainActivity::class.java, fromService = fromService)
+            }
+        }
+    }
+
+    //Start/Stop Overlay:
+    fun startStopOverlay(
+        context: Context,
+        navController: NavController,
         requestOverlayOn: MutableState<Boolean>,
         requestPermissions: MutableState<Boolean>,
         openClock: Boolean = false,
@@ -296,12 +323,12 @@ class Utilities {
                     }
                     //Start Clock screen:
                     if (openClock) {
-                        openActivity(context, ClockActivity::class.java)
+                        openClock(context, navController)
                     }
                 }
             } else if (startOnly && openClock) {
                 //Start Clock screen:
-                openActivity(context, ClockActivity::class.java)
+                openClock(context, navController)
             } else if (!startOnly) {
                 //STOP DRIVE MODE:
                 overlayActive.postValue(false)
@@ -311,7 +338,7 @@ class Utilities {
             }
         } catch (e: Exception) {
             overlayActive.postValue(false)
-            Log.d(TAG, "StartStopDriveMode ERROR: $e")
+            Log.d(TAG, "startStopOverlay ERROR: $e")
         }
     }
 

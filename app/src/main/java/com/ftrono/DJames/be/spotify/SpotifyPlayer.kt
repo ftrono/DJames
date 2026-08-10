@@ -6,7 +6,6 @@ import android.net.Uri
 import android.util.Log
 import com.ftrono.DJames.application.ACTION_MESSAGES_REFRESH
 import com.ftrono.DJames.application.ACTION_TOASTER
-import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.spotIntroUrl
 import com.ftrono.DJames.application.spotCollectionIntUri
@@ -130,7 +129,7 @@ class SpotifyPlayer (private val context: Context) {
                         //Clock redirect:
                         Thread.sleep((prefs.clockTimeout.toLong() - 1) * 1000)   //default: 10000
                         //Launch Clock:
-                        utils.openActivity(context, ClockActivity::class.java, fromService=true)
+                        utils.openClock(context, fromService = true)
                     }
                     Log.d(TAG, "ExtThread end!")
                 }

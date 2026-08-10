@@ -9,6 +9,7 @@ sealed class NavigationItem(
 
     //MAIN NAV:
     object Home : NavigationItem("home", R.drawable.icon_home, "Home")
+    object Clock : NavigationItem("clock", R.drawable.icon_clock, "Clock")
     object Library : NavigationItem("library", R.drawable.icon_favorites, "Library")
     object Messages : NavigationItem("messages", R.drawable.icon_message, "Chat")
     //SETTINGS:

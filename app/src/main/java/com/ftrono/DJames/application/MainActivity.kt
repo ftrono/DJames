@@ -19,9 +19,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -35,7 +32,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
@@ -45,14 +41,13 @@ import com.ftrono.DJames.application.dialogs.MultiPermissionsHandler
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.services.OverlayService
 import com.ftrono.DJames.be.agents.chat.ChatManager
-import com.ftrono.DJames.be.models.SelectorItem
 import com.ftrono.DJames.ui.components.isKeyboardOpen
 import com.ftrono.DJames.ui.navigation.MainNavBar
 import com.ftrono.DJames.ui.navigation.Navigation
 import com.ftrono.DJames.ui.theme.DJamesTheme
-import com.ftrono.DJames.ui.theme.NavigationItem
 import com.ftrono.DJames.ui.theme.windowBackground
 import java.io.File
+import java.time.LocalDateTime
 
 
 class MainActivity : ComponentActivity() {
@@ -62,6 +57,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         acts_active.add(TAG)
+        mainActive.postValue(true)
         val context = this@MainActivity
 
         installSplashScreen()
@@ -82,62 +78,67 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        //Screen density:
-        density = resources.displayMetrics.density
-
-        // Profile info:
-        userNicknameUI.postValue(prefs.userNickname)
-        userGender.postValue(prefs.userGender)
-
-        //Check Spotify Login status:
-        if (prefs.spotifyToken == "") {
-            spotifyLoggedIn.postValue(false)
-        } else if (utils.isTimeExpired(prefs.spotLastRefreshAuth, 5L)) {
-            spotifyLoginUtils.logout(context, expired=true)
-        } else {
-            spotifyLoggedIn.postValue(true)
-            spotUserName.postValue(prefs.spotUserName)
-            spotUserImageState.postValue(prefs.spotUserImage)
-        }
-
         //Start personal Receiver:
         val actFilter = IntentFilter()
-        actFilter.addAction(ACTION_FINISH_MAIN)
+        actFilter.addAction(ACTION_TIME_TICK)
+        actFilter.addAction(ACTION_UPDATE_PLAYER)
         actFilter.addAction(ACTION_MESSAGES_REFRESH)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
         registerReceiver(mainActReceiver, actFilter, RECEIVER_EXPORTED)
         Log.d(TAG, "MainActReceiver started.")
 
-        //CLEANING:
-        if (!main_initialized) {
-            //Init recordings directory:
-            recDir = File(cacheDir, "recordings")
-            recDir!!.mkdirs()
-            // messageUtils.updateExistingMessages()   //TODO: use only when needed!
-            // libUtils.updateExistingLibrary()   //TODO: use only when needed!
-            allMessageIds.postValue(messageUtils.refreshMessages())
-            //delete older logs:
-            messageUtils.deleteOldMessages()
-            //delete older cached Library files:
-            libUtils.cleanLibraryCache(context)
-            //delete older recFiles in cache:
-            if (!overlayActive.value!!) {
-                utils.cleanRecordingsCache(context)
+        if (clockMode && main_initialized) {
+            clockActive.postValue(true)
+        } else if (!main_initialized) {
+            // INITIALIZE MAIN:
+            // Screen density:
+            density = resources.displayMetrics.density
+
+            // Profile info:
+            userNicknameUI.postValue(prefs.userNickname)
+            userGender.postValue(prefs.userGender)
+
+            // Check Spotify Login status:
+            if (prefs.spotifyToken == "") {
+                spotifyLoggedIn.postValue(false)
+            } else if (utils.isTimeExpired(prefs.spotLastRefreshAuth, 5L)) {
+                spotifyLoginUtils.logout(context, expired = true)
+            } else {
+                spotifyLoggedIn.postValue(true)
+                spotUserName.postValue(prefs.spotUserName)
+                spotUserImageState.postValue(prefs.spotUserImage)
             }
+
+            // CLEANING:
+            if (!main_initialized) {
+                //Init recordings directory:
+                recDir = File(cacheDir, "recordings")
+                recDir!!.mkdirs()
+                // messageUtils.updateExistingMessages()   //TODO: use only when needed!
+                // libUtils.updateExistingLibrary()   //TODO: use only when needed!
+                allMessageIds.postValue(messageUtils.refreshMessages())
+                //delete older logs:
+                messageUtils.deleteOldMessages()
+                //delete older cached Library files:
+                libUtils.cleanLibraryCache(context)
+                //delete older recFiles in cache:
+                if (!overlayActive.value!!) {
+                    utils.cleanRecordingsCache(context)
+                }
+            }
+
+            // VolumeUp pref:
+            isVolumeUpPreferenceSet.postValue(prefs.volumeUpEnabled)
+
+            // AUTO START-UP:
+            startOverlay(context)
+            overlayPos.postValue(prefs.overlayPosition)
         }
 
-        // VolumeUp pref:
-        isVolumeUpPreferenceSet.postValue(prefs.volumeUpEnabled)
-
-        //AUTO START-UP:
-        startOverlay(context)
-
-        //Done:
-        overlayPos.postValue(prefs.overlayPosition)
+        // Done:
         handleShareIntent(intent)
         main_initialized = true
-
     }
 
 
@@ -146,23 +147,83 @@ class MainActivity : ComponentActivity() {
         //unregister receivers:
         unregisterReceiver(mainActReceiver)
         acts_active.remove(TAG)
+        mainActive.postValue(false)
+        if (clockActive.value!!) clockActive.postValue(false)
+    }
+
+    override fun onPause() {
+        mainActive.postValue(false)
+        if (clockActive.value!!) clockActive.postValue(false)
+        super.onPause()
+    }
+
+    override fun onStop() {
+        mainActive.postValue(false)
+        if (clockActive.value!!) clockActive.postValue(false)
+        super.onStop()
+    }
+
+    override fun onStart() {
+        if (!overlayActive.value!!) {
+            //Start Main:
+            finish()
+            utils.openActivity(this, MainActivity::class.java)
+        } else {
+            mainActive.postValue(true)
+            if (clockMode) clockActive.postValue(true)
+        }
+        super.onStart()
+    }
+
+    override fun onResume() {
+        if (!overlayActive.value!!) {
+            //Start Main:
+            finish()
+            utils.openActivity(this, MainActivity::class.java)
+        } else {
+            mainActive.postValue(true)
+            if (clockMode) clockActive.postValue(true)
+        }
+        super.onResume()
     }
 
 
     @Preview
+    @Composable
+    fun MainScreenPreview1() {
+        MainScreen(preview = true)
+    }
+
+    @Preview
+    @Composable
+    fun MainScreenPreview2() {
+        MainScreen(preview = true, previewClock = true)
+    }
+
     @Preview(heightDp = 360, widthDp = 800)
     @Composable
-    fun MainScreenPreview() {
+    fun MainScreenPreview3() {
         MainScreen(preview = true)
+    }
+
+    @Preview(heightDp = 360, widthDp = 800)
+    @Composable
+    fun MainScreenPreview4() {
+        MainScreen(preview = true, previewClock = true)
     }
 
 
     @Composable
     fun MainScreen(
-        preview: Boolean = false
+        preview: Boolean = false,
+        previewClock: Boolean = false,
     ) {
-        val mContext = LocalContext.current
+        // Preview only:
+        if (preview) clockMode = false
+        if (previewClock) clockMode = true
 
+        // States:
+        val mContext = LocalContext.current
         val navController = rememberNavController()
         val configuration = LocalConfiguration.current
         val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
@@ -211,39 +272,6 @@ class MainActivity : ComponentActivity() {
         val chatManager = ChatManager(mContext)
         chatManager.init()
 
-        // NavBar items:
-        // Default:
-        val navItemLeft = NavigationItem.Library
-        val navItemRight = NavigationItem.Messages
-        val navItemsDefault = mutableListOf(
-            SelectorItem(
-                id = navItemLeft.route,
-                title = navItemLeft.title,
-                iconPainter = painterResource(navItemLeft.icon),
-                useCustomClick = true,
-            ),
-            SelectorItem(
-                id = navItemRight.route,
-                title = navItemRight.title,
-                iconPainter = painterResource(navItemRight.icon),
-                useCustomClick = true,
-            )
-        )
-        // Busy:
-        val navItemsBusy = mutableListOf(
-            SelectorItem(
-                id = "restart",
-                title = "Restart",
-                iconVector = Icons.Default.Refresh,
-            ),
-            SelectorItem(
-                id = "cancel",
-                title = "Cancel",
-                iconVector = Icons.Default.Close,
-            )
-        )
-
-
         //MAIN SCREEN:
         Row(
             modifier = Modifier
@@ -258,11 +286,13 @@ class MainActivity : ComponentActivity() {
                     isLandscape = true,
                     preview = preview,
                     onClickCenter = {
-                        utils.startStopDriveMode(
+                        utils.startStopOverlay(
                             context = mContext,
+                            navController = navController,
                             requestOverlayOn = requestOverlayOn,
                             requestPermissions = requestPermissions,
                             openClock = true,
+                            startOnly = true,
                         )
                     }
                 )
@@ -279,11 +309,13 @@ class MainActivity : ComponentActivity() {
                             isLandscape = false,
                             preview = preview,
                             onClickCenter = {
-                                utils.startStopDriveMode(
+                                utils.startStopOverlay(
                                     context = mContext,
+                                    navController = navController,
                                     requestOverlayOn = requestOverlayOn,
                                     requestPermissions = requestPermissions,
                                     openClock = true,
+                                    startOnly = true,
                                 )
                             }
                         )
@@ -305,11 +337,13 @@ class MainActivity : ComponentActivity() {
                     isLandscape = true,
                     preview = preview,
                     onClickCenter = {
-                        utils.startStopDriveMode(
+                        utils.startStopOverlay(
                             context = mContext,
+                            navController = navController,
                             requestOverlayOn = requestOverlayOn,
                             requestPermissions = requestPermissions,
                             openClock = true,
+                            startOnly = true,
                         )
                     }
                 )
@@ -341,7 +375,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-
     private fun startOverlay(context: Context) {
         //AUTO START-UP:
         if (
@@ -360,21 +393,46 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // Clock:
+    fun updateDateClock() {
+        val now = LocalDateTime.now()
+        currentDate.postValue(now.format(dateFormat))
+        currentHour.postValue(now.format(hourFormat))
+        currentMins.postValue(now.format(minsFormat))
+    }
+
+    // Mini player:
+    fun updatePlayer() {
+        //Populate player info:
+        currentSongPlaying.postValue(utils.trimString(songName, 25))
+        currentArtistPlaying.postValue(utils.trimString(artistName, 25))
+    }
+
 
     //PERSONAL RECEIVER:
     private var mainActReceiver = object: BroadcastReceiver() {
 
         override fun onReceive(context: Context?, intent: Intent?) {
+            //Update clock (every minute):
+            if (intent!!.action == ACTION_TIME_TICK) {
+                updateDateClock()
+                if (!enablePlayerInfo) {
+                    enablePlayerInfo = true
+                    if (songName != "") {
+                        updatePlayer()
+                    }
+                }
+            }
 
-            //Finish activity:
-            if (intent!!.action == ACTION_FINISH_MAIN) {
-                Log.d(TAG, "MAIN: ACTION_FINISH_MAIN.")
-                finishAndRemoveTask()
+            //Update player:
+            if (intent.action == ACTION_UPDATE_PLAYER) {
+                Log.d(TAG, "CLOCK: ACTION_UPDATE_PLAYER.")
+                updatePlayer()
             }
 
             //Refresh Messages list:
             if (intent.action == ACTION_MESSAGES_REFRESH) {
-                Log.d(TAG, "HISTORY: ACTION_MESSAGES_REFRESH.")
+                Log.d(TAG, "MESSAGES: ACTION_MESSAGES_REFRESH.")
                 allMessageIds.postValue(messageUtils.refreshMessages())   //Refresh list
             }
         }

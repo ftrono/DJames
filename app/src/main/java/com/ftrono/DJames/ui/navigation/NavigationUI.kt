@@ -465,15 +465,15 @@ fun SplitterCat(
 @Composable
 fun FiltersRow(
     snapshot: MutableState<Long>,
-    currentCatState: MutableState<String>,
+    currentCat: String,
     currentSubCatState: MutableState<String>,
     preview: Boolean = false,
 ) {
-    var filters = if (currentCatState.value == "spotify") libUtils.getSubcats(currentCatState.value, preview) else listOf()
+    var filters = libUtils.getSubcats(currentCat, preview)
 
     // When snapshot changes, reload data
     LaunchedEffect(snapshot.value) {
-        filters = if (currentCatState.value == "spotify") libUtils.getSubcats(currentCatState.value, preview) else listOf()
+        filters = libUtils.getSubcats(currentCat, preview)
     }
 
     if (filters.size > 1) {

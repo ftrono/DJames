@@ -8,20 +8,16 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
@@ -58,32 +54,26 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.curLibrarySize
+import com.ftrono.DJames.application.currentCat
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.application.libCats
 import com.ftrono.DJames.application.dialogs.EditLibContact
 import com.ftrono.DJames.application.dialogs.EditLibPlace
 import com.ftrono.DJames.application.dialogs.EditLibSpotify
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.be.database.LibraryItem
-import com.ftrono.DJames.be.models.SelectorItem
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.components.OptionsItem
 import com.ftrono.DJames.ui.components.OptionsMenu
 import com.ftrono.DJames.ui.components.LetterStarter
 import com.ftrono.DJames.ui.components.LibItemCard
 import com.ftrono.DJames.ui.components.StreetUIScaffold
-import com.ftrono.DJames.ui.components.verticalDottedGridGuides
 import com.ftrono.DJames.ui.dialogs.AddLinkDialog
 import com.ftrono.DJames.ui.navigation.FiltersRow
-import com.ftrono.DJames.ui.navigation.SplitterSign
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
-import com.ftrono.DJames.ui.navigation.TopSplitterBar
 import com.ftrono.DJames.ui.selectors.colorSelector
-import com.ftrono.DJames.ui.selectors.colorSelectorLight
-import com.ftrono.DJames.ui.selectors.iconSelector
 import kotlin.String
 
 
@@ -109,7 +99,7 @@ fun LibraryScreen(
     //Statuses:
     val idState = rememberSaveable { mutableStateOf<Long>(if (editPreview != "") 0L else -1L) }
     val nameState = rememberSaveable { mutableStateOf("") }
-    val currentCatState = rememberSaveable { mutableStateOf(libCats[0]) }
+    val currentCatState by currentCat.observeAsState()
     val currentSubCatState = rememberSaveable { mutableStateOf("") }
 
     val sharedLinkState by sharedLink.observeAsState()
@@ -120,27 +110,14 @@ fun LibraryScreen(
     val snapshot = rememberSaveable { mutableStateOf(0L) }
     val curLibrarySizeState by curLibrarySize.observeAsState()
 
-    // Load splitter cats:
-    val libSplitterItems = mutableListOf<SelectorItem>()
-    for (cat in libCats) {
-        libSplitterItems.add(
-            SelectorItem(
-                id = cat,
-                title = if (cat == "spotify") "Spotify links" else "${utils.capitalizeWords(cat)}s",
-                iconPainter = iconSelector(cat),
-                color = colorSelectorLight(cat),
-            )
-        )
-    }
-
     // Load dialogs:
     val deleteLibOn = rememberSaveable { mutableStateOf(false) }
     if (deleteLibOn.value) {
-        DialogDeleteLibrary(mContext, deleteLibOn, snapshot, idState, nameState, currentCatState, currentSubCatState)
+        DialogDeleteLibrary(mContext, deleteLibOn, snapshot, idState, nameState, currentCatState!!, currentSubCatState)
     }
 
     val editLibOn = rememberSaveable { mutableStateOf(editPreview != "") }
-    var editCat = if (editPreview != "") editPreview else if (editLibOn.value) currentCatState.value else ""
+    var editCat = if (editPreview != "") editPreview else if (editLibOn.value) currentCatState!! else ""
 
     if (editLibOn.value) {
         if (editCat == "spotify") {
@@ -205,19 +182,20 @@ fun LibraryScreen(
             },
             onSave = {
                 //TODO: Spotify only!
-                Toast.makeText(mContext, "Extracting link info...", Toast.LENGTH_LONG).show()
-                spotifyUtils.checkLinkAndExtract(
-                    context = mContext,
-                    idState = idState,
-                    currentCatState = currentCatState,
-                    currentSubCatState = currentSubCatState,
-                    useParent = useParentState.value,
-                    addLinkOnState = addLinkOn,
-                    extractedItemState = extractedItemState,
-                    editLibOn = editLibOn,
-                )
-                useParentState.value = false
-                snapshot.value = utils.getCurrentTimestamp()   //Refresh list
+                if (currentCatState == "spotify") {
+                    Toast.makeText(mContext, "Extracting link info...", Toast.LENGTH_LONG).show()
+                    spotifyUtils.checkLinkAndExtract(
+                        context = mContext,
+                        idState = idState,
+                        currentSubCatState = currentSubCatState,
+                        useParent = useParentState.value,
+                        addLinkOnState = addLinkOn,
+                        extractedItemState = extractedItemState,
+                        editLibOn = editLibOn,
+                    )
+                    useParentState.value = false
+                    snapshot.value = utils.getCurrentTimestamp()   //Refresh list
+                }
             }
         )
     }
@@ -230,62 +208,31 @@ fun LibraryScreen(
     StreetUIScaffold(
         lineDistance = 20.dp,
         topBar = {
-            if (!isLandscape) {
-                // VERTICAL -> TOP APP BAR:
-                StreetUITopBar(
-                    pretitle = "Library",
-                    title = if (currentCatState.value == "spotify") "Spotify links" else "${utils.capitalizeWords(currentCatState.value)}s",
-                    showBack = true,
-                    onBack = { navController.popBackStack() },
-                    optionButtons = {
-                        // CAT MENU:
-                        TopBarMenu(
-                            contentText = if (curLibrarySizeState!! > 999) "999+" else "$curLibrarySizeState",
-                            backgroundColor = colorSelector(cat = currentCatState.value),
-                            onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
-                        ) {
-                            CatOptions(
-                                context = mContext,
-                                navController = navController,
-                                currentCatState = currentCatState,
-                                currentSubCatState = currentSubCatState,
-                                snapshot = snapshot,
-                                mDisplayMenu = mDisplayMainMenu,
-                                deleteLibOn = deleteLibOn,
-                            )
-                        }
+            // TOP APP BAR:
+            StreetUITopBar(
+                pretitle = "Library",
+                title = if (currentCatState!! == "spotify") "Spotify links" else "${utils.capitalizeWords(currentCatState!!)}s",
+                showBack = true,
+                onBack = { navController.popBackStack() },
+                optionButtons = {
+                    // CAT MENU:
+                    TopBarMenu(
+                        contentText = if (curLibrarySizeState!! > 999) "999+" else "$curLibrarySizeState",
+                        backgroundColor = colorSelector(cat = currentCatState!!),
+                        onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
+                    ) {
+                        CatOptions(
+                            context = mContext,
+                            navController = navController,
+                            currentCatState = currentCatState!!,
+                            currentSubCatState = currentSubCatState,
+                            snapshot = snapshot,
+                            mDisplayMenu = mDisplayMainMenu,
+                            deleteLibOn = deleteLibOn,
+                        )
                     }
-                )
-            } else {
-                // HORIZONTAL -> TOP SPLITTER BAR:
-                TopSplitterBar(
-                    currentItemState = currentCatState,
-                    items = libSplitterItems,
-                    showBack = true,
-                    onBack = { navController.popBackStack() },
-                    onNavClick = {
-                        snapshot.value = utils.getCurrentTimestamp()   //Refresh list
-                    },
-                    optionButtons = {
-                        // CAT MENU:
-                        TopBarMenu(
-                            contentText = if (curLibrarySizeState!! > 999) "999+" else "$curLibrarySizeState",
-                            backgroundColor = colorSelector(cat = currentCatState.value),
-                            onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
-                        ) {
-                            CatOptions(
-                                context = mContext,
-                                navController = navController,
-                                currentCatState = currentCatState,
-                                currentSubCatState = currentSubCatState,
-                                snapshot = snapshot,
-                                mDisplayMenu = mDisplayMainMenu,
-                                deleteLibOn = deleteLibOn,
-                            )
-                        }
-                    }
-                )
-            }
+                }
+            )
         },
         fab = {
             //FAB -> ADD NEW ITEM:
@@ -307,7 +254,7 @@ fun LibraryScreen(
                 },
                 onClick = {
                     idState.value = -1
-                    if (currentCatState.value == "contact" || currentCatState.value == "place") {
+                    if (currentCatState == "contact" || currentCatState == "place") {
                         editLibOn.value = true
                     } else {
                         addLinkOn.value = true
@@ -321,39 +268,11 @@ fun LibraryScreen(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-
-            if (!isLandscape) {
-                // VERTICAL -> TOP SPLITTER:
-                Row (
-                    modifier = Modifier
-                        .padding(top = 12.dp, bottom = 8.dp)
-                        .fillMaxWidth()
-                        .background(
-                            colorResource(R.color.transparent_full)
-                        ),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    SplitterSign(
-                        currentItemState = currentCatState,
-                        items = libSplitterItems,
-                        onNavClick = {
-                            if (currentCatState.value == "spotify") {
-                                currentSubCatState.value = ""
-                            } else {
-                                currentSubCatState.value = currentCatState.value
-                            }
-                            snapshot.value = utils.getCurrentTimestamp()   //Refresh list
-                        },
-                    )
-                }
-            }
-
             //CONTENT:
             LibSectionContent(
                 context = mContext,
                 snapshot = snapshot,
-                currentCatState = currentCatState,
+                currentCatState = currentCatState!!,
                 currentSubCatState = currentSubCatState,
                 idState = idState,
                 nameState = nameState,
@@ -431,7 +350,7 @@ fun ItemOptions(
 fun LibSectionContent(
     context: Context,
     snapshot: MutableState<Long>,
-    currentCatState: MutableState<String>,
+    currentCatState: String,
     currentSubCatState: MutableState<String>,
     idState: MutableState<Long>,
     nameState: MutableState<String>,
@@ -441,11 +360,11 @@ fun LibSectionContent(
     preview: Boolean = false,
 ) {
 
-    var libraryItems = libUtils.refreshLibrary(currentCatState.value, currentSubCatState.value, preview)
+    var libraryItems = libUtils.refreshLibrary(currentCatState, currentSubCatState.value, preview)
 
     // When snapshot changes, reload data
     LaunchedEffect(snapshot.value) {
-        libraryItems = libUtils.refreshLibrary(currentCatState.value, currentSubCatState.value, preview)
+        libraryItems = libUtils.refreshLibrary(currentCatState, currentSubCatState.value, preview)
     }
 
     //CONTENT:
@@ -457,12 +376,14 @@ fun LibSectionContent(
     ) {
 
         // FILTER ROW:
-        FiltersRow(
-            snapshot = snapshot,
-            currentCatState = currentCatState,
-            currentSubCatState = currentSubCatState,
-            preview = preview,
-        )
+        if (currentCatState == "spotify") {
+            FiltersRow(
+                snapshot = snapshot,
+                currentCat = currentCatState,
+                currentSubCatState = currentSubCatState,
+                preview = preview,
+            )
+        }
 
         if (libraryItems.isEmpty()) {
             //LIBRARY EMPTY:
@@ -471,8 +392,8 @@ fun LibSectionContent(
                     .fillMaxWidth(),
                 text = "No saved ${
                     libUtils.getLibName(
-                        currentCatState.value,
-                        currentSubCatState.value,
+                        cat=currentCatState,
+                        subcat=currentSubCatState.value,
                         plural = true,
                         lowercase = true
                     )
@@ -483,17 +404,13 @@ fun LibSectionContent(
             )
         } else {
             //LIBRARY LIST:
-            val columns = if (isLandscape) 5 else 3
+            val columns = if (isLandscape) 6 else 4
             val spacing = 8.dp
 
             LazyVerticalGrid(
                 modifier = Modifier
                     .padding(start = 32.dp, end = 24.dp, bottom = 12.dp)
-                    .fillMaxSize()
-                    .verticalDottedGridGuides(
-                        columns = columns,
-                        color = colorResource(R.color.faded_grey),
-                    ),
+                    .fillMaxSize(),
                 columns = GridCells.Fixed(columns),
                 horizontalArrangement = Arrangement.spacedBy(spacing),
                 verticalArrangement = Arrangement.spacedBy(spacing)
@@ -618,7 +535,7 @@ fun LibItem(
 fun CatOptions(
     context: Context,
     navController: NavController,
-    currentCatState: MutableState<String>,
+    currentCatState: String,
     currentSubCatState: MutableState<String>,
     snapshot: MutableState<Long>,
     mDisplayMenu: MutableState<Boolean>,
@@ -701,9 +618,9 @@ fun CatOptions(
                 iconPainter = painterResource(R.drawable.icon_download),
                 onClick = {
                     mDisplayMenu.value = false
-                    jsonExport = libUtils.serializeLibrary(currentCatState.value, currentSubCatState.value)
-                    saveLauncher.launch(libUtils.getExportFileName(currentCatState.value, currentSubCatState.value))   // Target filename
-                    val detailStr = libUtils.getLibName(currentCatState.value, currentSubCatState.value, plural = true)
+                    jsonExport = libUtils.serializeLibrary(currentCatState, currentSubCatState.value)
+                    saveLauncher.launch(libUtils.getExportFileName(currentCatState, currentSubCatState.value))   // Target filename
+                    val detailStr = libUtils.getLibName(currentCatState, currentSubCatState.value, plural = true)
                     Toast.makeText(context, "$detailStr library ready for export!", Toast.LENGTH_SHORT).show()
                 }
             )
@@ -713,8 +630,8 @@ fun CatOptions(
                 iconVector = Icons.Default.Share,
                 onClick = {
                     //Prepare and send cached file:
-                    jsonExport = libUtils.serializeLibrary(currentCatState.value, currentSubCatState.value)
-                    val filename = libUtils.buildFileToSend(context, currentCatState.value, currentSubCatState.value, jsonExport!!)
+                    jsonExport = libUtils.serializeLibrary(currentCatState, currentSubCatState.value)
+                    val filename = libUtils.buildFileToSend(context, currentCatState, currentSubCatState.value, jsonExport!!)
                     utils.sendCachedFile(context, filename)
                     mDisplayMenu.value = false
                 }
@@ -740,7 +657,7 @@ fun DialogDeleteLibrary(
     snapshot: MutableState<Long>,
     idState: MutableState<Long>,
     nameState: MutableState<String>,
-    currentCatState: MutableState<String>,
+    currentCatState: String,
     currentSubCatState: MutableState<String>,
 ) {
     val id: Long = idState.value
@@ -753,7 +670,7 @@ fun DialogDeleteLibrary(
             // if id == -1L -> no specific ID!
             Text(
                 text = if (id == -1L) {
-                    "Do you want to delete all saved ${libUtils.getLibName(currentCatState.value, currentSubCatState.value, plural=true, lowercase=true)}?"
+                    "Do you want to delete all saved ${libUtils.getLibName(currentCatState, currentSubCatState.value, plural=true, lowercase=true)}?"
                 } else {
                     "Do you want to delete this saved item?\n\n${nameState.value}"
                 },
@@ -773,7 +690,7 @@ fun DialogDeleteLibrary(
                 libUtils.deleteLibItem(mContext, id)
             } else {
                 //Delete all:
-                libUtils.deleteLibrary(mContext, currentCatState.value, currentSubCatState.value)
+                libUtils.deleteLibrary(mContext, currentCatState, currentSubCatState.value)
             }
             currentSubCatState.value = ""
             snapshot.value = utils.getCurrentTimestamp()   //Refresh list

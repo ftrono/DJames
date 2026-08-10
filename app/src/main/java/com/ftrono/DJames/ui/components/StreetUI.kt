@@ -82,7 +82,7 @@ import kotlin.math.absoluteValue
 fun StreetUIScaffold(
     modifier: Modifier = Modifier,
     hideLine: Boolean = false,
-    lineDistance: Dp,
+    lineDistance: Dp = 20.dp,
     topBar: @Composable () -> Unit = {},
     fab: @Composable () -> Unit = {},
     pageContent:  @Composable () (ColumnScope.() -> Unit) = {},

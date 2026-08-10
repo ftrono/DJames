@@ -134,7 +134,6 @@ class SpotifyUtils {
     fun checkLinkAndExtract(
         context: Context,
         idState: MutableState<Long>,
-        currentCatState: MutableState<String>,
         currentSubCatState: MutableState<String>,
         addLinkOnState: MutableState<Boolean>,
         editLibOn: MutableState<Boolean>,
@@ -163,7 +162,6 @@ class SpotifyUtils {
             }
             if (urlToCheck != "") {
                 //Go to right Edit Lib dialog:
-                currentCatState.value = "spotify"
                 currentSubCatState.value = ""
 
                 val foundId = libUtils.getLibIDWithUrl(urlToCheck)

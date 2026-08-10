@@ -2,16 +2,9 @@ package com.ftrono.DJames.application.screens
 
 import android.Manifest
 import android.content.Context
-import android.content.Intent
 import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,13 +12,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
@@ -35,25 +23,18 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -62,30 +43,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import com.ftrono.DJames.R
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.ftrono.DJames.application.AuthActivity
-import com.ftrono.DJames.application.curNavId
+import com.ftrono.DJames.application.currentCat
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.extraOpen
-import com.ftrono.DJames.application.guidePosPlaceholder
-import com.ftrono.DJames.application.lastAiMessageText
 import com.ftrono.DJames.application.lastNavRoute
-import com.ftrono.DJames.application.lastUserMessageText
-import com.ftrono.DJames.application.overlayActive
-import com.ftrono.DJames.application.overlayPos
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.sharedLink
@@ -93,32 +63,21 @@ import com.ftrono.DJames.application.spotifyLoggedIn
 import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.spotUserName
 import com.ftrono.DJames.application.utils
-import com.ftrono.DJames.application.isVolumeUpPreferenceSet
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.userNicknameUI
-import com.ftrono.DJames.be.collections.guideTexts
-import com.ftrono.DJames.be.models.SelectorItem
 import com.ftrono.DJames.ui.components.CardSign
 import com.ftrono.DJames.ui.components.ExtServiceLoginButton
 import com.ftrono.DJames.ui.components.LibItemCard
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.components.StreetLine
 import com.ftrono.DJames.ui.components.StreetUIScaffold
-import com.ftrono.DJames.ui.components.verticalDottedGridGuides
-import com.ftrono.DJames.ui.navigation.DialogLogout
-import com.ftrono.DJames.ui.navigation.SplitterSign
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.UserOptions
 import com.ftrono.DJames.ui.navigation.navigateTo
-import com.ftrono.DJames.ui.selectors.colorSelector
 import com.ftrono.DJames.ui.selectors.colorSelectorHome
-import com.ftrono.DJames.ui.selectors.colorSelectorLight
 import com.ftrono.DJames.ui.selectors.iconSelector
 import com.ftrono.DJames.ui.theme.NavigationItem
-import com.ftrono.DJames.ui.theme.windowBackground
 import kotlin.Boolean
-import kotlin.math.absoluteValue
-import kotlin.math.roundToInt
 
 
 @Preview
@@ -138,7 +97,6 @@ fun HomeScreen(
     val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
 
     val mContext = LocalContext.current
-
     val focusManager = LocalFocusManager.current
     val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
     val queryState by queryStatus.observeAsState()
@@ -146,7 +104,7 @@ fun HomeScreen(
 
 
     val sharedLinkState by sharedLink.observeAsState()
-    if (sharedLinkState != "" && curNavId != 0) {
+    if (sharedLinkState != "") {
         val curNavRoute = NavigationItem.Library.route
         navigateTo(navController, curNavRoute)
         lastNavRoute = curNavRoute
@@ -598,6 +556,8 @@ fun ContentSection(
                     Text(
                         modifier = Modifier
                             .clickable {
+                                // Set current cat:
+                                currentCat.postValue(cat)
                                 //Navigate:
                                 val curNavRoute = NavigationItem.Library.route
                                 navigateTo(navController, curNavRoute)

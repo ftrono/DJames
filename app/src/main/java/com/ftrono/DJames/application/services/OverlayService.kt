@@ -47,7 +47,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.ACTION_FINISH_CLOCK
 import com.ftrono.DJames.application.ACTION_MAKE_CALL
 import com.ftrono.DJames.application.ACTION_SAVE_TRACK
 import com.ftrono.DJames.application.ACTION_TIME_TICK
@@ -535,14 +534,7 @@ class OverlayService : Service () {
         } catch (e: Exception) {
             Log.w(TAG, "overlayReceiver: cannot unregister. ", e)
         }
-
-        if (!restarting) {
-            //End Clock Screen():
-            Intent().also { intent ->
-                intent.setAction(ACTION_FINISH_CLOCK)
-                sendBroadcast(intent)
-            }
-        }
+        //End:
         removeOverlayView()
         //If no activities active -> CLOSE APP:
         Log.d(TAG, "$acts_active")

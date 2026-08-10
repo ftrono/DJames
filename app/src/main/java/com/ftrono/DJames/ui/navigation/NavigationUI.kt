@@ -55,8 +55,12 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -546,28 +550,10 @@ fun FiltersRow(
 @Preview
 @Composable
 fun MainNavBarPreview1() {
-    val navController = rememberNavController()
     val clickCounterState by remember { mutableStateOf(0) }
-    val navItemLeft = NavigationItem.Library
-    val navItemRight = NavigationItem.Messages
-    val items = mutableListOf(
-        SelectorItem(
-            id = navItemLeft.route,
-            title = navItemLeft.title,
-            iconPainter = painterResource(navItemLeft.icon),
-        ),
-        SelectorItem(
-            id = navItemRight.route,
-            title = navItemRight.title,
-            iconPainter = painterResource(navItemRight.icon),
-        )
-    )
-
     MainNavBar(
-        navController = navController,
         clickCounterState = clickCounterState,
         isLandscape = false,
-        items = items,
         preview = true,
     )
 }
@@ -576,262 +562,104 @@ fun MainNavBarPreview1() {
 @Preview(heightDp = 360, widthDp = 100)
 @Composable
 fun MainNavBarPreview2() {
-    val navController = rememberNavController()
     val clickCounterState by remember { mutableStateOf(0) }
-    val items = mutableListOf(
-        SelectorItem(
-            id = "restart",
-            title = "Restart",
-            iconVector = Icons.Default.Refresh,
-        ),
-        SelectorItem(
-            id = "cancel",
-            title = "Cancel",
-            iconVector = Icons.Default.Close,
-        )
-    )
-
     MainNavBar(
-        navController = navController,
         clickCounterState = clickCounterState,
         isLandscape = true,
-        items = items,
         preview = true,
     )
 }
 
 
 @Composable
-fun NavSideItem(
-    modifier: Modifier,
-    navController: NavController,
-    backgroundColor: Color,
-    item: SelectorItem,
+fun StartButton(
+    overlayActiveState: Boolean,
+    onClickCenter: () -> Unit = {},
 ) {
-    // States:
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-    val extraOpenState by extraOpen.observeAsState()
-
-    // Colours:
-    val itemColor = colorResource(R.color.midfaded_grey)
-    val selectedColor = colorResource(R.color.light_grey)
-
-    Card(
-        modifier = modifier
-            .clickable {
-                if (item.useCustomClick) {
-                    //Navigate:
-                    val curNavRoute = item.id
-                    if (curNavRoute == lastNavRoute && (extraOpenState!!)) {
-                        navController.popBackStack()
-                    } else {
-                        navigateTo(navController, curNavRoute)
-                    }
-                    lastNavRoute = curNavRoute
-                } else {
-                    // Custom:
-                    item.onClick()
-                }
-            },
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = backgroundColor
-        ),
-    ) {
-        Column(
-            modifier = Modifier
-                .size(52.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            if (item.iconVector != null) {
-                Icon(
-                    modifier = Modifier
-                        .size(28.dp),
-                    imageVector = item.iconVector!!,
-                    contentDescription = item.title,
-                    tint = if (item.useCustomClick && currentRoute == item.id) selectedColor else itemColor,
-                )
-            } else {
-                Icon(
-                    modifier = Modifier
-                        .size(28.dp),
-                    painter = item.iconPainter!!,
-                    contentDescription = item.title,
-                    tint = if (item.useCustomClick && currentRoute == item.id) selectedColor else itemColor,
-                )
-            }
-            Text(
-                modifier = Modifier
-                    .padding(top = 4.dp),
-                text = item.title,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (item.useCustomClick && currentRoute == item.id) selectedColor else itemColor,
-                textAlign = TextAlign.Center,
-            )
-        }
-    }
-}
-
-
-@Composable
-fun NavBarContent(
-    navController: NavController,
-    clickCounterState: Int,
-    isLandscape: Boolean,
-    backgroundColor: Color,
-    items: MutableList<SelectorItem>,
-) {
-    if (clickCounterState == 0) {
-        // LEFT ITEM:
-        NavSideItem(
-            modifier = Modifier
-                .padding(
-                    top = if (isLandscape) 14.dp else 0.dp,
-                    bottom = if (isLandscape) 14.dp else 0.dp,
-                    start = if (isLandscape) 0.dp else 14.dp,
-                    end = if (isLandscape) 0.dp else 14.dp,
-                ),
-            navController = navController,
-            backgroundColor = backgroundColor,
-            item = items[0],
-        )
-
-        // Center button (placeholder):
+    if (overlayActiveState) {
+        // Placeholder:
         Box(
             modifier = Modifier
                 .clip(CircleShape)
-                .width(if (isLandscape) 10.dp else 100.dp)
-                .height(if (isLandscape) 100.dp else 10.dp)
-                .background(backgroundColor)
-            // .border(width = 2.dp, color = colorResource(R.color.midfaded_grey), shape = CircleShape),
+                .size(100.dp)
+                .background(colorResource(R.color.windowBackground)),
         )
-
-        // RIGHT ITEM:
-        NavSideItem(
+    } else {
+        // Button:
+        Box(
             modifier = Modifier
-                .padding(
-                    top = if (isLandscape) 14.dp else 0.dp,
-                    bottom = if (isLandscape) 14.dp else 0.dp,
-                    start = if (isLandscape) 0.dp else 14.dp,
-                    end = if (isLandscape) 0.dp else 14.dp,
-                ),
-            navController = navController,
-            backgroundColor = backgroundColor,
-            item = items[1],
-        )
+                .clip(CircleShape)
+                .size(100.dp)
+                .background(
+                    colorResource(R.color.faded_grey)
+                )
+                .clickable { onClickCenter() },
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                modifier = Modifier
+                    .size(50.dp),
+                painter = painterResource(R.drawable.icon_touch),
+                contentDescription = "Cancel",
+                tint = colorResource(R.color.light_grey),
+            )
+        }
     }
 }
 
 
 @Composable
 fun MainNavBar(
-    navController: NavController,
     clickCounterState: Int,
     isLandscape: Boolean,
-    items: MutableList<SelectorItem>,
     preview: Boolean = false,
     onClickCenter: () -> Unit = {},
 ) {
-    // States:
     val overlayActiveState by overlayActive.observeAsState()
-
-    // Colours:
-    val backgroundColor = colorResource(R.color.dark_grey_background)
 
     // Background:
     Box(
         modifier = if (isLandscape) {
             Modifier
                 .fillMaxHeight()
+                .width(100.dp)
                 .background(colorResource(R.color.windowBackground))
         } else {
             Modifier
                 .fillMaxWidth()
+                .height(150.dp)
                 .background(colorResource(R.color.windowBackground))
             },
         contentAlignment = Alignment.Center,
     ) {
-        // Selector:
-        Card(
-            modifier = if (isLandscape) {
-                Modifier
-                    .padding(top = 24.dp, bottom = 24.dp, start = 0.dp, end = 0.dp)
-                    .fillMaxHeight()
-            } else {
-                Modifier
-                    .padding(top = 0.dp, bottom = 0.dp, start = 32.dp, end = 32.dp)
-                    .fillMaxWidth()
-            },
-            border = BorderStroke(2.dp, colorResource(id = R.color.dark_grey)),
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = backgroundColor,
-            )
-        ) {
-            if (isLandscape) {
-                // LANDSCAPE MODE:
-                Column(
-                    modifier = Modifier
-                        .padding(top = 14.dp, bottom = 14.dp, start = 8.dp, end = 8.dp)
-                        .width(52.dp)
-                        .fillMaxHeight(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    NavBarContent(
-                        navController = navController,
-                        clickCounterState = clickCounterState,
-                        isLandscape = true,
-                        backgroundColor = backgroundColor,
-                        items = items,
-                    )
-                }
-
-            } else {
-                // PORTRAIT MODE:
-                Row(
-                    modifier = Modifier
-                        .padding(top = 8.dp, bottom = 8.dp, start = 14.dp, end = 14.dp)
-                        .height(52.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    NavBarContent(
-                        navController = navController,
-                        clickCounterState = clickCounterState,
-                        isLandscape = false,
-                        backgroundColor = backgroundColor,
-                        items = items,
-                    )
-                }
-            }
-        }
-        // Center button (placeholder):
-        Box(
+        Column(
             modifier = Modifier
-                .clip(CircleShape)
-                .size(100.dp)
-                .background(
-                    if (overlayActiveState!!) {
-                        colorResource(R.color.colorStop)
-                    } else {
-                        colorResource(R.color.colorPrimary)
-                    }
-                )
-                .clickable { onClickCenter() },
-            contentAlignment = Alignment.Center,
-            ) {
-                Icon(
+                .fillMaxHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = if (isLandscape) Arrangement.Center else Arrangement.Bottom,
+        ) {
+            if (clickCounterState == 0 && (!isLandscape || !overlayActiveState!!)) {
+                // Text:
+                Text(
                     modifier = Modifier
-                        .size(50.dp),
-                    painter = painterResource(R.drawable.icon_touch),
-                    contentDescription = "Cancel",
-                    tint = colorResource(R.color.light_grey),
+                        .padding(bottom = 12.dp),
+                    text = if (!overlayActiveState!!) {
+                        "Tap to start"
+                    } else {
+                        "Keep screen on for voice commands\n" +
+                        "Tap or Volume Up to speak"
+                    },
+                    fontSize = 14.sp,
+                    fontStyle = FontStyle.Italic,
+                    textAlign = TextAlign.Center,
+                    color = colorResource(id = R.color.mid_grey),
                 )
             }
+            // Button:
+            StartButton(
+                overlayActiveState=overlayActiveState!!,
+                onClickCenter=onClickCenter,
+            )
+        }
     }
 }

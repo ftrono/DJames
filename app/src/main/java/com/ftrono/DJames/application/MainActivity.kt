@@ -252,14 +252,10 @@ class MainActivity : ComponentActivity() {
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             //SIDE NAV BAR (LEFT):
-            if (isLandscape && overlayPosState == "Right") {   // TODO: invert!
+            if (isLandscape && overlayPosState == "Left") {
                 MainNavBar(
-                    navController = navController,
                     clickCounterState = clickCounterState!!,
                     isLandscape = true,
-                    items = if (queryState == "busy" || queryState == "processing") {
-                        navItemsBusy
-                    } else navItemsDefault,
                     preview = preview,
                     onClickCenter = {
                         utils.startStopDriveMode(
@@ -279,12 +275,8 @@ class MainActivity : ComponentActivity() {
                 bottomBar = {
                     if (!isLandscape && !isKeyboardOpen()) {
                         MainNavBar(
-                            navController = navController,
                             clickCounterState = clickCounterState!!,
                             isLandscape = false,
-                            items = if (queryState != "busy" && queryState != "processing") {
-                                navItemsDefault
-                            } else navItemsBusy,
                             preview = preview,
                             onClickCenter = {
                                 utils.startStopDriveMode(
@@ -307,12 +299,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
             //SIDE NAV BAR (RIGHT):
-            if (isLandscape && overlayPosState == "Left") {   // TODO: invert!
+            if (isLandscape && overlayPosState == "Right") {
                 MainNavBar(
-                    navController = navController,
                     clickCounterState = clickCounterState!!,
                     isLandscape = true,
-                    items = if (queryState != "busy" && queryState != "processing") navItemsDefault else navItemsBusy,
                     preview = preview,
                     onClickCenter = {
                         utils.startStopDriveMode(

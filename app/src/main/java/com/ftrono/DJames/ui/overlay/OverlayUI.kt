@@ -299,9 +299,7 @@ fun DJamesPads(
     LaunchedEffect(clockActiveState, isLandscape) {
         if ((isDocked!! || previewDocked) && isLandscape) {
             overlayOptionsStr.postValue("speak, save, volume, pos")
-        } else if (isDocked!! || previewDocked) {
-            overlayOptionsStr.postValue("speak, save, volume")
-        } else if (clockActiveState) {
+        } else if (isDocked!! || previewDocked || clockActiveState) {
             overlayOptionsStr.postValue("speak, save")
         } else {
             overlayOptionsStr.postValue("speak, save, clock")
@@ -310,18 +308,18 @@ fun DJamesPads(
 
     // Bounding box:
     Box(
-        modifier = if (clickCounterState > 0) {
+        modifier = if (isDocked!! || previewDocked) {
+            modifier
+                .fillMaxWidth()
+                .height(if (clickCounterState > 0) overlayBoxMin.dp else centerSize.dp)
+        } else if (clickCounterState > 0) {
             modifier
                 .padding(
                     start = if (overlayPosState == "Right") 0.dp else 4.dp,
                     end = if (overlayPosState == "Right") 4.dp else 0.dp,
                 )
-                .width(
-                    if (isDocked!! || previewDocked) overlayBoxMax.dp else overlayBoxMin.dp
-                )
-                .height(
-                    if (isDocked!! || previewDocked) overlayBoxMin.dp else overlayBoxMax.dp
-                )
+                .width(overlayBoxMin.dp)
+                .height(overlayBoxMax.dp)
         } else modifier,
         contentAlignment = if ((isDocked!! || previewDocked) && !isLandscape) {
             Alignment.BottomCenter

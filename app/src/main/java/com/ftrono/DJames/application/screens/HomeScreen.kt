@@ -137,7 +137,7 @@ fun HomeScreen(
             ) {
                 focusManager.clearFocus()
             },
-        hideLine = true,
+        hideLine = isLandscape,
         lineDistance = 20.dp,
         topBar = {
             StreetUITopBar(
@@ -159,7 +159,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .padding(
-                    start = 20.dp, end = 20.dp
+                    start = 36.dp, end = 20.dp
                 )
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),

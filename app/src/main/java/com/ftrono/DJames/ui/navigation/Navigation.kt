@@ -6,7 +6,6 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
@@ -23,15 +22,13 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.ftrono.DJames.application.curNavLevel
+import com.ftrono.DJames.application.curNavId
 import com.ftrono.DJames.application.extraOpen
 import com.ftrono.DJames.application.screens.AccountsScreen
-import com.ftrono.DJames.application.screens.ClockScreen
 import com.ftrono.DJames.application.screens.HomeScreen
 import com.ftrono.DJames.application.screens.SettingsScreen
 import com.ftrono.DJames.application.screens.LibraryScreen
 import com.ftrono.DJames.application.screens.MessagesScreen
-import com.ftrono.DJames.application.clockMode
 import com.ftrono.DJames.be.agents.chat.ChatManager
 import com.ftrono.DJames.ui.theme.NavigationItem
 
@@ -52,10 +49,10 @@ fun Navigation(
         modifier = Modifier
             .fillMaxSize(),
         navController = navController,
-        startDestination = if (clockMode) NavigationItem.Clock.route else NavigationItem.Home.route
+        startDestination = NavigationItem.Home.route
     ) {
         //MAIN:
-        //HOME:
+        //1 -> HOME:
         composable(
             NavigationItem.Home.route,
             enterTransition = {
@@ -65,57 +62,19 @@ fun Navigation(
                     )
                 ) + slideIntoContainer(
                     animationSpec = tween(300, easing = EaseIn),
-                    towards = if (curNavLevel > 0) {
+                    towards = if (curNavId > 1) {
                         AnimatedContentTransitionScope.SlideDirection.End
                     } else {
                         AnimatedContentTransitionScope.SlideDirection.Start
                     }
                 )
-            },
-            exitTransition = {
-                fadeOut(
-                    animationSpec = tween(
-                        300, easing = LinearEasing
-                    )
-                )
             }) {
-            curNavLevel = 0
-            clockMode = false
+            curNavId = 1
             extraOpen.postValue(false)
             HomeScreen(navController, preview)
         }
 
-        //CLOCK:
-        composable(
-            NavigationItem.Clock.route,
-            enterTransition = {
-                fadeIn(
-                    animationSpec = tween(
-                        300, easing = LinearEasing
-                    )
-                ) + slideIntoContainer(
-                    animationSpec = tween(300, easing = EaseIn),
-                    towards = if (curNavLevel > 0) {
-                        AnimatedContentTransitionScope.SlideDirection.End
-                    } else {
-                        AnimatedContentTransitionScope.SlideDirection.Start
-                    }
-                )
-            },
-            exitTransition = {
-                fadeOut(
-                    animationSpec = tween(
-                        300, easing = LinearEasing
-                    )
-                )
-            }) {
-            curNavLevel = 0
-            clockMode = true
-            extraOpen.postValue(false)
-            ClockScreen(navController, preview)
-        }
-
-        //LIBRARY:
+        //2 -> LIBRARY:
         composable(
             NavigationItem.Library.route,
             enterTransition = {
@@ -125,26 +84,19 @@ fun Navigation(
                     )
                 ) + slideIntoContainer(
                     animationSpec = tween(300, easing = EaseIn),
-                    towards = if (curNavLevel > 0) {
+                    towards = if (curNavId > 1) {
                         AnimatedContentTransitionScope.SlideDirection.End
                     } else {
                         AnimatedContentTransitionScope.SlideDirection.Start
                     }
                 )
-            },
-            exitTransition = {
-                fadeOut(
-                    animationSpec = tween(
-                        300, easing = LinearEasing
-                    )
-                )
             }) {
-            curNavLevel = 1
+            curNavId = 2
             extraOpen.postValue(false)
             LibraryScreen(navController, preview=preview)
         }
 
-        //MESSAGES:
+        //3 -> MESSAGES:
         composable(
             NavigationItem.Messages.route,
             enterTransition = {
@@ -152,22 +104,22 @@ fun Navigation(
                     animationSpec = tween(
                         300, easing = LinearEasing
                     )
-                )
-            },
-            exitTransition = {
-                fadeOut(
-                    animationSpec = tween(
-                        300, easing = LinearEasing
-                    )
+                ) + slideIntoContainer(
+                    animationSpec = tween(300, easing = EaseIn),
+                    towards = if (curNavId > 1) {
+                        AnimatedContentTransitionScope.SlideDirection.End
+                    } else {
+                        AnimatedContentTransitionScope.SlideDirection.Start
+                    }
                 )
             }) {
-            curNavLevel = 1
+            curNavId = 3
             extraOpen.postValue(false)
             MessagesScreen(navController, chatManager, sharedViewModel, preview)
         }
 
         //EXTRA:
-        //ACCOUNT:
+        //0 -> ACCOUNT:
         composable(
             NavigationItem.Accounts.route,
             enterTransition = {
@@ -177,7 +129,7 @@ fun Navigation(
                 scaleOut() + shrinkVertically(shrinkTowards = Alignment.Bottom)
             }
         ) {
-            curNavLevel = 0
+            curNavId = 0
             extraOpen.postValue(true)
             AccountsScreen(navController, preview)
         }
@@ -192,7 +144,7 @@ fun Navigation(
                 scaleOut() + shrinkVertically(shrinkTowards = Alignment.Bottom)
             }
         ) {
-            curNavLevel = 0
+            curNavId = 0
             extraOpen.postValue(true)
             SettingsScreen(navController, preview)
         }

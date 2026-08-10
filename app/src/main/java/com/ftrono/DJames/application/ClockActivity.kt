@@ -1,0 +1,476 @@
+package com.ftrono.DJames.application
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.res.Configuration
+import android.os.Bundle
+import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.MutableLiveData
+import com.ftrono.DJames.R
+import com.ftrono.DJames.ui.components.RoundedSign
+import com.ftrono.DJames.ui.components.StreetUIScaffold
+import com.ftrono.DJames.ui.theme.ClockTheme
+import com.ftrono.DJames.ui.theme.black
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+
+class ClockActivity: ComponentActivity() {
+
+    private val TAG: String = ClockActivity::class.java.getSimpleName()
+
+    //Parameters:
+    private val dayFormat = DateTimeFormatter.ofPattern("E,")
+    private val dateFormat = DateTimeFormatter.ofPattern("dd MMM")
+    private val hourFormat = DateTimeFormatter.ofPattern("HH")
+    private val minsFormat = DateTimeFormatter.ofPattern("mm")
+
+    //Status:
+    private var currentDay = MutableLiveData<String>("Mon,")
+    private var currentDate = MutableLiveData<String>("1 Jan")
+    private var currentHour = MutableLiveData<String>("00")
+    private var currentMins = MutableLiveData<String>("00")
+
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        acts_active.add(TAG)
+
+        enableEdgeToEdge(
+            //For safe padding:
+            statusBarStyle = SystemBarStyle.auto(black.toArgb(), black.toArgb()),
+            navigationBarStyle = SystemBarStyle.auto(black.toArgb(), black.toArgb())
+        )
+        setContent {
+            ClockTheme {
+                //Background:
+                Surface (
+                    modifier = Modifier.fillMaxSize(),
+                    color = black
+                ) {
+                    ClockScreen()
+                }
+            }
+        }
+
+        clockActive.postValue(true)
+
+        //Start personal Receiver:
+        val actFilter = IntentFilter()
+        actFilter.addAction(ACTION_TIME_TICK)
+        actFilter.addAction(ACTION_UPDATE_PLAYER)
+        actFilter.addAction(ACTION_FINISH_CLOCK)
+
+        //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
+        registerReceiver(clockActReceiver, actFilter, RECEIVER_EXPORTED)
+        Log.d(TAG, "ClockActReceiver started.")
+
+        //Start clock:
+        updateDateClock()
+    }
+
+
+    @Preview
+    @Preview(heightDp = 360, widthDp = 800)
+    @Composable
+    fun ClockScreen() {
+        //States:
+        val mContext = LocalContext.current
+        val configuration = LocalConfiguration.current
+        val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
+
+        val overlayPosState by overlayPos.observeAsState()
+        val currentDayState by currentDay.observeAsState()
+        val currentDateState by currentDate.observeAsState()
+        val currentHourState by currentHour.observeAsState()
+        val currentMinsState by currentMins.observeAsState()
+
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .safeDrawingPadding(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            //SIDE NAV BAR (LEFT):
+            if (isLandscape && overlayPosState == "Left") {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(100.dp)
+                        .background(colorResource(id = R.color.black)),
+                )
+            }
+            StreetUIScaffold(
+                modifier = Modifier
+                    .fillMaxSize(),
+                hideLine = true,
+                topBar = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(65.dp)
+                            .background(colorResource(id = R.color.black)),
+                    )
+                },
+            ) {
+                // Content:
+                if (isLandscape) {
+                    // LANDSCAPE:
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(colorResource(id = R.color.black)),
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ){
+                        // Info area:
+                        ClockInfoArea(
+                            modifier = Modifier
+                                .padding(
+                                    top=8.dp,
+                                    bottom=8.dp,
+                                    start=20.dp,
+                                    end=20.dp,
+                                ),
+                            isLandscape = true,
+                            currentDayState = currentDayState!!,
+                            currentDateState = currentDateState!!,
+                            currentHourState = currentHourState!!,
+                            currentMinsState = currentMinsState!!,
+                        )
+                        // Unlock:
+                        UnlockButton(
+                            context = mContext,
+                            modifier = Modifier
+                                .fillMaxHeight(),
+                        )
+                    }
+
+                } else {
+                    // PORTRAIT:
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(colorResource(id = R.color.black)),
+                        verticalArrangement = Arrangement.Top,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // Info area:
+                        ClockInfoArea(
+                            modifier = Modifier
+                                .padding(
+                                    top=12.dp,
+                                    bottom=140.dp,
+                                    start=20.dp,
+                                    end=20.dp,
+                                ),
+                            isLandscape = false,
+                            currentDayState = currentDayState!!,
+                            currentDateState = currentDateState!!,
+                            currentHourState = currentHourState!!,
+                            currentMinsState = currentMinsState!!,
+                        )
+                        // Unlock:
+                        UnlockButton(
+                            context = mContext,
+                            modifier = Modifier,
+                        )
+                    }
+                }
+            }
+            //SIDE NAV BAR (RIGHT):
+            if (isLandscape && overlayPosState == "Right") {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(100.dp)
+                        .background(colorResource(id = R.color.black)),
+                )
+            }
+        }
+    }
+
+
+    @Composable
+    fun ClockInfoArea(
+        modifier: Modifier,
+        isLandscape: Boolean,
+        currentDayState: String,
+        currentDateState: String,
+        currentHourState: String,
+        currentMinsState: String,
+    ) {
+        Row(
+            modifier = modifier,
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            // CLOCK:
+            Text(
+                modifier = Modifier,
+                text = "${currentHourState}\n${currentMinsState}",
+                color = colorResource(id = R.color.faded_grey),
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+                fontSize = if (isLandscape) 120.sp else 130.sp,
+                lineHeight = if (isLandscape) 100.sp else 110.sp,
+            )
+
+            Column(
+                modifier = Modifier
+                    .padding(start=20.dp),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center
+            ) {
+                //DAY:
+                Text(
+                    modifier = Modifier,
+                    text = currentDayState,
+                    fontWeight = FontWeight.Medium,
+                    color = colorResource(id = R.color.faded_grey),
+                    fontSize = 32.sp,
+                    lineHeight = 32.sp,
+                )
+                //DATE:
+                Text(
+                    modifier = Modifier
+                        .padding(bottom = 12.dp),
+                    text = currentDateState,
+                    fontWeight = FontWeight.Medium,
+                    color = colorResource(id = R.color.faded_grey),
+                    fontSize = 32.sp,
+                    lineHeight = 32.sp,
+                )
+
+                //PLAYER INFO:
+                PlayerInfo(isLandscape)
+            }
+        }
+    }
+
+
+    //PLAYER INFO:
+    @Composable
+    fun PlayerInfo(
+        isLandscape: Boolean,
+    ) {
+        val currentSongPlayingState by currentSongPlaying.observeAsState()
+        val currentArtistPlayingState by currentArtistPlaying.observeAsState()
+        Card(
+            modifier = Modifier
+                .padding(top = 12.dp)
+                .width(160.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors (
+                containerColor = colorResource(id = R.color.dark_grey_background)
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.Start
+            ) {
+                //ICON:
+                Icon(
+                    modifier = Modifier
+                        .size(30.dp),
+                    painter = painterResource(id = R.drawable.icon_note),
+                    contentDescription = "Item image",
+                    tint = colorResource(id = R.color.midfaded_grey),
+                )
+                //SONG NAME:
+                Text(
+                    modifier = Modifier,
+                    text = currentSongPlayingState!!,
+                    color = colorResource(id = R.color.mid_grey),
+                    fontSize = 16.sp,
+                    fontStyle = FontStyle.Italic
+                )
+                //ARTIST NAME:
+                Text(
+                    modifier = Modifier,
+                    text = currentArtistPlayingState!!,
+                    lineHeight = 14.sp,
+                    color = colorResource(id = R.color.mid_grey),
+                    fontSize = 14.sp
+                )
+            }
+        }
+    }
+
+    @Composable
+    fun UnlockButton(
+        context: Context,
+        modifier: Modifier,
+    ) {
+        Column(
+            modifier = modifier,
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            RoundedSign(
+                modifier = Modifier
+                    .padding(start = 20.dp, end = 20.dp)
+                    .clickable {
+                        // Go to Home:
+                        finish()
+                        utils.openActivity(context, MainActivity::class.java)
+                    },
+                signSize = 80.dp,
+                contentSize = 40,
+                backgroundColor = colorResource(R.color.faded_grey),
+                borderColor = colorResource(id = R.color.transparent_full),
+                contentColor = colorResource(id = R.color.mid_grey),
+                iconPainter = painterResource(R.drawable.icon_lock),
+            )
+            Text(
+                modifier = Modifier
+                    .padding(top=12.dp),
+                text = "Unlock",
+                color = colorResource(id = R.color.midfaded_grey),
+                fontSize = 18.sp
+            )
+        }
+    }
+
+
+    override fun onDestroy() {
+        clockActive.postValue(false)
+        //unregister receivers:
+        unregisterReceiver(clockActReceiver)
+        acts_active.remove(TAG)
+        super.onDestroy()
+    }
+
+    override fun onPause() {
+        clockActive.postValue(false)
+        super.onPause()
+    }
+
+    override fun onStop() {
+        clockActive.postValue(false)
+        super.onStop()
+    }
+
+    override fun onStart() {
+        if (!overlayActive.value!!) {
+            //Start Main:
+            finish()
+            utils.openActivity(this, MainActivity::class.java)
+        } else {
+            clockActive.postValue(true)
+        }
+        super.onStart()
+    }
+
+    override fun onResume() {
+        if (!overlayActive.value!!) {
+            //Start Main:
+            finish()
+            utils.openActivity(this, MainActivity::class.java)
+        } else {
+            clockActive.postValue(true)
+        }
+        super.onResume()
+    }
+
+    override fun onBackPressed() {
+        finish()
+        //Start Main:
+        utils.openActivity(this, MainActivity::class.java)
+    }
+
+    fun updateDateClock() {
+        var now = LocalDateTime.now()
+        currentDate.postValue(now.format(dateFormat))
+        currentHour.postValue(now.format(hourFormat))
+        currentMins.postValue(now.format(minsFormat))
+    }
+
+    fun updatePlayer() {
+        //Populate player info:
+        currentSongPlaying.postValue(utils.trimString(songName, 25))
+        currentArtistPlaying.postValue(utils.trimString(artistName, 25))
+    }
+
+
+    //PERSONAL RECEIVER:
+    var clockActReceiver = object: BroadcastReceiver() {
+
+        override fun onReceive(context: Context?, intent: Intent?) {
+            //Update clock (every minute):
+            if (intent!!.action == ACTION_TIME_TICK) {
+                updateDateClock()
+                if (!enablePlayerInfo) {
+                    enablePlayerInfo = true
+                    if (songName != "") {
+                        updatePlayer()
+                    }
+                }
+            }
+
+            //Update player:
+            if (intent.action == ACTION_UPDATE_PLAYER) {
+                Log.d(TAG, "CLOCK: ACTION_UPDATE_PLAYER.")
+                updatePlayer()
+            }
+
+            //Finish activity:
+            if (intent.action == ACTION_FINISH_CLOCK) {
+                Log.d(TAG, "CLOCK: ACTION_FINISH_CLOCK.")
+                finish()
+                if (clockActive.value!!) {
+                    //Start Main:
+                    utils.openActivity(applicationContext, MainActivity::class.java)
+                }
+            }
+
+        }
+    }
+
+}

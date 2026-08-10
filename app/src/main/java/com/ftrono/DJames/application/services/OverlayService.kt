@@ -47,6 +47,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.ACTION_FINISH_CLOCK
 import com.ftrono.DJames.application.ACTION_MAKE_CALL
 import com.ftrono.DJames.application.ACTION_SAVE_TRACK
 import com.ftrono.DJames.application.ACTION_TIME_TICK
@@ -80,6 +81,9 @@ import com.ftrono.DJames.application.overlayToeSize
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.isVolumeUpUnlocked
+import com.ftrono.DJames.application.overlayDocked
+import com.ftrono.DJames.ui.components.dpToPx
+import com.ftrono.DJames.ui.components.toPx
 import com.ftrono.DJames.ui.overlay.Overlay
 import com.ftrono.DJames.ui.overlay.OverlayBubble
 import kotlinx.coroutines.CoroutineScope
@@ -137,6 +141,7 @@ class OverlayService : Service () {
 
             // Init window manager
             windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+            val config = getResources().getConfiguration()
 
             // Store display height & width
             screenHeight = resources.displayMetrics.heightPixels
@@ -159,8 +164,13 @@ class OverlayService : Service () {
                 PixelFormat.TRANSLUCENT
             ).apply {
                 gravity = Gravity.TOP or Gravity.START
+//                if (config.orientation == Configuration.ORIENTATION_PORTRAIT) {
+//                    overlayDocked.postValue(true)
+//                    x = ((screenWidth / 2) - (overlayBubbleSize.dpToPx(applicationContext) / 2))
+//                    y = screenHeight
+//                } else { }
                 x = if (prefs.overlayPosition == "Right") screenWidth else 0
-                y = round(screenHeight.toDouble()/4).toInt()
+                y = round(screenHeight.toDouble() / 4).toInt()
             }
 
             //Compose:
@@ -283,9 +293,15 @@ class OverlayService : Service () {
         // Store display screenHeight & screenWidth
         screenWidth = resources.displayMetrics.widthPixels
         screenHeight = resources.displayMetrics.heightPixels
-        //Preferred xpos:
+//        if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+//            // DOCKED:
+//            overlayDocked.postValue(true)
+//            bubbleParams.x = ((screenWidth / 2) - (overlayBubbleSize.dpToPx(applicationContext) / 2))
+//            bubbleParams.y = screenHeight
+//        } else { }
+        //FLOATING:
         bubbleParams.x = if (prefs.overlayPosition == "Right") screenWidth else 0
-        bubbleParams.y = round(screenHeight.toDouble()/4).toInt()
+        bubbleParams.y = round(screenHeight.toDouble() / 4).toInt()
         windowManager.updateViewLayout(bubbleView, bubbleParams)
     }
 
@@ -534,7 +550,13 @@ class OverlayService : Service () {
         } catch (e: Exception) {
             Log.w(TAG, "overlayReceiver: cannot unregister. ", e)
         }
-        //End:
+        if (!restarting) {
+            //End Clock Screen():
+            Intent().also { intent ->
+                intent.setAction(ACTION_FINISH_CLOCK)
+                sendBroadcast(intent)
+            }
+        }
         removeOverlayView()
         //If no activities active -> CLOSE APP:
         Log.d(TAG, "$acts_active")

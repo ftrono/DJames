@@ -35,7 +35,7 @@ import java.time.format.DateTimeFormatter
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.0.3"
+val appVersion = "3.0.4"
 val copyrightYear = 2024
 
 //DB:
@@ -95,8 +95,7 @@ val overlayPermissionDescription = "DJames needs your permission to show its Ove
 val notificationListenerPermissionDescription = "DJames needs your permission to read your notifications. It will only do so while the Overlay button is visible, to read your notifications.\n\nPlease tap 'Yes' and enable DJames from the app list!"
 
 //STATUS VARS:
-var curNavLevel = 0
-var clockMode: Boolean = false   // Fire command only (decide if open Clock or not)
+var curNavId = 0
 var lastNavRoute = "home"
 var permsRequested = MutableLiveData<Boolean>(false)
 var spotifyLoggedIn = MutableLiveData<Boolean>(false)
@@ -104,8 +103,7 @@ var spotUserName = MutableLiveData<String>("")
 var userGender = MutableLiveData<String>("Sir")
 var overlayActive = MutableLiveData<Boolean>(false)
 var queryStatus = MutableLiveData<String>("ready")   // MAIN PROCESS STATE for voice & chat ("ready", "busy", "processing")
-var mainActive = MutableLiveData<Boolean>(false)   // Main is currently shown on screen
-var clockActive = MutableLiveData<Boolean>(false)   // Clock is currently shown on screen
+var clockActive = MutableLiveData<Boolean>(false)
 var overlayPos = MutableLiveData<String>("Right")
 var overlayDocked = MutableLiveData<Boolean>(false)
 var isVolumeUpPreferenceSet = MutableLiveData<Boolean>(true)   // Live observation of the pref (must change only with pref)
@@ -122,9 +120,6 @@ var userNicknameUI = MutableLiveData<String>("")
 var spotUserImageState = MutableLiveData<String>("")
 var sharedLink = MutableLiveData<String>("")
 var currentTime = MutableLiveData<String>("00:00")
-var currentDate = MutableLiveData<String>("Mon,\n1 Jan")
-var currentHour = MutableLiveData<String>("00")
-var currentMins = MutableLiveData<String>("00")
 
 //Library & Messages:
 var curLibrarySize = MutableLiveData<Int>(0)
@@ -172,9 +167,6 @@ val datetimeExportFormat = "yyyy-MM-dd HH_mm_ss"
 val datetimeFullFormat = "yyyy/MM/dd HH:mm"
 val datetimeShortFormat = "MMMM dd, HH:mm"
 val datetimePromptFormat = "EEEE dd MMMM yyyy, HH:mm"
-val dateFormat = DateTimeFormatter.ofPattern("E,\ndd MMM")
-val hourFormat = DateTimeFormatter.ofPattern("HH")
-val minsFormat = DateTimeFormatter.ofPattern("mm")
 
 //Dropdowns:
 val genders = listOf<String>("Sir", "Madam", "Friend")
@@ -261,9 +253,13 @@ const val SPOTIFY_METADATA_CHANGED = "com.spotify.music.metadatachanged"
 const val ACTION_TOASTER = "com.ftrono.DJames.eventReceiver.ACTION_TOASTER"
 
 //Main Act receiver:
+const val ACTION_FINISH_MAIN = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_MAIN"
 const val ACTION_MESSAGES_REFRESH = "com.ftrono.DJames.eventReceiver.ACTION_MESSAGES_REFRESH"
+
+//Clock Act receiver:
 const val ACTION_TIME_TICK = "android.intent.action.TIME_TICK"
 const val ACTION_UPDATE_PLAYER = "com.ftrono.DJames.eventReceiver.ACTION_UPDATE_PLAYER"
+const val ACTION_FINISH_CLOCK = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_CLOCK"
 
 //Overlay receiver:
 const val ACTION_OVERLAY_SHOW = "com.ftrono.DJames.eventReceiver.ACTION_OVERLAY_SHOW"

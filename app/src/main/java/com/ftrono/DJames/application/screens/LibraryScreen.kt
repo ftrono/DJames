@@ -409,7 +409,7 @@ fun LibSectionContent(
 
             LazyVerticalGrid(
                 modifier = Modifier
-                    .padding(start = 32.dp, end = 24.dp, bottom = 12.dp)
+                    .padding(start = 36.dp, end = 20.dp, bottom = 12.dp)
                     .fillMaxSize(),
                 columns = GridCells.Fixed(columns),
                 horizontalArrangement = Arrangement.spacedBy(spacing),

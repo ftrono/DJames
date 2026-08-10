@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_SAVE_TRACK
+import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.overlayPos
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.services.VoiceQueryService
@@ -90,7 +91,7 @@ fun getQuickActionOnTap(
     } else if (name == "clock") {
         {
             //Start Clock screen:
-            utils.openClock(context, fromService=true)
+            utils.openActivity(context, ClockActivity::class.java, fromService = true)
         }
     } else if (name == "volume") {
         {

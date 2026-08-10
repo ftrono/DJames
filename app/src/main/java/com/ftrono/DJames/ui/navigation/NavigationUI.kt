@@ -67,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.lastNavRoute
 import com.ftrono.DJames.application.extraOpen
 import com.ftrono.DJames.application.libCats
@@ -174,12 +175,16 @@ fun StreetUITopBar(
     onBack: () -> Unit = {},
     optionButtons: @Composable() (RowScope.() -> Unit) = {}
 ) {
+    val clockActiveState by clockActive.observeAsState()
+
     //HEADER:
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(65.dp)
-            .background(colorResource(id = R.color.windowBackground)),
+            .background(
+                colorResource(if (clockActiveState!!) R.color.black else R.color.windowBackground)
+            ),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -613,9 +618,11 @@ fun MainNavBar(
     clickCounterState: Int,
     isLandscape: Boolean,
     preview: Boolean = false,
+    previewClock: Boolean = false,
     onClickCenter: () -> Unit = {},
 ) {
     val overlayActiveState by overlayActive.observeAsState()
+    val clockActiveState by clockActive.observeAsState()
 
     // Background:
     Box(
@@ -623,12 +630,16 @@ fun MainNavBar(
             Modifier
                 .fillMaxHeight()
                 .width(100.dp)
-                .background(colorResource(R.color.windowBackground))
+                .background(
+                    colorResource(if (clockActiveState!! || previewClock) R.color.black else R.color.windowBackground)
+                )
         } else {
             Modifier
                 .fillMaxWidth()
                 .height(150.dp)
-                .background(colorResource(R.color.windowBackground))
+                .background(
+                    colorResource(if (clockActiveState!! || previewClock) R.color.black else R.color.windowBackground)
+                )
             },
         contentAlignment = Alignment.Center,
     ) {
@@ -642,7 +653,7 @@ fun MainNavBar(
                 // Text:
                 Text(
                     modifier = Modifier
-                        .padding(bottom = 12.dp),
+                        .padding(top=12.dp, bottom=12.dp),
                     text = if (!overlayActiveState!!) {
                         "Tap to start"
                     } else {

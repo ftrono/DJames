@@ -57,10 +57,14 @@ fun isKeyboardOpen(): Boolean {
 }
 
 
-// Extension function to convert Dp to Px
+// Extension functions to convert Dp to Px
 @Composable
 fun Dp.toPx(): Float {
     return with(LocalDensity.current) { this@toPx.toPx() }
+}
+
+fun Int.dpToPx(context: Context): Int {
+    return (this * context.resources.displayMetrics.density).toInt()
 }
 
 

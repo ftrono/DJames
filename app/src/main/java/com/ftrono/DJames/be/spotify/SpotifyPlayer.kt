@@ -14,6 +14,7 @@ import com.ftrono.DJames.application.spotCollectionUrl
 import com.ftrono.DJames.application.spotIntroUri
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.SpotifyPlayable
+import com.ftrono.DJames.application.ClockActivity
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
@@ -129,7 +130,7 @@ class SpotifyPlayer (private val context: Context) {
                         //Clock redirect:
                         Thread.sleep((prefs.clockTimeout.toLong() - 1) * 1000)   //default: 10000
                         //Launch Clock:
-                        utils.openClock(context, fromService = true)
+                        utils.openActivity(context, ClockActivity::class.java, fromService = true)
                     }
                     Log.d(TAG, "ExtThread end!")
                 }

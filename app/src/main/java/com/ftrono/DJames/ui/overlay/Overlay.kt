@@ -9,6 +9,8 @@ import com.ftrono.DJames.application.clickCountdownTime
 import com.ftrono.DJames.application.clickCounter
 import com.ftrono.DJames.application.clickSleepInterval
 import com.ftrono.DJames.application.currentTime
+import com.ftrono.DJames.application.currentHourMini
+import com.ftrono.DJames.application.currentMinsMini
 import com.ftrono.DJames.application.overlayOptionsStr
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.sourceIsVolume
@@ -30,12 +32,16 @@ class Overlay() {
     //Mini Clock:
     private var now: LocalDateTime? = null
     private val miniClockFormat = DateTimeFormatter.ofPattern("HH:mm")
+    private val hourFormat = DateTimeFormatter.ofPattern("HH")
+    private val minsFormat = DateTimeFormatter.ofPattern("mm")
 
 
     //Clock:
     fun updateMiniClock() {
         now = LocalDateTime.now()
         currentTime.postValue(now!!.format(miniClockFormat))
+        currentHourMini.postValue(now!!.format(hourFormat))
+        currentMinsMini.postValue(now!!.format(minsFormat))
     }
 
     // COUNTDOWN FUNCTIONS:

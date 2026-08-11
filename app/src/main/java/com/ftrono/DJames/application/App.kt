@@ -120,6 +120,8 @@ var userNicknameUI = MutableLiveData<String>("")
 var spotUserImageState = MutableLiveData<String>("")
 var sharedLink = MutableLiveData<String>("")
 var currentTime = MutableLiveData<String>("00:00")
+var currentHourMini = MutableLiveData<String>("00")
+var currentMinsMini = MutableLiveData<String>("00")
 
 //Library & Messages:
 var curLibrarySize = MutableLiveData<Int>(0)

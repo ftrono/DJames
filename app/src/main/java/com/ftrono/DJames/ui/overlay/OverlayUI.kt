@@ -64,8 +64,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -78,6 +81,8 @@ import com.ftrono.DJames.application.ACTION_REC_STOP
 import com.ftrono.DJames.application.clickAnimationCountdownTime
 import com.ftrono.DJames.application.clickCounter
 import com.ftrono.DJames.application.clockActive
+import com.ftrono.DJames.application.currentHourMini
+import com.ftrono.DJames.application.currentMinsMini
 import com.ftrono.DJames.application.currentTime
 import com.ftrono.DJames.application.overlayBoxMax
 import com.ftrono.DJames.application.overlayBoxMin
@@ -254,6 +259,25 @@ fun PadsPreview5() {
     )
 }
 
+@Preview
+@Composable
+fun PadsPreview6() {
+    val mContext = LocalContext.current
+    val overlayPosState by remember { mutableStateOf("Right") }
+    val clickCounterState by remember { mutableStateOf(0) }
+    val clockActiveState by remember { mutableStateOf(false) }
+
+    DJamesPads(
+        context = mContext,
+        queryStatus = MutableLiveData<String>("ready"),
+        overlayPosState = overlayPosState,
+        clickCounterState = clickCounterState,
+        clockActiveState = clockActiveState,
+        previewCenter = true,
+        previewDocked = true,
+    )
+}
+
 
 @Composable
 fun DJamesPads(
@@ -279,14 +303,14 @@ fun DJamesPads(
     val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
 
     val currentTimeState by currentTime.observeAsState()
+    val currentHourState by currentHourMini.observeAsState()
+    val currentMinsState by currentMinsMini.observeAsState()
     val overlayOptionsState by overlayOptionsStr.observeAsState()
     val isDocked by overlayDocked.observeAsState()
 
     // Colours:
     val colorBgActive = colorResource(R.color.colorAccentMid)
     val colorBgInactive = colorResource(R.color.dark_grey)
-    val colorIconActive = colorResource(R.color.light_grey)
-    val colorIconInactive = colorResource(R.color.light_grey)
     val colorTimeoutActive = colorResource(R.color.light_grey)
 
     // Animate radius based on expansion state:
@@ -368,11 +392,8 @@ fun DJamesPads(
                 val curActionName = overlayOptions[index]
                 val curAction = getQuickAction(
                     name = curActionName,
-                    isActive = isActive,
-                    colorActive = colorIconActive,
-                    colorInactive = colorIconInactive,
-                    currentTimeState = currentTimeState!!,
-                    overlayPosState = overlayPosState,
+                    currentHourState = currentHourState!!,
+                    currentMinsState = currentMinsState!!,
                 )
 
                 Row(
@@ -388,7 +409,7 @@ fun DJamesPads(
                         isActive = isActive,
                         title = curAction.title,
                         backgroundColor = if (isActive) colorBgActive else colorBgInactive,
-                        itemColor = if (isActive) colorIconActive else colorIconInactive,
+                        itemColor = colorResource(R.color.light_grey),
                         timeoutColor = colorTimeoutActive,
                         bubbleSize = toeSize.dp,
                         timeoutWidth = overlayTimeoutToeWidth.dp,
@@ -404,30 +425,63 @@ fun DJamesPads(
         }
 
         // CENTER PAW PAD:
-        CenterPad(
-            context = context,
-            bubbleSize = centerSize,
-            toeSize = toeSize+4,
-            toeOffset = 26,
-            isDocked = isDocked!! || previewDocked,
-            queryStatus = queryStatus,
-            clickCounterState = clickCounterState,
-            clockActiveState = clockActiveState,
-            currentTimeState = currentTimeState!!,
-            colorIconActive = colorIconActive,
-            colorIconInactive = colorIconInactive,
-            colorBgActive = colorBgActive,
-            colorBgInactive = colorBgInactive,
-            colorTimeout = colorTimeoutActive,
-            previewFull = previewCenter,
-            previewVolume = previewVolume,
-            onClockTap = {
-                getQuickActionOnTap(context = mContext, name = "clock")()
-            },
-            onCenterTap = {
-                onCenterTap(it)
+        if (isDocked!! || previewDocked) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                CenterPad(
+                    context = context,
+                    bubbleSize = centerSize,
+                    toeSize = toeSize + 4,
+                    isDocked = true,
+                    queryStatus = queryStatus,
+                    clickCounterState = clickCounterState,
+                    clockActiveState = clockActiveState,
+                    currentHourState = currentHourState!!,
+                    currentMinsState = currentMinsState!!,
+                    colorBgActive = colorBgActive,
+                    colorBgInactive = colorBgInactive,
+                    colorTimeout = colorTimeoutActive,
+                    previewFull = previewCenter,
+                    previewVolume = previewVolume,
+                    onClockTap = {
+                        getQuickActionOnTap(context = mContext, name = "clock")()
+                    },
+                    onCenterTap = {
+                        onCenterTap(it)
+                    }
+                )
             }
-        )
+        } else {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                CenterPad(
+                    context = context,
+                    bubbleSize = centerSize,
+                    toeSize = toeSize + 4,
+                    isDocked = false,
+                    queryStatus = queryStatus,
+                    clickCounterState = clickCounterState,
+                    clockActiveState = clockActiveState,
+                    currentHourState = currentHourState!!,
+                    currentMinsState = currentMinsState!!,
+                    colorBgActive = colorBgActive,
+                    colorBgInactive = colorBgInactive,
+                    colorTimeout = colorTimeoutActive,
+                    previewFull = previewCenter,
+                    previewVolume = previewVolume,
+                    onClockTap = {
+                        getQuickActionOnTap(context = mContext, name = "clock")()
+                    },
+                    onCenterTap = {
+                        onCenterTap(it)
+                    }
+                )
+            }
+        }
     }
 }
 
@@ -584,7 +638,7 @@ fun TimeoutButton(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             icon()
-            if (title != "" && itemColor != null) {
+            if (title != "" && title.lowercase() != "clock" && itemColor != null) {
                 Text(
                     modifier = Modifier
                         .padding(top=6.dp),
@@ -604,14 +658,12 @@ fun CenterPad(
     context: Context,
     bubbleSize: Int,
     toeSize: Int,
-    toeOffset: Int,
     isDocked: Boolean = false,
     queryStatus: MutableLiveData<String>,
     clickCounterState: Int,
     clockActiveState: Boolean,
-    currentTimeState: String,
-    colorIconActive: Color,
-    colorIconInactive: Color,
+    currentHourState: String,
+    currentMinsState: String,
     colorBgActive: Color,
     colorBgInactive: Color,
     colorTimeout: Color,
@@ -620,6 +672,8 @@ fun CenterPad(
     previewFull: Boolean = false,
     previewVolume: Boolean = true,
 ) {
+    val verticalPad = 8.dp
+    val horizontalPad = 20.dp
     val queryState by queryStatus.observeAsState()
     val isVolumeUpPreferenceSetState by isVolumeUpPreferenceSet.observeAsState()
     val isVolumeUpUnlockedState by isVolumeUpUnlocked.observeAsState()
@@ -630,173 +684,170 @@ fun CenterPad(
         }
     }
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-
-        //CLOCK BUTTON:
-        if ((!isDocked && !clockActiveState && clickCounterState == 0) || previewFull) {
-            ClockButton(
-                modifier = Modifier
-                    .offset(y=toeOffset.dp),
-                size = toeSize,
-                currentTimeState = currentTimeState,
-                onTap = onClockTap,
-            )
-        }
-
-        // CENTER PAW PAD:
-        TimeoutButton(
-            modifier = Modifier
-                .zIndex(1f),
-            isActive = (clickCounterState == 1 || isVolumeUpUnlockedState!! || previewVolume),
-            isCircle = true,
-            bubbleSize = bubbleSize.dp,
-            timeoutWidth = overlayTimeoutCenterWidth.dp,
-            backgroundColor = if (clickCounterState == 1) {
-                colorBgActive   // Center pad active
-            } else if (clickCounterState > 0) {
-                colorBgInactive   // Toes active
+    //CLOCK BUTTON:
+    if ((!isDocked && !clockActiveState && clickCounterState == 0) || previewFull) {
+        ClockButton(
+            modifier = if (isDocked) {
+                Modifier
+                    .padding(end=horizontalPad)
             } else {
-                when {
-                    (isVolumeUpUnlockedState!! || previewVolume) -> {
-                        colorResource(id = R.color.yellowSignDark)
-                    }
-
-                    (queryState == "busy") -> {
-                        colorResource(id = R.color.colorBusy)
-                    }
-
-                    (queryState == "processing") -> {
-                        colorResource(id = R.color.faded_grey)
-                    }
-
-                    else -> {
-                        colorResource(id = R.color.colorPrimary)
-                    }
-                }
+                Modifier
+                    .padding(bottom=verticalPad)
             },
-            timeoutMs = if (isVolumeUpUnlockedState!!) raiseVolumeCountdownTime else clickAnimationCountdownTime,
-            timeoutColor = colorTimeout,
-            onTap = { onCenterTap(it) },
-            onTimeout = {
-                if (isVolumeUpUnlockedState!!) {
-                    // Re-enable volume-up trigger:
-                    isVolumeUpUnlocked.postValue(false)
+            size = toeSize-10,
+            currentHourState = currentHourState,
+            currentMinsState = currentMinsState,
+            onTap = onClockTap,
+        )
+    }
+
+    // CENTER PAW PAD:
+    TimeoutButton(
+        modifier = Modifier
+            .zIndex(1f),
+        isActive = (clickCounterState == 1 || isVolumeUpUnlockedState!! || previewVolume),
+        isCircle = true,
+        bubbleSize = bubbleSize.dp,
+        timeoutWidth = overlayTimeoutCenterWidth.dp,
+        backgroundColor = if (clickCounterState == 1) {
+            colorBgActive   // Center pad active
+        } else if (clickCounterState > 0) {
+            colorBgInactive   // Toes active
+        } else {
+            when {
+                (isVolumeUpUnlockedState!! || previewVolume) -> {
+                    colorResource(id = R.color.yellowSignDark)
+                }
+
+                (queryState == "busy") -> {
+                    colorResource(id = R.color.colorBusy)
+                }
+
+                (queryState == "processing") -> {
+                    colorResource(id = R.color.faded_grey)
+                }
+
+                else -> {
+                    colorResource(id = R.color.colorPrimary)
                 }
             }
+        },
+        timeoutMs = if (isVolumeUpUnlockedState!!) raiseVolumeCountdownTime else clickAnimationCountdownTime,
+        timeoutColor = colorTimeout,
+        onTap = { onCenterTap(it) },
+        onTimeout = {
+            if (isVolumeUpUnlockedState!!) {
+                // Re-enable volume-up trigger:
+                isVolumeUpUnlocked.postValue(false)
+            }
+        }
+    ) {
+        Column(
+            modifier = Modifier,
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier,
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                if (clickCounterState > 0) {
-                    // EXPANDED:
-                    Icon(
-                        modifier = Modifier
-                            .size(50.dp),
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Cancel",
-                        tint = if (clickCounterState == 1) colorIconActive else colorIconInactive,
-                    )
+            if (clickCounterState > 0) {
+                // EXPANDED:
+                Icon(
+                    modifier = Modifier
+                        .size(50.dp),
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Cancel",
+                    tint = colorResource(R.color.light_grey),
+                )
 
-                } else if (isVolumeUpUnlockedState!! || previewVolume) {
-                    // RAISE VOLUME:
-                    Text (
-                        modifier = Modifier,
-                        text = "RAISE\nVOLUME\nNOW!",
-                        textAlign = TextAlign.Center,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = colorResource(id = R.color.light_grey)
-                    )
+            } else if (isVolumeUpUnlockedState!! || previewVolume) {
+                // RAISE VOLUME:
+                Text (
+                    modifier = Modifier,
+                    text = buildAnnotatedString {
+                        append("RAISE\nVOLUME\n")
+                        withStyle(SpanStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                        )) {
+                            append("NOW")
+                        }
+                    },
+                    textAlign = TextAlign.Center,
+                    fontSize = 14.sp,
+                    lineHeight = 16.sp,
+                    color = colorResource(id = R.color.light_grey)
+                )
 
-                } else if (queryState == "processing") {
-                    //PROCESSING:
-                    CircularProgressIndicator(
-                        modifier = Modifier.width(40.dp),
-                        color = colorResource(id = R.color.light_grey),
-                        trackColor = colorResource(id = R.color.dark_grey),
-                        strokeWidth = 8.dp
-                    )
-                } else if (queryState == "busy") {
-                    //BUSY:
-                    PulsatingWaveform()
+            } else if (queryState == "processing") {
+                //PROCESSING:
+                CircularProgressIndicator(
+                    modifier = Modifier.width(40.dp),
+                    color = colorResource(id = R.color.light_grey),
+                    trackColor = colorResource(id = R.color.dark_grey),
+                    strokeWidth = 8.dp
+                )
+            } else if (queryState == "busy") {
+                //BUSY:
+                PulsatingWaveform()
 
-                } else {
-                    //READY:
-                    Image(
-                        modifier = Modifier
-                            .size(50.dp),
-                        painter = painterResource(id = R.drawable.djames),
-                        contentDescription = "DJames Overlay Bubble"
-                    )
-                }
+            } else {
+                //READY:
+                Image(
+                    modifier = Modifier
+                        .size(50.dp),
+                    painter = painterResource(id = R.drawable.djames),
+                    contentDescription = "DJames Overlay Bubble"
+                )
             }
         }
+    }
 
-        //VOLUME BUTTON:
-        if ((!isDocked && isVolumeUpPreferenceSetState!! && clickCounterState == 0 && !isVolumeUpUnlockedState!!) || previewFull) {
-            RaiseVolumeButton(
-                context = context,
-                size = toeSize,
-            )
-        }
+    //VOLUME BUTTON:
+    if ((!isDocked && isVolumeUpPreferenceSetState!! && clickCounterState == 0 && !isVolumeUpUnlockedState!!) || previewFull) {
+        RaiseVolumeButton(
+            context = context,
+            modifier = if (isDocked) {
+                Modifier
+                    .padding(start=horizontalPad)
+            } else {
+                Modifier
+                    .padding(top=verticalPad)
+            },
+            size = toeSize - 10,
+        )
     }
 }
 
 
 @Composable
 fun ClockButton(
-    modifier: Modifier = Modifier,
-    size: Int = 70,
-    currentTimeState: String,
+    modifier: Modifier,
+    size: Int = 60,
+    currentHourState: String,
+    currentMinsState: String,
     onTap: (Offset) -> Unit
 ) {
+    val curAction = getQuickAction(
+        name = "clock",
+        currentHourState = currentHourState,
+        currentMinsState = currentMinsState,
+    )
+
     //OVERLAY BUTTON:
     Card(
-        modifier = Modifier
-            .padding(bottom = 8.dp)
-            .width(size.dp)
+        modifier = modifier
+            .size(size.dp)
             .pointerInput(Unit) {
                 detectTapGestures(
                     //ON SINGLE TAP:
                     onTap = onTap
                 )
             },
-        border = BorderStroke(0.5.dp, colorResource(id = R.color.faded_grey)),
+        // border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors (
             containerColor = colorResource(id = R.color.black)
         )
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text (
-                modifier = Modifier
-                    .padding(top=8.dp),
-                text = currentTimeState,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                color = colorResource(id = R.color.light_grey)
-            )
-            Text (
-                modifier = Modifier
-                    .padding(bottom=8.dp),
-                text = "CLOCK",
-                fontSize = 8.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                color = colorResource(id = R.color.mid_grey)
-            )
-        }
+        curAction.content()
     }
 }
 
@@ -804,13 +855,17 @@ fun ClockButton(
 @Composable
 fun RaiseVolumeButton(
     context: Context,
-    size: Int = overlayToeSize,
+    modifier: Modifier,
+    size: Int = overlayToeSize - 10,
 ) {
+    val curAction = getQuickAction(
+        name = "volume",
+    )
 
+    //OVERLAY BUTTON:
     Card(
-        modifier = Modifier
-            .padding(top = 8.dp)
-            .width(size.dp)
+        modifier = modifier
+            .size(size.dp)
             .pointerInput(Unit) {
                 detectTapGestures(
                     //ON SINGLE TAP:
@@ -819,37 +874,13 @@ fun RaiseVolumeButton(
                     }
                 )
             },
-        border = BorderStroke(0.5.dp, colorResource(id = R.color.faded_grey)),
+        // border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors (
-            containerColor = colorResource(R.color.dark_grey_background)
+            containerColor = colorResource(id = R.color.dark_grey)
         )
     ) {
-        Row (
-            modifier = Modifier
-                .padding(top = 8.dp, bottom = 8.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            // Content:
-            Icon(
-                modifier = Modifier
-                    .padding(top = 4.dp, bottom = 4.dp)
-                    .size(20.dp),
-                painter = painterResource(R.drawable.icon_lock),
-                tint = colorResource(id = R.color.light_grey),
-                contentDescription = "Raise Volume"
-            )
-            Text (
-                modifier = Modifier
-                    .padding(start=4.dp),
-                text = "Volume",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = colorResource(id = R.color.light_grey)
-            )
-        }
+        curAction.content()
     }
 }
 

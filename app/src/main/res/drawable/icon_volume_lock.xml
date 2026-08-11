@@ -1,0 +1,67 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFFFFF">
+
+    <!-- Filled speaker with extra separation from the lock -->
+    <path
+        android:fillColor="@android:color/white"
+        android:fillType="evenOdd"
+        android:pathData="
+            M13.25,2.75
+            C13.55,2.52 13.95,2.74 13.95,3.12
+            L13.95,8.45
+            C13.95,8.95 13.55,9.35 13.05,9.35
+            C12.55,9.35 12.15,8.95 12.15,8.45
+            L12.15,4.95
+            L8.35,7.95
+            C8.2,8.07 8.0,8.13 7.8,8.13
+            L4.7,8.13
+            L4.7,13.87
+            L7.8,13.87
+            C8.0,13.87 8.2,13.93 8.35,14.05
+            L9.45,14.9
+            C9.84,15.2 9.92,15.77 9.61,16.16
+            C9.31,16.55 8.75,16.63 8.36,16.33
+            L7.5,15.67
+            L4.5,15.67
+            C3.62,15.67 2.9,14.95 2.9,14.07
+            L2.9,7.93
+            C2.9,7.05 3.62,6.33 4.5,6.33
+            L7.5,6.33
+            Z" />
+
+    <!-- Filled lock shackle -->
+    <path
+        android:fillColor="@android:color/white"
+        android:fillType="evenOdd"
+        android:pathData="
+            M11.55,14.65
+            L11.55,12.55
+            C11.55,9.95 13.5,8.05 16.0,8.05
+            C18.5,8.05 20.45,9.95 20.45,12.55
+            L20.45,14.65
+            L18.55,14.65
+            L18.55,12.55
+            C18.55,11.05 17.45,9.95 16.0,9.95
+            C14.55,9.95 13.45,11.05 13.45,12.55
+            L13.45,14.65
+            Z" />
+
+    <!-- Filled lock body -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="
+            M11.2,13.7
+            C10.65,13.7 10.2,14.15 10.2,14.7
+            L10.2,21.0
+            C10.2,21.55 10.65,22.0 11.2,22.0
+            L20.8,22.0
+            C21.35,22.0 21.8,21.55 21.8,21.0
+            L21.8,14.7
+            C21.8,14.15 21.35,13.7 20.8,13.7
+            Z" />
+
+</vector>

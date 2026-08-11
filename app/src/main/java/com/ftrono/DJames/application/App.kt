@@ -35,7 +35,7 @@ import java.time.format.DateTimeFormatter
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.0.4"
+val appVersion = "3.1.0"
 val copyrightYear = 2024
 
 //DB:

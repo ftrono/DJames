@@ -135,7 +135,7 @@ class ClockActivity: ComponentActivity() {
             modifier = Modifier
                 .fillMaxSize()
                 .safeDrawingPadding(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.Center
         ) {
             //SIDE NAV BAR (LEFT):
             if (isLandscape && overlayPosState == "Left") {
@@ -231,7 +231,7 @@ class ClockActivity: ComponentActivity() {
                                 modifier = Modifier
                                     .padding(
                                         top = 12.dp,
-                                        bottom = 140.dp,
+                                        bottom = 100.dp,
                                         start = 20.dp,
                                         end = 20.dp,
                                     ),

@@ -352,7 +352,7 @@ class OverlayService : Service () {
                 } else 0
 
             bubbleParams.y =
-                (screenHeight / 4f).roundToInt()
+                (screenHeight / 6f).roundToInt()
         }
 
         if (overlayViewOn) {

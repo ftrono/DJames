@@ -425,6 +425,7 @@ class ClockActivity: ComponentActivity() {
     override fun onBackPressed() {
         finish()
         //Start Main:
+        mainActive.postValue(true)
         utils.openActivity(this, MainActivity::class.java)
     }
 

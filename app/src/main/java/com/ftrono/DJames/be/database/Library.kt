@@ -35,7 +35,7 @@ data class LibraryItem(
     //Primary key:
     @Id var id: Long = 0,
     var uniId: String = "",   // For tools
-    var lastUpdated: Long = 0,   // Timestamp
+    var lastUpdated: Long = 0,   // TODO: Only used as "lastUsed" for now!
     var matchScore: Int = 0,
     var name: String = "",
     var aliases: MutableList<String> = mutableListOf(),

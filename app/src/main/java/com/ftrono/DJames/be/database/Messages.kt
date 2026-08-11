@@ -48,6 +48,7 @@ data class SpotifyContext(
 data class SpotifyArtist(
     var id: String = "",
     var name: String = "",
+    var imageUrl: String = "",
 )
 
 @Serializable
@@ -56,6 +57,7 @@ data class SpotifyAlbum(
     var name: String = "",
     var type: String = "",
     var artists: MutableList<SpotifyArtist> = mutableListOf<SpotifyArtist>(),
+    var imageUrl: String = "",
 )
 
 @Serializable
@@ -63,6 +65,7 @@ data class SpotifyPlaylist(
     var id: String = "",
     var name: String = "",
     var owner: String = "",
+    var imageUrl: String = "",
 )
 
 @Serializable
@@ -78,6 +81,7 @@ data class SpotifyTrack(
 data class SpotifyPodcast(
     var id: String = "",
     var name: String = "",
+    var imageUrl: String = "",
 )
 
 @Serializable
@@ -98,6 +102,7 @@ data class SpotifyPlayable(
     var matchScore: Int = 0,
     var saved: Boolean = false,   // Only for search
     var type: String = "",
+    var imageUrl: String = "",
     var track: SpotifyTrack? = null,
     var artist: SpotifyArtist? = null,
     var album: SpotifyAlbum? = null,

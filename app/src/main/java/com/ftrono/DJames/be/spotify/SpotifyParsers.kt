@@ -18,10 +18,19 @@ import com.google.gson.JsonObject
 class SpotifyParsers() {
     private val TAG = this::class.java.simpleName
 
+    fun extractImageUrl(itemJson: JsonObject): String {
+        return try {
+            itemJson.get("images").asJsonArray.get(0).asJsonObject.get("url").asString
+        } catch (e: Exception) {
+            ""
+        }
+    }
+
     fun extractSingleArtist(itemJson: JsonObject): SpotifyArtist {
         return SpotifyArtist(
             id = itemJson.get("id").asString,
-            name = itemJson.get("name").asString
+            name = itemJson.get("name").asString,
+            imageUrl = extractImageUrl(itemJson)
         )
     }
 
@@ -39,6 +48,7 @@ class SpotifyParsers() {
             name = itemJson.get("name").asString,
             type = itemJson.get("album_type").asString,
             artists = extractAllArtists(itemJson.getAsJsonArray("artists")),
+            imageUrl = extractImageUrl(itemJson)
         )
     }
 
@@ -56,6 +66,7 @@ class SpotifyParsers() {
             id = itemJson.get("id").asString,
             name = itemJson.get("name").asString,
             owner = itemJson.get("owner").asJsonObject.get("display_name").asString,
+            imageUrl = extractImageUrl(itemJson)
         )
     }
 
@@ -63,6 +74,7 @@ class SpotifyParsers() {
         return SpotifyPodcast(
             id = itemJson.get("id").asString,
             name = itemJson.get("name").asString,
+            imageUrl = extractImageUrl(itemJson)
         )
     }
     
@@ -133,21 +145,27 @@ class SpotifyParsers() {
         when (playType) {
             "artist" -> {
                 playable.artist = spotifyParsers.extractSingleArtist(itemJson)
+                playable.imageUrl = playable.artist!!.imageUrl
             }
             "album" -> {
                 playable.album = spotifyParsers.extractAlbum(itemJson)
+                playable.imageUrl = playable.album!!.imageUrl
             }
             "track" -> {
                 playable.track = spotifyParsers.extractTrack(itemJson)
+                playable.imageUrl = playable.track!!.album!!.imageUrl
             }
             "playlist" -> {
                 playable.playlist = spotifyParsers.extractPlaylist(itemJson)
+                playable.imageUrl = playable.playlist!!.imageUrl
             }
             "podcast" -> {
                 playable.podcast = spotifyParsers.extractPodcast(itemJson)
+                playable.imageUrl = playable.podcast!!.imageUrl
             }
             "episode" -> {
                 playable.episode = spotifyParsers.extractEpisodeFromPodcast(itemJson)
+                playable.imageUrl = playable.episode!!.podcast!!.imageUrl
             }
         }
         return playable

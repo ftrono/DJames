@@ -636,7 +636,7 @@ fun MainNavBar(
         } else {
             Modifier
                 .fillMaxWidth()
-                .height(150.dp)
+                .height(170.dp)
                 .background(
                     colorResource(if (clockActiveState!! || previewClock) R.color.black else R.color.windowBackground)
                 )

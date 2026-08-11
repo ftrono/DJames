@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,7 +53,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.R
 import com.ftrono.DJames.ui.components.RoundedSign
-import com.ftrono.DJames.ui.components.StreetUIScaffold
+import com.ftrono.DJames.ui.navigation.MainNavBar
 import com.ftrono.DJames.ui.theme.ClockTheme
 import com.ftrono.DJames.ui.theme.black
 import java.time.LocalDateTime
@@ -123,6 +124,7 @@ class ClockActivity: ComponentActivity() {
         val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
 
         val overlayPosState by overlayPos.observeAsState()
+        val clickCounterState by clickCounter.observeAsState()
         val currentDayState by currentDay.observeAsState()
         val currentDateState by currentDate.observeAsState()
         val currentHourState by currentHour.observeAsState()
@@ -143,10 +145,9 @@ class ClockActivity: ComponentActivity() {
                         .background(colorResource(id = R.color.black)),
                 )
             }
-            StreetUIScaffold(
+            Scaffold(
                 modifier = Modifier
                     .fillMaxSize(),
-                hideLine = true,
                 topBar = {
                     if (!isLandscape) {
                         Box(
@@ -157,68 +158,84 @@ class ClockActivity: ComponentActivity() {
                         )
                     }
                 },
-            ) {
-                // Content:
-                if (isLandscape) {
-                    // LANDSCAPE:
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(colorResource(id = R.color.black)),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ){
-                        // Info area:
-                        ClockInfoArea(
-                            modifier = Modifier
-                                .padding(
-                                    top=8.dp,
-                                    bottom=8.dp,
-                                    start=20.dp,
-                                    end=20.dp,
-                                ),
-                            isLandscape = true,
-                            currentDayState = currentDayState!!,
-                            currentDateState = currentDateState!!,
-                            currentHourState = currentHourState!!,
-                            currentMinsState = currentMinsState!!,
-                        )
-                        // Unlock:
-                        UnlockButton(
-                            context = mContext,
-                            modifier = Modifier,
+                bottomBar = {
+                    if (!isLandscape) {
+                        MainNavBar(
+                            clickCounterState = clickCounterState!!,
+                            isLandscape = false,
+                            preview = false,
+                            onClickCenter = { }
                         )
                     }
-
-                } else {
-                    // PORTRAIT:
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(colorResource(id = R.color.black)),
-                        verticalArrangement = Arrangement.Top,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        // Info area:
-                        ClockInfoArea(
+                },
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(it)
+                )
+                {
+                    // Content:
+                    if (isLandscape) {
+                        // LANDSCAPE:
+                        Row(
                             modifier = Modifier
-                                .padding(
-                                    top=12.dp,
-                                    bottom=140.dp,
-                                    start=20.dp,
-                                    end=20.dp,
-                                ),
-                            isLandscape = false,
-                            currentDayState = currentDayState!!,
-                            currentDateState = currentDateState!!,
-                            currentHourState = currentHourState!!,
-                            currentMinsState = currentMinsState!!,
-                        )
-                        // Unlock:
-                        UnlockButton(
-                            context = mContext,
-                            modifier = Modifier,
-                        )
+                                .fillMaxSize()
+                                .background(colorResource(id = R.color.black)),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            // Info area:
+                            ClockInfoArea(
+                                modifier = Modifier
+                                    .padding(
+                                        top = 8.dp,
+                                        bottom = 8.dp,
+                                        start = 20.dp,
+                                        end = 20.dp,
+                                    ),
+                                isLandscape = true,
+                                currentDayState = currentDayState!!,
+                                currentDateState = currentDateState!!,
+                                currentHourState = currentHourState!!,
+                                currentMinsState = currentMinsState!!,
+                            )
+                            // Unlock:
+                            UnlockButton(
+                                context = mContext,
+                                modifier = Modifier,
+                            )
+                        }
+
+                    } else {
+                        // PORTRAIT:
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(colorResource(id = R.color.black)),
+                            verticalArrangement = Arrangement.Top,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            // Info area:
+                            ClockInfoArea(
+                                modifier = Modifier
+                                    .padding(
+                                        top = 12.dp,
+                                        bottom = 140.dp,
+                                        start = 20.dp,
+                                        end = 20.dp,
+                                    ),
+                                isLandscape = false,
+                                currentDayState = currentDayState!!,
+                                currentDateState = currentDateState!!,
+                                currentHourState = currentHourState!!,
+                                currentMinsState = currentMinsState!!,
+                            )
+                            // Unlock:
+                            UnlockButton(
+                                context = mContext,
+                                modifier = Modifier,
+                            )
+                        }
                     }
                 }
             }

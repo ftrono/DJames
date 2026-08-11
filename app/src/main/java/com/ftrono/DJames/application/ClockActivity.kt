@@ -193,7 +193,7 @@ class ClockActivity: ComponentActivity() {
                                 .fillMaxSize()
                                 .background(colorResource(id = R.color.black)),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceEvenly
+                            horizontalArrangement = Arrangement.Center
                         ) {
                             // Info area:
                             ClockInfoArea(
@@ -213,7 +213,8 @@ class ClockActivity: ComponentActivity() {
                             // Unlock:
                             UnlockButton(
                                 context = mContext,
-                                modifier = Modifier,
+                                modifier = Modifier
+                                    .padding(start=60.dp),
                             )
                         }
 

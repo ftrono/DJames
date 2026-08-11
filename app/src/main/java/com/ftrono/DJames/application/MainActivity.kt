@@ -34,6 +34,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
@@ -134,6 +136,16 @@ class MainActivity : ComponentActivity() {
         overlayPos.postValue(prefs.overlayPosition)
         handleShareIntent(intent)
         main_initialized = true
+
+        // Keyboard open listener:
+        ViewCompat.setOnApplyWindowInsetsListener(window.decorView) { _, insets ->
+            val keyboardVisible =
+                insets.isVisible(WindowInsetsCompat.Type.ime())
+            if (mainKeyboardActive.value != keyboardVisible) {
+                mainKeyboardActive.value = keyboardVisible
+            }
+            insets
+        }
 
     }
 

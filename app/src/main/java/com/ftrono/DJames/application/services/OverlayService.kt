@@ -85,6 +85,7 @@ import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.isVolumeUpUnlocked
 import com.ftrono.DJames.application.mainActive
+import com.ftrono.DJames.application.mainKeyboardActive
 import com.ftrono.DJames.application.overlayDocked
 import com.ftrono.DJames.ui.components.dpToPx
 import com.ftrono.DJames.ui.overlay.Overlay
@@ -137,6 +138,9 @@ class OverlayService : Service () {
         updateOverlayPosition()
     }
     private val forceUndockObserver = Observer<Boolean> {
+        updateOverlayPosition()
+    }
+    private val mainKeyboardActiveObserver = Observer<Boolean> {
         updateOverlayPosition()
     }
 
@@ -210,6 +214,7 @@ class OverlayService : Service () {
             clockActive.observeForever(clockActiveObserver)
             mainActive.observeForever(mainActiveObserver)
             forceUndock.observeForever(forceUndockObserver)
+            mainKeyboardActive.observeForever(mainKeyboardActiveObserver)
 
             // Make sure initial state is correct:
             updateOverlayPosition()
@@ -323,7 +328,7 @@ class OverlayService : Service () {
             resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
 
         val shouldDock =
-            isPortrait && (clockActive.value == true || mainActive.value == true) && (forceUndock.value != true)
+            isPortrait && mainKeyboardActive.value != true && (clockActive.value == true || mainActive.value == true) && (forceUndock.value != true)
 
         overlayDocked.value = shouldDock
 
@@ -578,6 +583,7 @@ class OverlayService : Service () {
         clockActive.removeObserver(clockActiveObserver)
         mainActive.removeObserver(mainActiveObserver)
         forceUndock.removeObserver(forceUndockObserver)
+        mainKeyboardActive.removeObserver(mainKeyboardActiveObserver)
         // Re-enable volume-up trigger:
         clickCounter.postValue(0)
         isVolumeUpUnlocked.postValue(false)

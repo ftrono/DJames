@@ -129,7 +129,7 @@ fun ExtServiceLoginButton(
                         .size(20.dp),
                     imageVector = if (loggedInState) Icons.Default.Close else Icons.AutoMirrored.Filled.ExitToApp,
                     tint = colorResource(R.color.light_grey),
-                    contentDescription = if (label != "" && loggedInState) "Manage" else if (loggedInState) "Disconnect" else "Connect",
+                    contentDescription = if (label != "" && loggedInState) label else if (loggedInState) "Disconnect" else "Connect",
                 )
             }
             //Text:
@@ -141,7 +141,7 @@ fun ExtServiceLoginButton(
                         start = if (showIcon) 0.dp else 12.dp,
                         end = 12.dp
                     ),
-                text = if (loggedInState) "Disconnect" else "Connect",
+                text = if (label != "" && loggedInState) label else if (loggedInState) "Disconnect" else "Connect",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorResource(id = R.color.light_grey),

@@ -86,7 +86,7 @@ class MainActivity : ComponentActivity() {
         //Check Spotify Login status:
         if (prefs.spotifyToken == "") {
             spotifyLoggedIn.postValue(false)
-        } else if (utils.isTimeExpired(prefs.spotLastRefreshAuth, 5L)) {
+        } else if (utils.isTimeElapsed(prefs.spotLastRefreshAuth, 5L, "months")) {
             spotifyLoginUtils.logout(context, expired=true)
         } else {
             spotifyLoggedIn.postValue(true)

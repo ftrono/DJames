@@ -102,7 +102,6 @@ class ClockActivity: ComponentActivity() {
         //Start personal Receiver:
         val actFilter = IntentFilter()
         actFilter.addAction(ACTION_TIME_TICK)
-        actFilter.addAction(ACTION_UPDATE_PLAYER)
         actFilter.addAction(ACTION_FINISH_CLOCK)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
@@ -149,12 +148,14 @@ class ClockActivity: ComponentActivity() {
                     .fillMaxSize(),
                 hideLine = true,
                 topBar = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(65.dp)
-                            .background(colorResource(id = R.color.black)),
-                    )
+                    if (!isLandscape) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(65.dp)
+                                .background(colorResource(id = R.color.black)),
+                        )
+                    }
                 },
             ) {
                 // Content:
@@ -164,7 +165,7 @@ class ClockActivity: ComponentActivity() {
                         modifier = Modifier
                             .fillMaxSize()
                             .background(colorResource(id = R.color.black)),
-                        verticalAlignment = Alignment.Top,
+                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ){
                         // Info area:
@@ -185,8 +186,7 @@ class ClockActivity: ComponentActivity() {
                         // Unlock:
                         UnlockButton(
                             context = mContext,
-                            modifier = Modifier
-                                .fillMaxHeight(),
+                            modifier = Modifier,
                         )
                     }
 
@@ -256,8 +256,8 @@ class ClockActivity: ComponentActivity() {
                 color = colorResource(id = R.color.faded_grey),
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
-                fontSize = if (isLandscape) 120.sp else 130.sp,
-                lineHeight = if (isLandscape) 100.sp else 110.sp,
+                fontSize = 140.sp,
+                lineHeight = 120.sp,
             )
 
             Column(
@@ -325,19 +325,21 @@ class ClockActivity: ComponentActivity() {
                 )
                 //SONG NAME:
                 Text(
-                    modifier = Modifier,
+                    modifier = Modifier
+                        .padding(bottom=2.dp),
                     text = currentSongPlayingState!!,
                     color = colorResource(id = R.color.mid_grey),
                     fontSize = 16.sp,
+                    lineHeight = 16.sp,
                     fontStyle = FontStyle.Italic
                 )
                 //ARTIST NAME:
                 Text(
                     modifier = Modifier,
                     text = currentArtistPlayingState!!,
+                    fontSize = 14.sp,
                     lineHeight = 14.sp,
-                    color = colorResource(id = R.color.mid_grey),
-                    fontSize = 14.sp
+                    color = colorResource(id = R.color.mid_grey)
                 )
             }
         }
@@ -432,12 +434,6 @@ class ClockActivity: ComponentActivity() {
         currentMins.postValue(now.format(minsFormat))
     }
 
-    fun updatePlayer() {
-        //Populate player info:
-        currentSongPlaying.postValue(utils.trimString(songName, 25))
-        currentArtistPlaying.postValue(utils.trimString(artistName, 25))
-    }
-
 
     //PERSONAL RECEIVER:
     var clockActReceiver = object: BroadcastReceiver() {
@@ -446,18 +442,6 @@ class ClockActivity: ComponentActivity() {
             //Update clock (every minute):
             if (intent!!.action == ACTION_TIME_TICK) {
                 updateDateClock()
-                if (!enablePlayerInfo) {
-                    enablePlayerInfo = true
-                    if (songName != "") {
-                        updatePlayer()
-                    }
-                }
-            }
-
-            //Update player:
-            if (intent.action == ACTION_UPDATE_PLAYER) {
-                Log.d(TAG, "CLOCK: ACTION_UPDATE_PLAYER.")
-                updatePlayer()
             }
 
             //Finish activity:
@@ -469,7 +453,6 @@ class ClockActivity: ComponentActivity() {
                     utils.openActivity(applicationContext, MainActivity::class.java)
                 }
             }
-
         }
     }
 

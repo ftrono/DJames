@@ -38,8 +38,13 @@ import kotlin.streams.asSequence
 import androidx.core.content.edit
 import androidx.navigation.NavController
 import com.ftrono.DJames.application.ClockActivity
+import com.ftrono.DJames.application.artistName
+import com.ftrono.DJames.application.currentArtistPlaying
+import com.ftrono.DJames.application.currentSongPlaying
+import com.ftrono.DJames.application.songName
 import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.userNicknameUI
+import com.ftrono.DJames.application.utils
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -59,11 +64,21 @@ class Utilities {
     }
 
     // Check if a given number of months are already passed or not:
-    fun isTimeExpired(timestamp: Long, nMonths: Long): Boolean {
+    fun isTimeElapsed(timestamp: Long, n: Long, unit: String = "months"): Boolean {
+        // TODO: Supported unit: "months", "mins"
         val now = System.currentTimeMillis()
-        // N months in milliseconds (approximation: 30 days * N * 24 * 60 * 60 * 1000)
-        val nMonthsInMillis = nMonths * 30 * 24 * 60 * 60 * 1000
-        return (now - timestamp) >= nMonthsInMillis
+        // N in milliseconds (approximation: N months * 30 days * 24 hours * 60 mins * 60 secs * 1000 ms)
+        when (unit) {
+            "months" -> {
+                val nMonthsInMillis = n * 30 * 24 * 60 * 60 * 1000
+                return (now - timestamp) >= nMonthsInMillis
+            }
+            "mins" -> {
+                val nMinsInMillis = n * 60 * 1000
+                return (now - timestamp) >= nMinsInMillis
+            }
+            else -> return false
+        }
     }
 
     // Build user greeting:

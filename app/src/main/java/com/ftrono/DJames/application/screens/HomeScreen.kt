@@ -357,13 +357,13 @@ fun IntroArea(
         ) {
             Row(
                 modifier = Modifier
-                    .padding(12.dp),
+                    .padding(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
                 Icon(
                     modifier = Modifier
-                        .size(32.dp),
+                        .size(28.dp),
                     contentDescription = "Usage tip",
                     painter = painterResource(R.drawable.icon_lamp),
                     tint = colorResource(R.color.black)
@@ -387,7 +387,8 @@ fun IntroArea(
                         }
                         append(" your contacts")
                     },
-                    fontSize = 16.sp,
+                    fontSize = 15.sp,
+                    lineHeight = 15.sp,
                     color = colorResource(id = R.color.black),
                 )
             }

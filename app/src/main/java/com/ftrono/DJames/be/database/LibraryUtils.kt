@@ -298,6 +298,7 @@ class LibraryUtils {
                 id = if (libItem.id == -2L) "collection" else spotifyUtils.getSpotifyID(libItem.url),      // Important!
                 matchScore = matchScore,
                 type = libItem.type,
+                imageUrl = libItem.imageUrl,
                 artist = if (libItem.type == "artist") {
                     SpotifyArtist(
                         id = spotifyUtils.getSpotifyID(libItem.url),

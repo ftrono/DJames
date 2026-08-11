@@ -19,6 +19,8 @@ import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.playlistUrlIntro
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.showUrlIntro
+import com.ftrono.DJames.application.spotCollectionUrl
+import com.ftrono.DJames.application.spotIntroUrl
 import com.ftrono.DJames.application.spotifyParsers
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.trackUrlIntro
@@ -64,6 +66,16 @@ class SpotifyUtils {
     //Get item ID:
     fun getSpotifyID(url: String): String {
         return url.split("/").last()
+    }
+
+
+    // Get item URL:
+    fun getSpotifyUrl(id: String, type: String): String {
+        return if (id == "collection") {
+            spotCollectionUrl
+        } else {
+            "$spotIntroUrl/$type/$id"
+        }
     }
 
 

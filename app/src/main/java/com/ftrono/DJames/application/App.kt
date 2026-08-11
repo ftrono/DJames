@@ -18,7 +18,6 @@ import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.agents.chat.DefaultReplies
 import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
 import com.ftrono.DJames.be.spotify.SpotifyUtils
-import com.ftrono.DJames.ui.theme.NavigationItem
 import com.ftrono.DJames.application.prefs.Prefs
 import com.ftrono.DJames.be.spotify.SpotifyParsers
 import com.ftrono.DJames.be.utils.Utilities
@@ -28,7 +27,6 @@ import io.objectbox.Box
 import io.objectbox.BoxStore
 import kotlinx.serialization.json.Json
 import java.io.File
-import java.time.format.DateTimeFormatter
 
 
 //GLOBALS:
@@ -64,13 +62,6 @@ val spotifyUtils = SpotifyUtils()
 val spotifyParsers = SpotifyParsers()
 val spotifyLoginUtils = SpotifyLoginUtils()
 val defaultReplies = DefaultReplies()
-
-//Navigation:
-val navigationItems = listOf(
-    NavigationItem.Library,
-    NavigationItem.Home,
-    NavigationItem.Messages
-)
 
 //Permissions:
 val runtimePermissions = buildList {

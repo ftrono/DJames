@@ -7,14 +7,13 @@ import android.util.Log
 import com.ftrono.DJames.application.ACTION_MESSAGES_REFRESH
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.clockActive
-import com.ftrono.DJames.application.spotIntroUrl
 import com.ftrono.DJames.application.spotCollectionIntUri
 import com.ftrono.DJames.application.prefs
-import com.ftrono.DJames.application.spotCollectionUrl
 import com.ftrono.DJames.application.spotIntroUri
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.application.ClockActivity
+import com.ftrono.DJames.application.spotifyUtils
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
@@ -28,12 +27,7 @@ class SpotifyPlayer (private val context: Context) {
 
     //PLAY INTERNALLY OR EXTERNALLY:
     fun spotifyPlay(playable: SpotifyPlayable): Int {
-        //Build external URL:
-        val playUrl = if (playable.id == "collection") {
-            spotCollectionUrl
-        } else {
-            "$spotIntroUrl/${playable.type}/${playable.id}"
-        }
+        val playUrl = spotifyUtils.getSpotifyUrl(playable.id, playable.type)
         //TRIAL 1:
         //Try requested context:
         val clockWasActive = clockActive.value!!

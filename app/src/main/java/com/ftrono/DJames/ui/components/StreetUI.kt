@@ -708,8 +708,7 @@ fun LibItemCard(
                 .replace(" and ", " ")
                 .split(" ")
                 .joinToString("") { it.first().toString() }
-        } catch (e: Exception) {
-        }
+        } catch (e: Exception) { }
         initials = if (initials.length < 2 && title.length >= 2) {
             title.slice(0..1).uppercase()
         } else {

@@ -123,6 +123,7 @@ class ClockActivity: ComponentActivity() {
         val configuration = LocalConfiguration.current
         val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
 
+        val overlayActiveState by overlayActive.observeAsState()
         val overlayPosState by overlayPos.observeAsState()
         val clickCounterState by clickCounter.observeAsState()
         val currentDayState by currentDay.observeAsState()
@@ -160,11 +161,22 @@ class ClockActivity: ComponentActivity() {
                 },
                 bottomBar = {
                     if (!isLandscape) {
-                        MainNavBar(
-                            clickCounterState = clickCounterState!!,
-                            isLandscape = false,
-                            onClickCenter = { }
-                        )
+                        if (overlayActiveState!!) {
+                            MainNavBar(
+                                clickCounterState = clickCounterState!!,
+                                isLandscape = false,
+                                onClickCenter = { }
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(170.dp)
+                                    .background(
+                                        colorResource(R.color.black)
+                                    )
+                            )
+                        }
                     }
                 },
             ) {

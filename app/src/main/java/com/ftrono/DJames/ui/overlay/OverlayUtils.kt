@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.ACTION_FINISH_MAIN
 import com.ftrono.DJames.application.ACTION_SAVE_TRACK
 import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.overlayPos
@@ -92,6 +93,12 @@ fun getQuickActionOnTap(
         {
             //Start Clock screen:
             utils.openActivity(context, ClockActivity::class.java, fromService = true)
+            //End Main():
+            //Send broadcast:
+            Intent().also { intent ->
+                intent.setAction(ACTION_FINISH_MAIN)
+                context.sendBroadcast(intent)
+            }
         }
     } else if (name == "volume") {
         {

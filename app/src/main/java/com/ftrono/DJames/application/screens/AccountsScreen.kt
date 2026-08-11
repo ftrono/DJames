@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -68,7 +69,7 @@ import com.ftrono.DJames.ui.components.DropdownSpinner
 import com.ftrono.DJames.ui.components.EditLibDynamicNameSection
 import com.ftrono.DJames.ui.components.ExtServiceAccountItem
 import com.ftrono.DJames.ui.components.RoundedSign
-import com.ftrono.DJames.ui.components.SettingsSection
+import com.ftrono.DJames.ui.components.StaticCard
 import com.ftrono.DJames.ui.components.StreetUIScaffold
 import com.ftrono.DJames.ui.dialogs.DialogLoading
 import com.ftrono.DJames.ui.navigation.DialogLogout
@@ -292,7 +293,7 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
         //ACCOUNTS SETTINGS LIST:
         Column(
             modifier = Modifier
-                .padding(top = 10.dp, start = 32.dp, end = 24.dp, bottom = 20.dp)
+                .padding(top = 10.dp, start = 36.dp, end = 20.dp, bottom = 20.dp)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Top,
@@ -300,12 +301,12 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
         ) {
 
             //SECTION: PROFILE:
-            SettingsSection(
+            StaticCard(
                 modifier = Modifier
                     .padding(end=8.dp, bottom=4.dp),
-                title = "Your profile",
-                signColor = colorResource(id = R.color.yellowSign),
-                iconPainter = painterResource(id = R.drawable.icon_user)
+                title = "Your DJames profile",
+                backgroundColor = colorResource(id = R.color.greenSign),
+                iconPainter = painterResource(id = R.drawable.icon_user),
             ) {
                 LaunchedEffect(userNicknameUIState!!) {
                     if (!preview) {
@@ -370,20 +371,18 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
 
 
             //SECTION: EXT SERVICES:
-            SettingsSection(
+            StaticCard(
                 modifier = Modifier
-                    .padding(top=8.dp, end=8.dp, bottom=4.dp),
-                title = "Your services",
-                subtitle = "Connect your music apps",
-                signColor = colorResource(id = R.color.greenSign),
-                iconPainter = painterResource(id = R.drawable.icon_headphones)
+                    .padding(end=8.dp, top=16.dp, bottom=4.dp),
+                title = "Connected services",
+                backgroundColor = colorResource(id = R.color.brownSign),
+                iconPainter = painterResource(id = R.drawable.icon_headphones),
             ) {
-
                 // 1) Spotify:
                 ExtServiceAccountItem(
                     modifier = Modifier,
                     name = "Spotify",
-                    backgroundColor = colorResource(R.color.colorPrimary),
+                    backgroundColor = colorResource(R.color.greenSign),
                     iconPainter = painterResource(id = R.drawable.logo_spotify),
                     loggedInState = spotifyLoggedInState!!,
                     userNameState = spotUserNameState!!,
@@ -401,15 +400,13 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
             }
 
             //SECTION: BACKUP & RESTORE DATA:
-            SettingsSection(
+            StaticCard(
                 modifier = Modifier
-                    .padding(top=8.dp, end=8.dp, bottom=4.dp),
-                title = "Backup & restore",
-                subtitle = "Library & app preferences",
-                signColor = colorResource(id = R.color.redSignDark),
+                    .padding(end=8.dp, top=16.dp, bottom=4.dp),
+                title = "Backup & restore data",
+                backgroundColor = colorResource(id = R.color.blueSign),
                 iconVector = Icons.Default.Build,
             ) {
-
                 // Export data:
                 Row(
                     modifier = Modifier
@@ -428,8 +425,8 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
                     RoundedSign(
                         signSize = 40.dp,
                         contentSize = 20,
-                        backgroundColor = colorResource(id = R.color.redSignDark),
-                        borderColor = colorResource(id = R.color.redSignDark),
+                        backgroundColor = colorResource(id = R.color.blueSignDark),
+                        borderColor = colorResource(id = R.color.blueSignDark),
                         contentColor = colorResource(id = R.color.light_grey),
                         iconPainter = painterResource(R.drawable.icon_download),
                         clickable = true,
@@ -462,8 +459,8 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
                     RoundedSign(
                         signSize = 40.dp,
                         contentSize = 20,
-                        backgroundColor = colorResource(id = R.color.redSignDark),
-                        borderColor = colorResource(id = R.color.redSignDark),
+                        backgroundColor = colorResource(id = R.color.blueSignDark),
+                        borderColor = colorResource(id = R.color.blueSignDark),
                         contentColor = colorResource(id = R.color.light_grey),
                         iconVector = Icons.AutoMirrored.Default.ExitToApp,
                         clickable = true,

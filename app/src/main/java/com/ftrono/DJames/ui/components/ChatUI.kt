@@ -133,7 +133,7 @@ fun ConvStarterBubble(
                             }
                         )
                     },
-                border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
+                border = BorderStroke(1.dp, colorResource(id = R.color.transparent_full)),
                 shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = colorResource(id = R.color.light_grey)
@@ -237,7 +237,7 @@ fun MessageBubble(
                         }
                     )
                 },
-            border = BorderStroke(1.dp, colorResource(id = R.color.dark_grey)),
+            border = BorderStroke(1.dp, colorResource(id = R.color.transparent_full)),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
                 containerColor = if (selectedMessageIds.contains(messageId)) {

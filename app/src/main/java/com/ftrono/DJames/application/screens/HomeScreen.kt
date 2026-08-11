@@ -66,6 +66,7 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.userNicknameUI
 import com.ftrono.DJames.ui.components.CardSign
+import com.ftrono.DJames.ui.components.ExpandableCard
 import com.ftrono.DJames.ui.components.ExtServiceLoginButton
 import com.ftrono.DJames.ui.components.LibItemCard
 import com.ftrono.DJames.ui.components.RoundedSign
@@ -504,179 +505,125 @@ fun ContentSection(
     spotifyLoggedInState: Boolean,
     preview: Boolean = false,
 ) {
-    utils.updateStatesMap(expandedStates, target=currentExpanded.value)
     val columns = if (isLandscape) 6 else 4
     val spacing = 6.dp
 
     // CARD:
-    CardSign (
+    ExpandableCard(
         modifier = Modifier
-            .padding(top = 12.dp, bottom = 12.dp)
-            .clickable {
-                //Update global currentExpanded:
-                if (currentExpanded.value == cat) {
-                    currentExpanded.value = ""
-                } else {
-                    currentExpanded.value = cat
-                }
-                utils.updateStatesMap(expandedStates, target = currentExpanded.value)
-            },
+            .padding(top = 12.dp, bottom = 12.dp),
+        id = cat,
+        title = utils.capitalizeWords(if (cat == "spotify") cat else "${cat}s"),
         backgroundColor = backgroundColor,
-        roundedCorners = 14.dp,
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            // TITLE:
-            Row(
-                modifier = Modifier,
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                // Section title:
-                Icon(
-                    modifier = Modifier
-                        .size(20.dp),
-                    contentDescription = utils.capitalizeWords(cat),
-                    painter = iconPainter,
-                    tint = colorResource(R.color.light_grey)
-                )
-                Text(
-                    modifier = Modifier
-                        .padding(start = 8.dp)
-                        .weight(1F),
-                    text = utils.capitalizeWords(if (cat == "spotify") cat else "${cat}s"),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colorResource(id = R.color.light_grey),
-                )
-                if (currentExpanded.value == cat) {
-                    Text(
-                        modifier = Modifier
-                            .clickable {
-                                // Set current cat:
-                                currentCat.postValue(cat)
-                                //Navigate:
-                                val curNavRoute = NavigationItem.Library.route
-                                navigateTo(navController, curNavRoute)
-                                lastNavRoute = curNavRoute
-                            },
-                        text = "View saved >",
-                        fontSize = 14.sp,
-                        color = colorResource(id = R.color.light_grey),
-                    )
-                } else {
-                    Icon(
-                        modifier = Modifier
-                            .size(20.dp),
-                        imageVector = Icons.Rounded.KeyboardArrowDown,
-                        tint = colorResource(id = R.color.light_grey),
-                        contentDescription = "Expand / collapse"
-                    )
-                }
-            }
-
-            // ON EXPANSION:
-            AnimatedVisibility(
+        iconPainter = iconPainter,
+        expandedStates = expandedStates,
+        currentExpanded = currentExpanded,
+        useCustomCornerButton = true,
+        cornerButton = {
+            Text(
                 modifier = Modifier
-                    .fillMaxWidth(),
-                visible = expandedStates[cat]!!
-            ) {
-                // RECENT ITEMS:
-                Column(
-                    modifier = Modifier
-                        .padding(top=16.dp),
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    val recentItems = libUtils.getAll(
-                        cat=cat,
-                        subcat="",
-                        limit=columns+2,
-                        preview=preview,
-                    )
+                    .clickable {
+                        // Set current cat:
+                        currentCat.postValue(cat)
+                        //Navigate:
+                        val curNavRoute = NavigationItem.Library.route
+                        navigateTo(navController, curNavRoute)
+                        lastNavRoute = curNavRoute
+                    },
+                text = "View saved >",
+                fontSize = 14.sp,
+                color = colorResource(id = R.color.light_grey),
+            )
+        },
+    ) {
+        // RECENT ITEMS:
+        val recentItems = libUtils.getAll(
+            cat = cat,
+            subcat = "",
+            limit = columns + 2,
+            preview = preview,
+        )
 
-                    // Intro row:
-                    Row(
-                        modifier = Modifier,
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                    ) {
-                        Text(
-                            modifier = Modifier
-                                .weight(1F),
-                            text = if (recentItems.isEmpty()) {
-                                "No recent activity"
-                            } else if (cat == "spotify") {
-                                "Recently listened"
-                            } else {
-                                "Recently used"
-                            },
-                            fontSize = 14.sp,
-                            color = colorResource(id = R.color.light_grey),
-                        )
-                        if (cat == "spotify") {
-                            // Connect / Disconnect:
-                            ExtServiceLoginButton(
-                                modifier = Modifier,
-                                backgroundColor = colorResource(R.color.faded_grey),
-                                loggedInState = spotifyLoggedInState,
-                                label = "Manage",
-                                showIcon = false,
-                                onClick = {
-                                    val curNavRoute = NavigationItem.Accounts.route
-                                    navigateTo(navController, curNavRoute)
-                                    lastNavRoute = curNavRoute
-                                }
-                            )
-                        }
+        // Intro row:
+        Row(
+            modifier = Modifier,
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                modifier = Modifier
+                    .weight(1F),
+                text = if (recentItems.isEmpty()) {
+                    "No recent activity"
+                } else if (cat == "spotify") {
+                    "Recently listened"
+                } else {
+                    "Recently used"
+                },
+                fontSize = 14.sp,
+                color = colorResource(id = R.color.light_grey),
+            )
+            if (cat == "spotify") {
+                // Connect / Disconnect:
+                ExtServiceLoginButton(
+                    modifier = Modifier,
+                    backgroundColor = colorResource(R.color.faded_grey),
+                    loggedInState = spotifyLoggedInState,
+                    label = "Manage",
+                    showIcon = false,
+                    onClick = {
+                        val curNavRoute = NavigationItem.Accounts.route
+                        navigateTo(navController, curNavRoute)
+                        lastNavRoute = curNavRoute
                     }
+                )
+            }
+        }
 
-                    // Content:
-                    if (recentItems.isNotEmpty()) {
-                        // RECENT LIST:
-                        LazyHorizontalGrid (
+        // Content:
+        if (recentItems.isNotEmpty()) {
+            // RECENT LIST:
+            LazyHorizontalGrid(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp),
+                rows = GridCells.Fixed(1),
+                horizontalArrangement = Arrangement.spacedBy(spacing),
+                verticalArrangement = Arrangement.spacedBy(spacing)
+            ) {
+                //ITEMS:
+                recentItems.forEach { item ->
+                    item {
+                        //Card:
+                        LibItemCard(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(120.dp),
-                            rows = GridCells.Fixed(1),
-                            horizontalArrangement = Arrangement.spacedBy(spacing),
-                            verticalArrangement = Arrangement.spacedBy(spacing)
-                        ) {
-                            //ITEMS:
-                            recentItems.forEach { item ->
-                                item {
-                                    //Card:
-                                    LibItemCard(
-                                        modifier = Modifier
-                                            .fillMaxHeight()
-                                            .width(80.dp),
-                                        cardColors = CardDefaults.cardColors(
-                                            containerColor = colorResource(id = R.color.transparent_full)
-                                        ),
-                                        source = item.source,
-                                        type = item.type,
-                                        title = utils.trimString(item.name, 20),
-                                        subtitle = utils.trimString(libUtils.getDetail(item), 16),
-                                        imageUrl = if (preview) "" else item.imageUrl,
-                                        isCollection = item.id == -2L,
-                                        fromHome = true,
-                                        onClick = {
-                                            // OPEN LINK:
-                                            if (item.source == "contact") {
-                                                val contactPhone = "${item.phoneSet!!.prefix}${item.phoneSet!!.phone}"
-                                                utils.makeCall(context, contactPhone = contactPhone, fromService = false)
-                                            } else {
-                                                utils.openLink(context, url = item.url, fromService = false)
-                                            }
-                                        }
+                                .fillMaxHeight()
+                                .width(80.dp),
+                            cardColors = CardDefaults.cardColors(
+                                containerColor = colorResource(id = R.color.transparent_full)
+                            ),
+                            source = item.source,
+                            type = item.type,
+                            title = utils.trimString(item.name, 20),
+                            subtitle = utils.trimString(libUtils.getDetail(item), 16),
+                            imageUrl = if (preview) "" else item.imageUrl,
+                            isCollection = item.id == -2L,
+                            fromHome = true,
+                            onClick = {
+                                // OPEN LINK:
+                                if (item.source == "contact") {
+                                    val contactPhone =
+                                        "${item.phoneSet!!.prefix}${item.phoneSet!!.phone}"
+                                    utils.makeCall(
+                                        context,
+                                        contactPhone = contactPhone,
+                                        fromService = false
                                     )
+                                } else {
+                                    utils.openLink(context, url = item.url, fromService = false)
                                 }
                             }
-                        }
+                        )
                     }
                 }
             }

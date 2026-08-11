@@ -21,6 +21,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -53,8 +54,8 @@ import com.ftrono.DJames.application.isVolumeUpPreferenceSet
 import com.ftrono.DJames.ui.components.CustomRangeSlider
 import com.ftrono.DJames.ui.components.CustomSlider
 import com.ftrono.DJames.ui.components.DropdownSpinner
+import com.ftrono.DJames.ui.components.ExpandableCard
 import com.ftrono.DJames.ui.components.RoundedSign
-import com.ftrono.DJames.ui.components.SettingsSection
 import com.ftrono.DJames.ui.components.StreetUIScaffold
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.selectors.getSwitchColors
@@ -73,7 +74,22 @@ fun SettingsScreenPreview() {
 fun SettingsScreen(navController: NavController, preview: Boolean = false) {
     val mContext = LocalContext.current
 
-    // STATUSES:
+    // EXPANDABLE STATES:
+    // TODO: KEEP UPDATED!!!
+    val catsStateItems = listOf(
+        "system",
+        "query",
+        "wa_voice",
+        "noise",
+        "clock",
+        "advanced"
+    )
+    val expandedStates = remember {
+        mutableStateMapOf(*catsStateItems.map { it to false }.toTypedArray())
+    }
+    val currentExpanded = rememberSaveable { mutableStateOf(catsStateItems[0]) }
+
+    // STATES:
     val checkedNoise = remember { mutableStateOf(if (preview) true else prefs.enableNoiseSuppression) }
     val checkedSecondNoise = remember { mutableStateOf(if (preview) true else prefs.enableSecondNoiseSuppression) }
 
@@ -128,7 +144,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
         //SETTINGS LIST:
         Column(
             modifier = Modifier
-                .padding(top = 10.dp, start = 32.dp, end = 24.dp, bottom = 20.dp)
+                .padding(top = 10.dp, start = 36.dp, end = 20.dp, bottom = 20.dp)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Top,
@@ -136,12 +152,15 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
         ) {
 
             //SECTION: VOICE & SYSTEM SETTINGS:
-            SettingsSection(
+            ExpandableCard(
                 modifier = Modifier
                     .padding(end=8.dp, bottom=4.dp),
+                id = "system",
                 title = "Voice & system",
-                signColor = colorResource(id = R.color.greenSign),
-                iconPainter = painterResource(id = R.drawable.icon_speak)
+                backgroundColor = colorResource(id = R.color.greenSign),
+                iconPainter = painterResource(id = R.drawable.icon_speak),
+                expandedStates = expandedStates,
+                currentExpanded = currentExpanded,
             ) {
                 // Voice language:
                 Text(
@@ -206,8 +225,8 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     RoundedSign(
                         signSize = 40.dp,
                         contentSize = 20,
-                        backgroundColor = colorResource(id = R.color.greenSign),
-                        borderColor = colorResource(id = R.color.greenSign),
+                        backgroundColor = colorResource(id = R.color.greenSignDark),
+                        borderColor = colorResource(id = R.color.greenSignDark),
                         contentColor = colorResource(id = R.color.light_grey),
                         iconVector = Icons.AutoMirrored.Default.ArrowForward,
                         clickable = true,
@@ -238,8 +257,8 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     RoundedSign(
                         signSize = 40.dp,
                         contentSize = 20,
-                        backgroundColor = colorResource(id = R.color.greenSign),
-                        borderColor = colorResource(id = R.color.greenSign),
+                        backgroundColor = colorResource(id = R.color.greenSignDark),
+                        borderColor = colorResource(id = R.color.greenSignDark),
                         contentColor = colorResource(id = R.color.light_grey),
                         iconVector = Icons.AutoMirrored.Default.ArrowForward,
                         clickable = true,
@@ -272,7 +291,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     Switch(
                         checked = checkedStartup.value,
                         colors = getSwitchColors(
-                            color = colorResource(id = R.color.greenSign)
+                            color = colorResource(id = R.color.greenSignDark)
                         ),
                         onCheckedChange = {
                             //UPDATE:
@@ -285,12 +304,15 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
 
 
             //SECTION: QUERY RECORDING:
-            SettingsSection(
+            ExpandableCard(
                 modifier = Modifier
                     .padding(end=8.dp, top=16.dp, bottom=4.dp),
+                id = "query",
                 title = "Query recording",
-                signColor = colorResource(id = R.color.yellowSign),
-                iconPainter = painterResource(id = R.drawable.icon_mic)
+                backgroundColor = colorResource(id = R.color.yellowSign),
+                iconPainter = painterResource(id = R.drawable.icon_mic),
+                expandedStates = expandedStates,
+                currentExpanded = currentExpanded,
             ) {
                 //Enable spoken intro:
                 Row(
@@ -312,7 +334,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     Switch(
                         checked = checkedIntro.value,
                         colors = getSwitchColors(
-                            color = colorResource(id = R.color.yellowSign)
+                            color = colorResource(id = R.color.yellowSignDark)
                         ),
                         onCheckedChange = {
                             checkedIntro.value = it
@@ -339,7 +361,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     range = 5f..20f,
                     steps = 15,   // (max - min) / (steps + 1),
                     unit = "seconds",
-                    trackColor = colorResource(R.color.yellowSign),
+                    trackColor = colorResource(R.color.yellowSignDark),
                     thumbColor = colorResource(R.color.yellowSignLight),
                     tickColor = colorResource(R.color.faded_grey),
                     onDone = {
@@ -368,7 +390,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     Switch(
                         checked = checkedSilenceQueries.value,
                         colors = getSwitchColors(
-                            color = colorResource(id = R.color.yellowSign)
+                            color = colorResource(id = R.color.yellowSignDark)
                         ),
                         onCheckedChange = {
                             checkedSilenceQueries.value = it
@@ -380,12 +402,15 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
 
 
             //SECTION: VOICE MESSAGES:
-            SettingsSection(
+            ExpandableCard(
                 modifier = Modifier
                     .padding(end=8.dp, top=16.dp, bottom=4.dp),
+                id = "wa_voice",
                 title = "WhatsApp voice message",
-                signColor = colorResource(id = R.color.blueSign),
-                iconPainter = painterResource(id = R.drawable.logo_whatsapp)
+                backgroundColor = colorResource(id = R.color.blueSign),
+                iconPainter = painterResource(id = R.drawable.logo_whatsapp),
+                expandedStates = expandedStates,
+                currentExpanded = currentExpanded,
             ) {
                 //Mess timeout:
                 Text(
@@ -404,7 +429,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     range = 30f..120f,
                     steps = 15,   // (max - min) / (steps + 1),
                     unit = "seconds",
-                    trackColor = colorResource(R.color.blueSign),
+                    trackColor = colorResource(R.color.blueSignDark),
                     thumbColor = colorResource(R.color.blueSignLight),
                     tickColor = colorResource(R.color.faded_grey),
                     onDone = {
@@ -433,7 +458,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     Switch(
                         checked = checkedSilenceMess.value,
                         colors = getSwitchColors(
-                            color = colorResource(id = R.color.blueSign)
+                            color = colorResource(id = R.color.blueSignDark)
                         ),
                         onCheckedChange = {
                             checkedSilenceMess.value = it
@@ -445,13 +470,16 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
 
 
             //SECTION: NOISE FILTERING:
-            SettingsSection(
+            ExpandableCard(
                 modifier = Modifier
-                    .padding(top=8.dp, end=8.dp, bottom=4.dp),
+                    .padding(end=8.dp, top=16.dp, bottom=4.dp),
+                id = "noise",
                 title = "Noise filtering",
-                signColor = colorResource(id = R.color.brownSign),
-                iconPainter = painterResource(id = R.drawable.icon_headphones)
-            ) {
+                backgroundColor = colorResource(id = R.color.brownSign),
+                iconPainter = painterResource(id = R.drawable.icon_headphones),
+                expandedStates = expandedStates,
+                currentExpanded = currentExpanded,
+            ){
                 //Experimental: Enable Noise Suppression:
                 Row(
                     modifier = Modifier
@@ -472,7 +500,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     Switch(
                         checked = checkedNoise.value,
                         colors = getSwitchColors(
-                            color = colorResource(id = R.color.brownSign)
+                            color = colorResource(id = R.color.brownSignDark)
                         ),
                         onCheckedChange = {
                             checkedNoise.value = it
@@ -500,7 +528,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         range = recFreqRange,
                         steps = 15,   // (max - min) / (steps + 1),
                         unit = "Hz",
-                        trackColor = colorResource(R.color.brownSign),
+                        trackColor = colorResource(R.color.brownSignDark),
                         thumbColor = colorResource(R.color.brownSignLight),
                         tickColor = colorResource(R.color.faded_grey),
                         onDone = {
@@ -531,7 +559,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         Switch(
                             checked = checkedSecondNoise.value,
                             colors = getSwitchColors(
-                                color = colorResource(id = R.color.brownSign)
+                                color = colorResource(id = R.color.brownSignDark)
                             ),
                             onCheckedChange = {
                                 checkedSecondNoise.value = it
@@ -560,7 +588,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             range = 0f..600f,
                             steps = 5,   // (max - min) / (steps + 1),
                             unit = "Hz",
-                            trackColor = colorResource(R.color.brownSign),
+                            trackColor = colorResource(R.color.brownSignDark),
                             thumbColor = colorResource(R.color.brownSignLight),
                             tickColor = colorResource(R.color.faded_grey),
                             onDone = {
@@ -574,14 +602,16 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
 
 
             //SECTION: CLOCK SCREEN:
-            SettingsSection(
+            ExpandableCard(
                 modifier = Modifier
                     .padding(end=8.dp, top=16.dp, bottom=4.dp),
+                id = "clock",
                 title = "Clock screen",
-                signColor = colorResource(id = R.color.dark_grey),
-                iconPainter = painterResource(id = R.drawable.icon_clock)
+                backgroundColor = colorResource(id = R.color.dark_grey),
+                iconPainter = painterResource(id = R.drawable.icon_clock),
+                expandedStates = expandedStates,
+                currentExpanded = currentExpanded,
             ) {
-
                 //Auto Clock:
                 Row(
                     modifier = Modifier
@@ -635,7 +665,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         )
                         Text(
                             text = "(Only when Spotify is launched\nfor the first time)",
-                            color = colorResource(id = R.color.mid_grey),
+                            color = colorResource(id = R.color.light_grey),
                             textAlign = TextAlign.Start,
                             fontSize = 12.sp,
                             lineHeight = 16.sp
@@ -675,12 +705,15 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
 
 
             //SECTION: ADVANCED:
-            SettingsSection(
+            ExpandableCard(
                 modifier = Modifier
                     .padding(end=8.dp, top=16.dp, bottom=4.dp),
+                id = "advanced",
                 title = "Advanced",
-                signColor = colorResource(id = R.color.redSign),
-                iconPainter = painterResource(id = R.drawable.icon_warning)
+                backgroundColor = colorResource(id = R.color.redSign),
+                iconPainter = painterResource(id = R.drawable.icon_warning),
+                expandedStates = expandedStates,
+                currentExpanded = currentExpanded,
             ) {
 
                 //VolumeUp enabled:
@@ -707,7 +740,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         )
                         Text(
                             text = "Keep this enabled if you use\nBluetooth remotes!",
-                            color = colorResource(id = R.color.mid_grey),
+                            color = colorResource(id = R.color.light_grey),
                             textAlign = TextAlign.Start,
                             fontSize = 12.sp,
                             lineHeight = 16.sp
@@ -716,7 +749,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     Switch(
                         checked = checkedVolumeEnabled.value,
                         colors = getSwitchColors(
-                            color = colorResource(id = R.color.redSign)
+                            color = colorResource(id = R.color.redSignDark)
                         ),
                         onCheckedChange = {
                             checkedVolumeEnabled.value = it
@@ -747,7 +780,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     Switch(
                         checked = checkedRecToDownloads.value,
                         colors = getSwitchColors(
-                            color = colorResource(id = R.color.redSign)
+                            color = colorResource(id = R.color.redSignDark)
                         ),
                         onCheckedChange = {
                             checkedRecToDownloads.value = it

@@ -429,6 +429,7 @@ class ClockActivity: ComponentActivity() {
 
     fun updateDateClock() {
         var now = LocalDateTime.now()
+        currentDay.postValue(now.format(dayFormat))
         currentDate.postValue(now.format(dateFormat))
         currentHour.postValue(now.format(hourFormat))
         currentMins.postValue(now.format(minsFormat))

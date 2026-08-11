@@ -123,13 +123,20 @@ fun Navigation(
         composable(
             NavigationItem.Accounts.route,
             enterTransition = {
-                scaleIn() + expandVertically(expandFrom = Alignment.Bottom)
-            },
-            exitTransition = {
-                scaleOut() + shrinkVertically(shrinkTowards = Alignment.Bottom)
-            }
-        ) {
-            curNavId = 0
+                fadeIn(
+                    animationSpec = tween(
+                        300, easing = LinearEasing
+                    )
+                ) + slideIntoContainer(
+                    animationSpec = tween(300, easing = EaseIn),
+                    towards = if (curNavId > 1) {
+                        AnimatedContentTransitionScope.SlideDirection.End
+                    } else {
+                        AnimatedContentTransitionScope.SlideDirection.Start
+                    }
+                )
+            }) {
+            curNavId = 4
             extraOpen.postValue(true)
             AccountsScreen(navController, preview)
         }
@@ -138,13 +145,20 @@ fun Navigation(
         composable(
             NavigationItem.Settings.route,
             enterTransition = {
-                scaleIn() + expandVertically(expandFrom = Alignment.Bottom)
-            },
-            exitTransition = {
-                scaleOut() + shrinkVertically(shrinkTowards = Alignment.Bottom)
-            }
-        ) {
-            curNavId = 0
+                fadeIn(
+                    animationSpec = tween(
+                        300, easing = LinearEasing
+                    )
+                ) + slideIntoContainer(
+                    animationSpec = tween(300, easing = EaseIn),
+                    towards = if (curNavId > 1) {
+                        AnimatedContentTransitionScope.SlideDirection.End
+                    } else {
+                        AnimatedContentTransitionScope.SlideDirection.Start
+                    }
+                )
+            }) {
+            curNavId = 5
             extraOpen.postValue(true)
             SettingsScreen(navController, preview)
         }

@@ -107,6 +107,7 @@ var mainActive = MutableLiveData<Boolean>(false)
 var clockActive = MutableLiveData<Boolean>(false)
 var overlayPos = MutableLiveData<String>("Right")
 var overlayDocked = MutableLiveData<Boolean>(false)
+var forceUndock = MutableLiveData<Boolean>(false)
 var isVolumeUpPreferenceSet = MutableLiveData<Boolean>(true)   // Live observation of the pref (must change only with pref)
 var isVolumeUpUnlocked = MutableLiveData<Boolean>(false)   // Temporary: true only if prefs == True and volume unlocked
 var sourceIsVolume = MutableLiveData<Boolean>(false)

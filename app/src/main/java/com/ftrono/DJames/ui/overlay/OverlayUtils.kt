@@ -13,15 +13,12 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,12 +30,13 @@ import com.ftrono.DJames.application.ACTION_FINISH_MAIN
 import com.ftrono.DJames.application.ACTION_SAVE_TRACK
 import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.clockActive
-import com.ftrono.DJames.application.overlayPos
+import com.ftrono.DJames.application.forceUndock
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.services.VoiceQueryService
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.isVolumeUpPreferenceSet
 import com.ftrono.DJames.application.isVolumeUpUnlocked
+import com.ftrono.DJames.application.overlayDocked
 import com.ftrono.DJames.be.models.QuickAction
 
 
@@ -114,6 +112,11 @@ fun getQuickActionOnTap(
                 isVolumeUpUnlocked.postValue(true)
                 Toast.makeText(context, "Raise volume now!", Toast.LENGTH_SHORT).show()
             }
+        }
+    } else if (name == "undock") {
+        {
+            overlayDocked.postValue(false)
+            forceUndock.postValue(true)
         }
     } else {
         {
@@ -231,15 +234,46 @@ fun getQuickAction(
                         tint = colorResource(id = R.color.light_grey),
                         contentDescription = "Raise Volume"
                     )
-                    Text (
+                    Text(
                         modifier = Modifier
-                            .padding(top=4.dp, start = 4.dp, bottom = 4.dp),
-                        text = "VOLUME",
-                        fontSize = 12.sp,
+                            .padding(top=6.dp),
+                        text = "Volume",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
                         color = colorResource(id = R.color.light_grey)
                     )
                 }
             },
+        )
+    } else if (name == "undock") {
+        QuickAction(
+            id = "undock",
+            title = "Undock",
+            content = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    // Content:
+                    Icon(
+                        modifier = Modifier
+                            .size(28.dp),
+                        painter = painterResource(id = R.drawable.arrow_up),
+                        tint = colorResource(R.color.light_grey),
+                        contentDescription = "Detach"
+                    )
+                    Text(
+                        modifier = Modifier
+                            .padding(top=6.dp),
+                        text = "Detach",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colorResource(id = R.color.light_grey)
+                    )
+                }
+            }
         )
     } else {
         // EMPTY:

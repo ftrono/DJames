@@ -77,6 +77,7 @@ class MainActivity : ComponentActivity() {
         }
 
         mainActive.postValue(true)
+        forceUndock.postValue(false)
 
         //Screen density:
         density = resources.displayMetrics.density
@@ -157,11 +158,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         mainActive.postValue(true)
+        forceUndock.postValue(false)
         super.onStart()
     }
 
     override fun onResume() {
         mainActive.postValue(true)
+        forceUndock.postValue(false)
         super.onResume()
     }
 
@@ -240,7 +243,6 @@ class MainActivity : ComponentActivity() {
                 MainNavBar(
                     clickCounterState = clickCounterState!!,
                     isLandscape = true,
-                    preview = preview,
                     onClickCenter = {
                         utils.startStopOverlay(
                             context = mContext,
@@ -261,7 +263,6 @@ class MainActivity : ComponentActivity() {
                         MainNavBar(
                             clickCounterState = clickCounterState!!,
                             isLandscape = false,
-                            preview = preview,
                             onClickCenter = {
                                 utils.startStopOverlay(
                                     context = mContext,
@@ -287,7 +288,6 @@ class MainActivity : ComponentActivity() {
                 MainNavBar(
                     clickCounterState = clickCounterState!!,
                     isLandscape = true,
-                    preview = preview,
                     onClickCenter = {
                         utils.startStopOverlay(
                             context = mContext,

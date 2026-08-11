@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
-import androidx.navigation.NavController
-import com.ftrono.DJames.ui.theme.NavigationItem
 import com.ftrono.DJames.R
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
@@ -31,9 +29,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
@@ -48,29 +44,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.clockActive
-import com.ftrono.DJames.application.lastNavRoute
-import com.ftrono.DJames.application.extraOpen
-import com.ftrono.DJames.application.libCats
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.utils
@@ -78,7 +65,6 @@ import com.ftrono.DJames.be.models.SelectorItem
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.selectors.iconSelector
 import com.ftrono.DJames.ui.selectors.colorSelectorLight
-import com.ftrono.DJames.ui.selectors.iconSelector
 
 
 @Composable
@@ -238,92 +224,6 @@ fun StreetUITopBar(
     }
 }
 
-
-@Preview(widthDp = 500)
-@Composable
-fun TopSplitterBarPreview() {
-    // Load splitter cats:
-    val libSplitterItems = mutableListOf<SelectorItem>()
-    for (cat in libCats) {
-        libSplitterItems.add(
-            SelectorItem(
-                id = cat,
-                title = if (cat == "spotify") "Spotify links" else "${utils.capitalizeWords(cat)}s",
-                iconPainter = iconSelector(cat),
-                color = colorSelectorLight(cat),
-            )
-        )
-    }
-
-    val currentCatState = rememberSaveable { mutableStateOf(libCats[0]) }
-    TopSplitterBar(
-        currentItemState = currentCatState,
-        items = libSplitterItems,
-        showBack = true,
-        optionButtons = {
-            //TODO
-            TopBarMenu(
-                backgroundColor = colorResource(R.color.blueSign),
-                contentText = "20"
-            )
-        }
-    )
-}
-
-
-
-//TOP SPLITTER BAR:
-@Composable
-fun TopSplitterBar(
-    currentItemState: MutableState<String>,
-    items: MutableList<SelectorItem>,
-    showBack: Boolean = false,
-    onBack: () -> Unit = {},
-    onNavClick: () -> Unit = {},
-    optionButtons: @Composable() (RowScope.() -> Unit) = {}
-) {
-    //HEADER:
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(65.dp)
-            .background(colorResource(id = R.color.windowBackground)),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        //BACK:
-        if (showBack) {
-            Icon(
-                modifier = Modifier
-                    .padding(start = 18.dp)
-                    .size(30.dp)
-                    .clickable {
-                        onBack()
-                    },
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint = colorResource(id = R.color.light_grey)
-            )
-        }
-
-        //SPLITTER SIGN (bigger weight with margins):
-        Row(
-            modifier = Modifier
-                .weight(1F),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            SplitterSign(
-                currentItemState = currentItemState,
-                items = items,
-                onNavClick = onNavClick,
-            )
-        }
-
-        //OPTIONS BUTTONS:
-        optionButtons()
-    }
-}
 
 @Composable
 fun SplitterSign(
@@ -559,7 +459,6 @@ fun MainNavBarPreview1() {
     MainNavBar(
         clickCounterState = clickCounterState,
         isLandscape = false,
-        preview = true,
     )
 }
 
@@ -571,7 +470,6 @@ fun MainNavBarPreview2() {
     MainNavBar(
         clickCounterState = clickCounterState,
         isLandscape = true,
-        preview = true,
     )
 }
 
@@ -580,6 +478,7 @@ fun MainNavBarPreview2() {
 fun StartButton(
     overlayActiveState: Boolean,
     onClickCenter: () -> Unit = {},
+    clockActiveState: Boolean,
 ) {
     if (overlayActiveState) {
         // Placeholder:
@@ -587,7 +486,9 @@ fun StartButton(
             modifier = Modifier
                 .clip(CircleShape)
                 .size(100.dp)
-                .background(colorResource(R.color.windowBackground)),
+                .background(
+                    colorResource(if (clockActiveState) R.color.black else R.color.windowBackground)
+                ),
         )
     } else {
         // Button:
@@ -617,8 +518,6 @@ fun StartButton(
 fun MainNavBar(
     clickCounterState: Int,
     isLandscape: Boolean,
-    preview: Boolean = false,
-    previewClock: Boolean = false,
     onClickCenter: () -> Unit = {},
 ) {
     val overlayActiveState by overlayActive.observeAsState()
@@ -631,14 +530,14 @@ fun MainNavBar(
                 .fillMaxHeight()
                 .width(100.dp)
                 .background(
-                    colorResource(if (clockActiveState!! || previewClock) R.color.black else R.color.windowBackground)
+                    colorResource(if (clockActiveState!!) R.color.black else R.color.windowBackground)
                 )
         } else {
             Modifier
                 .fillMaxWidth()
                 .height(170.dp)
                 .background(
-                    colorResource(if (clockActiveState!! || previewClock) R.color.black else R.color.windowBackground)
+                    colorResource(if (clockActiveState!!) R.color.black else R.color.windowBackground)
                 )
             },
         contentAlignment = Alignment.Center,
@@ -670,6 +569,7 @@ fun MainNavBar(
             StartButton(
                 overlayActiveState=overlayActiveState!!,
                 onClickCenter=onClickCenter,
+                clockActiveState=clockActiveState!!,
             )
         }
     }

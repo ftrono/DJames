@@ -239,7 +239,6 @@ fun PadsPreview4() {
         overlayPosState = overlayPosState,
         clickCounterState = clickCounterState,
         clockActiveState = clockActiveState,
-        previewCenter = true,
     )
 }
 
@@ -267,7 +266,7 @@ fun PadsPreview6() {
     val mContext = LocalContext.current
     val overlayPosState by remember { mutableStateOf("Right") }
     val clickCounterState by remember { mutableStateOf(0) }
-    val clockActiveState by remember { mutableStateOf(false) }
+    val clockActiveState by remember { mutableStateOf(true) }
 
     DJamesPads(
         context = mContext,
@@ -275,7 +274,6 @@ fun PadsPreview6() {
         overlayPosState = overlayPosState,
         clickCounterState = clickCounterState,
         clockActiveState = clockActiveState,
-        previewCenter = true,
         previewDocked = true,
     )
 }
@@ -293,7 +291,6 @@ fun DJamesPads(
     toeSize: Int = overlayToeSize,
     targetRadius: Dp = 44.dp,   // distance from center pad to toes
     interval: Float = 50f,   // distance between each toe angle
-    previewCenter: Boolean = false,
     previewVolume: Boolean = false,
     previewDocked: Boolean = false,
     onToesTapCommon: (Offset) -> Unit = { offset -> },
@@ -445,11 +442,7 @@ fun DJamesPads(
                     colorBgActive = colorBgActive,
                     colorBgInactive = colorBgInactive,
                     colorTimeout = colorTimeoutActive,
-                    previewFull = previewCenter,
                     previewVolume = previewVolume,
-                    onClockTap = {
-                        getQuickActionOnTap(context = mContext, name = "clock")()
-                    },
                     onCenterTap = {
                         onCenterTap(it)
                     }
@@ -473,11 +466,7 @@ fun DJamesPads(
                     colorBgActive = colorBgActive,
                     colorBgInactive = colorBgInactive,
                     colorTimeout = colorTimeoutActive,
-                    previewFull = previewCenter,
                     previewVolume = previewVolume,
-                    onClockTap = {
-                        getQuickActionOnTap(context = mContext, name = "clock")()
-                    },
                     onCenterTap = {
                         onCenterTap(it)
                     }
@@ -669,16 +658,27 @@ fun CenterPad(
     colorBgActive: Color,
     colorBgInactive: Color,
     colorTimeout: Color,
-    onClockTap: (Offset) -> Unit,
     onCenterTap: (Offset) -> Unit,
-    previewFull: Boolean = false,
-    previewVolume: Boolean = true,
+    previewVolume: Boolean = false,
 ) {
     val verticalPad = 8.dp
     val horizontalPad = 20.dp
     val queryState by queryStatus.observeAsState()
     val isVolumeUpPreferenceSetState by isVolumeUpPreferenceSet.observeAsState()
     val isVolumeUpUnlockedState by isVolumeUpUnlocked.observeAsState()
+
+    // Actions:
+    val clockAction = getQuickAction(
+        name = "clock",
+        currentHourState = currentHourState,
+        currentMinsState = currentMinsState,
+    )
+    val volumeAction = getQuickAction(
+        name = "volume",
+    )
+    val undockAction = getQuickAction(
+        name = "undock",
+    )
 
     LaunchedEffect(queryState) {
         if (queryState == "busy") {
@@ -687,8 +687,8 @@ fun CenterPad(
     }
 
     //CLOCK BUTTON:
-    if ((!clockActiveState && clickCounterState == 0) || previewFull) {
-        ClockButton(
+    if ((!clockActiveState && clickCounterState == 0)) {
+        FixedButton(
             modifier = if (isDocked) {
                 Modifier
                     .padding(end=horizontalPad)
@@ -696,19 +696,36 @@ fun CenterPad(
                 Modifier
                     .padding(bottom=verticalPad)
             },
-            size = toeSize-10,
-            currentHourState = currentHourState,
-            currentMinsState = currentMinsState,
-            onTap = onClockTap,
-        )
+            size = toeSize,
+            backgroundColor = colorResource(R.color.black),
+            onTap = {
+                getQuickActionOnTap(context = context, name = "clock")()
+            },
+        ) {
+            clockAction.content()
+        }
     } else if (isDocked) {
-        // Placeholder:
-        Box(
-            modifier = Modifier
-                .padding(end = horizontalPad)
-                .size((toeSize - 10).dp)
-                .background(colorResource(R.color.transparent_full))
-        )
+        if (clockActiveState && clickCounterState == 0) {
+            FixedButton(
+                modifier = Modifier
+                    .padding(end=horizontalPad),
+                size = toeSize,
+                backgroundColor = colorResource(R.color.dark_grey),
+                onTap = {
+                    getQuickActionOnTap(context = context, name = "undock")()
+                },
+            ){
+                undockAction.content()
+            }
+        } else {
+            // Placeholder:
+            Box(
+                modifier = Modifier
+                    .padding(end = horizontalPad)
+                    .size((toeSize - 10).dp)
+                    .background(colorResource(R.color.transparent_full))
+            )
+        }
     }
 
     // CENTER PAW PAD:
@@ -811,9 +828,8 @@ fun CenterPad(
     }
 
     //VOLUME BUTTON:
-    if ((isVolumeUpPreferenceSetState!! && clickCounterState == 0 && !isVolumeUpUnlockedState!!) || previewFull) {
-        RaiseVolumeButton(
-            context = context,
+    if (isVolumeUpPreferenceSetState!! && clickCounterState == 0 && !isVolumeUpUnlockedState!!) {
+        FixedButton(
             modifier = if (isDocked) {
                 Modifier
                     .padding(start=horizontalPad)
@@ -821,13 +837,19 @@ fun CenterPad(
                 Modifier
                     .padding(top=verticalPad)
             },
-            size = toeSize - 10,
-        )
+            size = toeSize,
+            backgroundColor = colorResource(R.color.dark_grey),
+            onTap = {
+                getQuickActionOnTap(context = context, name = "volume")()
+            },
+        ) {
+            volumeAction.content()
+        }
     } else if (isDocked) {
         // Placeholder:
         Box(
             modifier = Modifier
-                .padding(start=horizontalPad)
+                .padding(start = horizontalPad)
                 .size((toeSize - 10).dp)
                 .background(colorResource(R.color.transparent_full))
         )
@@ -836,23 +858,17 @@ fun CenterPad(
 
 
 @Composable
-fun ClockButton(
+fun FixedButton(
     modifier: Modifier,
-    size: Int = 60,
-    currentHourState: String,
-    currentMinsState: String,
-    onTap: (Offset) -> Unit
+    size: Int = overlayToeSize,
+    onTap: (Offset) -> Unit,
+    backgroundColor: Color,
+    content: @Composable () -> Unit = {}
 ) {
-    val curAction = getQuickAction(
-        name = "clock",
-        currentHourState = currentHourState,
-        currentMinsState = currentMinsState,
-    )
-
     //OVERLAY BUTTON:
     Card(
         modifier = modifier
-            .size(size.dp)
+            .size((size - 10).dp)
             .pointerInput(Unit) {
                 detectTapGestures(
                     //ON SINGLE TAP:
@@ -862,43 +878,10 @@ fun ClockButton(
         // border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors (
-            containerColor = colorResource(id = R.color.black)
+            containerColor = backgroundColor
         )
     ) {
-        curAction.content()
-    }
-}
-
-
-@Composable
-fun RaiseVolumeButton(
-    context: Context,
-    modifier: Modifier,
-    size: Int = overlayToeSize - 10,
-) {
-    val curAction = getQuickAction(
-        name = "volume",
-    )
-
-    //OVERLAY BUTTON:
-    Card(
-        modifier = modifier
-            .size(size.dp)
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    //ON SINGLE TAP:
-                    onTap = {
-                        getQuickActionOnTap(context, "volume")()
-                    }
-                )
-            },
-        // border = BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors (
-            containerColor = colorResource(id = R.color.dark_grey)
-        )
-    ) {
-        curAction.content()
+        content()
     }
 }
 

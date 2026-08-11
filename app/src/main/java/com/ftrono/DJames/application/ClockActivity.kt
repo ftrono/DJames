@@ -163,7 +163,6 @@ class ClockActivity: ComponentActivity() {
                         MainNavBar(
                             clickCounterState = clickCounterState!!,
                             isLandscape = false,
-                            preview = false,
                             onClickCenter = { }
                         )
                     }

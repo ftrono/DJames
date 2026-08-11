@@ -361,6 +361,7 @@ class ClockActivity: ComponentActivity() {
                     .clickable {
                         // Go to Home:
                         finish()
+                        mainActive.postValue(true)
                         utils.openActivity(context, MainActivity::class.java)
                     },
                 signSize = 80.dp,

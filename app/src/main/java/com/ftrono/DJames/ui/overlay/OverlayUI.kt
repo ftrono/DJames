@@ -17,6 +17,7 @@ import androidx.compose.animation.slideOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -102,6 +103,7 @@ import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.components.toPx
 import com.ftrono.DJames.ui.theme.light_grey
+import com.ftrono.DJames.ui.theme.windowBackground
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -685,7 +687,7 @@ fun CenterPad(
     }
 
     //CLOCK BUTTON:
-    if ((!isDocked && !clockActiveState && clickCounterState == 0) || previewFull) {
+    if ((!clockActiveState && clickCounterState == 0) || previewFull) {
         ClockButton(
             modifier = if (isDocked) {
                 Modifier
@@ -698,6 +700,14 @@ fun CenterPad(
             currentHourState = currentHourState,
             currentMinsState = currentMinsState,
             onTap = onClockTap,
+        )
+    } else if (isDocked) {
+        // Placeholder:
+        Box(
+            modifier = Modifier
+                .padding(end = horizontalPad)
+                .size((toeSize - 10).dp)
+                .background(colorResource(R.color.transparent_full))
         )
     }
 
@@ -801,7 +811,7 @@ fun CenterPad(
     }
 
     //VOLUME BUTTON:
-    if ((!isDocked && isVolumeUpPreferenceSetState!! && clickCounterState == 0 && !isVolumeUpUnlockedState!!) || previewFull) {
+    if ((isVolumeUpPreferenceSetState!! && clickCounterState == 0 && !isVolumeUpUnlockedState!!) || previewFull) {
         RaiseVolumeButton(
             context = context,
             modifier = if (isDocked) {
@@ -812,6 +822,14 @@ fun CenterPad(
                     .padding(top=verticalPad)
             },
             size = toeSize - 10,
+        )
+    } else if (isDocked) {
+        // Placeholder:
+        Box(
+            modifier = Modifier
+                .padding(start=horizontalPad)
+                .size((toeSize - 10).dp)
+                .background(colorResource(R.color.transparent_full))
         )
     }
 }

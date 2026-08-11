@@ -130,6 +130,7 @@ class SpotifyPlayer (private val context: Context) {
                         //Clock redirect:
                         Thread.sleep((prefs.clockTimeout.toLong() - 1) * 1000)   //default: 10000
                         //Launch Clock:
+                        clockActive.postValue(true)
                         utils.openActivity(context, ClockActivity::class.java, fromService = true)
                     }
                     Log.d(TAG, "ExtThread end!")

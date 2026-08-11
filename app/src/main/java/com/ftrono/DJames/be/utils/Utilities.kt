@@ -39,6 +39,7 @@ import androidx.core.content.edit
 import androidx.navigation.NavController
 import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.artistName
+import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.currentArtistPlaying
 import com.ftrono.DJames.application.currentSongPlaying
 import com.ftrono.DJames.application.songName
@@ -311,11 +312,13 @@ class Utilities {
                     }
                     //Start Clock screen:
                     if (openClock) {
+                        clockActive.postValue(true)
                         openActivity(context, ClockActivity::class.java)
                     }
                 }
             } else if (startOnly && openClock) {
                 //Start Clock screen:
+                clockActive.postValue(true)
                 openActivity(context, ClockActivity::class.java)
             } else if (!startOnly) {
                 //STOP DRIVE MODE:

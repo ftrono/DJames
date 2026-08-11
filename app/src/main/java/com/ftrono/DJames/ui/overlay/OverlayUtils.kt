@@ -32,6 +32,7 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_FINISH_MAIN
 import com.ftrono.DJames.application.ACTION_SAVE_TRACK
 import com.ftrono.DJames.application.ClockActivity
+import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.overlayPos
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.services.VoiceQueryService
@@ -97,6 +98,7 @@ fun getQuickActionOnTap(
     } else if (name == "clock") {
         {
             //Start Clock screen:
+            clockActive.postValue(true)
             utils.openActivity(context, ClockActivity::class.java, fromService = true)
             //End Main():
             //Send broadcast:

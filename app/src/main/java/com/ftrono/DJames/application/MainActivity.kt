@@ -76,6 +76,8 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        mainActive.postValue(true)
+
         //Screen density:
         density = resources.displayMetrics.density
 
@@ -136,10 +138,31 @@ class MainActivity : ComponentActivity() {
 
 
     override fun onDestroy() {
-        super.onDestroy()
+        mainActive.postValue(false)
         //unregister receivers:
         unregisterReceiver(mainActReceiver)
         acts_active.remove(TAG)
+        super.onDestroy()
+    }
+
+    override fun onPause() {
+        mainActive.postValue(false)
+        super.onPause()
+    }
+
+    override fun onStop() {
+        mainActive.postValue(false)
+        super.onStop()
+    }
+
+    override fun onStart() {
+        mainActive.postValue(true)
+        super.onStart()
+    }
+
+    override fun onResume() {
+        mainActive.postValue(true)
+        super.onResume()
     }
 
 

@@ -46,6 +46,7 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import androidx.lifecycle.Observer
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_FINISH_CLOCK
 import com.ftrono.DJames.application.ACTION_MAKE_CALL
@@ -76,14 +77,15 @@ import com.ftrono.DJames.application.ACTION_OVERLAY_CLICK
 import com.ftrono.DJames.application.ACTION_OVERLAY_HIDE
 import com.ftrono.DJames.application.ACTION_OVERLAY_SHOW
 import com.ftrono.DJames.application.App.Companion.toneGen
+import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.overlayBubbleSize
 import com.ftrono.DJames.application.overlayToeSize
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.isVolumeUpUnlocked
+import com.ftrono.DJames.application.mainActive
 import com.ftrono.DJames.application.overlayDocked
 import com.ftrono.DJames.ui.components.dpToPx
-import com.ftrono.DJames.ui.components.toPx
 import com.ftrono.DJames.ui.overlay.Overlay
 import com.ftrono.DJames.ui.overlay.OverlayBubble
 import kotlinx.coroutines.CoroutineScope
@@ -126,6 +128,14 @@ class OverlayService : Service () {
     //Receiver:
     var eventReceiver = EventReceiver()
 
+    // Observers:
+    private val clockActiveObserver = Observer<Boolean> {
+        updateOverlayPosition()
+    }
+    private val mainActiveObserver = Observer<Boolean> {
+        updateOverlayPosition()
+    }
+
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
@@ -164,13 +174,8 @@ class OverlayService : Service () {
                 PixelFormat.TRANSLUCENT
             ).apply {
                 gravity = Gravity.TOP or Gravity.START
-//                if (config.orientation == Configuration.ORIENTATION_PORTRAIT) {
-//                    overlayDocked.postValue(true)
-//                    x = ((screenWidth / 2) - (overlayBubbleSize.dpToPx(applicationContext) / 2))
-//                    y = screenHeight
-//                } else { }
-                x = if (prefs.overlayPosition == "Right") screenWidth else 0
-                y = round(screenHeight.toDouble() / 4).toInt()
+                x = 0
+                y = 0
             }
 
             //Compose:
@@ -194,8 +199,15 @@ class OverlayService : Service () {
             //Set current time:
             overlay.updateMiniClock()
 
-            //Add the overlay view to the window
+            // Add the overlay view to the window:
             showOverlayView()
+
+            // Observe dock-state dependencies:
+            clockActive.observeForever(clockActiveObserver)
+            mainActive.observeForever(mainActiveObserver)
+
+            // Make sure initial state is correct:
+            updateOverlayPosition()
 
             // Start the lifecycle
             lifecycleOwner.setCurrentState(Lifecycle.State.STARTED)
@@ -293,16 +305,54 @@ class OverlayService : Service () {
         // Store display screenHeight & screenWidth
         screenWidth = resources.displayMetrics.widthPixels
         screenHeight = resources.displayMetrics.heightPixels
-//        if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-//            // DOCKED:
-//            overlayDocked.postValue(true)
-//            bubbleParams.x = ((screenWidth / 2) - (overlayBubbleSize.dpToPx(applicationContext) / 2))
-//            bubbleParams.y = screenHeight
-//        } else { }
-        //FLOATING:
-        bubbleParams.x = if (prefs.overlayPosition == "Right") screenWidth else 0
-        bubbleParams.y = round(screenHeight.toDouble() / 4).toInt()
-        windowManager.updateViewLayout(bubbleView, bubbleParams)
+        updateOverlayPosition()
+    }
+
+
+    // Overlay pos calculator:
+    private fun updateOverlayPosition() {
+        if (!::bubbleParams.isInitialized) return
+        if (!::bubbleView.isInitialized) return
+
+        val isPortrait =
+            resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+
+        val shouldDock =
+            isPortrait && (clockActive.value == true || mainActive.value == true)
+
+        overlayDocked.value = shouldDock
+
+        if (shouldDock) {
+            // DOCKED: bottom-center
+            bubbleParams.gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+
+            // CENTER_HORIZONTAL already centers the window,
+            // so x must simply be zero.
+            bubbleParams.x = 0
+
+            // 0 = exactly against the bottom.
+            // Use a positive value if you want some bottom margin.
+            bubbleParams.y = 0
+
+        } else {
+            // FLOATING: left/right side
+            bubbleParams.gravity = Gravity.TOP or Gravity.START
+
+            val bubbleWidth =
+                overlayBubbleSize.dpToPx(applicationContext)
+
+            bubbleParams.x =
+                if (prefs.overlayPosition == "Right") {
+                    screenWidth - bubbleWidth
+                } else 0
+
+            bubbleParams.y =
+                (screenHeight / 4f).roundToInt()
+        }
+
+        if (overlayViewOn) {
+            windowManager.updateViewLayout(bubbleView, bubbleParams)
+        }
     }
 
 
@@ -320,6 +370,7 @@ class OverlayService : Service () {
         val clickCounterState by clickCounter.observeAsState()
         val sourceIsVolumeState by sourceIsVolume.observeAsState()
         val overlayPosState by overlayPos.observeAsState()
+        val overlayDockedState by overlayDocked.observeAsState(false)
 
         // Animating the horizontal offset based on the state
         val rightPadding by animateDpAsState(targetValue = if (
@@ -338,14 +389,14 @@ class OverlayService : Service () {
                     detectDragGestures(
                         //ON DRAG START:
                         onDragStart = {
-                            if (clickCounterState == 0) {
+                            if (clickCounterState == 0 && !overlayDockedState) {
                                 //Add close view to the window:
                                 showCloseView()
                             }
                         },
                         //ON DRAG:
                         onDrag = { _, dragAmount ->
-                            if (clickCounterState == 0) {
+                            if (clickCounterState == 0 && !overlayDockedState) {
                                 onDrag(
                                     dragAmount.x.roundToInt(),
                                     dragAmount.y.roundToInt()
@@ -354,7 +405,7 @@ class OverlayService : Service () {
                         },
                         //ON DRAG END:
                         onDragEnd = {
-                            if (clickCounterState == 0) {
+                            if (clickCounterState == 0 && !overlayDockedState) {
                                 // Hide close view:
                                 var startClosingRegion =
                                     if (isLandscape) screenHeight * 0.5 else screenHeight * 0.7
@@ -518,6 +569,9 @@ class OverlayService : Service () {
         super.onDestroy()
         overlayActive.postValue(false)
         voiceQueryOn = false
+        // Remove observers:
+        clockActive.removeObserver(clockActiveObserver)
+        mainActive.removeObserver(mainActiveObserver)
         // Re-enable volume-up trigger:
         clickCounter.postValue(0)
         isVolumeUpUnlocked.postValue(false)

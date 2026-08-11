@@ -210,7 +210,7 @@ fun LibraryScreen(
         topBar = {
             // TOP APP BAR:
             StreetUITopBar(
-                pretitle = "Library",
+                pretitle = "L I B R A R Y",
                 title = if (currentCatState!! == "spotify") "Spotify links" else "${utils.capitalizeWords(currentCatState!!)}s",
                 showBack = true,
                 onBack = { navController.popBackStack() },

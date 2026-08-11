@@ -123,9 +123,9 @@ fun MessagesScreen(
         lineDistance = 20.dp,
         topBar = {
             StreetUITopBar(
-                pretitle = "",
-                title = "Chat",
-                subtitle = if (selectedMessageIds.isNotEmpty()) "Selected" else "Last $maxHistoryDays days",
+                pretitle = "H I S T O R Y",
+                title = if (selectedMessageIds.isNotEmpty()) "Selected" else "Last $maxHistoryDays days",
+                subtitle = "",
                 showBack = true,
                 onBack = { navController.popBackStack() },
                 optionButtons = {

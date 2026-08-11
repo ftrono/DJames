@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -278,9 +279,9 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
         lineDistance = 20.dp,
         topBar = {
             StreetUITopBar(
-                pretitle = "",
+                pretitle = stringResource(R.string.app_title),
                 title = "Accounts",
-                subtitle = "Your profile & services",
+                subtitle = "",
                 showBack = true,
                 onBack = {
                     navController.popBackStack()

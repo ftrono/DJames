@@ -19,7 +19,6 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import com.ftrono.DJames.BuildConfig
 import com.ftrono.DJames.application.ACTION_MAKE_CALL
-import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.libCats
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.messageUtils
@@ -37,10 +36,18 @@ import java.util.Locale
 import java.util.Random
 import kotlin.streams.asSequence
 import androidx.core.content.edit
-import com.ftrono.DJames.R
+import androidx.navigation.NavController
+import com.ftrono.DJames.application.ClockActivity
+import com.ftrono.DJames.application.artistName
+import com.ftrono.DJames.application.clockActive
+import com.ftrono.DJames.application.currentArtistPlaying
+import com.ftrono.DJames.application.currentSongPlaying
+import com.ftrono.DJames.application.songName
 import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.userNicknameUI
+import com.ftrono.DJames.application.utils
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 
@@ -58,11 +65,32 @@ class Utilities {
     }
 
     // Check if a given number of months are already passed or not:
-    fun isTimeExpired(timestamp: Long, nMonths: Long): Boolean {
+    fun isTimeElapsed(timestamp: Long, n: Long, unit: String = "months"): Boolean {
+        // TODO: Supported unit: "months", "mins"
         val now = System.currentTimeMillis()
-        // N months in milliseconds (approximation: 30 days * N * 24 * 60 * 60 * 1000)
-        val nMonthsInMillis = nMonths * 30 * 24 * 60 * 60 * 1000
-        return (now - timestamp) >= nMonthsInMillis
+        // N in milliseconds (approximation: N months * 30 days * 24 hours * 60 mins * 60 secs * 1000 ms)
+        when (unit) {
+            "months" -> {
+                val nMonthsInMillis = n * 30 * 24 * 60 * 60 * 1000
+                return (now - timestamp) >= nMonthsInMillis
+            }
+            "mins" -> {
+                val nMinsInMillis = n * 60 * 1000
+                return (now - timestamp) >= nMinsInMillis
+            }
+            else -> return false
+        }
+    }
+
+    // Build user greeting:
+    fun getTimeOfDay(): String {
+        val hour = LocalDateTime.now().hour
+        return when {
+            (hour < 6) -> "night"
+            (hour < 13) -> "morning"
+            (hour < 18) -> "afternoon"
+            else -> "evening"
+        }
     }
 
     //Check service running:
@@ -238,8 +266,8 @@ class Utilities {
         }
     }
 
-    //Start/Stop DRIVE Mode:
-    fun startStopDriveMode(
+    //Start/Stop Overlay:
+    fun startStopOverlay(
         context: Context,
         requestOverlayOn: MutableState<Boolean>,
         requestPermissions: MutableState<Boolean>,
@@ -266,29 +294,16 @@ class Utilities {
                     if (!isMyServiceRunning(OverlayService::class.java, context)) {
                         val intentOS = Intent(context, OverlayService::class.java)
                         context.startService(intentOS)
-                        if (openClock) {
-                            if (prefs.volumeUpEnabled) {
-                                Toast.makeText(
-                                    context,
-                                    "Use the OVERLAY or VOLUME UP / SHUTTER button to speak!",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "Use the OVERLAY button to speak!",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
-                        }
                     }
                     //Start Clock screen:
                     if (openClock) {
+                        clockActive.postValue(true)
                         openActivity(context, ClockActivity::class.java)
                     }
                 }
             } else if (startOnly && openClock) {
                 //Start Clock screen:
+                clockActive.postValue(true)
                 openActivity(context, ClockActivity::class.java)
             } else if (!startOnly) {
                 //STOP DRIVE MODE:
@@ -299,7 +314,7 @@ class Utilities {
             }
         } catch (e: Exception) {
             overlayActive.postValue(false)
-            Log.d(TAG, "StartStopDriveMode ERROR: $e")
+            Log.d(TAG, "startStopOverlay ERROR: $e")
         }
     }
 

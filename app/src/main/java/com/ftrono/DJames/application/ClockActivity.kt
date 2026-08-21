@@ -11,54 +11,49 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
 import com.ftrono.DJames.R
-import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.components.RoundedSign
-import com.ftrono.DJames.ui.selectors.colorSelector
-import com.ftrono.DJames.ui.selectors.iconSelector
+import com.ftrono.DJames.ui.navigation.MainNavBar
 import com.ftrono.DJames.ui.theme.ClockTheme
 import com.ftrono.DJames.ui.theme.black
 import java.time.LocalDateTime
@@ -70,12 +65,14 @@ class ClockActivity: ComponentActivity() {
     private val TAG: String = ClockActivity::class.java.getSimpleName()
 
     //Parameters:
-    private val dateFormat = DateTimeFormatter.ofPattern("E, dd MMM")
+    private val dayFormat = DateTimeFormatter.ofPattern("E,")
+    private val dateFormat = DateTimeFormatter.ofPattern("dd MMM")
     private val hourFormat = DateTimeFormatter.ofPattern("HH")
     private val minsFormat = DateTimeFormatter.ofPattern("mm")
 
     //Status:
-    private var currentDate = MutableLiveData<String>("Mon 1 Jan")
+    private var currentDay = MutableLiveData<String>("Mon,")
+    private var currentDate = MutableLiveData<String>("1 Jan")
     private var currentHour = MutableLiveData<String>("00")
     private var currentMins = MutableLiveData<String>("00")
 
@@ -106,7 +103,6 @@ class ClockActivity: ComponentActivity() {
         //Start personal Receiver:
         val actFilter = IntentFilter()
         actFilter.addAction(ACTION_TIME_TICK)
-        actFilter.addAction(ACTION_UPDATE_PLAYER)
         actFilter.addAction(ACTION_FINISH_CLOCK)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
@@ -123,274 +119,295 @@ class ClockActivity: ComponentActivity() {
     @Composable
     fun ClockScreen() {
         //States:
+        val mContext = LocalContext.current
         val configuration = LocalConfiguration.current
         val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
+
+        val overlayActiveState by overlayActive.observeAsState()
         val overlayPosState by overlayPos.observeAsState()
+        val clickCounterState by clickCounter.observeAsState()
+        val currentDayState by currentDay.observeAsState()
         val currentDateState by currentDate.observeAsState()
         val currentHourState by currentHour.observeAsState()
         val currentMinsState by currentMins.observeAsState()
 
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxSize()
-                .safeDrawingPadding()
-                .background(colorResource(id = R.color.black)),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .safeDrawingPadding(),
+            horizontalArrangement = Arrangement.Center
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                // LEFT PLACEHOLDER (HORIZONTAL ONLY):
-                if (isLandscape) {
-                    if (overlayPosState!! == "Right") {
-                        CloseButton()
-                    } else {
-                        ClosePlaceholder()
-                    }
-                }
-
-                // MAIN:
-                Column(
+            //SIDE NAV BAR (LEFT):
+            if (isLandscape && overlayPosState == "Left") {
+                Box(
                     modifier = Modifier
-                        .weight(1F),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    //DATE:
-                    Text(
-                        modifier = Modifier
-                            .padding(bottom = if (!isLandscape) 20.dp else 10.dp),
-                        text = currentDateState!!,
-                        color = colorResource(id = R.color.faded_grey),
-                        textAlign = TextAlign.Center,
-                        fontSize = 22.sp
-                    )
-                    //CLOCK:
-                    MaxiClock(
-                        isLandscape = isLandscape,
-                        currentHourState = currentHourState!!,
-                        currentMinsState = currentMinsState!!
-                    )
-                    //PLAYER INFO:
-                    PlayerInfo(isLandscape)
-                    // CLOSE (VERTICAL ONLY):
+                        .fillMaxHeight()
+                        .width(100.dp)
+                        .background(colorResource(id = R.color.black)),
+                )
+            }
+            Scaffold(
+                modifier = Modifier
+                    .fillMaxSize(),
+                topBar = {
                     if (!isLandscape) {
-                        CloseButton()
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(65.dp)
+                                .background(colorResource(id = R.color.black)),
+                        )
                     }
-                }
+                },
+                bottomBar = {
+                    if (!isLandscape) {
+                        if (overlayActiveState!!) {
+                            MainNavBar(
+                                clickCounterState = clickCounterState!!,
+                                isLandscape = false,
+                                onClickCenter = { }
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(170.dp)
+                                    .background(
+                                        colorResource(R.color.black)
+                                    )
+                            )
+                        }
+                    }
+                },
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(it)
+                )
+                {
+                    // Content:
+                    if (isLandscape) {
+                        // LANDSCAPE:
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(colorResource(id = R.color.black)),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            // Info area:
+                            ClockInfoArea(
+                                modifier = Modifier
+                                    .padding(
+                                        top = 8.dp,
+                                        bottom = 8.dp,
+                                        start = 20.dp,
+                                        end = 20.dp,
+                                    ),
+                                isLandscape = true,
+                                currentDayState = currentDayState!!,
+                                currentDateState = currentDateState!!,
+                                currentHourState = currentHourState!!,
+                                currentMinsState = currentMinsState!!,
+                            )
+                            // Unlock:
+                            UnlockButton(
+                                context = mContext,
+                                modifier = Modifier
+                                    .padding(start=60.dp),
+                            )
+                        }
 
-                // RIGHT PLACEHOLDER (HORIZONTAL ONLY):
-                if (isLandscape) {
-                    if (overlayPosState!! == "Left") {
-                        CloseButton(pointForward = true)
                     } else {
-                        ClosePlaceholder()
+                        // PORTRAIT:
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(colorResource(id = R.color.black)),
+                            verticalArrangement = Arrangement.Top,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            // Info area:
+                            ClockInfoArea(
+                                modifier = Modifier
+                                    .padding(
+                                        top = 12.dp,
+                                        bottom = 100.dp,
+                                        start = 20.dp,
+                                        end = 20.dp,
+                                    ),
+                                isLandscape = false,
+                                currentDayState = currentDayState!!,
+                                currentDateState = currentDateState!!,
+                                currentHourState = currentHourState!!,
+                                currentMinsState = currentMinsState!!,
+                            )
+                            // Unlock:
+                            UnlockButton(
+                                context = mContext,
+                                modifier = Modifier,
+                            )
+                        }
                     }
                 }
+            }
+            //SIDE NAV BAR (RIGHT):
+            if (isLandscape && overlayPosState == "Right") {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(100.dp)
+                        .background(colorResource(id = R.color.black)),
+                )
             }
         }
     }
 
 
     @Composable
-    fun MaxiClock(
-        modifier: Modifier = Modifier,
+    fun ClockInfoArea(
+        modifier: Modifier,
         isLandscape: Boolean,
+        currentDayState: String,
+        currentDateState: String,
         currentHourState: String,
-        currentMinsState: String
+        currentMinsState: String,
     ) {
-        //MAXI CLOCK:
-        Text(
+        Row(
             modifier = modifier,
-            text = if (!isLandscape) {
-                "${currentHourState}\n${currentMinsState}"
-            } else {
-                "${currentHourState}:${currentMinsState}"
-            },
-            color = colorResource(id = R.color.faded_grey),
-            textAlign = TextAlign.Center,
-            fontSize = if (!isLandscape) 150.sp else 140.sp,
-            lineHeight = 150.sp
-        )
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            // CLOCK:
+            Text(
+                modifier = Modifier,
+                text = "${currentHourState}\n${currentMinsState}",
+                color = colorResource(id = R.color.faded_grey),
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+                fontSize = 140.sp,
+                lineHeight = 120.sp,
+            )
+
+            Column(
+                modifier = Modifier
+                    .padding(start=20.dp),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center
+            ) {
+                //DAY:
+                Text(
+                    modifier = Modifier,
+                    text = currentDayState,
+                    fontWeight = FontWeight.Medium,
+                    color = colorResource(id = R.color.faded_grey),
+                    fontSize = 32.sp,
+                    lineHeight = 32.sp,
+                )
+                //DATE:
+                Text(
+                    modifier = Modifier
+                        .padding(bottom = 12.dp),
+                    text = currentDateState,
+                    fontWeight = FontWeight.Medium,
+                    color = colorResource(id = R.color.faded_grey),
+                    fontSize = 32.sp,
+                    lineHeight = 32.sp,
+                )
+
+                //PLAYER INFO:
+                PlayerInfo(isLandscape)
+            }
+        }
     }
 
 
+    //PLAYER INFO:
     @Composable
-    fun PlayerInfo(isLandscape: Boolean) {
-        //PLAYER INFO:
-        val currentPlayingPrefixState by currentPlayingPrefix.observeAsState()
+    fun PlayerInfo(
+        isLandscape: Boolean,
+    ) {
         val currentSongPlayingState by currentSongPlaying.observeAsState()
         val currentArtistPlayingState by currentArtistPlaying.observeAsState()
-
-        val mContext = LocalContext.current
-        val playerDialogOn = rememberSaveable { mutableStateOf(false) }
-        if (playerDialogOn.value) {
-            PlayerDialog(mContext, playerDialogOn)
-        }
-
         Card(
-            onClick = { playerDialogOn.value = true },
             modifier = Modifier
-                .padding(
-                    top = if (!isLandscape) 20.dp else 10.dp,
-                    bottom = if (!isLandscape) 40.dp else 0.dp
-                )
-                .wrapContentSize(),
+                .padding(top = 12.dp)
+                .width(160.dp),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors (
                 containerColor = colorResource(id = R.color.dark_grey_background)
             )
         ) {
-            Row(
+            Column(
                 modifier = Modifier
-                    .padding(
-                        top=10.dp,
-                        bottom=10.dp,
-                        start=24.dp,
-                        end=24.dp
-                    ),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.Start
             ) {
-                //ARTWORK ICON:
-                RoundedSign(
-                    signSize = 50.dp,
-                    contentSize = 30,
-                    backgroundColor = colorResource(id = R.color.black),
-                    borderColor = colorResource(id = R.color.faded_grey),
-                    contentColor = colorResource(id = R.color.midfaded_grey),
-                    iconPainter = painterResource(id = R.drawable.icon_note)
+                //ICON:
+                Icon(
+                    modifier = Modifier
+                        .size(30.dp),
+                    painter = painterResource(id = R.drawable.icon_note),
+                    contentDescription = "Item image",
+                    tint = colorResource(id = R.color.midfaded_grey),
                 )
-                Column(
+                //SONG NAME:
+                Text(
+                    modifier = Modifier
+                        .padding(bottom=2.dp),
+                    text = currentSongPlayingState!!,
+                    color = colorResource(id = R.color.mid_grey),
+                    fontSize = 16.sp,
+                    lineHeight = 16.sp,
+                    fontStyle = FontStyle.Italic
+                )
+                //ARTIST NAME:
+                Text(
                     modifier = Modifier,
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    if (currentPlayingPrefixState != "") {
-                        //PREFIX:
-                        Row(
-                            modifier = Modifier
-                                .padding(start = 14.dp, bottom = 2.dp),
-                            horizontalArrangement = Arrangement.Start,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                modifier = Modifier
-                                    .padding(end = 6.dp)
-                                    .size(16.dp),
-                                painter = painterResource(R.drawable.logo_spotify),
-                                contentDescription = "Spotify",
-                                tint = colorResource(id = R.color.midfaded_grey)
-                            )
-                            Text(
-                                modifier = Modifier
-                                    .padding(end = 6.dp),
-                                text = currentPlayingPrefixState!!,
-                                lineHeight = 12.sp,
-                                color = colorResource(id = R.color.midfaded_grey),
-                                fontSize = 12.sp,
-                                // fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                    //SONG NAME:
-                    Text(
-                        modifier = Modifier
-                            .padding(start = 14.dp),
-                        text = currentSongPlayingState!!,
-                        color = colorResource(id = R.color.mid_grey),
-                        fontSize = 18.sp,
-                        fontStyle = FontStyle.Italic
-                    )
-                    //ARTIST NAME:
-                    Text(
-                        modifier = Modifier
-                            .padding(start = 14.dp),
-                        text = currentArtistPlayingState!!,
-                        lineHeight = 16.sp,
-                        color = colorResource(id = R.color.mid_grey),
-                        fontSize = 16.sp
-                    )
-                }
+                    text = currentArtistPlayingState!!,
+                    fontSize = 14.sp,
+                    lineHeight = 14.sp,
+                    color = colorResource(id = R.color.mid_grey)
+                )
             }
         }
     }
 
-
     @Composable
-    fun CloseButton(
-        pointForward: Boolean = false
-    ) {
-        RoundedSign(
-            modifier = Modifier
-                .padding(start = 20.dp, end = 20.dp)
-                .clickable {
-                    //Start Main:
-                    utils.openActivity(this, MainActivity::class.java)
-                    finish()
-                },
-            signSize = 50.dp,
-            contentSize = 32,
-            backgroundColor = colorResource(R.color.black),
-            borderColor = colorResource(id = R.color.faded_grey),
-            contentColor = colorResource(id = R.color.faded_grey),
-            borderWidth = 2.5.dp,
-            iconVector = if (pointForward) Icons.AutoMirrored.Default.ArrowForward else Icons.AutoMirrored.Default.ArrowBack,
-        )
-    }
-
-
-    @Composable
-    fun ClosePlaceholder() {
-        Box(
-            modifier= Modifier
-                .padding(start = 20.dp, end = 20.dp)
-                .size(50.dp)
-                .background(colorResource(id = R.color.black))
-        )
-    }
-
-
-    @Composable
-    fun PlayerDialog(
+    fun UnlockButton(
         context: Context,
-        playerDialogOn: MutableState<Boolean>
+        modifier: Modifier,
     ) {
-        GeneralDialog(
-            dialogOnState = playerDialogOn,
-            backgroundColor = colorResource(id = R.color.dark_grey),
-            title = "To get the best DJames experience",
-            content = {
-                //TEXT 1:
-                Text(
-                    text = "Open your Spotify app, then go to \"Settings & Privacy\" -> \"Playback\" and ensure these 2 toggles are ON:",
-                    modifier = Modifier.padding(bottom=8.dp),
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 14.sp
-                )
-                //IMAGE:
-                Image(
-                    painter = painterResource(id = R.drawable.spotify_settings),
-                    contentDescription = "Spotify player settings",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .padding(top = 8.dp, bottom = 8.dp)
-                        .fillMaxWidth()
-                )
-                //TEXT 2:
-                Text(
-                    text = "This will enable player info and ensure continuous playback.",
-                    modifier = Modifier.padding(top=8.dp),
-                    color = colorResource(id = R.color.light_grey),
-                    textAlign = TextAlign.Start,
-                    fontSize = 14.sp
-                )
-            },
-            dismissText = "Ok"
-        )
+        Column(
+            modifier = modifier,
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            RoundedSign(
+                modifier = Modifier
+                    .padding(start = 20.dp, end = 20.dp)
+                    .clickable {
+                        // Go to Home:
+                        finish()
+                        mainActive.postValue(true)
+                        utils.openActivity(context, MainActivity::class.java)
+                    },
+                signSize = 80.dp,
+                contentSize = 40,
+                backgroundColor = colorResource(R.color.faded_grey),
+                borderColor = colorResource(id = R.color.transparent_full),
+                contentColor = colorResource(id = R.color.mid_grey),
+                iconPainter = painterResource(R.drawable.icon_lock),
+            )
+            Text(
+                modifier = Modifier
+                    .padding(top=12.dp),
+                text = "Unlock",
+                color = colorResource(id = R.color.midfaded_grey),
+                fontSize = 18.sp
+            )
+        }
     }
 
 
@@ -437,23 +454,16 @@ class ClockActivity: ComponentActivity() {
     override fun onBackPressed() {
         finish()
         //Start Main:
+        mainActive.postValue(true)
         utils.openActivity(this, MainActivity::class.java)
     }
 
     fun updateDateClock() {
         var now = LocalDateTime.now()
+        currentDay.postValue(now.format(dayFormat))
         currentDate.postValue(now.format(dateFormat))
         currentHour.postValue(now.format(hourFormat))
         currentMins.postValue(now.format(minsFormat))
-    }
-
-    fun updatePlayer() {
-        //Populate player info:
-        if (currentPlayingPrefix.value == "") {
-            currentPlayingPrefix.postValue("Last song played")
-        }
-        currentSongPlaying.postValue(utils.trimString(songName, 25))
-        currentArtistPlaying.postValue(utils.trimString(artistName, 25))
     }
 
 
@@ -464,18 +474,6 @@ class ClockActivity: ComponentActivity() {
             //Update clock (every minute):
             if (intent!!.action == ACTION_TIME_TICK) {
                 updateDateClock()
-                if (!enablePlayerInfo) {
-                    enablePlayerInfo = true
-                    if (songName != "") {
-                        updatePlayer()
-                    }
-                }
-            }
-
-            //Update player:
-            if (intent.action == ACTION_UPDATE_PLAYER) {
-                Log.d(TAG, "CLOCK: ACTION_UPDATE_PLAYER.")
-                updatePlayer()
             }
 
             //Finish activity:
@@ -487,7 +485,6 @@ class ClockActivity: ComponentActivity() {
                     utils.openActivity(applicationContext, MainActivity::class.java)
                 }
             }
-
         }
     }
 

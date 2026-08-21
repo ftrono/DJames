@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
-import androidx.navigation.NavController
-import com.ftrono.DJames.ui.theme.NavigationItem
 import com.ftrono.DJames.R
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
@@ -31,9 +29,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
@@ -48,24 +44,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import com.ftrono.DJames.application.lastNavRoute
-import com.ftrono.DJames.application.extraOpen
-import com.ftrono.DJames.application.libCats
+import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.utils
@@ -73,7 +65,6 @@ import com.ftrono.DJames.be.models.SelectorItem
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.selectors.iconSelector
 import com.ftrono.DJames.ui.selectors.colorSelectorLight
-import com.ftrono.DJames.ui.selectors.iconSelector
 
 
 @Composable
@@ -170,12 +161,16 @@ fun StreetUITopBar(
     onBack: () -> Unit = {},
     optionButtons: @Composable() (RowScope.() -> Unit) = {}
 ) {
+    val clockActiveState by clockActive.observeAsState()
+
     //HEADER:
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(65.dp)
-            .background(colorResource(id = R.color.windowBackground)),
+            .background(
+                colorResource(if (clockActiveState!!) R.color.black else R.color.windowBackground)
+            ),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -210,7 +205,7 @@ fun StreetUITopBar(
             }
             Text(
                 text = title,
-                fontSize = 24.sp,
+                fontSize = if (pretitle == "" && subtitle == "") 20.sp else 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorResource(id = R.color.light_grey),
             )
@@ -229,92 +224,6 @@ fun StreetUITopBar(
     }
 }
 
-
-@Preview(widthDp = 500)
-@Composable
-fun TopSplitterBarPreview() {
-    // Load splitter cats:
-    val libSplitterItems = mutableListOf<SelectorItem>()
-    for (cat in libCats) {
-        libSplitterItems.add(
-            SelectorItem(
-                id = cat,
-                title = if (cat == "spotify") "Spotify links" else "${utils.capitalizeWords(cat)}s",
-                iconPainter = iconSelector(cat),
-                color = colorSelectorLight(cat),
-            )
-        )
-    }
-
-    val currentCatState = rememberSaveable { mutableStateOf(libCats[0]) }
-    TopSplitterBar(
-        currentItemState = currentCatState,
-        items = libSplitterItems,
-        showBack = true,
-        optionButtons = {
-            //TODO
-            TopBarMenu(
-                backgroundColor = colorResource(R.color.blueSign),
-                contentText = "20"
-            )
-        }
-    )
-}
-
-
-
-//TOP SPLITTER BAR:
-@Composable
-fun TopSplitterBar(
-    currentItemState: MutableState<String>,
-    items: MutableList<SelectorItem>,
-    showBack: Boolean = false,
-    onBack: () -> Unit = {},
-    onNavClick: () -> Unit = {},
-    optionButtons: @Composable() (RowScope.() -> Unit) = {}
-) {
-    //HEADER:
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(65.dp)
-            .background(colorResource(id = R.color.windowBackground)),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        //BACK:
-        if (showBack) {
-            Icon(
-                modifier = Modifier
-                    .padding(start = 18.dp)
-                    .size(30.dp)
-                    .clickable {
-                        onBack()
-                    },
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint = colorResource(id = R.color.light_grey)
-            )
-        }
-
-        //SPLITTER SIGN (bigger weight with margins):
-        Row(
-            modifier = Modifier
-                .weight(1F),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            SplitterSign(
-                currentItemState = currentItemState,
-                items = items,
-                onNavClick = onNavClick,
-            )
-        }
-
-        //OPTIONS BUTTONS:
-        optionButtons()
-    }
-}
 
 @Composable
 fun SplitterSign(
@@ -461,15 +370,15 @@ fun SplitterCat(
 @Composable
 fun FiltersRow(
     snapshot: MutableState<Long>,
-    currentCatState: MutableState<String>,
+    currentCat: String,
     currentSubCatState: MutableState<String>,
     preview: Boolean = false,
 ) {
-    var filters = if (currentCatState.value == "spotify") libUtils.getSubcats(currentCatState.value, preview) else listOf()
+    var filters = libUtils.getSubcats(currentCat, preview)
 
     // When snapshot changes, reload data
     LaunchedEffect(snapshot.value) {
-        filters = if (currentCatState.value == "spotify") libUtils.getSubcats(currentCatState.value, preview) else listOf()
+        filters = libUtils.getSubcats(currentCat, preview)
     }
 
     if (filters.size > 1) {
@@ -546,29 +455,10 @@ fun FiltersRow(
 @Preview
 @Composable
 fun MainNavBarPreview1() {
-    val navController = rememberNavController()
     val clickCounterState by remember { mutableStateOf(0) }
-    val navItemLeft = NavigationItem.Library
-    val navItemRight = NavigationItem.Messages
-    val items = mutableListOf(
-        SelectorItem(
-            id = navItemLeft.route,
-            title = navItemLeft.title,
-            iconPainter = painterResource(navItemLeft.icon),
-        ),
-        SelectorItem(
-            id = navItemRight.route,
-            title = navItemRight.title,
-            iconPainter = painterResource(navItemRight.icon),
-        )
-    )
-
     MainNavBar(
-        navController = navController,
         clickCounterState = clickCounterState,
         isLandscape = false,
-        items = items,
-        preview = true,
     )
 }
 
@@ -576,262 +466,111 @@ fun MainNavBarPreview1() {
 @Preview(heightDp = 360, widthDp = 100)
 @Composable
 fun MainNavBarPreview2() {
-    val navController = rememberNavController()
     val clickCounterState by remember { mutableStateOf(0) }
-    val items = mutableListOf(
-        SelectorItem(
-            id = "restart",
-            title = "Restart",
-            iconVector = Icons.Default.Refresh,
-        ),
-        SelectorItem(
-            id = "cancel",
-            title = "Cancel",
-            iconVector = Icons.Default.Close,
-        )
-    )
-
     MainNavBar(
-        navController = navController,
         clickCounterState = clickCounterState,
         isLandscape = true,
-        items = items,
-        preview = true,
     )
 }
 
 
 @Composable
-fun NavSideItem(
-    modifier: Modifier,
-    navController: NavController,
-    backgroundColor: Color,
-    item: SelectorItem,
+fun StartButton(
+    overlayActiveState: Boolean,
+    onClickCenter: () -> Unit = {},
+    clockActiveState: Boolean,
 ) {
-    // States:
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-    val extraOpenState by extraOpen.observeAsState()
-
-    // Colours:
-    val itemColor = colorResource(R.color.midfaded_grey)
-    val selectedColor = colorResource(R.color.light_grey)
-
-    Card(
-        modifier = modifier
-            .clickable {
-                if (item.useCustomClick) {
-                    //Navigate:
-                    val curNavRoute = item.id
-                    if (curNavRoute == lastNavRoute && (extraOpenState!!)) {
-                        navController.popBackStack()
-                    } else {
-                        navigateTo(navController, curNavRoute)
-                    }
-                    lastNavRoute = curNavRoute
-                } else {
-                    // Custom:
-                    item.onClick()
-                }
-            },
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = backgroundColor
-        ),
-    ) {
-        Column(
-            modifier = Modifier
-                .size(52.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            if (item.iconVector != null) {
-                Icon(
-                    modifier = Modifier
-                        .size(28.dp),
-                    imageVector = item.iconVector!!,
-                    contentDescription = item.title,
-                    tint = if (item.useCustomClick && currentRoute == item.id) selectedColor else itemColor,
-                )
-            } else {
-                Icon(
-                    modifier = Modifier
-                        .size(28.dp),
-                    painter = item.iconPainter!!,
-                    contentDescription = item.title,
-                    tint = if (item.useCustomClick && currentRoute == item.id) selectedColor else itemColor,
-                )
-            }
-            Text(
-                modifier = Modifier
-                    .padding(top = 4.dp),
-                text = item.title,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (item.useCustomClick && currentRoute == item.id) selectedColor else itemColor,
-                textAlign = TextAlign.Center,
-            )
-        }
-    }
-}
-
-
-@Composable
-fun NavBarContent(
-    navController: NavController,
-    clickCounterState: Int,
-    isLandscape: Boolean,
-    backgroundColor: Color,
-    items: MutableList<SelectorItem>,
-) {
-    if (clickCounterState == 0) {
-        // LEFT ITEM:
-        NavSideItem(
-            modifier = Modifier
-                .padding(
-                    top = if (isLandscape) 14.dp else 0.dp,
-                    bottom = if (isLandscape) 14.dp else 0.dp,
-                    start = if (isLandscape) 0.dp else 14.dp,
-                    end = if (isLandscape) 0.dp else 14.dp,
-                ),
-            navController = navController,
-            backgroundColor = backgroundColor,
-            item = items[0],
-        )
-
-        // Center button (placeholder):
+    if (overlayActiveState) {
+        // Placeholder:
         Box(
             modifier = Modifier
                 .clip(CircleShape)
-                .width(if (isLandscape) 10.dp else 100.dp)
-                .height(if (isLandscape) 100.dp else 10.dp)
-                .background(backgroundColor)
-            // .border(width = 2.dp, color = colorResource(R.color.midfaded_grey), shape = CircleShape),
-        )
-
-        // RIGHT ITEM:
-        NavSideItem(
-            modifier = Modifier
-                .padding(
-                    top = if (isLandscape) 14.dp else 0.dp,
-                    bottom = if (isLandscape) 14.dp else 0.dp,
-                    start = if (isLandscape) 0.dp else 14.dp,
-                    end = if (isLandscape) 0.dp else 14.dp,
+                .size(100.dp)
+                .background(
+                    colorResource(if (clockActiveState) R.color.black else R.color.windowBackground)
                 ),
-            navController = navController,
-            backgroundColor = backgroundColor,
-            item = items[1],
         )
+    } else {
+        // Button:
+        Box(
+            modifier = Modifier
+                .clip(CircleShape)
+                .size(100.dp)
+                .background(
+                    colorResource(R.color.faded_grey)
+                )
+                .clickable { onClickCenter() },
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                modifier = Modifier
+                    .size(50.dp),
+                painter = painterResource(R.drawable.icon_touch),
+                contentDescription = "Cancel",
+                tint = colorResource(R.color.light_grey),
+            )
+        }
     }
 }
 
 
 @Composable
 fun MainNavBar(
-    navController: NavController,
     clickCounterState: Int,
     isLandscape: Boolean,
-    items: MutableList<SelectorItem>,
-    preview: Boolean = false,
     onClickCenter: () -> Unit = {},
 ) {
-    // States:
     val overlayActiveState by overlayActive.observeAsState()
-
-    // Colours:
-    val backgroundColor = colorResource(R.color.dark_grey_background)
+    val clockActiveState by clockActive.observeAsState()
 
     // Background:
     Box(
         modifier = if (isLandscape) {
             Modifier
                 .fillMaxHeight()
-                .background(colorResource(R.color.windowBackground))
+                .width(100.dp)
+                .background(
+                    colorResource(if (clockActiveState!!) R.color.black else R.color.windowBackground)
+                )
         } else {
             Modifier
                 .fillMaxWidth()
-                .background(colorResource(R.color.windowBackground))
+                .height(170.dp)
+                .background(
+                    colorResource(if (clockActiveState!!) R.color.black else R.color.windowBackground)
+                )
             },
         contentAlignment = Alignment.Center,
     ) {
-        // Selector:
-        Card(
-            modifier = if (isLandscape) {
-                Modifier
-                    .padding(top = 24.dp, bottom = 24.dp, start = 0.dp, end = 0.dp)
-                    .fillMaxHeight()
-            } else {
-                Modifier
-                    .padding(top = 0.dp, bottom = 0.dp, start = 32.dp, end = 32.dp)
-                    .fillMaxWidth()
-            },
-            border = BorderStroke(2.dp, colorResource(id = R.color.dark_grey)),
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = backgroundColor,
-            )
-        ) {
-            if (isLandscape) {
-                // LANDSCAPE MODE:
-                Column(
-                    modifier = Modifier
-                        .padding(top = 14.dp, bottom = 14.dp, start = 8.dp, end = 8.dp)
-                        .width(52.dp)
-                        .fillMaxHeight(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    NavBarContent(
-                        navController = navController,
-                        clickCounterState = clickCounterState,
-                        isLandscape = true,
-                        backgroundColor = backgroundColor,
-                        items = items,
-                    )
-                }
-
-            } else {
-                // PORTRAIT MODE:
-                Row(
-                    modifier = Modifier
-                        .padding(top = 8.dp, bottom = 8.dp, start = 14.dp, end = 14.dp)
-                        .height(52.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    NavBarContent(
-                        navController = navController,
-                        clickCounterState = clickCounterState,
-                        isLandscape = false,
-                        backgroundColor = backgroundColor,
-                        items = items,
-                    )
-                }
-            }
-        }
-        // Center button (placeholder):
-        Box(
+        Column(
             modifier = Modifier
-                .clip(CircleShape)
-                .size(100.dp)
-                .background(
-                    if (overlayActiveState!!) {
-                        colorResource(R.color.colorStop)
-                    } else {
-                        colorResource(R.color.colorPrimary)
-                    }
-                )
-                .clickable { onClickCenter() },
-            contentAlignment = Alignment.Center,
-            ) {
-                Icon(
+                .fillMaxHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = if (isLandscape) Arrangement.Center else Arrangement.Bottom,
+        ) {
+            if (clickCounterState == 0 && (!isLandscape || !overlayActiveState!!)) {
+                // Text:
+                Text(
                     modifier = Modifier
-                        .size(50.dp),
-                    painter = painterResource(R.drawable.icon_touch),
-                    contentDescription = "Cancel",
-                    tint = colorResource(R.color.light_grey),
+                        .padding(top=12.dp, bottom=12.dp),
+                    text = if (!overlayActiveState!!) {
+                        "Tap to start"
+                    } else {
+                        "Keep screen on for voice commands\n" +
+                        "Tap or Volume Up to speak"
+                    },
+                    fontSize = 14.sp,
+                    fontStyle = FontStyle.Italic,
+                    textAlign = TextAlign.Center,
+                    color = colorResource(id = R.color.mid_grey),
                 )
             }
+            // Button:
+            StartButton(
+                overlayActiveState=overlayActiveState!!,
+                onClickCenter=onClickCenter,
+                clockActiveState=clockActiveState!!,
+            )
+        }
     }
 }

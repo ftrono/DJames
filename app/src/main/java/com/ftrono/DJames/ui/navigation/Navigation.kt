@@ -52,7 +52,7 @@ fun Navigation(
         startDestination = NavigationItem.Home.route
     ) {
         //MAIN:
-        //0 -> HOME:
+        //1 -> HOME:
         composable(
             NavigationItem.Home.route,
             enterTransition = {
@@ -84,14 +84,14 @@ fun Navigation(
                     )
                 ) + slideIntoContainer(
                     animationSpec = tween(300, easing = EaseIn),
-                    towards = if (curNavId >= 0) {
+                    towards = if (curNavId > 1) {
                         AnimatedContentTransitionScope.SlideDirection.End
                     } else {
                         AnimatedContentTransitionScope.SlideDirection.Start
                     }
                 )
             }) {
-            curNavId = 0
+            curNavId = 2
             extraOpen.postValue(false)
             LibraryScreen(navController, preview=preview)
         }
@@ -106,14 +106,14 @@ fun Navigation(
                     )
                 ) + slideIntoContainer(
                     animationSpec = tween(300, easing = EaseIn),
-                    towards = if (curNavId > 2) {
+                    towards = if (curNavId > 1) {
                         AnimatedContentTransitionScope.SlideDirection.End
                     } else {
                         AnimatedContentTransitionScope.SlideDirection.Start
                     }
                 )
             }) {
-            curNavId = 2
+            curNavId = 3
             extraOpen.postValue(false)
             MessagesScreen(navController, chatManager, sharedViewModel, preview)
         }
@@ -123,13 +123,20 @@ fun Navigation(
         composable(
             NavigationItem.Accounts.route,
             enterTransition = {
-                scaleIn() + expandVertically(expandFrom = Alignment.Bottom)
-            },
-            exitTransition = {
-                scaleOut() + shrinkVertically(shrinkTowards = Alignment.Bottom)
-            }
-        ) {
-            curNavId = 0
+                fadeIn(
+                    animationSpec = tween(
+                        300, easing = LinearEasing
+                    )
+                ) + slideIntoContainer(
+                    animationSpec = tween(300, easing = EaseIn),
+                    towards = if (curNavId > 1) {
+                        AnimatedContentTransitionScope.SlideDirection.End
+                    } else {
+                        AnimatedContentTransitionScope.SlideDirection.Start
+                    }
+                )
+            }) {
+            curNavId = 4
             extraOpen.postValue(true)
             AccountsScreen(navController, preview)
         }
@@ -138,13 +145,20 @@ fun Navigation(
         composable(
             NavigationItem.Settings.route,
             enterTransition = {
-                scaleIn() + expandVertically(expandFrom = Alignment.Bottom)
-            },
-            exitTransition = {
-                scaleOut() + shrinkVertically(shrinkTowards = Alignment.Bottom)
-            }
-        ) {
-            curNavId = 0
+                fadeIn(
+                    animationSpec = tween(
+                        300, easing = LinearEasing
+                    )
+                ) + slideIntoContainer(
+                    animationSpec = tween(300, easing = EaseIn),
+                    towards = if (curNavId > 1) {
+                        AnimatedContentTransitionScope.SlideDirection.End
+                    } else {
+                        AnimatedContentTransitionScope.SlideDirection.Start
+                    }
+                )
+            }) {
+            curNavId = 5
             extraOpen.postValue(true)
             SettingsScreen(navController, preview)
         }

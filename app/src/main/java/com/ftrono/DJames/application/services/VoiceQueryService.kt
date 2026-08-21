@@ -19,6 +19,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_REC_STOP
+import com.ftrono.DJames.application.App.Companion.toneGen
 import com.ftrono.DJames.application.defaultReplies
 import com.ftrono.DJames.application.lastUserMessageText
 import com.ftrono.DJames.application.lastAiMessageText
@@ -47,7 +48,6 @@ class VoiceQueryService: Service() {
 
     //Main:
     private val TAG = this::class.java.simpleName
-    private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
     private val audioRequestsManager = AudioRequestsManager()
     private lateinit var tts: TTSReader
     private lateinit var agentsGraph: AgentsGraph

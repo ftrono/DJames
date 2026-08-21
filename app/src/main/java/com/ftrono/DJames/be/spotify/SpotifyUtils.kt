@@ -9,6 +9,7 @@ import android.webkit.URLUtil
 import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import com.ftrono.DJames.application.ACTION_TOASTER
+import com.ftrono.DJames.application.App.Companion.toneGen
 import com.ftrono.DJames.application.albumUrlIntro
 import com.ftrono.DJames.application.artistUrlIntro
 import com.ftrono.DJames.application.currentTrackId
@@ -18,6 +19,8 @@ import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.playlistUrlIntro
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.showUrlIntro
+import com.ftrono.DJames.application.spotCollectionUrl
+import com.ftrono.DJames.application.spotIntroUrl
 import com.ftrono.DJames.application.spotifyParsers
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.trackUrlIntro
@@ -63,6 +66,16 @@ class SpotifyUtils {
     //Get item ID:
     fun getSpotifyID(url: String): String {
         return url.split("/").last()
+    }
+
+
+    // Get item URL:
+    fun getSpotifyUrl(id: String, type: String): String {
+        return if (id == "collection") {
+            spotCollectionUrl
+        } else {
+            "$spotIntroUrl/$type/$id"
+        }
     }
 
 
@@ -133,7 +146,6 @@ class SpotifyUtils {
     fun checkLinkAndExtract(
         context: Context,
         idState: MutableState<Long>,
-        currentCatState: MutableState<String>,
         currentSubCatState: MutableState<String>,
         addLinkOnState: MutableState<Boolean>,
         editLibOn: MutableState<Boolean>,
@@ -162,7 +174,6 @@ class SpotifyUtils {
             }
             if (urlToCheck != "") {
                 //Go to right Edit Lib dialog:
-                currentCatState.value = "spotify"
                 currentSubCatState.value = ""
 
                 val foundId = libUtils.getLibIDWithUrl(urlToCheck)
@@ -255,7 +266,7 @@ class SpotifyUtils {
 
 
     //Save currently playing track:
-    fun saveCurrentTrack(context: Context, toneGen: ToneGenerator){
+    fun saveCurrentTrack(context: Context){
         Log.d(TAG, "SaveTrack: job start!")
         var toastText = ""
         try {

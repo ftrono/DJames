@@ -63,7 +63,7 @@ import com.ftrono.DJames.ui.components.OptionsItem
 import com.ftrono.DJames.ui.components.OptionsMenu
 import com.ftrono.DJames.ui.components.MessageBubble
 import com.ftrono.DJames.ui.components.StreetUIScaffold
-import com.ftrono.DJames.ui.overlay.TypingIndicator
+import com.ftrono.DJames.ui.components.TypingIndicator
 import com.ftrono.DJames.ui.navigation.SharedViewModel
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
@@ -123,9 +123,9 @@ fun MessagesScreen(
         lineDistance = 20.dp,
         topBar = {
             StreetUITopBar(
-                pretitle = "",
-                title = "Chat",
-                subtitle = if (selectedMessageIds.isNotEmpty()) "Selected" else "Last $maxHistoryDays days",
+                pretitle = "H I S T O R Y",
+                title = if (selectedMessageIds.isNotEmpty()) "Selected" else "Last $maxHistoryDays days",
+                subtitle = "",
                 showBack = true,
                 onBack = { navController.popBackStack() },
                 optionButtons = {
@@ -203,8 +203,8 @@ fun MessagesScreen(
                     Column(
                         modifier = Modifier
                             .padding(
-                                start = 32.dp,
-                                end = 24.dp,
+                                start = 36.dp,
+                                end = 20.dp,
                                 top = 8.dp,
                                 bottom = 8.dp
                             )

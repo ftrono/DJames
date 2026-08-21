@@ -53,13 +53,15 @@ class EventReceiver: BroadcastReceiver() {
             Log.d(TAG, "EVENT: SPOTIFY_METADATA_CHANGED.")
             try {
                 //Get new track data:
+                // Keyset: [timeSent, duration, artist, length, albumId, playbackPosition, id, album, track, position]
+                val timeSent = intent.getLongExtra("timeSent", 0L)
                 val intentTrackId = intent.getStringExtra("id")
                 val intentSongName = intent.getStringExtra("track")
                 val intentArtistName = intent.getStringExtra("artist")
                 val intentAlbumName = intent.getStringExtra("album")
 
                 //If new track:
-                if (intentTrackId != currentTrackId) {
+                if (!utils.isTimeElapsed(timeSent, 30L, "mins") && intentTrackId != currentTrackId) {
                     //Update currently_playing JSON:
                     currently_playing = JsonObject()
                     currently_playing!!.addProperty("id", intentTrackId)
@@ -75,16 +77,12 @@ class EventReceiver: BroadcastReceiver() {
                     artistName = intentArtistName!!
                     contextName = intentAlbumName!!
 
-                    //Update player -> Send broadcast:
-                    if (enablePlayerInfo) {
-                        Intent().also { intent ->
-                            intent.setAction(ACTION_UPDATE_PLAYER)
-                            context!!.sendBroadcast(intent)
-                        }
-                    }
+                    //Update player:
+                    currentSongPlaying.postValue(utils.trimString(songName, 25))
+                    currentArtistPlaying.postValue(utils.trimString(artistName, 25))
                 }
             } catch (e: Exception) {
-                Log.d(TAG, "EVENT: SPOTIFY_METADATA_CHANGED: resources not available.")
+                Log.d(TAG, "EVENT: SPOTIFY_METADATA_CHANGED: older timestamp or resources not available.")
             }
         }
 

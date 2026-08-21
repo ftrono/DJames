@@ -65,6 +65,47 @@ fun getTextFieldColors(
 }
 
 
+//HOME:
+@Composable
+fun colorSelectorHome(
+    cat: String
+): Color {
+    return when (cat) {
+        // Modes:
+        "spotify" -> colorResource(R.color.greenSign)
+        "contact" -> colorResource(id = R.color.blueSign)
+        "place" -> colorResource(id = R.color.brownSign)
+        else -> colorResource(id = R.color.faded_grey)
+    }
+}
+
+@Composable
+fun colorSelectorHomeDark(
+    cat: String
+): Color {
+    return when (cat) {
+        // Modes:
+        "spotify" -> colorResource(R.color.greenSignDark)
+        "contact" -> colorResource(id = R.color.blueSignDark)
+        "place" -> colorResource(id = R.color.brownSignDark)
+        else -> colorResource(id = R.color.dark_grey)
+    }
+}
+
+@Composable
+fun colorSelectorHomeLight(
+    cat: String
+): Color {
+    return when (cat) {
+        // Modes:
+        "spotify" -> colorResource(R.color.greenSignLight)
+        "contact" -> colorResource(id = R.color.blueSignLight)
+        "place" -> colorResource(id = R.color.brownSignLight)
+        else -> colorResource(id = R.color.midfaded_grey)
+    }
+}
+
+
 //MAIN:
 @Composable
 fun colorSelector(

@@ -44,7 +44,13 @@ class LibraryUtils {
     }
 
     // GET ALL ITEMS:
-    fun getAll(cat: String = "", subcat: String = "", excludeDefault: Boolean = false, preview: Boolean = false): List<LibraryItem> {
+    fun getAll(
+        cat: String = "",
+        subcat: String = "",
+        excludeDefault: Boolean = false,
+        limit: Int? = null,
+        preview: Boolean = false,
+    ): List<LibraryItem> {
         try {
             var libraryItems = mutableListOf<LibraryItem>()
             if (!excludeDefault && ((cat == "spotify" && subcat == "") || subcat == "playlist")) {
@@ -78,7 +84,11 @@ class LibraryUtils {
                     )
                 }
             }
-            return libraryItems.sortedBy { it.name.uppercase() }
+            return if (limit != null && libraryItems.size > limit) {
+                libraryItems.sortedBy { it.name.uppercase() }.slice(0..<limit)
+            } else {
+                libraryItems.sortedBy { it.name.uppercase() }
+            }
         } catch (e: Exception) {
             Log.w(TAG, "ERROR: cannot get All items with cat: $cat and subcat: $subcat! ", e)
             return listOf()
@@ -288,6 +298,7 @@ class LibraryUtils {
                 id = if (libItem.id == -2L) "collection" else spotifyUtils.getSpotifyID(libItem.url),      // Important!
                 matchScore = matchScore,
                 type = libItem.type,
+                imageUrl = libItem.imageUrl,
                 artist = if (libItem.type == "artist") {
                     SpotifyArtist(
                         id = spotifyUtils.getSpotifyID(libItem.url),

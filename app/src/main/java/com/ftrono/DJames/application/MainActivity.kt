@@ -9,7 +9,6 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -20,9 +19,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -36,9 +32,10 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
@@ -46,12 +43,10 @@ import com.ftrono.DJames.application.dialogs.MultiPermissionsHandler
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.services.OverlayService
 import com.ftrono.DJames.be.agents.chat.ChatManager
-import com.ftrono.DJames.be.models.SelectorItem
 import com.ftrono.DJames.ui.components.isKeyboardOpen
 import com.ftrono.DJames.ui.navigation.MainNavBar
 import com.ftrono.DJames.ui.navigation.Navigation
 import com.ftrono.DJames.ui.theme.DJamesTheme
-import com.ftrono.DJames.ui.theme.NavigationItem
 import com.ftrono.DJames.ui.theme.windowBackground
 import java.io.File
 
@@ -83,6 +78,9 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        mainActive.postValue(true)
+        forceUndock.postValue(false)
+
         //Screen density:
         density = resources.displayMetrics.density
 
@@ -93,7 +91,7 @@ class MainActivity : ComponentActivity() {
         //Check Spotify Login status:
         if (prefs.spotifyToken == "") {
             spotifyLoggedIn.postValue(false)
-        } else if (utils.isTimeExpired(prefs.spotLastRefreshAuth, 5L)) {
+        } else if (utils.isTimeElapsed(prefs.spotLastRefreshAuth, 5L, "months")) {
             spotifyLoginUtils.logout(context, expired=true)
         } else {
             spotifyLoggedIn.postValue(true)
@@ -139,14 +137,47 @@ class MainActivity : ComponentActivity() {
         handleShareIntent(intent)
         main_initialized = true
 
+        // Keyboard open listener:
+        ViewCompat.setOnApplyWindowInsetsListener(window.decorView) { _, insets ->
+            val keyboardVisible =
+                insets.isVisible(WindowInsetsCompat.Type.ime())
+            if (mainKeyboardActive.value != keyboardVisible) {
+                mainKeyboardActive.value = keyboardVisible
+            }
+            insets
+        }
+
     }
 
 
     override fun onDestroy() {
-        super.onDestroy()
+        mainActive.postValue(false)
         //unregister receivers:
         unregisterReceiver(mainActReceiver)
         acts_active.remove(TAG)
+        super.onDestroy()
+    }
+
+    override fun onPause() {
+        mainActive.postValue(false)
+        super.onPause()
+    }
+
+    override fun onStop() {
+        mainActive.postValue(false)
+        super.onStop()
+    }
+
+    override fun onStart() {
+        mainActive.postValue(true)
+        forceUndock.postValue(false)
+        super.onStart()
+    }
+
+    override fun onResume() {
+        mainActive.postValue(true)
+        forceUndock.postValue(false)
+        super.onResume()
     }
 
 
@@ -197,7 +228,7 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        //    //Notifications Listener permission management:
+//    //Notifications Listener permission management:
 //    val requestNotificationListenerOn = rememberSaveable { mutableStateOf(
 //        !utils.isNotificationServiceEnabled(mContext)
 //    ) }
@@ -212,39 +243,6 @@ class MainActivity : ComponentActivity() {
         val chatManager = ChatManager(mContext)
         chatManager.init()
 
-        // NavBar items:
-        // Default:
-        val navItemLeft = NavigationItem.Library
-        val navItemRight = NavigationItem.Messages
-        val navItemsDefault = mutableListOf(
-            SelectorItem(
-                id = navItemLeft.route,
-                title = navItemLeft.title,
-                iconPainter = painterResource(navItemLeft.icon),
-                useCustomClick = true,
-            ),
-            SelectorItem(
-                id = navItemRight.route,
-                title = navItemRight.title,
-                iconPainter = painterResource(navItemRight.icon),
-                useCustomClick = true,
-            )
-        )
-        // Busy:
-        val navItemsBusy = mutableListOf(
-            SelectorItem(
-                id = "restart",
-                title = "Restart",
-                iconVector = Icons.Default.Refresh,
-            ),
-            SelectorItem(
-                id = "cancel",
-                title = "Cancel",
-                iconVector = Icons.Default.Close,
-            )
-        )
-
-
         //MAIN SCREEN:
         Row(
             modifier = Modifier
@@ -253,17 +251,12 @@ class MainActivity : ComponentActivity() {
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             //SIDE NAV BAR (LEFT):
-            if (isLandscape && overlayPosState == "Right") {   // TODO: invert!
+            if (isLandscape && overlayPosState == "Left") {
                 MainNavBar(
-                    navController = navController,
                     clickCounterState = clickCounterState!!,
                     isLandscape = true,
-                    items = if (queryState == "busy" || queryState == "processing") {
-                        navItemsBusy
-                    } else navItemsDefault,
-                    preview = preview,
                     onClickCenter = {
-                        utils.startStopDriveMode(
+                        utils.startStopOverlay(
                             context = mContext,
                             requestOverlayOn = requestOverlayOn,
                             requestPermissions = requestPermissions,
@@ -280,15 +273,10 @@ class MainActivity : ComponentActivity() {
                 bottomBar = {
                     if (!isLandscape && !isKeyboardOpen()) {
                         MainNavBar(
-                            navController = navController,
                             clickCounterState = clickCounterState!!,
                             isLandscape = false,
-                            items = if (queryState != "busy" && queryState != "processing") {
-                                navItemsDefault
-                            } else navItemsBusy,
-                            preview = preview,
                             onClickCenter = {
-                                utils.startStopDriveMode(
+                                utils.startStopOverlay(
                                     context = mContext,
                                     requestOverlayOn = requestOverlayOn,
                                     requestPermissions = requestPermissions,
@@ -308,15 +296,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
             //SIDE NAV BAR (RIGHT):
-            if (isLandscape && overlayPosState == "Left") {   // TODO: invert!
+            if (isLandscape && overlayPosState == "Right") {
                 MainNavBar(
-                    navController = navController,
                     clickCounterState = clickCounterState!!,
                     isLandscape = true,
-                    items = if (queryState != "busy" && queryState != "processing") navItemsDefault else navItemsBusy,
-                    preview = preview,
                     onClickCenter = {
-                        utils.startStopDriveMode(
+                        utils.startStopOverlay(
                             context = mContext,
                             requestOverlayOn = requestOverlayOn,
                             requestPermissions = requestPermissions,

@@ -1,6 +1,6 @@
 package com.ftrono.DJames.ui.components
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,15 +10,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,64 +35,172 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.utils
 
 
 // SETTINGS UI
-
 @Composable
-fun SettingsSection(
-    modifier: Modifier = Modifier,
-    title: String = "",
-    subtitle: String = "",
-    signColor: Color? = null,
+fun StaticCard(
+    modifier: Modifier,
+    roundedCorners: Dp = 14.dp,
+    title: String,
+    backgroundColor: Color,
     iconPainter: Painter? = null,
     iconVector: ImageVector? = null,
-    content: @Composable () -> Unit
+    fromExpandable: Boolean = false,
+    cornerButton: @Composable () -> Unit = {},
+    content: @Composable () -> Unit = {}
 ) {
-    //TITLE:
-    if (title != "") {
-        SectionTitle(
-            modifier = modifier
-                .padding(end = 8.dp, top = 16.dp, bottom = 8.dp),
-            title = title,
-            subtitle = subtitle,
-            signColor = signColor!!,
-            iconPainter = iconPainter,
-            iconVector = iconVector,
-        )
-    }
-    CardContainer() {
-        content()
+    // CARD:
+    CardSign (
+        modifier = modifier,
+        backgroundColor = backgroundColor,
+        roundedCorners = roundedCorners,
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            // TITLE:
+            Row(
+                modifier = Modifier,
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                // Section title:
+                if (iconVector != null) {
+                    Icon(
+                        modifier = Modifier
+                            .size(20.dp),
+                        contentDescription = title,
+                        imageVector = iconVector,
+                        tint = colorResource(R.color.light_grey)
+                    )
+                } else {
+                    Icon(
+                        modifier = Modifier
+                            .size(20.dp),
+                        contentDescription = title,
+                        painter = iconPainter!!,
+                        tint = colorResource(R.color.light_grey)
+                    )
+                }
+                Text(
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .weight(1F),
+                    text = title,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colorResource(id = R.color.light_grey),
+                )
+                cornerButton()
+            }
+            if (fromExpandable) {
+                content()
+            } else {
+                HorizontalDivider(
+                    modifier = Modifier
+                        .padding(top=6.dp)
+                        .fillMaxWidth(),
+                    color = colorResource(R.color.light_grey),
+                    thickness = 0.5.dp
+                )
+                Column(
+                    modifier = Modifier
+                        .padding(top = 10.dp),
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    content()
+                }
+            }
+        }
     }
 }
 
 
 @Composable
-fun CardContainer(
-    modifier: Modifier = Modifier,
-    internalPadding: Dp = 20.dp,
-    roundedCorners: Dp = 20.dp,
-    containerColor: Color = colorResource(id = R.color.dark_grey_background),
-    content: @Composable () -> Unit
+fun ExpandableCard(
+    modifier: Modifier,
+    roundedCorners: Dp = 14.dp,
+    id: String,
+    title: String,
+    backgroundColor: Color,
+    iconPainter: Painter? = null,
+    iconVector: ImageVector? = null,
+    expandedStates: SnapshotStateMap<String, Boolean>,
+    currentExpanded: MutableState<String>,
+    useCustomCornerButton: Boolean = false,
+    cornerButton: @Composable () -> Unit = {},
+    content: @Composable () -> Unit = {}
 ) {
-    //CARD:
-    Card(
+    utils.updateStatesMap(expandedStates, target = currentExpanded.value)
+    // CARD:
+    StaticCard(
         modifier = modifier
-            .fillMaxWidth(),
-        border = BorderStroke(1.dp, colorResource(id = R.color.dark_grey)),
-        shape = RoundedCornerShape(roundedCorners),
-        colors = CardDefaults.cardColors (
-            containerColor = containerColor
-        )
+            .clickable {
+                //Update global currentExpanded:
+                if (currentExpanded.value == id) {
+                    currentExpanded.value = ""
+                } else {
+                    currentExpanded.value = id
+                }
+                utils.updateStatesMap(expandedStates, target = currentExpanded.value)
+            },
+        roundedCorners = roundedCorners,
+        title = title,
+        backgroundColor = backgroundColor,
+        iconPainter = iconPainter,
+        iconVector = iconVector,
+        fromExpandable = true,
+        cornerButton = {
+            if (currentExpanded.value == id) {
+                if (useCustomCornerButton) {
+                    cornerButton()
+                } else {
+                    Icon(
+                        modifier = Modifier
+                            .size(20.dp),
+                        imageVector = Icons.Rounded.KeyboardArrowUp,
+                        tint = colorResource(id = R.color.light_grey),
+                        contentDescription = "Expand / collapse"
+                    )
+                }
+            } else {
+                Icon(
+                    modifier = Modifier
+                        .size(20.dp),
+                    imageVector = Icons.Rounded.KeyboardArrowDown,
+                    tint = colorResource(id = R.color.light_grey),
+                    contentDescription = "Expand / collapse"
+                )
+            }
+        }
     ) {
-        //SETTINGS LIST:
-        Column(
+        // ON EXPANSION:
+        AnimatedVisibility(
             modifier = Modifier
-                .padding(internalPadding),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start,
+                .fillMaxWidth(),
+            visible = expandedStates[id]!!
         ) {
-            content()
+            Column(
+                modifier = Modifier
+                    .padding(top = 6.dp),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                HorizontalDivider(
+                    modifier = Modifier
+                        .padding(bottom=12.dp)
+                        .fillMaxWidth(),
+                    color = colorResource(R.color.light_grey),
+                    thickness = 0.5.dp
+                )
+                content()
+            }
         }
     }
 }
@@ -101,6 +211,8 @@ fun ExtServiceLoginButton(
     modifier: Modifier = Modifier,
     backgroundColor: Color,
     loggedInState: Boolean,
+    label: String = "",
+    showIcon: Boolean = true,
     onClick: () -> Unit = {}
 ) {
     //SPOTIFY LOGIN STATUS:
@@ -119,23 +231,30 @@ fun ExtServiceLoginButton(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            //Spotify logo:
-            Icon(
-                modifier = Modifier
-                    .padding(12.dp)
-                    .size(20.dp),
-                imageVector = if (loggedInState) Icons.Default.Close else Icons.AutoMirrored.Filled.ExitToApp,
-                tint = colorResource(R.color.light_grey),
-                contentDescription = if (loggedInState) "Disconnect" else "Connect",
-            )
+            if (showIcon) {
+                //Icon:
+                Icon(
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .size(20.dp),
+                    imageVector = if (loggedInState) Icons.Default.Close else Icons.AutoMirrored.Filled.ExitToApp,
+                    tint = colorResource(R.color.light_grey),
+                    contentDescription = if (label != "" && loggedInState) label else if (loggedInState) "Disconnect" else "Connect",
+                )
+            }
             //Text:
             Text(
-                text = if (loggedInState) "Disconnect" else "Connect",
+                modifier = Modifier
+                    .padding(
+                        top = if (showIcon) 0.dp else 4.dp,
+                        bottom = if (showIcon) 0.dp else 4.dp,
+                        start = if (showIcon) 0.dp else 12.dp,
+                        end = 12.dp
+                    ),
+                text = if (label != "" && loggedInState) label else if (loggedInState) "Disconnect" else "Connect",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorResource(id = R.color.light_grey),
-                modifier = Modifier
-                    .padding(end=12.dp),
             )
         }
     }
@@ -162,7 +281,7 @@ fun ExtServiceAccountItem(
         // Logo:
         Image(
             modifier = Modifier
-                .padding(end=8.dp)
+                .padding(end = 8.dp)
                 .size(28.dp),
             painter = iconPainter,
             contentDescription = name,

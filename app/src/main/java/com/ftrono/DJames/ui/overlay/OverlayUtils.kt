@@ -5,34 +5,38 @@ import android.content.Intent
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.ACTION_FINISH_MAIN
 import com.ftrono.DJames.application.ACTION_SAVE_TRACK
 import com.ftrono.DJames.application.ClockActivity
-import com.ftrono.DJames.application.overlayPos
+import com.ftrono.DJames.application.clockActive
+import com.ftrono.DJames.application.forceUndock
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.services.VoiceQueryService
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.isVolumeUpPreferenceSet
 import com.ftrono.DJames.application.isVolumeUpUnlocked
+import com.ftrono.DJames.application.overlayDocked
 import com.ftrono.DJames.be.models.QuickAction
 
 
@@ -92,6 +96,7 @@ fun getQuickActionOnTap(
     } else if (name == "clock") {
         {
             //Start Clock screen:
+            clockActive.postValue(true)
             utils.openActivity(context, ClockActivity::class.java, fromService = true)
             //End Main():
             //Send broadcast:
@@ -108,9 +113,10 @@ fun getQuickActionOnTap(
                 Toast.makeText(context, "Raise volume now!", Toast.LENGTH_SHORT).show()
             }
         }
-    } else if (name == "pos") {
+    } else if (name == "undock") {
         {
-            if (overlayPos.value == "Right") overlayPos.value = "Left" else overlayPos.value = "Right"
+            overlayDocked.postValue(false)
+            forceUndock.postValue(true)
         }
     } else {
         {
@@ -131,11 +137,8 @@ fun getQuickActionOnTap(
 @Composable
 fun getQuickAction(
     name: String,
-    isActive: Boolean,
-    colorActive: Color,
-    colorInactive: Color,
-    currentTimeState: String,
-    overlayPosState: String,
+    currentHourState: String = "00",
+    currentMinsState: String = "00",
 ): QuickAction {
     return if (name == "speak") {
         QuickAction(
@@ -146,7 +149,7 @@ fun getQuickAction(
                     modifier = Modifier
                         .size(34.dp),
                     painter = painterResource(id = R.drawable.icon_mic),
-                    tint = if (isActive) colorActive else colorInactive,
+                    tint = colorResource(R.color.light_grey),
                     contentDescription = "Ask"
                 )
             }
@@ -167,7 +170,7 @@ fun getQuickAction(
                             .offset(x = 6.dp)
                             .size(28.dp),
                         painter = painterResource(R.drawable.logo_spotify),
-                        tint = if (isActive) colorActive else colorInactive,
+                        tint = colorResource(R.color.light_grey),
                         contentDescription = "Save track to Spotify"
                     )
                     Icon(
@@ -175,7 +178,7 @@ fun getQuickAction(
                             .offset(x = 0.dp, y = 10.dp)
                             .size(22.dp),
                         imageVector = Icons.Default.Add,
-                        tint = if (isActive) colorActive else colorInactive,
+                        tint = colorResource(R.color.light_grey),
                         contentDescription = "Save track to Spotify"
                     )
                 }
@@ -186,13 +189,30 @@ fun getQuickAction(
             id = "clock",
             title = "Clock",
             content = {
-                Text(
-                    modifier = Modifier,
-                    text = currentTimeState,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isActive) colorActive else colorInactive,
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text (
+                        modifier = Modifier,
+                        text = "${currentHourState}\n${currentMinsState}",
+                        fontSize = 20.sp,
+                        lineHeight = 18.sp,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Center,
+                        color = colorResource(id = R.color.light_grey)
+                    )
+                    Icon(
+                        modifier = Modifier
+                            .padding(start = 2.dp)
+                            .size(24.dp),
+                        painter = painterResource(R.drawable.icon_lock),
+                        tint = colorResource(id = R.color.mid_grey),
+                        contentDescription = "Raise Volume"
+                    )
+                }
             },
         )
     } else if (name == "volume") {
@@ -200,28 +220,67 @@ fun getQuickAction(
             id = "volume",
             title = "Volume",
             content = {
-                Icon(
+                Column(
                     modifier = Modifier
-                        .size(34.dp),
-                    painter = painterResource(R.drawable.icon_lock),
-                    tint = if (isActive) colorActive else colorInactive,
-                    contentDescription = "Raise Volume"
-                )
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    // Content:
+                    Icon(
+                        modifier = Modifier
+                            .size(28.dp),
+                        painter = painterResource(R.drawable.icon_volume_lock),
+                        tint = colorResource(id = R.color.light_grey),
+                        contentDescription = "Raise Volume"
+                    )
+                    Text(
+                        modifier = Modifier
+                            .padding(top=6.dp),
+                        text = "Volume",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colorResource(id = R.color.light_grey)
+                    )
+                }
             },
         )
-    } else {
+    } else if (name == "undock") {
         QuickAction(
-            id = "pos",
-            title = "Move",
+            id = "undock",
+            title = "Undock",
             content = {
-                Icon(
+                Column(
                     modifier = Modifier
-                        .size(34.dp),
-                    imageVector = if (overlayPosState == "Right") Icons.AutoMirrored.Default.ArrowBack else Icons.AutoMirrored.Default.ArrowForward,
-                    tint = if (isActive) colorActive else colorInactive,
-                    contentDescription = "Raise Volume"
-                )
-            },
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    // Content:
+                    Icon(
+                        modifier = Modifier
+                            .size(28.dp),
+                        painter = painterResource(id = R.drawable.arrow_up),
+                        tint = colorResource(R.color.light_grey),
+                        contentDescription = "Detach"
+                    )
+                    Text(
+                        modifier = Modifier
+                            .padding(top=6.dp),
+                        text = "Detach",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colorResource(id = R.color.light_grey)
+                    )
+                }
+            }
+        )
+    } else {
+        // EMPTY:
+        QuickAction(
+            id = "",
+            title = "",
+            content = { },
         )
     }
 }

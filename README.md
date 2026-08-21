@@ -4,6 +4,8 @@ DJames is a vocal Spotify remote & smart driving assistant for Android. It makes
 
 DJames integrates ***KAIGraph***, an **agentic orchestration framework** I built for Kotlin, inspired by LangGraph.
 
+Current work (**v3.1+**) is focused on evolving the vocal assistant from a music launcher into an actual **music profiler and recommender**. I'm working on adding an in-app SQL DB (using Room) to track the user's music listening activity, categorise played songs by genre & artist (using either Spotify's or an alternative API) and implement a music recommender algorithm with playback queue management capabilities.
+
 Future work will involve the testing and integration of:
 * *smaller, local open-source LLM models* to replace the cloud LLM API calls;
 * *local open-source speech-to-text and text-to-speech models* to replace the cloud STT-TTS API calls;
@@ -11,6 +13,10 @@ Future work will involve the testing and integration of:
 
 <img src="./app/src/main/res/drawable-nodpi/app_icon_round.png" alt="DJames" width="100"/>
 
+## 100% human-made
+The DJames project is **100% human-made**: for me, this project is a way to *experiment* with technologies, languages and stuff I don't use at work (i.e. Android app development, Kotlin, Jetpack Compose, UI-UX design...), to *explore emerging technologies **before*** I get the opportunity to use them for work projects (i.e. GenAI, agentic frameworks, STT/TTS, audio processing, ...) and, in general, to *learn new things*. I am a lifelong learner passionate about technologies and do-it-yourself, I needed a way to keep myself on track with the continuously evolving state of art in AI and... I needed Android auto without having it in my car, so here is DJames! :)
+
+I've been developing this project entirely on my own **since December 2023**. To quickly learn about new stuff, libraries or approaches to use, I may use either Stack Overflow, online tutorials or AI assistants via browser: in *all* these cases, I use the generic code snippets I find or get *only as starting examples*, then I implement or adapt them *personally* in my code depending on my intended use scenarios.
 
 ## Software requirements
 DJames is supported by **Android >= 10**.
@@ -39,11 +45,13 @@ In DJames' local repo clone, add to "*app/res/raw*" an "*env.json*" file with th
 
 
 ## All versions history
+**Version 3.1.0 (2026-08-11)** - UX redefined: new Home screen with useful sections for Library & recent activity, new Clock screen, removed NavBar navigation, realigned overall design language with colored Expandable cards. New "docked" mode for Overlay bubble. Reworked Overlay UI with new Clock, Volume and Detach buttons. Placeholders in the Home screen for recent activity (DB not implemented yet).
+
 **Version 3.0.3 (2026-07-18)** - Add Spotify refresh token expiration to reflect new Spotify for Developers API policy.
 
-**Version 3.0.2 (2026-06-20)** - New Highway-inspired, collection-like UI for Library.
+**Version 3.0.2 (2026-06-20)** - Test new Highway-inspired, collection-like UI for Library.
 
-**Version 3.0.1 (2026-05-05)** - New UI for Home Screen & Overlay button.
+**Version 3.0.1 (2026-05-05)** - Test UI improvements for Home Screen & Overlay button.
 
 **Version 3.0.0 (2026-04-26)** - First V3-only version (removed V2 IntentGraph and V2 fulfillment's leftovers). Kept v3.0.alpha's UI.
 

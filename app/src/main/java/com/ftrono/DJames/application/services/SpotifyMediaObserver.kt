@@ -8,10 +8,12 @@ import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.util.Log
 import com.ftrono.DJames.application.currentArtistPlaying
+import com.ftrono.DJames.application.currentPlayerColor
 import com.ftrono.DJames.application.currentPlayerImage
 import com.ftrono.DJames.application.currentSongPlaying
 import com.ftrono.DJames.application.lastPlaybackInfo
 import com.ftrono.DJames.application.defaultArtistInfoFallback
+import com.ftrono.DJames.application.defaultPlayerColor
 import com.ftrono.DJames.application.defaultSongInfoFallback
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.models.PlaybackInfo
@@ -20,12 +22,27 @@ class SpotifyMediaObserver(
     private val context: Context
 ) {
     private val TAG = this::class.java.simpleName
-
-    private var controller: MediaController? = null
     var isPlaying = false
 
-    private val callback = object : MediaController.Callback() {
+    private val manager =
+        context.getSystemService(
+            Context.MEDIA_SESSION_SERVICE
+        ) as MediaSessionManager
 
+    private val component =
+        ComponentName(
+            context,
+            DJamesNotificationListener::class.java
+        )
+
+    private var controller: MediaController? = null
+
+    private val sessionsChangedListener =
+        MediaSessionManager.OnActiveSessionsChangedListener { controllers ->
+            updateSpotifyController(controllers)
+        }
+
+    private val callback = object : MediaController.Callback() {
         override fun onMetadataChanged(metadata: MediaMetadata?) {
             /*
             Useful metadata found:
@@ -93,6 +110,11 @@ class SpotifyMediaObserver(
                         lastPlaybackInfo.imageLocalUri
                     } else ""
                 )
+                currentPlayerColor.postValue(
+                    if (lastPlaybackInfo.imageLocalUri != "") {
+                        defaultPlayerColor   // TODO
+                    } else defaultPlayerColor
+                )
             }
         }
 
@@ -105,33 +127,13 @@ class SpotifyMediaObserver(
 
     fun start() {
         // START observer:
-        val manager =
-            context.getSystemService(
-                Context.MEDIA_SESSION_SERVICE
-            ) as MediaSessionManager
-
-        val component =
-            ComponentName(
-                context,
-                DJamesNotificationListener::class.java
-            )
-
-        controller =
-            manager
-                .getActiveSessions(component)
-                .firstOrNull {
-                    it.packageName == "com.spotify.music"
-                }
-
-        controller?.registerCallback(callback)
-
-        // Get current values immediately
-        controller?.metadata?.let {
-            callback.onMetadataChanged(it)
-        }
-
-        callback.onPlaybackStateChanged(
-            controller?.playbackState
+        manager.addOnActiveSessionsChangedListener(
+            sessionsChangedListener,
+            component
+        )
+        // Check Spotify session already active:
+        updateSpotifyController(
+            manager.getActiveSessions(component)
         )
         Log.d(TAG, "Spotify media observer STARTED")
     }
@@ -141,5 +143,41 @@ class SpotifyMediaObserver(
         controller?.unregisterCallback(callback)
         controller = null
         Log.d(TAG, "Spotify media observer STOPPED")
+    }
+
+    private fun updateSpotifyController(
+        controllers: List<MediaController>?
+    ) {
+        // Update controller:
+        val newController =
+            controllers?.firstOrNull {
+                it.packageName == "com.spotify.music"
+            }
+
+        // Same session as before: nothing to change:
+        if (newController?.sessionToken == controller?.sessionToken) {
+            return
+        }
+
+        // Detach from previous Spotify session:
+        controller?.unregisterCallback(callback)
+        controller = newController
+
+        if (controller != null) {
+            Log.d(TAG, "Spotify media session found")
+            controller!!.registerCallback(callback)
+
+            // Important: immediately retrieve the current states:
+            callback.onMetadataChanged(
+                controller!!.metadata
+            )
+            callback.onPlaybackStateChanged(
+                controller!!.playbackState
+            )
+
+        } else {
+            Log.d(TAG, "Spotify media session ended")
+            isPlaying = false
+        }
     }
 }

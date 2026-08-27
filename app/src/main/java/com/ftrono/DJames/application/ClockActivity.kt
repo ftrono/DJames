@@ -133,6 +133,7 @@ class ClockActivity: ComponentActivity() {
         val currentDateState by currentDate.observeAsState()
         val currentHourState by currentHour.observeAsState()
         val currentMinsState by currentMins.observeAsState()
+        val currentPlayerColorState by currentPlayerColor.observeAsState()
 
         Row(
             modifier = Modifier
@@ -212,12 +213,14 @@ class ClockActivity: ComponentActivity() {
                                 currentDateState = currentDateState!!,
                                 currentHourState = currentHourState!!,
                                 currentMinsState = currentMinsState!!,
+                                currentPlayerColorState = currentPlayerColorState!!,
                             )
                             // Unlock:
                             UnlockButton(
                                 context = mContext,
                                 modifier = Modifier
                                     .padding(start=60.dp),
+                                currentPlayerColorState = currentPlayerColorState!!,
                             )
                         }
 
@@ -244,11 +247,13 @@ class ClockActivity: ComponentActivity() {
                                 currentDateState = currentDateState!!,
                                 currentHourState = currentHourState!!,
                                 currentMinsState = currentMinsState!!,
+                                currentPlayerColorState = currentPlayerColorState!!,
                             )
                             // Unlock:
                             UnlockButton(
                                 context = mContext,
                                 modifier = Modifier,
+                                currentPlayerColorState = currentPlayerColorState!!,
                             )
                         }
                     }
@@ -275,7 +280,10 @@ class ClockActivity: ComponentActivity() {
         currentDateState: String,
         currentHourState: String,
         currentMinsState: String,
+        currentPlayerColorState: String,
     ) {
+        val colorRGB = utils.hslToColor(currentPlayerColorState)
+
         Row(
             modifier = modifier,
             verticalAlignment = Alignment.CenterVertically,
@@ -285,7 +293,7 @@ class ClockActivity: ComponentActivity() {
             Text(
                 modifier = Modifier,
                 text = "${currentHourState}\n${currentMinsState}",
-                color = colorResource(id = R.color.faded_grey),
+                color = colorRGB,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
                 fontSize = 140.sp,
@@ -303,7 +311,7 @@ class ClockActivity: ComponentActivity() {
                     modifier = Modifier,
                     text = currentDayState,
                     fontWeight = FontWeight.Medium,
-                    color = colorResource(id = R.color.faded_grey),
+                    color = colorRGB,
                     fontSize = 32.sp,
                     lineHeight = 32.sp,
                 )
@@ -313,7 +321,7 @@ class ClockActivity: ComponentActivity() {
                         .padding(bottom = 12.dp),
                     text = currentDateState,
                     fontWeight = FontWeight.Medium,
-                    color = colorResource(id = R.color.faded_grey),
+                    color = colorRGB,
                     fontSize = 32.sp,
                     lineHeight = 32.sp,
                 )
@@ -415,7 +423,10 @@ class ClockActivity: ComponentActivity() {
     fun UnlockButton(
         context: Context,
         modifier: Modifier,
+        currentPlayerColorState: String,
     ) {
+        val colorRGB = utils.hslToColor(currentPlayerColorState)
+
         Column(
             modifier = modifier,
             verticalArrangement = Arrangement.Center,
@@ -432,7 +443,7 @@ class ClockActivity: ComponentActivity() {
                     },
                 signSize = 80.dp,
                 contentSize = 40,
-                backgroundColor = colorResource(R.color.faded_grey),
+                backgroundColor = colorRGB,
                 borderColor = colorResource(id = R.color.transparent_full),
                 contentColor = colorResource(id = R.color.mid_grey),
                 iconPainter = painterResource(R.drawable.icon_lock),

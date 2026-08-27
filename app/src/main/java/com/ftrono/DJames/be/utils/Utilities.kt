@@ -16,6 +16,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -38,6 +39,7 @@ import java.util.Locale
 import java.util.Random
 import kotlin.streams.asSequence
 import androidx.core.content.edit
+import androidx.core.graphics.ColorUtils
 import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.services.DJamesNotificationListener
@@ -88,6 +90,15 @@ class Utilities {
             (hour < 18) -> "afternoon"
             else -> "evening"
         }
+    }
+
+
+    //Convert HSL color string to RGB Color:
+    fun hslToColor(hslString: String): Color {
+        val hslArray = hslString.split(":").map { it.toFloat() }.toFloatArray()
+        return Color(
+            ColorUtils.HSLToColor(hslArray)
+        )
     }
 
     //Check service running:

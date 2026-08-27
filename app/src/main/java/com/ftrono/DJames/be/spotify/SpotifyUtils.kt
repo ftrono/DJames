@@ -12,8 +12,8 @@ import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.App.Companion.toneGen
 import com.ftrono.DJames.application.albumUrlIntro
 import com.ftrono.DJames.application.artistUrlIntro
-import com.ftrono.DJames.application.currentTrackId
 import com.ftrono.DJames.application.episodeUrlIntro
+import com.ftrono.DJames.application.lastPlaybackInfo
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.playlistUrlIntro
@@ -271,7 +271,7 @@ class SpotifyUtils {
         var toastText = ""
         try {
             val spotifyCalls = SpotifyCalls(context)
-            val ids = listOf(currentTrackId.split(":").last())
+            val ids = listOf(lastPlaybackInfo.id)
             Log.d(TAG, "IDS TO SAVE: $ids")
             val ret = spotifyCalls.saveLibraryRequest(ids, type="track")
             //PROCESS RESPONSE:

@@ -12,6 +12,7 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -39,7 +41,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -51,6 +57,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
+import coil3.compose.AsyncImage
 import com.ftrono.DJames.R
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.navigation.MainNavBar
@@ -329,47 +336,81 @@ class ClockActivity: ComponentActivity() {
     ) {
         val currentSongPlayingState by currentSongPlaying.observeAsState()
         val currentArtistPlayingState by currentArtistPlaying.observeAsState()
+        val currentImage by currentPlayerImage.observeAsState()
+
         Card(
             modifier = Modifier
                 .padding(top = 12.dp)
-                .width(160.dp),
+                .width(160.dp)
+                .height(120.dp),
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors (
-                containerColor = colorResource(id = R.color.dark_grey_background)
-            )
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(12.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.Start
+            val imagePresent = (currentImage != null && currentImage != "")
+            val darkenValue = 0.3f
+
+            Box(
+                modifier = if (imagePresent) {
+                    Modifier
+                        .fillMaxSize()
+                        .background(colorResource(id = R.color.dark_grey_background))
+                } else {
+                    Modifier
+                        .fillMaxSize()
+                }
             ) {
-                //ICON:
-                Icon(
+                if (imagePresent) {
+                    AsyncImage(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        model = currentImage,
+                        contentDescription = "Artwork",
+                        contentScale = ContentScale.Crop,
+                        colorFilter = ColorFilter.colorMatrix(
+                            ColorMatrix().apply {
+                                setToScale(
+                                    redScale = darkenValue,
+                                    greenScale = darkenValue,
+                                    blueScale = darkenValue,
+                                    alphaScale = 1f
+                                )
+                            }
+                        )
+                    )
+                }
+
+                Column(
                     modifier = Modifier
-                        .size(30.dp),
-                    painter = painterResource(id = R.drawable.icon_note),
-                    contentDescription = "Item image",
-                    tint = colorResource(id = R.color.midfaded_grey),
-                )
-                //SONG NAME:
-                Text(
-                    modifier = Modifier
-                        .padding(bottom=2.dp),
-                    text = currentSongPlayingState!!,
-                    color = colorResource(id = R.color.mid_grey),
-                    fontSize = 16.sp,
-                    lineHeight = 16.sp,
-                    fontStyle = FontStyle.Italic
-                )
-                //ARTIST NAME:
-                Text(
-                    modifier = Modifier,
-                    text = currentArtistPlayingState!!,
-                    fontSize = 14.sp,
-                    lineHeight = 14.sp,
-                    color = colorResource(id = R.color.mid_grey)
-                )
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    //ICON:
+                    Icon(
+                        modifier = Modifier
+                            .size(30.dp),
+                        painter = painterResource(id = R.drawable.icon_note),
+                        contentDescription = "Item image",
+                        tint = colorResource(id = R.color.midfaded_grey),
+                    )
+                    //SONG NAME:
+                    Text(
+                        modifier = Modifier
+                            .padding(bottom = 2.dp),
+                        text = currentSongPlayingState!!,
+                        color = colorResource(id = R.color.mid_grey),
+                        fontSize = 16.sp,
+                        lineHeight = 16.sp,
+                        fontStyle = FontStyle.Italic
+                    )
+                    //ARTIST NAME:
+                    Text(
+                        modifier = Modifier,
+                        text = currentArtistPlayingState!!,
+                        fontSize = 14.sp,
+                        lineHeight = 14.sp,
+                        color = colorResource(id = R.color.mid_grey)
+                    )
+                }
             }
         }
     }
@@ -413,7 +454,7 @@ class ClockActivity: ComponentActivity() {
 
     override fun onDestroy() {
         clockActive.postValue(false)
-        //unregister receivers:
+        // Unregister receivers:
         unregisterReceiver(clockActReceiver)
         acts_active.remove(TAG)
         super.onDestroy()

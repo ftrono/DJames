@@ -2,12 +2,14 @@ package com.ftrono.DJames.be.utils
 
 import android.Manifest
 import android.app.ActivityManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
+import android.service.notification.NotificationListenerService
 import android.telephony.PhoneNumberUtils
 import android.util.Log
 import android.widget.Toast
@@ -36,16 +38,11 @@ import java.util.Locale
 import java.util.Random
 import kotlin.streams.asSequence
 import androidx.core.content.edit
-import androidx.navigation.NavController
 import com.ftrono.DJames.application.ClockActivity
-import com.ftrono.DJames.application.artistName
 import com.ftrono.DJames.application.clockActive
-import com.ftrono.DJames.application.currentArtistPlaying
-import com.ftrono.DJames.application.currentSongPlaying
-import com.ftrono.DJames.application.songName
+import com.ftrono.DJames.application.services.DJamesNotificationListener
 import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.userNicknameUI
-import com.ftrono.DJames.application.utils
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -112,6 +109,30 @@ class Utilities {
         ) ?: return false
 
         return enabledListeners.contains(context.packageName)
+    }
+
+    // Enable Notifications access:
+    fun enableNotificationsAccess(context: Context) {
+        val intent = Intent(
+            Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
+        )
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+    }
+
+    // Start NotificationListener:
+    fun startNotificationListener(context: Context) {
+        NotificationListenerService.requestRebind(
+            ComponentName(
+                context,
+                DJamesNotificationListener::class.java
+            )
+        )
+    }
+
+    // Stop NotificationListener:
+    fun stopNotificationListener() {
+        DJamesNotificationListener.instance?.requestUnbind()
     }
 
     //Check Manifest permission:

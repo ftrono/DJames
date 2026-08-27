@@ -7,7 +7,6 @@ import android.media.AudioManager
 import android.util.Log
 import android.widget.Toast
 import com.ftrono.DJames.application.*
-import com.google.gson.JsonObject
 
 
 class EventReceiver: BroadcastReceiver() {
@@ -48,45 +47,6 @@ class EventReceiver: BroadcastReceiver() {
         }
 
 
-        //Spotify Metadata Changed:
-        if (intent.action == SPOTIFY_METADATA_CHANGED) {
-            Log.d(TAG, "EVENT: SPOTIFY_METADATA_CHANGED.")
-            try {
-                //Get new track data:
-                // Keyset: [timeSent, duration, artist, length, albumId, playbackPosition, id, album, track, position]
-                val timeSent = intent.getLongExtra("timeSent", 0L)
-                val intentTrackId = intent.getStringExtra("id")
-                val intentSongName = intent.getStringExtra("track")
-                val intentArtistName = intent.getStringExtra("artist")
-                val intentAlbumName = intent.getStringExtra("album")
-
-                //If new track:
-                if (!utils.isTimeElapsed(timeSent, 30L, "mins") && intentTrackId != currentTrackId) {
-                    //Update currently_playing JSON:
-                    currently_playing = JsonObject()
-                    currently_playing!!.addProperty("id", intentTrackId)
-                    currently_playing!!.addProperty("uri", "$spotIntroUri:track:$intentTrackId")
-                    currently_playing!!.addProperty("spotify_URL", "$spotIntroUrl/track/$intentTrackId")
-                    currently_playing!!.addProperty("song_name", intentSongName)
-                    currently_playing!!.addProperty("artist_name", intentArtistName)
-                    currently_playing!!.addProperty("album_name", intentAlbumName)
-
-                    //Update info:
-                    currentTrackId = intentTrackId!!
-                    songName = intentSongName!!
-                    artistName = intentArtistName!!
-                    contextName = intentAlbumName!!
-
-                    //Update player:
-                    currentSongPlaying.postValue(utils.trimString(songName, 25))
-                    currentArtistPlaying.postValue(utils.trimString(artistName, 25))
-                }
-            } catch (e: Exception) {
-                Log.d(TAG, "EVENT: SPOTIFY_METADATA_CHANGED: older timestamp or resources not available.")
-            }
-        }
-
-
         //When screen is off:
         if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
             screenOn = false
@@ -108,5 +68,4 @@ class EventReceiver: BroadcastReceiver() {
         }
 
     }
-
 }

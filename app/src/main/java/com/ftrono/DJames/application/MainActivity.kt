@@ -38,6 +38,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.dialogs.DialogRequestNotificationListener
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.MultiPermissionsHandler
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
@@ -152,8 +153,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         mainActive.postValue(false)
-        //unregister receivers:
+        // Unregister receivers:
         unregisterReceiver(mainActReceiver)
+        // (Safety stop) Unregister listener:
+        if (!utils.isMyServiceRunning(OverlayService::class.java, this@MainActivity)) {
+            utils.stopNotificationListener()
+        }
         acts_active.remove(TAG)
         super.onDestroy()
     }
@@ -228,16 +233,16 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-//    //Notifications Listener permission management:
-//    val requestNotificationListenerOn = rememberSaveable { mutableStateOf(
-//        !utils.isNotificationServiceEnabled(mContext)
-//    ) }
-//    if (requestNotificationListenerOn.value) {
-//        DialogRequestNotificationListener(
-//            mContext = mContext,
-//            dialogOnState = requestNotificationListenerOn
-//        )
-//    }
+        //Notifications Listener permission management:
+        val requestNotificationListenerOn = rememberSaveable { mutableStateOf(
+            !utils.isNotificationServiceEnabled(mContext)
+        ) }
+        if (requestNotificationListenerOn.value && notificationsAccessAsked.value != true) {
+            DialogRequestNotificationListener(
+                context = mContext,
+                dialogOnState = requestNotificationListenerOn
+            )
+        }
 
         // ChatManager:
         val chatManager = ChatManager(mContext)

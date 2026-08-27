@@ -19,6 +19,7 @@ import com.ftrono.DJames.be.agents.chat.DefaultReplies
 import com.ftrono.DJames.be.spotify.SpotifyLoginUtils
 import com.ftrono.DJames.be.spotify.SpotifyUtils
 import com.ftrono.DJames.application.prefs.Prefs
+import com.ftrono.DJames.be.models.PlaybackInfo
 import com.ftrono.DJames.be.spotify.SpotifyParsers
 import com.ftrono.DJames.be.utils.Utilities
 import com.ftrono.DJames.ui.overlay.Overlay
@@ -33,7 +34,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.1.0"
+val appVersion = "3.1.1"
 val copyrightYear = 2024
 
 //DB:
@@ -103,10 +104,14 @@ var forceUndock = MutableLiveData<Boolean>(false)
 var isVolumeUpPreferenceSet = MutableLiveData<Boolean>(true)   // Live observation of the pref (must change only with pref)
 var isVolumeUpUnlocked = MutableLiveData<Boolean>(false)   // Temporary: true only if prefs == True and volume unlocked
 var sourceIsVolume = MutableLiveData<Boolean>(false)
+var notificationsAccessAsked = MutableLiveData<Boolean>(false)
 var extraOpen = MutableLiveData<Boolean>(false)
 var currentCat = MutableLiveData<String>("spotify")
-var currentSongPlaying = MutableLiveData<String>("Spotify")
-var currentArtistPlaying = MutableLiveData<String>("No playback info")
+var defaultSongInfoFallback = "Spotify"
+var defaultArtistInfoFallback = "No playback info"
+var currentSongPlaying = MutableLiveData<String>(defaultSongInfoFallback)
+var currentArtistPlaying = MutableLiveData<String>(defaultArtistInfoFallback)
+var currentPlayerImage = MutableLiveData<String>("")
 val overlayOptionsStr = MutableLiveData<String>("speak, save, clock")   //custom
 var clickCounter = MutableLiveData<Int>(0)
 var allowVolumeClick = true   // ensure interval between volume clicks
@@ -185,11 +190,7 @@ var recordingTime = 0L
 var audioManager: AudioManager? = null
 
 //Player info:
-var currently_playing: JsonObject? = null
-var currentTrackId: String = ""
-var songName: String = ""
-var artistName: String = ""
-var contextName: String = ""
+var lastPlaybackInfo = PlaybackInfo()
 
 //Maps:
 val gMapsLinkFormat = "https://www.google.com/maps/dir//"
@@ -244,8 +245,8 @@ val ttsSimilarityBoost: Double = 0.75
 //Event receiver:
 //ACTION_SCREEN_ON, ACTION_SCREEN_OFF
 const val VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION"
-const val SPOTIFY_METADATA_CHANGED = "com.spotify.music.metadatachanged"
 const val ACTION_TOASTER = "com.ftrono.DJames.eventReceiver.ACTION_TOASTER"
+// const val SPOTIFY_METADATA_CHANGED = "com.spotify.music.metadatachanged"
 
 //Main Act receiver:
 const val ACTION_FINISH_MAIN = "com.ftrono.DJames.eventReceiver.ACTION_FINISH_MAIN"

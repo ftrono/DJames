@@ -45,6 +45,8 @@ In DJames' local repo clone, add to "*app/res/raw*" an "*env.json*" file with th
 
 
 ## All versions history
+**Version 3.1.1 (2026-08-27)** - Add NotificationsListener, SpotifyMediaObserver, PlaybackInfo & image to Clock Player, removed prior Spotify broadcast intent.
+
 **Version 3.1.0 (2026-08-11)** - UX redefined: new Home screen with useful sections for Library & recent activity, new Clock screen, removed NavBar navigation, realigned overall design language with colored Expandable cards. New "docked" mode for Overlay bubble. Reworked Overlay UI with new Clock, Volume and Detach buttons. Placeholders in the Home screen for recent activity (DB not implemented yet).
 
 **Version 3.0.3 (2026-07-18)** - Add Spotify refresh token expiration to reflect new Spotify for Developers API policy.

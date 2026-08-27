@@ -207,38 +207,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     width = 200
                 )
 
-                //Android TTS settings:
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Android TTS settings",
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(Modifier.weight(1f))
-                    RoundedSign(
-                        signSize = 40.dp,
-                        contentSize = 20,
-                        backgroundColor = colorResource(id = R.color.greenSignDark),
-                        borderColor = colorResource(id = R.color.greenSignDark),
-                        contentColor = colorResource(id = R.color.light_grey),
-                        iconVector = Icons.AutoMirrored.Default.ArrowForward,
-                        clickable = true,
-                        onClick = {
-                            //Open system voice settings:
-                            val intent1 = Intent("com.android.settings.TTS_SETTINGS")
-                            mContext.startActivity(intent1)
-                        }
-                    )
-                }
-
                 //Go to App Permissions:
                 Row(
                     modifier = Modifier
@@ -269,6 +237,36 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             val uri = Uri.fromParts("package", mContext.packageName, null)
                             intent1.setData(uri)
                             mContext.startActivity(intent1)
+                        }
+                    )
+                }
+
+                //Manage Notifications access:
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Manage notifications access",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.weight(1f))
+                    RoundedSign(
+                        signSize = 40.dp,
+                        contentSize = 20,
+                        backgroundColor = colorResource(id = R.color.greenSignDark),
+                        borderColor = colorResource(id = R.color.greenSignDark),
+                        contentColor = colorResource(id = R.color.light_grey),
+                        iconVector = Icons.AutoMirrored.Default.ArrowForward,
+                        clickable = true,
+                        onClick = {
+                            utils.enableNotificationsAccess(mContext)
                         }
                     )
                 }

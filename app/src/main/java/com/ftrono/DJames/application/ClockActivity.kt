@@ -367,10 +367,10 @@ class ClockActivity: ComponentActivity() {
                 modifier = if (imagePresent) {
                     Modifier
                         .fillMaxSize()
-                        .background(colorResource(id = R.color.dark_grey_background))
                 } else {
                     Modifier
                         .fillMaxSize()
+                        .background(colorResource(id = R.color.dark_grey_background))
                 }
             ) {
                 if (imagePresent) {
@@ -402,8 +402,9 @@ class ClockActivity: ComponentActivity() {
                     //ICON:
                     Icon(
                         modifier = Modifier
-                            .size(30.dp),
-                        painter = painterResource(id = R.drawable.icon_note),
+                            .padding(bottom=6.dp)
+                            .size(22.dp),
+                        painter = painterResource(id = R.drawable.logo_spotify),
                         contentDescription = "Item image",
                         tint = colorResource(id = R.color.midfaded_grey),
                     )

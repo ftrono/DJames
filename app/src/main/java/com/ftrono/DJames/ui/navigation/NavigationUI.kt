@@ -487,7 +487,7 @@ fun StartButton(
                 .clip(CircleShape)
                 .size(100.dp)
                 .background(
-                    colorResource(if (clockActiveState) R.color.black else R.color.windowBackground)
+                    colorResource(if (clockActiveState) R.color.black else R.color.dark_grey_background)
                 ),
         )
     } else {
@@ -535,7 +535,7 @@ fun MainNavBar(
         } else {
             Modifier
                 .fillMaxWidth()
-                .height(170.dp)
+                .height(if (overlayActiveState!!) 170.dp else 150.dp)
                 .background(
                     colorResource(if (clockActiveState!!) R.color.black else R.color.windowBackground)
                 )

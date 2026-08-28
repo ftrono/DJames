@@ -8,7 +8,6 @@ import com.ftrono.DJames.application.allowVolumeClick
 import com.ftrono.DJames.application.clickCountdownTime
 import com.ftrono.DJames.application.clickCounter
 import com.ftrono.DJames.application.clickSleepInterval
-import com.ftrono.DJames.application.currentTime
 import com.ftrono.DJames.application.currentHourMini
 import com.ftrono.DJames.application.currentMinsMini
 import com.ftrono.DJames.application.overlayOptionsStr
@@ -39,7 +38,6 @@ class Overlay() {
     //Clock:
     fun updateMiniClock() {
         now = LocalDateTime.now()
-        currentTime.postValue(now!!.format(miniClockFormat))
         currentHourMini.postValue(now!!.format(hourFormat))
         currentMinsMini.postValue(now!!.format(minsFormat))
     }

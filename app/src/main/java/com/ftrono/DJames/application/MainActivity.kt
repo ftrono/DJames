@@ -235,7 +235,7 @@ class MainActivity : ComponentActivity() {
 
         //Notifications Listener permission management:
         val requestNotificationListenerOn = rememberSaveable { mutableStateOf(
-            !utils.isNotificationServiceEnabled(mContext)
+            !utils.isNotificationServiceEnabled(mContext) && !preview
         ) }
         if (requestNotificationListenerOn.value && notificationsAccessAsked.value != true) {
             DialogRequestNotificationListener(

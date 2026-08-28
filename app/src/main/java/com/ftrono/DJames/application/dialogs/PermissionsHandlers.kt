@@ -15,6 +15,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.R
 import com.ftrono.DJames.application.notificationListenerPermissionDescription
+import com.ftrono.DJames.application.notificationsAccessAsked
 import com.ftrono.DJames.application.overlayPermissionDescription
 import com.ftrono.DJames.application.permissionDescriptions
 import com.ftrono.DJames.application.permsRequested
@@ -166,7 +167,7 @@ fun DialogRequestOverlay(
 
 @Composable
 fun DialogRequestNotificationListener(
-    mContext: Context,
+    context: Context,
     dialogOnState: MutableState<Boolean>,
 ) {
     GeneralDialog(
@@ -184,14 +185,12 @@ fun DialogRequestNotificationListener(
         confirmText = "Yes",
         onConfirm = {
             dialogOnState.value = false
-            val intent = Intent(
-                Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
-            )
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            mContext.startActivity(intent)
+            utils.enableNotificationsAccess(context)
+            notificationsAccessAsked.postValue(true)
         },
         onDismiss = {
             dialogOnState.value = false
+            notificationsAccessAsked.postValue(true)
         }
     )
 }

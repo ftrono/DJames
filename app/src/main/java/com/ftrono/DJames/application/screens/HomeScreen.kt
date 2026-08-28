@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -15,6 +14,7 @@ import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.CardDefaults
@@ -41,6 +41,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import com.ftrono.DJames.R
@@ -53,7 +54,9 @@ import com.ftrono.DJames.application.currentCat
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
 import com.ftrono.DJames.application.extraOpen
+import com.ftrono.DJames.application.lastAiMessageText
 import com.ftrono.DJames.application.lastNavRoute
+import com.ftrono.DJames.application.lastUserMessageText
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryStatus
 import com.ftrono.DJames.application.sharedLink
@@ -63,9 +66,9 @@ import com.ftrono.DJames.application.spotUserName
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.userNicknameUI
-import com.ftrono.DJames.ui.components.CardSign
 import com.ftrono.DJames.ui.components.ExpandableCard
 import com.ftrono.DJames.ui.components.ExtServiceLoginButton
+import com.ftrono.DJames.ui.components.InfoBox
 import com.ftrono.DJames.ui.components.LibItemCard
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.components.StreetLine
@@ -84,13 +87,18 @@ import kotlin.Boolean
 @Composable
 fun HomeScreenPreview() {
     val navController = rememberNavController()
-    HomeScreen(navController, preview = true)
+    HomeScreen(
+        navController = navController,
+        preview = true,
+        previewConv = false,
+    )
 }
 
 @Composable
 fun HomeScreen(
     navController: NavController,
-    preview: Boolean = false
+    preview: Boolean = false,
+    previewConv: Boolean = false,
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
@@ -191,14 +199,27 @@ fun HomeScreen(
                             .fillMaxHeight()
                             .width(20.dp)
                     )
-                    // Functional area title:
-                    FunctionalArea(
-                        context = mContext,
-                        navController = navController,
-                        isLandscape = true,
-                        spotifyLoggedInState = spotifyLoggedInState!!,
-                        preview = preview,
-                    )
+
+                    Column(
+                        modifier = Modifier,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Top
+                    ) {
+                        //Conversational section:
+                        ConversationalArea(
+                            isLandscape = true,
+                            preview=previewConv,
+                        )
+
+                        // Functional area title:
+                        FunctionalArea(
+                            context = mContext,
+                            navController = navController,
+                            isLandscape = true,
+                            spotifyLoggedInState = spotifyLoggedInState!!,
+                            preview = preview,
+                        )
+                    }
                 }
             } else {
                 //DISPLAY VERTICALLY:
@@ -213,6 +234,13 @@ fun HomeScreen(
                     isLandscape = false,
                     spotifyLoggedInState = spotifyLoggedInState!!,
                 )
+
+                //Conversational section:
+                ConversationalArea(
+                    isLandscape = false,
+                    preview=previewConv,
+                )
+
                 // Functional area title:
                 FunctionalArea(
                     context = mContext,
@@ -267,7 +295,6 @@ fun HomeIntroText(
     )
     Row(
         modifier = Modifier
-            .background(color = colorResource(R.color.windowBackground))
             .clickable {
                 //Navigate:
                 val curNavRoute = NavigationItem.Accounts.route
@@ -314,7 +341,7 @@ fun IntroArea(
             DJamesLogo(
                 context = context,
                 modifier = Modifier
-                    .padding(bottom=8.dp)
+                    .padding(bottom = 8.dp)
                     .size(60.dp),
                 spotifyLoggedInState = spotifyLoggedInState
             )
@@ -348,49 +375,78 @@ fun IntroArea(
         }
 
         // Usage tip:
-        CardSign (
+        InfoBox(
             modifier = Modifier
                 .padding(top=12.dp, bottom=12.dp),
-            backgroundColor = colorResource(R.color.light_grey),
-            roundedCorners = 14.dp,
+            backgroundColor = colorResource(R.color.dark_grey_background),
+            iconPainter = painterResource(R.drawable.icon_lamp),
         ) {
-            Row(
-                modifier = Modifier
-                    .padding(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .size(28.dp),
-                    contentDescription = "Usage tip",
-                    painter = painterResource(R.drawable.icon_lamp),
-                    tint = colorResource(R.color.black)
-                )
+            Text(
+                text = buildAnnotatedString {
+                    append("Ask me to ")
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append("play music")
+                    }
+                    append(", ")
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append("navigate")
+                    }
+                    append(" to a place, ")
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append("call or message")
+                    }
+                    append(" your contacts")
+                },
+                fontSize = 15.sp,
+                lineHeight = 15.sp,
+                color = colorResource(id = R.color.light_grey),
+            )
+        }
+    }
+}
+
+
+// Conversational section:
+@Composable
+fun ConversationalArea(
+    isLandscape: Boolean,
+    preview: Boolean = false,
+) {
+    val queryState by queryStatus.observeAsState()
+    val lastUserMsgState by lastUserMessageText.observeAsState()
+    val lastAiMsgState by lastAiMessageText.observeAsState()
+
+    if (preview || queryState == "busy" || queryState == "processing") {
+        InfoBox(
+            modifier = Modifier
+                .padding(
+                    top = if (isLandscape) 12.dp else 0.dp,
+                    bottom = 12.dp,
+                ),
+            backgroundColor = colorResource(R.color.brownSignDark),
+            iconPainter = painterResource(R.drawable.icon_speak),
+        ) {
+            // Intro:
+            if (lastUserMsgState!! != "") {
                 Text(
                     modifier = Modifier
-                        .padding(start = 8.dp)
-                        .weight(1F),
-                    text = buildAnnotatedString {
-                        append("Ask me to ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                            append("play music")
-                        }
-                        append(", ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                            append("navigate")
-                        }
-                        append(" to a place, ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                            append("call or message")
-                        }
-                        append(" your contacts")
-                    },
-                    fontSize = 15.sp,
-                    lineHeight = 15.sp,
-                    color = colorResource(id = R.color.black),
+                        .padding(top = 12.dp),
+                    text = "\"${lastUserMsgState!!}\"",
+                    color = colorResource(id = R.color.light_grey),
+                    fontSize = 14.sp,
+                    lineHeight = 14.sp,
                 )
             }
+            // Content:
+            Text(
+                modifier = Modifier
+                    .padding(top = 12.dp, bottom = 12.dp),
+                text = "\"${lastAiMsgState!!}\"",
+                fontStyle = FontStyle.Italic,
+                color = colorResource(id = R.color.light_grey),
+                fontSize = 18.sp,
+                lineHeight = 18.sp,
+            )
         }
     }
 }
@@ -518,8 +574,9 @@ fun ContentSection(
         currentExpanded = currentExpanded,
         useCustomCornerButton = true,
         cornerButton = {
-            Text(
+            Icon(
                 modifier = Modifier
+                    .size(28.dp)
                     .clickable {
                         // Set current cat:
                         currentCat.postValue(cat)
@@ -528,9 +585,9 @@ fun ContentSection(
                         navigateTo(navController, curNavRoute)
                         lastNavRoute = curNavRoute
                     },
-                text = "View saved >",
-                fontSize = 14.sp,
-                color = colorResource(id = R.color.light_grey),
+                imageVector = Icons.AutoMirrored.Default.ArrowForward,
+                tint = colorResource(id = R.color.light_grey),
+                contentDescription = "Open section"
             )
         },
     ) {
@@ -559,6 +616,7 @@ fun ContentSection(
                     "Recently used"
                 },
                 fontSize = 14.sp,
+                // fontWeight = FontWeight.Light,
                 color = colorResource(id = R.color.light_grey),
             )
             if (cat == "spotify") {

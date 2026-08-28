@@ -171,7 +171,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     color = colorResource(id = R.color.light_grey),
                     textAlign = TextAlign.Start,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
+                    // fontWeight = FontWeight.Bold
                 )
                 DropdownSpinner(
                     context = mContext,
@@ -193,7 +193,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     color = colorResource(id = R.color.light_grey),
                     textAlign = TextAlign.Start,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
+                    // fontWeight = FontWeight.Bold
                 )
                 DropdownSpinner(
                     context = mContext,
@@ -206,38 +206,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     prefName = "voiceAccent",
                     width = 200
                 )
-
-                //Android TTS settings:
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Android TTS settings",
-                        color = colorResource(id = R.color.light_grey),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(Modifier.weight(1f))
-                    RoundedSign(
-                        signSize = 40.dp,
-                        contentSize = 20,
-                        backgroundColor = colorResource(id = R.color.greenSignDark),
-                        borderColor = colorResource(id = R.color.greenSignDark),
-                        contentColor = colorResource(id = R.color.light_grey),
-                        iconVector = Icons.AutoMirrored.Default.ArrowForward,
-                        clickable = true,
-                        onClick = {
-                            //Open system voice settings:
-                            val intent1 = Intent("com.android.settings.TTS_SETTINGS")
-                            mContext.startActivity(intent1)
-                        }
-                    )
-                }
 
                 //Go to App Permissions:
                 Row(
@@ -252,7 +220,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
+                        // fontWeight = FontWeight.Bold
                     )
                     Spacer(Modifier.weight(1f))
                     RoundedSign(
@@ -273,6 +241,36 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     )
                 }
 
+                //Manage Notifications access:
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Manage notifications access",
+                        color = colorResource(id = R.color.light_grey),
+                        textAlign = TextAlign.Start,
+                        fontSize = 14.sp,
+                        // fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.weight(1f))
+                    RoundedSign(
+                        signSize = 40.dp,
+                        contentSize = 20,
+                        backgroundColor = colorResource(id = R.color.greenSignDark),
+                        borderColor = colorResource(id = R.color.greenSignDark),
+                        contentColor = colorResource(id = R.color.light_grey),
+                        iconVector = Icons.AutoMirrored.Default.ArrowForward,
+                        clickable = true,
+                        onClick = {
+                            utils.enableNotificationsAccess(mContext)
+                        }
+                    )
+                }
+
                 //Auto Startup:
                 Row(
                     modifier = Modifier
@@ -287,7 +285,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
+                        // fontWeight = FontWeight.Bold
                     )
                     Switch(
                         checked = checkedStartup.value,
@@ -330,7 +328,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
                         lineHeight = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        // fontWeight = FontWeight.Bold
                     )
                     Switch(
                         checked = checkedIntro.value,
@@ -353,7 +351,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     color = colorResource(id = R.color.light_grey),
                     textAlign = TextAlign.Start,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
+                    // fontWeight = FontWeight.Bold
                 )
                 CustomSlider(
                     modifier =  Modifier
@@ -386,7 +384,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
                         lineHeight = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        // fontWeight = FontWeight.Bold
                     )
                     Switch(
                         checked = checkedSilenceQueries.value,
@@ -421,7 +419,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                     color = colorResource(id = R.color.light_grey),
                     textAlign = TextAlign.Start,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
+                    // fontWeight = FontWeight.Bold
                 )
                 CustomSlider(
                     modifier =  Modifier
@@ -454,7 +452,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
                         lineHeight = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        // fontWeight = FontWeight.Bold
                     )
                     Switch(
                         checked = checkedSilenceMess.value,
@@ -496,7 +494,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
                         lineHeight = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        // fontWeight = FontWeight.Bold
                     )
                     Switch(
                         checked = checkedNoise.value,
@@ -520,7 +518,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
+                        // fontWeight = FontWeight.Bold
                     )
                     CustomRangeSlider(
                         modifier = Modifier
@@ -555,7 +553,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             textAlign = TextAlign.Start,
                             fontSize = 14.sp,
                             lineHeight = 18.sp,
-                            fontWeight = FontWeight.Bold
+                            // fontWeight = FontWeight.Bold
                         )
                         Switch(
                             checked = checkedSecondNoise.value,
@@ -580,7 +578,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             color = colorResource(id = R.color.light_grey),
                             textAlign = TextAlign.Start,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
+                            // fontWeight = FontWeight.Bold
                         )
                         CustomSlider(
                             modifier = Modifier
@@ -627,7 +625,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
                         lineHeight = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        // fontWeight = FontWeight.Bold
                     )
                     Switch(
                         checked = checkedAutoClock.value,
@@ -662,7 +660,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             color = colorResource(id = R.color.light_grey),
                             textAlign = TextAlign.Start,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
+                            // fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = "(Only when Spotify is launched\nfor the first time)",
@@ -737,7 +735,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             color = colorResource(id = R.color.light_grey),
                             textAlign = TextAlign.Start,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
+                            // fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = "Keep this enabled if you use\nBluetooth remotes!",
@@ -776,7 +774,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
                         lineHeight = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        // fontWeight = FontWeight.Bold
                     )
                     Switch(
                         checked = checkedRecToDownloads.value,
@@ -802,7 +800,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 color = colorResource(id = R.color.midfaded_grey),
                 textAlign = TextAlign.Center,
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
+                // fontWeight = FontWeight.Bold,
                 fontStyle = FontStyle.Italic
             )
 

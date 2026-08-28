@@ -74,7 +74,7 @@ fun colorSelectorHome(
         // Modes:
         "spotify" -> colorResource(R.color.greenSign)
         "contact" -> colorResource(id = R.color.blueSign)
-        "place" -> colorResource(id = R.color.brownSign)
+        "place" -> colorResource(id = R.color.yellowSign)
         else -> colorResource(id = R.color.faded_grey)
     }
 }
@@ -87,7 +87,7 @@ fun colorSelectorHomeDark(
         // Modes:
         "spotify" -> colorResource(R.color.greenSignDark)
         "contact" -> colorResource(id = R.color.blueSignDark)
-        "place" -> colorResource(id = R.color.brownSignDark)
+        "place" -> colorResource(id = R.color.yellowSignDark)
         else -> colorResource(id = R.color.dark_grey)
     }
 }
@@ -100,7 +100,7 @@ fun colorSelectorHomeLight(
         // Modes:
         "spotify" -> colorResource(R.color.greenSignLight)
         "contact" -> colorResource(id = R.color.blueSignLight)
-        "place" -> colorResource(id = R.color.brownSignLight)
+        "place" -> colorResource(id = R.color.yellowSignLight)
         else -> colorResource(id = R.color.midfaded_grey)
     }
 }

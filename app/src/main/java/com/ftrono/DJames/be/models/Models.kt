@@ -1,5 +1,6 @@
 package com.ftrono.DJames.be.models
 
+import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
@@ -35,6 +36,22 @@ data class TTSRequest(
     val voice_settings: TTSVoiceSettings
 )
 
+
+data class PlaybackInfo(
+    var id: String = "",
+    var type: String = "",
+    var uri: String = "",
+    var name: String = "",   // Track / episode name
+    var artists: String = "",   // Artists / podcast name - TODO: split by ", "
+    var album: String = "",     // Album / podcast name
+    var albumArtists: String = "",   // '0' if episode - TODO: split by ", "
+    var imageBitmap: Bitmap? = null,
+    var imageLocalUri: String = "",
+    var imageUrl: String = "",
+    var contextUri: String = "",   // Album, playlist or podcast - don't use for artist
+    var contextName: String = "",   // Album, playlist or podcast - don't use for artist
+    var contextUrl: String = "",   // Album, playlist or podcast - don't use for artist
+)
 
 data class RawLinkPreview(
     var title: String = "",

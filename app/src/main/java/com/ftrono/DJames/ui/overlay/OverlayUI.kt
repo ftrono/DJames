@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -84,7 +83,6 @@ import com.ftrono.DJames.application.clickCounter
 import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.currentHourMini
 import com.ftrono.DJames.application.currentMinsMini
-import com.ftrono.DJames.application.currentTime
 import com.ftrono.DJames.application.overlayBoxMax
 import com.ftrono.DJames.application.overlayBoxMin
 import com.ftrono.DJames.application.overlayBubbleSize
@@ -103,7 +101,6 @@ import com.ftrono.DJames.application.voiceQueryOn
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.components.toPx
 import com.ftrono.DJames.ui.theme.light_grey
-import com.ftrono.DJames.ui.theme.windowBackground
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -266,7 +263,7 @@ fun PadsPreview6() {
     val mContext = LocalContext.current
     val overlayPosState by remember { mutableStateOf("Right") }
     val clickCounterState by remember { mutableStateOf(0) }
-    val clockActiveState by remember { mutableStateOf(true) }
+    val clockActiveState by remember { mutableStateOf(false) }
 
     DJamesPads(
         context = mContext,
@@ -301,7 +298,6 @@ fun DJamesPads(
     val configuration = LocalConfiguration.current
     val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
 
-    val currentTimeState by currentTime.observeAsState()
     val currentHourState by currentHourMini.observeAsState()
     val currentMinsState by currentMinsMini.observeAsState()
     val overlayOptionsState by overlayOptionsStr.observeAsState()
@@ -698,6 +694,7 @@ fun CenterPad(
             },
             size = toeSize,
             backgroundColor = colorResource(R.color.black),
+            // showBorder = isDocked,
             onTap = {
                 getQuickActionOnTap(context = context, name = "clock")()
             },
@@ -743,7 +740,7 @@ fun CenterPad(
         } else {
             when {
                 (isVolumeUpUnlockedState!! || previewVolume) -> {
-                    colorResource(id = R.color.yellowSignDark)
+                    colorResource(id = R.color.dark_grey)
                 }
 
                 (queryState == "busy") -> {
@@ -863,6 +860,7 @@ fun FixedButton(
     size: Int = overlayToeSize,
     onTap: (Offset) -> Unit,
     backgroundColor: Color,
+    showBorder: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {
     //OVERLAY BUTTON:
@@ -879,7 +877,10 @@ fun FixedButton(
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors (
             containerColor = backgroundColor
-        )
+        ),
+        border = if (showBorder) {
+            BorderStroke(0.5.dp, colorResource(id = R.color.dark_grey_background))
+        } else null,
     ) {
         content()
     }

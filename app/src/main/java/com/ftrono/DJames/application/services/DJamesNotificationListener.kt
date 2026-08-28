@@ -8,38 +8,39 @@ import android.util.Log
 class DJamesNotificationListener : NotificationListenerService() {
 
     companion object {
-        private const val TAG = "MyNotificationListener"
+        private val TAG = this::class.java.simpleName
 
-        // Optional: static reference to check connection state
+        // Static reference to check connection state:
         var instance: DJamesNotificationListener? = null
             private set
     }
 
-    override fun onCreate() {
-        super.onCreate()
-        instance = this
-        Log.d(TAG, "NotificationListener created")
-    }
-
     override fun onListenerConnected() {
         super.onListenerConnected()
-        Log.d(TAG, "NotificationListener connected")
+        instance = this
+        Log.d(TAG, "NotificationListener CONNECTED")
     }
 
     override fun onListenerDisconnected() {
         super.onListenerDisconnected()
-        Log.d(TAG, "NotificationListener disconnected")
         instance = null
+        Log.d(TAG, "NotificationListener DISCONNECTED")
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
-        // Optional: you can monitor when Spotify/Deezer posts media notifications
+        // TODO: Specify per-app behaviour:
 //        if (sbn.packageName == "com.spotify.music") {
 //            Log.d(TAG, "Spotify notification posted")
 //        }
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification) {
-        // Optional
+        // TODO
+    }
+
+    override fun onDestroy() {
+        instance = null
+        Log.d(TAG, "NotificationListener ENDED")
+        super.onDestroy()
     }
 }

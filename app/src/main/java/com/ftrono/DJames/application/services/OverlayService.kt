@@ -54,7 +54,6 @@ import com.ftrono.DJames.application.ACTION_SAVE_TRACK
 import com.ftrono.DJames.application.ACTION_TIME_TICK
 import com.ftrono.DJames.application.ACTION_TOASTER
 import com.ftrono.DJames.application.PHONE_STATE_ACTION
-import com.ftrono.DJames.application.SPOTIFY_METADATA_CHANGED
 import com.ftrono.DJames.application.VOLUME_CHANGED_ACTION
 import com.ftrono.DJames.application.acts_active
 import com.ftrono.DJames.application.audioManager
@@ -96,7 +95,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlin.math.round
 
 
 class OverlayService : Service () {
@@ -130,7 +128,10 @@ class OverlayService : Service () {
     //Receiver:
     var eventReceiver = EventReceiver()
 
-    // Observers:
+    //Media observer:
+    private var spotifyObserver: SpotifyMediaObserver? = null
+
+    //State observers:
     private val clockActiveObserver = Observer<Boolean> {
         updateOverlayPosition()
     }
@@ -271,7 +272,6 @@ class OverlayService : Service () {
             //Start Event Receiver:
             val filter = IntentFilter()
             filter.addAction(VOLUME_CHANGED_ACTION)
-            filter.addAction(SPOTIFY_METADATA_CHANGED)
             filter.addAction(Intent.ACTION_SCREEN_OFF)
             filter.addAction(Intent.ACTION_SCREEN_ON)
             filter.addAction(ACTION_TOASTER)
@@ -293,6 +293,15 @@ class OverlayService : Service () {
             //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
             registerReceiver(overlayReceiver, actFilter, RECEIVER_EXPORTED)
             Log.d(TAG, "OverlayReceiver started.")
+
+            if (utils.isNotificationServiceEnabled(applicationContext)) {
+                //Start NotificationService:
+                utils.startNotificationListener(applicationContext)
+
+                // Register observer:
+                spotifyObserver = SpotifyMediaObserver(applicationContext)
+                spotifyObserver!!.start()
+            }
 
             //Set current time:
             overlay.updateMiniClock()
@@ -603,7 +612,7 @@ class OverlayService : Service () {
             Log.w(TAG, "SaveTrackJob not active.")
         }
         vol_initialized = false
-        //unregister receivers:
+        // Unregister receivers:
         try {
             unregisterReceiver(eventReceiver)
             Log.d(TAG, "eventReceiver stopped.")
@@ -616,6 +625,10 @@ class OverlayService : Service () {
         } catch (e: Exception) {
             Log.w(TAG, "overlayReceiver: cannot unregister. ", e)
         }
+        //stop NotificationListener:
+        utils.stopNotificationListener()
+        //unregister media observer:
+        spotifyObserver?.stop()
         if (!restarting) {
             //End Clock Screen():
             Intent().also { intent ->

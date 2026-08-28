@@ -161,7 +161,7 @@ fun StreetUITopBar(
     onBack: () -> Unit = {},
     optionButtons: @Composable() (RowScope.() -> Unit) = {}
 ) {
-    val clockActiveState by clockActive.observeAsState()
+    // val clockActiveState by clockActive.observeAsState()
 
     //HEADER:
     Row(
@@ -169,7 +169,8 @@ fun StreetUITopBar(
             .fillMaxWidth()
             .height(65.dp)
             .background(
-                colorResource(if (clockActiveState!!) R.color.black else R.color.windowBackground)
+                colorResource(R.color.windowBackground)
+                //colorResource(if (clockActiveState!!) R.color.black else R.color.windowBackground)
             ),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
@@ -479,6 +480,7 @@ fun StartButton(
     overlayActiveState: Boolean,
     onClickCenter: () -> Unit = {},
     clockActiveState: Boolean,
+    isLandscape: Boolean,
 ) {
     if (overlayActiveState) {
         // Placeholder:
@@ -487,7 +489,7 @@ fun StartButton(
                 .clip(CircleShape)
                 .size(100.dp)
                 .background(
-                    colorResource(if (clockActiveState) R.color.black else R.color.windowBackground)
+                    colorResource(if (clockActiveState || isLandscape) R.color.black else R.color.dark_grey_background)
                 ),
         )
     } else {
@@ -530,14 +532,16 @@ fun MainNavBar(
                 .fillMaxHeight()
                 .width(100.dp)
                 .background(
-                    colorResource(if (clockActiveState!!) R.color.black else R.color.windowBackground)
+                    colorResource(R.color.windowBackground)
+                    //colorResource(if (clockActiveState!!) R.color.black else R.color.windowBackground)
                 )
         } else {
             Modifier
                 .fillMaxWidth()
-                .height(170.dp)
+                .height(if (overlayActiveState!!) 155.dp else 145.dp)
                 .background(
-                    colorResource(if (clockActiveState!!) R.color.black else R.color.windowBackground)
+                    colorResource(R.color.windowBackground)
+                    //colorResource(if (clockActiveState!!) R.color.black else R.color.windowBackground)
                 )
             },
         contentAlignment = Alignment.Center,
@@ -548,7 +552,7 @@ fun MainNavBar(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = if (isLandscape) Arrangement.Center else Arrangement.Bottom,
         ) {
-            if (clickCounterState == 0 && (!isLandscape || !overlayActiveState!!)) {
+            if (clickCounterState == 0 && !isLandscape) {
                 // Text:
                 Text(
                     modifier = Modifier
@@ -560,6 +564,8 @@ fun MainNavBar(
                         "Tap or Volume Up to speak"
                     },
                     fontSize = 14.sp,
+                    lineHeight = 16.sp,
+                    fontWeight = FontWeight.Light,
                     fontStyle = FontStyle.Italic,
                     textAlign = TextAlign.Center,
                     color = colorResource(id = R.color.mid_grey),
@@ -570,6 +576,7 @@ fun MainNavBar(
                 overlayActiveState=overlayActiveState!!,
                 onClickCenter=onClickCenter,
                 clockActiveState=clockActiveState!!,
+                isLandscape=isLandscape,
             )
         }
     }

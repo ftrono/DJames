@@ -1,49 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <color name="colorPrimary">#004C38</color>
-  <color name="colorPrimaryDark">#002A1F</color>
-  <color name="windowBackground">#00100C</color>
-  <color name="colorAccent">#00684D</color>
-  <color name="colorAccentMid">#00966F</color>
-  <color name="colorAccentLight">#84BAA2</color>
-  <color name="colorHeader">#FFC000</color>
-  <color name="colorBusy">#ED7D31</color>
-  <color name="colorBusyLight">#F5B68B</color>
-  <color name="colorStop">#7E0000</color>
-  <color name="blueSign">#124370</color>
-  <color name="blueSignMid">#227BCC</color>
-  <color name="blueSignLight">#5FB2F7</color>
-  <color name="blueSignDark">#0A253E</color>
-  <color name="greenSign">#004C38</color>
-  <color name="greenSignLight">#00D69E</color>
-  <color name="greenSignDark">#002A1F</color>
-  <color name="yellowSign">#926F00</color>
-  <color name="yellowSignLight">#FFD243</color>
-  <color name="yellowSignDark">#4C3A00</color>
-  <color name="orangeSign">#AC4E00</color>
-  <color name="orangeSignLight">#FF9C4B</color>
-  <color name="brownSign">#7B4D31</color>
-  <color name="brownSignLight">#CF8C63</color>
-  <color name="brownSignDark">#54321F</color>
-  <color name="violetSign">#3D3DDF</color>
-  <color name="violetSignLight">#8888EC</color>
-  <color name="violetSignDark">#222285</color>
-  <color name="redSign">#7E0000</color>
-  <color name="redSignLight">#FF6565</color>
-  <color name="redSignDark">#460000</color>
+  <!-- Primary -->
+  <color name="windowBackground">#000000</color>   <!-- v1-v2: #00100C -->
+  <!-- Accent color: GREEN (keep aligned) -->
+  <color name="colorPrimary">#194d2b</color>   <!-- 0.20 -->
+  <color name="colorPrimaryDark">#133920</color>   <!-- 0.15 -->
+  <color name="colorAccent">#206035</color>   <!-- 0.25 -->
+  <color name="colorAccentMid">#2d864a</color>   <!-- 0.35 -->
+  <color name="colorAccentLight">#39ac60</color>   <!-- 0.45 -->
+  <color name="colorBusy">#c37322</color>
+  <!-- Palette (HSL varies lightness by +- 0.10) -->
+  <!-- Green (HSL: 140, 0.50, 0.25) -->
+  <color name="greenSign">#194d2b</color>   <!-- 0.20 - exception -->
+  <color name="greenSignMid">#2d864a</color>   <!-- 0.35 -->
+  <color name="greenSignLight">#39ac60</color>   <!-- 0.45 -->
+  <color name="greenSignDark">#133920</color>   <!-- 0.15 -->
+  <!-- Blue (HSL: 210, 0.70, 0.25) -->
+  <color name="blueSign">#13406c</color>   <!-- 0.25 -->
+  <color name="blueSignMid">#1b5998</color>
+  <color name="blueSignLight">#2273c3</color>
+  <color name="blueSignDark">#0b2641</color>
+  <!-- Yellow (HSL: 40, 0.70, 0.25) -->
+  <color name="yellowSign">#6c4f13</color>
+  <color name="yellowSignMid">#986e1b</color>
+  <color name="yellowSignLight">#c38e22</color>
+  <color name="yellowSignDark">#412f0b</color>
+  <!-- Orange (HSL: 30, 0.70, 0.25) -->
+  <color name="orangeSign">#6c4013</color>
+  <color name="orangeSignMid">#98591b</color>
+  <color name="orangeSignLight">#c37322</color>
+  <color name="orangeSignDark">#41260b</color>
+  <!-- Brown (HSL: 30, 0.30, 0.25) -->
+  <color name="brownSign">#53402d</color>
+  <color name="brownSignMid">#74593e</color>
+  <color name="brownSignLight">#957350</color>
+  <color name="brownSignDark">#32261b</color>
+  <!-- Violet (HSL: 250, 0.50, 0.25) -->
+  <color name="violetSign">#2b2060</color>
+  <color name="violetSignMid">#3c2d86</color>
+  <color name="violetSignLight">#4d39ac</color>
+  <color name="violetSignDark">#1a1339</color>
+  <!-- Red (HSL: 0, 0.50, 0.25) -->
+  <color name="redSign">#602020</color>
+  <color name="redSignMid">#862d2d</color>
+  <color name="redSignLight">#ac3939</color>
+  <color name="redSignDark">#391313</color>
+  <!-- Shades of grey -->
   <color name="white">#ffffff</color>
   <color name="light_grey">#dddddd</color>
   <color name="mid_grey">#9c9c9c</color>
   <color name="midfaded_grey">#747474</color>
   <color name="faded_grey">#525252</color>
-  <color name="transparent_green">#5F00684D</color>
+  <color name="dark_grey_background">#FF131B19</color>
+  <color name="dark_grey">#323232</color>
+  <color name="black">#000000</color>
+  <!-- Transparent (HSL: 150, 0.50, 0.25) -->
+  <color name="transparent_green">#5F206040</color>
   <color name="transparent_busy">#7FAC4E00</color>
   <color name="transparent_grey">#7F9c9c9c</color>
   <color name="transparent_dark_grey">#7F262626</color>
   <color name="transparent_bg">#9F00100C</color>
   <color name="transparent_black">#9F000000</color>
   <color name="transparent_full">#00000000</color>
-  <color name="dark_grey_background">#FF131B19</color>
-  <color name="dark_grey">#323232</color>
-  <color name="black">#000000</color>
 </resources>

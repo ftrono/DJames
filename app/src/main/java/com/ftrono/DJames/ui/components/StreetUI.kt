@@ -74,6 +74,7 @@ import com.ftrono.DJames.ui.selectors.colorSelectorHomeDark
 import com.ftrono.DJames.ui.selectors.colorSelectorHomeLight
 import com.ftrono.DJames.ui.selectors.colorSelectorLight
 import com.ftrono.DJames.ui.selectors.iconSelector
+import com.ftrono.DJames.ui.theme.midfaded_grey
 import kotlin.math.absoluteValue
 
 
@@ -131,7 +132,7 @@ fun StreetLine(
         modifier = modifier
     ) {
         drawLine(
-            color = Color.Gray,
+            color = midfaded_grey,
             start = Offset(x = 0f, y = 0f),
             end = Offset(
                 x = if (isHorizontal) size.width else 0f,

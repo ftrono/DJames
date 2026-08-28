@@ -2,7 +2,6 @@ package com.ftrono.DJames.application.screens
 
 import android.content.Intent
 import android.net.Uri
-import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -305,7 +304,7 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
             StaticCard(
                 modifier = Modifier
                     .padding(end=8.dp, bottom=4.dp),
-                title = "Your DJames profile",
+                title = "Profile",
                 backgroundColor = colorResource(id = R.color.greenSign),
                 iconPainter = painterResource(id = R.drawable.icon_user),
             ) {
@@ -323,7 +322,7 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
                     color = textHeaderColor,
                     textAlign = TextAlign.Start,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
+                    // fontWeight = FontWeight.Bold
                 )
 
                 //USER NICKNAME:
@@ -355,7 +354,7 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
                     color = textHeaderColor,
                     textAlign = TextAlign.Start,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
+                    // fontWeight = FontWeight.Bold
                 )
                 DropdownSpinner(
                     context = mContext,
@@ -420,7 +419,7 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
+                        // fontWeight = FontWeight.Bold
                     )
                     Spacer(Modifier.weight(1f))
                     RoundedSign(
@@ -454,7 +453,7 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
                         color = colorResource(id = R.color.light_grey),
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
+                        // fontWeight = FontWeight.Bold
                     )
                     Spacer(Modifier.weight(1f))
                     RoundedSign(
@@ -491,7 +490,7 @@ fun AccountsScreen(navController: NavController, preview: Boolean = false) {
                 color = colorResource(id = R.color.midfaded_grey),
                 textAlign = TextAlign.Center,
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
+                // fontWeight = FontWeight.Bold,
                 fontStyle = FontStyle.Italic
             )
 

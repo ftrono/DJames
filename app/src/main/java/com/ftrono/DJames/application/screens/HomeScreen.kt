@@ -267,7 +267,6 @@ fun HomeIntroText(
     )
     Row(
         modifier = Modifier
-            .background(color = colorResource(R.color.windowBackground))
             .clickable {
                 //Navigate:
                 val curNavRoute = NavigationItem.Accounts.route
@@ -351,7 +350,7 @@ fun IntroArea(
         CardSign (
             modifier = Modifier
                 .padding(top=12.dp, bottom=12.dp),
-            backgroundColor = colorResource(R.color.light_grey),
+            backgroundColor = colorResource(R.color.dark_grey_background),
             roundedCorners = 14.dp,
         ) {
             Row(
@@ -365,7 +364,7 @@ fun IntroArea(
                         .size(28.dp),
                     contentDescription = "Usage tip",
                     painter = painterResource(R.drawable.icon_lamp),
-                    tint = colorResource(R.color.black)
+                    tint = colorResource(R.color.mid_grey)
                 )
                 Text(
                     modifier = Modifier
@@ -388,7 +387,7 @@ fun IntroArea(
                     },
                     fontSize = 15.sp,
                     lineHeight = 15.sp,
-                    color = colorResource(id = R.color.black),
+                    color = colorResource(id = R.color.light_grey),
                 )
             }
         }
@@ -528,8 +527,9 @@ fun ContentSection(
                         navigateTo(navController, curNavRoute)
                         lastNavRoute = curNavRoute
                     },
-                text = "View saved >",
-                fontSize = 14.sp,
+                text = "VIEW SAVED  ➔",
+                fontSize = 12.sp,
+                // fontWeight = FontWeight.Light,
                 color = colorResource(id = R.color.light_grey),
             )
         },
@@ -559,6 +559,7 @@ fun ContentSection(
                     "Recently used"
                 },
                 fontSize = 14.sp,
+                // fontWeight = FontWeight.Light,
                 color = colorResource(id = R.color.light_grey),
             )
             if (cat == "spotify") {

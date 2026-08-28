@@ -14,6 +14,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -693,6 +694,7 @@ fun CenterPad(
             },
             size = toeSize,
             backgroundColor = colorResource(R.color.black),
+            // showBorder = isDocked,
             onTap = {
                 getQuickActionOnTap(context = context, name = "clock")()
             },
@@ -738,7 +740,7 @@ fun CenterPad(
         } else {
             when {
                 (isVolumeUpUnlockedState!! || previewVolume) -> {
-                    colorResource(id = R.color.yellowSignDark)
+                    colorResource(id = R.color.dark_grey)
                 }
 
                 (queryState == "busy") -> {
@@ -858,6 +860,7 @@ fun FixedButton(
     size: Int = overlayToeSize,
     onTap: (Offset) -> Unit,
     backgroundColor: Color,
+    showBorder: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {
     //OVERLAY BUTTON:
@@ -874,7 +877,10 @@ fun FixedButton(
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors (
             containerColor = backgroundColor
-        )
+        ),
+        border = if (showBorder) {
+            BorderStroke(0.5.dp, colorResource(id = R.color.dark_grey_background))
+        } else null,
     ) {
         content()
     }

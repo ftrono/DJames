@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -70,21 +71,24 @@ fun StaticCard(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 // Section title:
+                val iconSize = 28.dp
+                val iconColor = colorResource(R.color.light_grey)
+
                 if (iconVector != null) {
                     Icon(
                         modifier = Modifier
-                            .size(20.dp),
+                            .size(iconSize),
                         contentDescription = title,
                         imageVector = iconVector,
-                        tint = colorResource(R.color.light_grey)
+                        tint = iconColor
                     )
                 } else {
                     Icon(
                         modifier = Modifier
-                            .size(20.dp),
+                            .size(iconSize),
                         contentDescription = title,
                         painter = iconPainter!!,
-                        tint = colorResource(R.color.light_grey)
+                        tint = iconColor
                     )
                 }
                 Text(
@@ -93,7 +97,7 @@ fun StaticCard(
                         .weight(1F),
                     text = title,
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = colorResource(id = R.color.light_grey),
                 )
                 cornerButton()
@@ -101,16 +105,9 @@ fun StaticCard(
             if (fromExpandable) {
                 content()
             } else {
-                HorizontalDivider(
-                    modifier = Modifier
-                        .padding(top=6.dp)
-                        .fillMaxWidth(),
-                    color = colorResource(R.color.light_grey),
-                    thickness = 0.5.dp
-                )
                 Column(
                     modifier = Modifier
-                        .padding(top = 10.dp),
+                        .padding(top=16.dp, bottom=2.dp, start=2.dp, end=2.dp),
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.Center,
                 ) {
@@ -157,14 +154,15 @@ fun ExpandableCard(
         iconVector = iconVector,
         fromExpandable = true,
         cornerButton = {
+            val iconSize = 28.dp
             if (currentExpanded.value == id) {
                 if (useCustomCornerButton) {
                     cornerButton()
                 } else {
                     Icon(
                         modifier = Modifier
-                            .size(20.dp),
-                        imageVector = Icons.Rounded.KeyboardArrowUp,
+                            .size(iconSize),
+                        painter = painterResource(R.drawable.arrow_up),
                         tint = colorResource(id = R.color.light_grey),
                         contentDescription = "Expand / collapse"
                     )
@@ -172,8 +170,8 @@ fun ExpandableCard(
             } else {
                 Icon(
                     modifier = Modifier
-                        .size(20.dp),
-                    imageVector = Icons.Rounded.KeyboardArrowDown,
+                        .size(iconSize),
+                    painter = painterResource(R.drawable.arrow_down),
                     tint = colorResource(id = R.color.light_grey),
                     contentDescription = "Expand / collapse"
                 )
@@ -188,17 +186,10 @@ fun ExpandableCard(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(top = 6.dp),
+                    .padding(top=16.dp, bottom=2.dp, start=2.dp, end=2.dp),
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Center,
             ) {
-                HorizontalDivider(
-                    modifier = Modifier
-                        .padding(bottom=12.dp)
-                        .fillMaxWidth(),
-                    color = colorResource(R.color.light_grey),
-                    thickness = 0.5.dp
-                )
                 content()
             }
         }

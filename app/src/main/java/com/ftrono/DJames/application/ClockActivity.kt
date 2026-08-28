@@ -11,6 +11,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -201,6 +202,7 @@ class ClockActivity: ComponentActivity() {
                         ) {
                             // Info area:
                             ClockInfoArea(
+                                context = mContext,
                                 modifier = Modifier
                                     .padding(
                                         top = 8.dp,
@@ -208,7 +210,6 @@ class ClockActivity: ComponentActivity() {
                                         start = 20.dp,
                                         end = 20.dp,
                                     ),
-                                isLandscape = true,
                                 currentDayState = currentDayState!!,
                                 currentDateState = currentDateState!!,
                                 currentHourState = currentHourState!!,
@@ -235,6 +236,7 @@ class ClockActivity: ComponentActivity() {
                         ) {
                             // Info area:
                             ClockInfoArea(
+                                context = mContext,
                                 modifier = Modifier
                                     .padding(
                                         top = 12.dp,
@@ -242,7 +244,6 @@ class ClockActivity: ComponentActivity() {
                                         start = 20.dp,
                                         end = 20.dp,
                                     ),
-                                isLandscape = false,
                                 currentDayState = currentDayState!!,
                                 currentDateState = currentDateState!!,
                                 currentHourState = currentHourState!!,
@@ -274,8 +275,8 @@ class ClockActivity: ComponentActivity() {
 
     @Composable
     fun ClockInfoArea(
+        context: Context,
         modifier: Modifier,
-        isLandscape: Boolean,
         currentDayState: String,
         currentDateState: String,
         currentHourState: String,
@@ -327,7 +328,7 @@ class ClockActivity: ComponentActivity() {
                 )
 
                 //PLAYER INFO:
-                PlayerInfo(isLandscape)
+                PlayerInfo(context)
             }
         }
     }
@@ -336,7 +337,7 @@ class ClockActivity: ComponentActivity() {
     //PLAYER INFO:
     @Composable
     fun PlayerInfo(
-        isLandscape: Boolean,
+        context: Context,
     ) {
         val currentSongPlayingState by currentSongPlaying.observeAsState()
         val currentArtistPlayingState by currentArtistPlaying.observeAsState()
@@ -346,11 +347,21 @@ class ClockActivity: ComponentActivity() {
             modifier = Modifier
                 .padding(top = 12.dp)
                 .width(160.dp)
-                .height(120.dp),
+                .height(120.dp)
+                .clickable {
+                    // Open Spotify context URL:
+                    if (lastPlaybackInfo.contextUrl != "") {
+                        utils.openLink(
+                            context = context,
+                            url = lastPlaybackInfo.contextUrl
+                        )
+                    }
+                },
             shape = RoundedCornerShape(20.dp),
+            border = BorderStroke(0.5.dp, colorResource(id = R.color.dark_grey_background)),
         ) {
             val imagePresent = (currentImage != null && currentImage != "")
-            val darkenValue = 0.25f
+            val darkenValue = 0.3f
 
             Box(
                 modifier = if (imagePresent) {

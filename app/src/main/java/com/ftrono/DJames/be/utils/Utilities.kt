@@ -7,6 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.Settings
 import android.service.notification.NotificationListenerService
@@ -42,12 +44,15 @@ import androidx.core.content.edit
 import androidx.core.graphics.ColorUtils
 import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.clockActive
+import com.ftrono.DJames.application.defaultPlayerColor
 import com.ftrono.DJames.application.services.DJamesNotificationListener
 import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.userNicknameUI
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import androidx.core.graphics.get
+import kotlin.math.roundToInt
 
 
 class Utilities {
@@ -99,6 +104,49 @@ class Utilities {
         return Color(
             ColorUtils.HSLToColor(hslArray)
         )
+    }
+
+    // Get Hue frequencies:
+    fun getDominantColor(context: Context, imageUri: String): String {
+        val huesMap = mutableMapOf<Int, Int>()   // { hueBin: count }
+        var bitmap: Bitmap? = null
+
+        // Read content URI:
+         try {
+             bitmap = context.contentResolver
+                .openInputStream(imageUri.toUri())
+                ?.use { BitmapFactory.decodeStream(it) }
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not decode image!", e)
+            return defaultPlayerColor
+        }
+        if (bitmap == null) return defaultPlayerColor
+
+        // Loop all pixels:
+        var hsl = FloatArray(3)
+        for (y in 0 until bitmap.height) {
+            for (x in 0 until bitmap.width) {
+                // Convert single pixel to HSL:
+                val pixel = bitmap[x, y]
+                ColorUtils.colorToHSL(pixel, hsl)   // [H: 0-360, S: 0-1, L: 0-1]
+                // Check saturation & light:
+                if (hsl[1] >= 0.5 && hsl[2] >= 0.3) {
+                    // Round hue to the nearest tenth:
+                    val hue = hsl[0].roundToInt()
+                    val hueBin = hue - (hue % 10)
+                    // Store / increase hueBin & count:
+                    if (huesMap.keys.contains(hueBin)) {
+                        huesMap[hueBin] = huesMap[hueBin]!! + 1
+                    } else huesMap[hueBin] = 1
+                }
+            }
+        }
+
+        // Get dominant hue:
+        Log.d(TAG, "huesMap: $huesMap")
+        if (huesMap.isEmpty()) return defaultPlayerColor
+        val dominantHue = huesMap.toList().sortedByDescending { it.second }.toMap().keys.first()
+        return "$dominantHue:0.50:0.27"
     }
 
     //Check service running:

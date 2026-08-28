@@ -61,11 +61,11 @@ class SpotifyMediaObserver(
               If context is artist, the context URI format is, i.e.:
               "spotify:list:popular-release-segments-main-roles:artist_1jGACwVpRJvsOfg29pM5L7"
             */
-            Log.d(TAG, "onMetadataChanged triggered")
             metadata ?: return
             val prevUri = lastPlaybackInfo.uri
             val newUri = metadata.getString(MediaMetadata.METADATA_KEY_MEDIA_ID) ?: ""
             if (newUri != prevUri) {
+                Log.d(TAG, "onMetadataChanged triggered")
                 if (newUri == "") {
                     lastPlaybackInfo = PlaybackInfo()
                 } else {
@@ -112,7 +112,7 @@ class SpotifyMediaObserver(
                 )
                 currentPlayerColor.postValue(
                     if (lastPlaybackInfo.imageLocalUri != "") {
-                        defaultPlayerColor   // TODO
+                        utils.getDominantColor(context, lastPlaybackInfo.imageLocalUri)
                     } else defaultPlayerColor
                 )
             }
@@ -120,8 +120,11 @@ class SpotifyMediaObserver(
 
         override fun onPlaybackStateChanged(state: PlaybackState?) {
             super.onPlaybackStateChanged(state)
-            isPlaying = state?.state == PlaybackState.STATE_PLAYING
-            Log.d(TAG, "Spotify playback state = $isPlaying")
+            val newState = state?.state == PlaybackState.STATE_PLAYING
+            if (newState != isPlaying) {
+                isPlaying = newState
+                Log.d(TAG, "Spotify playback state changed: $isPlaying")
+            }
         }
     }
 

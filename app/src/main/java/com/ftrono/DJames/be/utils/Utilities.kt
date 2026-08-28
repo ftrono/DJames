@@ -106,7 +106,7 @@ class Utilities {
         )
     }
 
-    // Get Hue frequencies:
+    // Get dominant color from an image:
     fun getDominantColor(context: Context, imageUri: String): String {
         val huesMap = mutableMapOf<Int, Int>()   // { hueBin: count }
         var bitmap: Bitmap? = null

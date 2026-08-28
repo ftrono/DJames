@@ -62,9 +62,10 @@ class SpotifyMediaObserver(
               "spotify:list:popular-release-segments-main-roles:artist_1jGACwVpRJvsOfg29pM5L7"
             */
             metadata ?: return
-            val prevUri = lastPlaybackInfo.uri
             val newUri = metadata.getString(MediaMetadata.METADATA_KEY_MEDIA_ID) ?: ""
-            if (newUri != prevUri) {
+            val newImageUri = metadata.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI) ?: ""
+
+            if (newUri != lastPlaybackInfo.uri || newImageUri != lastPlaybackInfo.imageLocalUri) {
                 Log.d(TAG, "onMetadataChanged triggered")
                 if (newUri == "") {
                     lastPlaybackInfo = PlaybackInfo()

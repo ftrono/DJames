@@ -576,19 +576,20 @@ fun ContentSection(
         cornerButton = {
             Icon(
                 modifier = Modifier
-                    .size(28.dp)
-                    .clickable {
-                        // Set current cat:
-                        currentCat.postValue(cat)
-                        //Navigate:
-                        val curNavRoute = NavigationItem.Library.route
-                        navigateTo(navController, curNavRoute)
-                        lastNavRoute = curNavRoute
-                    },
+                    .size(28.dp),
                 imageVector = Icons.AutoMirrored.Default.ArrowForward,
                 tint = colorResource(id = R.color.light_grey),
                 contentDescription = "Open section"
             )
+        },
+        useCustomOnClick = true,
+        onClick = {
+            // Set current cat:
+            currentCat.postValue(cat)
+            //Navigate:
+            val curNavRoute = NavigationItem.Library.route
+            navigateTo(navController, curNavRoute)
+            lastNavRoute = curNavRoute
         },
     ) {
         // RECENT ITEMS:

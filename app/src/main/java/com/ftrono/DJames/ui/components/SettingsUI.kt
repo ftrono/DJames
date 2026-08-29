@@ -132,6 +132,8 @@ fun ExpandableCard(
     currentExpanded: MutableState<String>,
     useCustomCornerButton: Boolean = false,
     cornerButton: @Composable () -> Unit = {},
+    useCustomOnClick: Boolean = false,
+    onClick: () -> Unit = {},
     content: @Composable () -> Unit = {}
 ) {
     utils.updateStatesMap(expandedStates, target = currentExpanded.value)
@@ -139,13 +141,20 @@ fun ExpandableCard(
     StaticCard(
         modifier = modifier
             .clickable {
-                //Update global currentExpanded:
                 if (currentExpanded.value == id) {
-                    currentExpanded.value = ""
+                    if (useCustomOnClick) {
+                        // Custom:
+                        onClick()
+                    } else {
+                        // Collapse:
+                        currentExpanded.value = ""
+                        utils.updateStatesMap(expandedStates, target = currentExpanded.value)
+                    }
                 } else {
+                    // Expand:
                     currentExpanded.value = id
+                    utils.updateStatesMap(expandedStates, target = currentExpanded.value)
                 }
-                utils.updateStatesMap(expandedStates, target = currentExpanded.value)
             },
         roundedCorners = roundedCorners,
         title = title,

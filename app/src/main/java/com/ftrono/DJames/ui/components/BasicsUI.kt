@@ -37,7 +37,6 @@ import com.ftrono.DJames.R
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryLangFull
 import com.ftrono.DJames.application.queryLangCodes
-import com.ftrono.DJames.application.screens.restartOverlay
 import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
 import androidx.compose.foundation.layout.WindowInsets
@@ -52,6 +51,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import com.ftrono.DJames.application.utils
 import kotlin.math.roundToInt
 
 
@@ -375,7 +375,7 @@ fun DropdownSpinner(
                         } else if (prefName == "overlayPosition") {
                             prefs.overlayPosition = selectionOption
                             state.value = selectionOption
-                            restartOverlay(context)
+                            utils.restartOverlay(context)
                         } else if (prefName == "queryLanguage") {
                             prefs.queryLanguage = queryLangCodes[queryLangFull.indexOf(selectionOption)]
                             state.value = selectionOption

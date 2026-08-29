@@ -52,6 +52,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import androidx.core.graphics.get
+import com.ftrono.DJames.application.utils
 import kotlin.math.roundToInt
 
 
@@ -158,6 +159,17 @@ class Utilities {
             }
         }
         return false
+    }
+
+    //Restart Overlay service:
+    fun restartOverlay(context: Context) {
+        if (isMyServiceRunning(OverlayService::class.java, context)) {
+            context.stopService(Intent(context, OverlayService::class.java))
+            if (!isMyServiceRunning(OverlayService::class.java, context)) {
+                var intentOS = Intent(context, OverlayService::class.java)
+                context.startService(intentOS)
+            }
+        }
     }
 
     //Check notifications enabled:

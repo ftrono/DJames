@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -117,6 +118,10 @@ fun getQuickActionOnTap(
         {
             overlayDocked.postValue(false)
             forceUndock.postValue(true)
+        }
+    } else if (name == "cancel") {
+        {
+            utils.restartOverlay(context)
         }
     } else {
         {
@@ -268,6 +273,36 @@ fun getQuickAction(
                         modifier = Modifier
                             .padding(top=6.dp),
                         text = "Detach",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colorResource(id = R.color.light_grey)
+                    )
+                }
+            }
+        )
+    } else if (name == "cancel") {
+        QuickAction(
+            id = "cancel",
+            title = "Cancel",
+            content = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    // Content:
+                    Icon(
+                        modifier = Modifier
+                            .size(28.dp),
+                        imageVector = Icons.Default.Close,
+                        tint = colorResource(R.color.light_grey),
+                        contentDescription = "Cancel"
+                    )
+                    Text(
+                        modifier = Modifier
+                            .padding(top=6.dp),
+                        text = "Cancel",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = colorResource(id = R.color.light_grey)

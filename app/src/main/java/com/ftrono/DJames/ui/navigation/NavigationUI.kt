@@ -50,14 +50,18 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.application.clockActive
+import com.ftrono.DJames.application.isVolumeUpPreferenceSet
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.utils
@@ -524,6 +528,7 @@ fun MainNavBar(
 ) {
     val overlayActiveState by overlayActive.observeAsState()
     val clockActiveState by clockActive.observeAsState()
+    val isVolumeUpPreferenceSetState by isVolumeUpPreferenceSet.observeAsState()
 
     // Background:
     Box(
@@ -557,15 +562,36 @@ fun MainNavBar(
                 Text(
                     modifier = Modifier
                         .padding(top=12.dp, bottom=12.dp),
-                    text = if (!overlayActiveState!!) {
-                        "Tap to start"
-                    } else {
-                        "Keep screen on for voice commands\n" +
-                        "Tap or Volume Up to speak"
+                    text = buildAnnotatedString {
+                        if (!overlayActiveState!!) {
+                            withStyle(SpanStyle(fontWeight = FontWeight.Light)) {
+                                append("Tap to start")
+                            }
+                        } else {
+                            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                                append("Keep screen on")
+                            }
+                            withStyle(SpanStyle(fontWeight = FontWeight.Light)) {
+                                append(" for voice commands\n")
+                            }
+                            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                                append("Tap")
+                            }
+                            if (isVolumeUpPreferenceSetState == true) {
+                                withStyle(SpanStyle(fontWeight = FontWeight.Light)) {
+                                    append(" or ")
+                                }
+                                withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                                    append("Volume Up")
+                                }
+                            }
+                            withStyle(SpanStyle(fontWeight = FontWeight.Light)) {
+                                append(" to speak")
+                            }
+                        }
                     },
                     fontSize = 14.sp,
                     lineHeight = 16.sp,
-                    fontWeight = FontWeight.Light,
                     fontStyle = FontStyle.Italic,
                     textAlign = TextAlign.Center,
                     color = colorResource(id = R.color.mid_grey),

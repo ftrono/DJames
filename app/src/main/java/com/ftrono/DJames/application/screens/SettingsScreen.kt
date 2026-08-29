@@ -754,7 +754,7 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                             checkedVolumeEnabled.value = it
                             prefs.volumeUpEnabled = it
                             isVolumeUpPreferenceSet.postValue(it)
-                            restartOverlay(mContext)
+                            utils.restartOverlay(mContext)
                         }
                     )
                 }
@@ -816,30 +816,6 @@ fun SettingsScreen(navController: NavController, preview: Boolean = false) {
                 fontStyle = FontStyle.Italic
             )
 
-        }
-    }
-}
-
-
-//Validate integer value before saving:
-fun validateIntValue(newVal: String, origVal: String, min_val: Int, max_val: Int) : String {
-    val newInt = newVal.toInt()
-    return if (newInt in min_val..max_val) {
-        newVal
-    } else {
-        origVal
-    }
-}
-
-
-//Restart Overlay:
-fun restartOverlay(mContext: Context) {
-    //Restart overlay service:
-    if (utils.isMyServiceRunning(OverlayService::class.java, mContext)) {
-        mContext.stopService(Intent(mContext, OverlayService::class.java))
-        if (!utils.isMyServiceRunning(OverlayService::class.java, mContext)) {
-            var intentOS = Intent(mContext, OverlayService::class.java)
-            mContext.startService(intentOS)
         }
     }
 }

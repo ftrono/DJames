@@ -669,11 +669,14 @@ fun CenterPad(
         currentHourState = currentHourState,
         currentMinsState = currentMinsState,
     )
+    val undockAction = getQuickAction(
+        name = "undock",
+    )
     val volumeAction = getQuickAction(
         name = "volume",
     )
-    val undockAction = getQuickAction(
-        name = "undock",
+    val cancelAction = getQuickAction(
+        name = "cancel",
     )
 
     LaunchedEffect(queryState) {
@@ -682,8 +685,9 @@ fun CenterPad(
         }
     }
 
-    //CLOCK BUTTON:
+    //LEFT BUTTON:
     if ((!clockActiveState && clickCounterState == 0)) {
+        // CLOCK:
         FixedButton(
             modifier = if (isDocked) {
                 Modifier
@@ -701,8 +705,10 @@ fun CenterPad(
         ) {
             clockAction.content()
         }
+
     } else if (isDocked) {
         if (clockActiveState && clickCounterState == 0) {
+            // UNDOCK:
             FixedButton(
                 modifier = Modifier
                     .padding(end=horizontalPad),
@@ -714,8 +720,9 @@ fun CenterPad(
             ){
                 undockAction.content()
             }
+
         } else {
-            // Placeholder:
+            // Empty placeholder:
             Box(
                 modifier = Modifier
                     .padding(end = horizontalPad)
@@ -824,8 +831,30 @@ fun CenterPad(
         }
     }
 
-    //VOLUME BUTTON:
-    if (isVolumeUpPreferenceSetState!! && clickCounterState == 0 && !isVolumeUpUnlockedState!!) {
+    //RIGHT BUTTON:
+    if (clickCounterState == 0 && (queryState == "busy" || queryState == "processing")) {
+        // CANCEL:
+        FixedButton(
+            modifier = if (isDocked) {
+                Modifier
+                    .padding(start=horizontalPad)
+            } else {
+                Modifier
+                    .padding(top=verticalPad)
+            },
+            size = toeSize,
+            backgroundColor = colorResource(R.color.dark_grey),
+            onTap = {
+                getQuickActionOnTap(context = context, name = "cancel")()
+            },
+        ) {
+            cancelAction.content()
+        }
+
+    } else if (
+        clickCounterState == 0 && isVolumeUpPreferenceSetState!! && !isVolumeUpUnlockedState!!
+    ) {
+        // VOLUME:
         FixedButton(
             modifier = if (isDocked) {
                 Modifier
@@ -842,8 +871,9 @@ fun CenterPad(
         ) {
             volumeAction.content()
         }
+
     } else if (isDocked) {
-        // Placeholder:
+        // Empty placeholder:
         Box(
             modifier = Modifier
                 .padding(start = horizontalPad)

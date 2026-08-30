@@ -4,7 +4,7 @@ DJames is a vocal Spotify remote & smart driving assistant for Android. It makes
 
 DJames integrates ***KAIGraph***, an **agentic orchestration framework** I built for Kotlin, inspired by LangGraph.
 
-Current work (**v3.1+**) is focused on evolving the vocal assistant from a music launcher into an actual **music profiler and recommender**. I'm working on adding an in-app SQL DB (using Room) to track the user's music listening activity, categorise played songs by genre & artist (using either Spotify's or an alternative API) and implement a music recommender algorithm with playback queue management capabilities.
+Current work (**v3.1+**) is focused on evolving the vocal assistant from a music launcher into an actual **music profiler and recommender**. I'm working on adding an in-app SQL DB (using Room) to track the user's music listening activity, categorise played songs by genre, artist and/or release year (using either Spotify's or an alternative API) and implement a music recommender algorithm with playback queue management capabilities.
 
 Future work will involve the testing and integration of:
 * *smaller, local open-source LLM models* to replace the cloud LLM API calls;

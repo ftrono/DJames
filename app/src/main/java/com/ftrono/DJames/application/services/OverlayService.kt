@@ -76,6 +76,7 @@ import com.ftrono.DJames.application.ACTION_OVERLAY_CLICK
 import com.ftrono.DJames.application.ACTION_OVERLAY_HIDE
 import com.ftrono.DJames.application.ACTION_OVERLAY_SHOW
 import com.ftrono.DJames.application.App.Companion.toneGen
+import com.ftrono.DJames.application.ClockActivity
 import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.forceUndock
 import com.ftrono.DJames.application.overlayBubbleSize
@@ -83,6 +84,7 @@ import com.ftrono.DJames.application.overlayToeSize
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.isVolumeUpUnlocked
+import com.ftrono.DJames.application.lastMainActive
 import com.ftrono.DJames.application.mainActive
 import com.ftrono.DJames.application.mainKeyboardActive
 import com.ftrono.DJames.application.overlayDocked
@@ -206,7 +208,7 @@ class OverlayService : Service () {
             }
 
             //Set current time:
-            overlay.updateMiniClock()
+            overlay.updateDateClock()
 
             // Add the overlay view to the window:
             showOverlayView()
@@ -304,7 +306,7 @@ class OverlayService : Service () {
             }
 
             //Set current time:
-            overlay.updateMiniClock()
+            overlay.updateDateClock()
 
 
         } catch (e: Exception) {
@@ -393,7 +395,7 @@ class OverlayService : Service () {
 
         // Animating the horizontal offset based on the state
         val rightPadding by animateDpAsState(targetValue = if (
-            clickCounterState!! > 0 && overlayPosState == "Right" && sourceIsVolumeState!!
+            clickCounterState!! > 0 && !overlayDockedState && sourceIsVolumeState!! && overlayPosState == "Right"
         ) (70.dp) else 0.dp)
 
         OverlayBubble(
@@ -671,7 +673,14 @@ class OverlayService : Service () {
 
             //Update clock (every minute):
             if (intent!!.action == ACTION_TIME_TICK) {
-                overlay.updateMiniClock()
+                overlay.updateDateClock()
+
+                // Trigger automatic opening of Clock screen:
+                if (mainActive.value == true && clockActive.value != true && utils.isTimeElapsed(
+                        lastMainActive, 20, "seconds")
+                    ) {
+                    utils.openActivity(context!!, ClockActivity::class.java, fromService = true)
+                }
             }
 
             //Show overlay:

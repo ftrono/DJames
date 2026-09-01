@@ -444,11 +444,11 @@ class MessageUtils {
                         utils.trimString(playable.track!!.artists.joinToString(", ") { it.name }, trimLength)
 
                     //Context:
-                    var contextType = if (playable.track!!.context == null) "" else playable.track!!.context!!.type
+                    var contextType = if (playable.context == null) "" else utils.capitalizeWords(playable.context!!.type)
                     var contextName = ""
-                    if (playable.track!!.context != null) {
+                    if (playable.context != null) {
                         //Use Context name:
-                        contextName = playable.track!!.context!!.name
+                        contextName = playable.context!!.name
                     } else if (playable.track!!.album != null) {
                         //Default to Album type:
                         contextType = utils.capitalizeWords(playable.track!!.album!!.type)

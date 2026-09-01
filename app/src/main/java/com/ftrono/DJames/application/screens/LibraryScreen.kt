@@ -8,13 +8,15 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -27,8 +29,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,9 +60,11 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.dialogs.EditLibContact
 import com.ftrono.DJames.application.dialogs.EditLibPlace
 import com.ftrono.DJames.application.dialogs.EditLibSpotify
+import com.ftrono.DJames.application.lastSnapshot
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.be.database.LibraryItem
+import com.ftrono.DJames.ui.components.CardSign
 import com.ftrono.DJames.ui.dialogs.GeneralDialog
 import com.ftrono.DJames.ui.components.OptionsItem
 import com.ftrono.DJames.ui.components.OptionsMenu
@@ -96,7 +98,7 @@ fun LibraryScreen(
     val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
     val mContext = LocalContext.current
 
-    //Statuses:
+    //States:
     val idState = rememberSaveable { mutableStateOf<Long>(if (editPreview != "") 0L else -1L) }
     val nameState = rememberSaveable { mutableStateOf("") }
     val currentCatState by currentCat.observeAsState()
@@ -107,13 +109,12 @@ fun LibraryScreen(
     val useParentState = rememberSaveable { mutableStateOf(false) }
     val extractedItemState = rememberSaveable { mutableStateOf("") }
 
-    val snapshot = rememberSaveable { mutableStateOf(0L) }
     val curLibrarySizeState by curLibrarySize.observeAsState()
 
     // Load dialogs:
     val deleteLibOn = rememberSaveable { mutableStateOf(false) }
     if (deleteLibOn.value) {
-        DialogDeleteLibrary(mContext, deleteLibOn, snapshot, idState, nameState, currentCatState!!, currentSubCatState)
+        DialogDeleteLibrary(mContext, deleteLibOn, idState, nameState, currentCatState!!, currentSubCatState)
     }
 
     val editLibOn = rememberSaveable { mutableStateOf(editPreview != "") }
@@ -123,7 +124,6 @@ fun LibraryScreen(
         if (editCat == "spotify") {
             EditLibSpotify(
                 context = mContext,
-                snapshot = snapshot,
                 extractedItemState = extractedItemState,
                 idState = idState,
                 onDismiss = {
@@ -139,7 +139,6 @@ fun LibraryScreen(
         } else if (editCat == "contact") {
             EditLibContact(
                 context = mContext,
-                snapshot = snapshot,
                 idState = idState,
                 onDismiss = {
                     //cancelable -> true
@@ -151,7 +150,6 @@ fun LibraryScreen(
         } else if (editCat == "place") {
             EditLibPlace(
                 context = mContext,
-                snapshot = snapshot,
                 idState = idState,
                 onDismiss = {
                     //cancelable -> true
@@ -194,7 +192,7 @@ fun LibraryScreen(
                         editLibOn = editLibOn,
                     )
                     useParentState.value = false
-                    snapshot.value = utils.getCurrentTimestamp()   //Refresh list
+                    lastSnapshot.postValue(utils.getCurrentTimestamp())   //Refresh list
                 }
             }
         )
@@ -211,57 +209,51 @@ fun LibraryScreen(
             // TOP APP BAR:
             StreetUITopBar(
                 pretitle = "L I B R A R Y",
-                title = if (currentCatState!! == "spotify") "Spotify links" else "${utils.capitalizeWords(currentCatState!!)}s",
+                title = if (currentCatState!! == "spotify") "Spotify" else "${utils.capitalizeWords(currentCatState!!)}s",
                 showBack = true,
                 onBack = { navController.popBackStack() },
                 optionButtons = {
-                    // CAT MENU:
-                    TopBarMenu(
-                        contentText = if (curLibrarySizeState!! > 999) "999+" else "$curLibrarySizeState",
-                        backgroundColor = colorSelector(cat = currentCatState!!),
-                        onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
+                    Row(
+                        modifier = Modifier
+                            .clickable {
+                                idState.value = -1
+                                if (currentCatState == "contact" || currentCatState == "place") {
+                                    editLibOn.value = true
+                                } else {
+                                    addLinkOn.value = true
+                                }
+                            },
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        CatOptions(
-                            context = mContext,
-                            navController = navController,
-                            currentCatState = currentCatState!!,
-                            currentSubCatState = currentSubCatState,
-                            snapshot = snapshot,
-                            mDisplayMenu = mDisplayMainMenu,
-                            deleteLibOn = deleteLibOn,
+                        // ADD ICON:
+                        Icon(
+                            modifier = Modifier
+                                .padding(end = 12.dp)
+                                .size(32.dp),
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add new",
+                            tint = colorResource(R.color.light_grey)
                         )
+                        // CAT MENU:
+                        TopBarMenu(
+                            contentText = if (curLibrarySizeState!! > 999) "999+" else "$curLibrarySizeState",
+                            backgroundColor = colorSelector(cat = currentCatState!!),
+                            onClick = { mDisplayMainMenu.value = !mDisplayMainMenu.value },
+                        ) {
+                            CatOptions(
+                                context = mContext,
+                                navController = navController,
+                                currentCatState = currentCatState!!,
+                                currentSubCatState = currentSubCatState,
+                                mDisplayMenu = mDisplayMainMenu,
+                                deleteLibOn = deleteLibOn,
+                            )
+                        }
                     }
                 }
             )
         },
-        fab = {
-            //FAB -> ADD NEW ITEM:
-            ExtendedFloatingActionButton(
-                containerColor = colorResource(id = R.color.colorAccent),
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add library item",
-                        tint = colorResource(id = R.color.light_grey)
-                    )
-                },
-                text = {
-                    Text(
-                        text = "Add",
-                        color = colorResource(id = R.color.light_grey),
-                        fontSize = 16.sp
-                    )
-                },
-                onClick = {
-                    idState.value = -1
-                    if (currentCatState == "contact" || currentCatState == "place") {
-                        editLibOn.value = true
-                    } else {
-                        addLinkOn.value = true
-                    }
-                }
-            )
-        }
     ) {
         //CONTENT:
         Column(
@@ -271,7 +263,6 @@ fun LibraryScreen(
             //CONTENT:
             LibSectionContent(
                 context = mContext,
-                snapshot = snapshot,
                 currentCatState = currentCatState!!,
                 currentSubCatState = currentSubCatState,
                 idState = idState,
@@ -349,7 +340,6 @@ fun ItemOptions(
 @Composable
 fun LibSectionContent(
     context: Context,
-    snapshot: MutableState<Long>,
     currentCatState: String,
     currentSubCatState: MutableState<String>,
     idState: MutableState<Long>,
@@ -359,11 +349,11 @@ fun LibSectionContent(
     isLandscape: Boolean,
     preview: Boolean = false,
 ) {
-
+    val snapshot by lastSnapshot.observeAsState()
     var libraryItems = libUtils.refreshLibrary(currentCatState, currentSubCatState.value, preview)
 
-    // When snapshot changes, reload data
-    LaunchedEffect(snapshot.value) {
+    // When snapshot changes, reload data:
+    LaunchedEffect(snapshot) {
         libraryItems = libUtils.refreshLibrary(currentCatState, currentSubCatState.value, preview)
     }
 
@@ -378,77 +368,83 @@ fun LibSectionContent(
         // FILTER ROW:
         if (currentCatState == "spotify") {
             FiltersRow(
-                snapshot = snapshot,
                 currentCat = currentCatState,
                 currentSubCatState = currentSubCatState,
                 preview = preview,
             )
         }
 
-        if (libraryItems.isEmpty()) {
-            //LIBRARY EMPTY:
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                text = "No saved ${
-                    libUtils.getLibName(
-                        cat=currentCatState,
-                        subcat=currentSubCatState.value,
-                        plural = true,
-                        lowercase = true
+        // CONTENT:
+        CardSign (
+            modifier = Modifier
+                .padding(top = 4.dp, start = 32.dp, end = 16.dp, bottom = 12.dp)
+                .fillMaxSize(),
+            backgroundColor = colorSelector(currentCatState),
+            roundedCorners = 14.dp,
+        ) {
+            if (libraryItems.isEmpty()) {
+                //LIBRARY EMPTY:
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    text = "No saved ${
+                        libUtils.getLibName(
+                            cat = currentCatState,
+                            subcat = currentSubCatState.value,
+                            plural = true,
+                            lowercase = true
+                        )
+                    }.\nTap on Add!",
+                    textAlign = TextAlign.Center,
+                    fontSize = 18.sp,
+                    color = colorResource(id = R.color.mid_grey),
+                )
+            } else {
+                //LIBRARY LIST:
+                val columns = if (isLandscape) 6 else 4
+                val spacing = 8.dp
+
+                LazyVerticalGrid(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxSize(),
+                    columns = GridCells.Fixed(columns),
+                    horizontalArrangement = Arrangement.spacedBy(spacing),
+                    verticalArrangement = Arrangement.spacedBy(
+                        space = spacing,
+                        alignment = Alignment.Top
                     )
-                }.\nTap on Add!",
-                textAlign = TextAlign.Center,
-                fontSize = 18.sp,
-                color = colorResource(id = R.color.mid_grey),
-            )
-        } else {
-            //LIBRARY LIST:
-            val columns = if (isLandscape) 6 else 4
-            val spacing = 8.dp
+                ) {
+                    //ITEMS:
+                    libraryItems.forEach { item ->
 
-            LazyVerticalGrid(
-                modifier = Modifier
-                    .padding(start = 36.dp, end = 20.dp, bottom = 12.dp)
-                    .fillMaxSize(),
-                columns = GridCells.Fixed(columns),
-                horizontalArrangement = Arrangement.spacedBy(spacing),
-                verticalArrangement = Arrangement.spacedBy(spacing)
-            ) {
-                //ITEMS:
-                libraryItems.forEach { item ->
-
-                    if (item.type == "header") {
-                        //HEADER:
-                        item(
-                            span = { GridItemSpan(maxLineSpan) }
-                        ) {
-                            LibLetter(
-                                letter = item.name
-                            )
-                        }
-
-                    } else {
-                        //ITEM:
-                        item {
-                            LibItem(
-                                context = context,
-                                modifier = Modifier,
-                                idState = idState,
-                                nameState = nameState,
-                                item = item,
-                                editLibOn = editLibOn,
-                                deleteLibOn = deleteLibOn,
-                                preview = preview,
-                            )
-                            if (item == libraryItems.last()) Spacer(
-                                modifier = Modifier.padding(
-                                    90.dp
+                        if (item.type == "header") {
+                            //HEADER:
+                            item(
+                                span = { GridItemSpan(maxLineSpan) }
+                            ) {
+                                LibLetter(
+                                    letter = item.name
                                 )
-                            )
-                        }
-                    }
+                            }
 
+                        } else {
+                            //ITEM:
+                            item {
+                                LibItem(
+                                    context = context,
+                                    modifier = Modifier,
+                                    idState = idState,
+                                    nameState = nameState,
+                                    item = item,
+                                    editLibOn = editLibOn,
+                                    deleteLibOn = deleteLibOn,
+                                    preview = preview,
+                                )
+                            }
+                        }
+
+                    }
                 }
             }
         }
@@ -470,7 +466,6 @@ fun LibLetter(
             text = letter.uppercase(),
             fontSize = 16.sp,
             backgroundColor = colorResource(id = R.color.white),
-            borderColor = colorResource(id = R.color.dark_grey),
             fontColor = colorResource(id = R.color.black)
         )
     }
@@ -499,19 +494,10 @@ fun LibItem(
         LibItemCard(
             modifier = modifier
                 .fillMaxSize(),
-            cardColors = CardDefaults.cardColors(
-                containerColor = if (mDisplayMenu.value) {
-                    colorResource(id = R.color.faded_grey)
-                } else {
-                    colorResource(id = R.color.transparent_full)
-                }
-            ),
-            source = item.source,
-            type = item.type,
-            title = utils.trimString(item.name, 20),
-            subtitle = utils.trimString(libUtils.getDetail(item), 16),
-            imageUrl = if (preview) "" else item.imageUrl,
-            isCollection = item.id == -2L,
+            item = item,
+            trimChars = 16,
+            selected = mDisplayMenu.value,
+            preview = preview,
             onClick = {
                 mDisplayMenu.value = !mDisplayMenu.value
             }
@@ -537,7 +523,6 @@ fun CatOptions(
     navController: NavController,
     currentCatState: String,
     currentSubCatState: MutableState<String>,
-    snapshot: MutableState<Long>,
     mDisplayMenu: MutableState<Boolean>,
     deleteLibOn: MutableState<Boolean>,
 ) {
@@ -568,7 +553,7 @@ fun CatOptions(
                 //Store JSON into Library:
                 libUtils.importLibrary(context, jsonImport!!)
                 currentSubCatState.value = ""
-                snapshot.value = utils.getCurrentTimestamp()   //Refresh list
+                lastSnapshot.postValue(utils.getCurrentTimestamp())   //Refresh list
             } catch (e: Exception) {
                 Log.w("LibraryScreen", "ERROR: Cannot read imported document! ", e)
                 Toast.makeText(context, "ERROR: Invalid file!", Toast.LENGTH_SHORT).show()
@@ -599,7 +584,7 @@ fun CatOptions(
                 iconVector = Icons.Default.Refresh,
                 onClick = {
                     mDisplayMenu.value = false
-                    snapshot.value = utils.getCurrentTimestamp()   //Refresh list
+                    lastSnapshot.postValue(utils.getCurrentTimestamp())   //Refresh list
                     Toast.makeText(context, "Refreshed!", Toast.LENGTH_SHORT).show()
                 }
             )
@@ -654,7 +639,6 @@ fun CatOptions(
 fun DialogDeleteLibrary(
     mContext: Context,
     dialogOnState: MutableState<Boolean>,
-    snapshot: MutableState<Long>,
     idState: MutableState<Long>,
     nameState: MutableState<String>,
     currentCatState: String,
@@ -693,7 +677,7 @@ fun DialogDeleteLibrary(
                 libUtils.deleteLibrary(mContext, currentCatState, currentSubCatState.value)
             }
             currentSubCatState.value = ""
-            snapshot.value = utils.getCurrentTimestamp()   //Refresh list
+            lastSnapshot.postValue(utils.getCurrentTimestamp())   //Refresh list
             dialogOnState.value = false
             idState.value = -1
             nameState.value = ""

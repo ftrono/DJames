@@ -53,6 +53,7 @@
   <color name="faded_grey">#525252</color>
   <color name="dark_grey_background">#FF131B19</color>
   <color name="dark_grey">#323232</color>
+  <color name="windowGreyBackground">#00100C</color>
   <color name="black">#000000</color>
   <!-- Transparent (HSL: 150, 0.50, 0.25) -->
   <color name="transparent_green">#5F206040</color>

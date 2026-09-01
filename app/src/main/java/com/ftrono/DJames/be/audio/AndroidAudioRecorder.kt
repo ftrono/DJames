@@ -61,6 +61,9 @@ class AndroidAudioRecorder(private val context: Context) {
                     silencePatienceQueries * 1000   // ms
                 }
 
+            val minSpeechThreshold = 500L   // ms
+            var curSpeechDuration = 0L   // ms
+
             // Max time:
             var maxTime = if (voiceMessageMode) {
                     prefs.messageTimeout.toLong()
@@ -166,19 +169,32 @@ class AndroidAudioRecorder(private val context: Context) {
                         recordingTime += frameDurationMs
                         stopMax = recordingTime >= maxTime
 
-                        if (silenceEnabled && !isSpeech) {
-                            // NO SPEECH -> Increase patience countdown:
-                            silenceMs += frameDurationMs
-                            if (silenceMs >= silenceThreshold) {
-                                // STOP:
-                                Log.d(TAG, "RECORDER: silence detected for more that ${silenceThreshold / 1000} seconds! -> STOPPING!")
-                                isRecording = false
-                                break
-                            }
-                        } else {
-                            // IS SPEECH or NO SILENCE DETECTION -> Reset patience countdown:
+                        if (!silenceEnabled) {
+                            // NO SILENCE DETECTION -> Consider all as speech:
                             silenceMs = 0L
-                            numSpeech ++
+                            numSpeech++
+
+                        } else {
+                            if (isSpeech) {
+                                // PROBABLE SPEECH -> Increase curSpeechDuration:
+                                curSpeechDuration += frameDurationMs
+                                numSpeech ++
+                                if (curSpeechDuration >= minSpeechThreshold) {
+                                    // CONFIRMED SPEECH -> Reset patience countdowns:
+                                    silenceMs = 0L
+                                    curSpeechDuration = 0L
+                                }
+                            } else {
+                                // NO SPEECH -> Increase patience countdown:
+                                silenceMs += frameDurationMs
+                                curSpeechDuration = 0L
+                                if (silenceMs >= silenceThreshold) {
+                                    // STOP:
+                                    Log.d(TAG, "RECORDER: silence detected for more that ${silenceThreshold / 1000} seconds! -> STOPPING!")
+                                    isRecording = false
+                                    break
+                                }
+                            }
                         }
                         i += chunkSize
                     }

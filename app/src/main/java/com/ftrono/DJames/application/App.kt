@@ -34,7 +34,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.1.1"
+val appVersion = "3.1.2"
 val copyrightYear = 2024
 
 //DB:
@@ -89,6 +89,9 @@ val notificationListenerPermissionDescription = "DJames needs your permission to
 //STATUS VARS:
 var curNavId = 0
 var lastNavRoute = "home"
+var lastMainActive = 0L
+var lastSnapshot = MutableLiveData<Long>(0L)
+var timeOfDay = MutableLiveData<String>("")
 var permsRequested = MutableLiveData<Boolean>(false)
 var spotifyLoggedIn = MutableLiveData<Boolean>(false)
 var spotUserName = MutableLiveData<String>("")
@@ -120,8 +123,10 @@ var allowVolumeClick = true   // ensure interval between volume clicks
 var userNicknameUI = MutableLiveData<String>("")
 var spotUserImageState = MutableLiveData<String>("")
 var sharedLink = MutableLiveData<String>("")
-var currentHourMini = MutableLiveData<String>("00")
-var currentMinsMini = MutableLiveData<String>("00")
+var currentDay = MutableLiveData<String>("Mon,")
+var currentDate = MutableLiveData<String>("1 Jan")
+var currentHour = MutableLiveData<String>("00")
+var currentMins = MutableLiveData<String>("00")
 
 //Library & Messages:
 var curLibrarySize = MutableLiveData<Int>(0)

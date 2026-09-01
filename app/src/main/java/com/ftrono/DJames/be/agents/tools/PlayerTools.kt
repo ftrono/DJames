@@ -18,6 +18,7 @@ import com.ftrono.DJames.be.database.ActionType
 import com.ftrono.DJames.be.database.Attachments
 import com.ftrono.DJames.be.database.LibMatch
 import com.ftrono.DJames.be.database.PlayRequest
+import com.ftrono.DJames.be.database.SpotifyContext
 import com.ftrono.DJames.be.database.SpotifyPlayable
 import com.ftrono.DJames.be.spotify.SpotifySearch
 import com.ftrono.DJames.kaigraph.Tool
@@ -165,7 +166,7 @@ class ToolRetrievePlayer(
             val foundIds = mutableListOf<String>()
             val matchNames = mutableListOf<LibMatch>()   // all
             val matchDetails = mutableListOf<LibMatch>()   // artist only
-            val matchContexts = mutableListOf<LibMatch>()   // playlist or collection
+            var matchContext: LibMatch? = null   // (track only) playlist or collection
 
             // 1) PLAY HIERARCHY:
             if (playRequest.podcast != "") {
@@ -189,8 +190,16 @@ class ToolRetrievePlayer(
                     matchDetails.addAll(loadCandidates("artist", playRequest.artist))
                 }
                 if (playRequest.playlist != "") {
-                    matchContexts.addAll(loadCandidates("playlist", playRequest.playlist))
-                    playRequest.context = "playlist"
+                    // Load requested playlist as context:
+                    val candContexts = loadCandidates("playlist", playRequest.playlist)
+                        .filter { it.matchId != -1L }
+                        .toMutableList()
+                    candContexts.sortByDescending { it.matchScore }
+                    if (candContexts.isNotEmpty()) {
+                        // Use best match:
+                        matchContext = candContexts.first()
+                        playRequest.context = "playlist"
+                    }
                 }
 
             } else if (playRequest.playlist != "") {
@@ -207,7 +216,7 @@ class ToolRetrievePlayer(
             Log.d(TAG, "PLAY TYPE: ${playRequest.type}")
             Log.d(TAG, "MATCH NAMES: $matchNames")
             Log.d(TAG, "MATCH DETAILS: $matchDetails")
-            Log.d(TAG, "MATCH CONTEXTS: $matchContexts")
+            Log.d(TAG, "MATCHED CONTEXT: $matchContext")
 
             // Fallback:
             if (playRequest.type == "" || matchNames.isEmpty()) {
@@ -259,7 +268,18 @@ class ToolRetrievePlayer(
                         }
                     }
                 }
-                // TODO: match context!
+
+                // Add requested context:
+                if (matchContext != null && updAttachments.playCandidates != null) {
+                    val libContextItem = libUtils.getLibItemById(matchContext.matchId)
+                    for (cand in updAttachments.playCandidates!!) {
+                        cand.context = SpotifyContext(
+                            type = libContextItem.type,
+                            id = if (matchContext.matchId == -2L) "collection" else spotifyUtils.getSpotifyID(libContextItem.url),
+                            name = libContextItem.name,
+                        )
+                    }
+                }
 
                 Log.d(TAG, "PLAY CANDIDATES: ${updAttachments.playCandidates}!!")
 

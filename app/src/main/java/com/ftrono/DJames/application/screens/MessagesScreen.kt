@@ -68,6 +68,7 @@ import com.ftrono.DJames.ui.navigation.SharedViewModel
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.TopBarMenu
 import com.ftrono.DJames.ui.selectors.colorSelector
+import com.ftrono.DJames.ui.selectors.colorSelectorMid
 import com.ftrono.DJames.ui.selectors.iconSelector
 import com.ftrono.DJames.ui.selectors.messagesColorSelectorLight
 import com.ftrono.DJames.ui.selectors.messagesIconSelector
@@ -436,7 +437,7 @@ fun MessageDetail(
                             .size(16.dp),
                         painter = iconSelector("spotify"),
                         contentDescription = "spotify",
-                        tint = colorSelector("spotify")
+                        tint = colorSelectorMid("spotify")
                     )
                 }
                 //CAT ICON:

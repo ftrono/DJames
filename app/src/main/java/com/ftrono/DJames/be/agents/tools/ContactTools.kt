@@ -171,7 +171,7 @@ class ToolCall(): Tool() {
     override fun invoke(args: JsonObject, attachments: Attachments): ToolResponse {
         val inputNumber: String = (args["phone_number"]?.jsonPrimitive?.content ?: "")
 
-        if (inputNumber == "" || attachments.useCandidates == null) {
+        if (inputNumber == "" && attachments.useCandidates == null) {
             Log.w(TAG, "ERROR: ToolGo invoked with either missing inputNumber ($inputNumber) or useCandidates!")
             return ToolResponse(
                 message = "Tell the user there was a problem. Then, END this conversation.",
@@ -180,7 +180,7 @@ class ToolCall(): Tool() {
 
         } else {
             // Retrieve from attachments:
-            val sendMatches = attachments.useCandidates!!.filter { it.uniId == inputNumber }
+            val sendMatches = if (attachments.useCandidates == null) listOf() else attachments.useCandidates!!.filter { it.uniId == inputNumber }
 
             if (sendMatches.isEmpty()) {
                 // Phone number dictated by user -> call directly:

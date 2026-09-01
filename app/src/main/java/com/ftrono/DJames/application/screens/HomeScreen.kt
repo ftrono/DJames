@@ -17,10 +17,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -53,9 +53,9 @@ import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.currentCat
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
-import com.ftrono.DJames.application.extraOpen
 import com.ftrono.DJames.application.lastAiMessageText
 import com.ftrono.DJames.application.lastNavRoute
+import com.ftrono.DJames.application.lastSnapshot
 import com.ftrono.DJames.application.lastUserMessageText
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryStatus
@@ -65,18 +65,18 @@ import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.spotUserName
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.libUtils
+import com.ftrono.DJames.application.timeOfDay
 import com.ftrono.DJames.application.userNicknameUI
 import com.ftrono.DJames.ui.components.ExpandableCard
 import com.ftrono.DJames.ui.components.ExtServiceLoginButton
 import com.ftrono.DJames.ui.components.InfoBox
 import com.ftrono.DJames.ui.components.LibItemCard
 import com.ftrono.DJames.ui.components.RoundedSign
-import com.ftrono.DJames.ui.components.StreetLine
 import com.ftrono.DJames.ui.components.StreetUIScaffold
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.UserOptions
 import com.ftrono.DJames.ui.navigation.navigateTo
-import com.ftrono.DJames.ui.selectors.colorSelectorHome
+import com.ftrono.DJames.ui.selectors.colorSelector
 import com.ftrono.DJames.ui.selectors.iconSelector
 import com.ftrono.DJames.ui.theme.NavigationItem
 import kotlin.Boolean
@@ -102,13 +102,11 @@ fun HomeScreen(
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
-
     val mContext = LocalContext.current
     val focusManager = LocalFocusManager.current
-    val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
-    val queryState by queryStatus.observeAsState()
-    val extraOpenState by extraOpen.observeAsState()
 
+    //States:
+    val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
 
     val sharedLinkState by sharedLink.observeAsState()
     if (sharedLinkState != "") {
@@ -135,6 +133,8 @@ fun HomeScreen(
         )
     }
 
+    val leftAreaWidth = 200.dp
+
     StreetUIScaffold(
         modifier = Modifier
             .clickable(
@@ -144,8 +144,7 @@ fun HomeScreen(
             ) {
                 focusManager.clearFocus()
             },
-        hideLine = isLandscape,
-        lineDistance = 20.dp,
+        lineDistance = if (isLandscape) leftAreaWidth + 36.dp + 22.dp else 20.dp,
         topBar = {
             StreetUITopBar(
                 pretitle = "",
@@ -187,16 +186,17 @@ fun HomeScreen(
                             .padding(
                                 top = 12.dp, bottom = 12.dp
                             )
-                            .width(200.dp)
+                            .width(leftAreaWidth)
                             .fillMaxHeight(),
                         isLandscape = true,
                         spotifyLoggedInState = spotifyLoggedInState!!,
                     )
+
                     //Street line canvas:
-                    StreetLine(
+                    Spacer(
                         modifier = Modifier
-                            .padding(start = 12.dp)
-                            .fillMaxHeight()
+                            .padding(start = 12.dp, end = 12.dp)
+                            .height(20.dp)
                             .width(20.dp)
                     )
 
@@ -286,9 +286,10 @@ fun HomeIntroText(
 ) {
     val userNameState by userNicknameUI.observeAsState()
     val genderState by userGender.observeAsState()
+    val timeOfDayState by timeOfDay.observeAsState()
 
     Text(
-        text = "Good ${utils.getTimeOfDay()},",
+        text = "Good $timeOfDayState,",
         fontSize = 24.sp,
         fontWeight = FontWeight.Bold,
         color = colorResource(id = R.color.light_grey),
@@ -424,7 +425,7 @@ fun ConversationalArea(
                     bottom = 12.dp,
                 ),
             backgroundColor = colorResource(R.color.brownSignDark),
-            iconPainter = painterResource(R.drawable.icon_speak),
+            iconPainter = painterResource(R.drawable.icon_speak_2),
         ) {
             // Intro:
             if (lastUserMsgState!! != "") {
@@ -534,7 +535,7 @@ fun FunctionalArea(
                 cat = cat,
                 navController = navController,
                 iconPainter = iconSelector(cat),
-                backgroundColor = colorSelectorHome(cat),
+                backgroundColor = colorSelector(cat),
                 isLandscape = isLandscape,
                 expandedStates = expandedStates,
                 currentExpanded = currentExpanded,
@@ -559,8 +560,27 @@ fun ContentSection(
     spotifyLoggedInState: Boolean,
     preview: Boolean = false,
 ) {
+    val snapshot by lastSnapshot.observeAsState()
     val columns = if (isLandscape) 6 else 4
     val spacing = 6.dp
+
+    // RECENT ITEMS:
+    var recentItems = libUtils.getAll(
+        cat = cat,
+        subcat = "",
+        limit = columns + 2,
+        preview = preview,
+    )
+
+    // When snapshot changes, reload data:
+    LaunchedEffect(snapshot) {
+        recentItems = libUtils.getAll(
+            cat = cat,
+            subcat = "",
+            limit = columns + 2,
+            preview = preview,
+        )
+    }
 
     // CARD:
     ExpandableCard(
@@ -592,14 +612,6 @@ fun ContentSection(
             lastNavRoute = curNavRoute
         },
     ) {
-        // RECENT ITEMS:
-        val recentItems = libUtils.getAll(
-            cat = cat,
-            subcat = "",
-            limit = columns + 2,
-            preview = preview,
-        )
-
         // Intro row:
         Row(
             modifier = Modifier,
@@ -609,13 +621,14 @@ fun ContentSection(
             Text(
                 modifier = Modifier
                     .weight(1F),
-                text = if (recentItems.isEmpty()) {
-                    "No recent activity"
-                } else if (cat == "spotify") {
-                    "Recently listened"
-                } else {
-                    "Recently used"
-                },
+                text = "Saved items",
+//                text = if (recentItems.isEmpty()) {
+//                    "No recent activity"
+//                } else if (cat == "spotify") {
+//                    "Recently listened"
+//                } else {
+//                    "Recently used"
+//                },
                 fontSize = 14.sp,
                 // fontWeight = FontWeight.Light,
                 color = colorResource(id = R.color.light_grey),
@@ -626,7 +639,7 @@ fun ContentSection(
                     modifier = Modifier,
                     backgroundColor = colorResource(R.color.faded_grey),
                     loggedInState = spotifyLoggedInState,
-                    label = "Manage",
+                    label = "Account",
                     showIcon = false,
                     onClick = {
                         val curNavRoute = NavigationItem.Accounts.route
@@ -646,7 +659,10 @@ fun ContentSection(
                     .height(120.dp),
                 rows = GridCells.Fixed(1),
                 horizontalArrangement = Arrangement.spacedBy(spacing),
-                verticalArrangement = Arrangement.spacedBy(spacing)
+                verticalArrangement = Arrangement.spacedBy(
+                    space = spacing,
+                    alignment = Alignment.Top
+                )
             ) {
                 //ITEMS:
                 recentItems.forEach { item ->
@@ -656,16 +672,10 @@ fun ContentSection(
                             modifier = Modifier
                                 .fillMaxHeight()
                                 .width(80.dp),
-                            cardColors = CardDefaults.cardColors(
-                                containerColor = colorResource(id = R.color.transparent_full)
-                            ),
-                            source = item.source,
-                            type = item.type,
-                            title = utils.trimString(item.name, 20),
-                            subtitle = utils.trimString(libUtils.getDetail(item), 16),
-                            imageUrl = if (preview) "" else item.imageUrl,
-                            isCollection = item.id == -2L,
-                            fromHome = true,
+                            item = item,
+                            trimChars = 16,
+                            selected = false,
+                            preview = preview,
                             onClick = {
                                 // OPEN LINK:
                                 if (item.source == "contact") {

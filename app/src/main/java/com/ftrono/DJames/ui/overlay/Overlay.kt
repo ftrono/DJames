@@ -8,11 +8,15 @@ import com.ftrono.DJames.application.allowVolumeClick
 import com.ftrono.DJames.application.clickCountdownTime
 import com.ftrono.DJames.application.clickCounter
 import com.ftrono.DJames.application.clickSleepInterval
-import com.ftrono.DJames.application.currentHourMini
-import com.ftrono.DJames.application.currentMinsMini
+import com.ftrono.DJames.application.currentDate
+import com.ftrono.DJames.application.currentDay
+import com.ftrono.DJames.application.currentHour
+import com.ftrono.DJames.application.currentMins
 import com.ftrono.DJames.application.overlayOptionsStr
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.sourceIsVolume
+import com.ftrono.DJames.application.timeOfDay
+import com.ftrono.DJames.application.utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -28,18 +32,21 @@ class Overlay() {
 
     var countdownJob: Job? = null
 
-    //Mini Clock:
-    private var now: LocalDateTime? = null
-    private val miniClockFormat = DateTimeFormatter.ofPattern("HH:mm")
+    //Formats:
+    private val dayFormat = DateTimeFormatter.ofPattern("E,")
+    private val dateFormat = DateTimeFormatter.ofPattern("dd MMM")
     private val hourFormat = DateTimeFormatter.ofPattern("HH")
     private val minsFormat = DateTimeFormatter.ofPattern("mm")
 
 
     //Clock:
-    fun updateMiniClock() {
-        now = LocalDateTime.now()
-        currentHourMini.postValue(now!!.format(hourFormat))
-        currentMinsMini.postValue(now!!.format(minsFormat))
+    fun updateDateClock() {
+        val now = LocalDateTime.now()
+        currentDay.postValue(now.format(dayFormat))
+        currentDate.postValue(now.format(dateFormat))
+        currentHour.postValue(now.format(hourFormat))
+        currentMins.postValue(now.format(minsFormat))
+        timeOfDay.postValue(utils.getTimeOfDay(now.hour))
     }
 
     // COUNTDOWN FUNCTIONS:

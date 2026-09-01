@@ -74,7 +74,6 @@ data class SpotifyTrack(
     var name: String = "",
     var artists: MutableList<SpotifyArtist> = mutableListOf<SpotifyArtist>(),
     var album: SpotifyAlbum? = null,
-    var context: SpotifyContext? = null,
 )
 
 @Serializable
@@ -109,6 +108,7 @@ data class SpotifyPlayable(
     var playlist: SpotifyPlaylist? = null,
     var episode: SpotifyEpisode? = null,
     var podcast: SpotifyPodcast? = null,
+    var context: SpotifyContext? = null,   // Tracks only
 )
 
 class SpotifyTrackConverter : JsonConverter<SpotifyTrack>(SpotifyTrack.serializer())

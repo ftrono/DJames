@@ -675,7 +675,7 @@ fun LibItemCardPreview() {
             name = "Item name",
         ),
         preview = true,
-        previewSubtitle = "subtitle",
+        previewDetail = "detail",
     )
 }
 
@@ -687,17 +687,25 @@ fun LibItemCard(
     trimChars: Int = 20,
     selected: Boolean = false,
     preview: Boolean = false,
-    previewSubtitle: String = "",
+    previewDetail: String = "",
     onClick: () -> Unit = {}
 ) {
     // Item details:
     val isCollection = item.id == -2L
-    val title = utils.trimString(item.name, trimChars)
-    val subtitle = utils.trimString(
-        if (previewSubtitle != "") previewSubtitle else libUtils.getDetail(item),
-        trimChars-4
-)
     val imageUrl = if (preview) "" else item.imageUrl
+    val title = utils.trimString(item.name, trimChars)
+
+    val detail = if (previewDetail != "") {
+        previewDetail
+    } else if (item.source == "place" && item.address != null && item.address!!.town != "") {
+        utils.trimString(
+             item.address!!.town,
+            8
+        )
+    } else if (item.source == "contact" && item.phoneSet != null && item.phoneSet!!.phone != "") {
+        item.phoneSet!!.phone
+    } else ""
+
     val isMultiline = rememberSaveable { mutableStateOf(false) }
     val circle = item.type == "artist" || item.source == "contact"
 
@@ -799,6 +807,20 @@ fun LibItemCard(
                 verticalArrangement = Arrangement.Center
             ) {
                 //ITEM INFO:
+                //Item detail (place):
+                if (detail != "" && item.source == "place") {
+                    Text(
+                        modifier = Modifier,
+                        color = colorResource(id = R.color.light_grey),
+                        fontSize = 10.sp,
+                        maxLines = 1,
+                        lineHeight = 12.sp,
+                        fontWeight = FontWeight.Light,
+                        textAlign = TextAlign.Center,
+                        text = detail,
+                    )
+                }
+
                 //Item name:
                 Text(
                     modifier = Modifier,
@@ -808,26 +830,26 @@ fun LibItemCard(
                     maxLines = 2,
                     text = title,
                     textAlign = TextAlign.Center,
-                    //fontWeight = FontWeight.Bold,
                     onTextLayout = { textLayoutResult ->
                         isMultiline.value =
                             textLayoutResult.lineCount > 1
                     }
                 )
-                //Item detail:
+
+                //Item detail (contact):
                 if (!isMultiline.value) {
                     Text(
                         modifier = Modifier,
-                        //.padding(top = 2.dp),
                         color = colorResource(id = R.color.light_grey),
                         fontSize = 10.sp,
                         maxLines = 1,
                         lineHeight = 12.sp,
-                        fontStyle = FontStyle.Italic,
+                        fontWeight = FontWeight.Light,
                         textAlign = TextAlign.Center,
-                        text = subtitle,
+                        text = if (item.source == "place") "" else detail,
                     )
                 }
+
             }
         }
     }

@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.aliasFieldDescription
+import com.ftrono.DJames.application.lastSnapshot
 import com.ftrono.DJames.be.database.Address
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.be.collections.testLibrary
@@ -53,7 +54,6 @@ fun DialogEditPlacePreview() {
 @Composable
 fun EditLibPlace(
     context: Context,
-    snapshot: MutableState<Long>,
     idState: MutableState<Long>,
     onDismiss: () -> Unit = {},
     preview: Boolean = false
@@ -191,7 +191,7 @@ fun EditLibPlace(
                     libUtils.storeLibItem(context, itemPlace)
 
                     //4) End & close:
-                    snapshot.value = utils.getCurrentTimestamp()   //Refresh list
+                    lastSnapshot.postValue(utils.getCurrentTimestamp())   //Refresh list
                     onDismiss()
                 }
             }

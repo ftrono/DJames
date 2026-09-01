@@ -35,6 +35,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.aliasFieldDescription
+import com.ftrono.DJames.application.lastSnapshot
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotIntroUrl
 import com.ftrono.DJames.be.database.LibraryItem
@@ -55,7 +56,6 @@ fun DialogEditSpotifyPreview() {
 @Composable
 fun EditLibSpotify(
     context: Context,
-    snapshot: MutableState<Long>,
     extractedItemState: MutableState<String>,
     idState: MutableState<Long>,
     onDismiss: () -> Unit = {},
@@ -180,7 +180,7 @@ fun EditLibSpotify(
                     libUtils.storeLibItem(context, itemSpotify)
 
                     //4) End & close:
-                    snapshot.value = utils.getCurrentTimestamp()   //Refresh list
+                    lastSnapshot.postValue(utils.getCurrentTimestamp())   //Refresh list
                     extractedItemState.value = ""
                     onDismiss()
                 }

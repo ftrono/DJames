@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ftrono.DJames.application.clockActive
 import com.ftrono.DJames.application.isVolumeUpPreferenceSet
+import com.ftrono.DJames.application.lastSnapshot
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.overlayActive
 import com.ftrono.DJames.application.utils
@@ -374,15 +375,15 @@ fun SplitterCat(
 // FILTERS ROW:
 @Composable
 fun FiltersRow(
-    snapshot: MutableState<Long>,
     currentCat: String,
     currentSubCatState: MutableState<String>,
     preview: Boolean = false,
 ) {
+    val snapshot by lastSnapshot.observeAsState()
     var filters = libUtils.getSubcats(currentCat, preview)
 
     // When snapshot changes, reload data
-    LaunchedEffect(snapshot.value) {
+    LaunchedEffect(snapshot) {
         filters = libUtils.getSubcats(currentCat, preview)
     }
 
@@ -414,7 +415,7 @@ fun FiltersRow(
                 },
                 onClick = {
                     currentSubCatState.value = ""
-                    snapshot.value = utils.getCurrentTimestamp()   //Refresh list
+                    lastSnapshot.postValue(utils.getCurrentTimestamp())   //Refresh list
                 }
             )
 
@@ -447,7 +448,7 @@ fun FiltersRow(
                         },
                         onClick = {
                             currentSubCatState.value = filt
-                            snapshot.value = utils.getCurrentTimestamp()   //Refresh list
+                            lastSnapshot.postValue(utils.getCurrentTimestamp())   //Refresh list
                         }
                     )
                 }

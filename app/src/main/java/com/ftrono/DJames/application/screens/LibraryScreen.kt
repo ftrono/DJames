@@ -60,6 +60,7 @@ import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.dialogs.EditLibContact
 import com.ftrono.DJames.application.dialogs.EditLibPlace
 import com.ftrono.DJames.application.dialogs.EditLibSpotify
+import com.ftrono.DJames.application.lastSnapshot
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.spotifyUtils
 import com.ftrono.DJames.be.database.LibraryItem
@@ -97,7 +98,7 @@ fun LibraryScreen(
     val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
     val mContext = LocalContext.current
 
-    //Statuses:
+    //States:
     val idState = rememberSaveable { mutableStateOf<Long>(if (editPreview != "") 0L else -1L) }
     val nameState = rememberSaveable { mutableStateOf("") }
     val currentCatState by currentCat.observeAsState()
@@ -108,13 +109,12 @@ fun LibraryScreen(
     val useParentState = rememberSaveable { mutableStateOf(false) }
     val extractedItemState = rememberSaveable { mutableStateOf("") }
 
-    val snapshot = rememberSaveable { mutableStateOf(0L) }
     val curLibrarySizeState by curLibrarySize.observeAsState()
 
     // Load dialogs:
     val deleteLibOn = rememberSaveable { mutableStateOf(false) }
     if (deleteLibOn.value) {
-        DialogDeleteLibrary(mContext, deleteLibOn, snapshot, idState, nameState, currentCatState!!, currentSubCatState)
+        DialogDeleteLibrary(mContext, deleteLibOn, idState, nameState, currentCatState!!, currentSubCatState)
     }
 
     val editLibOn = rememberSaveable { mutableStateOf(editPreview != "") }
@@ -124,7 +124,6 @@ fun LibraryScreen(
         if (editCat == "spotify") {
             EditLibSpotify(
                 context = mContext,
-                snapshot = snapshot,
                 extractedItemState = extractedItemState,
                 idState = idState,
                 onDismiss = {
@@ -140,7 +139,6 @@ fun LibraryScreen(
         } else if (editCat == "contact") {
             EditLibContact(
                 context = mContext,
-                snapshot = snapshot,
                 idState = idState,
                 onDismiss = {
                     //cancelable -> true
@@ -152,7 +150,6 @@ fun LibraryScreen(
         } else if (editCat == "place") {
             EditLibPlace(
                 context = mContext,
-                snapshot = snapshot,
                 idState = idState,
                 onDismiss = {
                     //cancelable -> true
@@ -195,7 +192,7 @@ fun LibraryScreen(
                         editLibOn = editLibOn,
                     )
                     useParentState.value = false
-                    snapshot.value = utils.getCurrentTimestamp()   //Refresh list
+                    lastSnapshot.postValue(utils.getCurrentTimestamp())   //Refresh list
                 }
             }
         )
@@ -249,7 +246,6 @@ fun LibraryScreen(
                                 navController = navController,
                                 currentCatState = currentCatState!!,
                                 currentSubCatState = currentSubCatState,
-                                snapshot = snapshot,
                                 mDisplayMenu = mDisplayMainMenu,
                                 deleteLibOn = deleteLibOn,
                             )
@@ -267,7 +263,6 @@ fun LibraryScreen(
             //CONTENT:
             LibSectionContent(
                 context = mContext,
-                snapshot = snapshot,
                 currentCatState = currentCatState!!,
                 currentSubCatState = currentSubCatState,
                 idState = idState,
@@ -345,7 +340,6 @@ fun ItemOptions(
 @Composable
 fun LibSectionContent(
     context: Context,
-    snapshot: MutableState<Long>,
     currentCatState: String,
     currentSubCatState: MutableState<String>,
     idState: MutableState<Long>,
@@ -355,11 +349,11 @@ fun LibSectionContent(
     isLandscape: Boolean,
     preview: Boolean = false,
 ) {
-
+    val snapshot by lastSnapshot.observeAsState()
     var libraryItems = libUtils.refreshLibrary(currentCatState, currentSubCatState.value, preview)
 
-    // When snapshot changes, reload data
-    LaunchedEffect(snapshot.value) {
+    // When snapshot changes, reload data:
+    LaunchedEffect(snapshot) {
         libraryItems = libUtils.refreshLibrary(currentCatState, currentSubCatState.value, preview)
     }
 
@@ -374,7 +368,6 @@ fun LibSectionContent(
         // FILTER ROW:
         if (currentCatState == "spotify") {
             FiltersRow(
-                snapshot = snapshot,
                 currentCat = currentCatState,
                 currentSubCatState = currentSubCatState,
                 preview = preview,
@@ -417,7 +410,10 @@ fun LibSectionContent(
                         .fillMaxSize(),
                     columns = GridCells.Fixed(columns),
                     horizontalArrangement = Arrangement.spacedBy(spacing),
-                    verticalArrangement = Arrangement.spacedBy(spacing)
+                    verticalArrangement = Arrangement.spacedBy(
+                        space = spacing,
+                        alignment = Alignment.Top
+                    )
                 ) {
                     //ITEMS:
                     libraryItems.forEach { item ->
@@ -527,7 +523,6 @@ fun CatOptions(
     navController: NavController,
     currentCatState: String,
     currentSubCatState: MutableState<String>,
-    snapshot: MutableState<Long>,
     mDisplayMenu: MutableState<Boolean>,
     deleteLibOn: MutableState<Boolean>,
 ) {
@@ -558,7 +553,7 @@ fun CatOptions(
                 //Store JSON into Library:
                 libUtils.importLibrary(context, jsonImport!!)
                 currentSubCatState.value = ""
-                snapshot.value = utils.getCurrentTimestamp()   //Refresh list
+                lastSnapshot.postValue(utils.getCurrentTimestamp())   //Refresh list
             } catch (e: Exception) {
                 Log.w("LibraryScreen", "ERROR: Cannot read imported document! ", e)
                 Toast.makeText(context, "ERROR: Invalid file!", Toast.LENGTH_SHORT).show()
@@ -589,7 +584,7 @@ fun CatOptions(
                 iconVector = Icons.Default.Refresh,
                 onClick = {
                     mDisplayMenu.value = false
-                    snapshot.value = utils.getCurrentTimestamp()   //Refresh list
+                    lastSnapshot.postValue(utils.getCurrentTimestamp())   //Refresh list
                     Toast.makeText(context, "Refreshed!", Toast.LENGTH_SHORT).show()
                 }
             )
@@ -644,7 +639,6 @@ fun CatOptions(
 fun DialogDeleteLibrary(
     mContext: Context,
     dialogOnState: MutableState<Boolean>,
-    snapshot: MutableState<Long>,
     idState: MutableState<Long>,
     nameState: MutableState<String>,
     currentCatState: String,
@@ -683,7 +677,7 @@ fun DialogDeleteLibrary(
                 libUtils.deleteLibrary(mContext, currentCatState, currentSubCatState.value)
             }
             currentSubCatState.value = ""
-            snapshot.value = utils.getCurrentTimestamp()   //Refresh list
+            lastSnapshot.postValue(utils.getCurrentTimestamp())   //Refresh list
             dialogOnState.value = false
             idState.value = -1
             nameState.value = ""

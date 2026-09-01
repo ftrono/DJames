@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -52,9 +53,9 @@ import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.currentCat
 import com.ftrono.DJames.application.dialogs.DialogRequestOverlay
 import com.ftrono.DJames.application.dialogs.SinglePermissionHandler
-import com.ftrono.DJames.application.extraOpen
 import com.ftrono.DJames.application.lastAiMessageText
 import com.ftrono.DJames.application.lastNavRoute
+import com.ftrono.DJames.application.lastSnapshot
 import com.ftrono.DJames.application.lastUserMessageText
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.queryStatus
@@ -70,7 +71,6 @@ import com.ftrono.DJames.ui.components.ExtServiceLoginButton
 import com.ftrono.DJames.ui.components.InfoBox
 import com.ftrono.DJames.ui.components.LibItemCard
 import com.ftrono.DJames.ui.components.RoundedSign
-import com.ftrono.DJames.ui.components.StreetLine
 import com.ftrono.DJames.ui.components.StreetUIScaffold
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.UserOptions
@@ -101,13 +101,11 @@ fun HomeScreen(
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
-
     val mContext = LocalContext.current
     val focusManager = LocalFocusManager.current
-    val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
-    val queryState by queryStatus.observeAsState()
-    val extraOpenState by extraOpen.observeAsState()
 
+    //States:
+    val spotifyLoggedInState by spotifyLoggedIn.observeAsState()
 
     val sharedLinkState by sharedLink.observeAsState()
     if (sharedLinkState != "") {
@@ -196,7 +194,7 @@ fun HomeScreen(
                     //Street line canvas:
                     Spacer(
                         modifier = Modifier
-                            .padding(start = 12.dp, end=12.dp)
+                            .padding(start = 12.dp, end = 12.dp)
                             .height(20.dp)
                             .width(20.dp)
                     )
@@ -560,8 +558,27 @@ fun ContentSection(
     spotifyLoggedInState: Boolean,
     preview: Boolean = false,
 ) {
+    val snapshot by lastSnapshot.observeAsState()
     val columns = if (isLandscape) 6 else 4
     val spacing = 6.dp
+
+    // RECENT ITEMS:
+    var recentItems = libUtils.getAll(
+        cat = cat,
+        subcat = "",
+        limit = columns + 2,
+        preview = preview,
+    )
+
+    // When snapshot changes, reload data:
+    LaunchedEffect(snapshot) {
+        recentItems = libUtils.getAll(
+            cat = cat,
+            subcat = "",
+            limit = columns + 2,
+            preview = preview,
+        )
+    }
 
     // CARD:
     ExpandableCard(
@@ -593,14 +610,6 @@ fun ContentSection(
             lastNavRoute = curNavRoute
         },
     ) {
-        // RECENT ITEMS:
-        val recentItems = libUtils.getAll(
-            cat = cat,
-            subcat = "",
-            limit = columns + 2,
-            preview = preview,
-        )
-
         // Intro row:
         Row(
             modifier = Modifier,
@@ -648,7 +657,10 @@ fun ContentSection(
                     .height(120.dp),
                 rows = GridCells.Fixed(1),
                 horizontalArrangement = Arrangement.spacedBy(spacing),
-                verticalArrangement = Arrangement.spacedBy(spacing)
+                verticalArrangement = Arrangement.spacedBy(
+                    space = spacing,
+                    alignment = Alignment.Top
+                )
             ) {
                 //ITEMS:
                 recentItems.forEach { item ->
@@ -659,7 +671,7 @@ fun ContentSection(
                                 .fillMaxHeight()
                                 .width(80.dp),
                             item = item,
-                            trimChars = 20,
+                            trimChars = 16,
                             selected = false,
                             preview = preview,
                             onClick = {

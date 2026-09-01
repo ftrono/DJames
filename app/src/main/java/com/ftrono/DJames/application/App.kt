@@ -90,6 +90,7 @@ val notificationListenerPermissionDescription = "DJames needs your permission to
 var curNavId = 0
 var lastNavRoute = "home"
 var lastMainActive = 0L
+var lastSnapshot = MutableLiveData<Long>(0L)
 var permsRequested = MutableLiveData<Boolean>(false)
 var spotifyLoggedIn = MutableLiveData<Boolean>(false)
 var spotUserName = MutableLiveData<String>("")

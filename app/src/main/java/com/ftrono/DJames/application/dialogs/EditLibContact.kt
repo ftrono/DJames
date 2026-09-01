@@ -18,6 +18,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.compose.rememberNavController
 import com.ftrono.DJames.application.aliasFieldDescription
+import com.ftrono.DJames.application.lastSnapshot
 import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.PhoneSet
@@ -46,7 +47,6 @@ fun DialogEditContactPreview() {
 @Composable
 fun EditLibContact(
     context: Context,
-    snapshot: MutableState<Long>,
     idState: MutableState<Long>,
     onDismiss: () -> Unit = {},
     preview: Boolean = false
@@ -155,7 +155,7 @@ fun EditLibContact(
                     libUtils.storeLibItem(context, itemContact)
 
                     //4) End & close:
-                    snapshot.value = utils.getCurrentTimestamp()   //Refresh list
+                    lastSnapshot.postValue(utils.getCurrentTimestamp())   //Refresh list
                     onDismiss()
                 }
             }

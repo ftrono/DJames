@@ -208,7 +208,7 @@ class OverlayService : Service () {
             }
 
             //Set current time:
-            overlay.updateMiniClock()
+            overlay.updateDateClock()
 
             // Add the overlay view to the window:
             showOverlayView()
@@ -306,7 +306,7 @@ class OverlayService : Service () {
             }
 
             //Set current time:
-            overlay.updateMiniClock()
+            overlay.updateDateClock()
 
 
         } catch (e: Exception) {
@@ -673,7 +673,7 @@ class OverlayService : Service () {
 
             //Update clock (every minute):
             if (intent!!.action == ACTION_TIME_TICK) {
-                overlay.updateMiniClock()
+                overlay.updateDateClock()
 
                 // Trigger automatic opening of Clock screen:
                 if (mainActive.value == true && clockActive.value != true && utils.isTimeElapsed(

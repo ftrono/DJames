@@ -81,8 +81,8 @@ import com.ftrono.DJames.application.ACTION_REC_STOP
 import com.ftrono.DJames.application.clickAnimationCountdownTime
 import com.ftrono.DJames.application.clickCounter
 import com.ftrono.DJames.application.clockActive
-import com.ftrono.DJames.application.currentHourMini
-import com.ftrono.DJames.application.currentMinsMini
+import com.ftrono.DJames.application.currentHour
+import com.ftrono.DJames.application.currentMins
 import com.ftrono.DJames.application.overlayBoxMax
 import com.ftrono.DJames.application.overlayBoxMin
 import com.ftrono.DJames.application.overlayBubbleSize
@@ -298,8 +298,8 @@ fun DJamesPads(
     val configuration = LocalConfiguration.current
     val isLandscape by remember { mutableStateOf(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) }
 
-    val currentHourState by currentHourMini.observeAsState()
-    val currentMinsState by currentMinsMini.observeAsState()
+    val currentHourState by currentHour.observeAsState()
+    val currentMinsState by currentMins.observeAsState()
     val overlayOptionsState by overlayOptionsStr.observeAsState()
     val isDocked by overlayDocked.observeAsState()
 

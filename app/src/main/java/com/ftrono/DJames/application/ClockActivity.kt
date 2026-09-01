@@ -53,33 +53,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.MutableLiveData
 import coil3.compose.AsyncImage
 import com.ftrono.DJames.R
 import com.ftrono.DJames.ui.components.RoundedSign
 import com.ftrono.DJames.ui.navigation.MainNavBar
 import com.ftrono.DJames.ui.theme.ClockTheme
 import com.ftrono.DJames.ui.theme.black
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 
 class ClockActivity: ComponentActivity() {
 
     private val TAG: String = ClockActivity::class.java.getSimpleName()
-
-    //Parameters:
-    private val dayFormat = DateTimeFormatter.ofPattern("E,")
-    private val dateFormat = DateTimeFormatter.ofPattern("dd MMM")
-    private val hourFormat = DateTimeFormatter.ofPattern("HH")
-    private val minsFormat = DateTimeFormatter.ofPattern("mm")
-
-    //Status:
-    private var currentDay = MutableLiveData<String>("Mon,")
-    private var currentDate = MutableLiveData<String>("1 Jan")
-    private var currentHour = MutableLiveData<String>("00")
-    private var currentMins = MutableLiveData<String>("00")
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -106,15 +90,11 @@ class ClockActivity: ComponentActivity() {
 
         //Start personal Receiver:
         val actFilter = IntentFilter()
-        actFilter.addAction(ACTION_TIME_TICK)
         actFilter.addAction(ACTION_FINISH_CLOCK)
 
         //register all the broadcast dynamically in onCreate() so they get activated when app is open and remain in background:
         registerReceiver(clockActReceiver, actFilter, RECEIVER_EXPORTED)
         Log.d(TAG, "ClockActReceiver started.")
-
-        //Start clock:
-        updateDateClock()
     }
 
 
@@ -518,26 +498,13 @@ class ClockActivity: ComponentActivity() {
         utils.openActivity(this, MainActivity::class.java)
     }
 
-    fun updateDateClock() {
-        var now = LocalDateTime.now()
-        currentDay.postValue(now.format(dayFormat))
-        currentDate.postValue(now.format(dateFormat))
-        currentHour.postValue(now.format(hourFormat))
-        currentMins.postValue(now.format(minsFormat))
-    }
-
 
     //PERSONAL RECEIVER:
     var clockActReceiver = object: BroadcastReceiver() {
 
         override fun onReceive(context: Context?, intent: Intent?) {
-            //Update clock (every minute):
-            if (intent!!.action == ACTION_TIME_TICK) {
-                updateDateClock()
-            }
-
             //Finish activity:
-            if (intent.action == ACTION_FINISH_CLOCK) {
+            if (intent!!.action == ACTION_FINISH_CLOCK) {
                 Log.d(TAG, "CLOCK: ACTION_FINISH_CLOCK.")
                 finish()
                 if (clockActive.value!!) {

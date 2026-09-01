@@ -121,8 +121,10 @@ var allowVolumeClick = true   // ensure interval between volume clicks
 var userNicknameUI = MutableLiveData<String>("")
 var spotUserImageState = MutableLiveData<String>("")
 var sharedLink = MutableLiveData<String>("")
-var currentHourMini = MutableLiveData<String>("00")
-var currentMinsMini = MutableLiveData<String>("00")
+var currentDay = MutableLiveData<String>("Mon,")
+var currentDate = MutableLiveData<String>("1 Jan")
+var currentHour = MutableLiveData<String>("00")
+var currentMins = MutableLiveData<String>("00")
 
 //Library & Messages:
 var curLibrarySize = MutableLiveData<Int>(0)

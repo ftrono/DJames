@@ -71,7 +71,7 @@ class Utilities {
 
     // Check if a given number of months are already passed or not:
     fun isTimeElapsed(timestamp: Long, n: Long, unit: String = "months"): Boolean {
-        // TODO: Supported unit: "months", "mins"
+        // TODO: Supported unit: "months", "mins", "seconds"
         val now = System.currentTimeMillis()
         // N in milliseconds (approximation: N months * 30 days * 24 hours * 60 mins * 60 secs * 1000 ms)
         when (unit) {
@@ -82,6 +82,10 @@ class Utilities {
             "mins" -> {
                 val nMinsInMillis = n * 60 * 1000
                 return (now - timestamp) >= nMinsInMillis
+            }
+            "seconds" -> {
+                val nSecsInMillis = n * 1000
+                return (now - timestamp) >= nSecsInMillis
             }
             else -> return false
         }

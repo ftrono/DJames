@@ -9,6 +9,7 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import android.view.MotionEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -59,6 +60,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         acts_active.add(TAG)
+        lastMainActive = utils.getCurrentTimestamp()
         val context = this@MainActivity
 
         installSplashScreen()
@@ -176,13 +178,24 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         mainActive.postValue(true)
         forceUndock.postValue(false)
+        lastMainActive = utils.getCurrentTimestamp()
         super.onStart()
     }
 
     override fun onResume() {
         mainActive.postValue(true)
         forceUndock.postValue(false)
+        lastMainActive = utils.getCurrentTimestamp()
         super.onResume()
+    }
+
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        // Detect user activity:
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+            lastMainActive = utils.getCurrentTimestamp()
+        }
+        return super.dispatchTouchEvent(event)
     }
 
 

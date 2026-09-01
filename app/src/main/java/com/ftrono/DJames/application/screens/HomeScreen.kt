@@ -76,7 +76,7 @@ import com.ftrono.DJames.ui.components.StreetUIScaffold
 import com.ftrono.DJames.ui.navigation.StreetUITopBar
 import com.ftrono.DJames.ui.navigation.UserOptions
 import com.ftrono.DJames.ui.navigation.navigateTo
-import com.ftrono.DJames.ui.selectors.colorSelectorHome
+import com.ftrono.DJames.ui.selectors.colorSelector
 import com.ftrono.DJames.ui.selectors.iconSelector
 import com.ftrono.DJames.ui.theme.NavigationItem
 import kotlin.Boolean
@@ -534,7 +534,7 @@ fun FunctionalArea(
                 cat = cat,
                 navController = navController,
                 iconPainter = iconSelector(cat),
-                backgroundColor = colorSelectorHome(cat),
+                backgroundColor = colorSelector(cat),
                 isLandscape = isLandscape,
                 expandedStates = expandedStates,
                 currentExpanded = currentExpanded,
@@ -657,16 +657,10 @@ fun ContentSection(
                             modifier = Modifier
                                 .fillMaxHeight()
                                 .width(80.dp),
-                            cardColors = CardDefaults.cardColors(
-                                containerColor = colorResource(id = R.color.transparent_full)
-                            ),
-                            source = item.source,
-                            type = item.type,
-                            title = utils.trimString(item.name, 20),
-                            subtitle = utils.trimString(libUtils.getDetail(item), 16),
-                            imageUrl = if (preview) "" else item.imageUrl,
-                            isCollection = item.id == -2L,
-                            fromHome = true,
+                            item = item,
+                            trimChars = 20,
+                            selected = false,
+                            preview = preview,
                             onClick = {
                                 // OPEN LINK:
                                 if (item.source == "contact") {

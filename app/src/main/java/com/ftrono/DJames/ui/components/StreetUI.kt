@@ -68,11 +68,13 @@ import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.ftrono.DJames.R
+import com.ftrono.DJames.application.libUtils
+import com.ftrono.DJames.application.utils
+import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.ui.selectors.colorSelector
 import com.ftrono.DJames.ui.selectors.colorSelectorDark
-import com.ftrono.DJames.ui.selectors.colorSelectorHomeDark
-import com.ftrono.DJames.ui.selectors.colorSelectorHomeLight
 import com.ftrono.DJames.ui.selectors.colorSelectorLight
+import com.ftrono.DJames.ui.selectors.colorSelectorMid
 import com.ftrono.DJames.ui.selectors.iconSelector
 import com.ftrono.DJames.ui.theme.midfaded_grey
 import kotlin.math.absoluteValue
@@ -427,13 +429,13 @@ fun LetterStarter(
     text: String,
     fontSize: TextUnit,
     backgroundColor: Color,
-    borderColor: Color,
+    borderColor: Color? = null,
     fontColor: Color,
 ) {
     //ROUNDED SIGN:
     Card(
         modifier = Modifier,
-        border = BorderStroke(1.5.dp, borderColor),
+        border = if (borderColor == null) null else BorderStroke(1.5.dp, borderColor),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors (
             containerColor = backgroundColor
@@ -666,13 +668,13 @@ fun LibItemCardPreview() {
         modifier = Modifier
             .height(140.dp)
             .width(140.dp),
-        cardColors = CardDefaults.cardColors(
-            containerColor = colorResource(id = R.color.dark_grey_background)
+        item = LibraryItem(
+            source = "spotify",
+            type = "playlist",
+            name = "Item name",
         ),
-        source = "spotify",
-        type = "playlist",
-        title = "Item name",
-        subtitle = "subtitle",
+        preview = true,
+        previewSubtitle = "subtitle",
     )
 }
 
@@ -680,26 +682,25 @@ fun LibItemCardPreview() {
 @Composable
 fun LibItemCard(
     modifier: Modifier = Modifier,
-    cardColors: CardColors,
-    source: String,
-    type: String,
-    title: String,
-    subtitle: String = "",
-    imageUrl: String = "",
-    isCollection: Boolean = false,
-    fromHome: Boolean = false,
+    item: LibraryItem,
+    trimChars: Int = 20,
+    selected: Boolean = false,
+    preview: Boolean = false,
+    previewSubtitle: String = "",
     onClick: () -> Unit = {}
 ) {
+    // Item details:
+    val isCollection = item.id == -2L
+    val title = utils.trimString(item.name, trimChars)
+    val subtitle = utils.trimString(
+        if (previewSubtitle != "") previewSubtitle else libUtils.getDetail(item),
+        trimChars-4
+)
+    val imageUrl = if (preview) "" else item.imageUrl
     val isMultiline = rememberSaveable { mutableStateOf(false) }
-    val cardBorderColor = colorResource(id = R.color.transparent_full)
-    val signBackgroundColor = if (isCollection) {
-        colorResource(R.color.violetSign)
-    } else if (fromHome && source != "spotify") {
-        colorSelectorHomeDark(cat = type)
-    } else colorSelector(cat = type)
-    val signBorderColor = colorResource(id = R.color.transparent_full)   // midfaded_grey
-    val signIconColor = colorResource(id = R.color.light_grey)
-    val circle = type == "artist" || source == "contact"
+    val circle = item.type == "artist" || item.source == "contact"
+
+    // Initials:
     var initials = ""
     if (!isCollection && imageUrl == "") {
         try {
@@ -716,14 +717,28 @@ fun LibItemCard(
             initials.slice(0..1).uppercase()
         }
     }
-    val signIconPainter = if (!isCollection && initials == "") iconSelector(cat = type) else null
+
+    // Resources:
+    val cardBorderColor = colorResource(id = R.color.transparent_full)
+    val signBackgroundColor = if (isCollection) {
+        colorResource(R.color.violetSign)
+    } else colorSelectorDark(cat = item.type)
+    val signBorderColor = colorResource(id = R.color.transparent_full)   // midfaded_grey
+    val signIconColor = colorResource(id = R.color.light_grey)
+    val signIconPainter = if (!isCollection && initials == "") iconSelector(cat = item.type) else null
 
     Card(
         modifier = modifier
             .clickable { onClick() },
         shape = RoundedCornerShape(14.dp),
         border = BorderStroke(1.dp, cardBorderColor),
-        colors = cardColors
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) {
+                colorSelectorMid(item.source)
+            } else {
+                colorResource(id = R.color.transparent_full)
+            }
+        ),
     ) {
         // ROW: INFO + SIGN:
         Column(
@@ -757,12 +772,10 @@ fun LibItemCard(
                     modifier = Modifier,
                     shape = RoundedCornerShape(2.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (source == "spotify") {
-                            colorSelector(type)
-                        } else if (fromHome) {
-                            colorSelectorHomeLight(source)
+                        containerColor = if (item.source == "spotify") {
+                            colorSelector(item.type)
                         } else {
-                            colorSelectorDark(source)
+                            colorSelectorLight(item.source)
                         }
                     ),
                 ) {
@@ -771,8 +784,8 @@ fun LibItemCard(
                         modifier = Modifier
                             .padding(2.dp)
                             .size(12.dp),
-                        painter = if (source == "spotify") iconSelector(type) else iconSelector(source),
-                        contentDescription = type,
+                        painter = if (item.source == "spotify") iconSelector(item.type) else iconSelector(item.source),
+                        contentDescription = item.type,
                         tint = colorResource(R.color.white)
                     )
                 }
@@ -805,7 +818,7 @@ fun LibItemCard(
                     Text(
                         modifier = Modifier,
                         //.padding(top = 2.dp),
-                        color = if (fromHome) colorResource(id = R.color.light_grey) else colorResource(id = R.color.mid_grey),
+                        color = colorResource(id = R.color.light_grey),
                         fontSize = 10.sp,
                         maxLines = 1,
                         lineHeight = 12.sp,

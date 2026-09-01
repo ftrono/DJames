@@ -19,8 +19,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
@@ -43,9 +41,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
@@ -59,7 +54,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.sharedLink
 import com.ftrono.DJames.application.showLoggingIn
 import com.ftrono.DJames.application.spotifyUtils
@@ -68,6 +62,7 @@ import com.ftrono.DJames.ui.selectors.getSwitchColors
 import com.ftrono.DJames.ui.selectors.getTextFieldColors
 import com.ftrono.DJames.ui.selectors.colorSelector
 import com.ftrono.DJames.ui.selectors.colorSelectorLight
+import com.ftrono.DJames.ui.selectors.colorSelectorMid
 import com.ftrono.DJames.ui.selectors.iconSelector
 
 
@@ -212,7 +207,7 @@ fun EditLibDialog(
         shape = RoundedCornerShape(20.dp),
         //border = BorderStroke(2.dp, colorResource(id = R.color.faded_grey)),
         colors = CardDefaults.cardColors (
-            containerColor = colorResource(id = R.color.dark_grey_background)
+            containerColor = colorResource(id = R.color.windowGreyBackground)
         )
     ) {
 
@@ -295,7 +290,7 @@ fun EditLibHeader(
                     .size(if (small) 20.dp else 36.dp),
                 painter = iconSelector(cat=cat),
                 contentDescription = title,
-                tint = if (cat == "spotify") colorSelector(cat=cat) else colorSelectorLight(cat=cat),
+                tint = colorSelectorLight(cat=cat),
             )
             if (subcat != "") {
                 Icon(
@@ -445,7 +440,7 @@ fun AddLinkDialog(
         ) {
             EditLibTitle(
                 title = textBoxHeader,
-                textHeaderColor = colorSelector(cat = cat),
+                textHeaderColor = colorSelectorMid(cat = cat),
             )
 
             OutlinedTextField(
@@ -455,7 +450,7 @@ fun AddLinkDialog(
                     .focusRequester(focusRequester),
                 colors = getTextFieldColors(
                     colorLight = colorSelectorLight("spotify"),
-                    colorDark = colorSelector("spotify")
+                    colorDark = colorSelectorMid("spotify")
                 ),
                 value = textState.value,
                 textStyle = TextStyle(
@@ -501,7 +496,7 @@ fun AddLinkDialog(
                     Switch(
                         checked = useParentState.value,
                         colors = getSwitchColors(
-                            color = colorSelector(cat = cat),
+                            color = colorSelectorMid(cat = cat),
                         ),
                         onCheckedChange = {
                             //UPDATE:

@@ -19,15 +19,6 @@ fun iconSelector(
     cat: String
 ): Painter {
     return when (cat) {
-        // Modes:
-        "mobile" -> painterResource(R.drawable.icon_mobile)
-        "car" -> painterResource(R.drawable.icon_car)
-        // Guide:
-        "info" -> painterResource(R.drawable.icon_fork)
-        "music" -> painterResource(R.drawable.logo_spotify)
-        "phone" -> painterResource(R.drawable.icon_phone)
-        "messages" -> painterResource(R.drawable.icon_message)
-        "gmaps" -> painterResource(R.drawable.logo_gmaps)
         // Library:
         "spotify" -> painterResource(R.drawable.logo_spotify)
         "track" -> painterResource(R.drawable.icon_note)

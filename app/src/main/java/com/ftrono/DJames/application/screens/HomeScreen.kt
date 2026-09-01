@@ -424,7 +424,7 @@ fun ConversationalArea(
                     bottom = 12.dp,
                 ),
             backgroundColor = colorResource(R.color.brownSignDark),
-            iconPainter = painterResource(R.drawable.icon_speak),
+            iconPainter = painterResource(R.drawable.icon_speak_2),
         ) {
             // Intro:
             if (lastUserMsgState!! != "") {

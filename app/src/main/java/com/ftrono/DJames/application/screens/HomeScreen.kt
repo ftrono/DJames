@@ -17,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -135,6 +134,8 @@ fun HomeScreen(
         )
     }
 
+    val leftAreaWidth = 200.dp
+
     StreetUIScaffold(
         modifier = Modifier
             .clickable(
@@ -144,8 +145,7 @@ fun HomeScreen(
             ) {
                 focusManager.clearFocus()
             },
-        hideLine = isLandscape,
-        lineDistance = 20.dp,
+        lineDistance = if (isLandscape) leftAreaWidth + 36.dp + 22.dp else 20.dp,
         topBar = {
             StreetUITopBar(
                 pretitle = "",
@@ -187,16 +187,17 @@ fun HomeScreen(
                             .padding(
                                 top = 12.dp, bottom = 12.dp
                             )
-                            .width(200.dp)
+                            .width(leftAreaWidth)
                             .fillMaxHeight(),
                         isLandscape = true,
                         spotifyLoggedInState = spotifyLoggedInState!!,
                     )
+
                     //Street line canvas:
-                    StreetLine(
+                    Spacer(
                         modifier = Modifier
-                            .padding(start = 12.dp)
-                            .fillMaxHeight()
+                            .padding(start = 12.dp, end=12.dp)
+                            .height(20.dp)
                             .width(20.dp)
                     )
 

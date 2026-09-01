@@ -2,7 +2,6 @@ package com.ftrono.DJames.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,27 +10,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -46,30 +35,23 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.ftrono.DJames.R
-import com.ftrono.DJames.application.libUtils
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.database.LibraryItem
 import com.ftrono.DJames.ui.selectors.colorSelector
@@ -78,7 +60,6 @@ import com.ftrono.DJames.ui.selectors.colorSelectorLight
 import com.ftrono.DJames.ui.selectors.colorSelectorMid
 import com.ftrono.DJames.ui.selectors.iconSelector
 import com.ftrono.DJames.ui.theme.midfaded_grey
-import kotlin.math.absoluteValue
 
 
 // STREET UI LANGUAGE COMPONENTS
@@ -167,155 +148,6 @@ fun CardSign(
     ) {
         content()
     }
-}
-
-
-@Composable
-fun ZebraSign(
-    modifier: Modifier,
-    isLight: Boolean = false,
-    content: @Composable () -> Unit,
-) {
-    Box(
-        modifier = modifier
-            .background(colorResource(if (isLight) R.color.light_grey else R.color.windowBackground)),
-    ) {
-        content()
-    }
-}
-
-
-@Composable
-fun ClickableSignContent(
-    innerPadding: Dp = 8.dp,
-    isLight: Boolean = false,
-    content: @Composable () -> Unit = {}
-) {
-    Row(
-        modifier = Modifier
-            .padding(innerPadding),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        // CONTENT:
-        Column(
-            modifier = Modifier
-                .padding(end = innerPadding)
-                .weight(1F),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.Start
-        ) {
-            content()
-        }
-        // GO ICON:
-        Icon(
-            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-            tint = colorResource(if (isLight) R.color.black else R.color.light_grey),
-            contentDescription = "Go"
-        )
-    }
-}
-
-
-
-@Composable
-fun ClickableCardSign(
-    modifier: Modifier = Modifier,
-    roundedCorners: Dp = 20.dp,
-    backgroundColor: Color = colorResource(id = R.color.dark_grey),
-    borderColor: Color = colorResource(id = R.color.faded_grey),
-    borderWidth: Dp = 1.5.dp,
-    innerPadding: Dp = 8.dp,
-    onClick: () -> Unit = {},
-    content: @Composable () -> Unit = {},
-) {
-    CardSign(
-        modifier = modifier
-            .clickable {
-                onClick()
-            },
-        roundedCorners = roundedCorners,
-        backgroundColor = backgroundColor,
-        borderColor = borderColor,
-        borderWidth = borderWidth,
-    ) {
-        ClickableSignContent(
-            innerPadding = innerPadding,
-            content = content,
-        )
-    }
-}
-
-
-@Composable
-fun ClickableZebraSign(
-    modifier: Modifier = Modifier,
-    isLight: Boolean = false,
-    innerPadding: Dp = 8.dp,
-    onClick: () -> Unit = {},
-    content: @Composable () -> Unit = {},
-) {
-    ZebraSign (
-        modifier = modifier
-            .clickable {
-                onClick()
-            },
-        isLight = isLight,
-    ) {
-        ClickableSignContent(
-            innerPadding = innerPadding,
-            isLight = isLight,
-            content = content,
-        )
-    }
-}
-
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun SignsCarousel(
-    modifier: Modifier = Modifier,
-    items: List<() -> Unit>,
-) {
-    val pagerState = rememberPagerState { items.size }
-
-    Column(
-        modifier
-            .defaultMinSize(minHeight = 300.dp)
-            .fillMaxWidth()
-    ) {
-
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxWidth(),
-            pageSpacing = 10.dp,
-            contentPadding = PaddingValues(horizontal = 30.dp)
-        ) { page ->
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
-                    .graphicsLayer {
-                        val pageOffset =
-                            (pagerState.currentPage - page + pagerState.currentPageOffsetFraction).absoluteValue
-
-                        lerp(
-                            start = 75.dp,
-                            stop = 100.dp,
-                            fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                        ).also { scale ->
-                            scaleY = scale / 100.dp
-                        }
-                    },
-                contentAlignment = Alignment.Center,
-            ) {
-                items[page]()
-            }
-        }
-
-    }
-
 }
 
 
@@ -465,137 +297,6 @@ fun LetterStarter(
                 color = fontColor,
                 fontSize = fontSize,
                 fontWeight = FontWeight.Bold
-            )
-        }
-    }
-}
-
-
-@Preview
-@Composable
-fun GeneralSectionClosedPreview() {
-    GeneralSectionHeader(
-        title = "Title",
-        signColor = colorSelector(cat = "phone"),
-        iconPainter = iconSelector(cat = "phone"),
-        arrowColor = colorSelectorLight(cat = "phone"),
-        expandable = true,
-        isExpanded = false
-    )
-}
-
-
-@Preview
-@Composable
-fun GeneralSectionOpenPreview() {
-    GeneralSectionHeader(
-        title = "Title",
-        subtitle = "Subtitle",
-        signColor = colorSelector(cat = "phone"),
-        iconPainter = iconSelector(cat = "phone"),
-        arrowColor = colorSelectorLight(cat = "phone"),
-        expandable = true,
-        isExpanded = true
-    )
-}
-
-
-@Composable
-fun GeneralSectionHeader(
-    modifier: Modifier = Modifier,
-    title: String,
-    subtitle: String = "",
-    signColor: Color,
-    iconPainter: Painter,
-    arrowColor: Color = colorResource(id = R.color.light_grey),
-    expandable: Boolean = false,
-    isExpanded: Boolean = true
-) {
-
-    //CARD:
-    Card(
-        modifier = modifier
-            .fillMaxWidth(),
-        border = if (isExpanded) null else BorderStroke(1.dp, colorResource(id = R.color.faded_grey)),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors (
-            containerColor = if (isExpanded) colorResource(id = R.color.transparent_bg) else colorResource(id = R.color.dark_grey_background)
-        )
-    ) {
-        SectionTitle(
-            modifier = Modifier
-                .padding(start=6.dp, end=8.dp, top=12.dp, bottom=12.dp),
-            title=title,
-            subtitle=subtitle,
-            signColor = signColor,
-            iconPainter = iconPainter,
-            arrowColor = arrowColor,
-            expandable = expandable,
-            isExpanded = isExpanded
-        )
-    }
-}
-
-
-@Composable
-fun SectionTitle(
-    modifier: Modifier = Modifier,
-    title: String,
-    subtitle: String = "",
-    signColor: Color,
-    iconPainter: Painter? = null,
-    iconVector: ImageVector? = null,
-    arrowColor: Color = colorResource(id = R.color.light_grey),
-    expandable: Boolean = false,
-    isExpanded: Boolean = true
-) {
-    val icon = if (isExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown
-
-    //SECTION HEADER:
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        //ROUNDED SIGN:
-        RoundedSign(
-            signSize = 40.dp,
-            contentSize = 20,
-            backgroundColor = signColor,
-            borderColor = colorResource(id = R.color.mid_grey),
-            contentColor = colorResource(id = R.color.light_grey),
-            iconPainter = iconPainter,
-            iconVector = iconVector,
-        )
-        Column(
-            modifier = Modifier
-                .padding(start = 12.dp)
-                .weight(1f),
-        ) {
-            //CAT TITLE:
-            Text(
-                text = title,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = colorResource(id = R.color.light_grey)
-            )
-            //SUBTITLE:
-            if (subtitle != "") {
-                Text(
-                    text = subtitle,
-                    fontSize = 12.sp,
-                    color = colorResource(id = R.color.mid_grey)
-                )
-            }
-        }
-        //EXPAND/COLLAPSE:
-        if (expandable) {
-            Icon(
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .size(32.dp),
-                imageVector = icon,
-                tint = arrowColor,
-                contentDescription = "Expand / collapse"
             )
         }
     }
@@ -852,39 +553,5 @@ fun LibItemCard(
 
             }
         }
-    }
-}
-
-
-fun Modifier.verticalDottedGridGuides(
-    columns: Int,
-    color: Color,
-    strokeWidth: Dp = 5.dp,
-    dotLength: Dp = 32.dp,
-    gapLength: Dp = 32.dp,
-): Modifier = this.drawBehind {
-    if (columns <= 1) return@drawBehind
-
-    val stroke = strokeWidth.toPx()
-
-    val pathEffect = PathEffect.dashPathEffect(
-        intervals = floatArrayOf(
-            dotLength.toPx(),
-            gapLength.toPx()
-        ),
-        phase = 0f
-    )
-
-    for (i in 1 until columns) {
-        val x = size.width * i / columns
-
-        drawLine(
-            color = color,
-            start = Offset(x, 0f),
-            end = Offset(x, size.height),
-            strokeWidth = stroke,
-            pathEffect = pathEffect,
-            cap = StrokeCap.Round
-        )
     }
 }

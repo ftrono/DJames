@@ -35,7 +35,7 @@ class SpotifyPlayer (private val context: Context) {
         Log.d(TAG, "(FIRST) SESSION STATE: ${sessionState}")
 
         if (sessionState == 200 || sessionState == 204) {
-            if (playable.track == null || playable.track!!.context == null) {
+            if (playable.track == null || playable.context == null) {
                 //If no track or no specific context requested for track -> terminate:
                 return 0
 
@@ -161,15 +161,15 @@ class SpotifyPlayer (private val context: Context) {
                 var contextUri = "$spotIntroUri:album:${playable.track!!.album!!.id}"
 
                 // Else -> Requested context:
-                if (!useAlbum && playable.track!!.context != null) {
+                if (!useAlbum && playable.context != null) {
                     // Use requested track context:
-                    if (playable.track!!.context!!.id == "collection") {
+                    if (playable.context!!.id == "collection") {
                         // Liked Songs collection:
                         contextUri = spotCollectionIntUri.replace("replaceUserId", prefs.spotUserId)
 
-                    } else if (playable.track!!.context!!.id != "") {
+                    } else if (playable.context!!.id != "") {
                         // Playlist:
-                        contextUri = "$spotIntroUri:playlist:${playable.track!!.context!!.id}"
+                        contextUri = "$spotIntroUri:playlist:${playable.context!!.id}"
                     }
                 }
                 jsonBody.addProperty("context_uri", contextUri)

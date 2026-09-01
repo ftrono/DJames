@@ -13,6 +13,7 @@ import com.ftrono.DJames.be.database.SpotifyQueryModel
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import kotlinx.serialization.json.JsonNull
 import me.xdrop.fuzzywuzzy.FuzzySearch
 import kotlin.math.roundToInt
 
@@ -69,77 +70,83 @@ class SpotifySearch(private val context: Context) {
         val allMatches = mutableListOf<SpotifyPlayable>()
         val idsToCheck = mutableListOf<String>()
         for (item in items) {
-            try {
-                var curMatch = SpotifyPlayable()
-                val curJson = item.asJsonObject
+            if (item != null && item::class.simpleName != "JsonNull") {
+                try {
+                    var curMatch = SpotifyPlayable()
+                    val curJson = item.asJsonObject
 
-                // Extract key info:
-                curMatch = spotifyParsers.extractPlayableFromJson(playType, curJson)
-                var stringToMatch = curJson.get("name").asString
-                var detailToMatch = when (playType) {
-                    "track" -> {
-                        curMatch.track!!.artists.joinToString(", ", "", "") { it.name }
+                    // Extract key info:
+                    curMatch = spotifyParsers.extractPlayableFromJson(playType, curJson)
+                    var stringToMatch = curJson.get("name").asString
+                    var detailToMatch = when (playType) {
+                        "track" -> {
+                            curMatch.track!!.artists.joinToString(", ", "", "") { it.name }
+                        }
+
+                        "album" -> {
+                            curMatch.album!!.artists.joinToString(", ", "", "") { it.name }
+                        }
+
+                        "episode" -> {
+                            curMatch.episode!!.podcast!!.name
+                        }
+
+                        else -> ""
                     }
 
-                    "album" -> {
-                        curMatch.album!!.artists.joinToString(", ", "", "") { it.name }
+                    // Clean strings regex:
+                    // \p{L} = any Unicode letter (so you keep accents like é, ñ, ü)
+                    // \p{N} = any Unicode digit
+                    val re = Regex("[^\\p{L}\\p{N} ]")
+
+                    // Calculate similarity:
+                    if (detailName == "") {
+                        // A) Match name & detail together:
+                        // Clean string (remove regex):
+                        stringToMatch = re.replace(stringToMatch, "") +
+                                " " + re.replace(detailToMatch, "")
+                        stringToMatch = stringToMatch.lowercase()
+                        val nameSetSimilarity = FuzzySearch.tokenSetRatio(stringToMatch, matchName)
+                        val namePartialSimilarity =
+                            FuzzySearch.partialRatio(stringToMatch, matchName)
+                        val nameFullSimilarity = FuzzySearch.ratio(stringToMatch, matchName)
+                        curMatch.matchScore = listOf<Int>(
+                            nameSetSimilarity,
+                            namePartialSimilarity,
+                            nameFullSimilarity
+                        ).average().roundToInt()
+
+                    } else {
+                        // B) Match name and detail separately:
+                        // Clean string (remove regex):
+                        stringToMatch = re.replace(stringToMatch.lowercase(), "")
+                        detailToMatch = re.replace(detailToMatch.lowercase(), "")
+                        val nameSetSimilarity = FuzzySearch.tokenSetRatio(stringToMatch, matchName)
+                        val namePartialSimilarity =
+                            FuzzySearch.partialRatio(stringToMatch, matchName)
+                        val nameFullSimilarity = FuzzySearch.ratio(stringToMatch, matchName)
+                        val detailSetSimilarity =
+                            FuzzySearch.tokenSetRatio(detailToMatch, detailName)
+                        val detailPartialSimilarity =
+                            FuzzySearch.partialRatio(detailToMatch, detailName)
+                        curMatch.matchScore = listOf<Int>(
+                            nameSetSimilarity,
+                            namePartialSimilarity,
+                            nameFullSimilarity,
+                            detailSetSimilarity,
+                            detailPartialSimilarity
+                        ).average().roundToInt()
                     }
 
-                    "episode" -> {
-                        curMatch.episode!!.podcast!!.name
+                    // Filter & store:
+                    if (curMatch.matchScore >= minThreshold) {
+                        allMatches.add(curMatch)
+                        idsToCheck.add(curMatch.id)
                     }
 
-                    else -> ""
+                } catch (e: Exception) {
+                    Log.w(TAG, "Error: Spotify match item skipped. ", e)
                 }
-
-                // Clean strings regex:
-                // \p{L} = any Unicode letter (so you keep accents like é, ñ, ü)
-                // \p{N} = any Unicode digit
-                val re = Regex("[^\\p{L}\\p{N} ]")
-
-                // Calculate similarity:
-                if (detailName == "") {
-                    // A) Match name & detail together:
-                    // Clean string (remove regex):
-                    stringToMatch = re.replace(stringToMatch, "") +
-                            " " + re.replace(detailToMatch, "")
-                    stringToMatch = stringToMatch.lowercase()
-                    val nameSetSimilarity = FuzzySearch.tokenSetRatio(stringToMatch, matchName)
-                    val namePartialSimilarity = FuzzySearch.partialRatio(stringToMatch, matchName)
-                    val nameFullSimilarity = FuzzySearch.ratio(stringToMatch, matchName)
-                    curMatch.matchScore = listOf<Int>(
-                        nameSetSimilarity,
-                        namePartialSimilarity,
-                        nameFullSimilarity
-                    ).average().roundToInt()
-
-                } else {
-                    // B) Match name and detail separately:
-                    // Clean string (remove regex):
-                    stringToMatch = re.replace(stringToMatch.lowercase(), "")
-                    detailToMatch = re.replace(detailToMatch.lowercase(), "")
-                    val nameSetSimilarity = FuzzySearch.tokenSetRatio(stringToMatch, matchName)
-                    val namePartialSimilarity = FuzzySearch.partialRatio(stringToMatch, matchName)
-                    val nameFullSimilarity = FuzzySearch.ratio(stringToMatch, matchName)
-                    val detailSetSimilarity = FuzzySearch.tokenSetRatio(detailToMatch, detailName)
-                    val detailPartialSimilarity = FuzzySearch.partialRatio(detailToMatch, detailName)
-                    curMatch.matchScore = listOf<Int>(
-                        nameSetSimilarity,
-                        namePartialSimilarity,
-                        nameFullSimilarity,
-                        detailSetSimilarity,
-                        detailPartialSimilarity
-                    ).average().roundToInt()
-                }
-
-                // Filter & store:
-                if (curMatch.matchScore >= minThreshold) {
-                    allMatches.add(curMatch)
-                    idsToCheck.add(curMatch.id)
-                }
-
-            } catch (e: Exception) {
-                Log.w(TAG, "Error: Spotify match item skipped. ", e)
             }
         }
 

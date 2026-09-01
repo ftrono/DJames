@@ -393,7 +393,7 @@ class OverlayService : Service () {
 
         // Animating the horizontal offset based on the state
         val rightPadding by animateDpAsState(targetValue = if (
-            clickCounterState!! > 0 && overlayPosState == "Right" && sourceIsVolumeState!!
+            clickCounterState!! > 0 && !overlayDockedState && sourceIsVolumeState!! && overlayPosState == "Right"
         ) (70.dp) else 0.dp)
 
         OverlayBubble(

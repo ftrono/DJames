@@ -92,8 +92,8 @@ class Utilities {
     }
 
     // Build user greeting:
-    fun getTimeOfDay(): String {
-        val hour = LocalDateTime.now().hour
+    fun getTimeOfDay(inHour: Int? = null): String {
+        val hour = inHour ?: LocalDateTime.now().hour
         return when {
             (hour < 6) -> "night"
             (hour < 13) -> "morning"

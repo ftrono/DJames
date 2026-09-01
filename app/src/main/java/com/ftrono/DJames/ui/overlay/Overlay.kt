@@ -15,6 +15,8 @@ import com.ftrono.DJames.application.currentMins
 import com.ftrono.DJames.application.overlayOptionsStr
 import com.ftrono.DJames.application.prefs
 import com.ftrono.DJames.application.sourceIsVolume
+import com.ftrono.DJames.application.timeOfDay
+import com.ftrono.DJames.application.utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -44,6 +46,7 @@ class Overlay() {
         currentDate.postValue(now.format(dateFormat))
         currentHour.postValue(now.format(hourFormat))
         currentMins.postValue(now.format(minsFormat))
+        timeOfDay.postValue(utils.getTimeOfDay(now.hour))
     }
 
     // COUNTDOWN FUNCTIONS:

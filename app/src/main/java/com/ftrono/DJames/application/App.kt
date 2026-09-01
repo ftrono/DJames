@@ -34,7 +34,7 @@ import java.io.File
 val prefs: Prefs by lazy {
     App.prefs!!
 }
-val appVersion = "3.1.1"
+val appVersion = "3.1.2"
 val copyrightYear = 2024
 
 //DB:
@@ -91,6 +91,7 @@ var curNavId = 0
 var lastNavRoute = "home"
 var lastMainActive = 0L
 var lastSnapshot = MutableLiveData<Long>(0L)
+var timeOfDay = MutableLiveData<String>("")
 var permsRequested = MutableLiveData<Boolean>(false)
 var spotifyLoggedIn = MutableLiveData<Boolean>(false)
 var spotUserName = MutableLiveData<String>("")

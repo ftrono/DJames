@@ -65,6 +65,7 @@ import com.ftrono.DJames.application.userGender
 import com.ftrono.DJames.application.spotUserName
 import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.application.libUtils
+import com.ftrono.DJames.application.timeOfDay
 import com.ftrono.DJames.application.userNicknameUI
 import com.ftrono.DJames.ui.components.ExpandableCard
 import com.ftrono.DJames.ui.components.ExtServiceLoginButton
@@ -285,9 +286,10 @@ fun HomeIntroText(
 ) {
     val userNameState by userNicknameUI.observeAsState()
     val genderState by userGender.observeAsState()
+    val timeOfDayState by timeOfDay.observeAsState()
 
     Text(
-        text = "Good ${utils.getTimeOfDay()},",
+        text = "Good $timeOfDayState,",
         fontSize = 24.sp,
         fontWeight = FontWeight.Bold,
         color = colorResource(id = R.color.light_grey),

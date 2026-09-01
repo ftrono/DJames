@@ -29,6 +29,8 @@ import com.ftrono.DJames.application.screens.HomeScreen
 import com.ftrono.DJames.application.screens.SettingsScreen
 import com.ftrono.DJames.application.screens.LibraryScreen
 import com.ftrono.DJames.application.screens.MessagesScreen
+import com.ftrono.DJames.application.timeOfDay
+import com.ftrono.DJames.application.utils
 import com.ftrono.DJames.be.agents.chat.ChatManager
 import com.ftrono.DJames.ui.theme.NavigationItem
 
@@ -71,6 +73,7 @@ fun Navigation(
             }) {
             curNavId = 1
             extraOpen.postValue(false)
+            timeOfDay.postValue(utils.getTimeOfDay())
             HomeScreen(navController, preview)
         }
 

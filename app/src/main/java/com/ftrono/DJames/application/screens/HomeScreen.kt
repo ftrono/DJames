@@ -609,13 +609,14 @@ fun ContentSection(
             Text(
                 modifier = Modifier
                     .weight(1F),
-                text = if (recentItems.isEmpty()) {
-                    "No recent activity"
-                } else if (cat == "spotify") {
-                    "Recently listened"
-                } else {
-                    "Recently used"
-                },
+                text = "Saved items",
+//                text = if (recentItems.isEmpty()) {
+//                    "No recent activity"
+//                } else if (cat == "spotify") {
+//                    "Recently listened"
+//                } else {
+//                    "Recently used"
+//                },
                 fontSize = 14.sp,
                 // fontWeight = FontWeight.Light,
                 color = colorResource(id = R.color.light_grey),
@@ -626,7 +627,7 @@ fun ContentSection(
                     modifier = Modifier,
                     backgroundColor = colorResource(R.color.faded_grey),
                     loggedInState = spotifyLoggedInState,
-                    label = "Manage",
+                    label = "Account",
                     showIcon = false,
                     onClick = {
                         val curNavRoute = NavigationItem.Accounts.route
